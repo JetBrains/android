@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
-  name = "android-apkanalyzer-gradle_resources",
+  name = "gradle_resources",
   files = glob(["src/META-INF/**/*"]),
   strip_prefix = "src"
 )
 
 jvm_library(
-  name = "android-apkanalyzer-gradle",
+  name = "gradle",
   module_name = "intellij.android.apkanalyzer.gradle",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -23,6 +23,6 @@ jvm_library(
     "//platform/analysis-api:analysis",
     "//platform/util",
   ],
-  runtime_deps = [":android-apkanalyzer-gradle_resources"]
+  runtime_deps = [":gradle_resources"]
 )
 ### auto-generated section `build intellij.android.apkanalyzer.gradle` end

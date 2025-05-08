@@ -2,8 +2,13 @@
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
+java_library(
+  name = "sdk",
+  visibility = ["//visibility:public"]
+)
+
 jvm_library(
-  name = "core-sdk_test_lib",
+  name = "sdk_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = ["//android/android:core"],
@@ -33,7 +38,7 @@ jvm_library(
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//java/openapi:java",
     "//java/debugger/openapi:java-debugger",
-    "//java/debugger/impl:java-debugger-impl",
+    "//java/debugger/impl",
     "//java/java-frontback-psi-api:frontback-psi",
     "//java/java-frontback-psi-impl:frontback-psi-impl",
     "//java/testFramework",
@@ -56,13 +61,13 @@ jvm_library(
     "//platform/util",
     "//platform/util/base",
     "//platform/util:util-ui",
-    "//plugins/kotlin/base/facet:kotlin-base-facet",
+    "//plugins/kotlin/base/facet",
     "@lib//:jaxb-api",
   ]
 )
 
 jvm_test(
-  name = "core-sdk_test",
-  runtime_deps = [":core-sdk_test_lib"]
+  name = "sdk_test",
+  runtime_deps = [":sdk_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.sdk` end

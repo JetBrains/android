@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
-  name = "android-native-symbolizer-gradle_resources",
+  name = "gradle_resources",
   files = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
 jvm_library(
-  name = "android-native-symbolizer-gradle",
+  name = "gradle",
   module_name = "intellij.android.native-symbolizer.gradle",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -26,6 +26,6 @@ jvm_library(
     "//platform/projectModel-api:projectModel",
     "//platform/util",
   ],
-  runtime_deps = [":android-native-symbolizer-gradle_resources"]
+  runtime_deps = [":gradle_resources"]
 )
 ### auto-generated section `build intellij.android.native-symbolizer.gradle` end

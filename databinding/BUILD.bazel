@@ -60,8 +60,8 @@ jvm_library(
     "//xml/dom-impl",
     "//xml/xml-psi-api:psi",
     "//xml/xml-psi-impl:psi-impl",
-    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
-    "//plugins/kotlin/base/util:kotlin-base-util",
+    "//plugins/kotlin/base/project-structure",
+    "//plugins/kotlin/base/util",
   ],
   runtime_deps = [":databinding_resources"]
 )
@@ -137,13 +137,13 @@ jvm_library(
     "//platform/util/base",
     "//platform/util:util-ui",
     "//xml/xml-psi-api:psi",
-    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
-    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure_test_lib",
-    "//plugins/kotlin/base/util:kotlin-base-util",
-    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
-    "//android/databinding/gradle:android-databinding-gradle",
+    "//plugins/kotlin/base/project-structure",
+    "//plugins/kotlin/base/project-structure:project-structure_test_lib",
+    "//plugins/kotlin/base/util",
+    "//plugins/kotlin/base/util:util_test_lib",
+    "//plugins/kotlin/base/plugin",
+    "//plugins/kotlin/base/plugin:plugin_test_lib",
+    "//android/databinding/gradle",
   ],
   runtime_deps = [":databinding-tests_test_resources"]
 )

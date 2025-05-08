@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
-  name = "android-designer-customview_resources",
+  name = "customview_resources",
   files = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
 jvm_library(
-  name = "android-designer-customview",
+  name = "customview",
   module_name = "intellij.android.designer.customview",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -47,7 +47,7 @@ jvm_library(
     "//platform/util:util-ui",
     "//xml/xml-psi-api:psi",
   ],
-  runtime_deps = [":android-designer-customview_resources"]
+  runtime_deps = [":customview_resources"]
 )
 ### auto-generated section `build intellij.android.designer.customview` end
 
@@ -83,7 +83,7 @@ jvm_library(
     "//android/android:core",
     "//android/designer",
     "//android/designer:designer_test_lib",
-    "//android/designer/customview:android-designer-customview",
+    "//android/designer/customview",
     "//android/preview-designer",
     "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",

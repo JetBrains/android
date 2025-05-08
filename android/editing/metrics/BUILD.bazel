@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
-  name = "android-core-editing-metrics_resources",
+  name = "metrics_resources",
   files = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
 jvm_library(
-  name = "android-core-editing-metrics",
+  name = "metrics",
   module_name = "intellij.android.core.editing.metrics",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -22,14 +22,14 @@ jvm_library(
     "@lib//:kotlinx-datetime-jvm",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
   ],
-  runtime_deps = [":android-core-editing-metrics_resources"]
+  runtime_deps = [":metrics_resources"]
 )
 
 jvm_library(
-  name = "android-core-editing-metrics_test_lib",
+  name = "metrics_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
-  associates = [":android-core-editing-metrics"],
+  associates = [":metrics"],
   deps = [
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
@@ -50,11 +50,11 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
   ],
-  runtime_deps = [":android-core-editing-metrics_resources"]
+  runtime_deps = [":metrics_resources"]
 )
 
 jvm_test(
-  name = "android-core-editing-metrics_test",
-  runtime_deps = [":android-core-editing-metrics_test_lib"]
+  name = "metrics_test",
+  runtime_deps = [":metrics_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.editing.metrics` end

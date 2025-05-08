@@ -14,7 +14,7 @@ jvm_library(
     "@lib//:truth",
     "//android/android:core",
     "//android/intellij.android.testutils:testutils_test_lib",
-    "//android/as-driver/utils:android-as-driver-utils_test_lib",
+    "//android/as-driver/utils:utils_test_lib",
   ]
 )
 

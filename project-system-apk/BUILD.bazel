@@ -20,7 +20,7 @@ jvm_library(
     "//android/android-common:common",
     "//android/android:core",
     "//android/deploy",
-    "//android/execution/common:android-execution-common",
+    "//android/execution/common",
     "//android/streaming",
     "//platform/core-api:core",
     "//platform/core-ui",

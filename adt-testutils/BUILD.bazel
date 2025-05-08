@@ -37,12 +37,12 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
+    "//plugins/kotlin/base/plugin",
+    "//plugins/kotlin/base/plugin:plugin_test_lib",
   ],
   runtime_deps = [
-    "//android/design-plugin/descriptor:android-design-plugin-descriptor",
-    "//android/android-plugin/descriptor:android-plugin-descriptor",
+    "//android/design-plugin/descriptor",
+    "//android/android-plugin/descriptor",
     "@lib//:opentest4j",
   ]
 )

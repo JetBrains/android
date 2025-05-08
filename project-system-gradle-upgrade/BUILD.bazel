@@ -119,8 +119,8 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
-    "//plugins/kotlin/base/util:kotlin-base-util",
-    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
+    "//plugins/kotlin/base/util",
+    "//plugins/kotlin/base/util:util_test_lib",
   ],
   runtime_deps = ["//android/gradle-dsl-kotlin"]
 )

@@ -36,11 +36,6 @@ jvm_library(
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
-java_library(
-  name = "wizard-tests",
-  visibility = ["//visibility:public"]
-)
-
 jvm_library(
   name = "wizard-tests_test_lib",
   visibility = ["//visibility:public"],

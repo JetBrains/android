@@ -2,19 +2,19 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
-  name = "android-app-inspection-ide_resources",
+  name = "ide_resources",
   files = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
 jvm_resources(
-  name = "android-app-inspection-ide_test_resources",
+  name = "ide_test_resources",
   files = glob(["testData/**/*"]),
   strip_prefix = "testData"
 )
 
 jvm_library(
-  name = "android-app-inspection-ide",
+  name = "ide",
   module_name = "intellij.android.app-inspection.ide",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -29,14 +29,14 @@ jvm_library(
     "//android/adt-ui",
     "//android/adt-ui-model",
     "//android/analytics",
-    "//android/app-inspection/api:android-app-inspection-api",
-    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
-    "//android/app-inspection/inspector/ide:android-app-inspection-inspector-ide",
+    "//android/app-inspection/api",
+    "//android/app-inspection/inspector/api",
+    "//android/app-inspection/inspector/ide",
     "//android/artwork",
     "//android/android-common:common",
     "//android/android:core",
     "//android/deploy",
-    "//android/execution/common:android-execution-common",
+    "//android/execution/common",
     "//android/project-system:projectSystem",
     "//android/android-transport:transport",
     "//java/java-psi-api:psi",
@@ -56,7 +56,7 @@ jvm_library(
     "//platform/util-ex",
     "//platform/util:util-ui",
   ],
-  runtime_deps = [":android-app-inspection-ide_resources"]
+  runtime_deps = [":ide_resources"]
 )
 ### auto-generated section `build intellij.android.app-inspection.ide` end
 
@@ -89,18 +89,18 @@ jvm_library(
     "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-model",
     "//android/adt-ui-model:adt-ui-model_test_lib",
-    "//android/app-inspection/api:android-app-inspection-api",
-    "//android/app-inspection/api:android-app-inspection-api_test_lib",
-    "//android/app-inspection/ide:android-app-inspection-ide",
-    "//android/app-inspection/ide/gradle:android-app-inspection-ide-gradle",
-    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
-    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api_test_lib",
-    "//android/app-inspection/inspector/ide:android-app-inspection-inspector-ide",
+    "//android/app-inspection/api",
+    "//android/app-inspection/api:api_test_lib",
+    "//android/app-inspection/ide",
+    "//android/app-inspection/ide/gradle",
+    "//android/app-inspection/inspector/api",
+    "//android/app-inspection/inspector/api:api_test_lib",
+    "//android/app-inspection/inspector/ide",
     "//android/android-common:common",
     "//android/android:core",
     "//android/deploy",
     "//android/deploy:deploy_test_lib",
-    "//android/execution/common:android-execution-common",
+    "//android/execution/common",
     "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/sdk-updates:sdkUpdates",

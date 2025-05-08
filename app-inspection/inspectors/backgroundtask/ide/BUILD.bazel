@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
-  name = "android-app-inspection-inspectors-backgroundtask-ide_resources",
+  name = "ide_resources",
   files = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
 jvm_library(
-  name = "android-app-inspection-inspectors-backgroundtask-ide",
+  name = "ide",
   module_name = "intellij.android.app-inspection.inspectors.backgroundtask.ide",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -17,16 +17,16 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
     "//android/adt-ui-model",
-    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
-    "//android/app-inspection/inspector/ide:android-app-inspection-inspector-ide",
-    "//android/app-inspection/inspectors/backgroundtask/model:android-app-inspection-inspectors-backgroundtask-model",
-    "//android/app-inspection/inspectors/backgroundtask/view:android-app-inspection-inspectors-backgroundtask-view",
+    "//android/app-inspection/inspector/api",
+    "//android/app-inspection/inspector/ide",
+    "//android/app-inspection/inspectors/backgroundtask/model",
+    "//android/app-inspection/inspectors/backgroundtask/view",
     "//android/artwork",
     "//android/codenavigation",
     "//android/android-common:common",
-    "//android/inspectors-common/api:android-inspectors-common-api",
-    "//android/inspectors-common/api-ide:android-inspectors-common-api-ide",
-    "//android/inspectors-common/ui:android-inspectors-common-ui",
+    "//android/inspectors-common/api",
+    "//android/inspectors-common/api-ide",
+    "//android/inspectors-common/ui",
     "//android/native-symbolizer",
     "//platform/core-api:core",
     "//platform/extensions",
@@ -34,6 +34,6 @@ jvm_library(
     "//platform/util",
     "//platform/util:util-ui",
   ],
-  runtime_deps = [":android-app-inspection-inspectors-backgroundtask-ide_resources"]
+  runtime_deps = [":ide_resources"]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.ide` end

@@ -89,8 +89,8 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/common",
     "//platform/util",
-    "//plugins/kotlin/project-wizard/core:kotlin-project-wizard-core",
-    "//plugins/kotlin/project-wizard/core:kotlin-project-wizard-core_test_lib",
+    "//plugins/kotlin/project-wizard/core",
+    "//plugins/kotlin/project-wizard/core:core_test_lib",
     "//android/gradle-dsl-declarative",
     "//android/lint:lint-common",
     "//android/gradle-declarative-lang-ide",
@@ -100,7 +100,7 @@ jvm_library(
     "//platform/external-system-impl:externalSystem-tests_test_lib",
     "//platform/backend/workspace",
     "//plugins/gradle",
-    "//plugins/kotlin/plugin/k1:kotlin-plugin-k1",
+    "//plugins/kotlin/plugin/k1",
   ]
 )
 

@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
-  name = "android-app-inspection-inspectors-backgroundtask-view_resources",
+  name = "view_resources",
   files = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
 jvm_library(
-  name = "android-app-inspection-inspectors-backgroundtask-view",
+  name = "view",
   module_name = "intellij.android.app-inspection.inspectors.backgroundtask.view",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -21,14 +21,14 @@ jvm_library(
     "@lib//:protobuf",
     "//android/adt-ui",
     "//android/adt-ui-model",
-    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
-    "//android/app-inspection/inspector/ide:android-app-inspection-inspector-ide",
-    "//android/app-inspection/inspectors/backgroundtask/model:android-app-inspection-inspectors-backgroundtask-model",
+    "//android/app-inspection/inspector/api",
+    "//android/app-inspection/inspector/ide",
+    "//android/app-inspection/inspectors/backgroundtask/model",
     "//android/artwork",
     "//android/codenavigation",
     "//android/android-common:common",
-    "//android/inspectors-common/api:android-inspectors-common-api",
-    "//android/inspectors-common/ui:android-inspectors-common-ui",
+    "//android/inspectors-common/api",
+    "//android/inspectors-common/ui",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//platform/core-api:core",
     "//platform/core-ui",
@@ -42,7 +42,7 @@ jvm_library(
     "//platform/util/base",
     "//platform/util-rt",
   ],
-  runtime_deps = [":android-app-inspection-inspectors-backgroundtask-view_resources"]
+  runtime_deps = [":view_resources"]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.view` end
 
@@ -77,20 +77,20 @@ jvm_library(
     "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-model",
     "//android/adt-ui-model:adt-ui-model_test_lib",
-    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
-    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api_test_lib",
-    "//android/app-inspection/inspectors/backgroundtask/ide:android-app-inspection-inspectors-backgroundtask-ide",
-    "//android/app-inspection/inspectors/backgroundtask/model:android-app-inspection-inspectors-backgroundtask-model",
-    "//android/app-inspection/inspectors/backgroundtask/model:android-app-inspection-inspectors-backgroundtask-model_test_lib",
-    "//android/app-inspection/inspectors/backgroundtask/view:android-app-inspection-inspectors-backgroundtask-view",
+    "//android/app-inspection/inspector/api",
+    "//android/app-inspection/inspector/api:api_test_lib",
+    "//android/app-inspection/inspectors/backgroundtask/ide",
+    "//android/app-inspection/inspectors/backgroundtask/model",
+    "//android/app-inspection/inspectors/backgroundtask/model:model_test_lib",
+    "//android/app-inspection/inspectors/backgroundtask/view",
     "//android/artwork",
     "//android/codenavigation",
     "//android/codenavigation:codenavigation_test_lib",
     "//android/android-common:common",
-    "//android/inspectors-common/api:android-inspectors-common-api",
-    "//android/inspectors-common/api:android-inspectors-common-api_test_lib",
-    "//android/inspectors-common/ui:android-inspectors-common-ui",
-    "//android/inspectors-common/ui:android-inspectors-common-ui_test_lib",
+    "//android/inspectors-common/api",
+    "//android/inspectors-common/api:api_test_lib",
+    "//android/inspectors-common/ui",
+    "//android/inspectors-common/ui:ui_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//platform/util/concurrency",

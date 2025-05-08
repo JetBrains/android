@@ -3,7 +3,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 jvm_library(
-  name = "core-diagnostics_test_lib",
+  name = "diagnostics_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   associates = ["//android/android:core"],
@@ -36,13 +36,13 @@ jvm_library(
     "//java/testFramework",
     "@lib//:guava",
     "@lib//:http-client",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
+    "//plugins/kotlin/base/plugin",
+    "//plugins/kotlin/base/plugin:plugin_test_lib",
   ]
 )
 
 jvm_test(
-  name = "core-diagnostics_test",
-  runtime_deps = [":core-diagnostics_test_lib"]
+  name = "diagnostics_test",
+  runtime_deps = [":diagnostics_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.diagnostics` end

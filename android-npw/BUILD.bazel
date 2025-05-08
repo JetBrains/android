@@ -31,7 +31,7 @@ jvm_library(
     "//android/build-common:buildCommon",
     "//android/android-common:common",
     "//android/android:core",
-    "//android/execution/common:android-execution-common",
+    "//android/execution/common",
     "//android/gradle-dsl",
     "//android/jps-model",
     "//android/lint:lint-common",
@@ -58,7 +58,7 @@ jvm_library(
     "//xml/xml-frontback-impl:frontback-impl",
     "//xml/dom-openapi:dom",
     "//plugins/kotlin/base/resources:kotlin-base-resources",
-    "//plugins/kotlin/gradle/gradle-tooling/impl:kotlin-gradle-gradle-tooling-impl",
+    "//plugins/kotlin/gradle/gradle-tooling/impl",
   ],
   runtime_deps = [":newProjectWizard_resources"]
 )
@@ -139,8 +139,8 @@ jvm_library(
     "//platform/util:util-ui",
     "//xml/dom-openapi:dom",
     "@lib//:mockito-kotlin",
-    "//plugins/kotlin/gradle/gradle-tooling/impl:kotlin-gradle-gradle-tooling-impl",
-    "//plugins/kotlin/gradle/gradle-tooling/impl:kotlin-gradle-gradle-tooling-impl_test_lib",
+    "//plugins/kotlin/gradle/gradle-tooling/impl",
+    "//plugins/kotlin/gradle/gradle-tooling/impl:impl_test_lib",
   ],
   runtime_deps = [
     ":newProjectWizard-tests_test_resources",

@@ -9,13 +9,13 @@ java_library(
     "@lib//:layoutlib",
     "//android/compose-designer",
     "//android/designer",
-    "//android/designer/customview:android-designer-customview",
+    "//android/designer/customview",
     "//android/glance-designer",
     "//android/layoutlib",
-    "//android/nav/editor:android-nav-editor",
+    "//android/nav/editor",
     "//android/wear-designer",
-    "//android/design-plugin/descriptor:android-design-plugin-descriptor",
-    "//android/nav/editor/gradle:android-nav-editor-gradle",
+    "//android/design-plugin/descriptor",
+    "//android/nav/editor/gradle",
     "//android/motion-editor",
   ]
 )

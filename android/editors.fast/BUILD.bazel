@@ -3,7 +3,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 jvm_library(
-  name = "core-editors-fast_test_lib",
+  name = "editors.fast_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
@@ -25,18 +25,18 @@ jvm_library(
     "//platform/util",
     "//platform/util/base",
     "//platform/util-ex",
-    "//plugins/kotlin/base/util:kotlin-base-util",
-    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
+    "//plugins/kotlin/base/util",
+    "//plugins/kotlin/base/util:util_test_lib",
     "//java/testFramework",
     "//android/preview-fast-compile",
     "//android/adt-testutils:adt-testutils_test_lib",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
+    "//plugins/kotlin/base/plugin",
+    "//plugins/kotlin/base/plugin:plugin_test_lib",
   ]
 )
 
 jvm_test(
-  name = "core-editors-fast_test",
-  runtime_deps = [":core-editors-fast_test_lib"]
+  name = "editors.fast_test",
+  runtime_deps = [":editors.fast_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.editors.fast` end

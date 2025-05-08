@@ -10,8 +10,13 @@ kt_javac_options(
   add_exports = ["jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"]
 )
 
+java_library(
+  name = "rendering",
+  visibility = ["//visibility:public"]
+)
+
 jvm_library(
-  name = "core-rendering_test_lib",
+  name = "rendering_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   javac_opts = ":custom-javac-options",
@@ -67,7 +72,7 @@ jvm_library(
 )
 
 jvm_test(
-  name = "core-rendering_test",
-  runtime_deps = [":core-rendering_test_lib"]
+  name = "rendering_test",
+  runtime_deps = [":rendering_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.rendering` end

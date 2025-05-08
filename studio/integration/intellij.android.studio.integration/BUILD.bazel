@@ -15,7 +15,7 @@ jvm_library(
     "@lib//:commons-io",
     "@lib//:http-client",
     "@lib//:truth",
-    "//android/as-driver/utils:android-as-driver-utils_test_lib",
+    "//android/as-driver/utils:utils_test_lib",
     "//platform/util",
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",

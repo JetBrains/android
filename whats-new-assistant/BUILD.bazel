@@ -20,7 +20,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:protobuf",
-    "//android/app-inspection/ide:android-app-inspection-ide",
+    "//android/app-inspection/ide",
     "//android/assistant",
     "//android/build-attribution",
     "//android/android-common:common",

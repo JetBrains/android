@@ -42,7 +42,7 @@ jvm_library(
     "//plugins/gradle:gradle-common",
     "//plugins/gradle/tooling-extension-api:toolingExtension",
     "//java/compiler/openapi:java-compiler",
-    "//java/compiler/impl:java-compiler-impl",
+    "//java/compiler/impl",
     "//java/java-frontback-psi-api:frontback-psi",
     "//platform/forms_rt:java-guiForms-rt",
     "//java/idea-ui:ui",

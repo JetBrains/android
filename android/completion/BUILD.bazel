@@ -3,12 +3,12 @@ load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 java_library(
-  name = "core-completion",
+  name = "completion",
   visibility = ["//visibility:public"]
 )
 
 jvm_library(
-  name = "core-completion_test_lib",
+  name = "completion_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
@@ -28,7 +28,7 @@ jvm_library(
 )
 
 jvm_test(
-  name = "core-completion_test",
-  runtime_deps = [":core-completion_test_lib"]
+  name = "completion_test",
+  runtime_deps = [":completion_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.completion` end

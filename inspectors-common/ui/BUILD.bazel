@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
-  name = "android-inspectors-common-ui_test_resources",
+  name = "ui_test_resources",
   files = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
 jvm_library(
-  name = "android-inspectors-common-ui",
+  name = "ui",
   module_name = "intellij.android.inspectors-common.ui",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -20,7 +20,7 @@ jvm_library(
     "//android/adt-ui-model",
     "//android/android-common:common",
     "//android/codenavigation",
-    "//android/inspectors-common/api:android-inspectors-common-api",
+    "//android/inspectors-common/api",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//platform/analysis-api:analysis",
     "//platform/core-api:core",
@@ -36,10 +36,10 @@ jvm_library(
 )
 
 jvm_library(
-  name = "android-inspectors-common-ui_test_lib",
+  name = "ui_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
-  associates = [":android-inspectors-common-ui"],
+  associates = [":ui"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -55,8 +55,8 @@ jvm_library(
     "//android/android-common:common",
     "//android/codenavigation",
     "//android/codenavigation:codenavigation_test_lib",
-    "//android/inspectors-common/api:android-inspectors-common-api",
-    "//android/inspectors-common/api:android-inspectors-common-api_test_lib",
+    "//android/inspectors-common/api",
+    "//android/inspectors-common/api:api_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//platform/analysis-api:analysis",
     "//platform/core-api:core",
@@ -75,11 +75,11 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
   ],
-  runtime_deps = [":android-inspectors-common-ui_test_resources"]
+  runtime_deps = [":ui_test_resources"]
 )
 
 jvm_test(
-  name = "android-inspectors-common-ui_test",
-  runtime_deps = [":android-inspectors-common-ui_test_lib"]
+  name = "ui_test",
+  runtime_deps = [":ui_test_lib"]
 )
 ### auto-generated section `build intellij.android.inspectors-common.ui` end

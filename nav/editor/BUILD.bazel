@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
-  name = "android-nav-editor_resources",
+  name = "editor_resources",
   files = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
 jvm_library(
-  name = "android-nav-editor",
+  name = "editor",
   module_name = "intellij.android.nav.editor",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -57,10 +57,10 @@ jvm_library(
     "//platform/util:util-ui",
     "//xml/dom-openapi:dom",
     "//xml/xml-psi-api:psi",
-    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
-    "//plugins/kotlin/base/util:kotlin-base-util",
+    "//plugins/kotlin/base/project-structure",
+    "//plugins/kotlin/base/util",
   ],
-  runtime_deps = [":android-nav-editor_resources"]
+  runtime_deps = [":editor_resources"]
 )
 ### auto-generated section `build intellij.android.nav.editor` end
 
@@ -72,7 +72,7 @@ jvm_library(
   name = "android-nav-editor-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
-  associates = ["//android/nav/editor:android-nav-editor"],
+  associates = ["//android/nav/editor"],
   deps = [
     "@lib//:studio-platform",
     "@lib//:studio-test-platform",

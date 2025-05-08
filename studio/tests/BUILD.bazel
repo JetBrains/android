@@ -2,8 +2,13 @@
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
+java_library(
+  name = "tests",
+  visibility = ["//visibility:public"]
+)
+
 jvm_library(
-  name = "android-studio-tests_test_lib",
+  name = "tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
@@ -17,7 +22,7 @@ jvm_library(
 )
 
 jvm_test(
-  name = "android-studio-tests_test",
-  runtime_deps = [":android-studio-tests_test_lib"]
+  name = "tests_test",
+  runtime_deps = [":tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.studio.tests` end

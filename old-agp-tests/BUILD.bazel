@@ -20,7 +20,7 @@ jvm_library(
     "//android/android:core",
     "//android/deploy",
     "//android/deploy:deploy_test_lib",
-    "//android/execution/common:android-execution-common",
+    "//android/execution/common",
     "//android/jps-model",
     "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",

@@ -33,7 +33,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util/text-matching",
     "//platform/util:util-ui",
-    "//platform/platform-impl/ui:ide-ui",
+    "//platform/platform-impl/ui",
     "@lib//:fastutil-min",
   ]
 )
@@ -84,7 +84,7 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/common",
     "//platform/util/jdom",
-    "//platform/platform-impl/ui:ide-ui",
+    "//platform/platform-impl/ui",
     "@lib//:fastutil-min",
   ],
   runtime_deps = [":layout-ui_test_resources"]

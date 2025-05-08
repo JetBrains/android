@@ -26,7 +26,7 @@ jvm_library(
     "//platform/util",
     "//platform/util/base",
     "//platform/util-rt",
-    "//plugins/kotlin/base/psi:kotlin-base-psi",
+    "//plugins/kotlin/base/psi",
   ],
   runtime_deps = [":gradle-dsl-kotlin_resources"]
 )

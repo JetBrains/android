@@ -19,15 +19,15 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
-    "//platform/build-scripts/downloader:buildScripts-downloader",
+    "//platform/build-scripts/downloader",
     "//platform/core-api:core",
     "//platform/core-ui",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",
     "//platform/util/base",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin",
-    "//plugins/kotlin/base/plugin:kotlin-base-plugin_test_lib",
+    "//plugins/kotlin/base/plugin",
+    "//plugins/kotlin/base/plugin:plugin_test_lib",
     "//android/android-common:common",
   ]
 )

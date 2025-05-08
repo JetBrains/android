@@ -2,7 +2,7 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 jvm_library(
-  name = "android-app-inspection-inspector-api",
+  name = "api",
   module_name = "intellij.android.app-inspection.inspector.api",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -18,10 +18,10 @@ jvm_library(
 )
 
 jvm_library(
-  name = "android-app-inspection-inspector-api_test_lib",
+  name = "api_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
-  associates = [":android-app-inspection-inspector-api"],
+  associates = [":api"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -38,7 +38,7 @@ jvm_library(
 )
 
 jvm_test(
-  name = "android-app-inspection-inspector-api_test",
-  runtime_deps = [":android-app-inspection-inspector-api_test_lib"]
+  name = "api_test",
+  runtime_deps = [":api_test_lib"]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspector.api` end

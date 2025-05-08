@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
-  name = "android-core-editing-documentation_resources",
+  name = "documentation_resources",
   files = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
 jvm_library(
-  name = "android-core-editing-documentation",
+  name = "documentation",
   module_name = "intellij.android.core.editing.documentation",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -31,14 +31,14 @@ jvm_library(
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:gson",
   ],
-  runtime_deps = [":android-core-editing-documentation_resources"]
+  runtime_deps = [":documentation_resources"]
 )
 
 jvm_library(
-  name = "android-core-editing-documentation_test_lib",
+  name = "documentation_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
-  associates = [":android-core-editing-documentation"],
+  associates = [":documentation"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -71,11 +71,11 @@ jvm_library(
     "@lib//:jsoup",
     "@lib//:gson",
   ],
-  runtime_deps = [":android-core-editing-documentation_resources"]
+  runtime_deps = [":documentation_resources"]
 )
 
 jvm_test(
-  name = "android-core-editing-documentation_test",
-  runtime_deps = [":android-core-editing-documentation_test_lib"]
+  name = "documentation_test",
+  runtime_deps = [":documentation_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.editing.documentation` end

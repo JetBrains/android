@@ -55,7 +55,7 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "@lib//:junit4",
     "@lib//:truth",
-    "//android/as-driver/utils:android-as-driver-utils_test_lib",
+    "//android/as-driver/utils:utils_test_lib",
     "//android/device-explorer",
   ]
 )

@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
-  name = "android-app-inspection-inspectors-network-view_resources",
+  name = "view_resources",
   files = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
 jvm_library(
-  name = "android-app-inspection-inspectors-network-view",
+  name = "view",
   module_name = "intellij.android.app-inspection.inspectors.network.view",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -24,15 +24,15 @@ jvm_library(
     "@lib//:guava",
     "@lib//:protobuf",
     "//android/adt-ui-model",
-    "//android/app-inspection/api:android-app-inspection-api",
-    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
-    "//android/app-inspection/inspector/ide:android-app-inspection-inspector-ide",
-    "//android/app-inspection/inspectors/network/model:android-app-inspection-inspectors-network-model",
+    "//android/app-inspection/api",
+    "//android/app-inspection/inspector/api",
+    "//android/app-inspection/inspector/ide",
+    "//android/app-inspection/inspectors/network/model",
     "//android/artwork",
     "//android/codenavigation",
     "//android/android-common:common",
-    "//android/inspectors-common/api:android-inspectors-common-api",
-    "//android/inspectors-common/ui:android-inspectors-common-ui",
+    "//android/inspectors-common/api",
+    "//android/inspectors-common/ui",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//json/backend",
     "//platform/core-api:core",
@@ -51,7 +51,7 @@ jvm_library(
     "//xml/xml-psi-impl:psi-impl",
     "//android/adt-ui",
   ],
-  runtime_deps = [":android-app-inspection-inspectors-network-view_resources"]
+  runtime_deps = [":view_resources"]
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.network.view` end
 
@@ -63,7 +63,7 @@ jvm_library(
   name = "android-app-inspection-inspectors-network-view-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
-  associates = ["//android/app-inspection/inspectors/network/view:android-app-inspection-inspectors-network-view"],
+  associates = ["//android/app-inspection/inspectors/network/view"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -80,19 +80,19 @@ jvm_library(
     "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-ui-model",
     "//android/adt-ui-model:adt-ui-model_test_lib",
-    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api",
-    "//android/app-inspection/inspector/api:android-app-inspection-inspector-api_test_lib",
-    "//android/app-inspection/inspectors/network/ide:android-app-inspection-inspectors-network-ide",
-    "//android/app-inspection/inspectors/network/model:android-app-inspection-inspectors-network-model",
-    "//android/app-inspection/inspectors/network/model:android-app-inspection-inspectors-network-model_test_lib",
+    "//android/app-inspection/inspector/api",
+    "//android/app-inspection/inspector/api:api_test_lib",
+    "//android/app-inspection/inspectors/network/ide",
+    "//android/app-inspection/inspectors/network/model",
+    "//android/app-inspection/inspectors/network/model:model_test_lib",
     "//android/codenavigation",
     "//android/codenavigation:codenavigation_test_lib",
     "//android/android-common:common",
     "//android/android:core",
-    "//android/inspectors-common/api:android-inspectors-common-api",
-    "//android/inspectors-common/api:android-inspectors-common-api_test_lib",
-    "//android/inspectors-common/ui:android-inspectors-common-ui",
-    "//android/inspectors-common/ui:android-inspectors-common-ui_test_lib",
+    "//android/inspectors-common/api",
+    "//android/inspectors-common/api:api_test_lib",
+    "//android/inspectors-common/ui",
+    "//android/inspectors-common/ui:ui_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//json/backend",

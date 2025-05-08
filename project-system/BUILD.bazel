@@ -71,8 +71,8 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
-    "//plugins/kotlin/base/util:kotlin-base-util",
-    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
+    "//plugins/kotlin/base/util",
+    "//plugins/kotlin/base/util:util_test_lib",
     "//platform/lang-api:lang",
   ]
 )

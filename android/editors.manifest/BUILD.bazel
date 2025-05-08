@@ -3,7 +3,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 jvm_library(
-  name = "core-editors-manifest_test_lib",
+  name = "editors.manifest_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
   deps = [
@@ -39,7 +39,7 @@ jvm_library(
 )
 
 jvm_test(
-  name = "core-editors-manifest_test",
-  runtime_deps = [":core-editors-manifest_test_lib"]
+  name = "editors.manifest_test",
+  runtime_deps = [":editors.manifest_test_lib"]
 )
 ### auto-generated section `build intellij.android.core.editors.manifest` end

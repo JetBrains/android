@@ -20,7 +20,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:jna",
     "@lib//:kotlin-stdlib",
-    "//platform/observable:ide-observable",
+    "//platform/observable",
     "@lib//:kotlinx-collections-immutable",
     "@lib//:protobuf",
     "@lib//:kotlinc-lombok-compiler-plugin-provided",
@@ -129,7 +129,7 @@ jvm_library(
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
     "//plugins/properties/properties-psi-api:psi",
-    "//plugins/kotlin/base/psi:kotlin-base-psi",
+    "//plugins/kotlin/base/psi",
   ]
 )
 

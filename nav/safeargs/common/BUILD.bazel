@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
-  name = "android-nav-safeargs-common_resources",
+  name = "common_resources",
   files = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
 jvm_library(
-  name = "android-nav-safeargs-common",
+  name = "common",
   module_name = "intellij.android.nav.safeargs.common",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -46,8 +46,8 @@ jvm_library(
     "//platform/util/base",
     "//xml/xml-psi-api:psi",
     "//xml/xml-psi-impl:psi-impl",
-    "//plugins/kotlin/base/project-structure:kotlin-base-project-structure",
+    "//plugins/kotlin/base/project-structure",
   ],
-  runtime_deps = [":android-nav-safeargs-common_resources"]
+  runtime_deps = [":common_resources"]
 )
 ### auto-generated section `build intellij.android.nav.safeargs.common` end
