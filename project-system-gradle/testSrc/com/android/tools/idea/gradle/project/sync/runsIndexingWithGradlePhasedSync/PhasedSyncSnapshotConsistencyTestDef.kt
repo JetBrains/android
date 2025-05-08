@@ -25,50 +25,57 @@ import com.intellij.openapi.project.Project
 import java.io.File
 
 private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
-  // TODO(b/384022658): Content root related
-  // Variant specific paths and info from AndroidProject model is missing.
-  "CONENT_ENTRY", // Yes, typo
-
-  // TODO(b/384022658): Content root watching related
-  "WATCHED_SOURCE_FOLDER",
-  "WATCHED_RESOURCE_FOLDER",
-  "WATCHED_TEST_SOURCE_FOLDER",
-  "WATCHED_TEST_RESOURCE_FOLDER",
+    // TODO(b/384022658): Content root watching related
+  "/WATCHED_SOURCE_FOLDER",
+  "/WATCHED_RESOURCE_FOLDER",
+  "/WATCHED_TEST_SOURCE_FOLDER",
+  "/WATCHED_TEST_RESOURCE_FOLDER",
 
   // TODO(b/384022658): Facet related
-  "FACET (Android)",
-  "FACET (Android-Gradle)",
-  "FACET (Kotlin)",
+  "/FACET (Android)",
+  "/FACET (Android-Gradle)",
+  "/FACET (Kotlin)",
 
   // TODO(b/384022658): JDK related
-  "JDK",
+  "/JDK",
   // This should be nested under JDK, but isn't by mistake I think, so need to add it here explicitly
-  "*isInherited",
+  "/*isInherited",
 
   // TODO(b/384022658): External module options related
-  "ExternalModuleGroup",
-  "ExternalModuleVersion",
-  "LinkedProjectId",
+  "/ExternalModuleGroup",
+  "/ExternalModuleVersion",
+  "/LinkedProjectId",
+
+  // TODO(b/384022658): These are missing from full sync, should they?
+  "</>data_binding_base_class_source_out</>",
+
 
   // Individual issues
-  "COMPILER_MODULE_EXTENSION", // TODO(b/384022658)
-  "LINKED_ANDROID_MODULE_GROUP", // TODO(b/384022658)
-  "TEST_MODULE_PROPERTIES", // TODO(b/384022658)
-  "EXCLUDE_FOLDER", // TODO(b/384022658)
-  "Classes" // TODO(b/384022658)
+  "/COMPILER_MODULE_EXTENSION", // TODO(b/384022658)
+  "/LINKED_ANDROID_MODULE_GROUP", // TODO(b/384022658)
+  "/TEST_MODULE_PROPERTIES", // TODO(b/384022658)
+  "/EXCLUDE_FOLDER", // TODO(b/384022658)
+  "/Classes" // TODO(b/384022658)
 )
 
-fun ModuleDumpWithType.filterOutKnownConsistencyIssues(): ModuleDumpWithType {
+
+private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES =
+  PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES +
+  // TODO(b/384022658): There are dependency related issues with non-android modules
+  DEPENDENCY_RELATED_PROPERTIES
+
+fun ModuleDumpWithType.filterOutKnownConsistencyIssues(testProject: TestProject): ModuleDumpWithType {
   val (androidEntries, rest) = entries.partition { line ->
     androidModuleNames.any { line.contains("MODULE ($it)") }
   }
+  val projectSpecificIssues = getProjectSpecificIssues(testProject)
   return copy(
     entries = androidEntries.filter { line ->
-      PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES.none { line.contains("/$it") }
+      (PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES +
+       projectSpecificIssues).none { line.contains(it) }
     }.asSequence() + rest.filter { line ->
-      PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES.none { line.contains("/$it") }
-      // for non-android modules also filter out dependency related stuff as known issues
-      && DEPENDENCY_RELATED_PROPERTIES.none { line.contains("/$it") }
+      (PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES +
+       projectSpecificIssues).none { line.contains(it) }
     }
   )
 }
@@ -89,11 +96,11 @@ data class PhasedSyncSnapshotConsistencyTestDef(
     Truth.assertThat(isAndroidByPath).isNotNull()
     Truth.assertThat(intermediateDump).isNotNull()
 
-    val before = project.dumpModules(isAndroidByPath)
+    val fullDump = project.dumpModules(isAndroidByPath)
 
-    Truth.assertWithMessage("Comparing intermediate phased sync state to full sync without dependencies (before)")
-      .that(intermediateDump.filterOutDependencies().filterOutKnownConsistencyIssues().filterOutRootModule().join())
-      .isEqualTo(before.filterOutDependencies().filterOutKnownConsistencyIssues().filterOutRootModule().filterToPhasedSyncModules().join())
+    Truth.assertWithMessage("Comparing intermediate phased sync state to full sync without dependencies")
+      .that(intermediateDump.filterOutDependencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule().join())
+      .isEqualTo(fullDump.filterOutDependencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule().filterToPhasedSyncModules().join())
   }
 
 

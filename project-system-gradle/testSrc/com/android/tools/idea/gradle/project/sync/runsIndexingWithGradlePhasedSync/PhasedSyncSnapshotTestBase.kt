@@ -79,6 +79,8 @@ abstract class PhasedSyncSnapshotTestBase {
       TestProject.TEST_ONLY_MODULE,
       TestProject.APP_WITH_ML_MODELS,
       TestProject.MULTI_FLAVOR,
+      TestProject.MULTI_FLAVOR_SWITCH_VARIANT,
+      TestProject.MULTI_FLAVOR_WITH_FILTERING,
       TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
       TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND,
       TestProject.KOTLIN_GRADLE_DSL,
@@ -127,7 +129,7 @@ fun ModuleDumpWithType.filterToPhasedSyncModules() = includeByModuleName(phasedS
 
 fun ModuleDumpWithType.filterOutDependencies() = copy(
   entries = entries.filter { line ->
-    DEPENDENCY_RELATED_PROPERTIES.none { line.contains("/$it") }
+    DEPENDENCY_RELATED_PROPERTIES.none { line.contains(it) }
   }
 )
 
@@ -166,8 +168,8 @@ private fun Project.dumpAllModuleEntries() : Sequence<String> {
 private fun Module.projectDirectory(): File? = ExternalSystemModulePropertyManager.getInstance(this).getLinkedProjectPath()?.let { File(it) }
 
 val DEPENDENCY_RELATED_PROPERTIES = setOf(
-  "ORDER_ENTRY",
-  "LIBRARY",
+  "/ORDER_ENTRY",
+  "/LIBRARY",
 )
 
 
@@ -188,3 +190,35 @@ private fun ModuleDumpWithType.includeByModuleName(names: List<String>) = copy (
     names.any { line.contains("MODULE ($it)") }
   }
 )
+
+fun getProjectSpecificIssues(testProject: TestProject) = when(testProject) {
+  // TODO(b/384022658): KMP projects are currently ignored by phased sync, except for when there is no Android target configured.
+  TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
+  TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND -> setOf(
+    "</>src</>jvmMain",
+    "</>src</>jvmTest"
+  )
+  // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
+  TestProject.KOTLIN_KAPT,
+  TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
+    "</>kaptKotlin</>",
+    "</>kapt</>"
+  )
+  // TODO(b/384022658): When switching from debug to release, the orphaned androidTest module isn't removed as in full sync
+  TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
+    "MODULE (MultiFlavor.app.androidTest)",
+  )
+  // TODO(b/384022658): Full sync merges some content roots before populating ending up with a slightly different structure.
+  // See GradleProjectResolver#mergeSourceSetContentRoots. This can be fixed using ContentRootIndex and doing similar merging,
+  // but currently it's not visible to us.
+  TestProject.TEST_STATIC_DIR,
+  // TODO(b/384022658): There are inconsistencies when the source set root (and the manifest) is outside project directory.
+  // It's highly likely this will also be fixed when merging source roots (see above TODO)
+  TestProject.NON_STANDARD_SOURCE_SETS,
+  // TODO(b/384022658): There are inconsistencies when the app is defined in the root Gradle project as opposed to its own project,
+  // It's highly likely this will also be fixed when merging source roots (see above TODO)
+  TestProject.MAIN_IN_ROOT,-> setOf(
+    "/CONENT_ENTRY" // Yes typo
+  )
+  else -> emptySet()
+}

@@ -28,31 +28,40 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 private val PROPERTIES_WITH_KNOWN_RESYNC_ISSUES = setOf(
-  // TODO(b/384022658): Content root related
-  // Variant specific paths and info from AndroidProject model is missing.
-  "CONENT_ENTRY", // Yes, typo
-
-  // TODO(b/384022658): Related to module sources
-  "ORDER_ENTRY (<Module source>)",
+    // TODO(b/384022658): Related to module sources
+  "/ORDER_ENTRY (<Module source>)",
 
   // TODO(b/384022658): External module options related
-  "ExternalModuleGroup",
-  "ExternalModuleVersion",
-  "LinkedProjectId",
+  "/ExternalModuleGroup",
+  "/ExternalModuleVersion",
+  "/LinkedProjectId",
 
   // TODO(b/384022658): JDK related
-  "JDK",
+  "/JDK",
   // This should be nested under JDK, but isn't by mistake I think, so need to add it here explicitly
-  "*isInherited",
+  "/*isInherited",
 
   // TODO(b/384022658)
-  "Classes"
+  "/Classes",
+
+  // TODO(b/384022658): These are missing from full sync, should they?
+  "</>data_binding_base_class_source_out</>",
 )
 
+private fun getProjectSpecificResyncIssues(testProject: TestProject) = when(testProject) {
+  // TODO(b/384022658): Symlink for the root project is not handled the same way by phased sync
+  TestProject.SIMPLE_APPLICATION_VIA_SYMLINK -> setOf(
+    "/RootProjectPath"
+  )
+  else -> emptySet()
+}
 
-fun ModuleDumpWithType.filterOutKnownResyncIssues() = copy(
+
+fun ModuleDumpWithType.filterOutKnownResyncIssues(testProject: TestProject) = copy(
    entries = entries.filter { line ->
-      PROPERTIES_WITH_KNOWN_RESYNC_ISSUES.none { line.contains("/$it") }
+      (PROPERTIES_WITH_KNOWN_RESYNC_ISSUES +
+       getProjectSpecificIssues(testProject) +
+       getProjectSpecificResyncIssues(testProject)).none { line.contains(it) }
     }
   )
 
@@ -78,8 +87,8 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
 
 
       Truth.assertWithMessage("Comparing resync intermediate sync state to full state")
-        .that(secondIntermediateSync.filterOutKnownResyncIssues().join())
-        .isEqualTo(secondFullSync.filterOutKnownResyncIssues().join())
+        .that(secondIntermediateSync.filterOutKnownResyncIssues(testProject).join())
+        .isEqualTo(secondFullSync.filterOutKnownResyncIssues(testProject).join())
     }
   }
 

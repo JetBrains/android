@@ -28,26 +28,23 @@ import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOption
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector
 import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
+import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SyncTestMode
 import com.android.tools.idea.gradle.project.sync.getProjectSyncRequest
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchAllVariantsMode
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchNativeVariantsMode
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.SingleVariantSyncProjectMode
 import com.intellij.openapi.application.ApplicationInfo
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 private const val STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY = "studio.project.sync.debug.mode"
 
 fun studioProjectSyncDebugModeEnabled(): Boolean = java.lang.Boolean.getBoolean(STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY)
 
-fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraModelProvider? {
+fun ProjectResolverContext.getSyncOptions(project: Project): SyncActionOptions {
   ProgressManager.checkCanceled()
-  val project = this.externalSystemTaskId.findProject() ?: let {
-    thisLogger().error("Cannot find a project for $externalSystemTaskId", Throwable())
-    return null // We can't be helpful if the current project is not available.
-  }
   val projectResolutionMode = settings.getRequestedSyncMode()
 
   val parallelSync = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get() &&
@@ -86,7 +83,7 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     LibraryFilePaths.getInstance(project).retrieveCachedLibs(),
   )
 
-  val syncOptions = when (projectResolutionMode) {
+  return when (projectResolutionMode) {
     SingleVariantSyncProjectMode -> {
       val request = project.getProjectSyncRequest(projectPath)
       // If the variants should be set to defaults, don't select any variants and the project with re-import with the defaults.
@@ -117,7 +114,6 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
       )
     }
   }
-  return AndroidExtraModelProvider(syncOptions)
 }
 
 private fun GradleExecutionSettings?.getRequestedSyncMode(): ProjectResolutionMode {
