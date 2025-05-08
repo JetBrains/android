@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.build.output;
 
 import static com.android.ide.common.blame.MessageJsonSerializer.STDOUT_ERROR_TAG;
 import static com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP;
-import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.BUILD_FAILED_WITH_EXCEPTION_LINE;
 import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_ERROR_SUFFIX;
 import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_INFO_SUFFIX;
 import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_STATISTICS_SUFFIX;
@@ -40,11 +39,10 @@ import com.intellij.build.output.BuildOutputInstantReader;
 import com.intellij.build.output.BuildOutputParser;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -57,15 +55,12 @@ public class GradleBuildOutputParser implements BuildOutputParser {
   @NotNull private static final String DEFAULT_MESSAGE_GROUP = ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP + MESSAGE_GROUP_WARNING_SUFFIX;
 
   /**
-   * Contains the future gradle plugin output extracted from the json object per build Id, the json string is outputted before those output
+   * Contains the future gradle plugin output extracted from the json object per parentId, the json string is outputted before those output
    * lines. Those lines should be consumed and ignored so no other parsers would consume them.
+   * ParentId is task id in case of task output or buildId otherwise.
+   * Parsing for tasks' and build's output happens in parallel so should be thread-safe.
    */
-  @NotNull private final Map<Object, Set<String>> futureOutputMap = new HashMap<>();
-
-  /**
-   * Contains buildIds which contained an error parsed by this parser.
-   */
-  @NotNull private final Set<Object> buildIdsWithAGPErrors = new HashSet<>();
+  @NotNull private final Map<Object, Set<String>> futureOutputMap = new ConcurrentHashMap<>();
 
   @NotNull private final Gson myGson;
 
@@ -87,20 +82,9 @@ public class GradleBuildOutputParser implements BuildOutputParser {
       return true;
     }
 
-    // consume the build failed message if there were some errors parsed before, this makes sure that GradleBuildScriptErrorParser will not
-    // re-parse and duplicate the errors
-    if (currentLine.startsWith(BUILD_FAILED_WITH_EXCEPTION_LINE) && buildIdsWithAGPErrors.contains(reader.getParentEventId())) {
-      BuildOutputParserUtils.INSTANCE.consumeRestOfOutput(reader);
-      return true;
-    }
-
     // consume the line without producing a message, and remove it from the map
-    if (futureOutputMap.getOrDefault(reader.getParentEventId(), Collections.emptySet()).contains(currentLine)) {
-      futureOutputMap.get(reader.getParentEventId()).remove(currentLine);
-      return true;
-    }
-
-    return false;
+    Set<String> futureOutput = futureOutputMap.get(reader.getParentEventId());
+    return futureOutput != null && futureOutput.remove(currentLine);
   }
 
   private void processMessage(String line, Object buildId, @NotNull Consumer<? super MessageEvent> messageConsumer) {
@@ -112,9 +96,6 @@ public class GradleBuildOutputParser implements BuildOutputParser {
       Message msg = myGson.fromJson(jsonString, Message.class);
 
       Set<String> futureOutput = futureOutputMap.computeIfAbsent(buildId, k -> new HashSet<>());
-      if (msg.getKind() == Kind.ERROR) {
-        buildIdsWithAGPErrors.add(buildId);
-      }
       futureOutput.addAll(Arrays.asList(msg.getRawMessage().split("\\n")));
       String message = msg.getText().lines().findFirst().orElse(msg.getText());
       String detailedMessage = (msg.getRawMessage().isEmpty() ? msg.getText() : msg.getRawMessage()).trim();

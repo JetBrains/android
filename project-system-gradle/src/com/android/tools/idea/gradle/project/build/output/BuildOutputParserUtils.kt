@@ -27,12 +27,6 @@ object BuildOutputParserUtils {
   const val BUILD_FAILED_WITH_EXCEPTION_LINE = "FAILURE: Build failed with an exception."
   const val BUILD_COMPLETED_WITH_FAILURES_LINE = "FAILURE: Build completed with "
 
-  fun consumeRestOfOutput(reader: BuildOutputInstantReader) {
-    while (true) {
-      if (reader.readLine().isEndOfBuildOutputLine()) break
-    }
-  }
-
   fun String.isBuildFailureOutputLine(): Boolean =
     startsWith(BUILD_FAILED_WITH_EXCEPTION_LINE) ||
     startsWith(BUILD_COMPLETED_WITH_FAILURES_LINE)

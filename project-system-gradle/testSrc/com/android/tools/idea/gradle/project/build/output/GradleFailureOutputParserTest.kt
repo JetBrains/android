@@ -196,6 +196,33 @@ Run with --stacktrace option to get the stack trace. Run with --info or --debug 
           $path:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.
           """.trimIndent()
         ),
+        //TODO (b/372180686): extra `Android resource linking failed` message is currently generated from final failure message
+        ExpectedEvent(
+          message = "Android resource linking failed",
+          isFileMessageEvent = false,
+          isBuildIssueEvent = false,
+          isDuplicateMessageAware = true,
+          group = "Other Messages",
+          kind= MessageEvent.Kind.ERROR,
+          parentId = ":app:processDebugResources",
+          description = """
+          Execution failed for task ':app:processDebugResources'.
+          > A failure occurred while executing com.android.build.gradle.internal.tasks.Workers.ActionFacade
+             > Android resource linking failed
+               $path:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.
+
+               $path:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.
+
+               $path:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.
+
+               $path:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.
+
+          * Try:
+          Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
+
+          * Get more help at https://help.gradle.org
+          """.trimIndent()
+        ),
       )
     )
   }
