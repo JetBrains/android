@@ -52,6 +52,18 @@ public class PlatformPerformanceBenchmark {
     doLog(metricName, metricValue, true);
   }
 
+  public void log(@NotNull final String metricName, long metricValue, long constTerm) {
+    Metric metric = new Metric(metricName);
+    metric.setAnalyzers(benchmark, Collections.singleton(new WindowDeviationAnalyzer.Builder()
+                                                           .setMetricAggregate(Analyzer.MetricAggregate.MEDIAN)
+                                                           .setRunInfoQueryLimit(50)
+                                                           .addMedianTolerance(
+                                                             new WindowDeviationAnalyzer.MedianToleranceParams.Builder().setConstTerm(
+                                                               constTerm).build()).build()));
+    metric.addSamples(benchmark, new Metric.MetricSample(creationTimestampMs, metricValue));
+    metric.commit();
+  }
+
   public void logWithoutAnalyzer(@NotNull final String metricName, long metricValue) {
     doLog(metricName, metricValue, false);
   }
