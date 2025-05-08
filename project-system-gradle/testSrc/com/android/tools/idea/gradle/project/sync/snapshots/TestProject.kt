@@ -341,6 +341,7 @@ enum class TestProject(
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
   MULTI_FLAVOR_SWITCH_VARIANT(
     TestProjectToSnapshotPaths.MULTI_FLAVOR,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
     testName = "switchVariant",
     switchVariant = TemplateBasedTestProject.VariantSelection(":app", "firstXyzSecondXyzRelease")
   ),

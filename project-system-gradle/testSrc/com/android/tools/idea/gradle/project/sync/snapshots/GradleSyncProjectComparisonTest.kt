@@ -99,6 +99,7 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.TEST_ONLY_MODULE),
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_ML_MODELS),
       ProjectStructureSnapshotTestDef(TestProject.MULTI_FLAVOR),
+      ProjectStructureSnapshotTestDef(TestProject.MULTI_FLAVOR_SWITCH_VARIANT),
       ProjectStructureSnapshotTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES),
       ProjectStructureSnapshotTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_GRADLE_DSL),
