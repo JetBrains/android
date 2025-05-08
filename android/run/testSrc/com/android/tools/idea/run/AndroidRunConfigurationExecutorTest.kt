@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run
 
-import com.android.adblib.ddmlibcompatibility.testutils.createIDeviceManagerFactoryFactory
 import com.android.adblib.testingutils.CloseablesRule
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
@@ -116,10 +115,7 @@ class AndroidRunConfigurationExecutorTest {
 
   val closeables = CloseablesRule()
 
-  val fakeAdb = FakeAdbTestRule().apply {
-    withIDeviceManagerFactoryFactory(createIDeviceManagerFactoryFactory({ server.port }, closeables))
-  }
-
+  val fakeAdb = FakeAdbTestRule()
 
   val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
@@ -127,12 +123,17 @@ class AndroidRunConfigurationExecutorTest {
 
   val usageTrackerRule = UsageTrackerRule()
 
+  /**
+   * [FakeAdbTestRule] should follow [AndroidProjectRule], because a call to
+   * `AndroidDebugBridge.preInit` that is made during the project setup needs
+   *  to happen before FakeAdb configuration.
+   */
   @get:Rule
   val chain = RuleChain.outerRule(cleaner)
     .around(closeables)
     .around(usageTrackerRule)
-    .around(fakeAdb)
     .around(projectRule)
+    .around(fakeAdb)
     .around(FlagRule(StudioFlags.BACKUP_ENABLED, true))
 
   private val mockBackupManager = mock<BackupManager>()

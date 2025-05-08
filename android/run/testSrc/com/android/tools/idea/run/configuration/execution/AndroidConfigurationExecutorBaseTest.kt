@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-import com.android.adblib.ddmlibcompatibility.testutils.createIDeviceManagerFactoryFactory
 import com.android.adblib.testingutils.CloseablesRule
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
@@ -44,9 +43,7 @@ abstract class AndroidConfigurationExecutorBaseTest {
   protected val componentName = "com.example.app.Component"
 
   val closeables = CloseablesRule()
-  val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule().apply {
-    withIDeviceManagerFactoryFactory(createIDeviceManagerFactoryFactory({ server.port }, closeables))
-  }
+  val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
 
   val projectRule = ProjectRule()
   val cleaner = MockitoCleanerRule()

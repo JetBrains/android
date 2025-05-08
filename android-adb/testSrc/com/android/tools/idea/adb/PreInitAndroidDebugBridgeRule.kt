@@ -18,11 +18,20 @@ package com.android.tools.idea.adb
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import org.junit.rules.ExternalResource
 
-class PreInitAndroidDebugBridgeRule() : ExternalResource() {
+/**
+ * TestRule that works in conjunction with [com.intellij.testFramework.ProjectRule] to force
+ * `AndroidDebugBridge.preInit` method call to be performed earlier in a test lifecycle.
+ *
+ * [AdbLibApplicationService] sets up a correct version of `AndroidDebugBridgeDelegate` by calling
+ * `AndroidDebugBridge.preInit` method. This call needs to happen before `FakeAdbRule` is used to
+ * set up fake test devices.
+ *
+ * Note that this rule is not needed when relying on
+ * `com.android.tools.idea.testing.AndroidProjectRule` as it initializes [AdbLibApplicationService]
+ * early through [AdbLibApplicationService.MyStartupActivity].
+ */
+class PreInitAndroidDebugBridgeRule : ExternalResource() {
   override fun before() {
-    // Simply accessing `AdbLibApplicationService.instance` early enough triggers the creation on
-    // `AdbServerController` and `AdbLibAndroidDebugBridge` if
-    // `ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE` flag is on.
     AdbLibApplicationService.instance
   }
 }
