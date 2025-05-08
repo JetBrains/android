@@ -15,13 +15,16 @@
  */
 @file:Suppress("UnstableApiUsage")
 
-package com.android.tools.idea.gradle.project.sync
+package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.builder.model.v2.ide.SourceProvider
 import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.Versions
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
+import com.android.tools.idea.gradle.project.sync.ModelFeature
+import com.android.tools.idea.gradle.project.sync.convert
+import com.android.tools.idea.gradle.project.sync.convertArtifactName
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import com.intellij.java.workspace.entities.JavaResourceRootPropertiesEntity
 import com.intellij.java.workspace.entities.JavaSourceRootPropertiesEntity

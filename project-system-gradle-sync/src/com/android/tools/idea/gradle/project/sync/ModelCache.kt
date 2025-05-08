@@ -202,7 +202,7 @@ fun getDefaultVariant(variantNames: Collection<String>): String? {
   return sortedNames.first()
 }
 
-internal fun convertArtifactName(name: String): IdeArtifactName = when (name) {
+fun convertArtifactName(name: String): IdeArtifactName = when (name) {
   ARTIFACT_NAME_MAIN -> IdeArtifactName.MAIN
   ARTIFACT_NAME_ANDROID_TEST -> IdeArtifactName.ANDROID_TEST
   ARTIFACT_NAME_UNIT_TEST -> IdeArtifactName.UNIT_TEST
