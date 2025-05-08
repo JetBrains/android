@@ -17,10 +17,7 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
-import com.intellij.ide.ApplicationInitializedListener
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService
 import com.intellij.openapi.externalSystem.util.Order
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.platform.workspace.jps.entities.ExternalSystemModuleOptionsEntity
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.modifyExternalSystemModuleOptionsEntity
@@ -29,23 +26,8 @@ import com.intellij.platform.workspace.storage.entities
 import org.jetbrains.plugins.gradle.service.project.DefaultProjectResolverContext
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
-import org.jetbrains.plugins.gradle.service.syncContributor.bridge.GradleBridgeProjectDataService
 import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleEntitySource
 import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleProjectEntitySource
-
-@Suppress("UnstableApiUsage")
-class PhasedSyncInitializer : ApplicationInitializedListener {
-  override suspend fun execute() {
-    if (!StudioFlags.PHASED_SYNC_ENABLED.get()) {
-      return
-    }
-
-    Registry.get("gradle.phased.sync.enabled").setValue(true)
-    if (StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()) {
-      ProjectDataService.EP_NAME.point.unregisterExtension(GradleBridgeProjectDataService::class.java)
-    }
-  }
-}
 
 /**
  * This is a sync contributor that runs after the platform's content root contributor to fix-up any issues caused by it and makes sure

@@ -22,6 +22,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.startup.GradleSpecificInitializer
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.tests.AdtTestProjectDescriptor
 import com.android.tools.tests.AdtTestProjectDescriptors
@@ -568,6 +569,8 @@ class FixtureRuleImpl<T : CodeInsightTestFixture>(
     _fixture = fixtureFactory(projectName, projectDescriptor)
 
     fixture.setUp()
+
+    GradleSpecificInitializer.initializePhasedSync()
     // Initialize an Android manifest
     if (initAndroid) {
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)

@@ -25,6 +25,7 @@ import com.android.tools.idea.util.EmbeddedDistributionPaths
 import com.android.tools.tests.AdtTestProjectDescriptor
 import com.android.tools.tests.AdtTestProjectDescriptors
 import com.android.tools.idea.sdk.Jdks
+import com.android.tools.idea.startup.GradleSpecificInitializer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runWriteAction
@@ -75,6 +76,7 @@ internal class TestProjectFixtureRuleImpl(
             val tempDirPath = File(tempDirFixture.tempDirPath)
             val fixtureName = fixtureName ?: description.shortDisplayName
             usingIdeaTestFixture(projectBuilder.fixture) {
+              GradleSpecificInitializer.initializePhasedSync()
               withSdksHandled(testRootDisposable) {
                 val preparedProject = testProject.prepareTestProject(
                   integrationTestEnvironment = object : IntegrationTestEnvironment {

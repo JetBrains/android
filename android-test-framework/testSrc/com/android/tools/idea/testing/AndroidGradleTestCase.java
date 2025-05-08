@@ -45,6 +45,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.startup.GradleSpecificInitializer;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -173,6 +174,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       // TODO(b/159600848)
       emulateStartupActivityForTest(getProject());
     }
+
+    GradleSpecificInitializer.initializePhasedSync();
 
     // Use per-project code style settings so we never modify the IDE defaults.
     CodeStyleSettingsManager.getInstance().USE_PER_PROJECT_SETTINGS = true;

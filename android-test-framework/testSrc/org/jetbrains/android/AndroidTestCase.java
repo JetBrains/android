@@ -12,6 +12,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.startup.GradleSpecificInitializer;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
@@ -155,6 +156,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myFixture.setUp();
     myFixture.setTestDataPath(getTestDataPath());
     myModule = moduleFixtureBuilder.getFixture().getModule();
+
+    GradleSpecificInitializer.initializePhasedSync();
 
     // Must be done before addAndroidFacet, and must always be done, even if a test provides
     // its own custom manifest file. However, in that case, we will delete it shortly below.
