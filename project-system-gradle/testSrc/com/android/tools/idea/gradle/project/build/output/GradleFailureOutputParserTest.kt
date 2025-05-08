@@ -244,4 +244,59 @@ Run with --stacktrace option to get the stack trace. Run with --info or --debug 
       description = getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml")
     )))
   }
+
+  @Test
+  fun scriptLocationParsed() = testBuildFileType("Script")
+  @Test
+  fun initScriptLocationParsed() = testBuildFileType("Initialization script")
+  @Test
+  fun buildFileLocationParsed() = testBuildFileType("Build file")
+  @Test
+  fun settingsFileLocationParsed() = testBuildFileType("Settings file")
+
+  private fun testBuildFileType(type: String) {
+    val scriptGradle = temporaryFolder.newFile("script.gradle")
+    val buildOutput = """
+FAILURE: Build failed with an exception.
+
+* Where:
+$type '$scriptGradle' line: 5
+
+* What went wrong:
+Execution failed for task ':app:failingTask1'.
+> java.lang.Exception: Failing failingTask1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+""".trimIndent()
+    parseOutput(
+      parentEventId = "testId",
+      gradleOutput = buildOutput,
+      expectedEvents = listOf(ExpectedEvent(
+        message = "java.lang.Exception: Failing failingTask1",
+        isFileMessageEvent = true,
+        isBuildIssueEvent = false,
+        isDuplicateMessageAware = true,
+        group = "Other Messages",
+        kind= MessageEvent.Kind.ERROR,
+        parentId = ":app:failingTask1",
+        filePosition = "$scriptGradle:5:1-5:1",
+        description = """
+          $type '$scriptGradle' line: 5
+          
+          Execution failed for task ':app:failingTask1'.
+          > java.lang.Exception: Failing failingTask1
+          
+          * Try:
+          > Run with --stacktrace option to get the stack trace.
+          > Run with --debug option to get more log output.
+          > Run with --scan to get full insights.
+          > Get more help at https://help.gradle.org.
+        """.trimIndent()
+      ))
+    )
+  }
 }

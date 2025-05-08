@@ -23,11 +23,22 @@ import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputParser
-import org.jetbrains.plugins.gradle.execution.GradleConsoleFilter
+import com.intellij.execution.filters.Filter
+import com.intellij.execution.filters.OpenFileHyperlinkInfo
+import com.intellij.openapi.editor.colors.CodeInsightColors
+import com.intellij.openapi.editor.colors.EditorColorsManager
+import com.intellij.openapi.editor.markup.TextAttributes
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.util.ui.NamedColorUtil
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.UnresolvedDependencyBuildIssue
 import java.io.File
 import java.util.function.Consumer
+import java.util.regex.Pattern
+import kotlin.math.max
 import kotlin.text.startsWith
 import kotlin.text.trimStart
 
@@ -56,10 +67,13 @@ abstract class GradleBuildFailureParser(
     val exceptionSectionText: String get() = exceptionSection.joinToString(separator = "\n").trim()
 
     val locationLine: String? get() = whereSectionLines.firstOrNull()
-    val filter: GradleConsoleFilter? get() {
+    private val filter: GradleConsoleFilter? get() {
       val locationLine = locationLine ?: return null
       return GradleConsoleFilter(null)
         .takeIf { it.applyFilter(locationLine, locationLine.length) != null }
+    }
+    val location: FilePosition? get() = filter?.let { fileFilter ->
+      FilePosition(File(fileFilter.filteredFileName), fileFilter.filteredLineNumber - 1, 0)
     }
     val description: String get() = buildString {
       if (!locationLine.isNullOrBlank()) {
@@ -94,7 +108,7 @@ abstract class GradleBuildFailureParser(
   ): Boolean {
     val trySuggestions = parsedMessage.trySectionText
     val exception = parsedMessage.exceptionSectionText
-    val fileFilter = parsedMessage.filter
+    val filePosition = parsedMessage.location
     val reasonLine: String = parsedMessage.reasonLine
     val errorText: String = parsedMessage.description
 
@@ -102,12 +116,6 @@ abstract class GradleBuildFailureParser(
     if (reasonLine.isCompilationFailureLine()) {
       handleCompilationFailure(parentId, errorText, messageConsumer)
       return false
-    }
-
-    val filePosition = if (fileFilter != null) {
-      FilePosition(File(fileFilter.filteredFileName), fileFilter.filteredLineNumber - 1, 0)
-    } else {
-      null
     }
 
     for (failureHandler in failureHandlers) {
@@ -179,4 +187,127 @@ abstract class GradleBuildFailureParser(
     this == "Script compilation error:" ||
     this.contains("compiler failed")
 
+  /**
+   * Copy of GradleConsoleFilter in org.jetbrains.plugins.gradle.execution (revision
+   * ff7e3e097c65956cd94769488b9f4bbb8b06ca6d), migrated to Kotlin.
+   * TODO (b/362959090): submit to IJ and remove
+   */
+  private class GradleConsoleFilter(private val myProject: Project?) : Filter {
+    var filteredFileName: String? = null
+      private set
+
+    var filteredLineNumber: Int = 0
+      private set
+
+    override fun applyFilter(line: String, entireLength: Int): Filter.Result? {
+      val filePrefixes: Array<String> =
+        arrayOf(
+          "Build file '",
+          "build file '",
+          "Settings file '",
+          "settings file '",
+          // Android Studio patch
+          "Initialization script '",
+          "Script '",
+        )
+      val linePrefixes: Array<String> =
+        arrayOf(
+          "' line: ",
+          "': ",
+          "' line: ",
+          "': ",
+          // Android Studio patch
+          "' line: ",
+          "' line: ",
+        )
+      var filePrefix: String? = null
+      var linePrefix: String? = null
+      for (i in filePrefixes.indices) {
+        val filePrefixIndex = StringUtil.indexOf(line, filePrefixes[i])
+        if (filePrefixIndex != -1) {
+          filePrefix = filePrefixes[i]
+          linePrefix = linePrefixes[i]
+          break
+        }
+      }
+
+      if (filePrefix == null) {
+        return null
+      }
+
+      val filePrefixIndex = StringUtil.indexOf(line, filePrefix)
+
+      val fileAndLineNumber = line.substring(filePrefix.length + filePrefixIndex)
+      val linePrefixIndex = StringUtil.indexOf(fileAndLineNumber, linePrefix!!)
+
+      if (linePrefixIndex == -1) {
+        return null
+      }
+
+      val fileName = fileAndLineNumber.substring(0, linePrefixIndex)
+      this.filteredFileName = fileName
+      var lineNumberStr =
+        fileAndLineNumber.substring(linePrefixIndex + linePrefix.length).trim { it <= ' ' }
+      var lineNumberEndIndex = 0
+      for (i in 0..<lineNumberStr.length) {
+        if (Character.isDigit(lineNumberStr.get(i))) {
+          lineNumberEndIndex = i
+        } else {
+          break
+        }
+      }
+
+      if (lineNumberStr.isEmpty()) {
+        return null
+      }
+
+      lineNumberStr = lineNumberStr.substring(0, lineNumberEndIndex + 1)
+      val lineNumber: Int
+      try {
+        lineNumber = lineNumberStr.toInt()
+        this.filteredLineNumber = lineNumber
+      } catch (e: NumberFormatException) {
+        return null
+      }
+
+      val file =
+        LocalFileSystem.getInstance().findFileByPath(fileName.replace(File.separatorChar, '/'))
+      if (file == null) {
+        return null
+      }
+
+      val textStartOffset = entireLength - line.length + filePrefix.length + filePrefixIndex
+      val highlightEndOffset = textStartOffset + fileName.length
+      var info: OpenFileHyperlinkInfo? = null
+      if (myProject != null) {
+        var columnNumber = 0
+        val lineAndColumn = StringUtil.substringAfterLast(line, " @ ")
+        if (lineAndColumn != null) {
+          val matcher = LINE_AND_COLUMN_PATTERN.matcher(lineAndColumn)
+          if (matcher.find()) {
+            columnNumber = matcher.group(2).toInt()
+          }
+        }
+        info = OpenFileHyperlinkInfo(myProject, file, max(lineNumber - 1, 0), columnNumber)
+      }
+      val attributes = HYPERLINK_ATTRIBUTES.clone()
+      if (
+        myProject != null && !ProjectRootManager.getInstance(myProject).fileIndex.isInContent(file)
+      ) {
+        val color = NamedColorUtil.getInactiveTextColor()
+        attributes.foregroundColor = color
+        attributes.effectColor = color
+      }
+      return Filter.Result(textStartOffset, highlightEndOffset, info, attributes)
+    }
+
+    companion object {
+      val LINE_AND_COLUMN_PATTERN: Pattern = Pattern.compile("line (\\d+), column (\\d+)\\.")
+
+      private val HYPERLINK_ATTRIBUTES: TextAttributes =
+        EditorColorsManager.getInstance()
+          .globalScheme
+          .getAttributes(CodeInsightColors.HYPERLINK_ATTRIBUTES)
+    }
+  }
 }
