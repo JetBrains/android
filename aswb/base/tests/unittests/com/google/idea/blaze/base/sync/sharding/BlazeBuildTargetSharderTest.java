@@ -421,7 +421,7 @@ public class BlazeBuildTargetSharderTest extends BlazeTestCase {
 
     @Override
     public ImmutableSet<Capability> getCapabilities() {
-      return super.getCapabilities();
+      return ImmutableSet.of();
     }
 
     @Override

@@ -38,6 +38,7 @@ class FakeBackupManager : BackupManager {
   val showBackupDialogInvocations = mutableListOf<ShowBackupDialogInvocation>()
   val restoreModalInvocations = mutableListOf<RestoreModalInvocation>()
 
+  @UiThread
   override fun showBackupDialog(
     serialNumber: String,
     applicationId: String?,

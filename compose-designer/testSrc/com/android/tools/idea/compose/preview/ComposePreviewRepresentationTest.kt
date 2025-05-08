@@ -25,6 +25,7 @@ import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction
 import com.android.tools.idea.compose.preview.actions.UiCheckReopenTabAction
+import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -532,6 +533,23 @@ class ComposePreviewRepresentationTest {
     assertTrue(getData(FastPreviewSurface.KEY.name) is FastPreviewSurface)
     assertTrue(getData(PreviewInvalidationManager.KEY.name) is PreviewInvalidationManager)
   }
+
+  @Test
+  fun testExitingAnimationModeClearsComposeAnimationSubscriber() =
+    runComposePreviewRepresentationTest {
+      val composePreviewRepresentation = createPreviewAndCompile()
+      assertThat(ComposeAnimationSubscriber.getHandlerForTests()).isNull()
+
+      val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+      val animationElement = previewElements[1]
+
+      composePreviewRepresentation.setMode(PreviewMode.AnimationInspection(animationElement))
+      delayUntilCondition(200) { ComposeAnimationSubscriber.getHandlerForTests() != null }
+      assertThat(ComposeAnimationSubscriber.getHandlerForTests()).isNotNull()
+      composePreviewRepresentation.setMode(PreviewMode.Default())
+      delayUntilCondition(200) { ComposeAnimationSubscriber.getHandlerForTests() == null }
+      assertThat(ComposeAnimationSubscriber.getHandlerForTests()).isNull()
+    }
 
   @Test
   fun testActivationDoesNotCleanOverlayClassLoader() =

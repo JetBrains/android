@@ -15,18 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk.integration
 
-import com.android.testutils.junit4.SeparateOldAgpTestsRule
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.StudioFeatureFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplication
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.JdkConstants.JDK_17
+import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -95,6 +98,26 @@ class GradleJdkConfigurationRecoveryIntegrationTest {
       skipSyncWithAssertion(
         expectedGradleJdkName = JDK_EMBEDDED,
         expectedGradleJdkPath = JDK_EMBEDDED_PATH
+      )
+    }
+
+  @Test
+  fun `Given project without gradleJvm with valid gradleLocalJavaHome and projectJdk When import project Then invalid configuration was restored with defined gradleLocalJavaHome JDK`() =
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        ideaProjectJdk = JDK_17,
+        gradleLocalJavaHome = JDK_11_PATH
+      ),
+      environment = TestEnvironment(
+        studioFlags = StudioFeatureFlags(
+          restoreInvalidGradleJdkConfiguration = true
+        ),
+        environmentVariables = mapOf(JDK_17 to JDK_17_PATH)
+      )
+    ) {
+      skipSyncWithAssertion(
+        expectedGradleJdkName = USE_GRADLE_LOCAL_JAVA_HOME,
+        expectedGradleJdkPath = JDK_11_PATH
       )
     }
 }

@@ -27,6 +27,7 @@ import com.android.tools.idea.backup.testing.waitForBackupInvocations
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.ProjectServiceRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -53,6 +54,7 @@ internal class BackupAppActionTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       FlagRule(StudioFlags.BACKUP_ENABLED, true),
       ProjectServiceRule(projectRule, BackupManager::class.java, fakeBackupManager),
     )

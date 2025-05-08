@@ -193,6 +193,9 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"2\"")
+        setDebugAppBroadcast -> {
+          shellCommandOutput.writeStdout("Broadcast completed: result=1, data=\"Set debug app to $appId\"")
+        }
         setComplicationSlot1 -> {
           deviceState.startClient(1234, 1235, appId, true)
           shellCommandOutput.writeStdout("Broadcast completed: result=1")

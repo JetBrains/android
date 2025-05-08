@@ -379,6 +379,7 @@ constructor(
             null,
             ActionData(
               AppInspectionBundle.message("inspector.launch.restart"),
+              null,
               hyperlinkClicked(process, tabShell),
             ),
           )

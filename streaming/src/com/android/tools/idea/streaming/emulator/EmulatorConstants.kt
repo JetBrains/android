@@ -22,6 +22,8 @@ import com.intellij.openapi.actionSystem.DataKey
 
 @JvmField val EMULATOR_CONTROLLER_KEY = DataKey.create<EmulatorController>("EmulatorController")
 
-@JvmField val EMULATOR_VIEW_KEY = DataKey.create<EmulatorView>("EmulatorView")
+@JvmField internal val EMULATOR_VIEW_KEY = DataKey.create<EmulatorView>("EmulatorView")
+
+@JvmField internal val ALL_EMULATOR_VIEWS_KEY = DataKey.create<List<EmulatorView>>("AllEmulatorViews")
 
 internal const val EMULATOR_MAIN_TOOLBAR_ID = "StreamingToolbarVirtualDevice"

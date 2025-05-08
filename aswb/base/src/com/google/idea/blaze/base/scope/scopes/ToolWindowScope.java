@@ -156,6 +156,7 @@ public final class ToolWindowScope implements BlazeScope {
 
   @Override
   public void onScopeBegin(BlazeContext context) {
+    tasksToolWindowController.startTask(task, consoleFilters);
     context.addOutputSink(PrintOutput.class, printSink);
     context.addOutputSink(StatusOutput.class, statusSink);
     context.addOutputSink(StateUpdate.class, stateSink);
@@ -168,7 +169,6 @@ public final class ToolWindowScope implements BlazeScope {
             progressIndicator.cancel();
           }
         });
-    tasksToolWindowController.startTask(task, consoleFilters);
     tasksToolWindowController.setStopHandler(
         task,
         () -> {

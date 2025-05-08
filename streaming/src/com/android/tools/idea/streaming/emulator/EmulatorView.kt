@@ -64,7 +64,6 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
 import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.tools.idea.streaming.xr.XrInputMode
-import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.ui.LafManagerListener
@@ -845,24 +844,8 @@ class EmulatorView(
   }
 
   override fun uiDataSnapshot(sink: DataSink) {
+    super.uiDataSnapshot(sink)
     sink[EMULATOR_VIEW_KEY] = this
-    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = getScreenRecorderParameters()
-  }
-
-  private fun getScreenRecorderParameters(): ScreenRecorderAction.Parameters? {
-    return if (emulator.connectionState == ConnectionState.CONNECTED) {
-      ScreenRecorderAction.Parameters(
-        emulatorId.avdName,
-        deviceSerialNumber,
-        emulatorConfig.api,
-        emulatorId.avdFolder,
-        displayId,
-        ::deviceDisplaySize,
-        emulator)
-    }
-    else {
-      null
-    }
   }
 
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {

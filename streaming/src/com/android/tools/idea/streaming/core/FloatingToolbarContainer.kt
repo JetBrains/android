@@ -48,6 +48,7 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.Transparency
+import java.awt.event.HierarchyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.geom.Path2D
@@ -122,6 +123,12 @@ internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiv
     require(inactiveAlpha in 0.0..1.0)
     isOpaque = false
     layout = Layout()
+
+    addHierarchyListener { event ->
+      if (event.changeFlags.toInt() and (HierarchyEvent.SHOWING_CHANGED or HierarchyEvent.DISPLAYABILITY_CHANGED) != 0) {
+        onVisibilityChanged()
+      }
+    }
   }
 
   /**
@@ -203,24 +210,6 @@ internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiv
     }
     else {
       pendingDeactivation = true
-    }
-  }
-
-  override fun addNotify() {
-    super.addNotify()
-    onVisibilityChanged()
-  }
-
-  override fun removeNotify() {
-    super.removeNotify()
-    onVisibilityChanged()
-  }
-
-  override fun setVisible(visible: Boolean) {
-    val wasVisible = isVisible
-    super.setVisible(visible)
-    if (visible != wasVisible) {
-      onVisibilityChanged()
     }
   }
 

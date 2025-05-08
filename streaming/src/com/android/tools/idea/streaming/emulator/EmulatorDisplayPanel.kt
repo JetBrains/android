@@ -33,7 +33,7 @@ import java.awt.Dimension
 /**
  * Represents a single Emulator display.
  */
-class EmulatorDisplayPanel(
+internal class EmulatorDisplayPanel(
   disposableParent: Disposable,
   emulator: EmulatorController,
   project: Project,

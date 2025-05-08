@@ -36,6 +36,7 @@ class WiFiPairingControllerImpl(
   private val pairingCodePairingControllerFactory: (MdnsService) -> PairingCodePairingController = {
     createPairingCodePairingController(project, pairingService, notificationService, it)
   },
+  mdnsService: String?,
 ) : WiFiPairingController {
   companion object {
     fun createPairingCodePairingController(
@@ -50,7 +51,8 @@ class WiFiPairingControllerImpl(
     }
   }
 
-  private val qrCodeScanningController = QrCodeScanningController(pairingService, view, this)
+  private val qrCodeScanningController =
+    QrCodeScanningController(pairingService, view, this, mdnsService)
 
   private val viewListener = MyViewListener(this)
 

@@ -41,7 +41,7 @@ public class StudioBleakOptions {
     new IgnoredRef(1, "com.intellij.testGuiFramework.impl.GuiTestThread", "client"),
     new IgnoredRef(1, "com.android.layoutlib.bridge.impl.DelegateManager", "sJavaReferences"),
     new IgnoredRef(-2, "com.intellij.util.ref.DebugReflectionUtil", "allFields"),
-    new IgnoredRef(-1, "java.util.concurrent.ForkJoinPool", "workQueues"),
+    new IgnoredRef(-1, "java.util.concurrent.ForkJoinPool", "queues"),
     new IgnoredRef(1, "java.io.DeleteOnExitHook", "files"),
 
     // don't report growing weak or soft maps. Nodes whose weak or soft referents have been GC'd will be removed from the map during some

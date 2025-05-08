@@ -32,6 +32,7 @@ class AlignmentFindingTest {
    fun `ELF that supports 16 KB device`() {
      val result = getAlignmentFinding(
        path = "/path/to/my.so",
+       extractNativeLibs = false,
        elfMinimumLoadSectionAlignment = PAGE_ALIGN_16KB,
        selfOrChildLoadSectionIncompatible = false,
        zipAlignment = Alignment.ALIGNMENT_16K)
@@ -43,6 +44,7 @@ class AlignmentFindingTest {
   fun `ELF with 4 KB LOAD section and it's a problem`() {
     val result = getAlignmentFinding(
       path = "/path/to/my.so",
+      extractNativeLibs = false,
       elfMinimumLoadSectionAlignment = PAGE_ALIGN_4KB,
       selfOrChildLoadSectionIncompatible = true,
       zipAlignment = Alignment.ALIGNMENT_16K)
@@ -54,6 +56,7 @@ class AlignmentFindingTest {
   fun `ELF with 4 KB zip alignment and it's a problem`() {
     val result = getAlignmentFinding(
       path = "/path/to/my.so",
+      extractNativeLibs = false,
       elfMinimumLoadSectionAlignment = PAGE_ALIGN_16KB,
       selfOrChildLoadSectionIncompatible = true,
       zipAlignment = Alignment.ALIGNMENT_4K)
@@ -65,6 +68,7 @@ class AlignmentFindingTest {
   fun `lib folder with ELF with 4 KB LOAD section and it's a problem`() {
     val result = getAlignmentFinding(
       path = "/lib",
+      extractNativeLibs = false,
       elfMinimumLoadSectionAlignment = -1L,
       selfOrChildLoadSectionIncompatible = true,
       zipAlignment = Alignment.ALIGNMENT_NONE)
@@ -77,6 +81,7 @@ class AlignmentFindingTest {
   fun `ELF that with 4 KB LOAD section and it's not a problem`() {
     val result = getAlignmentFinding(
       path = "/path/to/my.so",
+      extractNativeLibs = false,
       elfMinimumLoadSectionAlignment = PAGE_ALIGN_4KB,
       selfOrChildLoadSectionIncompatible = false,
       zipAlignment = Alignment.ALIGNMENT_16K)
@@ -88,6 +93,7 @@ class AlignmentFindingTest {
   fun `root folder with alignment problem`() {
     val result = getAlignmentFinding(
       path = "/",
+      extractNativeLibs = false,
       elfMinimumLoadSectionAlignment = -1,
       selfOrChildLoadSectionIncompatible = true,
       zipAlignment = Alignment.ALIGNMENT_NONE)
@@ -99,6 +105,7 @@ class AlignmentFindingTest {
   fun `ABI folder with alignment problem`() {
     val result = getAlignmentFinding(
       path = "/lib/arm64-v8a",
+      extractNativeLibs = false,
       elfMinimumLoadSectionAlignment = -1,
       selfOrChildLoadSectionIncompatible = true,
       zipAlignment = Alignment.ALIGNMENT_NONE)
@@ -110,6 +117,7 @@ class AlignmentFindingTest {
   fun `4 KB zip alignment with 16 KB page alignment`() {
     val result = getAlignmentFinding(
       path = "/path/to/my.so",
+      extractNativeLibs = false,
       elfMinimumLoadSectionAlignment = PAGE_ALIGN_16KB,
       selfOrChildLoadSectionIncompatible = false,
       zipAlignment = Alignment.ALIGNMENT_4K)
@@ -121,6 +129,7 @@ class AlignmentFindingTest {
   fun `typical 32-bit library`() {
     val result = getAlignmentFinding(
       path = "/path/to/my.so",
+      extractNativeLibs = false,
       elfMinimumLoadSectionAlignment = -1,
       selfOrChildLoadSectionIncompatible = false,
       zipAlignment = Alignment.ALIGNMENT_4K)
@@ -133,6 +142,7 @@ class AlignmentFindingTest {
   fun `page size is less than kilo`() {
     val result = getAlignmentFinding(
       path = "/path/to/my.so",
+      extractNativeLibs = false,
       elfMinimumLoadSectionAlignment = PAGE_ALIGN_2B,
       selfOrChildLoadSectionIncompatible = false,
       zipAlignment = Alignment.ALIGNMENT_16K)
@@ -144,6 +154,7 @@ class AlignmentFindingTest {
   fun `both zip align and LOAD align are too low`() {
     val result = getAlignmentFinding(
       path = "/path/to/my.so",
+      extractNativeLibs = false,
       elfMinimumLoadSectionAlignment = PAGE_ALIGN_4KB,
       selfOrChildLoadSectionIncompatible = true,
       zipAlignment = Alignment.ALIGNMENT_4K)
@@ -157,6 +168,7 @@ class AlignmentFindingTest {
   fun `fuzz found 1`() {
     val result = getAlignmentFinding(
         path = "/lib/arm64-v8a/lib.so",
+        extractNativeLibs = false,
         elfMinimumLoadSectionAlignment = PAGE_ALIGN_16KB,
         selfOrChildLoadSectionIncompatible = true,
         zipAlignment = Alignment.ALIGNMENT_NONE)
@@ -170,6 +182,7 @@ class AlignmentFindingTest {
   fun `fuzz found 2`() {
     val result = getAlignmentFinding(
         path = "/",
+        extractNativeLibs = false,
         elfMinimumLoadSectionAlignment = PAGE_ALIGN_4KB,
         selfOrChildLoadSectionIncompatible = false,
         zipAlignment = Alignment.ALIGNMENT_NONE)
@@ -194,27 +207,29 @@ class AlignmentFindingTest {
       )
     val seen = mutableSetOf<String>()
     for(path in listOf("/", "/lib", "/lib/arm64-v8a", "/lib/arm64-v8a/lib.so", "/random"))
-      for(elfMinimumLoadSectionAlignment in listOf(-1L, PAGE_ALIGN_4KB, PAGE_ALIGN_16KB, PAGE_ALIGN_32KB))
-        for(selfOrChildLoadSectionIncompatible in listOf(true, false))
-          for(zipAlign in Alignment.entries) {
-            val result = getAlignmentFinding(
-              path,
-              elfMinimumLoadSectionAlignment,
-              selfOrChildLoadSectionIncompatible,
-              zipAlignment = zipAlign)
-            seen.add(result.text)
-            if (!allowedFieldText.contains(result.text)) {
-              error(result.text)
+      for(extractNativeLibs in listOf(true, false, null))
+        for(elfMinimumLoadSectionAlignment in listOf(-1L, PAGE_ALIGN_4KB, PAGE_ALIGN_16KB, PAGE_ALIGN_32KB))
+          for(selfOrChildLoadSectionIncompatible in listOf(true, false))
+            for(zipAlign in Alignment.entries) {
+              val result = getAlignmentFinding(
+                path,
+                extractNativeLibs,
+                elfMinimumLoadSectionAlignment,
+                selfOrChildLoadSectionIncompatible,
+                zipAlignment = zipAlign)
+              seen.add(result.text)
+              if (!allowedFieldText.contains(result.text)) {
+                error(result.text)
+              }
+              val lookLikeWarning = result.text.contains("required")
+                                    || result.text.contains("does not support")
+              if (result.hasWarning && !lookLikeWarning) {
+                error(result.text)
+              }
+              if (!result.hasWarning && lookLikeWarning) {
+                error(result.text)
+              }
             }
-            val lookLikeWarning = result.text.contains("required")
-                                  || result.text.contains("does not support")
-            if (result.hasWarning && !lookLikeWarning) {
-              error(result.text)
-            }
-            if (!result.hasWarning && lookLikeWarning) {
-              error(result.text)
-            }
-          }
     val unused = allowedFieldText subtract seen
     if (unused.isNotEmpty()) {
       error(unused)

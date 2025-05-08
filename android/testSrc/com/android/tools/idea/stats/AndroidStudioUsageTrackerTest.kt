@@ -27,7 +27,6 @@ import com.android.tools.analytics.stubs.StubGraphicsEnvironment
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean
 import com.android.tools.idea.mendel.MendelFlagsProvider
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.buildActiveExperimentList
-import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfoApiLevelOnly
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.getMachineDetails
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.shouldRequestUserSentiment
 import com.android.tools.idea.stats.FeatureSurveys.shouldInvokeFeatureSurvey
@@ -72,13 +71,6 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
     assertTrue(info.deviceType == DeviceInfo.DeviceType.LOCAL_PHYSICAL)
     assertEquals(info.model, "pixel")
     assertEquals(info.characteristicsList, listOf("emulator", "watch"))
-  }
-
-  fun testDeviceToDeviceInfoApiLevelOnly() {
-    val info = deviceToDeviceInfoApiLevelOnly(createMockDevice())
-    // Test only Api Level is set
-    assertEquals(info.buildApiLevelFull, "24")
-    assertEquals(info.anonymizedSerialNumber, "")
   }
 
   fun testGetMachineDetails() {

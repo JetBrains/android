@@ -43,12 +43,7 @@ public final class NameComparator implements Comparator<Device> {
   private final @NotNull Comparator<@NotNull Device> myComparator;
 
   public NameComparator() {
-    this(StudioFlags.RESIZABLE_EXPERIMENTAL_TWEAKS_ENABLED::get);
-  }
-
-  @VisibleForTesting
-  NameComparator(@NotNull BooleanSupplier resizableExperimentalTweaksEnabledGet) {
-    myComparator = Comparator.<Device, SortKey>comparing(device -> SortKey.valueOfDevice(device, resizableExperimentalTweaksEnabledGet))
+    myComparator = Comparator.<Device, SortKey>comparing(device -> SortKey.valueOfDevice(device))
       .thenComparing(Device::getDisplayName, Collator.getInstance(ULocale.ROOT).reversed())
       .thenComparing(Device::getId);
   }
@@ -71,10 +66,9 @@ public final class NameComparator implements Comparator<Device> {
     PIXEL_2_to_7_FAMILY,
     // "Pixel" at the end because they don't have a number but are logically "1".
     PIXEL_1,
-    RESIZABLE_EXPERIMENTAL,
     OBSOLETE;
 
-    private static @NotNull SortKey valueOfDevice(@NotNull Device device, @NotNull BooleanSupplier resizableExperimentalTweaksEnabledGet) {
+    private static @NotNull SortKey valueOfDevice(@NotNull Device device) {
       if (device.getIsDeprecated()) {
         return OBSOLETE;
       }
@@ -85,7 +79,6 @@ public final class NameComparator implements Comparator<Device> {
         case "Medium Tablet" -> MEDIUM_TABLET;
         case "Pixel XL", "Pixel" -> PIXEL_1;
         case "Pixel Fold" -> PIXEL_FOLD;
-        case "Resizable (Experimental)" -> resizableExperimentalTweaksEnabledGet.getAsBoolean() ? DEVICE : RESIZABLE_EXPERIMENTAL;
         default -> {
           var prefix = displayName.length() >= 7 ? displayName.substring(0, 7) : "";
           yield switch(prefix) {

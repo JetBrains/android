@@ -17,9 +17,11 @@ package com.google.idea.blaze.base.wizard2;
 
 import com.google.idea.blaze.base.help.BlazeHelpHandler;
 import com.google.idea.blaze.base.settings.Blaze;
+import com.intellij.ide.util.projectWizard.ProjectBuilder;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.ide.wizard.CommitStepException;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.CancelledConfigurationException;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbModePermission;
@@ -33,16 +35,26 @@ import javax.annotation.Nullable;
 /** Largely copied from AbstractProjectWizard / AddModuleWizard (which aren't in the CLion SDK). */
 public abstract class BlazeNewProjectWizard extends AbstractWizard<ProjectImportWizardStep> {
 
+  public record WizardContext(BlazeNewProjectBuilder projectBuilder, Disposable disposable) {
+    public Disposable getDisposable() { return disposable; }
+
+    public String getProjectFileDirectory() {
+      return projectBuilder.getProjectDataDirectory();
+    }
+
+    public String getProjectName() {
+      return projectBuilder.getProjectName();
+    }
+  }
+
   public final WizardContext context;
-  public final BlazeProjectImportBuilder builder;
+  public final BlazeNewProjectBuilder builder;
 
   public BlazeNewProjectWizard() {
     super("Import Project from " + Blaze.defaultBuildSystemName(), (Project) null);
 
-    builder = new BlazeProjectImportBuilder();
-    context = new WizardContext(null, getDisposable());
-    context.putUserData(AbstractWizard.KEY, this);
-    context.setProjectBuilder(builder);
+    builder = new BlazeNewProjectBuilder();
+    context = new WizardContext(builder, this.getDisposable());
     for (ProjectImportWizardStep step : getSteps(context)) {
       addStep(step);
     }

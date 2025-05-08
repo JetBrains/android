@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
@@ -261,7 +262,8 @@ import java.util.concurrent.TimeUnit
 data class AndroidProjectModels(
   val androidProject: IdeAndroidProjectImpl,
   val variants: Collection<IdeVariantCoreImpl>,
-  val ndkModel: NdkModel?
+  val ndkModel: NdkModel?,
+  val declaredDependencies: IdeDeclaredDependenciesImpl
 )
 
 typealias AndroidProjectBuilderCore = (
@@ -345,9 +347,8 @@ data class JavaLibraryDependency(val library: IdeJavaLibraryImpl) {
         component = Component.parse(fakeCoordinates),
         name = "",
         artifact = jarFile,
-        srcJar = null,
+        srcJars = listOf(),
         docJar = null,
-        samplesJar = null,
       )
 
       return JavaLibraryDependency(libraryImpl)
@@ -387,6 +388,7 @@ interface AndroidProjectStubBuilder {
   val dynamicFeatures: List<String>
   val viewBindingOptions: IdeViewBindingOptionsImpl
   val dependenciesInfo: IdeDependenciesInfoImpl
+  val declaredDependencies: IdeDeclaredDependenciesImpl
   val supportsBundleTask: Boolean
   fun productFlavors(dimension: String): List<IdeProductFlavorImpl>
   fun productFlavorSourceProvider(flavor: String): IdeSourceProviderImpl
@@ -452,6 +454,7 @@ data class AndroidProjectBuilder(
   val dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
   val viewBindingOptions: AndroidProjectStubBuilder.() -> IdeViewBindingOptionsImpl = { buildViewBindingOptions() },
   val dependenciesInfo: AndroidProjectStubBuilder.() -> IdeDependenciesInfoImpl = { buildDependenciesInfo() },
+  val declaredDependencies: AndroidProjectStubBuilder.() -> IdeDeclaredDependenciesImpl = { IdeDeclaredDependenciesImpl(emptyList()) },
   val supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean = { true },
   val applicationIdFor: AndroidProjectStubBuilder.(variant: String) -> String = { "applicationId" },
   val testApplicationId: AndroidProjectStubBuilder.() -> String = { "testApplicationId" },
@@ -616,6 +619,7 @@ data class AndroidProjectBuilder(
         override val dynamicFeatures: List<String> = dynamicFeatures()
         override val viewBindingOptions: IdeViewBindingOptionsImpl = viewBindingOptions()
         override val dependenciesInfo: IdeDependenciesInfoImpl = dependenciesInfo()
+        override val declaredDependencies: IdeDeclaredDependenciesImpl = declaredDependencies()
         override val supportsBundleTask: Boolean = supportsBundleTask()
         override fun applicationId(variant: String): String = applicationIdFor(variant)
         override val testApplicationId: String get() = testApplicationId()
@@ -649,7 +653,8 @@ data class AndroidProjectBuilder(
       return AndroidProjectModels(
         androidProject = builder.androidProject,
         variants = builder.variants,
-        ndkModel = builder.ndkModel
+        ndkModel = builder.ndkModel,
+        declaredDependencies = builder.declaredDependencies
       )
     }
 }
@@ -1538,7 +1543,7 @@ private fun setupTestProjectFromAndroidModelCore(
     val qualifiedModuleName = if (gradlePath == ":") projectName else projectName + gradlePath.replace(":", ".")
     val moduleDataNode = when (moduleBuilder) {
       is AndroidModuleModelBuilder -> {
-        val (androidProject, variants, ndkModel) = moduleBuilder.projectBuilder(
+        val (androidProject, variants, ndkModel, declaredDependencies) = moduleBuilder.projectBuilder(
           projectName,
           gradlePath,
           rootProjectBasePath,
@@ -1565,6 +1570,7 @@ private fun setupTestProjectFromAndroidModelCore(
           agpVersion = moduleBuilder.agpVersion,
           androidProject = androidProject.populateBaseFeature(),
           variants = variants.let { if (!setupAllVariants) it.filter { it.name == moduleBuilder.selectedBuildVariant } else it },
+          declaredDependencies = declaredDependencies,
           ndkModel = ndkModel,
           selectedVariantName = moduleBuilder.selectedBuildVariant,
           selectedAbiName = moduleBuilder.selectedAbiVariant,
@@ -1719,6 +1725,7 @@ private fun createAndroidModuleDataNode(
   agpVersion: String?,
   androidProject: IdeAndroidProjectImpl,
   variants: Collection<IdeVariantCoreImpl>,
+  declaredDependencies: IdeDeclaredDependenciesImpl,
   ndkModel: NdkModel?,
   selectedVariantName: String,
   selectedAbiName: String?,
@@ -1759,6 +1766,7 @@ private fun createAndroidModuleDataNode(
     qualifiedModuleName,
     moduleBasePath,
     androidProject,
+    declaredDependencies,
     variants,
     selectedVariantName
   )
@@ -2550,7 +2558,7 @@ private fun setupDataNodesForSelectedVariant(
     val libraryFilePaths = LibraryFilePaths.getInstance(project)
     moduleNode.setupAndroidDependenciesForMpss({ path: GradleSourceSetProjectPath -> moduleIdToDataMap[path] }, { lib ->
       AdditionalArtifactsPaths(
-        listOfNotNull(lib.srcJar, lib.samplesJar),
+        lib.srcJars,
         lib.docJar,
       )
     }, newVariant, IdentityHashMap())

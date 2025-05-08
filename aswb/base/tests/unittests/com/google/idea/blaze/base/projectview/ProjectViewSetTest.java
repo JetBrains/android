@@ -25,6 +25,7 @@ import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceType;
+import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.Glob;
 import com.google.idea.blaze.base.projectview.section.ListSection;
 import com.google.idea.blaze.base.projectview.section.ScalarSection;
@@ -54,10 +55,12 @@ import com.google.idea.blaze.base.projectview.section.sections.TextBlockSection;
 import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceTypeSection;
+import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.BlazeSyncPlugin;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
 import java.io.File;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -82,7 +85,7 @@ public class ProjectViewSetTest extends BlazeTestCase {
                     .add(
                         ListSection.builder(DirectorySection.KEY)
                             .add(DirectoryEntry.include(new WorkspacePath("test"))))
-                    .add(ScalarSection.builder(UseQuerySyncSection.KEY).set(UseQuerySyncSection.UseQuerySync.TRUE))
+                    .add(ScalarSection.builder(UseQuerySyncSection.KEY).set(true))
                     .add(ScalarSection.builder(WorkspaceLocationSection.KEY).set("/file/path"))
                     .add(
                         ListSection.builder(TargetSection.KEY)
@@ -129,5 +132,14 @@ public class ProjectViewSetTest extends BlazeTestCase {
     }
 
     TestUtils.assertIsSerializable(projectViewSet);
+  }
+
+  @Test
+  public void testUseQuerySyncCaseInsensitive() {
+    ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), null);
+    parser.parseProjectView("use_query_sync: tRuE", List.of(UseQuerySyncSection.PARSER));
+    assertThat(parser.getResult().getTopLevelProjectViewFile()).isNotNull();
+    ProjectView projectView = parser.getResult().getTopLevelProjectViewFile().projectView;
+    assertThat(projectView.getScalarValue(UseQuerySyncSection.KEY)).isTrue();
   }
 }

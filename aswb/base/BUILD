@@ -210,8 +210,10 @@ java_library(
     neverlink = 1,
     visibility = G3PLUGINS_VISIBILITY,
     deps = [
+        ":base",
         ":proto_wrapper",
         "//tools/adt/idea/aswb/proto:proto_deps",
+        "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/exception",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
     ],

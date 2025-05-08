@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
-import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstantReader
+import com.android.tools.idea.gradle.project.build.output.LinesBuildOutputInstantReader
 import com.google.common.truth.Truth
 import org.junit.Test
 
@@ -29,7 +29,7 @@ class ResettableReaderTest {
 
   @Test
   fun testReset(){
-   val reader = ResettableReader(TestBuildOutputInstantReader(sampleText))
+   val reader = ResettableReader(LinesBuildOutputInstantReader(sampleText, "Test Id"))
     Truth.assertThat(reader.readLine()).isEqualTo("foo")
     Truth.assertThat(reader.readLine()).isEqualTo("bar")
     reader.resetPosition()
@@ -37,8 +37,8 @@ class ResettableReaderTest {
   }
 
   @Test
-  fun testReset2(){
-    val internalReader = TestBuildOutputInstantReader(sampleText)
+  fun testReset2() {
+    val internalReader = LinesBuildOutputInstantReader(sampleText, "Test Id")
     Truth.assertThat(internalReader.readLine()).isEqualTo("foo")
     val reader = ResettableReader(internalReader)
     Truth.assertThat(reader.readLine()).isEqualTo("bar")
@@ -49,7 +49,7 @@ class ResettableReaderTest {
 
   @Test
   fun testPushBack(){
-    val reader = ResettableReader(TestBuildOutputInstantReader(sampleText))
+    val reader = ResettableReader(LinesBuildOutputInstantReader(sampleText, "Test Id"))
     Truth.assertThat(reader.readLine()).isEqualTo("foo")
     Truth.assertThat(reader.readLine()).isEqualTo("bar")
     reader.pushBack()
@@ -58,7 +58,7 @@ class ResettableReaderTest {
 
   @Test
   fun testPushBack2(){
-    val reader = ResettableReader(TestBuildOutputInstantReader(sampleText))
+    val reader = ResettableReader(LinesBuildOutputInstantReader(sampleText, "Test Id"))
     Truth.assertThat(reader.readLine()).isEqualTo("foo")
     Truth.assertThat(reader.readLine()).isEqualTo("bar")
     reader.pushBack(2)
@@ -67,7 +67,7 @@ class ResettableReaderTest {
 
   @Test
   fun testResetAfterPushBack(){
-    val reader = ResettableReader(TestBuildOutputInstantReader(sampleText))
+    val reader = ResettableReader(LinesBuildOutputInstantReader(sampleText, "Test Id"))
     Truth.assertThat(reader.readLine()).isEqualTo("foo")
     Truth.assertThat(reader.readLine()).isEqualTo("bar")
     reader.pushBack()
@@ -78,7 +78,7 @@ class ResettableReaderTest {
 
   @Test
   fun testResetAfterReachingEnd(){
-    val reader = ResettableReader(TestBuildOutputInstantReader(sampleText))
+    val reader = ResettableReader(LinesBuildOutputInstantReader(sampleText, "Test Id"))
     Truth.assertThat(reader.readLine()).isEqualTo("foo")
     Truth.assertThat(reader.readLine()).isEqualTo("bar")
     Truth.assertThat(reader.readLine()).isEqualTo("baz")

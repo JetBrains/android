@@ -183,27 +183,6 @@ class BackupDialogTest {
   }
 
   @Test
-  fun showDialog_appComboBox_nonDebuggableApp() {
-    project.replaceService(
-      ProjectAppsProvider::class.java,
-      object : ProjectAppsProvider {
-        override fun getApplicationIds(): Set<String> {
-          return setOf("app2", "app3")
-        }
-      },
-      disposableRule.disposable,
-    )
-
-    createDialog(
-      initialApplication = "app5",
-      debuggableApps = listOf("app4", "app3", "app2", "app1"),
-    ) {
-      val applicationComboBox = it.findComponent<ComboBox<String>>("applicationIdComboBox")
-      assertThat(applicationComboBox.item).isEqualTo("app2")
-    }
-  }
-
-  @Test
   fun showDialog_changeType() {
     createDialog {
       it.findComponent<ComboBox<BackupType>>("typeComboBox").item = CLOUD
@@ -352,12 +331,8 @@ class BackupDialogTest {
     dialogInteractor: (BackupDialog) -> Unit,
   ) {
     createModalDialogAndInteractWithIt(
-      BackupDialog(
-        project,
-        initialApplication,
-        debuggableApps,
-        mapOf(initialApplication to isBackupEnabled),
-      )::show
+      BackupDialog(project, initialApplication, debuggableApps.associateWith { isBackupEnabled })::
+        show
     ) {
       dialogInteractor(it as BackupDialog)
     }

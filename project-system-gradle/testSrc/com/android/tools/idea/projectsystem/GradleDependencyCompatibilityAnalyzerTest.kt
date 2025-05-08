@@ -24,6 +24,7 @@ import com.android.ide.common.repository.GoogleMavenRepositoryV2
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.projectsystem.gradle.GradleDependencyCompatibilityAnalyzer
@@ -365,6 +366,28 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
   }
 
   @Test
+  fun testGetAvailableDependenciesWhenUnavailable() {
+    setupProject()
+    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
+      listOf(GradleCoordinate("nonexistent", "dependency123", "+"),
+             GradleCoordinate("nonexistent", "dependency456", "+"))
+    ).get(TIMEOUT, TimeUnit.SECONDS)
+
+    assertThat(warning).isEqualTo(
+      """
+       The dependencies were not found:
+          nonexistent:dependency123:+
+          nonexistent:dependency456:+
+      """.trimIndent()
+    )
+    assertThat(missing).containsExactly(
+      GradleCoordinate("nonexistent", "dependency123", "+"),
+      GradleCoordinate("nonexistent", "dependency456", "+")
+    )
+    assertThat(found).isEmpty()
+  }
+
+  @Test
   fun testWithExplicitVersion() {
     setupProject()
     val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
@@ -395,7 +418,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "22.17.3"))
     ).get(TIMEOUT, TimeUnit.SECONDS)
 
-    assertThat(warning).isEqualTo("The dependency was not found: com.android.support:appcompat-v7:[22.17.3,22.17.4)")
+    assertThat(warning).isEqualTo("The dependency was not found: com.android.support:appcompat-v7:22.17.3")
     assertThat(missing).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "22.17.3"))
     assertThat(found).isEmpty()
   }
@@ -488,6 +511,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
             if (appDependOnLibrary) listOf(AndroidModuleDependency(":library1", "debug"))
             else emptyList()
           },
+          declaredDependencies = { IdeDeclaredDependenciesImpl(additionalAppDeclaredDependencies) },
           androidLibraryDependencyList = { additionalAppResolvedDependencies }
         )
       ),
@@ -496,6 +520,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
         "debug",
         AndroidProjectBuilder(
           projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
+          declaredDependencies = { IdeDeclaredDependenciesImpl(additionalLibrary1DeclaredDependencies) },
           androidLibraryDependencyList = { additionalLibrary1ResolvedDependencies }
         )
       )
@@ -529,9 +554,8 @@ private fun ideAndroidLibrary(artifactAddress: String) =
       _renderscriptFolder = "renderscriptFolder",
       _proguardRules = "proguardRules",
       _lintJar = "lint.jar",
-      _srcJar = "src.jar",
+      _srcJars = listOf("src.jar", "sample.jar"),
       _docJar = "doc.jar",
-      _samplesJar = "sample.jar",
       _externalAnnotations = "externalAnnotations",
       _publicResources = "publicResources",
       _artifact = "artifactFile",

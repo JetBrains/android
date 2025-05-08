@@ -153,10 +153,6 @@ public interface BlazeVcsHandlerProvider {
      */
     boolean update(BlazeContext context, ListeningExecutorService executor);
 
-    /** Returns a custom workspace path resolver for this vcs. */
-    @Nullable
-    WorkspacePathResolver getWorkspacePathResolver();
-
     /** Validates the project view. Can cause sync to fail or restart. */
     ValidationResult validateProjectView(BlazeContext context, ProjectViewSet projectViewSet);
   }

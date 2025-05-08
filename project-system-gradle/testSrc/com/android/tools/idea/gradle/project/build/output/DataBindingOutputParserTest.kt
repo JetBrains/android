@@ -114,7 +114,7 @@ class DataBindingOutputParserInvalidInputHandlingTest {
   @Test
   fun recoverFromInvalidJson() {
     val badJson = "[databinding] {\"msg"
-    val reader = TestBuildOutputInstantReader(badJson)
+    val reader = LinesBuildOutputInstantReader(badJson, "Test Id")
     val consumer = TestMessageEventConsumer()
 
     val parser = DataBindingOutputParser()
@@ -127,7 +127,7 @@ class DataBindingOutputParserInvalidInputHandlingTest {
   fun recoverFromInvalidLegacy() {
     run {
       val badLegacyContents = "****/ data binding error ****invalid contents****\\ data binding error ****"
-      val reader = TestBuildOutputInstantReader(badLegacyContents)
+      val reader = LinesBuildOutputInstantReader(badLegacyContents, "Test Id")
       val consumer = TestMessageEventConsumer()
 
       val parser = DataBindingOutputParser()
@@ -138,7 +138,7 @@ class DataBindingOutputParserInvalidInputHandlingTest {
 
     run {
       val badLegacyLocation = "****/ data binding error ****msg:sample file:/sample loc:not-a-number ****\\ data binding error ****"
-      val reader = TestBuildOutputInstantReader(badLegacyLocation)
+      val reader = LinesBuildOutputInstantReader(badLegacyLocation, "Test Id")
       val consumer = TestMessageEventConsumer()
 
       val parser = DataBindingOutputParser()

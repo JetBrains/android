@@ -25,7 +25,7 @@ public interface ProjectLoader {
   /**
    * Loads a project definition from the import settings and the .bazelproject file.
    */
-  ProjectToLoadDefinition loadProjectDefinition(BlazeContext context) throws BuildException;
+  ProjectToLoadDefinition loadProjectDefinition(ProjectViewSet projectViewSet);
 
   @Nullable QuerySyncProject loadProject(BlazeContext context) throws BuildException;
 

@@ -83,4 +83,24 @@ public class MultiVersionTreeNodeTest {
     assertEquals(PackageNodeModel.SelectedState.INSTALLED, nodes.get(1).getCurrentState());
     assertEquals(PackageNodeModel.SelectedState.NOT_INSTALLED, nodes.get(2).getCurrentState());
   }
+
+  @Test
+  public void displayName() {
+    checkDisplayName("build-tools;36.0.0", "Android SDK Build-Tools 36", "Android SDK Build-Tools");
+    checkDisplayName("build-tools;34.0.0-rc2", "Android SDK Build-Tools 34-rc2", "Android SDK Build-Tools");
+    checkDisplayName("build-tools;33.0.3", "Android SDK Build-Tools 33.0.3", "Android SDK Build-Tools");
+    checkDisplayName("cmake;3.31.6", "CMake 3.31.6", "CMake");
+    checkDisplayName("foo;latest", "Foo", "Foo");
+  }
+
+  private void checkDisplayName(String path, String displayName, String expected) {
+    SdkUpdaterConfigurable configurable = Mockito.mock(SdkUpdaterConfigurable.class);
+    FakePackage.FakeRemotePackage pkg = new FakePackage.FakeRemotePackage(path);
+    pkg.setDisplayName(displayName);
+
+    PackageNodeModel packageNode = new PackageNodeModel(new UpdatablePackage(pkg), false);
+    DetailsTreeNode details = new DetailsTreeNode(packageNode, null, configurable);
+    MultiVersionTreeNode node = new MultiVersionTreeNode(ImmutableList.of(details));
+    assertEquals(expected, node.getDisplayName());
+  }
 }

@@ -102,7 +102,8 @@ fun enableHeadlessDialogs(disposable: Disposable) {
 /**
  * Looks for a currently shown modeless dialog.
  */
-fun findModelessDialog(predicate: Predicate<DialogWrapper>): DialogWrapper? = modelessDialogs.find { predicate.test(it) }
+inline fun <reified T: DialogWrapper> findModelessDialog(predicate: Predicate<T> = Predicate { true }): T? =
+    modelessDialogs.find { it is T && predicate.test(it) } as T?
 
 /**
  * Calls the [dialogTrigger] function that shows a modal dialog and then the [dialogInteractor]
@@ -202,7 +203,7 @@ private val modalityChangeCondition = modalityChangeLock.newCondition()
 @GuardedBy("modalityChangeLock")
 private val modalDialogStack = mutableListOf<DialogWrapper>()
 
-private val modelessDialogs = ContainerUtil.createConcurrentList<DialogWrapper>()
+val modelessDialogs = ContainerUtil.createConcurrentList<DialogWrapper>()
 
 private val dispatchEventMethod = ReflectionUtil.getDeclaredMethod(EventQueue::class.java, "dispatchEvent", AWTEvent::class.java)!!
 

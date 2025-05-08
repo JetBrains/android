@@ -16,9 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.google.common.collect.Iterables;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * This is a small selection component used in supporting components
@@ -40,17 +39,14 @@ public class SecondarySelector {
     return " " + hashCode() + " " + myComponent + " : " + myConstraint;
   }
 
-  private static final HashSet<SecondarySelector> freeSet = new HashSet<>();
+  private static final Queue<SecondarySelector> selectorsToReuse = new ConcurrentLinkedQueue<>();
 
   private SecondarySelector() {
   }
 
   public static SecondarySelector get(NlComponent component, Constraint constraint) {
-    SecondarySelector selector = Iterables.getFirst(freeSet, null);
-    if (selector != null) {
-      freeSet.remove(selector);
-    }
-    else {
+    SecondarySelector selector = selectorsToReuse.poll();
+    if (selector == null) {
       selector = new SecondarySelector();
     }
     selector.myComponent = component;
@@ -69,6 +65,6 @@ public class SecondarySelector {
   public void release() {
     myComponent = null;
     myConstraint = null;
-    freeSet.add(this);
+    selectorsToReuse.add(this);
   }
 }

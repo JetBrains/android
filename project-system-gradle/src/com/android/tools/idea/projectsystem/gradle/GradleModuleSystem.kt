@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeDeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
@@ -89,7 +90,6 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
@@ -99,21 +99,6 @@ import java.nio.file.Path
 import java.util.Collections
 import java.util.concurrent.TimeUnit
 import com.android.ide.common.gradle.Module as ExternalModule
-
-/**
- * Make [.getRegisteredDependency] return the direct module dependencies.
- *
- * The method [.getRegisteredDependency] should return direct module dependencies,
- * but we do not have those available with the current model see b/128449813.
- *
- * The artifacts in
- *   [com.android.tools.idea.gradle.dsl.api.GradleBuildModel.dependencies().artifacts]
- * is a list of the direct dependencies parsed from the build.gradle files but the
- * information will not be available for complex build files.
- *
- * For now always look at the transitive closure of dependencies.
- */
-const val CHECK_DIRECT_GRADLE_DEPENDENCIES = false
 
 /** Creates a map for the given pairs, filtering out null values. */
 private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
@@ -240,25 +225,21 @@ class GradleModuleSystem(
 
   private fun Component.dependency() = Dependency(group, name, RichVersion.require(version))
 
-  fun getDirectDependencies(module: Module): Sequence<Dependency> {
-    // TODO: b/129297171
-    @Suppress("ConstantConditionIf")
-    return if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
-      projectBuildModelHandler.read {
-        // TODO: Replace the below artifacts with the direct dependencies from the GradleAndroidModel see b/128449813
-        val artifacts = getModuleBuildModel(module)?.dependencies()?.artifacts() ?: return@read emptySequence<Dependency>()
-        artifacts
-          .asSequence()
-          .mapNotNull { Dependency.parse("${it.group()}:${it.name().forceString()}:${it.version()}") }
+  private fun IdeDeclaredDependencies.IdeCoordinates.dependency(): Dependency? =
+    this.takeIf { group != null }?.run {
+      when (this.version) {
+        null -> Dependency.parse("$group:$name")
+        else -> Dependency.parse("$group:$name:$version")
       }
-    } else {
-      getCompileDependenciesFor(module, DependencyScopeType.MAIN)
-        ?.libraries
-        ?.asSequence()
-        ?.filterIsInstance<IdeArtifactLibrary>()
-        ?.mapNotNull { it.component?.dependency() } ?: emptySequence()
     }
-  }
+
+  fun getDirectDependencies(module: Module): Sequence<Dependency> =
+    GradleAndroidModel.get(module)?.declaredDependencies?.configurationsToCoordinates
+      ?.filter { setOf("implementation", "api").contains(it.key) }
+      ?.flatMap { it.value }
+      ?.mapNotNull { it.dependency() }
+      ?.asSequence()
+    ?: emptySequence()
 
   override fun getResourceModuleDependencies() =
     AndroidDependenciesCache.getAllAndroidDependencies(module.getMainModule(), true).map(AndroidFacet::getModule)

@@ -50,14 +50,13 @@ import org.jetbrains.annotations.VisibleForTesting
 internal class BackupDialog(
   private val project: Project,
   initialApplicationId: String,
-  debuggableApps: List<String>,
   private val appIdToBackupEnabledMap: Map<String, Boolean>,
   private val dialogFactory: DialogFactory = DialogFactoryImpl(),
 ) : DialogWrapper(project) {
   private val applicationIds =
     buildList {
         addAll(project.getService(ProjectAppsProvider::class.java).getApplicationIds())
-        addAll(debuggableApps)
+        addAll(appIdToBackupEnabledMap.keys)
       }
       .distinct()
 
@@ -117,11 +116,7 @@ internal class BackupDialog(
   init {
     init()
     title = "Backup App Data"
-    applicationIdComboBox.item =
-      when {
-        applicationIds.contains(initialApplicationId) -> initialApplicationId
-        else -> applicationIds.firstOrNull()
-      }
+    applicationIdComboBox.item = initialApplicationId
     typeComboBox.item = getLastUsedType()
     typeComboBox.renderer = ListCellRenderer { _, value, _, _, _ -> JLabel(value.displayName) }
 

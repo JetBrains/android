@@ -6,17 +6,9 @@ package(
 
 java_library(
     name = "src_transform",
-    srcs = [":transformed_source"],
-    visibility = ["//visibility:public"],
+    srcs = ["java/com/example/UseTestClass.java"],
     deps = [
+        "//src_transform/deps:src_transform",
         "@maven//:com_google_guava_guava",
     ],
-)
-
-genrule(
-    name = "transformed_source",
-    srcs = ["java/com/example/TestClass.java"],
-    outs = ["gen/com/example/TestClass.java"],
-    cmd = "cp $< $@",
-    tags = ["ij-ignore-source-transform"],
 )

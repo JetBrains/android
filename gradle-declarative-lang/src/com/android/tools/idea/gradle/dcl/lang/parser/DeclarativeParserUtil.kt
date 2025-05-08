@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dcl.lang.parser
 
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_LPAREN
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_RPAREN
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.psi.TokenType.WHITE_SPACE
@@ -39,6 +40,18 @@ object DeclarativeParserUtil: GeneratedParserUtilBase() {
     val result = isNextAfterNewLine(b) && parser.parse(b, level)
     exit_section_(b, marker, null, result)
     return result
+  }
+
+  @JvmStatic
+  fun afterClosingRParen(b: PsiBuilder, level: Int): Boolean {
+    var position = -1
+    while (true) {
+      val element = b.rawLookup(position) ?: return true
+      if (b.isWhitespaceOrComment(element))
+        position -= 1
+      else if (element == OP_RPAREN) return false
+      else return true
+    }
   }
 
   @JvmStatic

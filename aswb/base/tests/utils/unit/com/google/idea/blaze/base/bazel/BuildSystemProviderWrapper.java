@@ -33,6 +33,7 @@ import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.exception.BuildException;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import java.io.InputStream;
 import java.util.Optional;
@@ -200,6 +201,12 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext)
         throws BuildException {
       return inner.invoke(blazeCommandBuilder, blazeContext);
+    }
+
+    @Override
+    public ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder,
+                                                 BlazeContext blazeContext) throws BuildException {
+      return inner.invokeAsProcessHandler(blazeCommandBuilder, blazeContext);
     }
 
     @Override

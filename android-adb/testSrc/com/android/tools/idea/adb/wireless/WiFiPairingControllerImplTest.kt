@@ -120,9 +120,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       devicePairingService,
       notificationService,
       view,
-    ) {
-      createPairingCodePairingController(it)
-    }
+      { createPairingCodePairingController(it) },
+      mdnsService = null,
+    )
   }
 
   private val testTimeUnit = TimeUnit.SECONDS

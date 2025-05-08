@@ -19,11 +19,13 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeDeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
@@ -52,6 +54,7 @@ interface GradleAndroidModelData : ModuleModel {
   val androidSyncVersion: String
   val rootDirPath: File
   val androidProject: IdeAndroidProject
+  val declaredDependencies: IdeDeclaredDependencies
   val variants: Collection<IdeVariantCore>
   val selectedVariantName: String
   val agpVersion: AgpVersion
@@ -69,6 +72,7 @@ data class GradleAndroidModelDataImpl(
   private val moduleName: String,
   override val rootDirPath: File,
   override val androidProject: IdeAndroidProjectImpl,
+  override val declaredDependencies: IdeDeclaredDependenciesImpl,
   override val variants: Collection<IdeVariantCoreImpl>,
   override val selectedVariantName: String
 ) : GradleAndroidModelData {
@@ -135,6 +139,7 @@ data class GradleAndroidModelDataImpl(
       moduleName: String,
       rootDirPath: File,
       androidProject: IdeAndroidProjectImpl,
+      declaredDependencies: IdeDeclaredDependenciesImpl,
       cachedVariants: Collection<IdeVariantCoreImpl>,
       variantName: String
     ): GradleAndroidModelData {
@@ -143,6 +148,7 @@ data class GradleAndroidModelDataImpl(
         moduleName,
         rootDirPath,
         androidProject,
+        declaredDependencies,
         cachedVariants,
         variantName
       )

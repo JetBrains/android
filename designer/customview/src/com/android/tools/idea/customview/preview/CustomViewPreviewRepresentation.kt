@@ -51,7 +51,6 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
@@ -161,7 +160,8 @@ class CustomViewPreviewRepresentation(
       }
     }
 
-  override val caretNavigationHandler = PreviewRepresentation.CaretNavigationHandler.NoopCaretNavigationHandler()
+  override val caretNavigationHandler =
+    PreviewRepresentation.CaretNavigationHandler.NoopCaretNavigationHandler()
 
   override var currentView: String = persistenceManager.getValue(currentStatePropertyName, "")
     set(value) {
@@ -435,8 +435,6 @@ class CustomViewPreviewRepresentation(
           configuration.device,
         )
       }
-
-      surface.removeModels(surface.models)
 
       val newSceneManager = surface.addModelWithoutRender(model).await()
       newSceneManager.requestRenderAndWait()

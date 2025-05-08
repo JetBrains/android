@@ -21,6 +21,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import com.google.gct.login2.LoginFeature
+import com.google.gct.login2.OAuthScope
 import icons.StudioIllustrations
 import icons.StudioIllustrationsCompose
 import javax.swing.Icon
@@ -35,7 +36,7 @@ class VitalsLoginFeature : LoginFeature {
   override val description =
     "See metrics and data about the apps in your Google Play Developer account. Used in " +
       "Android Vitals integration in App Quality Insights."
-  override val oAuthScopes = listOf("https://www.googleapis.com/auth/playdeveloperreporting")
+  override val oAuthScopes = listOf(OAuthScope.PlayDeveloperReporting)
 
   override val onboardingWizardEntry: LoginFeature.OnboardingWizardEntry
     get() =

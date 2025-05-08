@@ -84,6 +84,8 @@
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.project.sync.listeners.MigrateJdkConfigToGradleJavaHomeListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
+    <listener class="com.android.tools.idea.gradle.project.sync.listeners.RemoveGradleJvmReferenceSyncListener"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
   </projectListeners>
   <actions>
     <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />

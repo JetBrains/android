@@ -55,6 +55,7 @@ sealed class AndroidProjectResult {
     val androidVariantResolver: AndroidVariantResolver,
     val runtimeClasspathBehaviour: RuntimeClasspathBehaviour,
     val useFlatDependencyGraphModel: Boolean,
+    val additionalArtifactsInModel: Boolean,
   ) : AndroidProjectResult() {
     override fun createVariantFetcher(): IdeVariantFetcher =
       v2VariantFetcher(
@@ -62,7 +63,8 @@ sealed class AndroidProjectResult {
         modelVersions,
         v2Variants,
         runtimeClasspathBehaviour,
-        useFlatDependencyGraphModel
+        useFlatDependencyGraphModel,
+        additionalArtifactsInModel,
       )
   }
 
@@ -120,6 +122,7 @@ sealed class AndroidProjectResult {
       gradlePropertiesModel: GradlePropertiesModel,
       runtimeClasspathBehaviour: RuntimeClasspathBehaviour,
       useFlatDependencyGraphModel: Boolean,
+      additionalArtifactsInModel: Boolean,
     ): ModelResult<V2Project> {
       val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
       val defaultVariantName: String? =
@@ -169,7 +172,8 @@ sealed class AndroidProjectResult {
           defaultVariantName = defaultVariantName,
           androidVariantResolver = androidVariantResolver,
           runtimeClasspathBehaviour = runtimeClasspathBehaviour,
-          useFlatDependencyGraphModel = useFlatDependencyGraphModel
+          useFlatDependencyGraphModel = useFlatDependencyGraphModel,
+          additionalArtifactsInModel= additionalArtifactsInModel,
         )
       }
     }
@@ -216,7 +220,8 @@ private fun v2VariantFetcher(
   modelVersions: ModelVersions,
   v2Variants: List<IdeVariantCoreImpl>,
   runtimeClasspathBehaviour: RuntimeClasspathBehaviour,
-  useFlatDependencyGraphModel: Boolean
+  useFlatDependencyGraphModel: Boolean,
+  additionalArtifactsInModel: Boolean,
 ): IdeVariantFetcher {
   return fun(
     controller: BuildController,
@@ -234,7 +239,7 @@ private fun v2VariantFetcher(
       modelVersions,
       configuration.variant,
       useFlatDependencyGraphModel,
-      parameterMutatorForProject(runtimeClasspathBehaviour, module.projectType, configuration.isRoot)
+      parameterMutatorForProject(runtimeClasspathBehaviour, module.projectType, configuration.isRoot, additionalArtifactsInModel)
     ) ?: return ModelResult.create { null }
     return modelCache.variantFrom(
       BuildId(module.gradleProject.projectIdentifier.buildIdentifier.rootDir),

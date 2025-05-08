@@ -31,6 +31,7 @@ import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.exception.BuildException;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import java.io.InputStream;
 import java.util.Optional;
@@ -69,13 +70,14 @@ public interface BuildSystem {
 
     enum Capability {
       /**
-       * Capability to build Android Instrumentation Test APK
-       */
-      BUILD_AIT,
-      /**
        * Capability to invoke blaze/bazel via CLI
        */
       SUPPORT_CLI,
+
+      /**
+       * Can return a process handler
+       */
+      RETURN_PROCESS_HANDLER,
       /**
        * Capability to run parallel builds
        */
@@ -91,17 +93,20 @@ public interface BuildSystem {
       /**
        * Capability to debug Android local test
        */
-      DEBUG_LOCAL_TEST
+      ATTACH_JAVA_DEBUGGER
     }
 
-    default ImmutableSet<Capability> getCapabilities() {
-      throw new UnsupportedOperationException("This invoker does not support capabilities.");
-    }
+    ImmutableSet<Capability> getCapabilities();
 
     /**
      * Runs a blaze command, parses the build results into a {@link BlazeBuildOutputs} object.
      */
     BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException;
+
+    /**
+     * Runs a blaze command and returns a process handler, which can be used by the IDE to control its execution.
+     */
+    ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException;
 
     /**
      * Runs a blaze query command.

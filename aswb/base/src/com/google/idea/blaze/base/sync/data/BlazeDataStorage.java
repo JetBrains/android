@@ -60,8 +60,7 @@ public class BlazeDataStorage {
     return new File(importSettings.getProjectDataDirectory(), BLAZE_DATA_SUBDIRECTORY);
   }
 
-  public static File getProjectCacheDir(Project project, BlazeImportSettings importSettings) {
-    String locationHash = importSettings.getLocationHash();
+  public static File getProjectCacheDir(Project project, String locationHash) {
 
     // Legacy support: The location hash used to be just the project hash
     if (Strings.isNullOrEmpty(locationHash)) {
@@ -134,7 +133,7 @@ public class BlazeDataStorage {
     public Optional<LoggedDirectory> getLoggedDirectory(Project project) {
       return Optional.ofNullable(
               BlazeImportSettingsManager.getInstance(project).getImportSettings())
-          .map(settings -> getProjectCacheDir(project, settings))
+          .map(settings -> getProjectCacheDir(project, settings.getLocationHash()))
           .map(
               file ->
                   LoggedDirectory.builder()

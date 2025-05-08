@@ -185,6 +185,7 @@ protected constructor(
   final override fun play() {
     stopFrameTicker()
     myLastTickMs = System.currentTimeMillis()
+    onTick(0L)
     myTicker =
       EdtExecutorService.getScheduledExecutorInstance()
         .scheduleWithFixedDelay(

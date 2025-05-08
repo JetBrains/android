@@ -628,6 +628,8 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/common/build/classes/kotlin/jvm/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : NonStandardSourceSetDependencies.common.jvmMain
         ModuleFile                    :  [-]
         FACET                         : Kotlin
             TypeId                        : kotlin-language
@@ -2472,6 +2474,8 @@ PROJECT                       : NonStandardSourceSetDependencies
             compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample/build/classes/kotlin/jvm/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample.jvmMain
         ModuleFile                    :  [-]
         FACET                         : Kotlin
             TypeId                        : kotlin-language

@@ -32,6 +32,7 @@ import javax.swing.event.HyperlinkListener
 internal class WiFiPairingPanel(
   private val parentDisposable: Disposable,
   private val hyperlinkListener: HyperlinkListener,
+  private val mdnsService: String?,
 ) {
   private val centerPanel by lazy { WiFiPairingCenterPanel(hyperlinkListener) }
 
@@ -56,7 +57,10 @@ internal class WiFiPairingPanel(
   }
 
   val pairingCodePanel by lazy {
-    PairingCodeTabPanel(Consumer<MdnsService> { service -> pairingCodePairInvoked(service) })
+    PairingCodeTabPanel(
+      Consumer<MdnsService> { service -> pairingCodePairInvoked(service) },
+      mdnsService,
+    )
   }
 
   var isLoading: Boolean
@@ -110,7 +114,7 @@ internal class WiFiPairingPanel(
       WiFiPairingContentPanel(parentDisposable)
         .apply {
           setQrCodeComponent(qrCodePanel)
-          setPairingCodeComponent(pairingCodePanel)
+          setPairingCodeComponent(pairingCodePanel, mdnsService)
         }
         .component
 

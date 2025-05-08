@@ -26,14 +26,34 @@ import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import kotlin.test.assertNull
 import kotlin.test.assertSame
+import org.junit.AfterClass
 import org.junit.Assert.assertEquals
-import org.junit.Ignore
+import org.junit.BeforeClass
 import org.junit.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 class AndroidVersionsInfoTest {
+  companion object {
+    private var oldCompileSdk: Int = 0
+
+    @BeforeClass
+    @JvmStatic
+    fun setUp() {
+      // This is overridden in NewProjectWizardTestSuite, but we want to override it differently
+      // here.
+      // TODO(b/409977476): We can delete this when all the template tests use the current API.
+      oldCompileSdk = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
+      StudioFlags.NPW_COMPILE_SDK_VERSION.override(36)
+    }
+
+    @AfterClass
+    @JvmStatic
+    fun tearDown() {
+      StudioFlags.NPW_COMPILE_SDK_VERSION.override(oldCompileSdk)
+    }
+  }
 
   /**
    * For versions without an Android target, the Build API should be the highest known stable API
@@ -44,9 +64,9 @@ class AndroidVersionsInfoTest {
     assertEquals(OLDER_VERSION, versionItem.minApiLevel)
     assertEquals(OLDER_VERSION.toString(), versionItem.minApiLevelStr)
     assertEquals(NPW_CURRENT_VERSION, versionItem.buildApiLevel)
-    assertEquals(NPW_CURRENT_VERSION.toString(), versionItem.buildApiLevelStr)
+    assertEquals("$NPW_CURRENT_VERSION.0", versionItem.buildApiLevelStr)
     assertEquals(NPW_CURRENT_VERSION, versionItem.targetApiLevel)
-    assertEquals(NPW_CURRENT_VERSION.toString(), versionItem.targetApiLevelStr)
+    assertEquals("$NPW_CURRENT_VERSION", versionItem.targetApiLevelStr)
     assertNull(versionItem.androidTarget)
   }
 
@@ -59,7 +79,7 @@ class AndroidVersionsInfoTest {
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
     assertEquals("TEST_CODENAME", versionItem.minApiLevelStr)
     assertEquals(FUTURE_VERSION, versionItem.buildApiLevel)
-    assertEquals("android-TEST_CODENAME", versionItem.buildApiLevelStr)
+    assertEquals("${FUTURE_VERSION - 1}.0-TEST_CODENAME", versionItem.buildApiLevelStr)
     assertEquals(FUTURE_VERSION, versionItem.targetApiLevel)
     assertEquals("TEST_CODENAME", versionItem.targetApiLevelStr)
     assertNull(versionItem.androidTarget)
@@ -70,34 +90,28 @@ class AndroidVersionsInfoTest {
    */
   @Test
   fun stableAndroidTarget() {
-    val androidTarget: MockPlatformTarget =
-      object : MockPlatformTarget(OLDER_VERSION, 0) {
-        override fun getVersion(): AndroidVersion = AndroidVersion(OLDER_VERSION)
-      }
+    val androidTarget = MockPlatformTarget(OLDER_VERSION, 0)
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidTarget(androidTarget)
     assertEquals(OLDER_VERSION, versionItem.minApiLevel)
     assertEquals(OLDER_VERSION.toString(), versionItem.minApiLevelStr)
     assertEquals(NPW_CURRENT_VERSION, versionItem.buildApiLevel)
-    assertEquals(NPW_CURRENT_VERSION.toString(), versionItem.buildApiLevelStr)
+    assertEquals("$NPW_CURRENT_VERSION.0", versionItem.buildApiLevelStr)
     assertEquals(NPW_CURRENT_VERSION, versionItem.targetApiLevel)
-    assertEquals(NPW_CURRENT_VERSION.toString(), versionItem.targetApiLevelStr)
+    assertEquals("$NPW_CURRENT_VERSION", versionItem.targetApiLevelStr)
     assertNull(versionItem.androidTarget)
   }
 
   /** For preview Android target versions, the Build API should be the same as the preview */
   @Test
   fun withPreviewAndroidTarget() {
-    val androidTarget: MockPlatformTarget =
-      object : MockPlatformTarget(FUTURE_VERSION, 0) {
-        override fun getVersion(): AndroidVersion =
-          AndroidVersion(FUTURE_VERSION - 1, "TEST_CODENAME")
-      }
+    val androidTarget = MockPlatformTarget(AndroidVersion(FUTURE_VERSION - 1, "TEST_CODENAME"), 0)
+
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidTarget(androidTarget)
     assertEquals("API TEST_CODENAME Preview", versionItem.label)
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
     assertEquals("TEST_CODENAME", versionItem.minApiLevelStr)
     assertEquals(FUTURE_VERSION, versionItem.buildApiLevel)
-    assertEquals("android-TEST_CODENAME", versionItem.buildApiLevelStr)
+    assertEquals("${FUTURE_VERSION - 1}.0-TEST_CODENAME", versionItem.buildApiLevelStr)
     assertEquals(FUTURE_VERSION, versionItem.targetApiLevel)
     assertEquals("TEST_CODENAME", versionItem.targetApiLevelStr)
     assertSame(androidTarget, versionItem.androidTarget)
@@ -121,16 +135,15 @@ class AndroidVersionsInfoTest {
 
   /** For future Android target versions, the Build API should be updated too */
   @Test
-  @Ignore("Waiting for minor version support b/398938512")
   fun futureAndroidVersion() {
     val androidTarget = MockPlatformTarget(FUTURE_VERSION, 0)
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidTarget(androidTarget)
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
     assertEquals(FUTURE_VERSION.toString(), versionItem.minApiLevelStr)
     assertEquals(FUTURE_VERSION, versionItem.buildApiLevel)
-    assertEquals(FUTURE_VERSION.toString(), versionItem.buildApiLevelStr)
+    assertEquals("${FUTURE_VERSION}.0", versionItem.buildApiLevelStr)
     assertEquals(FUTURE_VERSION, versionItem.targetApiLevel)
-    assertEquals(FUTURE_VERSION.toString(), versionItem.targetApiLevelStr)
+    assertEquals("$FUTURE_VERSION", versionItem.targetApiLevelStr)
     assertNull(versionItem.androidTarget)
   }
 
@@ -192,7 +205,7 @@ class AndroidVersionsInfoTest {
 
   private fun mockedPlatform(api: Int): IAndroidTarget =
     mock<IAndroidTarget> {
-      on { version } doReturn AndroidVersion(api)
+      on { version } doReturn AndroidVersion(api, 0)
       on { isPlatform } doReturn true
     }
 }

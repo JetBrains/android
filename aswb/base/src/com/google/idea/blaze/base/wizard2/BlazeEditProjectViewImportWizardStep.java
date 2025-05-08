@@ -16,8 +16,8 @@
 package com.google.idea.blaze.base.wizard2;
 
 import com.google.idea.blaze.base.ui.BlazeValidationResult;
+import com.google.idea.blaze.base.wizard2.BlazeNewProjectWizard.WizardContext;
 import com.google.idea.blaze.base.wizard2.ui.BlazeEditProjectViewControl;
-import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.options.ConfigurationException;
 import java.awt.BorderLayout;
@@ -63,10 +63,6 @@ public class BlazeEditProjectViewImportWizardStep extends ProjectImportWizardSte
 
     BlazeNewProjectBuilder builder = getProjectBuilder();
     control.updateBuilder(builder);
-
-    WizardContext wizardContext = getWizardContext();
-    wizardContext.setProjectName(builder.getProjectName());
-    wizardContext.setProjectFileDirectory(builder.getProjectDataDirectory());
   }
 
   @Override

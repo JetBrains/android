@@ -80,6 +80,7 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Insets
 import javax.swing.JComponent
@@ -539,7 +540,10 @@ internal class ComposePreviewViewImpl(
       return null
     }
 
-    return ActionData(message("action.generate.previews.for.file.empty.panel")) {
+    return ActionData(
+      message("action.generate.previews.for.file.empty.panel"),
+      StudioIcons.StudioBot.LOGO,
+    ) {
       val psiFile = psiFilePointer.element ?: return@ActionData
       val selectedEditor =
         (FileEditorManager.getInstance(psiFile.project).selectedEditor as? TextEditorWithPreview)

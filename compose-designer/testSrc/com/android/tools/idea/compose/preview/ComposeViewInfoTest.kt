@@ -55,55 +55,55 @@ class ComposeViewInfoTest {
         TestSourceLocation("root"),
         PxBounds(0, 0, 1000, 300),
         children =
-          listOf(
-            ComposeViewInfo(
-              TestSourceLocation("fileA"),
-              PxBounds(0, 0, 0, 0),
-              children = listOf(),
-              name = "",
-            ),
-            ComposeViewInfo(
-              TestSourceLocation("fileB", lineNumber = 4),
-              PxBounds(0, 0, 200, 200),
-              children =
+        listOf(
+          ComposeViewInfo(
+            TestSourceLocation("fileA"),
+            PxBounds(0, 0, 0, 0),
+            children = listOf(),
+            name = "",
+          ),
+          ComposeViewInfo(
+            TestSourceLocation("fileB", lineNumber = 4),
+            PxBounds(0, 0, 200, 200),
+            children =
+            listOf(
+              ComposeViewInfo(
+                TestSourceLocation("fileA", lineNumber = 5),
+                PxBounds(0, 0, 200, 200),
+                children = listOf(),
+                name = "",
+              ),
+              ComposeViewInfo(
+                TestSourceLocation("fileB", lineNumber = 7),
+                PxBounds(0, 0, 200, 200),
+                children =
                 listOf(
                   ComposeViewInfo(
-                    TestSourceLocation("fileA", lineNumber = 5),
+                    TestSourceLocation("fileA", lineNumber = 8),
                     PxBounds(0, 0, 200, 200),
-                    children = listOf(),
+                    children = listOf(
+                      ComposeViewInfo(
+                        TestSourceLocation("fileC", lineNumber = 8),
+                        PxBounds(0, 0, 200, 200),
+                        children = listOf(),
+                        name = "",
+                      )
+                    ),
                     name = "",
-                  ),
-                  ComposeViewInfo(
-                    TestSourceLocation("fileB", lineNumber = 7),
-                    PxBounds(0, 0, 200, 200),
-                    children =
-                      listOf(
-                        ComposeViewInfo(
-                          TestSourceLocation("fileA", lineNumber = 8),
-                          PxBounds(0, 0, 200, 200),
-                          children = listOf(
-                            ComposeViewInfo(
-                              TestSourceLocation("fileC", lineNumber = 8),
-                              PxBounds(0, 0, 200, 200),
-                              children = listOf(),
-                              name = "",
-                            )
-                          ),
-                          name = "",
-                        )
-                      ),
-                    name = "",
-                  ),
+                  )
                 ),
-              name = "",
+                name = "",
+              ),
             ),
-            ComposeViewInfo(
-              TestSourceLocation("fileC", lineNumber = 10),
-              PxBounds(400, 200, 1000, 300),
-              children = listOf(),
-              name = "",
-            ),
+            name = "",
           ),
+          ComposeViewInfo(
+            TestSourceLocation("fileC", lineNumber = 10),
+            PxBounds(400, 200, 1000, 300),
+            children = listOf(),
+            name = "",
+          ),
+        ),
         name = "",
       )
 
@@ -115,6 +115,104 @@ class ComposeViewInfoTest {
     assertEquals(leafHits.first().sourceLocation.lineNumber, 8)
     assertEquals(leafHits[1].sourceLocation.fileName, "fileA")
     assertEquals(leafHits[1].sourceLocation.lineNumber, 5)
+  }
+
+  @Test
+  fun checkFindHitsWithDepth() {
+    //                    root
+    //              /      |       \
+    //          fileA     fileB        fileC
+    //           /
+    //        fileB (line 4)
+    //       /              \
+    //     fileA (line 5)    fileB  (line 7)
+    //                             \
+    //                             fileA (line 8)
+    //                                \
+    //                               fileC
+    //
+    // Given that all the components shown above contain the point x, y and the file A is passed
+    // into the function findLeafHitsInFile will return both components on line 5 and line 8 of
+    // file A.
+
+    val root =
+      ComposeViewInfo(
+        TestSourceLocation("root"),
+        PxBounds(0, 0, 1000, 300),
+        children =
+        listOf(
+          ComposeViewInfo(
+            TestSourceLocation("fileA", lineNumber = 4),
+            PxBounds(0, 0, 0, 0),
+            children =
+            listOf(
+              ComposeViewInfo(
+                TestSourceLocation("fileA", lineNumber = 5),
+                PxBounds(0, 0, 200, 200),
+                children = listOf(),
+                name = "",
+              ),
+              ComposeViewInfo(
+                TestSourceLocation("fileB", lineNumber = 7),
+                PxBounds(0, 0, 200, 200),
+                children =
+                listOf(
+                  ComposeViewInfo(
+                    TestSourceLocation("fileA", lineNumber = 8),
+                    PxBounds(0, 0, 0, 200),
+                    children = listOf(
+                      ComposeViewInfo(
+                        TestSourceLocation("fileC", lineNumber = 8),
+                        PxBounds(0, 0, 200, 200),
+                        children = listOf(),
+                        name = "",
+                      )
+                    ),
+                    name = "",
+                  )
+                ),
+                name = "",
+              ),
+            ),
+            name = "",
+          ),
+          ComposeViewInfo(
+            TestSourceLocation("fileC", lineNumber = 10),
+            PxBounds(400, 200, 1000, 300),
+            children = listOf(),
+            name = "",
+          ),
+          ComposeViewInfo(
+            TestSourceLocation("fileB"),
+            PxBounds(0, 0, 0, 0),
+            children = listOf(),
+            name = "",
+          ),
+        ),
+
+        name = "",
+      )
+
+    assertTrue(root.findHitWithDepth(2000, 2000).isEmpty())
+
+    val hitsWithDepth = root.findHitWithDepth(125, 125)
+
+    assertEquals(4, hitsWithDepth.size)
+
+    val sortedHitsWithDepth = hitsWithDepth.sortedBy { it.first }
+    assertEquals(0, sortedHitsWithDepth.first().first)
+    assertEquals("root", sortedHitsWithDepth.first().second.sourceLocation.fileName)
+    assertEquals(2, sortedHitsWithDepth.get(1).first)
+    assertEquals("fileB", sortedHitsWithDepth.get(1).second.sourceLocation.fileName)
+    assertEquals(7, sortedHitsWithDepth.get(1).second.sourceLocation.lineNumber)
+
+    assertEquals(2, sortedHitsWithDepth.get(2).first)
+    assertEquals("fileA", sortedHitsWithDepth.get(2).second.sourceLocation.fileName)
+    assertEquals(5, sortedHitsWithDepth.get(2).second.sourceLocation.lineNumber)
+
+    assertEquals(4, sortedHitsWithDepth.get(3).first)
+    assertEquals("fileC", sortedHitsWithDepth.get(3).second.sourceLocation.fileName)
+    assertEquals(8, sortedHitsWithDepth.get(3).second.sourceLocation.lineNumber)
   }
 
   @Test
@@ -132,28 +230,28 @@ class ComposeViewInfoTest {
         TestSourceLocation("root"),
         PxBounds(0, 0, 1000, 1000),
         children =
-          listOf(
-            ComposeViewInfo(
-              TestSourceLocation("fileA"),
-              PxBounds(0, 0, 10, 10),
-              children = listOf(),
-              name = "",
-            ),
-            ComposeViewInfo(
-              TestSourceLocation("fileB", lineNumber = 4),
-              PxBounds(0, 0, 20, 20),
-              children =
-                listOf(
-                  ComposeViewInfo(
-                    TestSourceLocation("fileB", lineNumber = 7),
-                    PxBounds(0, 0, 10, 20),
-                    children = listOf(),
-                    name = "",
-                  )
-                ),
-              name = "",
-            ),
+        listOf(
+          ComposeViewInfo(
+            TestSourceLocation("fileA"),
+            PxBounds(0, 0, 10, 10),
+            children = listOf(),
+            name = "",
           ),
+          ComposeViewInfo(
+            TestSourceLocation("fileB", lineNumber = 4),
+            PxBounds(0, 0, 20, 20),
+            children =
+            listOf(
+              ComposeViewInfo(
+                TestSourceLocation("fileB", lineNumber = 7),
+                PxBounds(0, 0, 10, 20),
+                children = listOf(),
+                name = "",
+              )
+            ),
+            name = "",
+          ),
+        ),
         name = "",
       )
 
@@ -188,48 +286,48 @@ class ComposeViewInfoTest {
         TestSourceLocation("root"),
         PxBounds(0, 0, 1000, 300),
         children =
-          listOf(
-            ComposeViewInfo(
-              TestSourceLocation("fileA", lineNumber = 1),
-              PxBounds(0, 0, 0, 0),
-              children = listOf(),
-              name = "",
-            ),
-            ComposeViewInfo(
-              TestSourceLocation("fileB", lineNumber = 4),
-              PxBounds(0, 0, 200, 200),
-              children =
+        listOf(
+          ComposeViewInfo(
+            TestSourceLocation("fileA", lineNumber = 1),
+            PxBounds(0, 0, 0, 0),
+            children = listOf(),
+            name = "",
+          ),
+          ComposeViewInfo(
+            TestSourceLocation("fileB", lineNumber = 4),
+            PxBounds(0, 0, 200, 200),
+            children =
+            listOf(
+              ComposeViewInfo(
+                TestSourceLocation("fileA", lineNumber = 5),
+                PxBounds(0, 0, 200, 200),
+                children = listOf(),
+                name = "",
+              ),
+              ComposeViewInfo(
+                TestSourceLocation("fileB", lineNumber = 7),
+                PxBounds(0, 0, 200, 200),
+                children =
                 listOf(
                   ComposeViewInfo(
-                    TestSourceLocation("fileA", lineNumber = 5),
+                    TestSourceLocation("fileA", lineNumber = 8),
                     PxBounds(0, 0, 200, 200),
                     children = listOf(),
                     name = "",
-                  ),
-                  ComposeViewInfo(
-                    TestSourceLocation("fileB", lineNumber = 7),
-                    PxBounds(0, 0, 200, 200),
-                    children =
-                      listOf(
-                        ComposeViewInfo(
-                          TestSourceLocation("fileA", lineNumber = 8),
-                          PxBounds(0, 0, 200, 200),
-                          children = listOf(),
-                          name = "",
-                        )
-                      ),
-                    name = "",
-                  ),
+                  )
                 ),
-              name = "",
+                name = "",
+              ),
             ),
-            ComposeViewInfo(
-              TestSourceLocation("fileC", lineNumber = 10),
-              PxBounds(400, 200, 1000, 300),
-              children = listOf(),
-              name = "",
-            ),
+            name = "",
           ),
+          ComposeViewInfo(
+            TestSourceLocation("fileC", lineNumber = 10),
+            PxBounds(400, 200, 1000, 300),
+            children = listOf(),
+            name = "",
+          ),
+        ),
         name = "",
       )
 

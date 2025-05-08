@@ -213,7 +213,6 @@ public final class BlazeNewProjectBuilder {
     } catch (IOException e) {
       throw new BlazeProjectCommitException("Could not create project view file", e);
     }
-    BlazeImportSettingsManager.setPendingProjectSettings(getImportSettings());
   }
 
   /**
@@ -224,36 +223,5 @@ public final class BlazeNewProjectBuilder {
     BlazeWizardUserSettingsStorage.getInstance().commit(userSettings);
     EventLoggingService.getInstance()
         .logEvent(getClass(), "blaze-project-created", ImmutableMap.copyOf(userSettings.values));
-
-    BlazeImportSettingsManager.getInstance(project).setImportSettings(getImportSettings());
-    // Initial sync of the project happens in BlazeSyncStartupActivity
-  }
-
-  /**
-   * Checks if a new project should be query sync project.
-   *
-   * <p>There are two ways to get query sync enabled for new project: via blaze project view and via
-   * query sync settings. blaze project view file take higher priority.
-   */
-  private boolean isQuerySyncProject() {
-    ProjectViewParser projectViewParser =
-        new ProjectViewParser(BlazeContext.create(), new WorkspacePathResolverImpl(workspaceRoot));
-    projectViewParser.parseProjectView(projectViewFile);
-    return projectViewParser
-      .getResult()
-      .getScalarValue(UseQuerySyncSection.KEY)
-      .map(UseQuerySyncSection.UseQuerySync::isEnabled)
-      .orElseGet(QuerySync::useForNewProjects);
-  }
-
-  private BlazeImportSettings getImportSettings() {
-    return new BlazeImportSettings(
-        workspaceRoot.directory().getPath(),
-        projectName,
-        projectDataDirectory,
-        BlazeImportSettingsManager.createLocationHash(projectName),
-        Optional.ofNullable(projectViewFile).map(File::getPath).orElse(null),
-        getBuildSystem(),
-        isQuerySyncProject() ? ProjectType.QUERY_SYNC : ProjectType.ASPECT_SYNC);
   }
 }

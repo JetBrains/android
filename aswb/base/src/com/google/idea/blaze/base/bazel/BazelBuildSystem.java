@@ -18,10 +18,14 @@ package com.google.idea.blaze.base.bazel;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
+import com.google.idea.blaze.base.projectview.ProjectViewManager;
+import com.google.idea.blaze.base.projectview.ProjectViewSet;
+import com.google.idea.blaze.base.projectview.section.sections.BazelBinarySection;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
-import com.google.idea.blaze.base.settings.BuildBinaryType;
+import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.project.Project;
+import java.io.File;
 import java.util.Optional;
 import java.util.Set;
 
@@ -34,7 +38,7 @@ class BazelBuildSystem implements BuildSystem {
 
   @Override
   public Optional<BuildInvoker> getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements) {
-    return Optional.of(new LocalInvoker(project, this));
+    return Optional.of(new LocalBazelInvoker(project, this, binaryPath(project)));
   }
 
   @Override
@@ -55,5 +59,18 @@ class BazelBuildSystem implements BuildSystem {
   @Override
   public BazelQueryRunner createQueryRunner(Project project) {
     return new BazelQueryRunner(project, this);
+  }
+
+  private static String binaryPath(Project project) {
+    File projectSpecificBinary = null;
+    ProjectViewSet projectView = ProjectViewManager.getInstance(project).getProjectViewSet();
+    if (projectView != null) {
+      projectSpecificBinary = projectView.getScalarValue(BazelBinarySection.KEY).orElse(null);
+    }
+
+    if (projectSpecificBinary != null) {
+      return projectSpecificBinary.getPath();
+    }
+    return BlazeUserSettings.getInstance().getBazelBinaryPath();
   }
 }

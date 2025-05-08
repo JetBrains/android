@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.AndroidStudioProjectActivity
 import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.assertions.AssertInMemoryConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnDiskConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnFailure
@@ -35,6 +36,7 @@ import com.intellij.build.events.FinishBuildEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.openapi.util.RecursionManager
 import com.intellij.testFramework.PlatformTestUtil
@@ -98,11 +100,16 @@ class JdkIntegrationTest(
       JdkTableUtils.populateJdkTableWith(jdkTable, tempDir)
       EnvironmentUtils.overrideEnvironmentVariables(environmentVariables, disposable)
     }
+    CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
+      CapturePlatformModelsProjectResolverExtension.TestGradleModels(),
+      disposable
+    )
   }
 
   private fun cleanTestEnvironment() {
     StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME.clearOverride()
     JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
+    CapturePlatformModelsProjectResolverExtension.reset()
   }
 
   data class TestEnvironment(
@@ -161,10 +168,23 @@ class JdkIntegrationTest(
       assertOnDiskConfig(AssertOnDiskConfig(project, expect))
     }
 
+    fun syncAssertingUndefinedGradleJdK() {
+      sync(
+        assertInMemoryConfig = {
+          // The #USE_PROJECT_JDK macro represents the default when gradleJvm isn't defined
+          assertGradleJdk(ExternalSystemJdkUtil.USE_PROJECT_JDK)
+        },
+        assertOnDiskConfig = {
+          // The #USE_PROJECT_JDK macro isn't stored in the .idea/gradle.xml being this the default
+          assertGradleJdk(null)
+        }
+      )
+    }
+
     fun syncWithAssertion(
-      expectedGradleJdkName: String,
-      expectedProjectJdkName: String,
-      expectedProjectJdkPath: String,
+      expectedGradleJdkName: String? = null,
+      expectedProjectJdkName: String? = null,
+      expectedProjectJdkPath: String? = null,
       expectedGradleLocalJavaHome: String? = null,
       expectedException: KClass<out Exception>? = null,
     ) {
@@ -184,20 +204,26 @@ class JdkIntegrationTest(
 
     fun syncWithAssertion(
       expectedGradleRoots: Map<String, ExpectedGradleRoot>,
-      expectedProjectJdkName: String,
-      expectedProjectJdkPath: String,
+      expectedProjectJdkName: String?,
+      expectedProjectJdkPath: String?,
       expectedException: KClass<out Exception>? = null,
     ) {
       sync(
         assertInMemoryConfig = {
           assertGradleRoots(expectedGradleRoots)
-          assertProjectJdk(expectedProjectJdkName)
-          assertProjectJdkTablePath(expectedProjectJdkPath)
-          assertProjectJdkTableEntryIsValid(expectedProjectJdkName)
+          expectedProjectJdkName?.let {
+            assertProjectJdkTableEntryIsValid(it)
+            assertProjectJdk(it)
+          }
+          expectedProjectJdkPath?.let {
+            assertProjectJdkTablePath(it)
+          }
         },
         assertOnDiskConfig = {
           assertGradleRoots(expectedGradleRoots)
-          assertProjectJdk(expectedProjectJdkName)
+          expectedProjectJdkName?.let {
+            assertProjectJdk(it)
+          }
         },
         assertOnFailure = { syncException ->
           expectedException?.let {
@@ -229,7 +255,7 @@ class JdkIntegrationTest(
         PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(1))
 
         AssertInMemoryConfig(project, expect).run {
-          assertGradleJdkAndValidateTableEntry(expectedGradleJdkName, expectedGradleJdkPath)
+          assertGradleJdk(expectedGradleJdkName, expectedGradleJdkPath)
         }
         project
       }

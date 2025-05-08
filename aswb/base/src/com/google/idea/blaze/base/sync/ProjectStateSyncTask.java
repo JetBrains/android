@@ -30,6 +30,7 @@ import com.google.idea.blaze.base.command.info.BlazeInfoRunner;
 import com.google.idea.blaze.base.execution.ExecutionDeniedException;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.model.BlazeVersionData;
+import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.plugin.BuildSystemVersionChecker;
 import com.google.idea.blaze.base.projectview.ProjectView;
@@ -275,7 +276,6 @@ final class ProjectStateSyncTask {
     context.output(new StatusOutput("Updating VCS..."));
 
     for (int i = 0; i < 3; ++i) {
-      WorkspacePathResolver vcsWorkspacePathResolver = null;
       BlazeVcsHandlerProvider.BlazeVcsSyncHandler vcsSyncHandler = vcsHandler.createSyncHandler();
       if (vcsSyncHandler != null) {
         boolean ok =
@@ -288,19 +288,13 @@ final class ProjectStateSyncTask {
         if (!ok) {
           return null;
         }
-        vcsWorkspacePathResolver = vcsSyncHandler.getWorkspacePathResolver();
       }
-
-      WorkspacePathResolver workspacePathResolver =
-          vcsWorkspacePathResolver != null
-              ? vcsWorkspacePathResolver
-              : new WorkspacePathResolverImpl(workspaceRoot);
 
       ProjectViewSet projectViewSet;
       try {
         projectViewSet =
             ProjectViewManager.getInstance(project)
-                .reloadProjectView(context, workspacePathResolver);
+                .reloadProjectView(context);
       } catch (BuildException e) {
         context.handleException("Failed to load project view", e);
         return null;
@@ -323,7 +317,7 @@ final class ProjectStateSyncTask {
         }
       }
 
-      return new WorkspacePathResolverAndProjectView(workspacePathResolver, projectViewSet);
+      return new WorkspacePathResolverAndProjectView(new WorkspacePathResolverImpl(WorkspaceRoot.fromProject(project)), projectViewSet);
     }
     return null;
   }

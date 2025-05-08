@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.jdk.integration
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
 import com.android.tools.idea.gradle.project.sync.model.ExpectedGradleRoot
+import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.StudioFeatureFlags
@@ -33,6 +34,7 @@ import com.android.tools.idea.testing.JdkConstants.JDK_11
 import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_VERSION
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkException
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_INTERNAL_JAVA
@@ -180,6 +182,21 @@ class MigrateProjectToGradleLocalJavaHomeIntegrationTest {
         expectedProjectJdkPath = JDK_EMBEDDED_PATH,
         expectedGradleLocalJavaHome = null
       )
+    }
+
+  @Test
+  fun `Given valid gradle JDK configuration and daemon JVM criteria When sync project Then gradleJdk got unconfigured`() =
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        ideaGradleJdk = "valid-entry",
+        gradleDaemonToolchain = GradleDaemonToolchain(JDK_EMBEDDED_VERSION)
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk("valid-entry", JDK_11_PATH)),
+        studioFlags = StudioFeatureFlags(true)
+      )
+    ) {
+      syncAssertingUndefinedGradleJdK()
     }
 
   @Test

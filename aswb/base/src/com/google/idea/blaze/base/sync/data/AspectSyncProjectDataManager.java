@@ -130,6 +130,6 @@ public class AspectSyncProjectDataManager implements BlazeProjectDataManager {
   }
 
   private static File getCacheFile(Project project, BlazeImportSettings importSettings) {
-    return new File(BlazeDataStorage.getProjectCacheDir(project, importSettings), "cache.dat.gz");
+    return new File(BlazeDataStorage.getProjectCacheDir(project, importSettings.getLocationHash()), "cache.dat.gz");
   }
 }

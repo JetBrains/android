@@ -19,6 +19,7 @@ import static com.google.common.util.concurrent.Futures.immediateFuture;
 import static com.google.idea.blaze.base.scope.scopes.SyncActionScopes.createAndSubmitRunTask;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -26,8 +27,13 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
+import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.base.scope.scopes.SyncActionScopes;
+import com.google.idea.blaze.base.settings.BlazeImportSettings;
+import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
+import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
 import com.google.idea.blaze.base.util.SaveUtil;
 import com.google.idea.blaze.common.Label;
@@ -351,7 +357,7 @@ public class QuerySyncManager implements Disposable {
     try {
       querySyncActionStatsScope.getBuilder().setTaskOrigin(taskOrigin);
       ListenableFuture<Boolean> innerResultFuture =
-          createAndSubmitRunTask(project, title, subTitle, Optional.of(querySyncActionStatsScope), operation, taskOrigin);
+          SyncActionScopes.createAndSubmitRunTask(project, title, subTitle, Optional.of(querySyncActionStatsScope), operation, taskOrigin);
       result.setFuture(innerResultFuture);
     } catch (Throwable t) {
       result.setException(t);
@@ -489,8 +495,14 @@ public class QuerySyncManager implements Disposable {
     }
     // Ensure edits to the project view and any imports have been saved
     SaveUtil.saveAllFiles();
-    final var projectDefinition = loader.loadProjectDefinition(context).definition();
-    return !loadedProject.getProjectDefinition().equals(projectDefinition);
+    ProjectViewManager projectViewManager = ProjectViewManager.getInstance(project);
+    BlazeImportSettings importSettings = BlazeImportSettingsManager.getInstance(project).getImportSettings();
+    ProjectLoader.ProjectToLoadDefinition projectToLoadDefinition = loader.loadProjectDefinition(
+      projectViewManager.doLoadProjectView(BlazeContext.create() /* Load silently for comparison*/, importSettings));
+    final var projectDefinition = projectToLoadDefinition
+      .definition();
+    return !loadedProject.getProjectDefinition().equals(projectDefinition) ||
+           !Objects.equal(importSettings.getWorkspaceRoot(), projectToLoadDefinition.workspaceRoot().directory().toString());
   }
 
   /** Displays error notification popup balloon in IDE. */

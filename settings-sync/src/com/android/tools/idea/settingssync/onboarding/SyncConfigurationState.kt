@@ -22,6 +22,7 @@ import androidx.compose.ui.state.ToggleableState
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.settingssync.PROVIDER_CODE_GOOGLE
 import com.android.tools.idea.settingssync.SettingsSyncFeature
+import com.android.tools.idea.settingssync.getActiveSyncUserEmail
 import com.android.tools.idea.settingssync.onboarding.Category.Companion.DESCRIPTORS
 import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.PreferredUser
@@ -62,10 +63,7 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
   // "Update" here includes applying the remote settings to the IDE.
   private val updateFromServerDone = CountDownLatch(1)
 
-  val activeSyncUser: String? =
-    SettingsSyncLocalSettings.getInstance().userId.takeIf {
-      SettingsSyncSettings.getInstance().syncEnabled
-    }
+  val activeSyncUser: String? = getActiveSyncUserEmail()
 
   /**
    * In-memory cache holding the results of the latest cloud status fetch operations.

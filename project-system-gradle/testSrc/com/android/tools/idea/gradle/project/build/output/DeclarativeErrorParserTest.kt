@@ -116,7 +116,7 @@ class DeclarativeErrorParserTest {
                      assert: (VirtualFile, Iterator<MessageEvent>, BuildOutputInstantReader) -> Unit) {
     val file = createFile("path", "build.gradle.dcl", content)
     val parser = DeclarativeErrorParser()
-    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput(file!!.path)).toList())
+    val reader = LinesBuildOutputInstantReader(Splitter.on("\n").split(buildOutput(file!!.path)).toList(), "Test Id")
     val consumer = TestMessageEventConsumer()
 
     val line = reader.readLine()!!

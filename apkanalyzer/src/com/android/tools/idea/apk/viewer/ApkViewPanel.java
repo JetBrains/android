@@ -84,6 +84,7 @@ import javax.swing.SwingConstants;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,7 +101,7 @@ public class ApkViewPanel implements TreeSelectionListener {
   private JButton myCompareWithButton;
   private Tree myTree;
 
-  private DefaultTreeModel myTreeModel;
+  private ApkTreeModel myTreeModel;
   private Listener myListener;
   @NotNull private final ApkParser myApkParser;
   private boolean myArchiveDisposed = false;
@@ -179,7 +180,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         try {
           refreshTree();
           if (IS_PAGE_ALIGN_ENABLED) {
-            myTree.expandPaths(findPageAlignWarningsPaths(result));
+            myTree.expandPaths(findPageAlignWarningsPaths(result, myTreeModel.getExtractNativeLibs()));
           }
         }
         catch (Exception e) {
@@ -297,7 +298,7 @@ public class ApkViewPanel implements TreeSelectionListener {
     myNameAsyncIcon = new AsyncProcessIcon("aapt xmltree manifest");
     mySizeAsyncIcon = new AsyncProcessIcon("estimating apk size");
 
-    myTreeModel = new DefaultTreeModel(new LoadingNode());
+    myTreeModel = new ApkTreeModel(new LoadingNode());
     myTree = new Tree(myTreeModel);
     myTree.setName("nodeTree");
     myTree.setShowsRootHandles(true);
@@ -396,7 +397,7 @@ public class ApkViewPanel implements TreeSelectionListener {
 
   private void setRootNode(@Nullable ArchiveNode root) {
     try {
-      myTreeModel = new DefaultTreeModel(root);
+      myTreeModel = new ApkTreeModel(root);
       if (root != null) {
         myTree.setPaintBusy(root.getData().getDownloadFileSize() < 0);
       }
@@ -467,7 +468,11 @@ public class ApkViewPanel implements TreeSelectionListener {
     myNameComponent.append(", Version Code: ", SimpleTextAttributes.GRAY_ATTRIBUTES);
     myNameComponent.append(String.valueOf(appInfo.versionCode), SimpleTextAttributes.REGULAR_ATTRIBUTES);
     myNameComponent.append(")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    myTreeModel.setExtractNativeLibs(appInfo.extractNativeLibs);
   }
+
+  @NotNull
+  public ApkTreeModel getTreeModel() { return myTreeModel; }
 
   @NotNull
   public JComponent getContainer() {
@@ -498,6 +503,28 @@ public class ApkViewPanel implements TreeSelectionListener {
         }
       }
       myListener.selectionChanged(components);
+    }
+  }
+
+  public static class ApkTreeModel extends DefaultTreeModel {
+    private Boolean myExtractNativeLibs = null;
+    private boolean myExtractNativeLibsSet = false;
+
+    public ApkTreeModel(TreeNode root) {
+      super(root);
+    }
+
+    public void setExtractNativeLibs(Boolean extractNativeLibs) {
+      myExtractNativeLibs = extractNativeLibs;
+      myExtractNativeLibsSet = true;
+    }
+
+    public Boolean getExtractNativeLibs() {
+      // If myExtractNativeLibs hasn't been set yet then the APK is still loading and we don't
+      // yet know if it will be true or false.
+      // In this case, return 'true' so that we don't prematurely show page alignment warnings.
+      if (!myExtractNativeLibsSet) return true;
+      return myExtractNativeLibs;
     }
   }
 

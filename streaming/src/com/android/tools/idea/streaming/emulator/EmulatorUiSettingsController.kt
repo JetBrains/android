@@ -127,7 +127,7 @@ private fun EmulatorConfiguration.toDeviceInfo(serialNumber: String): DeviceInfo
   return DeviceInfo.newBuilder()
     .setDeviceType(DeviceInfo.DeviceType.LOCAL_EMULATOR)
     .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(serialNumber))
-    .setBuildApiLevelFull(AndroidVersion(api, null).apiStringWithExtension)
+    .setBuildApiLevelFull(androidVersion.apiStringWithExtension)
     .build()
 }
 

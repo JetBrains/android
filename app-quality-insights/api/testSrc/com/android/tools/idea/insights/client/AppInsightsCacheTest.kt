@@ -568,25 +568,25 @@ class AppInsightsCacheTest {
       )
     cache.populateIssues(connection, listOf(ISSUE1))
 
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, CodeContextData.DISABLED)).isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.DISABLED))
+      .isNull()
 
     cache.putAiInsight(connection, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, CodeContextData.DISABLED))
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.DISABLED))
       .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
 
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", CodeContextData.DISABLED))
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", ContextSharingState.DISABLED))
       .isNull()
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, context)).isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.ALLOWED))
+      .isNull()
 
     val newInsight = AiInsight("blah", codeContextData = context)
     cache.putAiInsight(connection, ISSUE1.id, null, newInsight)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, context))
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.ALLOWED))
       .isEqualTo(newInsight.copy(isCached = true))
 
     cache.putAiInsight(connection, ISSUE1.id, "variant1", DEFAULT_AI_INSIGHT)
-    assertThat(
-        cache.getAiInsight(connection, ISSUE1.id, "variant1", DEFAULT_AI_INSIGHT.codeContextData)
-      )
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", ContextSharingState.DISABLED))
       .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
   }
 
@@ -606,8 +606,9 @@ class AppInsightsCacheTest {
     cache.removeIssue(connection, ISSUE1.id)
     assertThat(cache.getIssues(connection, listOf(ISSUE1.id))).isEmpty()
     assertThat(cache.getNotes(connection, ISSUE1.id)).isNull()
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, CodeContextData.DISABLED)).isNull()
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant2", CodeContextData.DISABLED))
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.DISABLED))
+      .isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant2", ContextSharingState.DISABLED))
       .isNull()
   }
 }

@@ -15,12 +15,13 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.getLibraryAdditionalArtifactPaths
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
+import com.intellij.openapi.externalSystem.model.project.LibraryPathType
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.PathUtil
@@ -56,13 +57,9 @@ class ComposeKDocLinkResolutionServiceTest : AndroidGradleTestCase() {
   fun testDownloadingAndAttachingSamples() {
     loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
 
-    val libraryFilePaths = LibraryFilePaths.getInstance(myFixture.project)
+    val result = getLibraryAdditionalArtifactPaths(project, LibraryPathType.SOURCE)
 
-    val androidxSamples =
-      libraryFilePaths
-        .getCachedPathsForArtifact("androidx.core.haptics:haptics:1.0.0-alpha01")
-        ?.sources!!
-    assertThat(androidxSamples.map { it.name })
+    assertThat(result.filter { it.contains("haptics") }.map { File(it).name })
       .containsExactly(
         "haptics-1.0.0-alpha01-sources.jar",
         "haptics-1.0.0-alpha01-samples-sources.jar",

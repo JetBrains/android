@@ -92,15 +92,18 @@ internal fun BuildController.findVariantModel(
 internal fun parameterMutatorForProject(
   runtimeClasspathBehaviour: RuntimeClasspathBehaviour,
   projectType: IdeAndroidProjectType,
-  hasNoInboundDependencies: Boolean
+  hasNoInboundDependencies: Boolean,
+  additionalArtifactsInModel: Boolean,
 ): (com.android.builder.model.v2.models.ModelBuilderParameter) -> Unit = {
   when {
-    hasNoInboundDependencies -> it.buildAllRuntimeClasspaths()
+    hasNoInboundDependencies -> it.buildAllRuntimeClasspaths(additionalArtifactsInModel)
     runtimeClasspathBehaviour.skipRuntimeClasspathForLibraries && projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY ->
       it.buildOnlyTestRuntimeClasspaths(
         buildUnitTestsRuntime = runtimeClasspathBehaviour.buildRuntimeClasspathForLibraryUnitTests,
-        buildScreenshotTestsRuntime = runtimeClasspathBehaviour.buildRuntimeClasspathForLibraryScreenshotTests)
-    else -> it.buildAllRuntimeClasspaths()
+        buildScreenshotTestsRuntime = runtimeClasspathBehaviour.buildRuntimeClasspathForLibraryScreenshotTests,
+        additionalArtifactsInModel
+      )
+    else -> it.buildAllRuntimeClasspaths(additionalArtifactsInModel)
   }
 }
 
@@ -312,18 +315,22 @@ sealed class DependencyGraphCompat {
 }
 
 /** Utility method for setting the parameters */
-fun com.android.builder.model.v2.models.ModelBuilderParameter.buildAllRuntimeClasspaths() {
+fun com.android.builder.model.v2.models.ModelBuilderParameter.buildAllRuntimeClasspaths(
+  addAdditionalArtifactsInModel: Boolean,
+) {
   dontBuildRuntimeClasspath = false
   dontBuildUnitTestRuntimeClasspath = false
   dontBuildScreenshotTestRuntimeClasspath = false
   dontBuildAndroidTestRuntimeClasspath = false
   dontBuildTestFixtureRuntimeClasspath = false
   dontBuildHostTestRuntimeClasspath = mapOf("UnitTest" to false, "ScreenshotTest" to false)
+  additionalArtifactsInModel = addAdditionalArtifactsInModel
 }
 
 fun com.android.builder.model.v2.models.ModelBuilderParameter.buildOnlyTestRuntimeClasspaths(
   buildUnitTestsRuntime: Boolean,
-  buildScreenshotTestsRuntime: Boolean
+  buildScreenshotTestsRuntime: Boolean,
+  addAdditionalArtifactsInModel: Boolean,
 ) {
   dontBuildRuntimeClasspath = true
   dontBuildUnitTestRuntimeClasspath = !buildUnitTestsRuntime
@@ -331,4 +338,5 @@ fun com.android.builder.model.v2.models.ModelBuilderParameter.buildOnlyTestRunti
   dontBuildAndroidTestRuntimeClasspath = false
   dontBuildTestFixtureRuntimeClasspath = true
   dontBuildHostTestRuntimeClasspath = mapOf("UnitTest" to dontBuildUnitTestRuntimeClasspath, "ScreenshotTest" to dontBuildScreenshotTestRuntimeClasspath)
+  additionalArtifactsInModel = addAdditionalArtifactsInModel
 }

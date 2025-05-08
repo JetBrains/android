@@ -132,9 +132,8 @@ internal fun modelCacheV2Impl(
   internedModels: InternedModels,
   modelVersions: ModelVersions,
   syncTestMode: SyncTestMode,
-  multiVariantAdditionalArtifactSupport: Boolean,
 ): ModelCache.V2 {
-  val modelFactory = IdeModelFactoryV2(modelVersions, multiVariantAdditionalArtifactSupport)
+  val modelFactory = IdeModelFactoryV2(modelVersions)
   fun String.deduplicate() = internedModels.intern(this)
   fun List<String>.deduplicateStrings(): List<String> = this.map { it.deduplicate() }
   fun Map<String, String>.deduplicateStrings(): Map<String, String> = map { (k, v) -> k.deduplicate() to v.deduplicate() }.toMap()
@@ -482,7 +481,7 @@ internal fun modelCacheV2Impl(
         if (!seenDependencies.contains(identity)) { // Any unique key identifying the library  is suitable.
           seenDependencies[identity] = listOf()
           internedModels.internJavaLibrary(LibraryIdentity.fromFile(jarFile)) {
-            IdeJavaLibraryImpl("${ModelCache.LOCAL_JARS}:" + jarFile.path + ":unspecified", null, "", jarFile, null, null, null)
+            IdeJavaLibraryImpl("${ModelCache.LOCAL_JARS}:" + jarFile.path + ":unspecified", null, "", jarFile, listOf(), null)
           }
         }
       }

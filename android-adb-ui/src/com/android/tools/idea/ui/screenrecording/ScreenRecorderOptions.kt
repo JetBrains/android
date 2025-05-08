@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-/**
- * Contains options for recording device screen.
- */
+/** Contains options for recording a device display. */
 internal class ScreenRecorderOptions(
   /** The logical ID of the display to record. */
   val displayId: Int,

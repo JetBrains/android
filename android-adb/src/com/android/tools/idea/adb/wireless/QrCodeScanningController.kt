@@ -17,6 +17,7 @@ package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingMethod.QR_CODE
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
@@ -24,6 +25,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.Disposer
+import java.net.InetAddress
 import java.time.Duration
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +39,7 @@ class QrCodeScanningController(
   private val service: WiFiPairingService,
   private val view: WiFiPairingView,
   parentDisposable: Disposable,
+  private val mdnsDevice: String?,
 ) : Disposable {
   private val LOG = logger<QrCodeScanningController>()
   private val modelListener = MyModelListener()
@@ -60,7 +63,11 @@ class QrCodeScanningController(
     view.showQrCodePairingStarted()
     generateQrCode(view.model)
     state = State.Polling
-    pollMdnsServices()
+    if (StudioFlags.WIFI_V2_ENABLED.get() && service.isTrackMdnsServiceAvailable()) {
+      startMdnsTrackingService()
+    } else {
+      pollMdnsServices()
+    }
   }
 
   private suspend fun generateQrCode(model: WiFiPairingModel) {
@@ -126,6 +133,28 @@ class QrCodeScanningController(
         // Run again in 1 second, unless we are disposed
         delay(Duration.ofSeconds(1))
       }
+    }
+  }
+
+  private suspend fun startMdnsTrackingService() {
+    service.trackMdnsServices().collect {
+      val services =
+        it.pairingMdnsServices.map {
+          MdnsService(
+            it.mdnsService.serviceInstanceName.instance,
+            if (it.mdnsService.serviceInstanceName.instance.startsWith("studio-"))
+              ServiceType.QrCode
+            else ServiceType.PairingCode,
+            InetAddress.getByName(it.mdnsService.ipv4),
+            it.mdnsService.port,
+          )
+        }
+      view.model.pairingCodeServices =
+        services.filter {
+          it.serviceType == ServiceType.PairingCode &&
+            (mdnsDevice == null || mdnsDevice == it.serviceName)
+        }
+      view.model.qrCodeServices = services.filter { it.serviceType == ServiceType.QrCode }
     }
   }
 

@@ -56,7 +56,6 @@ final class TasksToolWindowServiceImpl implements TasksToolWindowService, Dispos
   /** Mark the given task as started and notify the view to reflect the started task. */
   @Override
   public void startTask(Task task, ImmutableList<Filter> consoleFilters) {
-
     task.setStartTime(timeSource.now());
     ApplicationManager.getApplication().invokeLater(() -> tabs.addTask(task, consoleFilters, this));
   }
@@ -64,7 +63,6 @@ final class TasksToolWindowServiceImpl implements TasksToolWindowService, Dispos
   /** Append new output to a task view. */
   @Override
   public void output(Task task, PrintOutput output) {
-
     ApplicationManager.getApplication().invokeLater(() -> tabs.taskOutput(task, output));
   }
 

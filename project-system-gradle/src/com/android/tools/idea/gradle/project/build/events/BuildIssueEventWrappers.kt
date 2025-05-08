@@ -31,6 +31,7 @@ import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
+import java.util.Objects
 
 /**
  * Wrapper on [FileMessageEvent] to represent a FileMessageEvent that is also build issue.
@@ -126,6 +127,17 @@ open class FileMessageBuildIssueEvent(
   override fun getFilePosition(): FilePosition {
     return fileMessageEvent.filePosition
   }
+
+  override fun equals(other: Any?): Boolean {
+    if (other is FileMessageBuildIssueEvent) {
+      return Objects.equals(fileMessageEvent, other.fileMessageEvent)
+    }
+    return false
+  }
+
+  override fun hashCode(): Int {
+    return fileMessageEvent.hashCode()
+  }
 }
 
 /**
@@ -213,6 +225,17 @@ open class MessageBuildIssueEvent(
 
   override fun getIssue(): BuildIssue {
     return buildIssue
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (other is MessageBuildIssueEvent) {
+      return Objects.equals(messageEvent, other.messageEvent)
+    }
+    return false
+  }
+
+  override fun hashCode(): Int {
+    return messageEvent.hashCode()
   }
 }
 

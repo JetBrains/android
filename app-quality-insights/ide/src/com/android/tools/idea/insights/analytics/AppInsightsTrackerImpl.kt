@@ -216,7 +216,8 @@ class AppInsightsTrackerImpl(
             this.isCached = insight.isCached
             this.source = insight.insightSource.toProto()
             this.codeContextDetails =
-              insight.codeContextData.codeContextTrackingInfo
+              insight.codeContextData
+                .getTrackingInfo()
                 .toCodeContextDetailsProto()
                 .apply { this.contextLimit = contextLimit.toLong() }
                 .build()

@@ -58,8 +58,8 @@ class AndroidLintAndroidGradlePluginVersionInspection :
 
   class InvokeAGPUpgradeAssistantQuickFix(private val agpVersion: AgpVersion?) :
     DefaultLintQuickFix(
-      if (agpVersion == null) "Invoke Upgrade Assistant"
-      else "Invoke Upgrade Assistant for upgrade to $agpVersion"
+      if (agpVersion == null) "Invoke AGP Upgrade Assistant"
+      else "Invoke AGP Upgrade Assistant for upgrade to $agpVersion"
     ) {
     override fun apply(
       startElement: PsiElement,

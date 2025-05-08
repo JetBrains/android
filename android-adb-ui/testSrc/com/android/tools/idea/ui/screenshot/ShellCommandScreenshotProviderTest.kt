@@ -72,8 +72,8 @@ internal class ShellCommandScreenshotProviderTest {
   fun testPrimaryDisplay() {
     val testImage = createTestImage(1080, 600, Color.RED)
     deviceServices.configureShellV2Command(device, "screencap -p", testImage.toPngBytes(), emptyByteBuffer, 0)
-    val options = ScreenshotOptions(serialNumber, "Pixel 9", DeviceType.HANDHELD, PRIMARY_DISPLAY_ID, null)
-    screenshotProvider = ShellCommandScreenshotProvider(project, serialNumber, options)
+    val parameters = ScreenshotParameters(serialNumber, DeviceType.HANDHELD, "Pixel 9")
+    screenshotProvider = ShellCommandScreenshotProvider(project, serialNumber, parameters.deviceType, parameters.deviceModel!!, PRIMARY_DISPLAY_ID)
     val image = screenshotProvider.captureScreenshot()
     assertImageSimilar("test image", testImage, image.image)
   }
@@ -82,8 +82,8 @@ internal class ShellCommandScreenshotProviderTest {
   fun testSecondaryDisplay() {
     val testImage = createTestImage(400, 600, Color.BLUE)
     deviceServices.configureShellV2Command(device, "screencap -p -d 4619827551948147201", testImage.toPngBytes(), emptyByteBuffer, 0)
-    val options = ScreenshotOptions(serialNumber, "Pixel 9", DeviceType.HANDHELD, 2, null)
-    screenshotProvider = ShellCommandScreenshotProvider(project, serialNumber, options)
+    val parameters = ScreenshotParameters(serialNumber, DeviceType.HANDHELD, "Pixel 9")
+    screenshotProvider = ShellCommandScreenshotProvider(project, serialNumber, parameters.deviceType, parameters.deviceModel!!, 2)
     val image = screenshotProvider.captureScreenshot()
     assertImageSimilar("test image", testImage, image.image)
   }

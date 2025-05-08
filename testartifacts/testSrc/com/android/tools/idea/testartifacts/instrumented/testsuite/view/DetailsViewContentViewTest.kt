@@ -235,6 +235,25 @@ class DetailsViewContentViewTest {
     assertThat(view.myDeviceInfoTab.isHidden).isTrue()
   }
 
+  @Test
+  fun journeysResultsTabHiddenByDefault() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+
+    assertThat(view.myJourneyScreenshotsTab.isHidden).isTrue()
+  }
+
+  @Test
+  fun journeysResultsTabDisplayedWhenJourneyArtifactsExist() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+    view.setAdditionalTestArtifacts(mapOf(
+      "Journeys.ActionPerformed.action1.screenshotPath" to "/path/to/screenshot.png",
+      "Journeys.ActionPerformed.action1.description" to "The action taken",
+      "Journeys.ActionPerformed.action1.modelReasoning" to "The reasoning behind the action"
+    ))
+
+    assertThat(view.myJourneyScreenshotsTab.isHidden).isFalse()
+  }
+
   private fun device(id: String, name: String): AndroidDevice {
     return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
   }

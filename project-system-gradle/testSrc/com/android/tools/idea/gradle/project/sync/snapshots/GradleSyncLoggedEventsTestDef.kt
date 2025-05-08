@@ -27,6 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.TextFormat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.gradle.toolingExtension.util.GradleVersionUtil
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.io.File
 import java.util.Locale
@@ -49,7 +50,7 @@ data class GradleSyncLoggedEventsTestDef(
 
   private val testUsageTracker = TestUsageTracker(VirtualTimeScheduler())
 
-  override fun setup() {
+  override fun setup(testRootDisposable: Disposable) {
     UsageTracker.setWriterForTest(testUsageTracker)
     AnalyticsSettings.optedIn = true
   }
