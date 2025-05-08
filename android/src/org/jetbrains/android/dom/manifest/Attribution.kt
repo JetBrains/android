@@ -24,7 +24,7 @@ import org.jetbrains.android.dom.AndroidResourceType
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.resources.ResourceValue
 
-interface AttributeTag : GenericDomValue<String?>, AndroidDomElement {
+interface Attribution : GenericDomValue<String?>, AndroidDomElement {
 
   @Required fun getTag(): AndroidAttributeValue<String>
 

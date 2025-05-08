@@ -99,5 +99,5 @@ public interface Manifest extends ManifestElement {
 
   List<Overlay> getOverlays();
 
-  List<AttributeTag> getAttributes();
+  List<Attribution> getAttributions();
 }
