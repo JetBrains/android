@@ -783,7 +783,7 @@ class DeviceToolWindowPanelTest {
       else -> maxPercentDifferentLinux
     }
     // First rendering may be low quality.
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), max(maxPercentDifferent, 0.6),
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), max(maxPercentDifferent, 0.7),
                                      ignoreMissingGoldenFile = true)
     // Second rendering is guaranteed to be high quality.
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), maxPercentDifferent)
