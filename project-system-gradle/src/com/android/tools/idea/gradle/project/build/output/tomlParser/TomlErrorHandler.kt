@@ -16,7 +16,8 @@
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
 import com.intellij.build.events.BuildIssueEvent
+import com.intellij.build.output.BuildOutputInstantReader
 
 interface TomlErrorHandler {
-  fun tryExtractMessage(reader: ResettableReader):List<BuildIssueEvent>
+  fun tryExtractMessage(reader: BuildOutputInstantReader):List<BuildIssueEvent>
 }

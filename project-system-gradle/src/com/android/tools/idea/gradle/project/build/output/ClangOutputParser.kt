@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.isBuildFailureOutputLine
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.isEndOfBuildOutputLine
 import com.android.utils.cxx.process.NativeBuildOutputClassifier
 import com.android.utils.cxx.process.NativeToolLineClassification.Kind.INFO
 import com.android.utils.cxx.process.NativeToolLineClassification.Kind.ERROR
@@ -39,11 +41,6 @@ private val nativeBuildTaskPattern = Regex(
   "> Task (?<gradleProject>(?::[^:]+)*):" +
           "(?:buildCMake|buildNdkBuild|buildNinja|configureCMake|configureNdkBuild|configureNinja|externalNativeBuild)" +
           "(?<variant>[^ \\[]+)(\\[.*])?(?: [-A-Z]+)?")
-
-/**
- * Pattern indicating the end of the overall build. This is needed to finalize the last message being parsed.
- */
-private val endOfBuildSignals = Regex("BUILD FAILED in (\\d+)s.*|FAILURE: Build failed.*")
 
 const val CLANG_COMPILER_MESSAGES_GROUP_PREFIX = "Clang Compiler"
 
@@ -85,7 +82,7 @@ class ClangOutputParser : BuildOutputParser {
     if (parsers.isEmpty()) return false
 
     // If there is an end of build signal then flush, close, and clear active parsers.
-    if (endOfBuildSignals.matches(line)) {
+    if (line.isEndOfBuildOutputLine() || line.isBuildFailureOutputLine()) {
       for(parser in parsers.values) parser.close()
       parsers.clear()
       return false

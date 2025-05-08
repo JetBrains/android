@@ -77,8 +77,7 @@ tasks.register("runFailingTasks") {
           > Run with --scan to get full insights.
           > Get more help at https://help.gradle.org.
         """.trimIndent())
-        //TODO will be fixed with improvements to GradleBuildScriptErrorParser
-        //assertThat(output).doesNotContain("BUILD FAILED in ")
+        assertThat(output).doesNotContain("BUILD FAILED in ")
       }
       bowStateDump["root > [Task :app:failingTask1]"].let { output ->
         assertThat(output).doesNotContain("BUILD FAILED")
@@ -304,7 +303,6 @@ tasks.register("$name") {
       }
       assertThat(result.isBuildSuccessful).isEqualTo(false)
       allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
-      // ---
 
       verification(buildEvents, outputsMap)
     }
@@ -318,20 +316,5 @@ tasks.register("$name") {
       +
       outputsMap.map { it.key to it.value.joinToString(separator = "") })
       .toMap()
-  }
-
-  private fun buildOutputWindowStateDump2(
-    buildEvents: List<BuildEvent>,
-    outputsMap: Map<String, List<String>>
-  ): String = buildString {
-    appendLine("==Messages:==")
-    appendLine(buildEvents.printEvents())
-    appendLine("==Outputs:==")
-    outputsMap.forEach {
-      appendLine(it.key)
-      appendLine("---")
-      append(it.value.joinToString(separator = ""))
-      appendLine("---")
-    }
   }
 }

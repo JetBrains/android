@@ -37,7 +37,7 @@ import org.toml.lang.psi.TomlTable
 class WrongBundleReferenceHandler : TomlErrorHandler {
   private val PROBLEM_ALIAS_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), a bundle with name '([^ ]+)' declares a dependency on '([^ ]+)' which doesn't exist\\.".toRegex()
 
-  override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
+  override fun tryExtractMessage(reader: BuildOutputInstantReader): List<BuildIssueEvent> {
     if (reader.readLine()?.endsWith(BUILD_ISSUE_START) == true) {
       val problemLine = reader.readLine() ?: return listOf()
       PROBLEM_ALIAS_PATTERN.matchEntire(problemLine)?.let { match ->

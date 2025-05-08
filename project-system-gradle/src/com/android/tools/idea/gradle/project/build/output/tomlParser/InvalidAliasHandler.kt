@@ -29,7 +29,7 @@ import com.intellij.pom.Navigatable
 class InvalidAliasHandler: TomlErrorHandler {
   private val PROBLEM_ALIAS_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), invalid ([^ ]+) alias '([^ ]+)'.".toRegex()
 
-  override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
+  override fun tryExtractMessage(reader: BuildOutputInstantReader): List<BuildIssueEvent> {
     if (reader.readLine()?.endsWith(BUILD_ISSUE_START) == true) {
       val problemLine = reader.readLine() ?: return listOf()
       PROBLEM_ALIAS_PATTERN.matchEntire(problemLine)?.let { match ->

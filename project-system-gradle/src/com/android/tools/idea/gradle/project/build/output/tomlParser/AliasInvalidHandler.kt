@@ -28,7 +28,7 @@ import com.intellij.pom.Navigatable
 class AliasInvalidHandler : TomlErrorHandler {
   private val PROBLEM_ALIAS_PATTERN: Regex = "\\s+- Alias definition '([^ ]+)' is invalid".toRegex()
 
-  override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
+  override fun tryExtractMessage(reader: BuildOutputInstantReader): List<BuildIssueEvent> {
     if (reader.readLine()?.endsWith(BUILD_ISSUE_TOML_START) == true) {
       val problemLine = reader.readLine() ?: return listOf()
       PROBLEM_ALIAS_PATTERN.matchEntire(problemLine)?.let { match ->

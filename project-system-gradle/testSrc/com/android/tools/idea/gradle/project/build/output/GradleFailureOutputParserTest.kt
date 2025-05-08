@@ -36,11 +36,6 @@ import org.junit.rules.TemporaryFolder
  * * What went wrong:
  * ...
  * ```
- *
- * We currently have several parsers that try to parse this, so we need to make sure they work together in different cases.
- * - [com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser]
- * - [ConfigurationCacheErrorParser]
- * - [org.jetbrains.plugins.gradle.execution.build.output.GradleBuildScriptErrorParser]
  */
 class GradleFailureOutputParserTest : BuildOutputParserTest() {
 
@@ -50,11 +45,12 @@ class GradleFailureOutputParserTest : BuildOutputParserTest() {
   @Test
   fun configurationCacheErrorParsed() {
     val basePath = temporaryFolder.newFolder()
+    val buildGradle = temporaryFolder.newFile("build.gradle")
     val buildOutput = """
 FAILURE: Build failed with an exception.
 
 * Where:
-Build file '$basePath/app/build.gradle' line: 6
+Build file '$buildGradle' line: 6
 
 * What went wrong:
 Configuration cache problems found in this build.
