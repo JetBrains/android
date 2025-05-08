@@ -18,7 +18,6 @@ package com.android.tools.idea.run
 import com.android.adblib.testingutils.CloseablesRule
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.DeviceImpl
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidVersion
@@ -286,7 +285,8 @@ class AndroidRunConfigurationExecutorTest {
 
   @Test
   fun applyChangesSucceeded() {
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    fakeAdb.connectAndWaitForDevice()
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val runningDescriptor = setSwapInfo(env, device)
@@ -335,7 +335,8 @@ class AndroidRunConfigurationExecutorTest {
 
   @Test
   fun applyCodeChangesSucceeded() {
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    fakeAdb.connectAndWaitForDevice()
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val runningDescriptor = setSwapInfo(env, device)
@@ -387,7 +388,8 @@ class AndroidRunConfigurationExecutorTest {
 
   @Test
   fun runFailedApkProvisionException() {
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    fakeAdb.connectAndWaitForDevice()
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val configuration = env.runProfile as AndroidRunConfiguration
@@ -497,7 +499,8 @@ class AndroidRunConfigurationExecutorTest {
 
   @Test
   fun runFailedDeployException() {
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    fakeAdb.connectAndWaitForDevice()
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
 
@@ -563,7 +566,8 @@ class AndroidRunConfigurationExecutorTest {
 
   @Test
   fun swapRunFailedButProcessHandlerShouldNotBeDetached() {
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    fakeAdb.connectAndWaitForDevice()
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
     val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val configuration = env.runProfile as AndroidRunConfiguration
@@ -691,7 +695,8 @@ class AndroidRunConfigurationExecutorTest {
 
   @Test
   fun testFacetConsistency() {
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    fakeAdb.connectAndWaitForDevice()
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
     val env = getExecutionEnvironment(listOf(device))
     val configuration = spy(env.runProfile as AndroidRunConfiguration)
     val captor = argumentCaptor<AndroidFacet>()
