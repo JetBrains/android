@@ -8,7 +8,11 @@ load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.projectSystem.gradle",
-    srcs = ["src"],
+    # do not sort: must match IML order
+    srcs = [
+        "src",
+        "gen",
+    ],
     iml_files = ["intellij.android.projectSystem.gradle.iml"],
     lint_baseline = "lint_baseline.xml",
     # NOTE: For edits to module_visibility, please see note at end of list
