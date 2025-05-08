@@ -40,14 +40,15 @@ import java.util.function.Consumer
 
 class BuildOutputParserManager(private val project: Project) {
 
-  //TODO this one might need taskEventIds to also clean tasks
-  val failureHandlers = listOf(
-    ConfigurationCacheErrorParser(),
-    DeclarativeErrorParser(),
-    TomlErrorParser()
-  )
-    //TODO create parsers for each call, do not keep
-  private val buildOutputParsers: List<BuildOutputParser> = listOf(
+  private val tasksEventIds: MutableMap<String, Any> = ConcurrentHashMap()
+
+  fun getBuildOutputParsers(buildId: ExternalSystemTaskId): List<BuildOutputParser> {
+    val failureHandlers = listOf(
+      ConfigurationCacheErrorParser(),
+      DeclarativeErrorParser(),
+      TomlErrorParser()
+    )
+    val buildOutputParsers: List<BuildOutputParser> = listOf(
       GradleBuildOutputParser(),
       ClangOutputParser(),
       CmakeOutputParser(),
@@ -60,13 +61,10 @@ class BuildOutputParserManager(private val project: Project) {
       KotlincWithQuickFixesParser(),
       GradleBuildMultipleFailuresParser(failureHandlers),
       GradleBuildSingleFailureParser(failureHandlers)
-  )
-
-  private val tasksEventIds: MutableMap<String, Any> = ConcurrentHashMap()
-
-  fun getBuildOutputParsers(buildId: ExternalSystemTaskId): List<BuildOutputParser> =
-    buildOutputParsers.map { BuildOutputParserWrapper(it, buildId) }
+    )
+    return buildOutputParsers.map { BuildOutputParserWrapper(it, buildId) }
       .map { FixingParentIdParserWrapper(buildId, it) }
+  }
 
   // Temporal fix until we properly support this case handling in GradleOutputDispatcherFactory
   // TODO (b/414343360): remove once fix is ready in the platform code
