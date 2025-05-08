@@ -23,7 +23,6 @@ private const val GRADLE_JDK_PATH_KEY = "gradle.jdk.path"
 /**
  * Simple persistence based on [PropertiesComponent] for the default JDK used to run Gradle daemon.
  */
-@Service(Service.Level.APP)
 object GradleDefaultJdkPathStore {
 
   var jdkPath: String?
