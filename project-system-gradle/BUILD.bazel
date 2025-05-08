@@ -326,7 +326,6 @@ jvm_library(
     "//android/gradle-dsl-kotlin",
     "//android/gradle-dsl-toml",
     "//android/gradle-dsl-declarative",
-    "//android/android-kotlin/android-extensions-idea:android-kotlin-extensions",
     "//android/android-kotlin/idea-android:android-kotlin-idea",
     "//android/android-kotlin/idea-android/common:android-kotlin-idea-common",
   ]
