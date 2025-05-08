@@ -53,7 +53,9 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -523,9 +525,12 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         (receiverExpression as? KtDotQualifiedExpression)?.selectorExpression ?: receiverExpression
       if (KotlinPluginModeProvider.isK2Mode()) {
         allowAnalysisOnEdt {
-          analyze(receiverExpr) {
-            (receiverExpr.expressionType as? KaClassType)?.classId?.asFqNameString()?.let {
-              return left.text to it
+          @OptIn(KaAllowAnalysisFromWriteAction::class)
+          allowAnalysisFromWriteAction {
+            analyze(receiverExpr) {
+              (receiverExpr.expressionType as? KaClassType)?.classId?.asFqNameString()?.let {
+                return left.text to it
+              }
             }
           }
         }

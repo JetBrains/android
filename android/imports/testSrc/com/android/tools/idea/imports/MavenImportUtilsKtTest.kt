@@ -98,7 +98,7 @@ class MavenImportUtilsKtTest {
       .isEqualTo("Add dependency on androidx.camera:camera-view (alpha) and import")
 
     action.syncAfterChanges = false
-    action.invoke(projectRule.project, projectRule.fixture.editor, element)
+    projectRule.fixture.launchAction(action)
     verify("androidx.camera:camera-view")
   }
 

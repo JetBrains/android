@@ -717,13 +717,21 @@ class AndroidMavenImportIntentionActionTest {
         when {
           syncAfterAction -> {
             action.syncAfterChanges = true
-            performAndWaitForSyncEnd { action.invoke(project, fixture.editor, element) }
+            performAndWaitForSyncEnd {
+              // It would be preferable to run this using `fixture.launchAction`, which would more
+              // closely mimic the real project. But this executes it in a write action (like in the
+              // product). In unit tests the Gradle sync happens synchronously rather than
+              // asynchronously, and is not allowed within a write action. Since the other code
+              // paths involved here test this action in a write action, it's acceptable to leave
+              // this call operating outside of it so that we can test Gradle sync.
+              action.invoke(project, fixture.editor, element)
+            }
           }
           else -> {
-            // Note: We do perform, not performAndSync here, since in some cases androidx libraries
-            // aren't available
+            // We do not performAndSync here since in some cases androidx libraries aren't
+            // available.
             action.syncAfterChanges = false
-            action.invoke(project, fixture.editor, element)
+            fixture.launchAction(action)
           }
         }
         for (added in finalGradleText) {
