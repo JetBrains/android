@@ -33,12 +33,14 @@ import com.google.gct.wizard.WizardPage
 import com.google.gct.wizard.WizardPageControl
 import com.google.gct.wizard.WizardState
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.application.ex.ApplicationInfoEx
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.settingsSync.core.SettingsSyncBundle
 import com.intellij.settingsSync.core.SettingsSyncStateHolder
 import com.intellij.settingsSync.core.UpdateResult
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
+import com.intellij.util.text.DateFormatUtil
+import kotlin.io.path.getLastModifiedTime
 import org.jetbrains.jewel.ui.component.ExternalLink
 import org.jetbrains.jewel.ui.component.Text
 
@@ -163,14 +165,12 @@ internal fun WizardState.PushOrPullComposableContent() {
           annotatedComment =
             AnnotatedString.Builder()
               .apply {
-                // TODO: grab date info from the settings folder?
-                // withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                //   append("Last updated: ??\n")
-                //   append(
-                //     "Android Studio version:
-                // ${ApplicationInfoEx.getInstanceEx().fullApplicationName}"
-                //   )
-                // }
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                  append("Last updated: ${extractDateFromLocalConfig()}\n")
+                  append(
+                    "Android Studio version: ${ApplicationInfoEx.getInstanceEx().fullApplicationName}\n"
+                  )
+                }
               }
               .toAnnotatedString(),
           selected = configurationState.pushOrPull == PushOrPull.PUSH,
@@ -200,10 +200,13 @@ private fun WizardState.getCachedServerData(): UpdateResult.Success {
 }
 
 private fun WizardState.extractDateFromCloudRecord(): String {
-  val formatter = DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC)
   val instant = getCachedServerData().settingsSnapshot.metaInfo.dateCreated
+  return DateFormatUtil.formatDate(instant.toEpochMilli())
+}
 
-  return formatter.format(instant)
+private fun extractDateFromLocalConfig(): String {
+  val instant = PathManager.getConfigDir().getLastModifiedTime().toInstant()
+  return DateFormatUtil.formatDate(instant.toEpochMilli())
 }
 
 private fun WizardState.extractAppInfoFromCloudRecord(): String? {

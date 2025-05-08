@@ -42,7 +42,7 @@ private const val DISCONNECTED_ERROR = "disconnected"
 
 internal val SAMPLE_SNAPSHOT =
   SettingsSnapshot(
-    metaInfo = MetaInfo(Instant.now(), getLocalApplicationInfo()),
+    metaInfo = MetaInfo(Instant.parse("2024-05-08T10:15:30.00Z"), getLocalApplicationInfo()),
     fileStates = emptySet<FileState>(),
     plugins = SettingsSyncPluginsState(emptyMap()),
     settingsFromProviders = emptyMap(),
