@@ -81,7 +81,7 @@ internal class HardwareInputStateStorage {
   fun setHardwareInputEnabled(deviceId: DeviceId, enabled: Boolean) {
     b415832959Logger?.info("${currentThread()} $simpleId.setHardwareInputEnabled($deviceId, $enabled)")
     if (enabled) {
-      enabledDevices.add(deviceId.storageKey)
+      enabledDevices.addIfAbsent(deviceId.storageKey)
     } else {
       enabledDevices.remove(deviceId.storageKey)
     }
