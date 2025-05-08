@@ -2864,7 +2864,6 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                 archiveFile                   : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-jvm.jar [-]
                 - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
-            presetName                    : jvm
             - testRunTasks                : KotlinTestRunTaskImpl
                 compilationName               : test
                 taskName                      : jvmTest
@@ -3237,7 +3236,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 archiveFile                   : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                 - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
-            presetName                    : jvm
             - testRunTasks                : KotlinTestRunTaskImpl
                 compilationName               : test
                 taskName                      : jvmTest

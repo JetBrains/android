@@ -2756,13 +2756,6 @@ MODULE                        : kotlinMultiPlatform.app
                 platform                      : ANDROID
             disambiguationClassifier      : android
             platform                      : ANDROID
-            presetName                    : android
-            - testRunTasks                : KotlinTestRunTaskImpl
-                compilationName               : test
-                taskName                      : testDebugUnitTest
-            - testRunTasks                : KotlinTestRunTaskImpl
-                compilationName               : test
-                taskName                      : testReleaseUnitTest
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl) (*seen*)
@@ -2891,7 +2884,6 @@ MODULE                        : kotlinMultiPlatform.app
                 archiveFile                   : <ROOT>/app/build/libs/app-jvm.jar [-]
                 - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
-            presetName                    : jvm
             - testRunTasks                : KotlinTestRunTaskImpl
                 compilationName               : test
                 taskName                      : jvmTest
@@ -3604,13 +3596,6 @@ MODULE                        : kotlinMultiPlatform.module2
                 platform                      : ANDROID
             disambiguationClassifier      : android
             platform                      : ANDROID
-            presetName                    : android
-            - testRunTasks                : KotlinTestRunTaskImpl
-                compilationName               : test
-                taskName                      : testDebugUnitTest
-            - testRunTasks                : KotlinTestRunTaskImpl
-                compilationName               : test
-                taskName                      : testReleaseUnitTest
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl) (*seen*)
@@ -3739,7 +3724,6 @@ MODULE                        : kotlinMultiPlatform.module2
                 archiveFile                   : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                 - compilations                : main (KotlinCompilationImpl) (*seen*)
             platform                      : JVM
-            presetName                    : jvm
             - testRunTasks                : KotlinTestRunTaskImpl
                 compilationName               : test
                 taskName                      : jvmTest
