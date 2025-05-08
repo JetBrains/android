@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnown
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.convert
 import com.android.tools.idea.gradle.project.sync.convertArtifactName
+import com.android.tools.idea.gradle.project.sync.idea.entities.AndroidGradleSourceSetEntitySource
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import com.intellij.java.workspace.entities.JavaResourceRootPropertiesEntity
 import com.intellij.java.workspace.entities.JavaSourceRootPropertiesEntity
@@ -65,7 +66,6 @@ import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncProjectConfigur
 import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleBuildEntitySource
 import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleLinkedProjectEntitySource
 import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleProjectEntitySource
-import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleSourceSetEntitySource
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import kotlin.io.path.absolute
@@ -140,7 +140,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
 
         getAllSourceSets(context, projectModel).forEach  { (sourceSetName, typeToDirsMap) ->
           // For each source set in the project, create entity source and the actual entities.
-          val entitySource = GradleSourceSetEntitySource(projectEntitySource, sourceSetName)
+          val entitySource = AndroidGradleSourceSetEntitySource(projectEntitySource, sourceSetName)
           // This is the module name corresponding to the "holder" module
           val projectModuleName = resolveModuleName(context, buildModel, projectModel)
 
@@ -188,7 +188,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
         }
       }
     }
-    storage.replaceBySource({ it is GradleSourceSetEntitySource }, newEntities)
+    storage.replaceBySource({ it is AndroidGradleSourceSetEntitySource }, newEntities)
   }
 }
 
@@ -220,7 +220,7 @@ private fun findCommonAncestor(file1: File, file2: File) : File {
 
 // entity creation
 private fun createModuleEntity(
-  entitySource: GradleSourceSetEntitySource,
+  entitySource: EntitySource,
   projectModuleName: String,
   sourceSetName: String
 ): ModuleEntity.Builder = ModuleEntity(
@@ -250,7 +250,7 @@ private fun createModuleOptionsEntity(
 }
 
 private fun createContentRootEntity(
-  entitySource: GradleSourceSetEntitySource,
+  entitySource: EntitySource,
   typeToDirsMap: Map<IExternalSystemSourceType, Set<File>>,
   virtualFileUrlManager: VirtualFileUrlManager
 ): ContentRootEntity.Builder {
