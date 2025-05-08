@@ -123,7 +123,7 @@ internal class PushOrPullStepPage : WizardPage() {
 internal fun WizardState.PushOrPullComposableContent() {
   val configurationState = getOrCreateState { SyncConfigurationState() }
 
-  InnerWizardContentPage(syncConfigurationPageTitle) {
+  InnerWizardContentPage(header = { SyncConfigurationPageTitle() }) {
     Column(Modifier.padding(vertical = 16.dp, horizontal = 32.dp)) {
       Text(
         "There are existing Android Studio settings synced to this Google account." +

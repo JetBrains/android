@@ -72,7 +72,7 @@ internal fun WizardState.EnableOrSkipComposableContent() {
     }
   }
 
-  InnerWizardContentPage(syncConfigurationPageTitle) {
+  InnerWizardContentPage(header = { SyncConfigurationPageTitle() }) {
     Column(Modifier.padding(vertical = 16.dp, horizontal = 32.dp)) {
       Text(
         "Switch Backup & Sync to ${signInState.signedInUser.email}?",

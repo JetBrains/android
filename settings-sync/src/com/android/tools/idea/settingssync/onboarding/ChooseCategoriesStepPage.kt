@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
@@ -26,10 +27,13 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.google.gct.login2.ui.onboarding.compose.HEADER_INLINE_ICON_KEY
 import com.google.gct.login2.ui.onboarding.compose.InnerWizardContentPage
+import com.google.gct.login2.ui.onboarding.compose.PageHeaderText
 import com.google.gct.wizard.WizardPage
 import com.google.gct.wizard.WizardPageControl
 import com.google.gct.wizard.WizardState
+import icons.StudioIllustrationsCompose
 import org.jetbrains.jewel.ui.component.Text
 
 internal class ChooseCategoriesStepPage : WizardPage() {
@@ -50,14 +54,21 @@ internal class ChooseCategoriesStepPage : WizardPage() {
   }
 }
 
-internal val syncConfigurationPageTitle = buildAnnotatedString {
-  withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("Configure") }
-  append(" Backup & Sync")
-}
+@Composable
+internal fun SyncConfigurationPageTitle() =
+  PageHeaderText(
+    title =
+      buildAnnotatedString {
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("Configure ") }
+        appendInlineContent(HEADER_INLINE_ICON_KEY)
+        append(" Backup & Sync")
+      },
+    iconKey = StudioIllustrationsCompose.Common.GoogleLogo,
+  )
 
 @Composable
 internal fun WizardState.ChooseCategoriesComposableContent() {
-  InnerWizardContentPage(syncConfigurationPageTitle) {
+  InnerWizardContentPage(header = { SyncConfigurationPageTitle() }) {
     Column(Modifier.padding(vertical = 16.dp, horizontal = 32.dp)) {
       Text("You can configure what to sync to your Google account below.")
 
