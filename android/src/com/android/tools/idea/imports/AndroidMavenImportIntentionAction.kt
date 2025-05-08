@@ -114,8 +114,10 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       return
     }
 
-    invoke(project, editor, element, registry, true)
+    invoke(project, editor, element, registry, syncAfterChanges)
   }
+
+  @TestOnly internal var syncAfterChanges = true
 
   override fun getFamilyName(): String =
     AndroidBundle.message("android.suggested.import.action.family.name")
@@ -183,8 +185,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   }
 
   companion object {
-    @TestOnly
-    internal fun invoke(
+    private fun invoke(
       project: Project,
       editor: Editor,
       element: PsiElement,
