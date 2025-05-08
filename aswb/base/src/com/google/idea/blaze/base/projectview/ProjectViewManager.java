@@ -15,9 +15,12 @@
  */
 package com.google.idea.blaze.base.projectview;
 
+import com.google.idea.blaze.base.project.BaseQuerySyncConversionUtility;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.ScalarSection;
 import com.google.idea.blaze.base.projectview.section.Section;
+import com.google.idea.blaze.base.projectview.section.sections.TextBlock;
+import com.google.idea.blaze.base.projectview.section.sections.TextBlockSection;
 import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -104,6 +107,7 @@ public abstract class ProjectViewManager {
           && importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC) {
         existingUseQuerySyncSection.ifPresent(projectView::remove);
         projectView.add(useQuerySyncSection);
+        projectView.add(TextBlockSection.of(TextBlock.of(BaseQuerySyncConversionUtility.AUTO_CONVERSION_INDICATOR)));
         Notifications.Bus.notify(
           new Notification(
             "QuerySync",

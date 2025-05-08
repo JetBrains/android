@@ -27,6 +27,8 @@ import com.google.idea.common.experiments.FeatureRolloutExperiment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -46,6 +48,7 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
 
   public static final FeatureRolloutExperiment AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT =
     new FeatureRolloutExperiment("aswb.auto.convert.legacy.sync.to.query.sync");
+  public static final String AUTO_CONVERSION_INDICATOR = "# Auto-converted to query sync mode.";
   public static final String BAZEL_PROJECT_DIRECTORY = ".bazel";
   public static final String BLAZE_PROJECT_DIRECTORY = ".blaze";
   public static final String BACKUP_BAZEL_PROJECT_DIRECTORY = ".bazel_backup";
@@ -61,9 +64,19 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
   @Override
   public boolean canConvert(Path projectViewFilePath) {
     return AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled()
+           && !isAlreadyAutoConverted(projectViewFilePath)
            && parseProjectFields(projectViewFilePath)
              .filter(fields -> !fields.useQuerySync && !fields.shardSync)
              .isPresent();
+  }
+
+  private boolean isAlreadyAutoConverted(Path projectViewFilePath) {
+    try {
+      return Files.readAllLines(projectViewFilePath).contains(BaseQuerySyncConversionUtility.AUTO_CONVERSION_INDICATOR);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   private Optional<ConversionProjectFields> parseProjectFields(Path projectViewFilePath) {
