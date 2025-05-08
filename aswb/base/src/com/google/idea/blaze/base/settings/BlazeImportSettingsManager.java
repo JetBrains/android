@@ -52,7 +52,9 @@ import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
-/** Manages storage for the project's {@link BlazeImportSettings}. */
+/**
+ * Manages storage for the project's {@link BlazeImportSettings}.
+ */
 @State(name = "BlazeImportSettings", storages = @Storage(file = StoragePathMacros.WORKSPACE_FILE))
 public class BlazeImportSettingsManager implements PersistentStateComponent<BlazeImportSettings> {
   private static final Logger logger = Logger.getInstance(BlazeImportSettingsManager.class);
@@ -120,7 +122,8 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
         .map(BlazeImportSettings::getProjectName)
         .flatMap(it -> isNullOrEmpty(it) ? Optional.empty() : Optional.of(it))
         .orElse(project.getName());
-    final var locationHash = loadedImportSettings.map(BlazeImportSettings::getLocationHash).orElseGet(() -> createLocationHash(projectName));
+    final var locationHash =
+      loadedImportSettings.map(BlazeImportSettings::getLocationHash).orElseGet(() -> createLocationHash(projectName));
 
     final var projectViewFile =
       Stream.of(Path.of(projectBasePath, ".blazeproject"), Path.of(projectBasePath, ".bazelproject"))
@@ -180,7 +183,7 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
   }
 
   @TestOnly
-  public void setImportSettings (BlazeImportSettings importSettings){
+  public void setImportSettings(BlazeImportSettings importSettings) {
     this.importSettings.set(importSettings);
   }
 
@@ -205,7 +208,8 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
             }
           }
         }.queue();
-      } else {
+      }
+      else {
         reloadProjectViewUnderProgressAndWait();
       }
       return projectViewSet.get();
@@ -227,7 +231,8 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
       context -> {
         final var importSettings = getImportSettings();
         final var loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings);
-        migrateImportSettingsToProjectViewFile(importSettings, Objects.requireNonNull(loadedProjectView.getTopLevelProjectViewFile()));
+        migrateImportSettingsToProjectViewFile(project, importSettings,
+                                               Objects.requireNonNull(loadedProjectView.getTopLevelProjectViewFile()));
         projectViewSet.set(loadedProjectView);
       },
       QuerySyncManager.TaskOrigin.AUTOMATIC).get();

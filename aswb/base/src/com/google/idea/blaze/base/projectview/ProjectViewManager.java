@@ -24,11 +24,18 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.exception.ConfigurationException;
+import com.intellij.ide.BrowserUtil;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationAction;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
 import java.util.Optional;
 import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Class that manages access to a project's {@link ProjectView}.
@@ -40,11 +47,12 @@ public abstract class ProjectViewManager {
     return project.getService(ProjectViewManager.class);
   }
 
-  public static void migrateImportSettingsToProjectViewFile(BlazeImportSettings importSettings,
+  public static void migrateImportSettingsToProjectViewFile(Project project,
+                                                            BlazeImportSettings importSettings,
                                                             ProjectViewSet.ProjectViewFile projectViewFile) {
     ProjectView.Builder projectView = ProjectView.builder(projectViewFile.projectView);
     boolean isWorkspaceLocationUpdated = addUpdateWorkspaceLocationSection(importSettings, projectViewFile, projectView);
-    boolean isUseQuerySyncSectionUpdated = addUpdateUseQuerySyncSection(importSettings, projectViewFile, projectView);
+    boolean isUseQuerySyncSectionUpdated = addUpdateUseQuerySyncSection(project, importSettings, projectViewFile, projectView);
     if (isWorkspaceLocationUpdated || isUseQuerySyncSectionUpdated) {
       String projectViewText = ProjectViewParser.projectViewToString(projectView.build());
       try {
@@ -73,7 +81,8 @@ public abstract class ProjectViewManager {
     return false;
   }
 
-  private static boolean addUpdateUseQuerySyncSection(BlazeImportSettings importSettings,
+  private static boolean addUpdateUseQuerySyncSection(Project project,
+                                                      BlazeImportSettings importSettings,
                                                       ProjectViewSet.ProjectViewFile projectViewFile,
                                                       ProjectView.Builder projectView) {
     ScalarSection<Boolean> useQuerySyncSection = ScalarSection.builder(UseQuerySyncSection.KEY)
@@ -95,6 +104,20 @@ public abstract class ProjectViewManager {
           && importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC) {
         existingUseQuerySyncSection.ifPresent(projectView::remove);
         projectView.add(useQuerySyncSection);
+        Notifications.Bus.notify(
+          new Notification(
+            "QuerySync",
+            "Congratulation! Project is auto-converted into QuerySync.",
+            NotificationType.INFORMATION).addAction(new NotificationAction("go/query-sync") {
+
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e,
+                                        @NotNull Notification notification) {
+              BrowserUtil.browse("http://go/query-sync");
+
+            }
+          }),
+          project);
         return true;
     }
     return false;
