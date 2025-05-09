@@ -408,6 +408,23 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     assertFalse(processor.isBlocked)
   }
 
+  @Test
+  fun testJcenterUsageInBuildFileBlocksUpgrade() {
+    writeToBuildFile(TestFileName("AgpVersion/JcenterUsage"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("8.1.0"), AgpVersion.parse("9.0.0"))
+    assertTrue(processor.isBlocked)
+    assertSize(1, processor.blockProcessorReasons())
+    assertEquals("jcenter is a deprecated property", processor.blockProcessorReasons()[0].shortDescription)
+  }
+
+  @Test
+  fun testMavenCentralUsageInBuildFileDoesNotBlockUpgrade() {
+    writeToBuildFile(TestFileName("AgpVersion/MavenCentralUsage"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("8.1.0"), AgpVersion.parse("9.0.0"))
+    assertFalse(processor.isBlocked)
+    assertSize(0, processor.blockProcessorReasons())
+  }
+
   private fun writeToGradlePropertiesFile(text: String) {
     runWriteAction { VfsUtil.saveText(gradlePropertiesFile, text) }
   }

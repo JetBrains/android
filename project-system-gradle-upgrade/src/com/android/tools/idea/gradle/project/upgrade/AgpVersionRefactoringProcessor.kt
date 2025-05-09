@@ -86,6 +86,16 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     readMoreUrl = ReadMoreUrlRedirect("uncompressed-native-libs-false")
   )
 
+  object JcenterUsage: BlockReason(
+    shortDescription = "jcenter is a deprecated property",
+    description =
+      """
+      Starting with version 9.0, Android Gradle Plugin will no longer support jcenter.
+      Usages of jcenter() need to be replaced with mavenCentral().
+    """.trimIndent(),
+    readMoreUrl = ReadMoreUrlRedirect("jcenter-end-of-service")
+  )
+
   private var _isPre80MavenPublish: Boolean? = null
   private val isPre80MavenPublish: Boolean
     get() {
@@ -101,6 +111,9 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
         ?.run { getValue(STRING_TYPE) }
         ?.run { lowercase(Locale.US) == "false" }
       ?: false
+
+  private val isJcenterUsed: Boolean =
+    projectBuildModel.projectBuildModel?.buildscript()?.repositories()?.containsMethodCall("jcenter") == true
 
   private fun computeIsPre80MavenPublish(): Boolean {
     val mavenPublishUsed = projectBuildModel.allIncludedBuildModels.flatMap { it.plugins() }.any { it.name().toString() == "maven-publish" }
@@ -123,7 +136,8 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
       Pre80MavenPublish.takeIf { isPre80MavenPublish && current < AgpVersion.parse("8.0.0-alpha01") && new >= AgpVersion.parse("8.0.0-alpha01") },
       UncompressedNativeLibsDisabled.takeIf {
         current < AgpVersion.parse("8.1.0-alpha01") && new >= AgpVersion.parse("8.1.0-alpha01") && isUncompressedNativeLibsDisabled
-      }
+      },
+      JcenterUsage.takeIf { isJcenterUsed && new >= AgpVersion.parse("9.0.0-alpha01") }
     )
 
   override fun findComponentUsages(): Array<UsageInfo> {
