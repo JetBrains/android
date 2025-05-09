@@ -74,6 +74,7 @@ jvm_library(
     "//platform/object-serializer:objectSerializer_test_lib",
     "//platform/projectModel-api:projectModel",
     "//platform/projectModel-impl",
+    "//platform/refactoring",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",

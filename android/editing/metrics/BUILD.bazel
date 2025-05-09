@@ -21,6 +21,7 @@ jvm_library(
     "//platform/lang-api:lang",
     "//platform/lang-impl",
     "@lib//:kotlinx-datetime-jvm",
+    "//platform/refactoring",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
   ],
   runtime_deps = [":metrics_resources"]
@@ -48,6 +49,7 @@ jvm_library(
     "//platform/lang-api:lang",
     "//platform/lang-impl",
     "@lib//:kotlinx-datetime-jvm",
+    "//platform/refactoring",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
