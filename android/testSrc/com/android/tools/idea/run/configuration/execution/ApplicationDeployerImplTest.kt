@@ -2,6 +2,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.testutils.AssumeUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
@@ -50,6 +51,8 @@ class ApplicationDeployerImplTest {
 
   @Test
   fun fillStats() {
+    // b/415866691
+    AssumeUtil.assumeNotWindows()
     fakeAdb.connectAndWaitForDevice()
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
