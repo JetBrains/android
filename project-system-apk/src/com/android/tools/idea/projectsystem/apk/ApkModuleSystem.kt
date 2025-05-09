@@ -40,9 +40,6 @@ class ApkModuleSystem(override val module: Module): AndroidModuleSystem {
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
     delegate.getModuleTemplates(targetDirectory)
 
-  override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
-    delegate.getRegisteredDependency(coordinate)
-
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) =
     throw UnsupportedOperationException("Cannot register dependencies in ApkModuleSystem")
 

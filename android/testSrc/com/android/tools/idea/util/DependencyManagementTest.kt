@@ -153,7 +153,6 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(constraintLayout)).isTrue()
     Truth.assertThat(dependenciesNotAdded).isEmpty()
@@ -166,10 +165,8 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isEqualTo(appCompat.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(appCompat)?.coordinate).isEqualTo(appCompat.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(appCompat)).isTrue()
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(constraintLayout)).isTrue()
     Truth.assertThat(dependenciesNotAdded).isEmpty()
@@ -182,7 +179,6 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val playServices = GoogleMavenArtifactId.PLAY_SERVICES
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(playServices), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices.getCoordinate("+"))).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(playServices)?.coordinate).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(playServices)).isFalse()
     Truth.assertThat(dependenciesNotAdded).containsExactly(playServices)
@@ -196,10 +192,8 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val playServices = GoogleMavenArtifactId.PLAY_SERVICES
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(playServicesMaps, playServices), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServicesMaps.getCoordinate("+"))).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(playServicesMaps)?.coordinate).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(playServicesMaps)).isFalse()
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices.getCoordinate("+"))).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(playServices)?.coordinate).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(playServices)).isFalse()
     Truth.assertThat(dependenciesNotAdded).containsExactly(playServices, playServicesMaps)
@@ -216,10 +210,8 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val playServices = GoogleMavenArtifactId.PLAY_SERVICES
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(appCompat, playServices), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isEqualTo(appCompat.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(appCompat)?.coordinate).isEqualTo(appCompat.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(appCompat)).isTrue()
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices.getCoordinate("+"))).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(playServices)?.coordinate).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(playServices)).isFalse()
     Truth.assertThat(dependenciesNotAdded).containsExactly(playServices)
@@ -231,7 +223,6 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout), false, false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(constraintLayout)).isTrue()
     Truth.assertThat(dependenciesNotAdded).isEmpty()
@@ -245,7 +236,6 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout), true, false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(constraintLayout)).isFalse()
     Truth.assertThat(dependenciesNotAdded).containsExactly(constraintLayout)
@@ -263,10 +253,8 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val constraintLayout = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(appCompat)?.coordinate).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(appCompat)).isFalse()
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(constraintLayout)).isTrue()
     Truth.assertThat(dependenciesNotAdded).containsExactly(appCompat)
@@ -285,10 +273,8 @@ class DependencyManagementTest : LightPlatformTestCase() {
     addFakeErrorForRegisteringMavenArtifact(constraintLayout, "Can't add constraintLayout because reasons.")
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(appCompat)?.coordinate).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(appCompat)).isFalse()
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(constraintLayout)).isFalse()
     Truth.assertThat(dependenciesNotAdded).containsExactly(appCompat, constraintLayout)
@@ -308,13 +294,10 @@ class DependencyManagementTest : LightPlatformTestCase() {
     val playServices = GoogleMavenArtifactId.PLAY_SERVICES
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat, playServices), false)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(appCompat)?.coordinate).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(appCompat)).isFalse()
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(playServices.getCoordinate("+"))).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(playServices)?.coordinate).isNull()
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(playServices)).isFalse()
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(constraintLayout)).isTrue()
     Truth.assertThat(dependenciesNotAdded).containsExactly(appCompat, playServices)
@@ -334,10 +317,8 @@ class DependencyManagementTest : LightPlatformTestCase() {
     addIncompatibleArtifactPair(appCompat, constraintLayout)
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(constraintLayout, appCompat), true)
 
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(appCompat.getCoordinate("+"))).isEqualTo(appCompat.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(appCompat)?.coordinate).isEqualTo(appCompat.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(appCompat)).isTrue()
-    Truth.assertThat(module.getModuleSystem().getRegisteredDependency(constraintLayout.getCoordinate("+"))).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).getRegisteredDependency(constraintLayout)?.coordinate).isEqualTo(constraintLayout.getCoordinate("+"))
     Truth.assertThat(projectSystem.getModuleSystem(module).hasRegisteredDependency(constraintLayout)).isTrue()
     Truth.assertThat(dependenciesNotAdded).isEmpty()

@@ -18,6 +18,7 @@ package com.android.tools.idea.projectsystem.runsGradleProjectsystem
 import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
 import com.android.SdkConstants.SUPPORT_LIB_GROUP_ID
 import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.gradle.Module
 import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
@@ -107,55 +108,13 @@ class GradleModuleSystemIntegrationTest {
   fun testGetRegisteredDependencies() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB)
     preparedProject.open { project ->
-      val moduleSystem = project.findAppModule().getModuleSystem()
-      val appCompat = GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.4.0")
+      val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
+      val appCompat = GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
 
-      // Matching Dependencies:
-      assertThat(
-        isSameArtifact(
-          moduleSystem.getRegisteredDependency(
-            GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.4.0")
-          ), appCompat
-        )
-      ).isTrue()
-      assertThat(
-        isSameArtifact(
-          moduleSystem.getRegisteredDependency(
-            GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.4.+")
-          ), appCompat
-        )
-      ).isTrue()
-      assertThat(
-        isSameArtifact(
-          moduleSystem.getRegisteredDependency(
-            GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.+")
-          ), appCompat
-        )
-      ).isTrue()
-      assertThat(
-        isSameArtifact(
-          moduleSystem.getRegisteredDependency(
-            GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "+")
-          ), appCompat
-        )
-      ).isTrue()
-
-      // Non Matching Dependencies:
-      assertThat(
-        moduleSystem.getRegisteredDependency(
-          GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "25.0.99")
-        )
-      ).isNull()
-      assertThat(
-        moduleSystem.getRegisteredDependency(
-          GradleCoordinate(SUPPORT_LIB_GROUP_ID, APPCOMPAT_LIB_ARTIFACT_ID, "4.99.+")
-        )
-      ).isNull()
-      assertThat(
-        moduleSystem.getRegisteredDependency(
-          GradleCoordinate(SUPPORT_LIB_GROUP_ID, "BAD", "25.4.0")
-        )
-      ).isNull()
+      assertThat(moduleSystem.getRegisteredDependency(appCompat.getModule())).isEqualTo(appCompat.getDependency("25.4.0"))
+      assertThat(moduleSystem.hasRegisteredDependency(appCompat.getModule())).isTrue()
+      assertThat(moduleSystem.getRegisteredDependency(Module(SUPPORT_LIB_GROUP_ID, "BAD"))).isNull()
+      assertThat(moduleSystem.hasRegisteredDependency(Module(SUPPORT_LIB_GROUP_ID, "BAD"))).isFalse()
     }
   }
 
@@ -435,6 +394,7 @@ class GradleModuleSystemIntegrationTest {
 
   private fun isSameArtifact(first: GradleCoordinate?, second: GradleCoordinate?) =
     GradleCoordinate.COMPARE_PLUS_LOWER.compare(first, second) == 0
+
 
   private fun verifyProjectDependsOnWildcardAppCompat(project: Project) {
     // SimpleApplication should have a dependency on "com.android.support:appcompat-v7:+"

@@ -230,35 +230,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem, Registering
 
   @Nullable
   @Override
-  public GradleCoordinate getRegisteredDependency(GradleCoordinate coordinate) {
-    BlazeProjectData projectData =
-        BlazeProjectDataManager.getInstance(module.getProject()).getBlazeProjectData();
-    if (projectData == null) {
-      return null;
-    }
-
-    TargetKey resourceModuleKey =
-        AndroidResourceModuleRegistry.getInstance(module.getProject()).getTargetKey(module);
-    if (resourceModuleKey == null) {
-      // TODO: decide what constitutes a registered dependency for the .workspace module
-      return null;
-    }
-
-    TargetIdeInfo resourceModuleTarget = projectData.getTargetMap().get(resourceModuleKey);
-    if (resourceModuleTarget == null) {
-      return null;
-    }
-
-    ImmutableSet<TargetKey> firstLevelDeps =
-        resourceModuleTarget.getDependencies().stream()
-            .map(Dependency::getTargetKey)
-            .collect(toImmutableSet());
-
-    return locateArtifactsFor(coordinate).anyMatch(firstLevelDeps::contains) ? coordinate : null;
-  }
-
-  @Nullable
-  @Override
   public BlazeRegisteredDependencyId getRegisteredDependency(BlazeRegisteredDependencyQueryId id) {
     BlazeProjectData projectData =
         BlazeProjectDataManager.getInstance(module.getProject()).getBlazeProjectData();
