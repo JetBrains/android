@@ -18,8 +18,6 @@ package com.android.tools.idea.streaming.actions
 import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.xr.XrInputMode
-import com.android.tools.idea.streaming.xr.b415832959Logger
-import com.android.utils.TraceUtils.simpleId
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -27,7 +25,6 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 import com.intellij.util.containers.ContainerUtil.createConcurrentList
-import java.lang.Thread.currentThread
 
 /**
  * ToggleAction for hardware input.
@@ -72,14 +69,10 @@ internal class HardwareInputStateStorage {
 
   private val enabledDevices = createConcurrentList<String>()
 
-  fun isHardwareInputEnabled(deviceId: DeviceId): Boolean {
-    val result = enabledDevices.contains(deviceId.storageKey)
-    b415832959Logger?.info("${currentThread()} $simpleId.isHardwareInputEnabled($deviceId) returning $result")
-    return result
-  }
+  fun isHardwareInputEnabled(deviceId: DeviceId): Boolean =
+      enabledDevices.contains(deviceId.storageKey)
 
   fun setHardwareInputEnabled(deviceId: DeviceId, enabled: Boolean) {
-    b415832959Logger?.info("${currentThread()} $simpleId.setHardwareInputEnabled($deviceId, $enabled)")
     if (enabled) {
       enabledDevices.addIfAbsent(deviceId.storageKey)
     } else {

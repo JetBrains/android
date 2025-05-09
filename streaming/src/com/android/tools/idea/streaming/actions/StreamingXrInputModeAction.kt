@@ -19,28 +19,20 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.xr.XrInputMode
-import com.android.tools.idea.streaming.xr.b415832959Logger
-import com.android.utils.TraceUtils.simpleId
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
-import java.lang.Thread.currentThread
 
 /** Sets an input mode for an XR AVD. */
 sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : ToggleAction(), DumbAware {
 
-  override fun isSelected(event: AnActionEvent): Boolean {
-    b415832959Logger?.info("${currentThread()} $simpleId.isSelected")
-    val result = getXrInputController(event)?.inputMode == inputMode
-    b415832959Logger?.info("${currentThread()} $simpleId.isSelected returning $result")
-    return result
-  }
+  override fun isSelected(event: AnActionEvent): Boolean =
+      getXrInputController(event)?.inputMode == inputMode
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     if (state) {
-      b415832959Logger?.info("${currentThread()} $simpleId.setSelected($state)")
       getXrInputController(event)?.inputMode = inputMode
       val displayView = getDisplayView(event) ?: return
       event.project?.service<HardwareInputStateStorage>()?.setHardwareInputEnabled(displayView.deviceId, false)

@@ -1202,10 +1202,6 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "context.menu", "Enable Context Menu",
     "Enables context menu in the Running Devices tool window",
     false);
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_B415832959_LOGGING = new BooleanFlag(
-    EMBEDDED_EMULATOR, "b415832959.logging", "Enable Logging for Investigation of b/415832959",
-    "Enable logging for investigation of b/415832959",
-    enabledUpTo(DEV));
   //endregion
 
   //region Device Mirroring
