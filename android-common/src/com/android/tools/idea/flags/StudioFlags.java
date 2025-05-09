@@ -1375,7 +1375,7 @@ public final class StudioFlags {
     TESTING, "additional.testing.gradle.options", "Show additional Gradle Options in Gradle RunConfiguration editor",
     "If enabled, Gradle RunConfiguration shows an additional Android Studio specific options to customize Gradle task execution," +
     "  such as showing test results in the test matrix, or use the device selector view to choose the target device.",
-    enabledUpTo(DEV)
+    enabledUpTo(CANARY)
   );
 
   public static final Flag<Boolean> ENABLE_SCREENSHOT_TESTING = new BooleanFlag(
@@ -2481,13 +2481,13 @@ public final class StudioFlags {
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_EXECUTION = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.execution", "Enable Journeys with Gemini execution",
     "Enable Journeys with Gemini related functionality to allow users to create, edit and execute Journeys.",
-    enabledUpTo(DEV)
+    enabledUpTo(CANARY)
   );
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.auto.gradle.configuration",
     "Enable automatic Gradle configuration for Journeys with Gemini",
     "Applies the Gradle configuration needed to run Journeys automatically when a Journeys run configuration is triggered",
-    enabledUpTo(DEV)
+    enabledUpTo(CANARY)
   );
   public static final Flag<String> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION_DEP = new StringFlag(
     JOURNEYS_WITH_GEMINI, "dependency.journeys.with.gemini.auto.gradle.configuration",
