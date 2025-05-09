@@ -24,7 +24,6 @@ import com.android.tools.idea.insights.events.actions.Action
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowContext
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowDefinition
 import com.android.tools.idea.insights.ui.InsightDeprecatedPanel
-import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.intellij.openapi.Disposable
 import com.intellij.util.ui.JBDimension
 import icons.StudioIcons
@@ -42,7 +41,6 @@ object InsightToolWindow {
   fun create(
     projectController: AppInsightsProjectLevelController,
     parentDisposable: Disposable,
-    permissionDeniedHandler: InsightPermissionDeniedHandler,
     tabVisibility: Flow<Boolean>,
     tracker: AppInsightsTracker,
   ): AppInsightsToolWindowDefinition {
@@ -52,7 +50,6 @@ object InsightToolWindow {
       InsightToolWindowContent(
         projectController,
         parentDisposable,
-        permissionDeniedHandler,
         tracker,
         insightWindowVisibility,
       )
@@ -93,7 +90,6 @@ object InsightToolWindow {
 private class InsightToolWindowContent(
   projectController: AppInsightsProjectLevelController,
   parentDisposable: Disposable,
-  permissionDeniedHandler: InsightPermissionDeniedHandler,
   tracker: AppInsightsTracker,
   visibilityFlow: Flow<Boolean>,
 ) : ToolContent<AppInsightsToolWindowContext> {
@@ -110,7 +106,7 @@ private class InsightToolWindowContent(
           tracker,
         )
       } else {
-        InsightMainPanel(projectController, parentDisposable, permissionDeniedHandler)
+        InsightMainPanel(projectController, parentDisposable)
       }
 
     component.add(comp, BorderLayout.CENTER)

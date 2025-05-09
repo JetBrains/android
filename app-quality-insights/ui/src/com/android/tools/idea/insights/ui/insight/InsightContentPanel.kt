@@ -23,7 +23,6 @@ import com.android.tools.idea.insights.mapReady
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
-import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.android.tools.idea.insights.ui.insight.onboarding.EnableInsightPanel
 import com.google.gct.login2.LoginFeature
 import com.intellij.openapi.Disposable
@@ -74,7 +73,6 @@ class InsightContentPanel(
   scope: CoroutineScope,
   currentInsightFlow: StateFlow<LoadingState<AiInsight?>>,
   parentDisposable: Disposable,
-  permissionDeniedHandler: InsightPermissionDeniedHandler,
 ) : JPanel(), UiDataProvider, Disposable {
 
   private val cardLayout = CardLayout()
@@ -178,6 +176,7 @@ class InsightContentPanel(
         .distinctUntilChanged()
         .onEach { reset() }
         .collect { aiInsight ->
+          // TODO(b/431055979): Handle StatusRuntimeException from Gemini correctly
           when (aiInsight) {
             is LoadingState.Ready -> {
               when (aiInsight.value) {
@@ -238,11 +237,6 @@ class InsightContentPanel(
               } else {
                 showOnboardingCard()
               }
-            }
-            // Permission denied message is confusing. Provide a generic message
-            is LoadingState.PermissionDenied -> {
-              permissionDeniedHandler.handlePermissionDenied(aiInsight, emptyStateText)
-              showEmptyCard()
             }
             is LoadingState.UnsupportedOperation -> {
               emptyStateText.apply {

@@ -21,7 +21,6 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
-import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.android.tools.idea.insights.ui.transparentPanel
 import com.intellij.openapi.Disposable
 import java.awt.CardLayout
@@ -45,7 +44,6 @@ private const val EMPTY_CARD = "empty"
 class InsightMainPanel(
   controller: AppInsightsProjectLevelController,
   parentDisposable: Disposable,
-  permissionDeniedHandler: InsightPermissionDeniedHandler,
 ) : JPanel() {
 
   private val scope =
@@ -61,7 +59,6 @@ class InsightMainPanel(
         .map { it.currentInsight }
         .stateIn(scope, SharingStarted.Eagerly, LoadingState.Ready(null)),
       parentDisposable,
-      permissionDeniedHandler,
     )
 
   private val emptyStateText =

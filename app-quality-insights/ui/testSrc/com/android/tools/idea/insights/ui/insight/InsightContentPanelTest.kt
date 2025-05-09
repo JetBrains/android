@@ -34,7 +34,6 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.FakeAiInsightToolkit
 import com.android.tools.idea.insights.ai.StubInsightsOnboardingProvider
 import com.android.tools.idea.insights.ui.FakeGeminiPluginApi
-import com.android.tools.idea.insights.ui.InsightPermissionDeniedHandler
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.google.gct.login2.LoginFeatureRule
@@ -46,7 +45,6 @@ import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBLoadingPanel
-import com.intellij.util.ui.StatusText
 import java.net.SocketTimeoutException
 import java.time.Instant
 import javax.swing.JButton
@@ -127,24 +125,7 @@ class InsightContentPanelTest {
     )
     currentInsightFlow = MutableStateFlow(LoadingState.Ready(AiInsight("insight")))
     insightContentPanel =
-      InsightContentPanel(
-        mockController,
-        scope,
-        currentInsightFlow,
-        projectRule.disposable,
-        object : InsightPermissionDeniedHandler {
-          override fun handlePermissionDenied(
-            permissionDenied: LoadingState.PermissionDenied,
-            statusText: StatusText,
-          ) {
-            statusText.apply {
-              clear()
-              appendText("handling permission denied")
-              appendLine("simple redirecting message")
-            }
-          }
-        },
-      )
+      InsightContentPanel(mockController, scope, currentInsightFlow, projectRule.disposable)
   }
 
   @After
@@ -163,17 +144,6 @@ class InsightContentPanelTest {
 
     currentInsightFlow.update { LoadingState.Loading("Regenerating insight...") }
     waitForCondition(2.seconds) { loadingPanel.getLoadingText() == "Regenerating insight..." }
-  }
-
-  @Test
-  fun `test permission denied`() = runBlocking {
-    currentInsightFlow.update { LoadingState.PermissionDenied("Some complex message") }
-
-    FakeUi(insightContentPanel)
-    delayUntilStatusTextVisible()
-
-    assertThat(errorText).isEqualTo("handling permission denied")
-    assertThat(secondaryText).isEqualTo("simple redirecting message")
   }
 
   @Test

@@ -106,7 +106,6 @@ class VitalsContentContainerPanel(
           InsightToolWindow.create(
             projectController,
             this@VitalsContentContainerPanel,
-            VitalsInsightPermissionDeniedHandler(),
             tabVisibilityFlow,
             tracker,
           )
