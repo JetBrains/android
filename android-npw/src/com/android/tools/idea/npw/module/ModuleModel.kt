@@ -134,7 +134,7 @@ abstract class ModuleModel(
         formFactor = this@ModuleModel.formFactor.get()
         category = this@ModuleModel.category.get()
         val buildVersion =
-          recommendedBuildSdk?.let { androidSdkInfo.value.withBuildSdk(it) } ?: androidSdkInfo.value
+          recommendedBuildSdk?.let { androidSdkInfo.value.withCompileSdk(it) } ?: androidSdkInfo.value
         setBuildVersion(buildVersion, project)
         setModuleRoots(
           template.get().paths,

@@ -22,7 +22,6 @@ import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.api.RepoPackage
 import com.android.repository.api.UpdatablePackage
 import com.android.repository.impl.meta.RepositoryPackages
-import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
@@ -49,7 +48,6 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionExcep
 import java.nio.file.Path
 import java.util.function.Consumer
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Lists the available Android Versions from local, remote, and statically-defined sources.
@@ -67,17 +65,17 @@ class AndroidVersionsInfo(
    */
   fun loadLocalVersions() {
     // Load the local definitions of the android compilation targets.
-    val installedPlatformAndAddonTargets = targetProvider.invoke()
-    val (installedStableTargets, installedPreviewAndAddonTargets) =
-      installedPlatformAndAddonTargets.partition { it.isPlatform && !it.version.isPreview }
+    val installedPlatformTargets = targetProvider.invoke().filter { it.isPlatform }
+    val (installedStableTargets, installedPreviewTargets) =
+      installedPlatformTargets.partition { !it.version.isPreview }
     knownTargetVersions = sequence {
-      // Stable versions.
-      val maxStableVersion = max(HIGHEST_KNOWN_STABLE_API, installedStableTargets.maxOfOrNull { it.version.apiLevel } ?: 0)
+      val maxInstalledStableVersion = installedStableTargets.maxOfOrNull { it.version.androidApiLevel.majorVersion } ?: 0
+      val maxStableVersion = max(HIGHEST_KNOWN_STABLE_API, maxInstalledStableVersion)
       for (i in 1..maxStableVersion) {
         yield(VersionItem.fromStableVersion(i))
       }
-      // Installed previews and add-ons
-      installedPreviewAndAddonTargets.forEach { yield(VersionItem.fromAndroidTarget(it)) }
+
+      installedPreviewTargets.forEach { yield(VersionItem.fromAndroidVersion(it.version)) }
     }.toList()
   }
 
@@ -88,7 +86,7 @@ class AndroidVersionsInfo(
     val minSdkLevel = minSdkLevel.coerceAtLeast(formFactor.minOfflineApiLevel)
     val maxSdkLevel = if (formFactor.hasUpperLimitForMinimumSdkSelection) formFactor.maxOfflineApiLevel else Int.MAX_VALUE
     return knownTargetVersions.filter {
-      formFactor.isAvailable(minSdkLevel .. maxSdkLevel, it.minApiLevel) || it.androidTarget?.version?.isPreview == true
+      formFactor.isAvailable(minSdkLevel .. maxSdkLevel, it.minApiLevel) || it.isPreview
     }.toMutableList()
   }
 
@@ -184,79 +182,46 @@ class AndroidVersionsInfo(
       StudioDownloader(), StudioSettingsController.getInstance())
   }
 
-  class VersionItem private constructor(
-    val label: String,
-    /** The equivalent integer API level that will be compiled against. (For previews, this is the "feature level".) */
-    val buildApiLevel: Int,
-    /** The compile SDK version to use in generated build.gradle files. This must be parseable by AndroidVersion.fromString(). */
-    val buildApiLevelStr: String,
-    val minApiLevel: Int,
-    val minApiLevelStr: String, // Can be a number or a codename (eg "L", "N", etc)
-    val targetApiLevelStr: String,
-    // Only present for already installed preview and addons
-    val androidTarget: IAndroidTarget?,
+  data class VersionItem(
+    val minSdk: AndroidVersion,
+    val compileSdk: AndroidVersion,
   ) {
-
+    /** The equivalent integer API level that will be compiled against. (For previews, this is the "feature level".) */
+    val buildApiLevel: Int
+      get() = compileSdk.featureLevel
+    /** The compile SDK version to use in generated build.gradle files. This must be parseable by AndroidVersion.fromString(). */
+    val buildApiLevelStr: String
+      get() = compileSdk.apiStringWithExtension
+    val minApiLevel: Int
+      get() = minSdk.featureLevel
+    val minApiLevelStr: String // Can be a number or a codename (eg "L", "N", etc)
+      get() = minSdk.majorVersion.apiString
     val targetApiLevel: Int
       get() = buildApiLevel
+    val targetApiLevelStr: String
+      get() = compileSdk.majorVersion.apiString
 
-    override fun equals(other: Any?): Boolean = other is VersionItem && other.label == label
-
-    override fun hashCode(): Int = label.hashCode()
+    val label: String
+      get() = minSdk.getFullApiName(includeReleaseName = true, includeCodeName = true)
+    val isPreview: Boolean
+      get() = minSdk.isPreview
 
     override fun toString(): String = label
 
-    /**
-     * Build SDK is used in compileSdk.
-     */
-    fun withBuildSdk(version: AndroidVersion): VersionItem =
-      VersionItem(
-        label = getLabel(version, null),
-        buildApiLevel = version.featureLevel,
-        buildApiLevelStr = version.apiStringWithExtension,
-        // compileSdk must be >= minSdk, targetSdk; adjust them if necessary.
-        minApiLevel = min(minApiLevel, version.featureLevel),
-        minApiLevelStr = if (minApiLevel <= version.androidApiLevel.majorVersion) minApiLevelStr else version.majorVersion.apiString,
-        targetApiLevelStr = if (androidTarget != null && androidTarget.version <= version) targetApiLevelStr else version.apiStringWithoutExtension,
-        androidTarget = null
-      )
+    fun withCompileSdk(compileSdk: AndroidVersion): VersionItem =
+      // minSdk must be <= compileSdk; adjust it if necessary.
+      copy(minSdk = minSdk.coerceAtMost(compileSdk), compileSdk = compileSdk)
 
     companion object {
-      fun fromAndroidVersion(version: AndroidVersion): VersionItem {
+      fun fromAndroidVersion(minApi: AndroidVersion): VersionItem {
+        // By default, compileSdk is the newest supported SDK, but if the specified version is newer or
+        // a preview, use it.
         val newProjectsCompileSdkVersion = AndroidVersion(StudioFlags.NPW_COMPILE_SDK_VERSION.get(), 0)
-        // For preview versions or if the requested target is newer than NPW_COMPILE_SDK_VERSION,
-        // use build and target as the given version
-        val futureVersion = version.isPreview || version > newProjectsCompileSdkVersion
-
-        return VersionItem(
-          label = getLabel(version, null),
-          androidTarget = null,
-          minApiLevel = version.featureLevel,
-          minApiLevelStr = version.majorVersion.apiString,
-          buildApiLevel = if (futureVersion) version.featureLevel else newProjectsCompileSdkVersion.androidApiLevel.majorVersion,
-          buildApiLevelStr = if (futureVersion) version.apiStringWithExtension else newProjectsCompileSdkVersion.apiStringWithExtension,
-          targetApiLevelStr = if (futureVersion) version.majorVersion.apiString else newProjectsCompileSdkVersion.majorVersion.apiString,
-        )
+        val compileApi = if (minApi.isPreview || minApi > newProjectsCompileSdkVersion) minApi else newProjectsCompileSdkVersion
+        return VersionItem(minSdk = minApi, compileSdk = compileApi)
       }
 
-      fun fromStableVersion(minSdkVersion: Int): VersionItem = fromAndroidVersion(AndroidVersion(minSdkVersion))
-
-      fun fromAndroidTarget(target: IAndroidTarget): VersionItem {
-        if (target.isPlatform && !target.version.isPreview) {
-          return fromAndroidVersion(target.version)
-        }
-
-        return VersionItem(
-          label = getLabel(target.version, target),
-          androidTarget = target,
-          minApiLevel = target.version.featureLevel,
-          minApiLevelStr = target.version.majorVersion.apiString,
-          buildApiLevel = target.version.featureLevel,
-          buildApiLevelStr =
-            if (target.isPlatform) target.version.apiStringWithExtension else AndroidTargetHash.getTargetHashString(target),
-          targetApiLevelStr = target.version.majorVersion.apiString,
-        )
-      }
+      fun fromStableVersion(minSdkVersion: Int): VersionItem = fromAndroidVersion(AndroidVersion(minSdkVersion, 0))
     }
   }
 }
@@ -265,16 +230,6 @@ private val REPO_LOG: ProgressIndicator = StudioLoggerProgressIndicator(AndroidV
 private val NO_MATCH: IdDisplay = IdDisplay.create("no_match", "No Match")
 
 val sdkManagerLocalPath: Path? get() = IdeSdks.getInstance().androidSdkPath?.toPath()
-
-private fun getLabel(version: AndroidVersion, target: IAndroidTarget?): String {
-
-  if (target != null && !target.isPlatform) {
-    return AndroidTargetHash.getTargetHashString(target)
-  }
-
-  return version.getFullApiName(includeReleaseName = true, includeCodeName = true)
-}
-
 
 /**
  * Returns a list of android compilation targets (platforms and add-on SDKs).

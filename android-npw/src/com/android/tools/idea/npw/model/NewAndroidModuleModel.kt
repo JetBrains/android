@@ -293,7 +293,7 @@ internal fun Project.findNewModuleRecommendedBuildSdk(): AndroidVersion? =
   modules
     .mapNotNull { module -> StudioAndroidModuleInfo.getInstance(module) }
     .mapNotNull { it.buildSdkVersion }
-    .maxByOrNull { it.apiLevel }
+    .maxByOrNull { it.androidApiLevel }
 
 private fun FormFactor.toModuleRenderingLoggingEvent() =
   when (this) {
