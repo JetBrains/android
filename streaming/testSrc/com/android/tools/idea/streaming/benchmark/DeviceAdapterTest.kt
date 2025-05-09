@@ -23,6 +23,7 @@ import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.interpolate
 import com.android.tools.idea.streaming.core.location
+import com.android.tools.idea.streaming.xr.AbstractXrInputController
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -507,6 +508,7 @@ class DeviceAdapterTest {
     override val apiLevel: Int = 0
     override val displayOrientationQuadrants = 0
     override val hardwareInput = HardwareInput()
+    override val xrInputController: AbstractXrInputController? = null
 
     override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {}
 

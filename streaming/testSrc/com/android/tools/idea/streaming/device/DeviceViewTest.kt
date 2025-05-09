@@ -41,6 +41,7 @@ import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.extractText
+import com.android.tools.idea.streaming.xr.TRANSLATION_STEP_SIZE
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.CrashReporterRule
 import com.android.tools.idea.testing.executeCapturingLoggedWarnings
@@ -1042,7 +1043,7 @@ internal class DeviceViewTest {
     val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
     mouseInfoMock.whenever<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
 
-    // Start multi-touch
+    // Start multi-touch.
     fakeUi.keyboard.setFocus(view)
     fakeUi.mouse.moveTo(mousePosition)
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
@@ -1056,21 +1057,21 @@ internal class DeviceViewTest {
     // Enable hardware input
     executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
 
-    // Check if multitouch indicator is hidden
+    // Check if multitouch indicator is hidden.
     fakeUi.layoutAndDispatchEvents()
     assertAppearance("MultiTouch4")
 
-    // Pressing mouse should generate mouse events instead of touch
+    // Pressing mouse should generate mouse events instead of touch.
     fakeUi.mouse.press(mousePosition)
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_EXIT, 0, 0, 0, true))
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_DOWN, 1, 1, 0, true))
 
-    // Disable hardware input
+    // Disable hardware input.
     executeStreamingAction("android.streaming.hardware.input", view, agentRule.project, modifiers = CTRL_DOWN_MASK)
 
-    // Check if multitouch indicator is shown again
+    // Check if multitouch indicator is shown again.
     fakeUi.layoutAndDispatchEvents()
     assertAppearance("MultiTouch2")
   }
@@ -1080,21 +1081,19 @@ internal class DeviceViewTest {
     createDeviceView(50, 100)
     waitForFrame()
 
-    // Enable hardware input
+    // Enable hardware input.
     executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
 
-    // Press Ctrl
+    // Press Ctrl.
     focusManager.focusOwner = view
     fakeUi.keyboard.press(VK_CONTROL)
 
-    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
-      KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON))
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON))
 
-    // Disable hardware input
+    // Disable hardware input.
     executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
 
-    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
-      KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
   }
 
   @Test
@@ -1102,21 +1101,33 @@ internal class DeviceViewTest {
     createDeviceView(50, 100)
     waitForFrame()
 
-    // Enable hardware input
+    // Enable hardware input.
     executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
 
-    // Press Ctrl
+    // Press Ctrl.
     focusManager.focusOwner = view
     fakeUi.keyboard.press(VK_CONTROL)
 
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
         KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON))
 
-    // Lose focus
+    // Lose focus.
     focusManager.focusOwner = null
 
-    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
-      KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
+  }
+
+  @Test
+  fun testXrZoom() {
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558),
+                                     additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,xr"))
+    createDeviceView(200, 300)
+    waitForFrame()
+
+    view.zoom(ZoomType.IN)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrTranslationMessage(0F, 0F, -TRANSLATION_STEP_SIZE))
+    view.zoom(ZoomType.OUT)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrTranslationMessage(0F, 0F, TRANSLATION_STEP_SIZE))
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {

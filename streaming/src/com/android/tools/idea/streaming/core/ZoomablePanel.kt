@@ -84,7 +84,7 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyChangeList
     return if (roundedScale == fractionalScaleRange) scale else roundedScale
   }
 
-  final override fun zoom(type: ZoomType): Boolean {
+  override fun zoom(type: ZoomType): Boolean {
     val oldFractionalScaleRange = fractionalScaleRange
     if (type == ZoomType.FIT) {
       if (fractionalScaleRange == 0.0) {

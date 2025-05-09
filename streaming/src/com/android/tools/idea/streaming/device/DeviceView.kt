@@ -232,7 +232,7 @@ internal class DeviceView(
     }
   }
 
-  private var xrInputController: DeviceXrInputController? = null
+  override var xrInputController: DeviceXrInputController? = null
     get() {
       if (field == null && isConnected && deviceConfig.deviceType == DeviceType.XR) {
         field = DeviceXrInputController.getInstance(project, deviceClient)
@@ -383,13 +383,13 @@ internal class DeviceView(
   private fun getConnectionErrorMessage(exception: Throwable?): String {
     return when ((exception as? AgentTerminatedException)?.exitCode) {
       AGENT_WEAK_VIDEO_ENCODER ->
-        "The device may not have sufficient computing power for encoding display contents. See ${getShowLogHyperlink()} for details."
+          "The device may not have sufficient computing power for encoding display contents. See ${getShowLogHyperlink()} for details."
 
       AGENT_REPEATED_VIDEO_ENCODER_ERRORS ->
-        "Repeated video encoder errors during initialization of the device agent. See ${getShowLogHyperlink()} for details."
+          "Repeated video encoder errors during initialization of the device agent. See ${getShowLogHyperlink()} for details."
 
       else ->
-        (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See ${getShowLogHyperlink()} for details."
+          (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See ${getShowLogHyperlink()} for details."
     }
   }
 
@@ -399,8 +399,8 @@ internal class DeviceView(
     }
     return when ((exception as? AgentTerminatedException)?.exitCode) {
       AGENT_WEAK_VIDEO_ENCODER ->
-        "Repeated video encoder errors. The device may not have sufficient computing power for encoding display contents." +
-        " See ${getShowLogHyperlink()} for details."
+          "Repeated video encoder errors. The device may not have sufficient computing power for encoding display contents." +
+          " See ${getShowLogHyperlink()} for details."
 
       AGENT_REPEATED_VIDEO_ENCODER_ERRORS -> "Repeated video encoder errors. See ${getShowLogHyperlink()} for details."
       else -> "Lost connection to the device. See ${getShowLogHyperlink()} for details."
@@ -415,7 +415,7 @@ internal class DeviceView(
   }
 
   override fun canZoom(): Boolean =
-    connectionState == ConnectionState.CONNECTED
+      connectionState == ConnectionState.CONNECTED
 
   override fun onScreenScaleChanged() {
     if (isConnected && physicalWidth > 0 && physicalHeight > 0) {
@@ -424,10 +424,10 @@ internal class DeviceView(
   }
 
   override fun computeActualSize(): Dimension =
-    computeActualSize(displayOrientationQuadrants)
+      computeActualSize(displayOrientationQuadrants)
 
   private fun computeActualSize(rotationQuadrants: Int): Dimension =
-    deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
+      deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
 
   override fun paintComponent(graphics: Graphics) {
     super.paintComponent(graphics)

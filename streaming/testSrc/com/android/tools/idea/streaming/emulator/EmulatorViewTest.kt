@@ -41,6 +41,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_SCREENSHOT_CALL_FILTER
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.streaming.executeStreamingAction
+import com.android.tools.idea.streaming.xr.TRANSLATION_STEP_SIZE
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -1078,6 +1079,23 @@ class EmulatorViewTest {
       "}\n"
     )
     assertThat(mirroringSessionPattern.matches(mirroringSessions[0].toString())).isTrue()
+  }
+
+  @Test
+  fun testXrZoom() {
+    view = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createXrAvd(path) }
+    fakeUi = FakeUi(createScrollPane(view), 2.0)
+
+    fakeUi.root.size = Dimension(200, 300)
+    fakeUi.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame()
+
+    view.zoom(ZoomType.IN)
+    val call = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("xr_head_movement_event { delta_z: -$TRANSLATION_STEP_SIZE }")
+    view.zoom(ZoomType.OUT)
+    assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("xr_head_movement_event { delta_z: $TRANSLATION_STEP_SIZE }")
   }
 
   private fun createScrollPane(view: Component): JScrollPane {

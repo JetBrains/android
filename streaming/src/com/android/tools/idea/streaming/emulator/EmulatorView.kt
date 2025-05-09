@@ -408,7 +408,7 @@ class EmulatorView(
     }
 
   private var virtualSceneCameraVelocityController: VirtualSceneCameraVelocityController? = null
-  private var xrInputController: EmulatorXrInputController? = null
+  override var xrInputController: EmulatorXrInputController? = null
     get() {
       if (field == null) {
         if (emulator.connectionState == ConnectionState.CONNECTED && emulatorConfig.deviceType == DeviceType.XR) {

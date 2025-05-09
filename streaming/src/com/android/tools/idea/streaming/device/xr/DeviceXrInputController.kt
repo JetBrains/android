@@ -51,8 +51,11 @@ internal class DeviceXrInputController(private val deviceClient: DeviceClient) :
   }
 
   override suspend fun setPassthrough(passthroughCoefficient: Float) {
-    val controlMessage = XrSetPassthroughCoefficientMessage(passthroughCoefficient)
-    deviceClient.deviceController?.sendControlMessage(controlMessage)
+    deviceClient.deviceController?.sendControlMessage(XrSetPassthroughCoefficientMessage(passthroughCoefficient))
+  }
+
+  override fun sendTranslation(x: Float, y: Float, z: Float) {
+    deviceClient.deviceController?.sendControlMessage(XrTranslationMessage(x, y, z))
   }
 
   @UiThread

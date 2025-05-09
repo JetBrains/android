@@ -40,6 +40,9 @@ import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
 import kotlin.math.PI
 
+/** Distance of translational movement in meters in response to a discrete user action, e.g. pressing Ctrl+Plus. */
+internal const val TRANSLATION_STEP_SIZE: Float = 0.5F
+
 /**
  * Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough.
  * Thread safe.
@@ -99,6 +102,9 @@ internal abstract class AbstractXrInputController : Disposable {
 
   /** Controls passthrough mode on the device. */
   abstract suspend fun setPassthrough(passthroughCoefficient: Float)
+
+  /** Sends a command to move in the virtual space. The distances are in meters. */
+  abstract fun sendTranslation(x: Float, y: Float, z: Float)
 
   /**
    * Notifies the controller that a key was pressed.
