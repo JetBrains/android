@@ -179,31 +179,36 @@ fun Project.requestBuildArtifactsForRendering(file: VirtualFile) = requestBuildA
  *
  * This method does not wait for build completion.
  */
-@Suppress("UnstableApiUsage")
 fun Project.requestBuildArtifactsForRendering(files: Collection<VirtualFile>) {
-  val buildSystemServices = this.getProjectSystem().getBuildSystemFilePreviewServices()
-  val buildTargets = buildSystemServices.buildTargets
-  val projectIndex = ProjectFileIndex.getInstance(this)
-
-  val buildTargetReferences =
-    runReadAction {
-      files
-        .map { (it as? BackedVirtualFile)?.originFile ?: it }
-        .mapNotNull {
-          val module =
-            projectIndex.getModuleForFile(it)?.findAndroidModule() ?: return@mapNotNull null.also {
-              thisLogger().error(
-                "Cannot find Android module for: $it",
-                Throwable()
-              )
-            }
-          buildTargets.from(module, it)
-        }
-    }
+  val buildTargetReferences = getBuildTargetReferences(files)
 
   buildTargetReferences.map { it to it.getBuildSystemFilePreviewServices() }
     .groupBy { it.second.buildServices }
     .forEach { (buildServices, references) ->
       buildServices.buildArtifacts(buildTargetReferences)
     }
+}
+
+internal fun Project.getBuildTargetReferences(files: Iterable<VirtualFile>): Collection<BuildTargetReference> {
+  val index = ProjectFileIndex.getInstance(this)
+  val targets = getProjectSystem().getBuildSystemFilePreviewServices().buildTargets
+
+  return runReadAction {
+    files
+      .map {
+        @Suppress("UnstableApiUsage")
+        if (it is BackedVirtualFile) it.originFile else it
+      }
+      .mapNotNull {
+        val module = index.getModuleForFile(it)?.findAndroidModule()
+
+        if (module == null) {
+          thisLogger().error("Cannot find the Android module for $it")
+          null
+        }
+        else {
+          targets.from(module, it)
+        }
+      }
+  }
 }

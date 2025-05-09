@@ -5,7 +5,7 @@ aswb_library(
     name = "deps",
     srcs = glob(["*.java"]),
     visibility = [
-        "//tools/adt/idea/aswb/querysync:__subpackages__",
+        "//tools/adt/idea/aswb:__subpackages__",
         "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",
     ],
     deps = [

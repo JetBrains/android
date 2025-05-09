@@ -109,4 +109,6 @@ public interface DependencyTracker {
       }
     }
   }
+
+  DependencyBuilder getBuilder();
 }

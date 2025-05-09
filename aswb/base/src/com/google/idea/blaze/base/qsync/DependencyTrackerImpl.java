@@ -159,4 +159,8 @@ public class DependencyTrackerImpl implements DependencyTracker {
     }
   }
 
+  @Override
+  public DependencyBuilder getBuilder() {
+    return builder;
+  }
 }
