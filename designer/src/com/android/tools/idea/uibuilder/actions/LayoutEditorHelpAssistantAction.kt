@@ -31,7 +31,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 
-const val MOTION_EDITOR_BUNDLE_ID = "LayoutEditor.HelpAssistant.MotionLayout"
 const val CONSTRAINT_LAYOUT_BUNDLE_ID = "LayoutEditor.HelpAssistant.ConstraintLayout"
 const val FULL_HELP_BUNDLE_ID = "LayoutEditor.HelpAssistant.Full"
 
@@ -49,7 +48,6 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   enum class Type {
     NONE,
     CONSTRAINT_LAYOUT,
-    MOTION_LAYOUT,
     FULL,
   }
 
@@ -57,7 +55,6 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   @VisibleForTesting var type = Type.NONE
 
   init {
-    HelpPanelToolWindowListener.map[MOTION_EDITOR_BUNDLE_ID] = HelpPanelType.MOTION_LAYOUT
     HelpPanelToolWindowListener.map[CONSTRAINT_LAYOUT_BUNDLE_ID] = HelpPanelType.CONSTRAINT_LAYOUT
     HelpPanelToolWindowListener.map[FULL_HELP_BUNDLE_ID] = HelpPanelType.FULL_ALL
   }
@@ -76,9 +73,6 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
     when (type) {
       Type.CONSTRAINT_LAYOUT -> {
         openWindow(constraintLayoutHelpPanelBundle.bundleId, event.project!!)
-      }
-      Type.MOTION_LAYOUT -> {
-        openWindow(motionLayoutHelpPanelBundle.bundleId, event.project!!)
       }
       Type.FULL -> {
         openWindow(fullHelpPanelBundle.bundleId, event.project!!)
@@ -154,9 +148,7 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   }
 
   private fun getDirectType(tagName: String): Type {
-    if (AndroidXConstants.MOTION_LAYOUT.isEquals(tagName)) {
-      return Type.MOTION_LAYOUT
-    } else if (AndroidXConstants.CONSTRAINT_LAYOUT.isEquals(tagName)) {
+    if (AndroidXConstants.CONSTRAINT_LAYOUT.isEquals(tagName)) {
       return Type.CONSTRAINT_LAYOUT
     }
 
@@ -164,17 +156,11 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   }
 }
 
-private val motionLayoutHelpPanelBundle =
-  HelpPanelBundle(MOTION_EDITOR_BUNDLE_ID, "/motionlayout_help_assistance_bundle.xml")
-
 private val constraintLayoutHelpPanelBundle =
   HelpPanelBundle(CONSTRAINT_LAYOUT_BUNDLE_ID, "/constraintlayout_help_assistance_bundle.xml")
 
 private val fullHelpPanelBundle =
   HelpPanelBundle(FULL_HELP_BUNDLE_ID, "/layout_editor_help_assistance_bundle.xml")
-
-class MotionLayoutPanelAssistantBundleCreator :
-  LayoutEditorHelpPanelAssistantBundleCreatorBase(motionLayoutHelpPanelBundle)
 
 class ConstraintLayoutPanelAssistantBundleCreator :
   LayoutEditorHelpPanelAssistantBundleCreatorBase(constraintLayoutHelpPanelBundle)
