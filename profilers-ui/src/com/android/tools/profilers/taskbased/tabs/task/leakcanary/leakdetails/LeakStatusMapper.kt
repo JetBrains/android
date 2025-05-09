@@ -38,7 +38,7 @@ fun getLeakStatusIcon(leakingStatus: LeakingStatus): IntelliJIconKey {
 }
 
 fun getLeakStatusColor(leakingStatus: LeakingStatus): Color {
-  return when(leakingStatus) {
+  return when (leakingStatus) {
     LeakingStatus.YES -> Color.Red
     LeakingStatus.UNKNOWN -> Color.Yellow
     LeakingStatus.NO -> Color.LightGray
@@ -47,10 +47,9 @@ fun getLeakStatusColor(leakingStatus: LeakingStatus): Color {
 
 @Composable
 fun LeakIcon(status: LeakingStatus) {
-  return Icon(
+  Icon(
     getLeakStatusIcon(status),
     contentDescription = status.name,
-    iconClass = StudioIconsCompose::class.java
   )
 }
 
@@ -61,4 +60,3 @@ fun VerticalLeakStatusLine(status: LeakingStatus) {
           color = getLeakStatusColor(status)
   )
 }
-

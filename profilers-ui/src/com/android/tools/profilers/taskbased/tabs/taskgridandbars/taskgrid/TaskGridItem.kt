@@ -127,7 +127,6 @@ fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope, isTaskTit
         TaskIconUtils.getLargeTaskIconKey(task),
         contentDescription = task.description,
         modifier = Modifier.align(Alignment.CenterHorizontally),
-        iconClass = StudioIconsCompose::class.java
       )
       Spacer(modifier = Modifier.height(10.dp))
       Text(

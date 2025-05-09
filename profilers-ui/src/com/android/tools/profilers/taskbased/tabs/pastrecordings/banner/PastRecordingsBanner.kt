@@ -50,7 +50,6 @@ fun PastRecordingsBanner(onBannerClose: () -> Unit, onBannerDoNotAskAgainClick: 
       Icon(
         key = StudioIconsCompose.Common.Info,
         contentDescription = "Info",
-        iconClass = StudioIconsCompose::class.java
       )
       Spacer(modifier = Modifier.width(8.dp))
       EllipsisText(text = RECORDING_BANNER_MESSAGE)
@@ -61,7 +60,6 @@ fun PastRecordingsBanner(onBannerClose: () -> Unit, onBannerDoNotAskAgainClick: 
         Icon(
           key = StudioIconsCompose.Common.Close,
           contentDescription = "Close",
-          iconClass = StudioIconsCompose::class.java
         )
       }
     }

@@ -52,7 +52,6 @@ fun LeftAlignedColumnText(text: String, iconKey: IntelliJIconKey? = null, rowSco
             Icon(
               it,
               contentDescription = TaskBasedUxStrings.PREFERRED_PROCESS_DESC,
-              iconClass = StudioIconsCompose::class.java
             )
           }
         }

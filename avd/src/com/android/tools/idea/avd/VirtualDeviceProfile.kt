@@ -66,7 +66,6 @@ internal data class VirtualDeviceProfile(
       iconKey,
       contentDescription = "$formFactor AVD",
       modifier = modifier,
-      iconClass = StudioIconsCompose::class.java,
     )
   }
 
