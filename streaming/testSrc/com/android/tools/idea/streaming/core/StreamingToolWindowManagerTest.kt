@@ -173,7 +173,7 @@ class StreamingToolWindowManagerTest {
     val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder))
     val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder))
 
-    // The Emulator tool window is closed.
+    // The Running Devices tool window is closed.
     assertThat(toolWindow.isVisible).isFalse()
 
     // Start the first and the second emulators.
@@ -189,7 +189,7 @@ class StreamingToolWindowManagerTest {
 
     project.messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avdInfo, commandLine, RequestType.DIRECT_DEVICE_MANAGER, project)
     dispatchAllInvocationEvents()
-    // The Running Devices tool is opened and activated when an embedded emulator is launched by a direct request.
+    // The Running Devices tool window is opened and activated when an embedded emulator is launched by a direct request.
     waitForCondition(2.seconds) { toolWindow.isVisible }
     assertThat(toolWindow.isActive).isTrue()
 
