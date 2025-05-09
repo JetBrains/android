@@ -1,4 +1,0 @@
-android_sdk_repository(
-    name = "androidsdk",
-    path = "%ANDROID_SDK_PATH%",
-)
