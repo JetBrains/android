@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.idea.streaming.actions.FloatingXrToolbarState
@@ -23,6 +24,8 @@ import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.util.Disposer
@@ -54,7 +57,7 @@ import javax.swing.plaf.ScrollBarUI
 abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
   disposableParent: Disposable,
   zoomToolbarVisible: Boolean,
-) : BorderLayoutPanel(), Disposable {
+) : BorderLayoutPanel(), UiDataProvider, Disposable {
 
   private val scrollPane: JScrollPane
   private val centerPanel: NotificationHolderPanel
@@ -128,6 +131,11 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
 
     centerPanel = NotificationHolderPanel(loadingPanel)
     addToCenter(centerPanel)
+  }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[DISPLAY_VIEW_KEY] = displayView
+    sink[ZOOMABLE_KEY] = displayView
   }
 
   protected fun createFloatingToolbar() {

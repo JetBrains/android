@@ -18,14 +18,11 @@ package com.android.tools.idea.streaming.emulator
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.AnyThread
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
-import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataSink
-import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
@@ -41,7 +38,7 @@ internal class EmulatorDisplayPanel(
   displaySize: Dimension?,
   zoomToolbarVisible: Boolean,
   deviceFrameVisible: Boolean = false,
-) : AbstractDisplayPanel<EmulatorView>(disposableParent, zoomToolbarVisible), UiDataProvider, ConnectionStateListener {
+) : AbstractDisplayPanel<EmulatorView>(disposableParent, zoomToolbarVisible), ConnectionStateListener {
 
   override val deviceType: DeviceType
     get() = displayView.emulator.emulatorConfig.deviceType
@@ -58,10 +55,9 @@ internal class EmulatorDisplayPanel(
   }
 
   override fun uiDataSnapshot(sink: DataSink) {
+    super.uiDataSnapshot(sink)
     sink[EMULATOR_CONTROLLER_KEY] = displayView.emulator
     sink[EMULATOR_VIEW_KEY] = displayView
-    sink[DISPLAY_VIEW_KEY] = displayView
-    sink[ZOOMABLE_KEY] = displayView
   }
 
   @AnyThread
