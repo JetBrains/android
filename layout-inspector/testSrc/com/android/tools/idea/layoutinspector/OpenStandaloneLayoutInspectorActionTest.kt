@@ -23,11 +23,13 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.devicemanagerv2.DEVICE_ROW_DATA_KEY
 import com.android.tools.idea.devicemanagerv2.DeviceRowData
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -64,7 +66,12 @@ class OpenStandaloneLayoutInspectorActionTest {
   }
 
   @Test
-  fun actionEnabledForXr() {
+  fun actionEnabledForXrWhenXrFeatureIsOff() {
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION.overrideForTest(
+      false,
+      projectRule.disposable,
+    )
+
     val action = OpenStandaloneLayoutInspectorAction()
 
     val deviceRowData = mock<DeviceRowData>()
@@ -85,6 +92,31 @@ class OpenStandaloneLayoutInspectorActionTest {
 
     assertThat(fakeEvent.presentation.isVisible).isTrue()
     assertThat(fakeEvent.presentation.isEnabled).isTrue()
+  }
+
+  @Test
+  fun actionEnabledForXrWhenXrFeatureIsOn() {
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION.overrideForTest(true, projectRule.disposable)
+
+    val action = OpenStandaloneLayoutInspectorAction()
+
+    val deviceRowData = mock<DeviceRowData>()
+    whenever(deviceRowData.type).thenAnswer { DeviceType.XR }
+
+    val deviceHandle = mock<DeviceHandle>()
+    whenever(deviceHandle.state).thenAnswer { mock<DeviceState.Connected>() }
+
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(DEVICE_ROW_DATA_KEY, deviceRowData)
+        .add(DEVICE_HANDLE_KEY, deviceHandle)
+        .build()
+
+    val fakeEvent = createTestActionEvent(action, dataContext = dataContext)
+    action.update(fakeEvent)
+
+    assertThat(fakeEvent.presentation.isVisible).isFalse()
   }
 
   @Test

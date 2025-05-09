@@ -21,6 +21,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.devicemanagerv2.DeviceManagerOverflowActionContributor
 import com.android.tools.idea.devicemanagerv2.deviceRowData
 import com.android.tools.idea.deviceprovisioner.deviceHandle
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -56,7 +57,9 @@ class OpenStandaloneLayoutInspectorAction :
 
     // Embedded Layout Inspector is not supported for XR devices. So we provide this action to
     // fallback to Standalone.
-    e.presentation.isVisible = deviceRowData?.type == DeviceType.XR
+    e.presentation.isVisible =
+      !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION.get() &&
+        deviceRowData?.type == DeviceType.XR
     e.presentation.isEnabled = deviceHandle?.state is DeviceState.Connected
   }
 
