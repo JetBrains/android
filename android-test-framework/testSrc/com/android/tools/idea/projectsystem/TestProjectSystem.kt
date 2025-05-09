@@ -220,9 +220,6 @@ class TestProjectSystem @JvmOverloads constructor(
       private fun getRegisteredDependencyId(coordinate: GradleCoordinate): TestRegisteredDependencyId =
         TestRegisteredDependencyId(coordinate)
 
-      override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
-        getRegisteredDependency(getRegisteredDependencyQueryId(coordinate))?.coordinate
-
       override fun getRegisteredDependency(id: TestRegisteredDependencyQueryId): TestRegisteredDependencyId? =
         dependenciesByModule[module].firstOrNull { it.coordinate.matches(id.coordinate) }?.let {
           TestRegisteredDependencyId(it.coordinate)

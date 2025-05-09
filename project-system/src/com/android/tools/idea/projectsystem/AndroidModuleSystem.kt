@@ -88,31 +88,13 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate>
 
   /**
-   * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate] as registered with the
-   * build system (e.g. build.gradle for Gradle, BUILD for bazel, etc). Build systems such as Gradle allow users to specify a dependency
-   * such as x.y.+, which it will resolve to a specific version at sync time. This method returns the version registered in the build
-   * script.
-   * <p>
-   * This method will find a dependency that matches the given query coordinate. For example:
-   * Query coordinate a:b:+ will return a:b:+ if a:b:+ is registered with the build system.
-   * Query coordinate a:b:+ will return a:b:123 if a:b:123 is registered with the build system.
-   * Query coordinate a:b:456 will return null if a:b:456 is not registered, even if a:b:123 is.
-   * Use [AndroidModuleSystem.getResolvedDependency] if you want the resolved dependency.
-   * <p>
-   * **Note**: This function may perform read actions and may cause the parsing of build files, as such should not be called from
-   * the UI thread.
-   */
-  @Throws(DependencyManagementException::class)
-  fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate?
-
-  /**
    * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate].
    * <p>
    * This method will resolve version information to what is resolved. For example:
    * Query coordinate a:b:+ will return a:b:123 if version 123 of that artifact is a resolved dependency.
    * Query coordinate a:b:123 will return a:b:123 if version 123 of that artifact is a resolved dependency.
    * Query coordinate a:b:456 will return null if version 123 is a resolved dependency but not version 456.
-   * Use [AndroidModuleSystem.getRegisteredDependency] if you want the registered dependency.
+   * Use [RegisteringModuleSystem.getRegisteredDependency] if you want the registered dependency.
    * <p>
    * **Note**: This function will not acquire any locks during its operation.
    */

@@ -199,22 +199,6 @@ class GradleModuleSystem(
   override fun getRegisteredDependency(id: GradleRegisteredDependencyQueryId): GradleRegisteredDependencyId? =
     getRegisteredDependency(id.module)?.let { GradleRegisteredDependencyId(it) }
 
-  // TODO: b/129297171
-  override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
-    // TODO(xof): I'm reasonably convinced that this interface (in terms of GradleCoordinate) and its implementation
-    //  verifying that any version field specified in the GradleCoordinate matches (in some sense, where "+" is treated
-    //  specially in the coordinate but not in any of the matches) is not reasonably supportable.  Almost all uses of this in production
-    //  use a bare version of "+", which will match any version.  There is an exception, which attempts to insert specific versions
-    //  taken from fragments of other Gradle build files (or Maven XML).
-    //  I think the ideal final state will involve removing this function from the AndroidModuleSystem interface; converting users of
-    //  this to the getRegisteredDependency(ExternalModule) method below; and require clients who want to query or add specific
-    //  dependency versions to Gradle build files to accept that they are using GradleModuleSystem facilities, which we will allow from
-    //  a limited set of modules.  In the meantime, preserve existing behavior by emulating GradleCoordinate.matches(...)
-    getRegisteredDependency(ExternalModule(coordinate.groupId, coordinate.artifactId))
-      ?.takeIf { it.matches(coordinate) }
-      ?.toIdentifier()
-      ?.let { GradleCoordinate.parseCoordinateString(it) }
-
   // This only exists to support the contract of getRegisteredDependency(), which is that an existing declared dependency should be
   // returned if it matches the coordinate given, with a possibly-wild or possibly rich version.  If the declared dependency is to
   // an explicit singleton, we check whether the pattern contains that version; if the pattern version is wild, we accept any
