@@ -284,14 +284,14 @@ internal abstract class AbstractXrInputController : Disposable {
       return 1 shl index
     }
     return when (keyCode) {
-      VK_RIGHT, VK_KP_RIGHT -> 1 shl NavigationKey.ROTATE_RIGHT.ordinal
-      VK_LEFT, VK_KP_LEFT -> 1 shl NavigationKey.ROTATE_LEFT.ordinal
-      VK_UP, VK_KP_UP -> 1 shl NavigationKey.ROTATE_UP.ordinal
-      VK_DOWN, VK_KP_DOWN -> 1 shl NavigationKey.ROTATE_DOWN.ordinal
-      VK_PAGE_UP -> 1 shl NavigationKey.ROTATE_RIGHT_UP.ordinal
-      VK_PAGE_DOWN -> 1 shl NavigationKey.ROTATE_RIGHT_DOWN.ordinal
-      VK_HOME -> 1 shl NavigationKey.ROTATE_LEFT_UP.ordinal
-      VK_END -> 1 shl NavigationKey.ROTATE_LEFT_DOWN.ordinal
+      VK_RIGHT, VK_KP_RIGHT -> NavigationKey.ROTATE_RIGHT.mask
+      VK_LEFT, VK_KP_LEFT -> NavigationKey.ROTATE_LEFT.mask
+      VK_UP, VK_KP_UP -> NavigationKey.ROTATE_UP.mask
+      VK_DOWN, VK_KP_DOWN -> NavigationKey.ROTATE_DOWN.mask
+      VK_PAGE_UP -> NavigationKey.ROTATE_RIGHT_UP.mask
+      VK_PAGE_DOWN -> NavigationKey.ROTATE_RIGHT_DOWN.mask
+      VK_HOME -> NavigationKey.ROTATE_LEFT_UP.mask
+      VK_END -> NavigationKey.ROTATE_LEFT_DOWN.mask
       else -> 0
     }
   }
@@ -302,32 +302,32 @@ internal abstract class AbstractXrInputController : Disposable {
    * opposite directions, e.g. [NavigationKey.ROTATE_RIGHT] and [NavigationKey.ROTATE_LEFT].
    */
   private fun pressedKeysMaskToNavigationMask(pressedKeysMask: Int): Int {
-    var mask = pressedKeysMask and ((1 shl NavigationKey.ROTATE_RIGHT_UP.ordinal) - 1)
-    if (pressedKeysMask and (1 shl NavigationKey.ROTATE_RIGHT_UP.ordinal) != 0) {
-      mask = mask or (1 shl NavigationKey.ROTATE_RIGHT.ordinal) or (1 shl NavigationKey.ROTATE_UP.ordinal)
+    var mask = pressedKeysMask and (NavigationKey.ROTATE_RIGHT_UP.mask - 1)
+    if (pressedKeysMask and NavigationKey.ROTATE_RIGHT_UP.mask != 0) {
+      mask = mask or NavigationKey.ROTATE_RIGHT.mask or NavigationKey.ROTATE_UP.mask
     }
-    if (pressedKeysMask and (1 shl NavigationKey.ROTATE_RIGHT_DOWN.ordinal) != 0) {
-      mask = mask or (1 shl NavigationKey.ROTATE_RIGHT.ordinal) or (1 shl NavigationKey.ROTATE_DOWN.ordinal)
+    if (pressedKeysMask and NavigationKey.ROTATE_RIGHT_DOWN.mask != 0) {
+      mask = mask or NavigationKey.ROTATE_RIGHT.mask or NavigationKey.ROTATE_DOWN.mask
     }
-    if (pressedKeysMask and (1 shl NavigationKey.ROTATE_LEFT_UP.ordinal) != 0) {
-      mask = mask or (1 shl NavigationKey.ROTATE_LEFT.ordinal) or (1 shl NavigationKey.ROTATE_UP.ordinal)
+    if (pressedKeysMask and NavigationKey.ROTATE_LEFT_UP.mask != 0) {
+      mask = mask or NavigationKey.ROTATE_LEFT.mask or NavigationKey.ROTATE_UP.mask
     }
-    if (pressedKeysMask and (1 shl NavigationKey.ROTATE_LEFT_DOWN.ordinal) != 0) {
-      mask = mask or (1 shl NavigationKey.ROTATE_LEFT.ordinal) or (1 shl NavigationKey.ROTATE_DOWN.ordinal)
+    if (pressedKeysMask and NavigationKey.ROTATE_LEFT_DOWN.mask != 0) {
+      mask = mask or NavigationKey.ROTATE_LEFT.mask or NavigationKey.ROTATE_DOWN.mask
     }
     // Cancel out keys acting in opposite directions.
     val opposites = intArrayOf(
-        (1 shl NavigationKey.MOVE_RIGHT.ordinal) or (1 shl NavigationKey.MOVE_LEFT.ordinal),
-        (1 shl NavigationKey.MOVE_UP.ordinal) or (1 shl NavigationKey.MOVE_DOWN.ordinal),
-        (1 shl NavigationKey.MOVE_BACKWARD.ordinal) or (1 shl NavigationKey.MOVE_FORWARD.ordinal),
-        (1 shl NavigationKey.ROTATE_RIGHT.ordinal) or (1 shl NavigationKey.ROTATE_LEFT.ordinal),
-        (1 shl NavigationKey.ROTATE_UP.ordinal) or (1 shl NavigationKey.ROTATE_DOWN.ordinal))
+        NavigationKey.MOVE_RIGHT.mask or NavigationKey.MOVE_LEFT.mask,
+        NavigationKey.MOVE_UP.mask or NavigationKey.MOVE_DOWN.mask,
+        NavigationKey.MOVE_BACKWARD.mask or NavigationKey.MOVE_FORWARD.mask,
+        NavigationKey.ROTATE_RIGHT.mask or NavigationKey.ROTATE_LEFT.mask,
+        NavigationKey.ROTATE_UP.mask or NavigationKey.ROTATE_DOWN.mask)
     for (m in opposites) {
       if ((mask and m) == m) {
         mask = mask and m.inv()
       }
     }
-    return mask
+    return mask and (NavigationKey.TRANSLATION_MASK or NavigationKey.ROTATION_MASK)
   }
 
   protected abstract fun sendVelocityUpdate(newMask: Int, oldMask: Int)
@@ -355,24 +355,31 @@ internal abstract class AbstractXrInputController : Disposable {
   }
 
   protected enum class NavigationKey {
+    // Translation keys.
     MOVE_FORWARD,      // W
     MOVE_LEFT,         // A
     MOVE_BACKWARD,     // S
     MOVE_RIGHT,        // D
     MOVE_DOWN,         // Q
     MOVE_UP,           // E
+    // Rotation keys.
     ROTATE_RIGHT,      // Right arrow
     ROTATE_LEFT,       // Left arrow
     ROTATE_UP,         // Up arrow
     ROTATE_DOWN,       // Down arrow
+    // Combination rotation keys.
     ROTATE_RIGHT_UP,   // Page Up
     ROTATE_RIGHT_DOWN, // Page Down
     ROTATE_LEFT_UP,    // Home
     ROTATE_LEFT_DOWN;  // End
 
+    val mask: Int = 1 shl ordinal
+    val cumulativeMask: Int
+      get() = mask or (mask - 1)
+
     companion object {
-      const val TRANSLATION_MASK: Int = 0x3F
-      const val ROTATION_MASK: Int = 0x3C0
+      val TRANSLATION_MASK: Int = MOVE_UP.cumulativeMask
+      val ROTATION_MASK: Int = ROTATE_DOWN.cumulativeMask and TRANSLATION_MASK.inv()
     }
   }
 }
