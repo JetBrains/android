@@ -26,6 +26,7 @@ jvm_library(
     "//android/server-flags",
     "//android/server-flags:server-flags_test_lib",
     "@lib//:mockito-kotlin",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "@lib//:kotlin-stdlib",

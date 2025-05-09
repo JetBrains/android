@@ -29,6 +29,7 @@ jvm_library(
     "//android/wizard-model",
     "//platform/core-ui",
     "//platform/credential-store:credentialStore",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/platform-api:ide",
     "//platform/platform-impl:ide-impl",
     "//platform/lang-api:lang",

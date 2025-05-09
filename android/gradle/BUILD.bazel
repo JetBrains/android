@@ -57,6 +57,7 @@ jvm_library(
     "//platform/core-ui",
     "//platform/xdebugger-api:debugger",
     "//platform/editor/shared:editor",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/execution",
     "//platform/extensions",
     "//platform/external-system-api:externalSystem",

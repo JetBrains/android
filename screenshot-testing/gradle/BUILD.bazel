@@ -18,6 +18,7 @@ jvm_library(
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/android-common:common",
     "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/util",
     "//android/project-system:projectSystem",
     "@lib//:kotlin-stdlib",

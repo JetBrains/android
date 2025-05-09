@@ -60,6 +60,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:studio-platform-provided",
     "//platform/analysis-api:analysis",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//java/testFramework",

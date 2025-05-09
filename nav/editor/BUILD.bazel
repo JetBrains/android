@@ -104,6 +104,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:kotlin-stdlib",
     "//java/java-impl:impl",
+    "//platform/editor-ui-api:editor-ui",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//java/testFramework",
