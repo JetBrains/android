@@ -1349,6 +1349,12 @@ public final class StudioFlags {
     "If enabled, calls a OnePlatform HTTP API instead of the developers.android.com web server for documentation.",
     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> RESTRICT_TO_COMPLETION_WEIGHER = new BooleanFlag(
+    EDITOR, "restrict.to.completion.weigher",
+    "Enable use of the weigher that demotes elements annotated with @RestrictTo.",
+    "If enabled, the APIs that are annotated with @RestrictTo will have lower priority in the completion list.",
+    enabledUpTo(CANARY));
+
   //endregion
 
   //region Unified App Bundle
