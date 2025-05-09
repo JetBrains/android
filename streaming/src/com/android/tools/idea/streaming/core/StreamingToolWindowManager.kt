@@ -239,7 +239,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         if (contentShown) {
           createEmptyStatePanel()
         }
-        hideLiveIndicator()
+        setLiveIndicator(false)
       }
     }
   }
@@ -563,7 +563,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     placeholderContent?.removeAndDispose() // Remove the placeholder panel.
 
-    showLiveIndicator()
+    setLiveIndicator(true)
     hideToolWindowName()
 
     return content
@@ -661,12 +661,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     return null
   }
 
-  private fun showLiveIndicator() {
-    toolWindow.setIcon(LIVE_ICON)
+  private fun updateLiveIndicator() {
+    val embeddedEmulatorsRunning = RunningEmulatorCatalog.getInstance().emulators.find { it.emulatorId.isEmbedded } != null
+    setLiveIndicator(embeddedEmulatorsRunning || !deviceClientRegistry.isEmpty())
   }
 
-  private fun hideLiveIndicator() {
-    toolWindow.setIcon(INACTIVE_ICON)
+  private fun setLiveIndicator(live: Boolean) {
+    toolWindow.setIcon(if (live) LIVE_ICON else INACTIVE_ICON)
   }
 
   private fun showToolWindowName() {
@@ -721,6 +722,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     if (requester != this && deviceClients[serialNumber]?.client == client) {
       deactivateMirroring(serialNumber)
       deviceClients.remove(serialNumber)
+    }
+    else {
+      updateLiveIndicator()
     }
   }
 
@@ -1102,11 +1106,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
       if (!contentShown) {
         toolWindowScope.launch(Dispatchers.IO) {
-          val embeddedEmulators = RunningEmulatorCatalog.getInstance().updateNow().await().filter { it.emulatorId.isEmbedded }
+          RunningEmulatorCatalog.getInstance().updateNow().await()
           withContext(Dispatchers.EDT) {
-            if (deviceClients.isEmpty() && embeddedEmulators.isEmpty()) {
-              hideLiveIndicator()
-            }
+            updateLiveIndicator()
           }
         }
       }
@@ -1407,6 +1409,10 @@ internal class DeviceClientRegistry : Disposable {
       consumer(client)
     }
   }
+
+  @UiThread
+  fun isEmpty(): Boolean =
+      clientsBySerialNumber.isEmpty()
 
   fun addListener(listener: Listener) {
     listeners.add(listener)
