@@ -111,6 +111,7 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/testFramework/common",
+    "//platform/usageView-impl",
     "//platform/util",
     "//platform/util/base",
     "//platform/util-rt",

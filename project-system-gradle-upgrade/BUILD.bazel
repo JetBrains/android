@@ -44,6 +44,7 @@ jvm_library(
     "//platform/lang-impl",
     "//platform/lvcs-impl",
     "//platform/usageView",
+    "//platform/usageView-impl",
     "//plugins/properties/properties-psi-api:psi",
     "//xml/xml-psi-api:psi",
     "//android/gmaven",
