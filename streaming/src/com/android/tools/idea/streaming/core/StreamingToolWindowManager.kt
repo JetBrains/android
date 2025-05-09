@@ -162,7 +162,7 @@ internal val LIVE_ICON = BadgeIconSupplier(INACTIVE_ICON).liveIndicatorIcon
  */
 @UiThread
 internal class StreamingToolWindowManager @AnyThread constructor(
-  private val toolWindow: ToolWindow,
+  private val toolWindow: ToolWindowEx,
 ) : RunningEmulatorCatalog.Listener, DeviceClientRegistry.Listener, DumbAware, Disposable {
 
   private val project
@@ -402,7 +402,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
       val newTabAction = NewTabAction()
       newTabAction.registerCustomShortcutSet(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK or KeyEvent.SHIFT_DOWN_MASK, toolWindow.component)
-      (toolWindow as ToolWindowEx).setTabActions(newTabAction)
+      toolWindow.setTabActions(newTabAction)
 
       val actionGroup = DefaultActionGroup()
       actionGroup.addAction(ToggleZoomToolbarAction())
@@ -673,14 +673,14 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun showToolWindowName() {
     if (StudioFlags.RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME.get()) {
       toolWindow.component.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, null)
-      (toolWindow as ToolWindowEx).updateContentUi()
+      toolWindow.updateContentUi()
     }
   }
 
   private fun hideToolWindowName() {
     if (StudioFlags.RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME.get()) {
       toolWindow.component.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "true")
-      (toolWindow as ToolWindowEx).updateContentUi()
+      toolWindow.updateContentUi()
     }
   }
 
@@ -1318,9 +1318,11 @@ private val AnActionEvent.contentManager: ContentManager?
     if (contentManager != null) {
       return contentManager
     }
-    val component = getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)
-    return ComponentUtil.getParentOfType(InternalDecorator::class.java, component)?.contentManager
+    return getData(PlatformCoreDataKeys.CONTEXT_COMPONENT)?.containingDecorator?.contentManager
   }
+
+private val Component.containingDecorator: InternalDecorator?
+  get() = ComponentUtil.getParentOfType(InternalDecorator::class.java, this)
 
 private fun isLocalEmulator(deviceSerialNumber: String) =
     deviceSerialNumber.startsWith("emulator-")
