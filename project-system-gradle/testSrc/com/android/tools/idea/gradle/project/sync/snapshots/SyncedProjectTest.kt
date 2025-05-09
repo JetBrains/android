@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.GradleProjectSystemIntegrationTest
 import com.android.tools.idea.gradle.project.sync.HighlightProjectTestDef
-import com.android.tools.idea.gradle.project.sync.runsGradleOpenProjectTest.PhasedSyncSnapshotConsistencyTestDef
+import com.android.tools.idea.gradle.project.sync.runsGradlePhasedSync.PhasedSyncSnapshotConsistencyTestDef
 import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTestDef
 import com.android.tools.idea.navigator.SourceProvidersTestDef
 import com.android.tools.idea.projectsystem.gradle.GradleModuleHierarchyProviderTest

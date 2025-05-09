@@ -320,8 +320,8 @@ iml_module(
                 "//prebuilts/studio/jdk:jdk21",
             ],
         },
-        "runs_indexing_resync_project": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.runsGradleOpenProjectTest.PhasedSyncResyncTests",
+        "runs_gradle_phased_sync": {
+            "test_filter": ".runsGradlePhasedSync",
             "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
             "tags": [
                 "cpu:4",

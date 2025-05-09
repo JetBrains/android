@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.runsGradleOpenProjectTest
+package com.android.tools.idea.gradle.project.sync.runsGradlePhasedSync
 
 import com.android.builder.model.v2.models.Versions
 import com.android.testutils.TestUtils
@@ -28,7 +28,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
