@@ -474,10 +474,16 @@ interface RegisteringModuleSystem<T: RegisteredDependencyQueryId, U: RegisteredD
   fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): T
   /** return an id suitable for registering the corresponding dependency with the project. */
   fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): U
+  /** return whether this module is known to register a dependency on [id]. */
+  fun hasRegisteredDependency(id: WellKnownMavenArtifactId): Boolean = hasRegisteredDependency(getRegisteredDependencyQueryId(id))
+  /** return whether this module is known to register a dependency on [id]. */
+  fun hasRegisteredDependency(id: T): Boolean = getRegisteredDependency(id) != null
   /** query for the dependency corresponding to [id] in this module; returns null if unregistered. */
   fun getRegisteredDependency(id: WellKnownMavenArtifactId): U? = getRegisteredDependency(getRegisteredDependencyQueryId(id))
   /** query for the dependency corresponding to [id] in this module; returns null if unregistered. */
   fun getRegisteredDependency(id: T): U?
+  /** register the dependency corresponding to [id] as a dependency of type [type] in this module. */
+  fun registerDependency(id: WellKnownMavenArtifactId, type: DependencyType) = registerDependency(getRegisteredDependencyId(id), type)
   /** register the [dependency] as a dependency of type [type] in this module. */
   fun registerDependency(dependency: U, type: DependencyType)
   /**

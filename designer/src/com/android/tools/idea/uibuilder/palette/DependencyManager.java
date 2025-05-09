@@ -158,7 +158,7 @@ public class DependencyManager implements Disposable {
       RegisteringModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(myModule).getRegisteringModuleSystem();
       if (moduleSystem != null) {
         missing = myPalette.getGoogleMavenArtifactIds().stream()
-          .filter(id -> moduleSystem.getRegisteredDependency(id) == null)
+          .filter(id -> !moduleSystem.hasRegisteredDependency(id))
           .collect(ImmutableSet.toImmutableSet());
       } else {
         missing = ImmutableSet.copyOf(myPalette.getGoogleMavenArtifactIds());

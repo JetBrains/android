@@ -229,6 +229,8 @@ class GradleModuleSystem(
   fun getRegisteredDependency(externalModule: ExternalModule): Dependency? =
     getDirectDependencies(module).find { it.name == externalModule.name && it.group == externalModule.group }
 
+  fun hasRegisteredDependency(externalModule: ExternalModule): Boolean = getRegisteredDependency(externalModule) != null
+
   private fun Component.dependency() = Dependency(group, name, RichVersion.require(version))
 
   private fun IdeDeclaredDependencies.IdeCoordinates.dependency(): Dependency? =

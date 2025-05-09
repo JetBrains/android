@@ -118,8 +118,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         try {
           WriteCommandAction.writeCommandAction(module.getProject()).withName(getName()).run(() -> {
             if (moduleSystem != null) {
-              RegisteredDependencyId dependencyId = moduleSystem.getRegisteredDependencyId(id);
-              moduleSystem.registerDependency(dependencyId, DependencyType.IMPLEMENTATION);
+              moduleSystem.registerDependency(id, DependencyType.IMPLEMENTATION);
             }
 
             syncAndReplaceReferences(project, startElement, useAndroidX);

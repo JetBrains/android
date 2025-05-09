@@ -120,7 +120,7 @@ public class MlUtils {
     if (moduleSystem == null) return List.of();
     List<WellKnownMavenArtifactId> pendingDeps = new ArrayList<>();
     for (WellKnownMavenArtifactId id : dependencies) {
-      if (moduleSystem.getRegisteredDependency(id) == null) {
+      if (!moduleSystem.hasRegisteredDependency(id)) {
         pendingDeps.add(id);
       }
     }

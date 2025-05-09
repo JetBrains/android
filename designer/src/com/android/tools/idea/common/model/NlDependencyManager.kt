@@ -70,7 +70,7 @@ class NlDependencyManager private constructor() {
     val missingDependencies =
       collectDependencies(components).let { ids ->
         facet.module.getModuleSystem().getRegisteringModuleSystem()?.let { moduleSystem ->
-          ids.filter { moduleSystem.getRegisteredDependency(it) == null }.toSet()
+          ids.filter { !moduleSystem.hasRegisteredDependency(it) }.toSet()
         } ?: ids.toSet()
       }
     if (missingDependencies.isEmpty()) {
@@ -130,7 +130,7 @@ class NlDependencyManager private constructor() {
     val dependencies = collectDependencies(toAdd)
     val missing =
       facet.module.getModuleSystem().getRegisteringModuleSystem()?.let { moduleSystem ->
-        dependencies.filter { moduleSystem.getRegisteredDependency(it) == null }.toSet()
+        dependencies.filter { !moduleSystem.hasRegisteredDependency(it) }.toSet()
       } ?: emptySet()
     if (missing.none()) {
       return true

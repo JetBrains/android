@@ -226,7 +226,7 @@ public class GradleDependencyManagerTest {
 
   private boolean isRecyclerViewRegistered(@NotNull Project project) {
     GradleModuleSystem moduleSystem = (GradleModuleSystem)getModuleSystem(TestModuleUtil.findAppModule(project));
-    return moduleSystem.getRegisteredDependency(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7) != null;
+    return moduleSystem.hasRegisteredDependency(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7);
   }
 
   private boolean isRecyclerViewResolved(@NotNull Project project) {
