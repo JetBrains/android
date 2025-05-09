@@ -20,10 +20,10 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus;
 import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.MoreCollectors;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.QuerySyncManager.OperationType;
 import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin;
@@ -33,16 +33,18 @@ import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.deps.OutputGroup;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Optional;
+import java.util.EnumSet;
 import java.util.Set;
 import kotlinx.coroutines.Deferred;
 import kotlinx.coroutines.guava.ListenableFutureKt;
 import org.jetbrains.annotations.NotNull;
 
+// TODO: b/418844903 - Update the artifact manager
 final class BazelBuildServices implements BuildServices<BazelBuildTargetReference> {
   @Override
   public @NotNull BuildStatus getLastCompileStatus(@NotNull BazelBuildTargetReference target) {
@@ -55,6 +57,14 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
    */
   @Override
   public void buildArtifacts(@NotNull Collection<? extends @NotNull BazelBuildTargetReference> targets) {
+    buildArtifactsAsync(targets);
+  }
+
+  /**
+   * Executed by an application pool thread
+   */
+  @VisibleForTesting
+  static Deferred<Boolean> buildArtifactsAsync(Collection<? extends BazelBuildTargetReference> targets) {
     var project = targets.stream()
       .map(BuildTargetReference::getModule)
       .map(Module::getProject)
@@ -69,12 +79,12 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
 
     var scope = QuerySyncActionStatsScope.createForFiles(BazelBuildServices.class, null, files);
 
-    helper.determineTargetsAndRun(WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, files),
-                                  BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt(
-                                    popup -> popup.showCenteredInCurrentWindow(project)),
-                                  TargetDisambiguationAnchors.NONE,
-                                  scope,
-                                  labels -> buildAndRefresh(project, scope, labels));
+    return helper.determineTargetsAndRun(WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, files),
+                                         BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt(
+                                           popup -> popup.showCenteredInCurrentWindow(project)),
+                                         TargetDisambiguationAnchors.NONE,
+                                         scope,
+                                         labels -> buildAndRefresh(project, scope, labels));
   }
 
   /**
@@ -99,9 +109,20 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
   private static void buildAndRefresh(@NotNull QuerySyncManager manager,
                                       @NotNull BlazeContext context,
                                       @NotNull Set<@NotNull Label> labels) throws BuildException {
+    var tracker = manager.getDependencyTracker();
+    assert tracker != null;
+
+    var builder = tracker.getBuilder();
+
+    // TODO: b/427295033 - Reconcile this set with what xinruiy is doing
+    var groups = EnumSet.of(OutputGroup.JARS,
+                            OutputGroup.TRANSITIVE_RUNTIME_JARS,
+                            OutputGroup.AARS,
+                            OutputGroup.GENSRCS,
+                            OutputGroup.ARTIFACT_INFO_FILE);
+
     try {
-      Optional.ofNullable(manager.getDependencyTracker()).orElseThrow()
-        .buildDependenciesForTargets(context, DependencyBuildRequest.filePreviews(labels));
+      builder.build(context, labels, groups);
     }
     catch (IOException exception) {
       throw new BuildException(exception);
