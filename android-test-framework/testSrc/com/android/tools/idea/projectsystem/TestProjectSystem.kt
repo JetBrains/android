@@ -208,27 +208,25 @@ class TestProjectSystem @JvmOverloads constructor(
         dependenciesByModule.put(module, Dependency(type, dependency.coordinate))
       }
 
-      override fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): TestRegisteredDependencyQueryId? =
+      override fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): TestRegisteredDependencyQueryId =
         TestRegisteredDependencyQueryId(id.getCoordinate("+"))
 
-      private fun getRegisteredDependencyQueryId(coordinate: GradleCoordinate): TestRegisteredDependencyQueryId? =
+      private fun getRegisteredDependencyQueryId(coordinate: GradleCoordinate): TestRegisteredDependencyQueryId =
         TestRegisteredDependencyQueryId(coordinate)
 
-      override fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): TestRegisteredDependencyId? =
+      override fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): TestRegisteredDependencyId =
         TestRegisteredDependencyId(id.getCoordinate("+"))
 
-      private fun getRegisteredDependencyId(coordinate: GradleCoordinate): TestRegisteredDependencyId? =
+      private fun getRegisteredDependencyId(coordinate: GradleCoordinate): TestRegisteredDependencyId =
         TestRegisteredDependencyId(coordinate)
 
       override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
-        getRegisteredDependencyQueryId(coordinate)?.let(::getRegisteredDependency)?.coordinate
+        getRegisteredDependency(getRegisteredDependencyQueryId(coordinate))?.coordinate
 
       override fun getRegisteredDependency(id: TestRegisteredDependencyQueryId): TestRegisteredDependencyId? =
         dependenciesByModule[module].firstOrNull { it.coordinate.matches(id.coordinate) }?.let {
           TestRegisteredDependencyId(it.coordinate)
         }
-
-
 
       override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? =
         dependenciesByModule[module].map { it.coordinate }.firstOrNull { it.matches(coordinate) }

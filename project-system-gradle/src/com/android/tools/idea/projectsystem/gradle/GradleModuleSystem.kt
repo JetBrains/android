@@ -196,7 +196,7 @@ class GradleModuleSystem(
     GradleRegisteredDependencyId(dependency)
 
   override fun getRegisteredDependency(id: GradleRegisteredDependencyQueryId): GradleRegisteredDependencyId? =
-    getRegisteredDependency(id.module)?.let{ GradleRegisteredDependencyId(it) }
+    getRegisteredDependency(id.module)?.let { GradleRegisteredDependencyId(it) }
 
   // TODO: b/129297171
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =

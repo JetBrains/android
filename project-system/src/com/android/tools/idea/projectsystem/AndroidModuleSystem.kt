@@ -471,11 +471,11 @@ interface RegisteredDependencyId
  */
 interface RegisteringModuleSystem<T: RegisteredDependencyQueryId, U: RegisteredDependencyId> {
   /** return an id suitable for querying for a corresponding existing registered dependency. */
-  fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): T?
+  fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): T
   /** return an id suitable for registering the corresponding dependency with the project. */
-  fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): U?
+  fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): U
   /** query for the dependency corresponding to [id] in this module; returns null if unregistered. */
-  fun getRegisteredDependency(id: WellKnownMavenArtifactId): U? = getRegisteredDependencyQueryId(id)?.let { getRegisteredDependency(it) }
+  fun getRegisteredDependency(id: WellKnownMavenArtifactId): U? = getRegisteredDependency(getRegisteredDependencyQueryId(id))
   /** query for the dependency corresponding to [id] in this module; returns null if unregistered. */
   fun getRegisteredDependency(id: T): U?
   /** register the [dependency] as a dependency of type [type] in this module. */
