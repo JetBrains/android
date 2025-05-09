@@ -28,6 +28,13 @@ class CodeTransformationDeterminerImpl(
   private val project: Project,
   private val codeContextResolver: CodeContextResolver,
 ) : CodeTransformationDeterminer {
+
+  private val contentChars = setOf(' ', '\t', '.', '/', ',')
+
+  private fun Char.isContentCharacter() = isLetterOrDigit() || this in contentChars
+
+  private val pathSeparatorChars = setOf('$', '\\')
+
   override suspend fun getApplicableTransformation(text: String): CodeTransformation {
     if (text.isEmpty()) return NoopTransformation
 
@@ -41,21 +48,21 @@ class CodeTransformationDeterminerImpl(
     while (i < n && text[i].isWhitespace() || text[i] == '`' || text[i] == '"' || text[i] == '\'') {
       i++
     }
-    val fileName = buildString {
+    val fileNameString = buildString {
       while (i < n) {
         val c = text[i++]
-        if (c.isLetterOrDigit() || c == '.' || c == '/') {
+        if (c.isContentCharacter()) {
           append(c)
-        } else if (c == '$') {
-          append('/')
-        } else if (c == '\\') {
+        } else if (c in pathSeparatorChars) {
           append('/')
         } else {
           break
         }
       }
     }
-    val files = codeContextResolver.getSourceVirtualFiles(fileName.toString().removeSuffix("."))
+    val fileNames = fileNameString.split(',').map { it.trim() }
+    val files =
+      fileNames.flatMap { codeContextResolver.getSourceVirtualFiles(it.removeSuffix(".")) }
 
     if (files.isEmpty()) return NoopTransformation
     return CodeTransformationImpl(project, text, files)

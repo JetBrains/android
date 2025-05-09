@@ -24,7 +24,8 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class CodeTransformationDeterminerTest {
 
@@ -32,14 +33,20 @@ class CodeTransformationDeterminerTest {
 
   private lateinit var codeContextResolver: CodeContextResolver
   private lateinit var determiner: CodeTransformationDeterminer
-  private val virtualFiles = mutableListOf(mock<VirtualFile>())
+  private var returnFilesOverride: List<VirtualFile>? = null
 
   @Before
   fun setUp() {
+    returnFilesOverride = null
     codeContextResolver =
       object : FakeCodeContextResolver(emptyList()) {
         override suspend fun getSourceVirtualFiles(filePath: String): List<VirtualFile> {
-          return virtualFiles
+          returnFilesOverride?.let {
+            return it
+          }
+          val file = mock<VirtualFile>()
+          whenever(file.path).thenReturn(filePath)
+          return listOf(file)
         }
       }
     determiner = CodeTransformationDeterminerImpl(projectRule.project, codeContextResolver)
@@ -68,13 +75,13 @@ class CodeTransformationDeterminerTest {
     assertThat(transformation).isInstanceOf(CodeTransformationImpl::class.java)
     transformation as CodeTransformationImpl
     assertThat(transformation.instruction).isEqualTo(instruction)
-    assertThat(transformation.files).containsAllIn(virtualFiles).inOrder()
+    assertThat(transformation.files.map { it.path }).containsExactly("AndroidManifest.xml")
   }
 
   @Test
   fun `insight with extract phrase but could not match project file returns empty transformation`() =
     runBlocking {
-      virtualFiles.clear()
+      returnFilesOverride = emptyList()
       val instruction =
         """
           This bug is bad.
@@ -86,4 +93,22 @@ class CodeTransformationDeterminerTest {
 
       assertThat(transformation).isInstanceOf(NoopTransformation::class.java)
     }
+
+  @Test
+  fun `insight with multiple files is parsed correctly`(): Unit = runBlocking {
+    val instruction =
+      """
+          This bug is bad.
+
+          The fix should likely be in AndroidManifest.xml, com/android/test/HelloWorld.kt.
+        """
+        .trimIndent()
+    val transformation = determiner.getApplicableTransformation(instruction)
+
+    assertThat(transformation).isInstanceOf(CodeTransformationImpl::class.java)
+    transformation as CodeTransformationImpl
+    assertThat(transformation.instruction).isEqualTo(instruction)
+    assertThat(transformation.files.map { it.path })
+      .containsExactly("AndroidManifest.xml", "com/android/test/HelloWorld.kt")
+  }
 }

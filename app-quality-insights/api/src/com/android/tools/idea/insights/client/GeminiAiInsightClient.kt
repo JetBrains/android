@@ -65,6 +65,21 @@ private val GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT =
   """
     .trimIndent()
 
+private val GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_MULTI_FILES_PROMPT =
+  """
+    Explain this exception from my app running on %s with Android version %s.
+    Please reference the provided source code if they are helpful.
+    If you think you can guess which files the fix for this crash should be performed in,
+    please include at the end of the response the extract phrase \"$FILE_PHRASE\${'$'}files,
+    where files is a comma separated list of the fully qualified path of the source files
+    in which you think the fix should likely be performed.
+    Exception:
+    ```
+    %s
+    ```
+  """
+    .trimIndent()
+
 private val GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_PROMPT =
   """
     Explain this exception from my app running on %s with Android version %s.
@@ -188,13 +203,19 @@ class GeminiAiInsightClient(
     return contextData
   }
 
-  private fun createPrompt(request: GeminiCrashInsightRequest, context: List<CodeContext>): String {
-    val promptWithContext =
-      if (StudioFlags.SUGGEST_A_FIX.get()) {
-        GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_PROMPT
+  private fun getPromptWithContext() =
+    if (StudioFlags.SUGGEST_A_FIX.get()) {
+      if (StudioFlags.STUDIOBOT_TRANSFORM_SESSION_DIFF_EDITOR_VIEWER_ENABLED.get()) {
+        GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_MULTI_FILES_PROMPT
       } else {
-        GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT
+        GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_PROMPT
       }
+    } else {
+      GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT
+    }
+
+  private fun createPrompt(request: GeminiCrashInsightRequest, context: List<CodeContext>): String {
+    val promptWithContext = getPromptWithContext()
     val initialPrompt =
       String.format(
           if (context.isEmpty()) GEMINI_INSIGHT_PROMPT_FORMAT else promptWithContext,
