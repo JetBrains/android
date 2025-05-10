@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
@@ -30,7 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.search.GlobalSearchScope
@@ -138,7 +138,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
-    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    val fileEditorManager = FileEditorManager.getInstance(project)
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.java")
 
@@ -172,7 +172,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
-    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    val fileEditorManager = FileEditorManager.getInstance(project)
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.kt")
 
@@ -206,7 +206,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
-    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    val fileEditorManager = FileEditorManager.getInstance(project)
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.java")
 
@@ -240,7 +240,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
-    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    val fileEditorManager = FileEditorManager.getInstance(project)
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.kt")
 

@@ -38,7 +38,7 @@ import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.extensions.DefaultPluginDescriptor;
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileTypes.BinaryFileDecompiler;
 import com.intellij.openapi.fileTypes.BinaryFileTypeDecompilers;
 import com.intellij.openapi.fileTypes.FileTypeExtensionPoint;
@@ -597,7 +597,7 @@ b/215645288 */
     );
 
     AndroidTestUtils.goToElementAtCaret(myFixture);
-    assertThat(FileEditorManagerEx.getInstanceEx(myFixture.getProject()).getCurrentFile()).isEqualTo(modelVirtualFile);
+    assertThat(FileEditorManager.getInstance(myFixture.getProject()).getCurrentFile()).isEqualTo(modelVirtualFile);
   }
 
   public void testCompleteProcessMethod() {
