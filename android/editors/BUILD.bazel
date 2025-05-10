@@ -18,7 +18,7 @@ jvm_library(
     "//android/android-common:common",
     "//android/android:core-tests_test_lib",
     "//android/preview-fast-compile",
-    "//android/project-system:projectSystem",
+    "//android/project-system",
     "//android/render-resources",
     "//android/android-test-framework:testFramework_test_lib",
     "//android/intellij.android.testutils:testutils_test_lib",

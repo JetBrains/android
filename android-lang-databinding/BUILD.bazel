@@ -22,7 +22,7 @@ jvm_library(
     "//android/android-common:common",
     "//android/android:core",
     "//android/jps-model",
-    "//android/project-system:projectSystem",
+    "//android/project-system",
     "//java/java-analysis-impl:analysis-impl",
     "//java/java-frontback-impl:frontback-impl",
     "//java/java-frontback-psi-api:frontback-psi",

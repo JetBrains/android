@@ -53,7 +53,7 @@ jvm_library(
     "//platform/util/jdom",
     "//plugins/kotlin/code-insight/api",
     "//android/rendering",
-    "//android/project-system:projectSystem",
+    "//android/project-system",
     "//android/wear-preview-elements",
   ],
   runtime_deps = [":wear-designer_resources"]
@@ -96,7 +96,7 @@ jvm_library(
     "//platform/util/base",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
-    "//android/project-system:projectSystem",
+    "//android/project-system",
     "//java/java-impl:impl",
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/plugin:plugin_test_lib",

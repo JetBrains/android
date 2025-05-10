@@ -22,7 +22,7 @@ jvm_library(
     "//android/android-common:common",
     "//android/android:core-tests_test_lib",
     "//android/jps-model",
-    "//android/project-system:projectSystem",
+    "//android/project-system",
     "//android/render-resources",
     "//android/android-test-framework:testFramework_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",

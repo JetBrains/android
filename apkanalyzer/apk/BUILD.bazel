@@ -16,7 +16,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//android/apkanalyzer",
     "//android/project-system-apk:projectSystem-apk",
-    "//android/project-system:projectSystem",
+    "//android/project-system",
     "//android/android:core",
     "//platform/lang-api:lang",
   ],

@@ -22,7 +22,7 @@ jvm_library(
     "//android/deploy:deploy_test_lib",
     "//android/execution/common",
     "//android/jps-model",
-    "//android/project-system:projectSystem",
+    "//android/project-system",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "//android/project-system-gradle-psd:projectSystem-gradle-psd",
@@ -36,8 +36,8 @@ jvm_library(
     "//platform/testFramework:testFramework_test_lib",
     "//plugins/maven",
     "//plugins/gradle",
-    "//platform/service-container:serviceContainer",
-    "//platform/service-container:serviceContainer_test_lib",
+    "//platform/service-container",
+    "//platform/service-container:service-container_test_lib",
     "//platform/projectModel-impl",
   ]
 )

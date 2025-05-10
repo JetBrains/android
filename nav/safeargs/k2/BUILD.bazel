@@ -16,7 +16,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
-    "//android/project-system:projectSystem",
+    "//android/project-system",
     "//platform/core-api:core",
     "//xml/impl",
     "//plugins/kotlin/base/project-structure",

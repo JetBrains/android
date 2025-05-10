@@ -36,7 +36,7 @@ jvm_library(
     "//android/android:core-tests_test_lib",
     "//android/jps-model",
     "//android/layoutlib-loader",
-    "//android/project-system:projectSystem",
+    "//android/project-system",
     "//android/render-resources",
     "//android/rendering",
     "//android/android-test-framework:testFramework_test_lib",

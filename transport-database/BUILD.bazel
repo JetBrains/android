@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
-  name = "transportDatabase_test_resources",
+  name = "transport-database_test_resources",
   files = glob(["testData/**/*"]),
   strip_prefix = "testData"
 )
 
 jvm_library(
-  name = "transportDatabase",
+  name = "transport-database",
   module_name = "intellij.android.transportDatabase",
   visibility = ["//visibility:public"],
   srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True),
@@ -25,10 +25,10 @@ jvm_library(
 )
 
 jvm_library(
-  name = "transportDatabase_test_lib",
+  name = "transport-database_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
-  associates = [":transportDatabase"],
+  associates = [":transport-database"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -47,11 +47,11 @@ jvm_library(
     "//android/android-common:common",
     "//android/intellij.android.testutils:testutils_test_lib",
   ],
-  runtime_deps = [":transportDatabase_test_resources"]
+  runtime_deps = [":transport-database_test_resources"]
 )
 
 jvm_test(
-  name = "transportDatabase_test",
-  runtime_deps = [":transportDatabase_test_lib"]
+  name = "transport-database_test",
+  runtime_deps = [":transport-database_test_lib"]
 )
 ### auto-generated section `build intellij.android.transportDatabase` end
