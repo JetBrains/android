@@ -782,6 +782,7 @@ studio_plugin(
         "@intellij//:com.intellij.java",
         "@intellij//:intellij.platform.vcs.impl",
         "@intellij//:intellij.platform.vcs.log.impl",
+        "@intellij//:org.intellij.groovy",
         "@intellij//:org.jetbrains.kotlin",
     ],
 )
