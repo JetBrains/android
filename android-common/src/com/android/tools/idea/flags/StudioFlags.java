@@ -2538,7 +2538,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RECORDING = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.recording", "Enable Journeys with Gemini recording",
     "Enable recording of Journeys with Gemini",
-    false
+    enabledUpTo(DEV)
   );
   // endregion JOURNEYS_WITH_GEMINI
 
