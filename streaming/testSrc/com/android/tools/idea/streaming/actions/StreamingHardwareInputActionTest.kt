@@ -144,7 +144,7 @@ class StreamingHardwareInputActionTest {
     val popup = showPopup(presentation)
     val labels = popup.content.findAllDescendants<JLabel>().toList()
     assertThat(labels.map { extractText(it.text)})
-        .containsExactly("Hardware Input Ctrl+W", "Enable transparent forwarding of keyboard and mouse events to the device")
+        .containsExactly("Hardware Input Ctrl+I", "Enable transparent forwarding of keyboard and mouse events to the device")
   }
 
   private fun createDeviceView(device: FakeDevice): DeviceView {

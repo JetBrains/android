@@ -225,9 +225,9 @@
       <action id="android.streaming.hardware.input" class="com.android.tools.idea.streaming.actions.StreamingHardwareInputAction"
               icon="StudioIcons.Emulator.Toolbar.HARDWARE_INPUT"
               text="Hardware Input" description="Enable transparent forwarding of keyboard and mouse events to the device">
-        <keyboard-shortcut first-keystroke="control W" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="control W" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="control W" keymap="Mac OS X 10.5+"/>
+        <keyboard-shortcut first-keystroke="control I" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show emulator extended controls"/>
