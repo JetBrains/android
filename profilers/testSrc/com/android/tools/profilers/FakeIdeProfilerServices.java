@@ -119,11 +119,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myCustomEventVisualizationEnabled = false;
 
   /**
-   * Whether we support profileable builds.
-   */
-  private boolean myProfileablsBuildsEnabled = true;
-
-  /**
    * Whether the task-based UX should be visible.
    */
   private boolean myTaskBasedUxEnabled = true;
@@ -261,11 +256,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isPerformanceMonitoringEnabled() {
         return false;
-      }
-
-      @Override
-      public boolean isProfileableBuildsEnabled() {
-        return myProfileablsBuildsEnabled;
       }
 
       @Override

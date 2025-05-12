@@ -27,7 +27,6 @@ public interface FeatureConfig {
   boolean isJankDetectionUiEnabled();
   boolean isMemoryCSVExportEnabled();
   boolean isPerformanceMonitoringEnabled();
-  boolean isProfileableBuildsEnabled();
   boolean isTestingModeEnabled();
   boolean isTaskBasedUxEnabled();
   boolean isTraceboxEnabled();

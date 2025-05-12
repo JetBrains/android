@@ -268,12 +268,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     //   Profile as profileable -> PROFILEABLE
     //   Profile as debuggable -> DEBUGGABLE
     //   Other (Run, Debug, legacy Profile) -> NOT_SET
-    val profilingMode = if (StudioFlags.PROFILEABLE_BUILDS.get()) {
-      AbstractProfilerExecutorGroup.getExecutorSetting(env.executor.id)?.profilingMode ?: ProfilingMode.NOT_SET
-    }
-    else {
-      ProfilingMode.NOT_SET
-    }
+    val profilingMode = AbstractProfilerExecutorGroup.getExecutorSetting(env.executor.id)?.profilingMode ?: ProfilingMode.NOT_SET
 
     // Compute modules to build
     val modules = getModules(context, configuration)
@@ -477,7 +472,7 @@ private fun getProfilingOptions(
     arguments.add(AndroidGradleSettings.createJvmArg("android.profiler.properties", propertiesFile.absolutePath))
   }
   // Append PROFILING_MODE if set by profilers.
-  if (StudioFlags.PROFILEABLE_BUILDS.get() && profilingMode.shouldInjectProjectProperty) {
+  if (profilingMode.shouldInjectProjectProperty) {
     arguments.add(AndroidGradleSettings.createProjectProperty(AbstractProfilerExecutorGroup.PROFILING_MODE_PROPERTY_NAME,
                                                               profilingMode.value))
   }

@@ -252,11 +252,6 @@ public final class StudioFlags {
     "When enabled, profiler will track and display events defined through developer APIs",
     false);
 
-  public static final Flag<Boolean> PROFILEABLE_BUILDS = new BooleanFlag(
-    PROFILER, "profileable.builds", "Support building profileable apps",
-    "Allow users to build apps as profileable with a supported Gradle plugin version (>7.3.0)",
-    true);
-
   public static final Flag<PowerProfilerDisplayMode> PROFILER_SYSTEM_TRACE_POWER_PROFILER_DISPLAY_MODE = new EnumFlag<>(
     PROFILER, "power.tracks", "Set display mode of power rails and battery counters in system trace UI",
     "Allows users to customize whether the power rail and battery counter tracks are shown in the system trace UI, " +

@@ -62,19 +62,19 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
       return false
     }
     val projectSystem = profile.project.getProjectSystem()
-    if (StudioFlags.PROFILEABLE_BUILDS.get()) {
-      // There are multiple profiler executors. The project's build system determines their applicability.
-      if (projectSystem.supportsProfilingMode()) {
-        if (AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId) == null) {
-          // Anything other than "Run as profileable (low overhead)" and "Run as debuggable (complete data)" cannot run.
-          return false
-        }
-      }
-      else if (ProfileRunExecutor.EXECUTOR_ID != executorId) {
-        // Anything other than "Profile" cannot run.
+
+    // There are multiple profiler executors. The project's build system determines their applicability.
+    if (projectSystem.supportsProfilingMode()) {
+      if (AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId) == null) {
+        // Anything other than "Run as profileable (low overhead)" and "Run as debuggable (complete data)" cannot run.
         return false
       }
     }
+    else if (ProfileRunExecutor.EXECUTOR_ID != executorId) {
+      // Anything other than "Profile" cannot run.
+      return false
+    }
+
     return projectSystem.getSyncManager().run { !isSyncInProgress() && !isSyncNeeded() }
   }
 
@@ -201,7 +201,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
       // Metrics tracking.
       val featureTracker = StudioFeatureTracker(project)
       val metadataBuilder = RunWithProfilingMetadata.newBuilder()
-      if (StudioFlags.PROFILEABLE_BUILDS.get() && executorId != null) {
+      if (executorId != null) {
         // Track profiling mode.
         // Executor will be null for legacy AGP version, which doesn't support profiling mode.
         // ASwB does not support profiling mode either, but it uses a different ProgramRunner so no event will be recorded.
@@ -214,11 +214,10 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
     }
 
     fun isProfilerExecutor(executorId: String): Boolean {
-      if (StudioFlags.PROFILEABLE_BUILDS.get() &&
-          // Profileable Builds support multiple profiling modes, wrapped in RegisteredSettings. To get the selected
-          // mode, query the ExecutorGroup by executor ID. If a registered setting is found, the executor is a profiler one.
-          // See ProfileRunExecutorGroup for the registered settings.
-          AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId) != null) {
+      // Profileable Builds support multiple profiling modes, wrapped in RegisteredSettings. To get the selected
+      // mode, query the ExecutorGroup by executor ID. If a registered setting is found, the executor is a profiler one.
+      // See ProfileRunExecutorGroup for the registered settings.
+      if (AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId) != null) {
         return true
       }
       // Legacy profiler executor, used by non-gradle build settings such as ASwB and APK Profiling.

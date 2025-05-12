@@ -66,7 +66,7 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
     override fun canRun(profile: RunProfile) = true
     override fun isApplicable(project: Project): Boolean {
       val isProfilingModeSupported = project.getProjectSystem().supportsProfilingMode() == true
-      return isProfilingModeSupported && StudioFlags.PROFILEABLE_BUILDS.get()
+      return isProfilingModeSupported
     }
     override fun getStartActionText(configurationName: String) = if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
       when (profilingMode) {

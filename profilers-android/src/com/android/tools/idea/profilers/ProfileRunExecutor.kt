@@ -44,7 +44,7 @@ class ProfileRunExecutor : DefaultRunExecutor() {
 
   override fun isApplicable(project: Project): Boolean {
     val isProfilingModeSupported = project.getProjectSystem().supportsProfilingMode() == true
-    if (isProfilingModeSupported && StudioFlags.PROFILEABLE_BUILDS.get()) return false
+    if (isProfilingModeSupported) return false
     return CommonAndroidUtil.getInstance().isAndroidProject(project)
   }
 
