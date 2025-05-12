@@ -29,8 +29,8 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.util.containers.addIfNotNull
-
-private const val DEFAULT_RESOLVER_PLUGIN_NAME = "org.gradle.toolchains.foojay-resolver-convention"
+import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.FOOJAY_RESOLVER_CONVENTION_NAME
+import org.jetbrains.plugins.gradle.frameworkSupport.settingsScript.getFoojayPluginVersion
 
 class AddJavaToolchainDefinition(
   project: Project,
@@ -86,7 +86,7 @@ class AddJavaToolchainDefinition(
   private fun ProjectBuildModel.findFooJayPluginDefinitionUsageInfo(): UsageInfo? {
     return projectSettingsModel?.let { settingsModel ->
       val pluginFound = settingsModel.plugins().plugins().any { plugin ->
-        plugin.name().toString() ==  DEFAULT_RESOLVER_PLUGIN_NAME
+        plugin.name().toString() == FOOJAY_RESOLVER_CONVENTION_NAME
       }
 
       if (!pluginFound) {
@@ -150,7 +150,7 @@ class AddJavaToolchainDefinition(
     ) : UsageInfo(psiElement, TextRange.EMPTY_RANGE, false) {
     fun perform() {
       PluginsHelper.withModel(projectBuildModel)
-        .applySettingsPlugin(DEFAULT_RESOLVER_PLUGIN_NAME, "0.8.0")
+        .applySettingsPlugin(FOOJAY_RESOLVER_CONVENTION_NAME, getFoojayPluginVersion())
     }
   }
 
