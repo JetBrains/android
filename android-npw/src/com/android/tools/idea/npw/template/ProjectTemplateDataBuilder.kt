@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.template
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.repository.Revision
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.npw.project.determineKotlinVersionOrDefault
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.wizard.template.FormFactor
@@ -76,6 +77,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
     ProjectTemplateData(
       androidXSupport!!,
       agpVersion!!,
+      getCompatibleGradleVersion(agpVersion!!).version,
       additionalMavenRepos,
       sdkDir,
       Language.valueOf(language!!.toString()),

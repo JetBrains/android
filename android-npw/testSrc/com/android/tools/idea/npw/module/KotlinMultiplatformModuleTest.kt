@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.generateMultiplatformModule
+import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
@@ -131,21 +132,14 @@ class KotlinMultiplatformModuleTest {
 
     val newModuleTemplateData =
       ModuleTemplateData(
-        projectTemplateData =
-          ProjectTemplateData(
-            androidXSupport = true,
-            agpVersion = agpVersion,
-            sdkDir = null,
-            language = Language.Kotlin,
-            kotlinVersion = kotlinVersion,
-            rootDir = rootDir,
-            applicationPackage = packageName,
-            includedFormFactorNames = mapOf(),
-            debugKeystoreSha1 = null,
-            overridePathCheck = null,
-            isNewProject = false,
-            additionalMavenRepos = listOf(),
-          ),
+        projectTemplateData = ProjectTemplateDataBuilder(false).apply {
+          androidXSupport = true
+          this.agpVersion = agpVersion
+          language = Language.Kotlin
+          this.kotlinVersion = kotlinVersion
+          topOut = tmpFolderRule.root
+          applicationPackage = packageName
+        }.build(),
         themesData = ThemesData("appname"),
         apis =
           ApiTemplateData(

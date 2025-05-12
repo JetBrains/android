@@ -22,6 +22,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.SDK_VERSION_FOR_NPW_TESTS
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.generateBaselineProfilesModule
+import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
@@ -207,21 +208,14 @@ class GenerateBaselineProfileModuleTest {
 
     val newModuleTemplateData =
       ModuleTemplateData(
-        projectTemplateData =
-          ProjectTemplateData(
-            androidXSupport = true,
-            agpVersion = agpVersion,
-            additionalMavenRepos = listOf(),
-            sdkDir = null,
-            language = sourceCodeLanguage,
-            kotlinVersion = kotlinVersion,
-            rootDir = tmpFolderRule.root,
-            applicationPackage = packageName,
-            includedFormFactorNames = mapOf(),
-            debugKeystoreSha1 = null,
-            overridePathCheck = null,
-            isNewProject = false,
-          ),
+        projectTemplateData = ProjectTemplateDataBuilder(false).apply {
+          androidXSupport = true
+          this.agpVersion = agpVersion
+          language = sourceCodeLanguage
+          this.kotlinVersion = kotlinVersion
+          topOut = tmpFolderRule.root
+          applicationPackage = packageName
+        }.build(),
         themesData = ThemesData("appname"),
         apis =
           ApiTemplateData(
