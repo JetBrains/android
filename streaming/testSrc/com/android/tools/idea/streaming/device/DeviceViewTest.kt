@@ -96,6 +96,7 @@ import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlinx.coroutines.runBlocking
 import org.apache.http.entity.mime.MultipartEntityBuilder
 import org.junit.After
+import org.junit.Assume.assumeFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -691,6 +692,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testAgentCrashAndReconnect() {
+    assumeFalse(SystemInfo.isWindows) // b/416199379
     createDeviceView(500, 1000, screenScale = 1.0)
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(19, 0, 462, 1000))
@@ -906,6 +908,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testConnectionTimeout() {
+    assumeFalse(SystemInfo.isWindows) // b/416199379
     StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS.overrideForTest(200, testRootDisposable)
     agent.startDelayMillis = 500
     val loggedWarnings = executeCapturingLoggedWarnings {
