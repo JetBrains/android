@@ -149,12 +149,16 @@ class GeminiAiInsightClient(
       request.variantId,
       ContextSharingState.ALLOWED,
     )
-      ?: cache.getAiInsight(
-        request.connection,
-        request.issueId,
-        request.variantId,
-        ContextSharingState.DISABLED,
-      )
+      ?: if (ContextSharingState.getContextSharingState(project) == ContextSharingState.DISABLED) {
+        cache.getAiInsight(
+          request.connection,
+          request.issueId,
+          request.variantId,
+          ContextSharingState.DISABLED,
+        )
+      } else {
+        null
+      }
 
   private suspend fun queryForRelevantContext(request: GeminiCrashInsightRequest): CodeContextData {
     if (

@@ -193,6 +193,7 @@ class GeminiAiInsightClientTest {
 
   @Test
   fun `client reuses cached insights`() = runBlocking {
+    fakeGeminiPluginApi.contextAllowed = false
     val cache = AppInsightsCacheImpl()
     cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
     val client = GeminiAiInsightClient(projectRule.project, cache, codeContextResolver)
@@ -258,6 +259,65 @@ class GeminiAiInsightClientTest {
 
       assertThat(client.fetchCrashInsight(request))
         .isEqualTo(AI_INSIGHT_WITH_CODE_CONTEXT.copy(isCached = true))
+    }
+
+  @Test
+  fun `when context sharing is enabled, client does not serve cached insight generated without context`() =
+    runBlocking {
+      fakeGeminiPluginApi.contextAllowed = true
+      val cache = AppInsightsCacheImpl()
+      cache.putAiInsight(CONNECTION1, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
+      val client = GeminiAiInsightClient(projectRule.project, cache, codeContextResolver)
+
+      val request =
+        GeminiCrashInsightRequest(
+          connection = CONNECTION1,
+          issueId = ISSUE1.id,
+          variantId = null,
+          deviceName = "DeviceName",
+          apiLevel = "ApiLevel",
+          event = ISSUE1.sampleEvent,
+        )
+
+      expectedPromptText =
+        """
+      |SYSTEM
+      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+      |For headings, use H3 only. Initial explanation should not be under a heading.
+      |Begin with the explanation directly. Do not add fillers at the start of response.
+      |
+      |USER
+      |Explain this exception from my app running on DeviceName with Android version ApiLevel.
+      |Please reference the provided source code if they are helpful.
+      |Exception:
+      |```
+      |retrofit2.HttpException: HTTP 401 
+      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
+      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
+      |```
+      |a/b/c/HelloWorld1.kt:
+      |```
+      |package a.b.c
+      |
+      |fun helloWorld() {
+      |  println("Hello World")
+      |}
+      |```
+      |a/b/c/HelloWorld2.kt:
+      |```
+      |package a.b.c
+      |
+      |fun helloWorld2() {
+      |  println("Hello World 2")
+      |}
+      |```"""
+          .trimMargin()
+      val insight = client.fetchCrashInsight(request)
+
+      assertThat(fakeGeminiPluginApi.receivedPrompt?.formatForTests()).isEqualTo(expectedPromptText)
+
+      assertThat(insight.rawInsight).isEqualTo("a/b/c/HelloWorld1.kt,a/b/c/HelloWorld2.kt")
+      assertThat(insight.insightSource).isEqualTo(InsightSource.STUDIO_BOT)
     }
 
   @Test
