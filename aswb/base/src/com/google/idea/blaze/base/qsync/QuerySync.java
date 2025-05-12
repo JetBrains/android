@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.qsync;
 
+import com.google.idea.blaze.base.project.BaseQuerySyncConversionUtility;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.common.experiments.BoolExperiment;
 
@@ -31,10 +32,11 @@ public class QuerySync {
   private QuerySync() {}
 
   /**
-   * Checks if query sync for new project is enabled via experiment or settings page.
+   * Checks if query sync for new project is enabled via experiment or settings page or Query-Sync auto-convert experiment is set.
    */
   public static boolean useForNewProjects() {
-    return QuerySyncSettings.getInstance().useQuerySync();
+    return QuerySyncSettings.getInstance().useQuerySync()
+           || BaseQuerySyncConversionUtility.AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled();
   }
   
   /** Provides library via BazelAdditionalLibraryRootsProvider instead of library table. */
