@@ -157,6 +157,18 @@ class LayoutlibSceneRenderer(
     get() = renderTaskLock.withLock { field }
     private set
 
+  /**
+   * Executes all callbacks in the current [renderTask] until there are no more callbacks to
+   * execute. This method will suspend until all callbacks have been executed.
+   */
+  suspend fun executeAllCallbacks() {
+    var hasCallbacks = true
+    while (hasCallbacks) {
+      hasCallbacks =
+        renderTask?.executeCallbacks(sessionClock.timeNanos)?.await()?.hasMoreCallbacks() ?: false
+    }
+  }
+
   // TODO(b/335424569): make this field private, or at least its setter
   var renderResult: RenderResult? = null
     get() = renderResultLock.withLock { field }

@@ -311,6 +311,9 @@ open class LayoutlibSceneManager(
   suspend fun requestRenderWithNewSize(overrideWidth: Int, overrideHeight: Int) {
     layoutlibSceneRenderer.renderTask?.setOverrideRenderSize(overrideWidth, overrideHeight)
     requestRenderAndWait()
+    // to mitigate b/417200355 we need to execute all callbacks to finish all pending animations
+    layoutlibSceneRenderer.executeAllCallbacks()
+    requestRenderAndWait()
     update()
   }
 
