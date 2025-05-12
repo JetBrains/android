@@ -16,9 +16,11 @@
 package com.android.tools.idea.run.deployment.selector
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -26,7 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class DeviceAndSnapshotComboBoxActionTest {
-  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   val project
     get() = projectRule.project
@@ -73,6 +75,7 @@ class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
+  @RunsInEdt
   fun setTargetSelectedWithCombobox() = runTestWithFixture {
     RunManager.getInstance(project).createTestConfig()
     devicesFlow.value =
