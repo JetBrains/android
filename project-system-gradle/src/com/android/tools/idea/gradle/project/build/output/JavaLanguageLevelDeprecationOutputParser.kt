@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLeve
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaToolchainQuickFix
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
+import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
@@ -201,6 +202,32 @@ class JavaLanguageLevelDeprecationOutputParser : BuildOutputParser {
       else -> return null
     }
     return ParsingResult(kind, title, suggestedToolchainVersion, suggestedLanguageLevel, modulePath)
+  }
+}
+
+class DeprecatedJavaLanguageLevelFailureHandler : GradleBuildFailureParser.FailureDetailsHandler {
+
+  override fun consumeFailureMessage(failure: GradleBuildFailureParser.ParsedFailureDetails,
+                                     location: FilePosition?,
+                                     parentEventId: Any,
+                                     messageConsumer: Consumer<in BuildEvent>): Boolean {
+
+    val taskName = failure.taskName ?: return false
+    val modulePath = GradleProjectSystemUtil.getParentModulePath(taskName).takeUnless { it.isBlank() } ?: return false
+    val message = failure.description
+    val failureCause = failure.reasonLine
+    JavaLanguageLevelDeprecationOutputParser.javaVersionRemovedPattern.matcher(failureCause).let { matcher ->
+      if (matcher.matches()) {
+        val compilerVersion = JavaVersion.tryParse(matcher.group(1)) ?: return false
+        val currentVersion = JavaVersion.tryParse(matcher.group(2)) ?: return false
+        val suggestedLanguageLevel = JavaLanguageLevelDeprecationOutputParser.suggestedLanguageLevelForCompiler(compilerVersion)
+        val suggestedToolchainVersion = JavaLanguageLevelDeprecationOutputParser.suggestedToolchainVersionFromCurrent(currentVersion)
+        val issue = JavaLanguageLevelDeprecationOutputParser.composeBuildIssue(failureCause, message, modulePath, suggestedToolchainVersion, suggestedLanguageLevel)
+        messageConsumer.accept(BuildIssueEventImpl(parentEventId, issue, MessageEvent.Kind.ERROR))
+        return true
+      }
+    }
+    return false
   }
 }
 

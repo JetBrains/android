@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.tools.idea.gradle.project.build.errors.DeprecatedJavaLanguageLevelIssueChecker
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.output.BuildOutputInstantReader
-import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import java.util.function.Consumer
 
 class GradleBuildMultipleFailuresParser(
@@ -29,12 +27,9 @@ class GradleBuildMultipleFailuresParser(
   //      For now it is better to leave them be and post everything that is parsed here.
   //      There might be duplications but it is better than missing errors.
   //      For now only allow issue checkers that are verified to generate messages from here
-  knownIssuesCheckers = GradleIssueChecker.Companion.getKnownIssuesCheckList().filter {
-    //TODO (b/362959090): check for other already suitable issue checkers. Suitable are the ones that use the following call to generate
-    //  events rather than to simply ignore events.
-    //TODO (b/362959090): this can be a failure handler instead now
-    it is DeprecatedJavaLanguageLevelIssueChecker
-  }
+  //TODO (b/362959090): check for any already suitable issue checkers. Suitable are the ones that use the following call to generate
+  //  events rather than to simply ignore events.
+  knownIssuesCheckers = emptyList()
 ) {
 
   /**

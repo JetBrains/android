@@ -299,7 +299,6 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedJdkMinimumVersionIssueChecker"/>
     <issueChecker id="UnsupportedGradleVersionIssueChecker" implementation="com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionIssueChecker"/>
-    <issueChecker implementation="com.android.tools.idea.gradle.project.build.errors.DeprecatedJavaLanguageLevelIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.build.errors.XmlErrorIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnknownMultiplatformTestSourceSetChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.issues.toolchain.GradleInvalidDaemonJvmCriteriaIssueReporter" order="first"/>

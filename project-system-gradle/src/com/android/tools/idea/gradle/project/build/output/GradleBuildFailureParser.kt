@@ -112,16 +112,16 @@ abstract class GradleBuildFailureParser(
     val reasonLine: String = parsedMessage.reasonLine
     val errorText: String = parsedMessage.description
 
-    // compilation errors should be added by the respective compiler output parser.
-    if (reasonLine.isCompilationFailureLine()) {
-      handleCompilationFailure(parentId, errorText, messageConsumer)
-      return false
-    }
-
     for (failureHandler in failureHandlers) {
       if (failureHandler.consumeFailureMessage(parsedMessage, filePosition, parentId, messageConsumer)) {
         return true
       }
+    }
+
+    // compilation errors should be added by the respective compiler output parser.
+    if (reasonLine.isCompilationFailureLine()) {
+      handleCompilationFailure(parentId, errorText, messageConsumer)
+      return false
     }
 
     for (issueChecker in knownIssuesCheckers) {
