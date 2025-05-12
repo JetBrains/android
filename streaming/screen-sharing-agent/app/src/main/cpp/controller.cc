@@ -818,7 +818,7 @@ void Controller::OnPassthroughCoefficientChanged(float passthrough_coefficient) 
 }
 
 void Controller::OnEnvironmentChanged(int32_t environment) {
-  xr_environment_ - environment;
+  xr_environment_ = environment;
 }
 
 void Controller::SendXrEnvironmentNotification() {
