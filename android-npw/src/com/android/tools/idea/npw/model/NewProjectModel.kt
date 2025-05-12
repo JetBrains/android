@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProviderUtil
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe
 import com.android.tools.idea.npw.project.DomainToPackageExpression
@@ -82,7 +81,6 @@ import java.nio.file.Paths
 import java.util.Locale
 import java.util.Optional
 import java.util.regex.Pattern
-import org.gradle.util.GradleVersion
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.android.util.AndroidUtils
 
@@ -280,7 +278,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
   private inner class ProjectTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
 
-    private lateinit var gradleVersion: GradleVersion
+    private lateinit var projectTemplateData: ProjectTemplateData
 
     @WorkerThread
     override fun init() {
@@ -288,7 +286,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         this@NewProjectModel.agpVersionSelector
           .get()
           .resolveVersion(AgpVersions::getAvailableVersions)
-      projectTemplateDataBuilder.apply {
+      projectTemplateData = projectTemplateDataBuilder.apply {
         topOut = File(project.basePath ?: "")
         androidXSupport = true
 
@@ -296,8 +294,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         language = this@NewProjectModel.language.value
         agpVersion = resolvedAgpVersion
         additionalMavenRepos = this@NewProjectModel.additionalMavenRepos.get()
-      }
-      gradleVersion = getCompatibleGradleVersion(resolvedAgpVersion).version
+      }.build()
     }
 
     @WorkerThread
@@ -328,7 +325,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
           project,
           null,
           "New Project",
-          projectTemplateDataBuilder.build(),
+          projectTemplateData,
           showErrors = true,
           dryRun = dryRun,
           moduleRoot = null,
@@ -354,7 +351,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         val rootLocation = File(projectLocation.get())
         val wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation)
         try {
-          GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(gradleVersion)
+          GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(projectTemplateData.gradleVersion)
         } catch (e: IOException) {
           // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails
           // and the error message has a "quick fix".
