@@ -48,6 +48,9 @@
     <registryKey overrides="true" key="ide.workspace.model.sdk.remove.custom.processing" defaultValue="false" restartRequired="true"
                  description="Removes custom processing of Global Libraries and SDKs in the Workspace Model"/>
 
+    <!-- This registry flag changed upstream in 2025.1 causing the platform to think JCef is supported in Android Studio. b/416777166 -->
+    <registryKey key="ide.browser.jcef.out-of-process.enabled" overrides="true" defaultValue="false" description="Enable JCEF is a separate process"/>
+
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
 
     <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidStudioCodeStyleSettingsProvider" order="last"/>
