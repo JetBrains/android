@@ -244,16 +244,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
   }
 
   @Nullable
-  private Label getResolvedLabel(GradleCoordinate coordinate) {
-    return MavenArtifactLocator.forBuildSystem(Blaze.getBuildSystemName(module.getProject()))
-        .stream()
-        .map(locator -> locator.labelFor(coordinate))
-        .map(l -> Label.of(l.toString()))
-        .findFirst()
-        .orElse(null);
-  }
-
-  @Nullable
   private TargetKey getResolvedTarget(GradleCoordinate coordinate) {
     if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
       // TODO (b/262289199): While there is a way of mapping a gradle coordinate to a target,
