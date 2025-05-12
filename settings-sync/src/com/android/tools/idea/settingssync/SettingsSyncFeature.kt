@@ -36,18 +36,18 @@ import javax.swing.Icon
 import org.jetbrains.jewel.ui.icon.IconKey
 
 class SettingsSyncFeature : LoginFeature {
-  override val key: String = "Google Backup & Sync"
-  override val title: String = "Google Backup & Sync"
+  override val key: String = "Backup and Sync"
+  override val title: String = "Backup and Sync"
 
   override val description: String =
-    "Sync your settings to Google Drive to keep them across computers and re-installs."
+    "Sync your settings to your Google Account to keep them across computers and re-installs."
 
   override val infoUrl: String? = null
 
   override val infoUrlDisplayText: String? = null
 
   override val settingsAction: AnAction =
-    object : AnAction("Go to Backup and Sync") {
+    object : AnAction("Configure Backup and Sync") {
       override fun actionPerformed(e: AnActionEvent) {
         val settings = e.getData(Settings.KEY)
         settings?.select(settings.find("settings.sync"))
@@ -62,15 +62,17 @@ class SettingsSyncFeature : LoginFeature {
     object : LoginFeature.OnboardingWizardEntry {
       override val icon: Icon = StudioIllustrations.Common.GOOGLE_LOGO
       override val composeIconKey: IconKey = StudioIllustrationsCompose.Common.GoogleLogo
-      override val title: String =
-        "<b>Google Drive:</b> Enable Backup & Sync" // TODO: update wording
+      override val title: String = "<b>Google Account Storage:</b> Enable Backup and Sync"
       override val annotatedTitle: AnnotatedString = buildAnnotatedString {
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("Google Drive:") }
-        append(" Enable Backup & Sync")
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+          append("Google Account Storage:")
+        }
+        append(" Enable Backup and Sync")
       }
       override val description: String =
-        "Settings Sync backs up your IDE settings to Google Drives and restores them " +
-          "across your workstations so that your Android Studio experience is just the way you like it." // TODO: update wording
+        "Backup and Sync backs up your IDE settings to your Google Account and restores them " +
+          "to other workstations signed into the same account so that your Android Studio " +
+          "experience is just the way you like it."
 
       override fun getPages(): List<WizardPage> {
         return listOf(EnableOrSkipStepPage(), PushOrPullStepPage(), ChooseCategoriesStepPage())
