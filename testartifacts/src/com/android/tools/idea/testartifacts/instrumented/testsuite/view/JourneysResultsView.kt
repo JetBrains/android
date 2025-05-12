@@ -60,6 +60,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
@@ -292,15 +293,7 @@ private fun ArtifactText(modifier: Modifier, title: String, text: String) {
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
     )
-    Text(
-      text,
-      style =
-        TextStyle(
-          fontSize = 13.sp,
-          lineHeight = 16.sp,
-          color = Color.Gray,
-        ),
-    )
+    Text(text)
   }
 }
 
@@ -313,7 +306,7 @@ private fun StepCounter(modifier: Modifier, index: Int, numEntries: Int) {
       fontSize = 13.sp,
       lineHeight = 16.sp,
       fontWeight = FontWeight(500),
-      color = Color.Gray,
+      color = JewelTheme.globalColors.text.info
     ),
     modifier = modifier,
   )
