@@ -487,6 +487,12 @@ class ComposePreviewRepresentation(
             }
             emptyUiCheckPanel.setHasErrors(count > 0)
             VisualLintUsageTracker.getInstance().trackVisiblePreviews(count, facet)
+            val totalContentToShow = surface.sceneManagers.flatMap { it.sceneViews }.size
+            // If after applying the filter the number of Previews to show is different we need to
+            // re-apply zoom-to-fit.
+            if (count != totalContentToShow) {
+              surface.zoomController.zoomToFit()
+            }
             surface.repaint()
           }
         } else {
