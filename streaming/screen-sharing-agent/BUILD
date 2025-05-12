@@ -1,5 +1,5 @@
-load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 load("@rules_android//rules:rules.bzl", "android_library")
+load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 load("//tools/base/bazel:android.bzl", "ANDROID_COPTS", "ANDROID_LINKOPTS", "android_cc_binary", "dex_library")
 
 cc_library(
@@ -45,7 +45,11 @@ android_cc_binary(
 )
 
 android_library(
-    name = "aidl_lib",
+    name = "apk_lib",
+    srcs = glob(
+        ["app/src/main/java/**/*.java"],
+        exclude = ["app/src/main/java/android/**/*.java"],
+    ),
     idl_import_root = "app/src/main/aidl",
     idl_srcs = glob(["app/src/main/aidl/**/*.aidl"]),
     target_compatible_with = select({
@@ -55,18 +59,6 @@ android_library(
     deps = [
         "//prebuilts/studio/sdk:platforms/latest_jar",
         "//tools/base/annotations",
-    ],
-)
-
-java_library(
-    name = "apk_lib",
-    srcs = glob(
-        ["app/src/main/java/**/*.java"],
-        exclude = ["app/src/main/java/android/**/*.java"],
-    ),
-    deps = [
-        ":aidl_lib",
-        "//prebuilts/studio/sdk:platforms/latest_jar",
     ],
 )
 
