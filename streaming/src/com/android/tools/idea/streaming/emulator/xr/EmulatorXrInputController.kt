@@ -92,7 +92,7 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
 
   @UiThread
   override fun mouseDragged(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
-    if (!isMouseUsedForNavigation(inputMode)) {
+    if (!isMouseUsedForNavigation()) {
       return false
     }
     val referencePoint = mouseDragReferencePoint
@@ -134,7 +134,7 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
 
   @UiThread
   override fun mouseWheelMoved(event: MouseWheelEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
-    if (!isMouseUsedForNavigation(inputMode)) {
+    if (!isMouseUsedForNavigation()) {
       return false
     }
     translation.clear()

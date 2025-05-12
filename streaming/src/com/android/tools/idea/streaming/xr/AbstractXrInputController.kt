@@ -161,7 +161,7 @@ internal abstract class AbstractXrInputController : Disposable {
    */
   @UiThread
   fun mousePressed(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
-    if (!isMouseUsedForNavigation(inputMode)) {
+    if (!isMouseUsedForNavigation()) {
       return false
     }
     if (event.button == BUTTON1) {
@@ -182,7 +182,7 @@ internal abstract class AbstractXrInputController : Disposable {
    */
   @UiThread
   fun mouseReleased(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
-    if (!isMouseUsedForNavigation(inputMode)) {
+    if (!isMouseUsedForNavigation()) {
       return false
     }
     if (event.button == BUTTON1) {
@@ -203,7 +203,7 @@ internal abstract class AbstractXrInputController : Disposable {
    */
   @UiThread
   fun mouseEntered(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
-    if (!isMouseUsedForNavigation(inputMode)) {
+    if (!isMouseUsedForNavigation()) {
       return false
     }
     if (event.modifiersEx and MouseEvent.BUTTON1_DOWN_MASK != 0) {
@@ -250,7 +250,7 @@ internal abstract class AbstractXrInputController : Disposable {
    */
   @UiThread
   fun mouseMoved(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
-    if (!isMouseUsedForNavigation(inputMode)) {
+    if (!isMouseUsedForNavigation()) {
       return false
     }
     event.consume()
@@ -330,7 +330,7 @@ internal abstract class AbstractXrInputController : Disposable {
 
   protected abstract fun sendVelocityUpdate(newMask: Int, oldMask: Int)
 
-  protected fun isMouseUsedForNavigation(inputMode: XrInputMode): Boolean {
+  protected fun isMouseUsedForNavigation(): Boolean {
     return when (inputMode) {
       XrInputMode.VIEW_DIRECTION, XrInputMode.LOCATION_IN_SPACE_XY, XrInputMode.LOCATION_IN_SPACE_Z -> true
       else -> false
