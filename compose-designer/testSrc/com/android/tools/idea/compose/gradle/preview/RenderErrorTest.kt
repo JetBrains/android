@@ -46,6 +46,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.TextFieldSizeAnalyzerI
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.preview.ComposePreviewElementInstance
+import com.google.common.truth.Truth.*
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -117,6 +118,12 @@ class RenderErrorTest {
           log.debug("Found SceneViewErrorsPanel $it")
         }
       }
+
+  private val VisualLintRenderIssue.location: String
+    get() {
+      val navigatable = this.components.firstOrNull()?.navigatable as? OpenFileDescriptor
+      return "${navigatable?.file?.name}:${navigatable?.offset}"
+    }
 
   @Before
   fun setup() {
@@ -231,12 +238,8 @@ class RenderErrorTest {
     runBlocking(workerThread) {
       startUiCheckForModel("PreviewWithContrastError")
 
-      val accessibilityIssue = accessibilityIssues().last()
-      assertEquals("Insufficient text color contrast ratio", accessibilityIssue.summary)
-      val navigatable = accessibilityIssue.components[0].navigatable
-      assertTrue(navigatable is OpenFileDescriptor)
-      assertEquals(1667, (navigatable as OpenFileDescriptor).offset)
-      assertEquals("RenderError.kt", navigatable.file.name)
+      assertThat(accessibilityIssues().map { "${it.summary} [${it.location}]" })
+        .contains("Insufficient text color contrast ratio [RenderError.kt:1667]")
     }
 
   @Test
@@ -244,12 +247,8 @@ class RenderErrorTest {
     runBlocking(workerThread) {
       startUiCheckForModel("PreviewWithContrastErrorAgain")
 
-      val accessibilityIssue = accessibilityIssues().last()
-      assertEquals("Insufficient text color contrast ratio", accessibilityIssue.summary)
-      val navigatable = accessibilityIssue.components[0].navigatable
-      assertTrue(navigatable is OpenFileDescriptor)
-      assertEquals(1817, (navigatable as OpenFileDescriptor).offset)
-      assertEquals("RenderError.kt", navigatable.file.name)
+      assertThat(accessibilityIssues().map { "${it.summary} [${it.location}]" })
+        .contains("Insufficient text color contrast ratio [RenderError.kt:1817]")
     }
 
   private suspend fun runVisualLintErrorsForModel(modelWithIssues: String) {
