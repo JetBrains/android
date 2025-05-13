@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
-  name = "profilers-android_resources",
+  name = "profilersAndroid_resources",
   files = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
 jvm_library(
-  name = "profilers-android",
+  name = "profilersAndroid",
   module_name = "intellij.android.profilersAndroid",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -39,10 +39,10 @@ jvm_library(
     "//android/native-symbolizer",
     "//android/profilers",
     "//android/profilers-ui",
-    "//android/project-system",
+    "//android/project-system:projectSystem",
     "//android/render-resources",
     "//android/android-transport:transport",
-    "//android/transport-database",
+    "//android/transport-database:transportDatabase",
     "//java/execution/openapi:java-execution",
     "//java/java-indexing-api:indexing",
     "//java/java-psi-api:psi",
@@ -65,14 +65,14 @@ jvm_library(
     "//platform/util:util-ui",
     "//platform/lang-impl",
   ],
-  runtime_deps = [":profilers-android_resources"]
+  runtime_deps = [":profilersAndroid_resources"]
 )
 
 jvm_library(
-  name = "profilers-android_test_lib",
+  name = "profilersAndroid_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
-  associates = [":profilers-android"],
+  associates = [":profilersAndroid"],
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:studio-test-platform",
@@ -115,12 +115,12 @@ jvm_library(
     "//android/profilers:profilers_test_lib",
     "//android/profilers-ui",
     "//android/profilers-ui:profilers-ui_test_lib",
-    "//android/project-system",
+    "//android/project-system:projectSystem",
     "//android/render-resources",
     "//android/android-transport:transport",
     "//android/android-transport:transport_test_lib",
-    "//android/transport-database",
-    "//android/transport-database:transport-database_test_lib",
+    "//android/transport-database:transportDatabase",
+    "//android/transport-database:transportDatabase_test_lib",
     "//java/execution/openapi:java-execution",
     "//java/java-indexing-api:indexing",
     "//java/java-psi-api:psi",
@@ -155,11 +155,11 @@ jvm_library(
     "@lib//:kotlinx-coroutines-test",
     "@lib//:mockito-kotlin",
   ],
-  runtime_deps = [":profilers-android_resources"]
+  runtime_deps = [":profilersAndroid_resources"]
 )
 
 jvm_test(
-  name = "profilers-android_test",
-  runtime_deps = [":profilers-android_test_lib"]
+  name = "profilersAndroid_test",
+  runtime_deps = [":profilersAndroid_test_lib"]
 )
 ### auto-generated section `build intellij.android.profilersAndroid` end

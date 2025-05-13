@@ -32,7 +32,7 @@ jvm_library(
     "//platform/platform-impl:ide-impl",
     "//platform/util",
     "//java/java-psi-api:psi",
-    "//android/project-system",
+    "//android/project-system:projectSystem",
   ],
   runtime_deps = [":projectSystem-apk_resources"]
 )

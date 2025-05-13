@@ -2,13 +2,13 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
-  name = "project-system_resources",
+  name = "projectSystem_resources",
   files = glob(["resources/**/*"]),
   strip_prefix = "resources"
 )
 
 jvm_library(
-  name = "project-system",
+  name = "projectSystem",
   module_name = "intellij.android.projectSystem",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
@@ -42,7 +42,7 @@ jvm_library(
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//platform/core-impl",
   ],
-  runtime_deps = [":project-system_resources"]
+  runtime_deps = [":projectSystem_resources"]
 )
 ### auto-generated section `build intellij.android.projectSystem` end
 
@@ -67,7 +67,7 @@ jvm_library(
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",
     "//android/jps-model",
-    "//android/project-system",
+    "//android/project-system:projectSystem",
     "@lib//:mockito-kotlin",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",

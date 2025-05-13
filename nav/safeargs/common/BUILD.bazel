@@ -24,7 +24,7 @@ jvm_library(
     "//android/android-common:common",
     "//android/android:core",
     "//android/jps-model",
-    "//android/project-system",
+    "//android/project-system:projectSystem",
     "//android/render-resources",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//java/java-frontback-psi-api:frontback-psi",

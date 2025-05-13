@@ -29,7 +29,7 @@ jvm_library(
     "//android/android:core",
     "//android/jps-model",
     "//android/android-lang:lang",
-    "//android/project-system",
+    "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/smali",
     "//plugins/gradle:gradle-common",

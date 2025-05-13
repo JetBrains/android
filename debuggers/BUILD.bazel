@@ -60,7 +60,7 @@ jvm_library(
     "//plugins/kotlin/jvm-debugger/core",
     "//plugins/kotlin/jvm-debugger/coroutines",
     "//java/openapi:java",
-    "//android/project-system",
+    "//android/project-system:projectSystem",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
   ],
   runtime_deps = [":debuggers_resources"]

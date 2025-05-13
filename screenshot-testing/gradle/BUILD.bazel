@@ -20,7 +20,7 @@ jvm_library(
     "//platform/core-api:core",
     "//platform/editor-ui-api:editor-ui",
     "//platform/util",
-    "//android/project-system",
+    "//android/project-system:projectSystem",
     "@lib//:kotlin-stdlib",
   ],
   runtime_deps = [":gradle_resources"]

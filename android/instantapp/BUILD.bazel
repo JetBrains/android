@@ -25,7 +25,7 @@ jvm_library(
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
     "@lib//:truth",
-    "//android/project-system",
+    "//android/project-system:projectSystem",
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "@lib//:mockito-kotlin",
     "//platform/execution",

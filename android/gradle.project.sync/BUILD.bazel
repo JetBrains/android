@@ -22,7 +22,7 @@ jvm_library(
     "//android/android:core",
     "//android/android:core-tests_test_lib",
     "//android/jps-model",
-    "//android/project-system",
+    "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "//android/project-system-gradle-sync:projectSystem-gradle-sync",

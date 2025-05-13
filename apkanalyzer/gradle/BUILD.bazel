@@ -16,7 +16,7 @@ jvm_library(
     "@lib//:studio-platform-provided",
     "//android/apkanalyzer",
     "//android/project-system-gradle:projectSystem-gradle",
-    "//android/project-system",
+    "//android/project-system:projectSystem",
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "@lib//:kotlin-stdlib",
     "//platform/projectModel-api:projectModel",

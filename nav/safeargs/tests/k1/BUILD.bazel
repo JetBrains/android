@@ -41,7 +41,7 @@ jvm_library(
     "//android/nav/safeargs/common",
     "//android/nav/safeargs/k1",
     "//android/nav/safeargs/tests/common:common_test_lib",
-    "//android/project-system",
+    "//android/project-system:projectSystem",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/render-resources",
     "//android/android-test-framework:testFramework_test_lib",

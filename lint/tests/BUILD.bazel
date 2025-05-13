@@ -31,7 +31,7 @@ jvm_library(
     "//android/adt-testutils:adt-testutils_test_lib",
     "//android/android-common:common",
     "//android/lint:lint-common",
-    "//android/project-system",
+    "//android/project-system:projectSystem",
     "//android/android-test-framework:testFramework_test_lib",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
