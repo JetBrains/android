@@ -225,6 +225,16 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
         Flags(FUTURE_INCOMPATIBLE) to FORCE.upgradeTo("7.0.4"),
         Flags(FUTURE_COMPATIBLE) to NO_UPGRADE.upgradeTo("7.1.0")
       )),
+      // Versions at our minimum supported version should strongly recommend an upgrade unless they are previews.
+      VERSION_AT_MIN("3.2.0", "7.0.0", agpVersions("3.2.0", "7.0.0"), STRONGLY_RECOMMEND.upgradeTo("7.0.0")),
+      VERSION_AT_MIN_ALPHA("3.2.0-alpha01", "7.0.0", agpVersions("3.2.0", "7.0.0"), FORCE.upgradeTo("3.2.0")),
+      VERSION_AT_MIN_BETA("3.2.0-beta02", "7.0.0", agpVersions("3.2.0", "7.0.0"), FORCE.upgradeTo("3.2.0")),
+      VERSION_AT_MIN_RC("3.2.0-rc02", "7.0.0", agpVersions("3.2.0", "7.0.0"), STRONGLY_RECOMMEND.upgradeTo("7.0.0")),
+      // Versions at our next minimum supported version should recommend an upgrade.
+      VERSION_AT_NEXT_MIN("4.0.0", "7.0.0", agpVersions("4.0.0", "7.0.0"), RECOMMEND.upgradeTo("7.0.0")),
+      VERSION_AT_NEXT_MIN_ALPHA("4.0.0-alpha01", "7.0.0", agpVersions("4.0.0", "7.0.0"), FORCE.upgradeTo("4.0.0")),
+      VERSION_AT_NEXT_MIN_BETA("4.0.0-beta01", "7.0.0", agpVersions("4.0.0", "7.0.0"), FORCE.upgradeTo("4.0.0")),
+      VERSION_AT_NEXT_MIN_RC("4.0.0-rc01", "7.0.0", agpVersions("4.0.0", "7.0.0"), RECOMMEND.upgradeTo("7.0.0")),
       // Versions earlier than our minimum supported version should force an upgrade.
       VERSION_BELOW_MIN("3.1.0", "7.0.0", agpVersions(), FORCE.upgradeTo("7.0.0")),
       // If we know of published versions earlier than our latestKnownVersion, prefer to upgrade to those.
