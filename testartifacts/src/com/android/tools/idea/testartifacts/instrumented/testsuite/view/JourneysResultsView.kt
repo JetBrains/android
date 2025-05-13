@@ -20,6 +20,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +30,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -50,6 +54,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -130,17 +135,21 @@ fun JourneysResultsViewCompact(
   artifact: JourneyActionArtifacts,
   index: Int,
   numEntries: Int,
-  onImageDoubleClicked: () -> Unit = {},
+  onImageDoubleClicked: (() -> Unit)? = null
 ) {
   Column(modifier = modifier.padding(16.dp)) {
     Row(modifier = Modifier.weight(1f, fill = true)) {
       val path = artifact.screenshotImage
       if (path != null) {
-        DoubleClickableWrapper(
-          modifier = Modifier.fillMaxHeight(),
-          onDoubleClick = onImageDoubleClicked,
-        ) {
-          JourneyScreenshot(modifier = Modifier, path = path)
+        if (onImageDoubleClicked != null) {
+          DoubleClickableWrapper(
+            modifier = Modifier.fillMaxHeight(),
+            onDoubleClick = onImageDoubleClicked,
+          ) {
+            JourneyScreenshot(modifier = Modifier.widthIn(max = 160.dp), path = path)
+          }
+        } else {
+          JourneyScreenshot(modifier = Modifier.widthIn(min = 0.dp, max = 160.dp), path = path)
         }
         Spacer(modifier = Modifier.width(12.dp))
       }
@@ -187,6 +196,8 @@ fun DoubleClickableWrapper(
   onDoubleClick: () -> Unit,
   content: @Composable () -> Unit,
 ) {
+  val interactionSource = remember { MutableInteractionSource() }
+  val isHovered by interactionSource.collectIsHoveredAsState()
   var lastClickTime by remember { mutableLongStateOf(0L) }
   val doubleClickTimeout = 300L
   Box(
@@ -209,8 +220,27 @@ fun DoubleClickableWrapper(
           }
         }
         .clickable(enabled = false) {}
+        .hoverable(interactionSource = interactionSource)
   ) {
     content()
+    if (isHovered) {
+      Box(
+        modifier = Modifier
+        .matchParentSize()
+        .background(Color(red = 255, green = 255, blue = 255, alpha = 240))
+        .padding(2.dp),
+        contentAlignment = Alignment.Center,
+      ) {
+        Text(
+          text = "Double click to open",
+          style = TextStyle(
+            fontWeight = FontWeight(500),
+            color = JewelTheme.globalColors.text.info,
+            textAlign = TextAlign.Center
+          ),
+        )
+      }
+    }
   }
 }
 
