@@ -16,6 +16,9 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
+import com.android.sdklib.deviceprovisioner.SetChange.Add
+import com.android.sdklib.deviceprovisioner.SetChange.Remove
+import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.WifiPairingEvent.PairingMethod.QR_CODE
@@ -29,6 +32,7 @@ import java.net.InetAddress
 import java.time.Duration
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.delay
 import kotlinx.coroutines.withContext
@@ -137,26 +141,37 @@ class QrCodeScanningController(
   }
 
   private suspend fun startMdnsTrackingService() {
-    service.trackMdnsServices().collect {
-      val services =
-        it.pairingMdnsServices.map {
-          PairingMdnsService(
-            it.mdnsService.serviceInstanceName.instance,
-            if (it.mdnsService.serviceInstanceName.instance.startsWith("studio-"))
-              ServiceType.QrCode
-            else ServiceType.PairingCode,
-            InetAddress.getByName(it.mdnsService.ipv4),
-            it.mdnsService.port,
-          )
-        }
-      view.model.pairingCodeServices =
-        services.filter {
-          it.serviceType == ServiceType.PairingCode &&
-            (mdnsServiceUnderPairing == null ||
-              mdnsServiceUnderPairing.serviceName == it.serviceName)
-        }
-      view.model.qrCodeServices = services.filter { it.serviceType == ServiceType.QrCode }
-    }
+    service
+      .trackMdnsServices()
+      .map { it.pairingMdnsServices.toSet() }
+      .trackSetChanges()
+      .collect {
+        val newServices =
+          when (it) {
+            is Add -> {
+              listOf(
+                PairingMdnsService(
+                  it.value.mdnsService.serviceInstanceName.instance,
+                  if (it.value.mdnsService.serviceInstanceName.instance.startsWith("studio-"))
+                    ServiceType.QrCode
+                  else ServiceType.PairingCode,
+                  InetAddress.getByName(it.value.mdnsService.ipv4),
+                  it.value.mdnsService.port,
+                )
+              )
+            }
+            is Remove -> {
+              emptyList()
+            }
+          }
+        view.model.pairingCodeServices =
+          newServices.filter {
+            it.serviceType == ServiceType.PairingCode &&
+              (mdnsServiceUnderPairing == null ||
+                mdnsServiceUnderPairing.serviceName == it.serviceName)
+          }
+        view.model.qrCodeServices = newServices.filter { it.serviceType == ServiceType.QrCode }
+      }
   }
 
   enum class State {
