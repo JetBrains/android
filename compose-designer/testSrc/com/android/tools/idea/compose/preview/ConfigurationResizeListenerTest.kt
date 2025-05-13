@@ -313,6 +313,39 @@ class ConfigurationResizeListenerTest {
     Disposer.dispose(sceneManager)
   }
 
+  @Test
+  fun `collectLatest continues after exception in requestRender`() = runTest {
+    val sceneManager =
+      mock<LayoutlibSceneManager>().also {
+        whenever(it.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
+        showDecoration = true
+      }
+    val configuration = createConfiguration(500, 600)
+    val dispatcher = StandardTestDispatcher(testScheduler)
+    val listener =
+      ConfigurationResizeListener(sceneManager, configuration, dispatcher).also {
+        advanceUntilIdle()
+      }
+    configuration.addListener(listener)
+
+    // Make requestRenderWithNewSize always throw an exception
+    whenever(sceneManager.requestRenderWithNewSize(any(), any()))
+      .thenThrow(RuntimeException("Simulated error"))
+
+    // Simulate multiple device changes.  Every call should throw, but collectLatest should keep
+    // going.
+    configuration.updateScreenSize(700, 800)
+    advanceUntilIdle()
+    configuration.updateScreenSize(900, 1000)
+    advanceUntilIdle()
+    configuration.updateScreenSize(1100, 1200)
+    advanceUntilIdle()
+
+    // Verify that requestRenderWithNewSize was called the expected number of times.
+    verify(sceneManager, times(3)).requestRenderWithNewSize(any(), any())
+    Disposer.dispose(sceneManager)
+  }
+
   // Helper function to create a Configuration
   private fun createConfiguration(width: Int, height: Int): Configuration {
     val configuration =

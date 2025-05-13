@@ -22,13 +22,14 @@ import com.android.tools.idea.common.util.updateLayoutParams
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import java.awt.Dimension
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -48,15 +49,25 @@ class ConfigurationResizeListener(
   private val configuration: Configuration,
   defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ConfigurationListener, Disposable {
+  private val logger = Logger.getInstance(ConfigurationResizeListener::class.java)
 
-  private val scope =
-    CoroutineScope(defaultDispatcher + SupervisorJob() + CoroutineName(javaClass.simpleName))
+  private val scope = CoroutineScope(defaultDispatcher + CoroutineName(javaClass.simpleName))
 
   private val deviceSizeChangedFlow = MutableStateFlow<Dimension>(configuration.deviceSize())
 
   init {
     Disposer.register(sceneManager, this)
-    scope.launch { deviceSizeChangedFlow.drop(1).collectLatest(::requestRender) }
+    scope.launch {
+      deviceSizeChangedFlow.drop(1).collectLatest { newDeviceSize ->
+        try {
+          requestRender(newDeviceSize)
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          logger.warn("Error inside requestRender: ", e)
+        }
+      }
+    }
   }
 
   override fun changed(changeType: Int): Boolean {
