@@ -59,7 +59,7 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
       constructor(recommendPatches: Flag.RecommendPatches) : this(FUTURE_INCOMPATIBLE, recommendPatches)
     }
 
-    val allFlagCombinations: Set<Flags> = Flag.FutureCompatible.entries.flatMap { futureCompatible-> Flag.RecommendPatches.entries.map { Flags(futureCompatible, it) }}.toSet()
+    val allFlagCombinations: Set<Flags> = Flag.FutureCompatible.entries.flatMap { futureCompatible -> Flag.RecommendPatches.entries.map { Flags(futureCompatible, it) }}.toSet()
 
     // Given expected test cases that possibly only cover some flag combinations, expand to cover all the combinations of flag states.
     fun expandCombinations(vararg results: Pair<Flags, GradlePluginUpgradeState>): Map<Flags, GradlePluginUpgradeState> {
@@ -98,7 +98,7 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
     enum class Case(
       val current: AgpVersion, val latestKnown: AgpVersion, val published: Set<AgpVersion>, val results: Results) {
 
-      //  // Stable or RC to later stable should recommend an upgrade to the stable version.
+      // Stable or RC to later stable should recommend an upgrade to the stable version.
       STABLE_TO_STABLE_MINOR("7.0.0", "7.1.0", agpVersions(), RECOMMEND.upgradeTo("7.1.0")),
       RC_TO_STABLE_ACROSS_SERIES("7.0.0-rc01", "7.1.0", agpVersions(), RECOMMEND.upgradeTo("7.1.0")),
       RC_TO_STABLE_WITHIN_SERIES("7.1.0-rc01", "7.1.0", agpVersions(), RECOMMEND.upgradeTo("7.1.0")),
@@ -231,10 +231,10 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
       VERSION_AT_MIN_BETA("3.2.0-beta02", "7.0.0", agpVersions("3.2.0", "7.0.0"), FORCE.upgradeTo("3.2.0")),
       VERSION_AT_MIN_RC("3.2.0-rc02", "7.0.0", agpVersions("3.2.0", "7.0.0"), STRONGLY_RECOMMEND.upgradeTo("7.0.0")),
       // Versions at our next minimum supported version should recommend an upgrade.
-      VERSION_AT_NEXT_MIN("4.0.0", "7.0.0", agpVersions("4.0.0", "7.0.0"), RECOMMEND.upgradeTo("7.0.0")),
-      VERSION_AT_NEXT_MIN_ALPHA("4.0.0-alpha01", "7.0.0", agpVersions("4.0.0", "7.0.0"), FORCE.upgradeTo("4.0.0")),
-      VERSION_AT_NEXT_MIN_BETA("4.0.0-beta01", "7.0.0", agpVersions("4.0.0", "7.0.0"), FORCE.upgradeTo("4.0.0")),
-      VERSION_AT_NEXT_MIN_RC("4.0.0-rc01", "7.0.0", agpVersions("4.0.0", "7.0.0"), RECOMMEND.upgradeTo("7.0.0")),
+      VERSION_AT_NEXT_MIN("7.0.0", "8.0.0", agpVersions("7.0.0", "8.0.0"), RECOMMEND.upgradeTo("8.0.0")),
+      VERSION_AT_NEXT_MIN_ALPHA("7.0.0-alpha01", "8.0.0", agpVersions("7.0.0", "8.0.0"), FORCE.upgradeTo("7.0.0")),
+      VERSION_AT_NEXT_MIN_BETA("7.0.0-beta01", "8.0.0", agpVersions("7.0.0", "8.0.0"), FORCE.upgradeTo("7.0.0")),
+      VERSION_AT_NEXT_MIN_RC("7.0.0-rc01", "8.0.0", agpVersions("7.0.0", "8.0.0"), RECOMMEND.upgradeTo("8.0.0")),
       // Versions earlier than our minimum supported version should force an upgrade.
       VERSION_BELOW_MIN("3.1.0", "7.0.0", agpVersions(), FORCE.upgradeTo("7.0.0")),
       // If we know of published versions earlier than our latestKnownVersion, prefer to upgrade to those.
@@ -247,41 +247,41 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
       // If we have no available published stable, we will always recommend the latest known version, strongly if the current version
       // is deprecated and the latest known is not.
       UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_BOTH_DEPRECATED("3.5.0", "3.6.1", agpVersions(), RECOMMEND.upgradeTo("3.6.1")),
-      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_1("3.5.0", "4.0.0", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("4.0.0")),
-      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_2("3.5.0", "4.1.1", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("4.1.1")),
-      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_3("3.5.0", "4.2.2", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("4.2.2")),
-      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_4("3.5.0", "7.0.3", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("7.0.3")),
-      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_5("3.5.0", "7.1.2", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("7.1.2")),
-      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_6("3.5.0", "7.2.1", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("7.2.1")),
-      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_7("3.5.0", "7.3.0", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("7.3.0")),
-      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_8("3.5.0", "8.0.0", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("8.0.0")),
-      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_NEITHER_DEPRECATED_1("4.0.0", "4.1.1", agpVersions(), RECOMMEND.upgradeTo("4.1.1")),
-      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_NEITHER_DEPRECATED_2("4.0.0", "7.0.3", agpVersions(), RECOMMEND.upgradeTo("7.0.3")),
-      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_NEITHER_DEPRECATED_3("4.0.0", "8.0.0", agpVersions(), RECOMMEND.upgradeTo("8.0.0")),
+      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_1("3.5.0", "7.0.0", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("7.0.0")),
+      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_2("3.5.0", "7.1.1", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("7.1.1")),
+      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_3("3.5.0", "7.2.2", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("7.2.2")),
+      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_4("3.5.0", "8.0.3", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("8.0.3")),
+      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_5("3.5.0", "8.1.2", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("8.1.2")),
+      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_6("3.5.0", "8.2.1", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("8.2.1")),
+      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_7("3.5.0", "8.3.0", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("8.3.0")),
+      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_FROM_DEPRECATED_8("3.5.0", "9.0.0", agpVersions(), STRONGLY_RECOMMEND.upgradeTo("9.0.0")),
+      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_NEITHER_DEPRECATED_1("7.0.0", "7.1.1", agpVersions(), RECOMMEND.upgradeTo("7.1.1")),
+      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_NEITHER_DEPRECATED_2("7.0.0", "8.0.3", agpVersions(), RECOMMEND.upgradeTo("8.0.3")),
+      UNKNOWN_PUBLISHED_STATE_RECOMMENDS_LATEST_KNOWN_NEITHER_DEPRECATED_3("7.0.0", "9.0.0", agpVersions(), RECOMMEND.upgradeTo("9.0.0")),
       // If we have published stable versions between the current and the latest known, recommend going over at most one major version
       // boundary (and that only if we are at the last known major.minor series before the boundary).  If we start at a deprecated
       // version, strongly recommend rather than recommend, but otherwise follow the same version suggestion (even if that version is
       // also a deprecated one.)
-      UPGRADE_INCREMENTALLY_DEPRECATED_WITHIN_SERIES("3.5.0", "4.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("3.6.1")),
-      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_NEXT_SERIES("3.6.0", "4.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.0.0")),
-      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_PATCH_TO_NEXT_SERIES("3.6.1", "4.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.0.0")),
-      UPGRADE_INCREMENTALLY_DEPRECATED_WITHIN_DEPRECATED_SERIES_EVEN_IN_NEWER_VERSION("3.5.0", "4.1.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("3.6.1")),
-      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_LATEST_IN_NEXT_SERIES("3.6.0", "4.1.0", publishedVersions, Results(
-        Flags(NO_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.1.0"),
-        Flags(RECOMMEND_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.1.1"),
+      UPGRADE_INCREMENTALLY_DEPRECATED_WITHIN_SERIES("4.1.0", "7.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.2.2")),
+      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_NEXT_SERIES("4.2.0", "7.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("7.0.0")),
+      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_PATCH_TO_NEXT_SERIES("4.2.2", "7.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("7.0.0")),
+      UPGRADE_INCREMENTALLY_DEPRECATED_WITHIN_DEPRECATED_SERIES_EVEN_IN_NEWER_VERSION("4.1.0", "7.1.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.2.2")),
+      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_LATEST_IN_NEXT_SERIES("4.2.0", "7.1.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("7.1.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("7.1.2"),
       )),
-      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_PATCH_TO_LATEST_IN_NEXT_SERIES_SKIP_1("3.6.1", "4.1.0", publishedVersions, Results(
-        Flags(NO_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.1.0"),
-        Flags(RECOMMEND_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.1.1"),
+      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_PATCH_TO_LATEST_IN_NEXT_SERIES_SKIP_1("4.2.2", "7.1.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("7.1.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("7.1.2"),
       )),
-      UPGRADE_INCREMENTALLY_DEPRECATED_WITHIN_SERIES_EVEN_IN_NEWER_VERSION_2("3.5.0", "4.2.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("3.6.1")),
-      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_LATEST_IN_NEXT_SERIES_SKIP_2("3.6.0", "4.2.0", publishedVersions, Results(
-        Flags(NO_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.2.0"),
-        Flags(RECOMMEND_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.2.2"),
+      UPGRADE_INCREMENTALLY_DEPRECATED_WITHIN_SERIES_EVEN_IN_NEWER_VERSION_2("4.1.0", "7.2.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.2.2")),
+      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_LATEST_IN_NEXT_SERIES_SKIP_2("4.2.0", "7.2.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("7.2.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("7.2.1"),
       )),
-      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_PATCH_TO_LATEST_IN_NEXT_SERIES_SKIP_2("3.6.1", "4.2.0", publishedVersions, Results(
-        Flags(NO_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.2.0"),
-        Flags(RECOMMEND_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("4.2.2"),
+      UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_PATCH_TO_LATEST_IN_NEXT_SERIES_SKIP_2("4.2.2", "7.2.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("7.2.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to STRONGLY_RECOMMEND.upgradeTo("7.2.1"),
       )),
       UPGRADE_INCREMENTALLY_DEPRECATED_WITHIN_SERIES_EVEN_IN_NEWER_VERSION_3("3.5.0", "7.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("3.6.1")),
       UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_LATEST_IN_NEXT_SERIES_ONE_MAJOR("3.6.0", "7.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.2.2")),
@@ -290,41 +290,41 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
       UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_LATEST_IN_NEXT_SERIES_ONE_MAJOR_2("3.6.1", "7.3.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.2.2")),
       UPGRADE_INCREMENTALLY_DEPRECATED_WITHIN_SERIES_EVEN_IN_NEWER_VERSION_5("3.5.0", "8.0.0", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("3.6.1")),
       UPGRADE_INCREMENTALLY_DEPRECATED_LAST_MAJOR_MINOR_TO_LATEST_IN_NEXT_SERIES_ONE_MAJOR_3("3.6.0", "8.0.1", publishedVersions, STRONGLY_RECOMMEND.upgradeTo("4.2.2")),
-      UPDATE_INCREMENTALLY_WITHIN_SERIES("4.0.0", "7.0.0", publishedVersions, RECOMMEND.upgradeTo("4.2.2")),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES("4.2.0", "7.0.0", publishedVersions, Results(
-        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.0"),
-        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.3"),
+      UPDATE_INCREMENTALLY_WITHIN_SERIES("7.0.0", "8.0.0", publishedVersions, RECOMMEND.upgradeTo("7.3.2")),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES("7.3.0", "8.0.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.3"),
       )),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_INTERMEDIATE_PATCH_TO_NEXT_SERIES("4.2.1", "7.0.0", publishedVersions, Results(
-        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.0"),
-        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.3"),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_INTERMEDIATE_PATCH_TO_NEXT_SERIES("7.3.1", "8.0.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.3"),
       )),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_LAST_PATCH_TO_NEXT_SERIES("4.2.2", "7.0.0", publishedVersions, Results(
-        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.0"),
-        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.3"),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_LAST_PATCH_TO_NEXT_SERIES("7.3.2", "8.0.0", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.0"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.3"),
       )),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES_PATCH("4.2.0", "7.0.2", publishedVersions, Results(
-        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.2"),
-        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.3"),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES_PATCH("7.3.0", "8.0.2", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.2"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.3"),
       )),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_INTERMEDIATE_PATCH_TO_NEXT_SERIES_PATCH("4.2.1", "7.0.2", publishedVersions,Results(
-        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.2"),
-        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.3"),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_INTERMEDIATE_PATCH_TO_NEXT_SERIES_PATCH("7.3.1", "8.0.2", publishedVersions,Results(
+        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.2"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.3"),
       )),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_PATCH_TO_NEXT_SERIES_PATCH("4.2.2", "7.0.2", publishedVersions, Results(
-        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.2"),
-        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("7.0.3"),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_PATCH_TO_NEXT_SERIES_PATCH("7.3.2", "8.0.2", publishedVersions, Results(
+        Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.2"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.3"),
       )),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_LATEST_NEXT_SERIES("4.2.0", "7.3.0", publishedVersions, RECOMMEND.upgradeTo("7.3.0")),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_LATEST_NEXT_SERIES_EVEN_IN_NEWER_VERSION("4.2.0", "8.0.0", publishedVersions, RECOMMEND.upgradeTo("7.3.0")),
-      UPGRADE_INCREMENTALLY_FIRST_WITHIN_SERIES_TO_LATEST("7.0.0", "8.0.0", publishedVersions, RECOMMEND.upgradeTo("7.3.0")),
-      UPGRADE_INCREMENTALLY_SOMEWHERE_WITHIN_SERIES_TO_LATEST("7.1.2", "8.0.0", publishedVersions, RECOMMEND.upgradeTo("7.3.0")),
-      UPGRADE_INCREMENTALLY_SOMEWHERE_ELSE_WITHIN_SERIES_TO_LATEST("7.2.1", "8.0.0", publishedVersions, RECOMMEND.upgradeTo("7.3.0")),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_LATEST_NEXT_SERIES("7.3.0", "8.1.0", publishedVersions, RECOMMEND.upgradeTo("8.1.0")),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_LATEST_NEXT_SERIES_EVEN_IN_NEWER_VERSION("7.3.0", "9.0.0", publishedVersions, RECOMMEND.upgradeTo("8.1.0")),
+      UPGRADE_INCREMENTALLY_FIRST_WITHIN_SERIES_TO_LATEST("7.0.0", "8.0.0", publishedVersions, RECOMMEND.upgradeTo("7.3.2")),
+      UPGRADE_INCREMENTALLY_SOMEWHERE_WITHIN_SERIES_TO_LATEST("7.1.2", "8.0.0", publishedVersions, RECOMMEND.upgradeTo("7.3.2")),
+      UPGRADE_INCREMENTALLY_SOMEWHERE_ELSE_WITHIN_SERIES_TO_LATEST("7.2.1", "8.0.0", publishedVersions, RECOMMEND.upgradeTo("7.3.2")),
       UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES_2("7.3.0", "8.0.0", publishedVersions, Results(
         Flags(NO_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.0"),
-        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.1"),
+        Flags(RECOMMEND_FUTURE_PATCHES) to RECOMMEND.upgradeTo("8.0.3"),
       )),
-      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES_PATCH_2("7.3.0", "8.0.1", publishedVersions, RECOMMEND.upgradeTo("8.0.1")),
+      UPGRADE_INCREMENTALLY_LAST_MAJOR_MINOR_TO_NEXT_SERIES_PATCH_2("7.3.0", "8.0.3", publishedVersions, RECOMMEND.upgradeTo("8.0.3")),
       ;
       constructor(current:String, latestKnown: String, published: Set<AgpVersion>, results: Results) : this(agpVersion(current), agpVersion(latestKnown), published, results)
       constructor(current:String, latestKnown: String, published: Set<AgpVersion>, result: GradlePluginUpgradeState) : this(current, latestKnown, published, Results(result))
@@ -347,11 +347,12 @@ class ComputeGradlePluginUpgradeStateTest(val case: Case, val flags: Flags) {
       "4.0.0", "4.1.0-alpha03",
       "4.1.0", "4.1.1", "4.2.0-alpha04",
       "4.2.0", "4.2.1", "4.2.2", "5.0.0-alpha05", "7.0.0-alpha06",
-      "7.0.0", "7.0.1", "7.0.2", "7.0.3", "7.1.0-beta01",
+      "7.0.0", "7.1.0-beta01",
       "7.1.0", "7.1.1", "7.1.2", "7.2.0-beta02",
       "7.2.0", "7.2.1", "7.3.0-beta03",
-      "7.3.0", "8.0.0-rc01",
-      "8.0.0", "8.0.1", "8.1.0-rc02"
+      "7.3.0", "7.3.1", "7.3.2", "8.0.0-rc01",
+      "8.0.0", "8.0.1", "8.0.2", "8.0.3", "8.1.0-rc02",
+      "8.1.0",
     )
   }
 }
