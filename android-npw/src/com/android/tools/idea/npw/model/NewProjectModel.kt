@@ -276,7 +276,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     saveWizardState()
   }
 
-  private inner class ProjectTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
+  @VisibleForTesting
+  inner class ProjectTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
 
     private lateinit var projectTemplateData: ProjectTemplateData
 

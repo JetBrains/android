@@ -16,54 +16,25 @@
 package com.android.tools.idea.npw.module.recipes.androidProject
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.extensions.isDaemonJvmCriteriaRequiredForNewProjects
+import com.android.tools.idea.npw.builders.GradleSettingsBuilder
 import com.android.tools.idea.wizard.template.renderIf
+import org.gradle.util.GradleVersion
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import java.net.URL
 
 fun androidProjectGradleSettings(appTitle: String,
+                                 gradleVersion: GradleVersion,
                                  agpVersion: AgpVersion,
                                  useGradleKts: Boolean,
                                  injectedRepositories: List<URL>): String {
-  require(!appTitle.contains("\\")) { "Backslash should not be present in the application title" }
   return renderIf(appTitle.isNotBlank()) {
-    val escapedAppTitle = appTitle.replace("$", "\\$")
-    val injectedRepositoriesSnippet =
-      if(injectedRepositories.isEmpty()) "" else injectedRepositories.joinToString("") { "\n    maven { url = uri(\"${it}\") }" }
-
-    """
-pluginManagement {
-  repositories {$injectedRepositoriesSnippet
-    google {
-      content {
-        includeGroupByRegex("com\\.android.*")
-        includeGroupByRegex("com\\.google.*")
-        includeGroupByRegex("androidx.*")
+    GradleSettingsBuilder(appTitle, useGradleKts) {
+      withPluginManager(injectedRepositories)
+      if (GradleDaemonJvmHelper.isDaemonJvmCriteriaRequiredForNewProjects(gradleVersion)) {
+        withFoojayPlugin()
       }
-    }
-    mavenCentral()
-    gradlePluginPortal()
+      withDependencyResolutionManagement(injectedRepositories)
+    }.build()
   }
-}
-dependencyResolutionManagement {
-  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-  repositories {$injectedRepositoriesSnippet
-    google()
-    mavenCentral()
-  }
-}
-""".gradleSettingsToKtsIfKts(useGradleKts) +
-    """
-rootProject.name = "$escapedAppTitle"
-"""
-
-  }
-}
-
-private fun String.gradleSettingsToKtsIfKts(isKts: Boolean): String = if (isKts) {
-  split("\n").joinToString("\n") {
-    it.replace("'", "\"")
-      .replace("id ", "id(").replace(" version", ") version")
-  }
-}
-else {
-  this
 }
