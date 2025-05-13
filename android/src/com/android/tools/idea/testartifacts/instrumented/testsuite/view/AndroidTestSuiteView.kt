@@ -145,7 +145,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   private val myProject: Project,
   module: Module?,
   private val toolWindowId: String? = null,
-  private val runConfiguration: RunConfiguration? = null,
+  val runConfiguration: RunConfiguration? = null,
   private val myClock: Clock = Clock.systemDefaultZone(),
   @VisibleForTesting val myIsImportedResult: Boolean = false,
 ) : ConsoleView,

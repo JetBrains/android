@@ -25,6 +25,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.utils.ILogger
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.externalSystem.model.task.event.Failure
 import com.intellij.openapi.externalSystem.model.task.event.FailureResult
@@ -41,11 +42,12 @@ import java.util.UUID
 /**
  * Adaptor to populate test status into [AndroidTestSuiteView] from [TestEventXPPXmlView].
  */
-class AndroidTestSuiteViewAdaptor {
+class AndroidTestSuiteViewAdaptor(runConfiguration: RunConfiguration?) {
   val rootTestSuite: AndroidTestSuite = AndroidTestSuite(
     id = UUID.randomUUID().toString(),
     name = "",
     testCaseCount = 0,
+    runConfiguration = runConfiguration
   )
 
   // key: ID, value: parent ID.
