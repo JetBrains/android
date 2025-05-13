@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.testsuite.temp
 
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
@@ -23,9 +24,11 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
+import com.android.utils.ILogger
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.externalSystem.model.task.event.Failure
 import com.intellij.openapi.externalSystem.model.task.event.FailureResult
+import com.intellij.openapi.externalSystem.model.task.event.OperationResult
 import com.intellij.openapi.externalSystem.model.task.event.SkippedResult
 import com.intellij.openapi.externalSystem.model.task.event.SuccessResult
 import com.intellij.openapi.externalSystem.model.task.event.TestAssertionFailure
@@ -105,31 +108,7 @@ class AndroidTestSuiteViewAdaptor {
         rootTestSuite.testCaseCount = testCaseMap.size
 
         val result = GradleXmlTestEventConverter.convertOperationResult(xml)
-        testCase.startTimestampMillis = result.startTime
-        testCase.endTimestampMillis = result.endTime
-
-        when (result) {
-          is SuccessResult -> {
-            testCase.result = AndroidTestCaseResult.PASSED
-          }
-          is FailureResult -> {
-            testCase.result = AndroidTestCaseResult.FAILED
-            when (val failure = result.failures.firstOrNull()) {
-              is TestAssertionFailure -> {
-                testCase.errorStackTrace = failure.stackTrace ?: ""
-              }
-              is TestFailure -> {
-                testCase.errorStackTrace = failure.stackTrace ?: ""
-              }
-              is Failure -> {
-                testCase.errorStackTrace = failure.message ?: ""
-              }
-            }
-          }
-          is SkippedResult -> {
-            testCase.result = AndroidTestCaseResult.SKIPPED
-          }
-        }
+        applyResultToTestCase(testCase, result)
 
         executionConsole.onTestCaseFinished(
           device,
@@ -143,7 +122,10 @@ class AndroidTestSuiteViewAdaptor {
         if (id != xml.testId) {
           return
         }
-        rootTestSuite.result = AndroidTestSuiteResult.PASSED
+
+        val result = GradleXmlTestEventConverter.convertOperationResult(xml)
+        applyResultToTestSuite(rootTestSuite, result)
+
         executionConsole.onTestSuiteFinished(device, rootTestSuite)
       }
 
@@ -195,5 +177,43 @@ class AndroidTestSuiteViewAdaptor {
       TestEventType.CONFIGURATION_ERROR -> {}
       TestEventType.UNKNOWN_EVENT -> {}
     }
+  }
+
+  private fun applyResultToTestCase(testCase: AndroidTestCase, result: OperationResult) {
+    testCase.startTimestampMillis = result.startTime
+    testCase.endTimestampMillis = result.endTime
+
+    when (result) {
+      is SuccessResult -> testCase.result = AndroidTestCaseResult.PASSED
+      is SkippedResult -> testCase.result = AndroidTestCaseResult.SKIPPED
+      is FailureResult -> {
+        testCase.result = AndroidTestCaseResult.FAILED
+        when (val failure = result.failures.firstOrNull()) {
+          is TestAssertionFailure -> testCase.errorStackTrace = failure.stackTrace ?: ""
+          is TestFailure -> testCase.errorStackTrace = failure.stackTrace ?: ""
+          is Failure -> testCase.errorStackTrace = failure.message ?: ""
+        }
+      }
+
+      else -> {
+        LOGGER.warning("Unhandled test result: $result")
+      }
+    }
+
+  }
+
+  private fun applyResultToTestSuite(testSuite: AndroidTestSuite, result: OperationResult) {
+    when (result) {
+      is SuccessResult -> testSuite.result = AndroidTestSuiteResult.PASSED
+      is SkippedResult -> testSuite.result = AndroidTestSuiteResult.CANCELLED
+      is FailureResult -> testSuite.result = AndroidTestSuiteResult.FAILED
+      else -> {
+        LOGGER.warning("Unhandled test result: $result")
+      }
+    }
+  }
+
+  companion object {
+    val LOGGER: ILogger = LogWrapper(AndroidTestSuiteViewAdaptor::class.java)
   }
 }
