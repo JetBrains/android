@@ -415,9 +415,7 @@ class EmulatorViewTest {
                  "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\"")
     )
     for ((hostKeyStroke, keyboardEventMessages) in keyStrokeCases) {
-      fakeUi.keyboard.pressForModifiers(hostKeyStroke.modifiers)
-      fakeUi.keyboard.pressAndRelease(hostKeyStroke.keyCode)
-      fakeUi.keyboard.releaseForModifiers(hostKeyStroke.modifiers)
+      fakeUi.keyboard.hit(hostKeyStroke)
       for (message in keyboardEventMessages) {
         assertThat(shortDebugString(call!!.getNextRequest(1.seconds))).isEqualTo("key_event { $message }")
       }

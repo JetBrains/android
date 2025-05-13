@@ -498,9 +498,7 @@ internal class DeviceViewTest {
       Triple(getKeyStroke(ACTION_REDO), AKEYCODE_Z, AMETA_CTRL_SHIFT_ON),
     )
     for ((hostKeyStroke, androidKeyCode, androidMetaState) in keyStrokeCases) {
-      fakeUi.keyboard.pressForModifiers(hostKeyStroke.modifiers)
-      fakeUi.keyboard.pressAndRelease(hostKeyStroke.keyCode)
-      fakeUi.keyboard.releaseForModifiers(hostKeyStroke.modifiers)
+      fakeUi.keyboard.hit(hostKeyStroke)
       when (androidMetaState) {
         AMETA_SHIFT_ON -> {
           assertThat(agent.getNextControlMessage(2.seconds)).isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_SHIFT_LEFT, AMETA_SHIFT_ON))
