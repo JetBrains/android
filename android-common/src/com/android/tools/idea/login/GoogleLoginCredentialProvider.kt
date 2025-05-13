@@ -31,9 +31,18 @@ interface GoogleLoginCredentialProvider {
    */
   fun getGeminiAccessTokenAsJson() : String?
 
+  /**
+   * Checks if the user is currently logged in to the "Gemini" feature.
+   *
+   * @return `true` if the user is logged in, `false` otherwise.
+   */
+  fun isUserLoggedIntoGemini(): Boolean
+
   companion object {
     val EP_NAME = ExtensionPointName.create<GoogleLoginCredentialProvider>("com.android.tools.idea.login.googleLoginCredentialProvider")
 
     fun getGeminiAccessTokenAsJson() : String? = EP_NAME.extensionList.firstNotNullOfOrNull { it.getGeminiAccessTokenAsJson() }
+
+    fun isUserLoggedIntoGemini(): Boolean = EP_NAME.extensionList.firstNotNullOfOrNull { it.isUserLoggedIntoGemini() } ?: false
   }
 }
