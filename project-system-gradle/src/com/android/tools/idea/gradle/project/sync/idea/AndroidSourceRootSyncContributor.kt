@@ -17,24 +17,13 @@
 
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.builder.model.v2.ide.AndroidArtifact
-import com.android.builder.model.v2.ide.BasicArtifact
-import com.android.builder.model.v2.ide.JavaArtifact
-import com.android.builder.model.v2.ide.SourceProvider
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.Versions
-import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
-import com.android.tools.idea.gradle.project.sync.Modules
-import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
-import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.convert
-import com.android.tools.idea.gradle.project.sync.convertArtifactName
-import com.android.tools.idea.gradle.project.sync.getDefaultVariant
 import com.android.tools.idea.gradle.project.sync.idea.entities.AndroidGradleSourceSetEntitySource
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import com.intellij.java.workspace.entities.JavaResourceRootPropertiesEntity
@@ -45,6 +34,7 @@ import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceTyp
 import com.intellij.openapi.externalSystem.model.project.IExternalSystemSourceType
 import com.intellij.openapi.externalSystem.util.Order
 import com.intellij.openapi.progress.checkCanceled
+import com.intellij.openapi.project.Project
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
 import com.intellij.platform.workspace.jps.entities.ExcludeUrlEntity
@@ -60,7 +50,6 @@ import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.impl.url.toVirtualFileUrl
-import com.intellij.platform.workspace.storage.url.VirtualFileUrlManager
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_RESOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_SOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_RESOURCE_ROOT_ENTITY_TYPE_ID
@@ -78,14 +67,52 @@ import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleLink
 import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleProjectEntitySource
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.plus
 import kotlin.io.path.absolute
-import kotlin.takeIf
 
 // Need the source type to be nullable because of how AndroidManifest is handled.
-private typealias SourceSetData = Pair<String, Map<out ExternalSystemSourceType?, Set<File>>>
+internal typealias SourceSetData = Pair<String, Map<out ExternalSystemSourceType?, Set<File>>>
+
+internal class SyncContributorGradleProjectContext(
+  val context: ProjectResolverContext,
+  val project: Project,
+  val buildModel: GradleLightBuild,
+  val projectModel: GradleLightProject,
+  val versions: ModelVersions,
+) {
+  private val virtualFileUrlManager = project.workspaceModel.getVirtualFileUrlManager()
+
+  val syncOptions = context.getSyncOptions(project)
+  // Create an entity source representing each project root
+  val rootIdeaProjectEntitySource = GradleLinkedProjectEntitySource(File(context.projectPath).toVirtualFileUrl())
+  // For each build, create an entity source representing the Gradle build, as the root project source as parent
+  val buildEntitySource = GradleBuildEntitySource(rootIdeaProjectEntitySource, buildModel.buildIdentifier.rootDir.toVirtualFileUrl())
+  // For each project in the build, create an entity source representing the project, as the build entity source as the parent.
+  val projectEntitySource = GradleProjectEntitySource(buildEntitySource, projectModel.projectDirectory.toVirtualFileUrl())
+  val externalProject = context.getProjectModel(projectModel, ExternalProject::class.java)!!
+  val basicAndroidProject = context.getProjectModel(projectModel, BasicAndroidProject::class.java)!!
+  val androidProject = context.getProjectModel(projectModel, AndroidProject::class.java)!!
+  val androidDsl = context.getProjectModel(projectModel, AndroidDsl::class.java)!!
+  // TODO(b/410774404): HAS_SCREENSHOT_TESTS_SUPPORT is not the best name for even though it's what indicates the availability in the
+  // new fields. Consider renaming.
+  val useContainer: Boolean = versions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]
+
+  fun File.toVirtualFileUrl() = toVirtualFileUrl(virtualFileUrlManager)
+
+  companion object {
+    internal suspend fun create(context: ProjectResolverContext,
+                                buildModel: GradleLightBuild,
+                                projectModel: GradleLightProject): SyncContributorGradleProjectContext? =
+      context.getProjectModel(projectModel, Versions::class.java)?.convert()?.let {
+        SyncContributorGradleProjectContext(
+          context,
+          context.project(),
+          buildModel,
+          projectModel,
+          it
+        )
+      }
+  }
+}
 
 @ApiStatus.Internal
 @Order(GradleSyncContributor.Order.SOURCE_ROOT_CONTRIBUTOR)
@@ -102,147 +129,23 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
     }
   }
 
-  suspend fun getAllSourceSets(context: ProjectResolverContext, projectModel: GradleLightProject): List<SourceSetData> {
-    val versions = context.getProjectModel(projectModel, Versions::class.java)?.convert() ?: return emptyList()
-    val basicAndroidProject = context.getProjectModel(projectModel, BasicAndroidProject::class.java) ?: return emptyList()
-    val androidProject = context.getProjectModel(projectModel, AndroidProject::class.java) ?: return emptyList()
-    val androidDsl = context.getProjectModel(projectModel, AndroidDsl::class.java) ?: return emptyList()
-    val variantName = getVariantName(
-      context.getSyncOptions(context.project()),
-      projectModel,
-      basicAndroidProject,
-      androidDsl
-    ) ?: return emptyList()
-
-    // TODO(b/410774404): HAS_SCREENSHOT_TESTS_SUPPORT is not the best name for even though it's what indicates the availability in the
-    // new fields. Consider renaming.
-    val useContainer = versions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]
-
-    val (buildType, flavors) = basicAndroidProject.variants
-      .singleOrNull { it.name == variantName }
-      .let { (it?.buildType) to it?.productFlavors.orEmpty() }
-
-
-    // TODO(b/384022658): Handle test fixtures and any other potentially relevant sources
-    return getSourceSetDataForBasicAndroidProject(useContainer, basicAndroidProject, variantName, buildType, flavors, versions) +
-           getSourceSetDataForAndroidProject(useContainer, androidProject, variantName)
-  }
-
-
-  @Suppress("DEPRECATION") // Need to be backwards compatible here
-  private fun getSourceSetDataForBasicAndroidProject(useContainer: Boolean,
-                                                     basicAndroidProject: BasicAndroidProject,
-                                                     variantName: String,
-                                                     buildTypeForVariant: String?,
-                                                     productFlavorsForVariant: List<String>,
-                                                     versions: ModelVersions): List<SourceSetData> {
-    val sourceSets = mutableListOf<SourceSetData>()
-
-    val containers =
-      basicAndroidProject.mainSourceSet?.let { listOf(it) }.orEmpty() +
-      basicAndroidProject.buildTypeSourceSets
-        .filter { it.sourceProvider?.name == buildTypeForVariant } +
-      basicAndroidProject.productFlavorSourceSets
-        .filter { it.sourceProvider?.name in productFlavorsForVariant }
-
-    fun processBasicArtifact(artifact: BasicArtifact, name: IdeArtifactName, isProduction: Boolean) {
-      artifact.variantSourceProvider?.let { sourceSets += createSourceSetDataForSourceProvider(name, it, isProduction, versions) }
-      artifact.multiFlavorSourceProvider?.let { sourceSets += createSourceSetDataForSourceProvider(name, it, isProduction, versions) }
-    }
-
-    basicAndroidProject.variants
-      .filter { it.name == variantName }
-      .forEach {
-        processBasicArtifact(it.mainArtifact, IdeArtifactName.MAIN, isProduction = true)
-        containers.forEach {
-          it.sourceProvider?.let { sourceSets += createSourceSetDataForSourceProvider(IdeArtifactName.MAIN, it, isProduction = true, versions) }
-        }
-
-        if (useContainer) {
-          (it.deviceTestArtifacts + it.hostTestArtifacts).entries.forEach { (name, artifact) ->
-            val artifactName = convertArtifactName(name)
-            processBasicArtifact(artifact, artifactName, isProduction = false)
-            containers.forEach {
-              (it.deviceTestSourceProviders + it.hostTestSourceProviders)[name]?.let {
-                sourceSets += createSourceSetDataForSourceProvider(convertArtifactName(name), it, isProduction = false, versions)
-              }
-            }
-          }
-        } else {
-          it.androidTestArtifact?.let {
-            processBasicArtifact(it, IdeArtifactName.UNIT_TEST, isProduction = false)
-            containers.forEach {
-              it.androidTestSourceProvider?.let {
-                sourceSets += createSourceSetDataForSourceProvider(IdeArtifactName.ANDROID_TEST, it, isProduction = false, versions)
-              }
-            }
-          }
-          it.unitTestArtifact?.let {
-            processBasicArtifact(it, IdeArtifactName.UNIT_TEST, isProduction = false)
-            containers.forEach {
-              it.unitTestSourceProvider?.let {
-                sourceSets += createSourceSetDataForSourceProvider(IdeArtifactName.UNIT_TEST, it, isProduction = false, versions)
-              }
-            }
-
-          }
-        }
-      }
-
-    return sourceSets
-  }
-
-  @Suppress("DEPRECATION") // Need to be backwards compatible here
-  private fun getSourceSetDataForAndroidProject(useContainer: Boolean, androidProject: AndroidProject, selectedVariantName: String): List<SourceSetData>{
-    val sourceSets = mutableListOf<SourceSetData>()
-
-    androidProject.variants
-      .filter { it.name == selectedVariantName }
-      .forEach { variant ->
-        sourceSets += createSourceSetDataForAndroidArtifact(IdeArtifactName.MAIN, variant.mainArtifact, isProduction = true)
-        if (useContainer) {
-          variant.deviceTestArtifacts.entries.forEach { (name, artifact) ->
-            sourceSets += createSourceSetDataForAndroidArtifact(convertArtifactName(name), artifact, isProduction = false)
-          }
-          variant.hostTestArtifacts.entries.forEach { (name, artifact) ->
-            sourceSets += createSourceSetDataForTestJavaArtifact(convertArtifactName(name), artifact)
-          }
-        }
-        else {
-          variant.androidTestArtifact?.let {
-            sourceSets += createSourceSetDataForAndroidArtifact(IdeArtifactName.ANDROID_TEST, it, isProduction = false)
-          }
-          variant.unitTestArtifact?.let {
-            sourceSets += createSourceSetDataForTestJavaArtifact(IdeArtifactName.UNIT_TEST, it)
-          }
-        }
-      }
-    return sourceSets
-  }
-
   private suspend fun configureModulesForSourceSets(context: ProjectResolverContext, storage: MutableEntityStorage) {
-    val virtualFileUrlManager = context.project().workspaceModel.getVirtualFileUrlManager()
-
-    // Create an entity source representing the IDE project
-    val linkedProjectRootPath = File(context.projectPath).toPath()
-    val linkedProjectRootUrl = linkedProjectRootPath.toVirtualFileUrl(virtualFileUrlManager)
-    val linkedProjectEntitySource = GradleLinkedProjectEntitySource(linkedProjectRootUrl)
-
-
-    val existingEntities = MutableEntityStorage.from(storage.toSnapshot())
-    val newModuleEntities = context.allBuilds.flatMap { buildModel ->
-      buildModel.projects.flatMap { projectModel ->
+    val existingSourceSetEntities = MutableEntityStorage.from(storage.toSnapshot())
+    val allAndroidContexts = context.allBuilds.flatMap { buildModel ->
+      buildModel.projects.mapNotNull allProjects@{ projectModel ->
         checkCanceled()
-        getModuleEntities(context, virtualFileUrlManager, linkedProjectEntitySource, buildModel, projectModel, getAllSourceSets(context, projectModel))
+        SyncContributorGradleProjectContext.create(context, buildModel, projectModel)
       }
     }
+    val newModuleEntities =  allAndroidContexts.flatMap { it.getAllSourceSetModuleEntities() }
+
     newModuleEntities.forEach { newModuleEntity ->
       // Create or update the entity after doing all the mutations
-      val existingEntity = existingEntities.resolve(ModuleId(newModuleEntity.name))
+      val existingEntity = existingSourceSetEntities.resolve(ModuleId(newModuleEntity.name))
       if (existingEntity == null) {
-        existingEntities addEntity newModuleEntity
+        existingSourceSetEntities addEntity newModuleEntity
       } else {
-        existingEntities.modifyModuleEntity(existingEntity) {
+        existingSourceSetEntities.modifyModuleEntity(existingEntity) {
           this.entitySource = newModuleEntity.entitySource
           this.contentRoots = newModuleEntity.contentRoots
           this.exModuleOptions = newModuleEntity.exModuleOptions
@@ -251,42 +154,26 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
       }
     }
     // Only replace the android related source sets
-    storage.replaceBySource({ it is AndroidGradleSourceSetEntitySource }, existingEntities)
+    storage.replaceBySource({ it is AndroidGradleSourceSetEntitySource }, existingSourceSetEntities)
   }
 }
 
 // helpers
-private fun getModuleEntities(context: ProjectResolverContext,
-                              virtualFileUrlManager: VirtualFileUrlManager,
-                              linkedProjectEntitySource: GradleLinkedProjectEntitySource,
-                              buildModel: GradleLightBuild,
-                              projectModel: GradleLightProject,
-                              allSourceSets: List<SourceSetData>): Collection<ModuleEntity.Builder> {
-  // For each build, create an entity source representing the Gradle build, as the root project source as parent
-  val buildRootPath = buildModel.buildIdentifier.rootDir.toPath()
-  val buildRootUrl = buildRootPath.toVirtualFileUrl(virtualFileUrlManager)
-  val buildEntitySource = GradleBuildEntitySource(linkedProjectEntitySource, buildRootUrl)
-
-  // For each project in the build, create an entity source representing the project, as the build entity source as the parent.
-  val projectRootPath = projectModel.projectDirectory.toPath()
-  val projectRootUrl = projectRootPath.toVirtualFileUrl(virtualFileUrlManager)
-  val projectEntitySource = GradleProjectEntitySource(buildEntitySource, projectRootUrl)
+internal fun SyncContributorGradleProjectContext.getAllSourceSetModuleEntities(): List<ModuleEntity.Builder> {
+  val allSourceSets = getAllSourceSetsFromModels()
 
   // This is the module name corresponding to the "holder" module
-  val projectModuleName = resolveModuleName(context, buildModel, projectModel)
-
-  val externalProject = context.getProjectModel(projectModel, ExternalProject::class.java) ?: return emptyList()
-
+  val projectModuleName = resolveModuleName()
   val moduleEntitiesMap = mutableMapOf<String, ModuleEntity.Builder>()
 
   return allSourceSets.map  { (sourceSetName, typeToDirsMap) ->
     // For each source set in the project, create entity source and the actual entities.
     val entitySource = AndroidGradleSourceSetEntitySource(projectEntitySource, sourceSetName)
     val moduleName = "$projectModuleName.$sourceSetName"
-    val newModuleEntity = findOrCreateModuleEntity(context, externalProject, entitySource, moduleName,moduleEntitiesMap)
+    val newModuleEntity = findOrCreateModuleEntity(moduleName, entitySource, moduleEntitiesMap)
 
-    // Create the content root (if it doesn't exist yet) and associate it with the module
-    val contentRootEntity = createContentRootEntity(entitySource, typeToDirsMap, virtualFileUrlManager)
+    // Create the content root and associate it with the module
+    val contentRootEntity = createContentRootEntity(entitySource, typeToDirsMap)
 
     newModuleEntity.contentRoots += contentRootEntity
     newModuleEntity
@@ -300,78 +187,6 @@ private fun getModuleEntities(context: ProjectResolverContext,
 
 private fun List<ContentRootEntity.Builder>.hasNoDuplicates() = this.distinctBy { it.url }.size == this.size
 
-private fun createSourceSetDataForSourceProvider(name: IdeArtifactName,
-                                                 provider: SourceProvider,
-                                                 isProduction: Boolean,
-                                                 versions: ModelVersions): List<SourceSetData> {
-  val sourceDirectories = (
-    provider.javaDirectories +
-    provider.kotlinDirectories +
-    provider.aidlDirectories.orEmpty() +
-    provider.renderscriptDirectories.orEmpty() +
-    provider.shadersDirectories.orEmpty()).toSet()
-
-  // TODO(b/384022658): Handle custom directories
-  val resourceDirectories =
-    provider.resourcesDirectories.toSet() +
-    provider.resDirectories.orEmpty() +
-    provider.mlModelsDirectories.orEmpty() +
-    provider.assetsDirectories.orEmpty() + (
-      if (versions[ModelFeature.HAS_BASELINE_PROFILE_DIRECTORIES])
-        provider.baselineProfileDirectories.orEmpty()
-      else
-        emptySet()
-    ) - sourceDirectories // exclude source directories in case they are shared
-
-  val sourceSetName = name.toWellKnownSourceSet().sourceSetName
-  return  listOf(
-    sourceSetName to mapOf(
-      (if (isProduction) ExternalSystemSourceType.SOURCE else ExternalSystemSourceType.TEST)
-        to sourceDirectories,
-      (if (isProduction) ExternalSystemSourceType.RESOURCE else ExternalSystemSourceType.TEST_RESOURCE)
-        to resourceDirectories,
-    ) +  provider.manifestFile?.parentFile?.let { mapOf(null to setOf(it)) }.orEmpty()
-  )
-}
-
-private fun createSourceSetDataForAndroidArtifact(name: IdeArtifactName, artifact: AndroidArtifact, isProduction: Boolean): List<SourceSetData> {
-  val sourceSetName = name.toWellKnownSourceSet().sourceSetName
-  return artifact.generatedSourceFolders.map {
-    sourceSetName to mapOf(
-      (if (isProduction) ExternalSystemSourceType.SOURCE else ExternalSystemSourceType.TEST) to setOf(it)
-    )
-  } + artifact.generatedResourceFolders.map {
-    sourceSetName to mapOf(
-      (if (isProduction) ExternalSystemSourceType.RESOURCE else ExternalSystemSourceType.TEST_RESOURCE) to setOf(it)
-    )
-  }
-}
-
-private fun createSourceSetDataForTestJavaArtifact(name: IdeArtifactName, artifact: JavaArtifact): List<SourceSetData> {
-  val sourceSetName = name.toWellKnownSourceSet().sourceSetName
-  return artifact.generatedSourceFolders.map {
-    sourceSetName to mapOf(
-      ExternalSystemSourceType.TEST to setOf(it)
-    )
-  }
-}
-
-
-private fun getVariantName(
-  syncOptions: SyncActionOptions,
-  gradleProject: GradleLightProject,
-  basicAndroidProject: BasicAndroidProject,
-  androidDsl: AndroidDsl
-): String? =
-  when (syncOptions) {
-   is SingleVariantSyncActionOptions ->
-     syncOptions.switchVariantRequest.takeIf { it?.moduleId == gradleProject.moduleId() }?.variantName // newly user-selected variant
-     ?: syncOptions.selectedVariants.getSelectedVariant(gradleProject.moduleId()) // variants selected by the last sync
-   else -> null
- } ?: basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors) // default variant
-
-private fun GradleLightProject.moduleId() = Modules.createUniqueModuleId(projectIdentifier.buildIdentifier.rootDir, path)
-
 private fun findCommonAncestor(file1: File, file2: File) : File {
   val path1 = file1.toPath().absolute().normalize()
   val path2 = file2.toPath().absolute().normalize()
@@ -384,13 +199,10 @@ private fun findCommonAncestor(file1: File, file2: File) : File {
   }.toFile()
 }
 
-
 // entity creation
-private fun findOrCreateModuleEntity(
-  context: ProjectResolverContext,
-  externalProject: ExternalProject,
-  entitySource: EntitySource,
+private fun SyncContributorGradleProjectContext.findOrCreateModuleEntity(
   name: String,
+  entitySource: AndroidGradleSourceSetEntitySource,
   moduleEntitiesMap: MutableMap<String, ModuleEntity.Builder>
 ): ModuleEntity.Builder = moduleEntitiesMap.computeIfAbsent(name) {
   ModuleEntity(
@@ -402,15 +214,11 @@ private fun findOrCreateModuleEntity(
     )
   ) {
     // Annotate the module with external system info (with gradle path, external system type, etc.)
-    exModuleOptions = createModuleOptionsEntity(entitySource, context, externalProject)
+    exModuleOptions = createModuleOptionsEntity(entitySource)
   }
 }
 
-private fun createModuleOptionsEntity(
-  source: EntitySource,
-  context: ProjectResolverContext,
-  externalProject: ExternalProject
-) = ExternalSystemModuleOptionsEntity(
+private fun SyncContributorGradleProjectContext.createModuleOptionsEntity(source: EntitySource) = ExternalSystemModuleOptionsEntity(
   entitySource = source
 ) {
   externalSystem = GradleConstants.SYSTEM_ID.id
@@ -423,16 +231,15 @@ private fun createModuleOptionsEntity(
   externalSystemModuleType = GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY
 }
 
-private fun createContentRootEntity(
+private fun SyncContributorGradleProjectContext.createContentRootEntity(
   entitySource: EntitySource,
-  typeToDirsMap: Map<out ExternalSystemSourceType?, Set<File>>,
-  virtualFileUrlManager: VirtualFileUrlManager,
+  typeToDirsMap: Map<out ExternalSystemSourceType?, Set<File>>
 ): ContentRootEntity.Builder {
   val contentRootUrl = typeToDirsMap.values.flatten().reduce { acc, file -> findCommonAncestor(acc, file) }
 
   return ContentRootEntity(
       entitySource = entitySource,
-      url = contentRootUrl.toVirtualFileUrl(virtualFileUrlManager),
+      url = contentRootUrl.toVirtualFileUrl(),
       excludedPatterns = emptyList()
     ) {
       // Create the source roots and exclusions by type
@@ -442,7 +249,7 @@ private fun createContentRootEntity(
 
       excludedUrls += excluded.flatMap { (_, urls) ->
         urls.map {
-          ExcludeUrlEntity(entitySource = entitySource, url = it.toVirtualFileUrl(virtualFileUrlManager))
+          ExcludeUrlEntity(entitySource = entitySource, url = it.toVirtualFileUrl())
         }
       }
 
@@ -452,19 +259,18 @@ private fun createContentRootEntity(
           urls.mapNotNull {
             // TODO(b/384022658): If the source root doesn't exist, we should create a watcher here via SourceFolderManager,
             // but it's not possible at this moment due to the module itself not being created yet.
-            it.takeIf { it.exists() }?.let { createSourceRootEntity(it, virtualFileUrlManager, type!!, entitySource) }
+            it.takeIf { it.exists() }?.let { createSourceRootEntity(it, type!!, entitySource) }
           }
         }
     }
   }
 
-private fun createSourceRootEntity(
+private fun SyncContributorGradleProjectContext.createSourceRootEntity(
   file: File,
-  virtualFileUrlManager: VirtualFileUrlManager,
   type: IExternalSystemSourceType,
   entitySource: EntitySource
 ): SourceRootEntity.Builder = SourceRootEntity(
-  url = file.toVirtualFileUrl(virtualFileUrlManager),
+  url = file.toVirtualFileUrl(),
   rootTypeId = type.toSourceRootTypeId(),
   entitySource = entitySource
 ) {
@@ -484,13 +290,9 @@ private fun createSourceRootEntity(
 }
 
 
-// copied from platform, ideally the methods below should be visible instead
-private fun resolveModuleName(
-  context: ProjectResolverContext,
-  buildModel: GradleLightBuild,
-  projectModel: GradleLightProject,
-): String {
-  val moduleName = resolveGradleProjectQualifiedName(buildModel, projectModel)
+// copied from platform and modified to have the sync contributor context
+private fun SyncContributorGradleProjectContext.resolveModuleName(): String {
+  val moduleName = resolveGradleProjectQualifiedName()
   val buildSrcGroup = context.getBuildSrcGroup(buildModel.name, buildModel.buildIdentifier)
   if (buildSrcGroup.isNullOrBlank()) {
     return moduleName
@@ -498,10 +300,7 @@ private fun resolveModuleName(
   return "$buildSrcGroup.$moduleName"
 }
 
-private fun resolveGradleProjectQualifiedName(
-  buildModel: GradleLightBuild,
-  projectModel: GradleLightProject,
-): String {
+private fun SyncContributorGradleProjectContext.resolveGradleProjectQualifiedName(): String {
   if (projectModel.path == ":") {
     return buildModel.name
   }
@@ -511,6 +310,7 @@ private fun resolveGradleProjectQualifiedName(
   return projectModel.path.replace(":", ".")
 }
 
+// copied from platform as is
 private fun IExternalSystemSourceType.toSourceRootTypeId(): SourceRootTypeId {
   return when (ExternalSystemSourceType.from(this)) {
     ExternalSystemSourceType.SOURCE -> JAVA_SOURCE_ROOT_ENTITY_TYPE_ID
