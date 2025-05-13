@@ -48,7 +48,7 @@ import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_E
 
 /** Executes an action related to device streaming. */
-fun executeStreamingAction(actionId: String, source: Component, project: Project, place: String = ActionPlaces.TOOLBAR,
+fun executeStreamingAction(actionId: String, source: Component, project: Project? = null, place: String = ActionPlaces.TOOLBAR,
                            modifiers: Int = CTRL_DOWN_MASK,
                            extra: DataSnapshotProvider? = null) {
   val action = ActionManager.getInstance().getAction(actionId)
@@ -56,7 +56,7 @@ fun executeStreamingAction(actionId: String, source: Component, project: Project
 }
 
 /** Executes an action related to device streaming. */
-fun executeStreamingAction(action: AnAction, source: Component, project: Project, place: String = ActionPlaces.TOOLBAR,
+fun executeStreamingAction(action: AnAction, source: Component, project: Project? = null, place: String = ActionPlaces.TOOLBAR,
                            modifiers: Int = CTRL_DOWN_MASK,
                            extra: DataSnapshotProvider? = null) {
   val event = createTestEvent(source, project, place = place, modifiers = modifiers, extra = extra)
@@ -65,14 +65,14 @@ fun executeStreamingAction(action: AnAction, source: Component, project: Project
   action.actionPerformed(event)
 }
 
-fun updateAndGetActionPresentation(actionId: String, source: Component, project: Project,
+fun updateAndGetActionPresentation(actionId: String, source: Component, project: Project? = null,
                                    place: String = ActionPlaces.KEYBOARD_SHORTCUT,
                                    extra: DataSnapshotProvider? = null): Presentation {
   val action = ActionManager.getInstance().getAction(actionId)
   return updateAndGetActionPresentation(action, source, project, place = place, extra = extra)
 }
 
-fun updateAndGetActionPresentation(action: AnAction, source: Component, project: Project,
+fun updateAndGetActionPresentation(action: AnAction, source: Component, project: Project? = null,
                                    place: String = ActionPlaces.KEYBOARD_SHORTCUT,
                                    extra: DataSnapshotProvider? = null): Presentation {
   val event = createTestEvent(source, project, place, presentation = action.templatePresentation.clone(), extra = extra)
@@ -80,7 +80,7 @@ fun updateAndGetActionPresentation(action: AnAction, source: Component, project:
   return event.presentation
 }
 
-fun createTestEvent(source: Component, project: Project, place: String = ActionPlaces.KEYBOARD_SHORTCUT,
+fun createTestEvent(source: Component, project: Project? = null, place: String = ActionPlaces.KEYBOARD_SHORTCUT,
                     modifiers: Int = CTRL_DOWN_MASK, presentation: Presentation = Presentation(),
                     extra: DataSnapshotProvider? = null): AnActionEvent {
   val inputEvent = KeyEvent(source, KEY_RELEASED, System.currentTimeMillis(), modifiers, VK_E, CHAR_UNDEFINED)
@@ -90,7 +90,7 @@ fun createTestEvent(source: Component, project: Project, place: String = ActionP
 
 private class TestDataSnapshotProvider(
   private val component: Component,
-  private val project: Project,
+  private val project: Project? = null,
   private val extra: DataSnapshotProvider?
 ) : DataSnapshotProvider {
 

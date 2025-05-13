@@ -19,13 +19,16 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
+import com.android.tools.idea.streaming.executeStreamingAction
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -33,6 +36,7 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
+import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
@@ -52,12 +56,16 @@ class FloatingToolbarContainerTest {
 
   private val disposableRule = DisposableRule()
   @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule, EdtRule())
-  private lateinit var fakeUi: FakeUi
+  private val panel by lazy { createHostPanel() }
+  private val fakeUi by lazy { FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable) }
+
+  @Before
+  fun setUp() {
+    TestToggleAction.toggleState = "Right Bottom"
+  }
 
   @Test
   fun testCollapsibleVertical() {
-    val panel = createHostPanel()
-    fakeUi = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.5).apply { createTestToolbars(collapsible = true) }
     panel.add(toolbar, BorderLayout.EAST)
     assertAppearance("CollapsibleVerticalInactive")
@@ -67,12 +75,15 @@ class FloatingToolbarContainerTest {
 
     fakeUi.mouse.moveTo(0, 0)
     assertAppearance("CollapsibleVerticalInactive")
+
+    // Change the selected toolbar button and check how the toolbar updates itself.
+    val rightTopAction = fakeUi.getComponent<ActionButton> { it.presentation.text == "Right Top" }.action
+    executeStreamingAction(rightTopAction, panel, place = ActionPlaces.KEYBOARD_SHORTCUT)
+    assertAppearance("CollapsibleVerticalRightTopSelected")
   }
 
   @Test
   fun testNonCollapsibleHorizontal() {
-    val panel = createHostPanel()
-    fakeUi = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val toolbar = FloatingToolbarContainer(horizontal = true, inactiveAlpha = 0.7).apply { createTestToolbars(collapsible = false) }
     panel.add(toolbar, BorderLayout.SOUTH)
     assertAppearance("NonCollapsibleHorizontalInactive")
@@ -86,8 +97,6 @@ class FloatingToolbarContainerTest {
 
   @Test
   fun testEmptyToolbar() {
-    val panel = createHostPanel()
-    fakeUi = FakeUi(panel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
     val toolbar = FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.8).apply {
       addToolbar("FloatingToolbar", DefaultActionGroup(), collapsible = false)
       addToolbar("FloatingToolbar", DefaultActionGroup(), collapsible = false)
@@ -155,7 +164,7 @@ class FloatingToolbarContainerTest {
     }
 
     companion object {
-      private var toggleState: String = "Right Bottom"
+      var toggleState: String = "Right Bottom"
     }
   }
 }
