@@ -16,11 +16,11 @@
 
 package com.android.tools.idea.backup
 
+import com.android.backup.BackupProgressListener.Step
 import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.backup.BackupBundle.message
 import com.android.tools.idea.backup.BackupManager.Source.RESTORE_APP_ACTION
 import com.android.tools.idea.backup.RestoreAppAction.Config.Standalone
-import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.icons.AllIcons
@@ -28,13 +28,14 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.application.EDT
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.TaskCancellation.Companion.cancellable
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
+import com.intellij.platform.util.progress.reportSequentialProgress
 import java.nio.file.Path
 import kotlin.io.path.pathString
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Restores an Android Application from a backup file */
@@ -72,28 +73,42 @@ internal class RestoreAppAction(
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    val coroutineScope = project.service<DeviceProvisionerService>().deviceProvisioner.scope
-    coroutineScope.launch {
-      val serialNumber = getDeviceSerialNumber(e)
-      if (serialNumber == null) {
-        project.showDialog(message("error.device.not.running"))
-        return@launch
+    val serialNumber = getDeviceSerialNumber(e)
+    if (serialNumber == null) {
+      project.showDialog(message("error.device.not.running"))
+      return
+    }
+    val backupManager = BackupManager.getInstance(project)
+
+    val ok =
+      runWithModalProgressBlocking(
+        ModalTaskOwner.project(project),
+        "Collecting Data",
+        cancellable(),
+      ) {
+        reportSequentialProgress { reporter ->
+          val steps = 2
+          var step = 0
+          withContext(Dispatchers.Default) {
+            reporter.onStep(Step(++step, steps, "Checking device..."))
+            if (!backupManager.isDeviceSupported(serialNumber)) {
+              project.showDialog(message("error.device.not.supported"))
+              return@withContext false
+            }
+            @Suppress("AssignedValueIsNeverRead")
+            reporter.onStep(Step(++step, steps, "Checking apps..."))
+            val isCompatible = actionHelper.checkCompatibleApps(project, serialNumber)
+            if (!isCompatible) {
+              project.showDialog(message("error.applications.not.installed"))
+              return@withContext false
+            }
+            return@withContext true
+          }
+        }
       }
-      val backupManager = BackupManager.getInstance(project)
-      if (!backupManager.isDeviceSupported(serialNumber)) {
-        project.showDialog(message("error.device.not.supported"))
-        return@launch
-      }
-      val isCompatible = actionHelper.checkCompatibleApps(project, serialNumber)
-      if (!isCompatible) {
-        project.showDialog(message("error.applications.not.installed"))
-        return@launch
-      }
-      withContext(Dispatchers.EDT) {
-        val file =
-          (config as? Config.File)?.path ?: backupManager.chooseRestoreFile() ?: return@withContext
-        backupManager.restoreModal(serialNumber, file, RESTORE_APP_ACTION, true)
-      }
+    if (ok) {
+      val file = (config as? Config.File)?.path ?: backupManager.chooseRestoreFile() ?: return
+      backupManager.restoreModal(serialNumber, file, RESTORE_APP_ACTION, true)
     }
   }
 

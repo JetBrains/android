@@ -58,7 +58,6 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.ide.progress.ModalTaskOwner
 import com.intellij.platform.ide.progress.TaskCancellation.Companion.cancellable
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
-import com.intellij.platform.util.progress.SequentialProgressReporter
 import com.intellij.platform.util.progress.reportSequentialProgress
 import java.nio.file.Path
 import kotlin.io.path.pathString
@@ -412,10 +411,6 @@ internal constructor(
     val applicationId: String,
     val appIdToBackupEnabledMap: Map<String, Boolean>,
   )
-}
-
-private fun SequentialProgressReporter.onStep(step: Step) {
-  nextStep(step.step * 100 / step.totalSteps, step.text)
 }
 
 private val ProcessHandler.applicationId: String?

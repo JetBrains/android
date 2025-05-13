@@ -33,8 +33,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.TestActionEvent
 import java.nio.file.Path
@@ -44,6 +46,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
+@RunsInEdt
 @RunWith(JUnit4::class)
 class RestoreAppActionTest {
 
@@ -64,6 +67,7 @@ class RestoreAppActionTest {
       WaitForIndexRule(projectRule),
       FlagRule(StudioFlags.BACKUP_ENABLED, true),
       ProjectServiceRule(projectRule, BackupManager::class.java, fakeBackupManager),
+      EdtRule(),
       temporaryFolder,
     )
 

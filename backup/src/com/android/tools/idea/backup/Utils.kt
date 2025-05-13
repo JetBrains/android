@@ -16,12 +16,14 @@
 
 package com.android.tools.idea.backup
 
+import com.android.backup.BackupProgressListener.Step
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.platform.util.progress.SequentialProgressReporter
 import java.nio.file.Path
 import kotlin.io.path.pathString
 import kotlin.io.path.relativeToOrSelf
@@ -50,3 +52,7 @@ internal fun Project.findModule(applicationId: String) =
 
 internal fun Project.findHolderModule(applicationId: String) =
   findModule(applicationId)?.getModuleSystem()?.getHolderModule()
+
+fun SequentialProgressReporter.onStep(step: Step) {
+  nextStep(step.step * 100 / step.totalSteps, step.text)
+}
