@@ -90,7 +90,7 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
     shortDescription = "jcenter is a deprecated property",
     description =
       """
-      Starting with version 9.0, Android Gradle Plugin will no longer support jcenter.
+      Starting with version 9.0, Gradle will no longer support jcenter.
       Usages of jcenter() need to be replaced with mavenCentral().
     """.trimIndent(),
     readMoreUrl = ReadMoreUrlRedirect("jcenter-end-of-service")
