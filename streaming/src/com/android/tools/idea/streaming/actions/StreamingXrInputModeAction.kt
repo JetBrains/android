@@ -22,7 +22,6 @@ import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 
 /** Sets an input mode for an XR AVD. */
@@ -34,9 +33,6 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     if (state) {
       getXrInputController(event)?.inputMode = inputMode
-      val displayView = getDisplayView(event) ?: return
-      event.project?.service<HardwareInputStateStorage>()?.setHardwareInputEnabled(displayView.deviceId, false)
-      displayView.hardwareInputStateChanged(event, false)
     }
   }
 
@@ -50,6 +46,7 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
     event.presentation.enableRichTooltip(this)
   }
 
+  class Interaction : StreamingXrInputModeAction(XrInputMode.INTERACTION)
   class HandTracking : StreamingXrInputModeAction(XrInputMode.HAND)
   class EyeTracking : StreamingXrInputModeAction(XrInputMode.EYE)
   class ViewDirection : StreamingXrInputModeAction(XrInputMode.VIEW_DIRECTION)

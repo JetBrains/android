@@ -24,8 +24,6 @@ import com.android.emulator.control.Velocity
 import com.android.emulator.control.XrOptions
 import com.android.emulator.control.XrOptions.Environment.forNumber
 import com.android.tools.idea.protobuf.Empty
-import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
-import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.getNormalizedScrollAmount
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
@@ -206,19 +204,13 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
 internal class EmulatorXrInputControllerService(project: Project): Disposable {
 
   private val xrControllers = ConcurrentMap<EmulatorController, EmulatorXrInputController>()
-  private val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
 
   fun getXrInputController(emulator: EmulatorController): EmulatorXrInputController {
     return xrControllers.computeIfAbsent(emulator) {
       Disposer.register(emulator) {
         xrControllers.remove(emulator)
       }
-      val emulatorXrInputController = EmulatorXrInputController(emulator)
-      if (emulatorXrInputController.inputMode == XrInputMode.HARDWARE) {
-        hardwareInputStateStorage.setHardwareInputEnabled(DeviceId.ofEmulator(emulator.emulatorId), true)
-      }
-
-      return@computeIfAbsent emulatorXrInputController
+      return@computeIfAbsent EmulatorXrInputController(emulator)
     }
   }
 

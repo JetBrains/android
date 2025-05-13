@@ -321,7 +321,7 @@ abstract class AbstractDisplayView(
   }
 
   protected fun isHardwareInputEnabled(): Boolean =
-      hardwareInputStateStorage.isHardwareInputEnabled(deviceId)
+      hardwareInputStateStorage.isHardwareInputEnabled(deviceId) && xrInputController?.isMouseUsedForNavigation() != true
 
   final override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
     if (!isHardwareInputEnabled()) {

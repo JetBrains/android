@@ -36,7 +36,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.actions.FloatingXrToolbarState
-import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
 import com.android.tools.idea.streaming.core.SplitPanel
@@ -407,18 +406,16 @@ class EmulatorToolWindowPanelTest {
 
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
     val modes = mapOf(
+      "Interact with Apps" to XrInputMode.INTERACTION,
       "Hand Tracking" to XrInputMode.HAND,
       "Eye Tracking" to XrInputMode.EYE,
-      "Hardware Input" to XrInputMode.HARDWARE,
       "View Direction" to XrInputMode.VIEW_DIRECTION,
       "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
       "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
     )
-    val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
     for ((actionName, mode) in modes) {
       fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == actionName })
       assertThat(xrInputController.inputMode).isEqualTo(mode)
-      assertThat(hardwareInputStateStorage.isHardwareInputEnabled(emulatorView.deviceId)).isEqualTo(mode == XrInputMode.HARDWARE)
     }
 
     val button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Home" }
@@ -476,7 +473,7 @@ class EmulatorToolWindowPanelTest {
     val testCases = mapOf(
       XrInputMode.HAND to "xr_hand_event",
       XrInputMode.EYE to "xr_eye_event",
-      XrInputMode.HARDWARE to "mouse_event",
+      XrInputMode.INTERACTION to "mouse_event",
     )
     var streamInputCall: GrpcCallRecord? = null
     for ((inputMode, expectedEvent) in testCases) {
@@ -569,8 +566,8 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { x: -1.0 y: -1.0 }")
 
     expandFloatingToolbar()
-    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Hardware Input" })
-    // Switching to Hardware Input resets state of the navigation keys.
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Interact with Apps" })
+    // Switching to Interact with Apps resets state of the navigation keys.
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { }")
     fakeUi.keyboard.release(VK_A)
     fakeUi.keyboard.release(VK_Q)

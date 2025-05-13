@@ -17,7 +17,6 @@ package com.android.tools.idea.streaming.device.xr
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
-import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.getNormalizedScrollAmount
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceController.XrEnvironmentListener
@@ -177,12 +176,7 @@ internal class DeviceXrInputControllerService(project: Project): Disposable {
       Disposer.register(deviceClient) {
         xrControllers.remove(deviceClient)
       }
-      val xrInputController = DeviceXrInputController(deviceClient)
-      if (xrInputController.inputMode == XrInputMode.HARDWARE) {
-        hardwareInputStateStorage.setHardwareInputEnabled(DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), true)
-      }
-
-      return@computeIfAbsent xrInputController
+      return@computeIfAbsent DeviceXrInputController(deviceClient)
     }
   }
 

@@ -67,7 +67,7 @@ internal abstract class AbstractXrInputController : Disposable {
     }
 
   @Volatile var inputMode: XrInputMode =
-      if (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) XrInputMode.HAND else XrInputMode.HARDWARE
+      if (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) XrInputMode.HAND else XrInputMode.INTERACTION
     @UiThread set(value) {
       if (field != value) {
         if (!areNavigationKeysEnabled(value)) {
@@ -330,7 +330,7 @@ internal abstract class AbstractXrInputController : Disposable {
 
   protected abstract fun sendVelocityUpdate(newMask: Int, oldMask: Int)
 
-  protected fun isMouseUsedForNavigation(): Boolean {
+  fun isMouseUsedForNavigation(): Boolean {
     return when (inputMode) {
       XrInputMode.VIEW_DIRECTION, XrInputMode.LOCATION_IN_SPACE_XY, XrInputMode.LOCATION_IN_SPACE_Z -> true
       else -> false
@@ -387,8 +387,8 @@ internal enum class XrInputMode {
   HAND,
   /** Mouse is used to interact with running apps simulating eye tracking. */
   EYE,
-  /** Mouse and keyboard events are transparently forwarded to the device. */
-  HARDWARE,
+  /** Mouse and keyboard events are used to interact with running apps. */
+  INTERACTION,
   /** Relative mouse coordinates control view direction. */
   VIEW_DIRECTION,
   /** Relative mouse coordinates control location in x-y plane. Mouse wheel controls moving forward and back. */
