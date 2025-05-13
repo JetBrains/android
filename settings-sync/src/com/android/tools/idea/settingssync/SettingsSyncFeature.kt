@@ -58,6 +58,8 @@ class SettingsSyncFeature : LoginFeature {
 
   override val isAvailable: Boolean = StudioFlags.SETTINGS_SYNC_ENABLED.get()
 
+  override val activeUserSwitchRequired: Boolean = false
+
   override val onboardingWizardEntry: LoginFeature.OnboardingWizardEntry =
     object : LoginFeature.OnboardingWizardEntry {
       override val icon: Icon = StudioIllustrations.Common.GOOGLE_LOGO
