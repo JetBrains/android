@@ -50,7 +50,7 @@ jvm_library(
     "//android/gradle-dsl",
     "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
     "//android/jps-model",
-    "//android/project-system:projectSystem",
+    "//android/project-system",
     "//android/project-system-gradle:projectSystem-gradle",
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "//android/android-test-framework:testFramework_test_lib",

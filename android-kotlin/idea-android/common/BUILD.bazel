@@ -25,7 +25,7 @@ jvm_library(
     "//android/android:core",
     "//android/gradle-dsl",
     "//android/jps-model",
-    "//android/project-system:projectSystem",
+    "//android/project-system",
     "//android/render-resources",
     "//plugins/gradle:gradle-common",
     "//java/java-impl:impl",

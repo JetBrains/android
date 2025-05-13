@@ -29,7 +29,7 @@ jvm_library(
     "//android/android:core",
     "//android/jps-model",
     "//android/nav/safeargs/common",
-    "//android/project-system:projectSystem",
+    "//android/project-system",
     "//android/render-resources",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//java/java-analysis-impl:analysis-impl",

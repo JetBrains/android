@@ -20,7 +20,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/android-lang:lang",
-    "//android/project-system:projectSystem",
+    "//android/project-system",
     "//java/openapi:java",
     "//java/java-analysis-impl:analysis-impl",
     "//java/java-frontback-psi-api:frontback-psi",
