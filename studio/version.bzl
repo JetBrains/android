@@ -2,6 +2,6 @@
 visibility(["//tools/adt/idea/studio", "//tools/vendor/google/asfp/studio", "//tools/vendor/google/aswb"])
 
 STUDIO_CODENAME = "Narwhal"
-STUDIO_VERSION = "Canary"
-STUDIO_MICRO_PATCH = "1.10"
-STUDIO_RELEASE_NUMBER = 10
+STUDIO_VERSION = "Beta"
+STUDIO_MICRO_PATCH = "1.11"
+STUDIO_RELEASE_NUMBER = 1
