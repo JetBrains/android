@@ -227,14 +227,14 @@ abstract class AbstractDisplayView(
     fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
   }
 
-  internal fun showLongRunningOperationIndicator(text: String) {
+  fun showLongRunningOperationIndicator(text: String) {
     findLoadingPanel()?.apply {
       setLoadingText(text)
       startLoading()
     }
   }
 
-  internal fun hideLongRunningOperationIndicator() {
+  fun hideLongRunningOperationIndicator() {
     findLoadingPanel()?.stopLoading()
   }
 
