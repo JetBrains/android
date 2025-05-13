@@ -108,6 +108,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import junit.framework.TestCase;
 import kotlin.Unit;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -569,7 +570,7 @@ public class AndroidGradleTests {
    * Creates a gradle wrapper for use in tests under the {@code projectRoot}.
    */
   public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
-    GradleWrapper wrapper = GradleWrapper.create(projectRoot, null);
+    GradleWrapper wrapper = GradleWrapper.create(projectRoot, GradleVersion.version(gradleVersion), null);
     File path = GradleProjectSystemUtil.findEmbeddedGradleDistributionFile(gradleVersion);
     if (path != null) {
       assertAbout(file()).that(path).named("Gradle distribution path").isFile();
