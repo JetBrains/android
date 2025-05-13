@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.stats
 
-import com.android.ddmlib.IDevice
+import com.intellij.openapi.ui.DialogWrapper.OK_EXIT_CODE
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettings.optedIn
 import com.android.tools.analytics.CommonMetricsData
@@ -34,11 +34,9 @@ import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.stats.ConsentDialog.Companion.showConsentDialogIfNeeded
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
-import com.google.common.base.Strings
 import com.google.common.hash.Hashing
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
-import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DisplayDetails
 import com.google.wireless.android.sdk.stats.IdePlugin
 import com.google.wireless.android.sdk.stats.IdePluginInfo
@@ -355,24 +353,32 @@ object AndroidStudioUsageTracker {
 
   @VisibleForTesting
   fun shouldRequestUserSentiment(): Boolean {
-    if (!optedIn) {
+    // If showing the benchmark survey, we can also target non-opted in users
+    if (!optedIn && !showBenchmarkSurvey()) {
       return false
     }
+
+    val popupSentimentQuestionFrequency = AnalyticsSettings.popSentimentQuestionFrequency
+                                          ?: ServerFlagService.instance.getInt("analytics/settings/benchmark/question.frequency.days",
+                                                                               AnalyticsSettings.daysInYear())
 
     val lastSentimentAnswerDate = AnalyticsSettings.lastSentimentAnswerDate
     val lastSentimentQuestionDate = AnalyticsSettings.lastSentimentQuestionDate
 
     val now = AnalyticsSettings.dateProvider.now()
 
-    if (!exceedRefreshDeadline(now, lastSentimentAnswerDate)) {
+    if (!exceedRefreshDeadline(now, lastSentimentAnswerDate, popupSentimentQuestionFrequency)) {
       return false
     }
 
     // If we should ask the question based on dates, and asked but not answered then we should always prompt, even if this is
     // not the magic date for that user.
+    val daysToWaitForRequestingSentimentAgain = ServerFlagService.instance.getInt("analytics/surveys/benchmark/retry.interval.days",
+                                                                                  DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN)
+
     if (lastSentimentQuestionDate != null) {
       val startOfWaitForRequest =
-        daysFromNow(now, -DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN)
+        daysFromNow(now, -daysToWaitForRequestingSentimentAgain)
       return !lastSentimentQuestionDate.after(startOfWaitForRequest)
     }
 
@@ -386,7 +392,7 @@ object AndroidStudioUsageTracker {
         Hashing.farmHashFingerprint64()
           .hashString(AnalyticsSettings.userId, Charsets.UTF_8)
           .asLong()
-      ) % AnalyticsSettings.popSentimentQuestionFrequency
+      ) % popupSentimentQuestionFrequency
     return daysSinceJanFirst == offset
   }
 
@@ -401,17 +407,33 @@ object AndroidStudioUsageTracker {
         .debounce(timeout = IDLE_TIME_BEFORE_SHOWING_DIALOG.milliseconds)
         .first {
           val now = AnalyticsSettings.dateProvider.now()
-          val survey = ServerFlagService.instance.getProtoOrNull(SATISFACTION_SURVEY, DEFAULT_SATISFACTION_SURVEY)
-          val followupSurvey = ServerFlagService.instance.getProtoOrNull(FOLLOWUP_SURVEY, DEFAULT_SATISFACTION_SURVEY)
 
-          val dialog = survey?.let { createDialog(it, followupSurvey = followupSurvey) }
-                       ?: SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, LegacyChoiceLogger, followupSurvey)
+          if (showBenchmarkSurvey()) {
+            val dialog = BenchmarkSurveyDialog()
+            val ret = dialog.showAndGet()
 
-          dialog.show()
+            AnalyticsSettings.lastSentimentQuestionDate = now
+            AnalyticsSettings.lastSentimentAnswerDate = if (ret) {
+              now
+            }
+            else {
+              null
+            }
+            AnalyticsSettings.saveSettings()
+          }
+          else {
+            val survey = ServerFlagService.instance.getProtoOrNull(SATISFACTION_SURVEY, DEFAULT_SATISFACTION_SURVEY)
+            val followupSurvey = ServerFlagService.instance.getProtoOrNull(FOLLOWUP_SURVEY, DEFAULT_SATISFACTION_SURVEY)
 
-          AnalyticsSettings.lastSentimentQuestionDate = now
-          AnalyticsSettings.lastSentimentAnswerDate = now
-          AnalyticsSettings.saveSettings()
+            val dialog = survey?.let { createDialog(it, followupSurvey = followupSurvey) }
+                         ?: SingleChoiceDialog(DEFAULT_SATISFACTION_SURVEY, LegacyChoiceLogger, followupSurvey)
+
+            dialog.show()
+
+            AnalyticsSettings.lastSentimentQuestionDate = now
+            AnalyticsSettings.lastSentimentAnswerDate = now
+            AnalyticsSettings.saveSettings()
+          }
           true
         }
     }
@@ -479,8 +501,8 @@ object AndroidStudioUsageTracker {
     }
   }
 
-  private fun exceedRefreshDeadline(now: Date, date: Date?): Boolean {
-    return !isBeforeDayCount(now, date, -AnalyticsSettings.popSentimentQuestionFrequency)
+  private fun exceedRefreshDeadline(now: Date, date: Date?, days: Int): Boolean {
+    return !isBeforeDayCount(now, date, -days)
   }
 
   private fun isBeforeDayCount(now: Date, date: Date?, days: Int): Boolean {
@@ -494,6 +516,11 @@ object AndroidStudioUsageTracker {
     calendar.time = now
     calendar.add(Calendar.DATE, days)
     return calendar.time
+  }
+
+  // Do not show the browser-based benchmark survey for ASwB
+  private fun showBenchmarkSurvey(): Boolean {
+    return StudioFlags.BENCHMARK_SURVEY_ENABLED.get() && UsageTracker.ideBrand != AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE
   }
 
   class UsageTrackerAppLifecycleListener : AppLifecycleListener {

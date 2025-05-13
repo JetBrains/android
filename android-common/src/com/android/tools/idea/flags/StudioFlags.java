@@ -2587,6 +2587,17 @@ public final class StudioFlags {
       false);
   // endregion Wifi 2.0
 
+  // region Benchmark Survey
+  private static final FlagGroup BENCHMARK_SURVEY = new FlagGroup(FLAGS, "benchmark.survey", "Benchmark Survey");
+  public static final Flag<Boolean> BENCHMARK_SURVEY_ENABLED =
+    new BooleanFlag(
+      BENCHMARK_SURVEY,
+      "enable",
+      "Enable Benchmark Survey",
+      "Enable the benchmark survey when requesting user satisfaction",
+      false);
+  // endregion Wifi 2.0
+
   private StudioFlags() { }
 
   private static Boolean isUnitTestMode() {
