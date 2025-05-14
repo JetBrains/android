@@ -54,7 +54,6 @@ public class SyncIssuesReporter {
   public SyncIssuesReporter() {
     this(
       new UnresolvedDependenciesReporter(),
-      new UnsupportedGradleReporter(),
       new BuildToolsTooLowReporter(),
       new MissingSdkPackageSyncIssuesReporter(),
       new MinSdkInManifestIssuesReporter(),

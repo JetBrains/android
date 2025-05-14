@@ -334,16 +334,13 @@ public class SyncIssuesReporterTest {
     assertThat(strategy).isInstanceOf(UnhandledIssuesReporter.class);
 
     Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
-    assertThat(strategies).hasSize(17);
+    assertThat(strategies).hasSize(16);
 
     strategy = strategies.get(TYPE_COMPILE_SDK_VERSION_TOO_HIGH);
     assertThat(strategy).isInstanceOf(CompileSdkVersionTooHighReporter.class);
 
     strategy = strategies.get(TYPE_UNRESOLVED_DEPENDENCY);
     assertThat(strategy).isInstanceOf(UnresolvedDependenciesReporter.class);
-
-    strategy = strategies.get(TYPE_GRADLE_TOO_OLD);
-    assertThat(strategy).isInstanceOf(UnsupportedGradleReporter.class);
 
     strategy = strategies.get(TYPE_BUILD_TOOLS_TOO_LOW);
     assertThat(strategy).isInstanceOf(BuildToolsTooLowReporter.class);
