@@ -16,7 +16,6 @@
   - name: intellij.android.nav.editor.gradle
   - name: intellij.android.preview-designer
   - name: intellij.android.wear-designer
-  - name: intellij.android.motion-editor
   - name: intellij.android.visual-lint
   - name: intellij.android.design-plugin.descriptor
 - name: lib/eclipse-layout-kernel.jar
