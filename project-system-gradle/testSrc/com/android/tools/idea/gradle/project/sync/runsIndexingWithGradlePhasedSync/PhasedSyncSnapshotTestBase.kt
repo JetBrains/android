@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.runsGradlePhasedSync
+package com.android.tools.idea.gradle.project.sync.runsIndexingWithGradlePhasedSync
 
 import com.android.builder.model.v2.models.Versions
 import com.android.testutils.TestUtils

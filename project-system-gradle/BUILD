@@ -321,7 +321,7 @@ iml_module(
             ],
         },
         "runs_gradle_phased_sync": {
-            "test_filter": ".runsGradlePhasedSync",
+            "test_filter": ".runsIndexingWithGradlePhasedSync",
             "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
             "tags": [
                 "cpu:4",
