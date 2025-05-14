@@ -57,28 +57,31 @@ class InsightBottomPanelTest {
   }
 
   @Test
-  fun `suggest a fix button state depends on generated insight`() = runBlocking {
-    createInsightBottomPanel()
-    val insight =
-      AiInsight(
-        rawInsight =
-          """
+  fun `suggest a fix button changes presentation based on the availability of a suggested fix`() =
+    runBlocking {
+      createInsightBottomPanel()
+      val insight =
+        AiInsight(
+          rawInsight =
+            """
         This is an insight.
         
         The fix should likely be in AndroidManifest.xml.
       """
-            .trimIndent()
-      )
-    currentInsightFlow.value = LoadingState.Ready(insight)
+              .trimIndent()
+        )
+      currentInsightFlow.value = LoadingState.Ready(insight)
 
-    val button = fakeUi.findComponent<JButton> { it.name == "suggest_a_fix_button" }!!
-    waitForCondition(5.seconds) { button.text == "Suggest a fix" }
-    assertThat(button.isEnabled).isTrue()
+      val button = fakeUi.findComponent<JButton> { it.name == "suggest_a_fix_button" }!!
+      waitForCondition(5.seconds) { button.text == "Suggest a fix" }
+      assertThat(button.isEnabled).isTrue()
+      assertThat(button.isBorderPainted).isTrue()
 
-    currentInsightFlow.value = LoadingState.Ready(AiInsight("This is an insight"))
-    waitForCondition(5.seconds) { button.text == "No fix available" }
-    assertThat(button.isEnabled).isFalse()
-  }
+      currentInsightFlow.value = LoadingState.Ready(AiInsight("This is an insight"))
+      waitForCondition(5.seconds) { button.text == "No suggested fix available." }
+      assertThat(button.isBorderPainted).isFalse()
+      assertThat(button.isEnabled).isFalse()
+    }
 
   private fun createInsightBottomPanel() =
     InsightBottomPanel(

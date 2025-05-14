@@ -24,7 +24,6 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
 import com.android.tools.idea.insights.ai.transform.CodeTransformation
 import com.android.tools.idea.insights.ai.transform.CodeTransformationDeterminerImpl
 import com.android.tools.idea.insights.ai.transform.CodeTransformationImpl
-import com.android.tools.idea.insights.ai.transform.TransformDiffViewerEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
@@ -41,10 +40,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 private const val SUGGEST_A_FIX = "Suggest a fix"
-private const val SUGGEST_A_FIX_DISABLED = "No fix available"
+private const val SUGGEST_A_FIX_DISABLED = "No suggested fix available."
 
 class InsightBottomPanel(
   controller: AppInsightsProjectLevelController,
@@ -64,22 +62,14 @@ class InsightBottomPanel(
       name = "suggest_a_fix_button"
       isEnabled = false
       isVisible = StudioFlags.SUGGEST_A_FIX.get()
+      isOpaque = false
     }
 
   private var currentTransformation: CodeTransformation? = null
 
   init {
     if (StudioFlags.SUGGEST_A_FIX.get()) {
-      fixInsightButton.addActionListener {
-        fixInsightButton.isEnabled = false
-        scope.launch {
-          currentTransformation?.apply()?.collect {
-            if (it == TransformDiffViewerEvent.CLOSED) {
-              withContext(Dispatchers.EDT) { fixInsightButton.isEnabled = true }
-            }
-          }
-        }
-      }
+      fixInsightButton.addActionListener { scope.launch { currentTransformation?.apply() } }
       currentInsightFlow
         .onEach { insightState ->
           when (insightState) {
@@ -123,9 +113,11 @@ class InsightBottomPanel(
     if (transformation is CodeTransformationImpl) {
       fixInsightButton.isEnabled = true
       fixInsightButton.text = SUGGEST_A_FIX
+      fixInsightButton.isBorderPainted = true
     } else {
       fixInsightButton.isEnabled = false
       fixInsightButton.text = SUGGEST_A_FIX_DISABLED
+      fixInsightButton.isBorderPainted = false
     }
   }
 
