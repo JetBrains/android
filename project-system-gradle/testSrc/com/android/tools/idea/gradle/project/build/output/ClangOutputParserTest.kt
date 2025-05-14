@@ -656,7 +656,7 @@ class ClangOutputParserTest {
                    ^~~~~~~~~~~~~~
           """.trimIndent().normalizeSeparator())
       with((this as FileMessageEventImpl).result.filePosition) {
-        Truth.assertThat(file.path).isEqualTo("/usr/local/google/home/jeff/hello-world/native/source.h".normalizeSeparator())
+        Truth.assertThat(file!!.path).isEqualTo("/usr/local/google/home/jeff/hello-world/native/source.h".normalizeSeparator())
         // The following two numbers are one less than that from clang since Clang error output counts from 1 while Intellij counts from 0.
         Truth.assertThat(startLine).isEqualTo(11)
         Truth.assertThat(startColumn).isEqualTo(9)

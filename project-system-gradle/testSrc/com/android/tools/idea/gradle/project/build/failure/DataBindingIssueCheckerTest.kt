@@ -64,7 +64,7 @@ class DataBindingIssueCheckerTest {
     Truth.assertThat(resultIssue.quickFixes).hasSize(1)
     val link = resultIssue.quickFixes[0]
     Truth.assertThat(link).isInstanceOf(OpenFileWithLocationQuickFix::class.java)
-    Truth.assertThat((link as OpenFileWithLocationQuickFix).myFilePosition.file.absolutePath).isEqualTo(expectedPath)
+    Truth.assertThat((link as OpenFileWithLocationQuickFix).myFilePosition.file!!.absolutePath).isEqualTo(expectedPath)
   }
 
   @Test
@@ -104,8 +104,8 @@ class DataBindingIssueCheckerTest {
      """.trimIndent())
     Truth.assertThat(resultIssue.quickFixes).hasSize(2)
     Truth.assertThat(resultIssue.quickFixes[0]).isInstanceOf(OpenFileWithLocationQuickFix::class.java)
-    Truth.assertThat((resultIssue.quickFixes[0] as OpenFileWithLocationQuickFix).myFilePosition.file.absolutePath).isEqualTo(expectedPath1)
+    Truth.assertThat((resultIssue.quickFixes[0] as OpenFileWithLocationQuickFix).myFilePosition.file!!.absolutePath).isEqualTo(expectedPath1)
     Truth.assertThat(resultIssue.quickFixes[1]).isInstanceOf(OpenFileWithLocationQuickFix::class.java)
-    Truth.assertThat((resultIssue.quickFixes[1] as OpenFileWithLocationQuickFix).myFilePosition.file.absolutePath).isEqualTo(expectedPath2)
+    Truth.assertThat((resultIssue.quickFixes[1] as OpenFileWithLocationQuickFix).myFilePosition.file!!.absolutePath).isEqualTo(expectedPath2)
   }
 }
