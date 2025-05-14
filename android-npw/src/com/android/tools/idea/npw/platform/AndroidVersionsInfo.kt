@@ -25,7 +25,6 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
-import com.android.sdklib.SystemImageTags
 import com.android.sdklib.getFullApiName
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
@@ -86,7 +85,7 @@ class AndroidVersionsInfo(
     val minSdkLevel = minSdkLevel.coerceAtLeast(formFactor.minOfflineApiLevel)
     val maxSdkLevel = if (formFactor.hasUpperLimitForMinimumSdkSelection) formFactor.maxOfflineApiLevel else Int.MAX_VALUE
     return knownTargetVersions.filter {
-      formFactor.isAvailable(minSdkLevel .. maxSdkLevel, it.minApiLevel) || it.isPreview
+      (formFactor.isSupported(it.minApiLevel) && it.minApiLevel in minSdkLevel..maxSdkLevel) || it.isPreview
     }.toMutableList()
   }
 
@@ -135,8 +134,7 @@ class AndroidVersionsInfo(
       var existingApiLevel = -1
       var prevInsertedApiLevel = -1
       var index = -1
-      val supportedOfflineApiLevels = formFactor.minOfflineApiLevel.coerceAtLeast(minSdkLevel)..formFactor.maxOfflineApiLevel
-      supportedOfflineApiLevels.filterNot { formFactor.isSupported(null, it) }.forEach { apiLevel ->
+      for (apiLevel in formFactor.minOfflineApiLevel.coerceAtLeast(minSdkLevel)..formFactor.maxOfflineApiLevel) {
         while (apiLevel > existingApiLevel) {
           existingApiLevel = if (++index < versionItemList.size) versionItemList[index].minApiLevel else Integer.MAX_VALUE
         }
@@ -254,23 +252,12 @@ private fun getPackageList(requestedPaths: Collection<String>,
 }
 
 private fun filterPkgDesc(p: RepoPackage, formFactor: FormFactor, minSdkLevel: Int): Boolean =
-  p.typeDetails is ApiDetailsType && doFilter(formFactor, minSdkLevel .. Int.MAX_VALUE, getTag(p), p.getFeatureLevel())
-
-private fun doFilter(formFactor: FormFactor, sdkLevelRange: IntRange, tag: IdDisplay?, targetSdkLevel: Int): Boolean =
-  formFactor.isSupported(tag, targetSdkLevel) && targetSdkLevel in sdkLevelRange
+  p.typeDetails is ApiDetailsType
+      && p.getFeatureLevel() >= minSdkLevel
+      && formFactor.isSupported(p.getFeatureLevel())
+      && formFactor.isSupported(getTag(p))
 
 private fun RepoPackage.getFeatureLevel(): Int = getAndroidVersion(this).featureLevel
-
-private fun FormFactor.isAvailable(sdkLevelRange: IntRange, targetSdkLevel: Int): Boolean =
-  doFilter(this, sdkLevelRange, defaultTag(), targetSdkLevel)
-
-private fun FormFactor.defaultTag() = when (this) {
-  FormFactor.MOBILE -> SystemImageTags.DEFAULT_TAG
-  FormFactor.WEAR -> SystemImageTags.WEAR_TAG
-  FormFactor.TV -> SystemImageTags.ANDROID_TV_TAG
-  FormFactor.AUTOMOTIVE -> SystemImageTags.AUTOMOTIVE_TAG
-  FormFactor.XR -> SystemImageTags.XR_TAG
-}
 
 private fun getAndroidVersion(repoPackage: RepoPackage): AndroidVersion = (repoPackage.typeDetails as ApiDetailsType).androidVersion
 

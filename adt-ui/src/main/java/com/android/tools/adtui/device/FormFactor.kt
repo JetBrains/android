@@ -63,7 +63,7 @@ enum class FormFactor(
   val maxOfflineApiLevel: Int,
   val icon: Icon,
   val largeIcon: Icon,
-  private val apiTags: List<IdDisplay> = listOf(),
+  private val apiTags: List<IdDisplay>,
 ) {
   MOBILE(
     "Mobile",
@@ -118,12 +118,11 @@ enum class FormFactor(
 
   override fun toString(): String = displayName
 
-  fun isSupported(tag: IdDisplay?, targetSdkLevel: Int): Boolean {
-    if (this == MOBILE && targetSdkLevel == KITKAT_WATCH) {
-      return false
-    }
-    return apiTags.isEmpty() || tag in apiTags
-  }
+  fun isSupported(tag: IdDisplay?): Boolean =
+    apiTags.isEmpty() || tag in apiTags
+
+  fun isSupported(targetSdkLevel: Int): Boolean =
+    !(this == MOBILE && targetSdkLevel == KITKAT_WATCH)
 
   // Currently all form factors have emulators, but we keep this method to ease introduction of new
   // form factors

@@ -31,30 +31,32 @@ import java.awt.geom.Arc2D.PIE
 class FormFactorTest {
   @Test
   fun mobileSupportedOnLollipopApi() {
-    assertTrue(MOBILE.isSupported(SystemImageTags.DEFAULT_TAG, LOLLIPOP))
+    assertTrue(MOBILE.isSupported(LOLLIPOP))
+    assertTrue(MOBILE.isSupported(SystemImageTags.DEFAULT_TAG))
   }
 
   @Test
   fun mobileNotSupportedOnAllowList() {
-    assertFalse(MOBILE.isSupported(SystemImageTags.WEAR_TAG, LOLLIPOP))
-    assertFalse(MOBILE.isSupported(null, LOLLIPOP))
+    assertFalse(MOBILE.isSupported(SystemImageTags.WEAR_TAG))
+    assertFalse(MOBILE.isSupported(null))
   }
 
   @Test
   fun mobileNotSupportedOnWatchApi() {
     // Tests that mobile is on the block-list for the watch API
-    assertFalse(MOBILE.isSupported(SystemImageTags.DEFAULT_TAG, KITKAT_WATCH))
+    assertFalse(MOBILE.isSupported(KITKAT_WATCH))
   }
 
   @Test
   fun automotiveSupportedOnPieApi() {
-    assertTrue(AUTOMOTIVE.isSupported(SystemImageTags.AUTOMOTIVE_TAG, PIE))
+    assertTrue(AUTOMOTIVE.isSupported(PIE))
+    assertTrue(AUTOMOTIVE.isSupported(SystemImageTags.AUTOMOTIVE_TAG))
   }
 
   @Test
   fun automotiveNotSupportedOnAllowList() {
-    assertFalse(AUTOMOTIVE.isSupported(SystemImageTags.WEAR_TAG, PIE))
-    assertFalse(AUTOMOTIVE.isSupported(null, LOLLIPOP))
+    assertFalse(AUTOMOTIVE.isSupported(SystemImageTags.WEAR_TAG))
+    assertFalse(AUTOMOTIVE.isSupported(null))
   }
 
   @Test
