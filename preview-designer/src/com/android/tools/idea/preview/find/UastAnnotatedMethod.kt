@@ -33,7 +33,7 @@ import org.jetbrains.uast.UMethod
  */
 class UastAnnotatedMethod(
   private val method: UMethod,
-  private val previewParameterAnnotationFqn: String?,
+  private val previewParameterAnnotationFqns: Set<String>,
 ) : AnnotatedMethod<SmartPsiElementPointer<PsiElement>> {
   override val name: String
     get() = method.name
@@ -48,7 +48,7 @@ class UastAnnotatedMethod(
     get() =
       method.uastParameters.mapNotNull { parameter ->
         parameter.uAnnotations
-          .firstOrNull { previewParameterAnnotationFqn == it.qualifiedName }
+          .firstOrNull { it.qualifiedName in previewParameterAnnotationFqns }
           ?.let { anno ->
             val name = (parameter.javaPsi as PsiParameter).name
             name to UastAnnotationAttributesProvider(anno, emptyMap())
