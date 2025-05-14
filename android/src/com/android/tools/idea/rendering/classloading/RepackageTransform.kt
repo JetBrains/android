@@ -83,7 +83,9 @@ class RepackageTransform(delegate: ClassVisitor,
                          remappedPrefix: String) :
   ClassRemapper(delegate,
                 RepackageRemapper(packagePrefixes.map { it.fromPackageNameToBinaryName() },
-                                  remappedPrefix.fromPackageNameToBinaryName())), ClassVisitorUniqueIdProvider {
+                                  remappedPrefix.fromPackageNameToBinaryName())
+                  .chainWith(PreviewParameterProviderRemapper())
+  ), ClassVisitorUniqueIdProvider {
   override val uniqueId: String = RepackageTransform::class.qualifiedName + "," + com.google.common.hash.Hashing.goodFastHash(64)
     .newHasher()
     .putString(packagePrefixes.joinToString(","), Charsets.UTF_8)

@@ -215,7 +215,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
     UastAnnotatedMethod(
       method = uMethod,
       // currently preview parameters are not supported for tile previews
-      previewParameterAnnotationFqn = null,
+      previewParameterAnnotationFqns = setOf(),
     )
   val nameHelper =
     AnnotationPreviewNameHelper.create(this, readAction { annotatedMethod.name }) {
