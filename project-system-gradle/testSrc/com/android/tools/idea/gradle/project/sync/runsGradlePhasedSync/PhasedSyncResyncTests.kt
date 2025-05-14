@@ -69,7 +69,7 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
     val preparedProject = projectRule.prepareTestProject(testProject)
     preparedProject.open({ it.copy(expectedSyncIssues = testProject.expectedSyncIssues) }) { project: Project ->
       val firstFullSync = project.dumpModules(isAndroidByPath)
-      project.requestSyncAndWait(ignoreSyncIssues = testProject.expectedSyncIssues)
+      project.requestSyncAndWait(ignoreSyncIssues = testProject.expectedSyncIssues, waitForIndexes = false)
       val secondFullSync = project.dumpModules(isAndroidByPath)
       val secondIntermediateSync = intermediateDump.copy()
       Truth.assertWithMessage("Comparing full sync states")

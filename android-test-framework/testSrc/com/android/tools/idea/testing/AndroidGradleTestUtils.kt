@@ -2516,7 +2516,8 @@ private fun Project.verifyModelsAttached() {
 @JvmOverloads
 fun Project.requestSyncAndWait(
   ignoreSyncIssues: Set<Int> = emptySet(),
-  syncRequest: GradleSyncInvoker.Request = GradleSyncInvoker.Request.testRequest()
+  syncRequest: GradleSyncInvoker.Request = GradleSyncInvoker.Request.testRequest(),
+  waitForIndexes: Boolean = true,
 ) {
   AndroidGradleTests.syncProject(this, syncRequest) {
     AndroidGradleTests.checkSyncStatus(this, it, ignoreSyncIssues)
@@ -2530,7 +2531,9 @@ fun Project.requestSyncAndWait(
       AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(this)
     }
   }
-  IndexingTestUtil.waitUntilIndexesAreReady(this);
+  if (waitForIndexes) {
+    IndexingTestUtil.waitUntilIndexesAreReady(this)
+  }
 }
 
 /**
