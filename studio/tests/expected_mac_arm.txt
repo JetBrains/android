@@ -3054,6 +3054,7 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/opencensus-contrib-http-u
 Android Studio Preview.app/Contents/plugins/gemini/lib/proto-models-1.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/wire-runtime-jvm-5.3.1.jar
 Android Studio Preview.app/Contents/plugins/gemini/resources/recorder-release-androidTest.apk
+Android Studio Preview.app/Contents/plugins/gemini/resources/journeys/images/clipart/cursor_large.png
 Android Studio Preview.app/Contents/plugins/git4insights/lib/git4insights.jar
 Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative.jar
 Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative.so.jar

@@ -3045,6 +3045,7 @@ android-studio/plugins/gemini/lib/opencensus-contrib-http-util-0.31.1.jar
 android-studio/plugins/gemini/lib/proto-models-1.0.jar
 android-studio/plugins/gemini/lib/wire-runtime-jvm-5.3.1.jar
 android-studio/plugins/gemini/resources/recorder-release-androidTest.apk
+android-studio/plugins/gemini/resources/journeys/images/clipart/cursor_large.png
 android-studio/plugins/git4insights/lib/git4insights.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.so.jar

@@ -742,6 +742,7 @@ studio_plugin(
     resources = {
         "resources": [
             "//tools/vendor/google/uiautomator-recorder:recorder-release-androidTest.apk",
+            "//tools/vendor/google/ml/aiplugin/android/journeys:journeys-art-resources-bundle",
         ],
     },
     visibility = ["//visibility:public"],
