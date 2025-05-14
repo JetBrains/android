@@ -18,6 +18,10 @@ package com.google.idea.blaze.base.bazel;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.lang.buildfile.language.semantics.RuleDefinition;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
+import com.google.idea.blaze.base.qsync.ProjectLoader;
+import com.google.idea.blaze.base.qsync.ProjectLoaderImpl;
+import com.intellij.openapi.project.Project;
+import java.util.Optional;
 
 /** Provides the bazel build system name string. */
 public class BazelBuildSystemProvider implements BuildSystemProvider {
@@ -32,6 +36,16 @@ public class BazelBuildSystemProvider implements BuildSystemProvider {
   @Override
   public BuildSystem getBuildSystem() {
     return buildSystem;
+  }
+
+  @Override
+  public ProjectLoader createProjectLoader(Project project) {
+    return new ProjectLoaderImpl(project);
+  }
+
+  @Override
+  public Optional<String> getQuerySyncDocumentationUrl() {
+    return Optional.empty();
   }
 
   @Override

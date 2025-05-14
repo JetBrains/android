@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.lang.buildfile.language.semantics.RuleDefinition;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
+import com.google.idea.blaze.base.qsync.ProjectLoader;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.fileTypes.ExactFileNameMatcher;
@@ -27,6 +28,7 @@ import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
@@ -68,6 +70,10 @@ public interface BuildSystemProvider {
   }
 
   BuildSystem getBuildSystem();
+
+  ProjectLoader createProjectLoader(Project project);
+
+  Optional<String> getQuerySyncDocumentationUrl();
 
   /**
    * Returns the default build system for this application. This should only be called in situations

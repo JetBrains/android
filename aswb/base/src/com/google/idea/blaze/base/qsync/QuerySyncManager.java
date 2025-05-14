@@ -26,13 +26,16 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.idea.blaze.base.bazel.BuildSystemProvider;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.scopes.SyncActionScopes;
+import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
+import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
 import com.google.idea.blaze.base.util.SaveUtil;
@@ -142,8 +145,10 @@ public class QuerySyncManager implements Disposable {
    * Returns a URL wth more information & help about query sync, or empty if no such URL is
    * available.
    */
-  public Optional<String> getQuerySyncUrl() {
-    return Optional.empty();
+  public final Optional<String> getQuerySyncUrl() {
+    return Optional
+      .ofNullable(BuildSystemProvider.getBuildSystemProvider(Blaze.getBuildSystemName(project)))
+      .flatMap(BuildSystemProvider::getQuerySyncDocumentationUrl);
   }
 
   protected ProjectLoader createProjectLoader(Project project) {

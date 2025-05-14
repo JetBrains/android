@@ -27,6 +27,7 @@ import com.google.idea.blaze.base.lang.buildfile.language.semantics.RuleDefiniti
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
+import com.google.idea.blaze.base.qsync.ProjectLoader;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
@@ -134,6 +135,16 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
   @Override
   public String getBinaryPath(Project project) {
     return inner().getBinaryPath(project);
+  }
+
+  @Override
+  public ProjectLoader createProjectLoader(Project project) {
+    return inner.createProjectLoader(project);
+  }
+
+  @Override
+  public Optional<String> getQuerySyncDocumentationUrl() {
+    return inner().getQuerySyncDocumentationUrl();
   }
 
   @Override
