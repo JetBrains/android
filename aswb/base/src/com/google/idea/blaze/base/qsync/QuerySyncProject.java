@@ -101,7 +101,6 @@ public class QuerySyncProject {
   private final RenderJarArtifactTracker renderJarArtifactTracker;
   private final AppInspectorArtifactTracker appInspectorArtifactTracker;
   private final DependencyTracker dependencyTracker;
-  private final RenderJarTracker renderJarTracker;
   private final AppInspectorTracker appInspectorTracker;
   private final ProjectQuerier projectQuerier;
   private final SnapshotBuilder snapshotBuilder;
@@ -129,7 +128,6 @@ public class QuerySyncProject {
     RenderJarArtifactTracker renderJarArtifactTracker,
     AppInspectorArtifactTracker appInspectorArtifactTracker,
     DependencyTracker dependencyTracker,
-    RenderJarTracker renderJarTracker,
     AppInspectorTracker appInspectorTracker,
     ProjectQuerier projectQuerier,
     SnapshotBuilder snapshotBuilder,
@@ -154,7 +152,6 @@ public class QuerySyncProject {
     this.renderJarArtifactTracker = renderJarArtifactTracker;
     this.appInspectorArtifactTracker = appInspectorArtifactTracker;
     this.dependencyTracker = dependencyTracker;
-    this.renderJarTracker = renderJarTracker;
     this.appInspectorTracker = appInspectorTracker;
     this.projectQuerier = projectQuerier;
     this.snapshotBuilder = snapshotBuilder;

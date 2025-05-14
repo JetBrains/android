@@ -24,7 +24,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystemProvider;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.section.Glob;
 import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection;
@@ -109,7 +108,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
                                      ArtifactTracker<BlazeContext> artifactTracker,
                                      RenderJarArtifactTracker renderJarArtifactTracker,
                                      AppInspectorArtifactTracker appInspectorArtifactTracker,
-                                     RenderJarTracker renderJarTracker,
                                      AppInspectorTracker appInspectorTracker,
                                      ProjectArtifactStore artifactStore,
                                      DependencyBuilder dependencyBuilder,
@@ -157,7 +155,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
           result.renderJarArtifactTracker(),
           result.appInspectorArtifactTracker(),
           result.dependencyTracker(),
-          result.renderJarTracker(),
           result.appInspectorTracker(),
           result.projectQuerier(),
           result.snapshotBuilder(),
@@ -215,7 +212,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
     ImmutableSet<String> handledRules = getHandledRuleKinds();
     Optional<BlazeVcsHandler> vcsHandler =
         Optional.ofNullable(BlazeVcsHandlerProvider.vcsHandlerForProject(project));
-    RenderJarBuilder renderJarBuilder = createRenderJarBuilder(workspaceRoot, buildSystem);
     AppInspectorBuilder appInspectorBuilder = createAppInspectorBuilder(buildSystem);
 
     Path ideProjectBasePath = Paths.get(checkNotNull(project.getBasePath()));
@@ -255,8 +251,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
     appInspectorArtifactTracker =
       new AppInspectorArtifactTrackerImpl(workspaceRoot.path(), artifactCache,
                                           ideProjectBasePath.resolve(ArtifactDirectories.INSPECTORS.relativePath()));
-    RenderJarTracker renderJarTracker =
-        new RenderJarTrackerImpl(graph, renderJarBuilder, renderJarArtifactTracker);
     AppInspectorTracker appInspectorTracker =
         new AppInspectorTrackerImpl(appInspectorBuilder, appInspectorArtifactTracker);
     ProjectArtifactStore artifactStore =
@@ -292,7 +286,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     return new QuerySyncProjectDeps(importSettings, workspaceRoot, new WorkspacePathResolverImpl(workspaceRoot), projectViewSet, buildSystem,
                                     workspaceLanguageSettings, latestProjectDef, snapshotFilePath, projectPathResolver, projectTransformRegistry,
                                     graph, artifactCache, artifactTracker, renderJarArtifactTracker, appInspectorArtifactTracker,
-                                    renderJarTracker, appInspectorTracker, artifactStore, dependencyBuilder, dependencyTracker, snapshotBuilder,
+                                    appInspectorTracker, artifactStore, dependencyBuilder, dependencyTracker, snapshotBuilder,
                                     projectQuerier, sourceToTargetMap, handledRules);
   }
 
@@ -326,11 +320,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
     ImmutableSet<String> handledRuleKinds) {
     return new BazelDependencyBuilder(
       project, buildSystem, projectDefinition, snapshotHolder, workspaceRoot, vcsHandler, buildArtifactCache, handledRuleKinds);
-  }
-
-  protected RenderJarBuilder createRenderJarBuilder(
-      WorkspaceRoot workspaceRoot, BuildSystem buildSystem) {
-    return new BazelRenderJarBuilder(project, buildSystem, workspaceRoot);
   }
 
   protected AppInspectorBuilder createAppInspectorBuilder(BuildSystem buildSystem) {
