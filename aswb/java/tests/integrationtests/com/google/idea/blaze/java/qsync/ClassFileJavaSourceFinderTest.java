@@ -80,7 +80,6 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
   public void initArtifactTracker() {
     // We can't use when(...).thenReturn(...) here due to generic arg in getArtifactTracker:
     doReturn(artifactTracker).when(querySyncManager).getArtifactTracker();
-    when(querySyncManager.isProjectLoaded()).thenReturn(true);
   }
 
   @Before
@@ -109,7 +108,6 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
             .findFileByPath(libraryArtifactAbsolutePath.toString() + "!/com/test/Test.class");
     ClsFileImpl psiClassFile = (ClsFileImpl) getFixture().getPsiManager().findFile(classFile);
 
-    when(querySyncManager.isProjectLoaded()).thenReturn(false);
     ClassFileJavaSourceFinder djsf =
         new ClassFileJavaSourceFinder(
             getFixture().getProject(), querySyncManager, Path.of("/"), Path.of("/"), psiClassFile);

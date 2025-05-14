@@ -25,7 +25,6 @@ import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.QuerySyncProject;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.SnapshotHolder;
-import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.JarFileSystem;
@@ -80,9 +79,6 @@ public class ClassFileJavaSourceFinder {
 
   @Nullable
   public PsiFile findSourceFile() {
-    if (!querySyncManager.isProjectLoaded()) {
-      return null;
-    }
     ImmutableSet<Path> jarSrcsPaths = getWorkspaceSources();
     if (jarSrcsPaths.isEmpty()) {
       return null;

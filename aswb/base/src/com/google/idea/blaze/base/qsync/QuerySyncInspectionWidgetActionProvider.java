@@ -237,7 +237,6 @@ public class QuerySyncInspectionWidgetActionProvider implements InspectionWidget
       VirtualFile vf = psiFile != null ? psiFile.getVirtualFile() : null;
       QuerySyncManager querySyncManager = QuerySyncManager.getInstance(project);
       if (vf != null
-          && querySyncManager.isProjectLoaded()
           && !querySyncManager.operationInProgress()) {
         Set<TargetsToBuild> toBuild = buildDepsHelper.getTargetsToEnableAnalysisForPaths(
           WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, ImmutableList.of(vf)));
