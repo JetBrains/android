@@ -20,6 +20,7 @@ package com.android.tools.idea.compose.gradle.preview
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.surface.SceneViewErrorsPanel
 import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
@@ -46,7 +47,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.TextFieldSizeAnalyzerI
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.preview.ComposePreviewElementInstance
-import com.google.common.truth.Truth.*
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -74,10 +74,16 @@ import javax.swing.JPanel
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import org.jetbrains.kotlin.utils.alwaysTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -233,13 +239,24 @@ class RenderErrorTest {
       assertEquals(3, countVisibleActions(actions, sceneViewPanelWithoutErrors))
     }
 
+  private suspend fun assertIssueIsGenerated(condition: (VisualLintRenderIssue) -> Boolean) =
+    withTimeout(20.seconds) {
+      visualLintRenderIssuesFlow()
+        .distinctUntilChanged()
+        .filter { it.any(condition) }
+        .take(1)
+        .collect()
+    }
+
   @Test
   fun testAtfErrors() =
     runBlocking(workerThread) {
       startUiCheckForModel("PreviewWithContrastError")
 
-      assertThat(accessibilityIssues().map { "${it.summary} [${it.location}]" })
-        .contains("Insufficient text color contrast ratio [RenderError.kt:1667]")
+      assertIssueIsGenerated { issue ->
+        "${issue.summary} [${issue.location}]" ==
+          "Insufficient text color contrast ratio [RenderError.kt:1667]"
+      }
     }
 
   @Test
@@ -247,25 +264,20 @@ class RenderErrorTest {
     runBlocking(workerThread) {
       startUiCheckForModel("PreviewWithContrastErrorAgain")
 
-      assertThat(accessibilityIssues().map { "${it.summary} [${it.location}]" })
-        .contains("Insufficient text color contrast ratio [RenderError.kt:1817]")
+      assertIssueIsGenerated { issue ->
+        "${issue.summary} [${issue.location}]" ==
+          "Insufficient text color contrast ratio [RenderError.kt:1817]"
+      }
     }
 
   private suspend fun runVisualLintErrorsForModel(modelWithIssues: String) {
     startUiCheckForModel(modelWithIssues)
 
-    val issues = visualLintRenderIssues()
-    // 1-2% of the time we get two issues instead of one. Only one of the issues has a
-    // component
-    // field that is populated. We attempt to retrieve it here.
-    val issue = runInEdtAndGet {
-      issues.first { it.components.firstOrNull()?.navigatable is OpenFileDescriptor }
+    assertIssueIsGenerated { issue ->
+      issue.category == "Visual Lint Issue" &&
+        (issue.components.firstOrNull()?.navigatable as? OpenFileDescriptor)?.file?.name ==
+          "RenderError.kt"
     }
-
-    assertEquals("Visual Lint Issue", issue.category)
-    val navigatable = issue.components[0].navigatable
-    assertTrue(navigatable is OpenFileDescriptor)
-    assertEquals("RenderError.kt", (navigatable as OpenFileDescriptor).file.name)
 
     stopUiCheck()
   }
@@ -413,17 +425,15 @@ class RenderErrorTest {
     } catch (_: TimeoutCancellationException) {}
   }
 
-  private suspend fun visualLintRenderIssues(
-    filter: (VisualLintRenderIssue) -> Boolean = alwaysTrue()
-  ): List<VisualLintRenderIssue> {
-    val issueModel = VisualLintService.getInstance(project).issueModel
-    var issues = emptyList<VisualLintRenderIssue>()
-    delayUntilCondition(delayPerIterationMs = 300, timeout = 1.minutes) {
-      issues = issueModel.issues.filterIsInstance<VisualLintRenderIssue>().filter(filter)
-      issues.any { it.components.isNotEmpty() }
-    }
-    return issues
-  }
+  private val IssueModel.visualLintRenderIssues: List<VisualLintRenderIssue>
+    get() = issues.filterIsInstance<VisualLintRenderIssue>()
 
-  private suspend fun accessibilityIssues() = visualLintRenderIssues { it.type.isAtfErrorType() }
+  private fun visualLintRenderIssuesFlow(): Flow<List<VisualLintRenderIssue>> = callbackFlow {
+    val issueModel = VisualLintService.getInstance(project).issueModel
+
+    val callback = IssueModel.IssueModelListener { trySend(issueModel.visualLintRenderIssues) }
+    issueModel.addErrorModelListener(callback)
+    trySend(issueModel.visualLintRenderIssues)
+    awaitClose { issueModel.removeErrorModelListener(callback) }
+  }
 }
