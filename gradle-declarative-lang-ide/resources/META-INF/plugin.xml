@@ -33,6 +33,7 @@
   <content>
     <module name="intellij.android.gradle.declarative.lang" loading="embedded"/>
     <module name="intellij.android.gradle.declarative.lang.sync" loading="embedded"/>
+    <module name="intellij.android.gradle.declarative.lang.flags" loading="embedded"/>
   </content>
 
   <idea-version since-build="242"/>
