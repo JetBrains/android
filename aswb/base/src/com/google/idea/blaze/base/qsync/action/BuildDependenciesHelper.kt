@@ -173,24 +173,4 @@ class BuildDependenciesHelper(val project: Project) {
       buildProcess.await()
     }
   }
-
-  val workingSetTargetsIfEnabled: Set<Label>
-    /**
-     * Returns the set of targets affected by files in the current working set if automatic building of the dependencies
-     * in the working set is enabled.
-     */
-    get() = if (QuerySyncSettings.getInstance().buildWorkingSet()) getWorkingSetTargets() else setOf()
-
-  private fun getWorkingSetTargets(): Set<Label> {
-    return try {
-      getAffectedTargetsForPaths(this.workingSet)
-    }
-    catch (be: BuildException) {
-      syncManager.notifyWarning(
-        "Could not obtain working set",
-        "Error trying to obtain working set. Not including it in build: $be",
-      )
-      setOf()
-    }
-  }
 }

@@ -28,7 +28,7 @@ import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup;
-import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors.WorkingSet;
+import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
@@ -70,7 +70,7 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
     helper.determineTargetsAndRun(WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, files),
                                   BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt(
                                     popup -> popup.showCenteredInCurrentWindow(project)),
-                                  new WorkingSet(helper),
+                                  TargetDisambiguationAnchors.NONE,
                                   scope,
                                   labels -> buildAndRefresh(project, scope, labels));
   }

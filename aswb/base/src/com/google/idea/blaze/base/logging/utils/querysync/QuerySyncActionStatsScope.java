@@ -93,8 +93,7 @@ public class QuerySyncActionStatsScope implements BlazeScope {
         QuerySyncActionStats.builder()
             .handleActionClass(actionClass)
             .handleActionEvent(event)
-            .setRequestedFiles(ImmutableSet.copyOf(requestFiles))
-            .setBuildWorkingSetEnabled(QuerySyncSettings.getInstance().buildWorkingSet());
+            .setRequestedFiles(ImmutableSet.copyOf(requestFiles));
     this.timeSource = timeSource;
     projectInfoStatsBuilder = ProjectInfoStats.builder();
     dependenciesInfoStatsBuilder = DependenciesInfoStats.builder();

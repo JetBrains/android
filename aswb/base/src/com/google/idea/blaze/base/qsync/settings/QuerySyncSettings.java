@@ -34,10 +34,6 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
     public Boolean enabled = true;
 
     public boolean showDetailedInformationInEditor = true;
-
-    public boolean buildWorkingSet = false;
-
-    public boolean syncOnFileChanges = false;
   }
 
   private QuerySyncSettings.State state = new QuerySyncSettings.State();
@@ -60,24 +56,6 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
 
   public boolean showDetailedInformationInEditor() {
     return state.showDetailedInformationInEditor;
-  }
-
-  public void enableBuildWorkingSet(boolean buildWorkingSet) {
-    state.buildWorkingSet = buildWorkingSet;
-  }
-
-  public boolean buildWorkingSet() {
-    // Force to disable it as it's not a stable feature
-    return false;
-  }
-
-  public void enableSyncOnFileChanges(boolean syncOnFileChanges) {
-    state.syncOnFileChanges = syncOnFileChanges;
-  }
-
-  public boolean syncOnFileChanges() {
-    // Force to disable it as it's not a stable feature
-    return false;
   }
 
   @Override
@@ -112,8 +90,6 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
       builder.put(
           "showDetailedInformationInEditor",
           Boolean.toString(settings.showDetailedInformationInEditor()));
-      builder.put("buildWorkingSet", Boolean.toString(settings.buildWorkingSet()));
-      builder.put("syncOnFileChanges", Boolean.toString(settings.syncOnFileChanges()));
       return builder.buildOrThrow();
     }
   }

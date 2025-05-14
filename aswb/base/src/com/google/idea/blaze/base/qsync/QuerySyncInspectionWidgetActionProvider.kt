@@ -73,11 +73,11 @@ class QuerySyncInspectionWidgetActionProvider : InspectionWidgetActionProvider {
         workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(e.project, vfs),
         disambiguateTargetPrompt = BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt(
           PopupPositioner.showUnderneathClickedComponentOrCentered(e)),
-        targetDisambiguationAnchors = TargetDisambiguationAnchors.WorkingSet(buildDepsHelper),
+        targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE,
         querySyncActionStats = querySyncActionStats
       ) { labels ->
         syncManager.enableAnalysis(
-          labels + buildDepsHelper.workingSetTargetsIfEnabled,
+          labels,
           querySyncActionStats,
           QuerySyncManager.TaskOrigin.USER_ACTION
         ).asDeferred()

@@ -29,13 +29,6 @@ sealed interface TargetDisambiguationAnchors {
    */
   data class Targets(override val anchorTargets: Set<Label>) : TargetDisambiguationAnchors
 
-  /**
-   * An anchor requesting that the working set be considered when disambiguating targets to build for a file.
-   */
-  class WorkingSet(private val helper: BuildDependenciesHelper) : TargetDisambiguationAnchors {
-    override val anchorTargets: Set<Label> get() = helper.workingSetTargetsIfEnabled
-  }
-
   companion object {
     @JvmField val NONE: TargetDisambiguationAnchors = Targets(emptySet())
   }
