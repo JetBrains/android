@@ -19,6 +19,8 @@ package com.android.tools.idea.backup
 import com.android.backup.BackupType
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.tools.idea.backup.BackupBundle.message
+import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -29,6 +31,8 @@ import com.intellij.ui.UIBundle
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.SwingHelper
 import java.awt.Dimension
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import javax.swing.DefaultComboBoxModel
@@ -45,6 +49,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
 import kotlin.io.path.pathString
+import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.VisibleForTesting
 
 internal class BackupDialog(
@@ -65,6 +70,17 @@ internal class BackupDialog(
       name = "typeComboBox"
       maximumSize = Dimension(TYPE_FIELD_WIDTH, preferredSize.height)
     }
+  private val typeHelpIcon: JLabel =
+    JLabel(AllIcons.General.ContextHelp).apply {
+      addMouseListener(
+        object : MouseAdapter() {
+          override fun mouseReleased(e: MouseEvent) {
+            BrowserUtil.browse("https://d.android.com//r/studio-ui/backup-restore/help/backup-type")
+          }
+        }
+      )
+    }
+
   private val backupNotEnabledWarning =
     SwingHelper.createHtmlViewer(false, JLabel().font, null, null).apply {
       name = "backupNotEnabledWarning"
@@ -153,6 +169,7 @@ internal class BackupDialog(
             createSequentialGroup()
               .addComponent(typeLabel)
               .addComponent(typeComboBox)
+              .addComponent(typeHelpIcon)
               .addComponent(backupNotEnabledWarning)
           )
           .addGroup(createSequentialGroup().addComponent(fileLabel).addComponent(fileTextField))
@@ -170,6 +187,7 @@ internal class BackupDialog(
                 createParallelGroup(GroupLayout.Alignment.CENTER)
                   .addComponent(typeLabel)
                   .addComponent(typeComboBox)
+                  .addComponent(typeHelpIcon)
               )
               .addComponent(backupNotEnabledWarning)
           )
@@ -184,6 +202,16 @@ internal class BackupDialog(
 
     panel.layout = layout
     return panel
+  }
+
+  override fun getHelpId(): @NonNls String? {
+    return "help"
+  }
+
+  override fun doHelpAction() {
+    BrowserUtil.browse(
+      "http://d.android.com/studio/preview/features?utm_source=android-studio#test-backup-restore"
+    )
   }
 
   override fun doOKAction() {
