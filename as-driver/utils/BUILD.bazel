@@ -16,6 +16,7 @@ jvm_library(
     "@lib//:studio-test-platform",
     "@lib//:kotlin-stdlib",
     "@lib//:ktor-client-cio",
+    "//libraries/io",
     "@lib//:guava",
     "@lib//:junit4",
     "@lib//:jetbrains-annotations",
