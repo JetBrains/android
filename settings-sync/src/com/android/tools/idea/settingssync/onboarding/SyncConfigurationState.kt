@@ -22,6 +22,7 @@ import androidx.compose.ui.state.ToggleableState
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.settingssync.PROVIDER_CODE_GOOGLE
 import com.android.tools.idea.settingssync.SettingsSyncFeature
+import com.android.tools.idea.settingssync.SyncEventsMetrics
 import com.android.tools.idea.settingssync.getActiveSyncUserEmail
 import com.android.tools.idea.settingssync.onboarding.Category.Companion.DESCRIPTORS
 import com.google.gct.login2.LoginFeature
@@ -29,6 +30,7 @@ import com.google.gct.login2.PreferredUser
 import com.google.gct.login2.ui.onboarding.compose.GoogleSignInWizard
 import com.google.gct.wizard.WizardState
 import com.google.gct.wizard.WizardStateElement
+import com.google.wireless.android.sdk.stats.BackupAndSyncEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.settingsSync.core.SettingsSyncBundle
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
@@ -157,6 +159,7 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
       PushOrPull.NOT_SPECIFIED -> {
         LOG.info("Push local settings to cloud...")
 
+        SettingsSyncSettings.getInstance().syncEnabled = true
         SettingsSyncSettings.getInstance()
           .applyFromState(syncCategoryStates.toSettingsSyncState(syncEnabled = true))
 
@@ -171,6 +174,15 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
         updateFromServerDone.await() // wait for [updateFromServerFinished]
       }
     }
+
+    SyncEventsMetrics.getInstance()
+      .trackEvent(
+        BackupAndSyncEvent.newBuilder().apply {
+          // TODO: Currently fine, but need to revisit this if this code is reused for the other
+          // enablement flow.
+          enablementFlow = BackupAndSyncEvent.EnablementFlow.UNIFIED_SIGN_IN_FLOW
+        }
+      )
   }
 
   override fun updateFromServerFinished(result: UpdateResult) {

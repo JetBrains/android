@@ -22,13 +22,17 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.android.flags.junit.FlagRule
+import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
+import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.settingssync.FakeCommunicatorProvider
 import com.android.tools.idea.settingssync.FakeRemoteCommunicator
 import com.android.tools.idea.settingssync.PushResult
 import com.android.tools.idea.settingssync.SAMPLE_SNAPSHOT
+import com.android.tools.idea.settingssync.SyncEventsMetrics
 import com.google.common.truth.Truth.assertThat
 import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.PreferredUser
@@ -36,6 +40,8 @@ import com.google.gct.login2.ui.onboarding.compose.GoogleSignInWizard
 import com.google.gct.wizard.FakeController
 import com.google.gct.wizard.WizardPage
 import com.google.gct.wizard.WizardState
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.BACKUP_AND_SYNC_EVENT
+import com.google.wireless.android.sdk.stats.BackupAndSyncEvent
 import com.intellij.openapi.components.SettingsCategory
 import com.intellij.settingsSync.core.ServerState
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
@@ -44,12 +50,14 @@ import com.intellij.settingsSync.core.SettingsSyncSettings
 import com.intellij.settingsSync.core.SettingsSyncSettings.State
 import com.intellij.settingsSync.core.UpdateResult
 import com.intellij.settingsSync.core.communicator.SettingsSyncCommunicatorProvider
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ExtensionTestUtil
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -58,7 +66,7 @@ import org.junit.rules.RuleChain
 
 @RunsInEdt
 class WizardFlowTest {
-  private val applicationRule = ApplicationRule()
+  private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
   private val composeTestRule = createStudioComposeTestRule()
   private val flagRule = FlagRule(StudioFlags.SETTINGS_SYNC_ENABLED, true)
@@ -66,7 +74,7 @@ class WizardFlowTest {
   @get:Rule
   val rules =
     RuleChain.outerRule(EdtRule())
-      .around(applicationRule)
+      .around(projectRule)
       .around(flagRule)
       .around(disposableRule)
       .around(composeTestRule)
@@ -78,6 +86,9 @@ class WizardFlowTest {
   private val step2 = PushOrPullStepPage()
   private val step3 = ChooseCategoriesStepPage()
   private val pages = listOf(step1, step2, step3)
+
+  private val tracker =
+    TestUsageTracker(VirtualTimeScheduler()).also { UsageTracker.setWriterForTest(it) }
 
   @Before
   fun setup() {
@@ -102,6 +113,14 @@ class WizardFlowTest {
 
     // Force the initial sync state.
     SettingsSyncSettings.getInstance().syncEnabled = false
+
+    runBlocking { SyncEventsMetrics.Initializer().execute(projectRule.project) }
+  }
+
+  @After
+  fun tearDown() {
+    tracker.close()
+    UsageTracker.cleanAfterTesting()
   }
 
   private fun initCommunicatorFromClean() {
@@ -170,6 +189,9 @@ class WizardFlowTest {
     // 2. check push result
     assertThat(communicator.checkServerState()).isEqualTo(ServerState.UpToDate)
     assertThat(pushResult.result).isInstanceOf(SettingsSyncPushResult.Success::class.java)
+
+    // 3. check metrics
+    checkMetrics()
   }
 
   // This covers the onboarding flow: step3 only
@@ -220,6 +242,9 @@ class WizardFlowTest {
     // 2. check push result
     assertThat(communicator.checkServerState()).isEqualTo(ServerState.UpToDate)
     assertThat(pushResult.result).isInstanceOf(SettingsSyncPushResult.Success::class.java)
+
+    // 3. check metrics
+    checkMetrics()
   }
 
   // This covers the onboarding flow: step1 only
@@ -420,5 +445,17 @@ class WizardFlowTest {
         this.syncEnabled,
       )
     }
+  }
+
+  private fun checkMetrics() {
+    val events =
+      tracker.usages
+        .map { it.studioEvent }
+        .filter { it.kind == BACKUP_AND_SYNC_EVENT }
+        .map { it.backupAndSyncEvent }
+
+    assertThat(events[0].providerInUse).isEqualTo(BackupAndSyncEvent.Provider.GOOGLE)
+    assertThat(events[1].enablementFlow)
+      .isEqualTo(BackupAndSyncEvent.EnablementFlow.UNIFIED_SIGN_IN_FLOW)
   }
 }

@@ -16,6 +16,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -32,5 +33,7 @@ iml_module(
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
         "//tools/adt/idea/artwork:intellij.android.artwork",
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/analytics-library/tracker:analytics-tracker",
     ],
 )
