@@ -69,14 +69,18 @@ internal class PostBackupDialog(private val project: Project, private val backup
   override fun createCenterPanel(): JComponent {
     return panel {
       buttonsGroup {
-          row {
-            radioButton("Add to existing run configuration", EXISTING_CONFIG)
-            val settings = getRunConfigSettings()
-            if (settings.isNotEmpty()) {
-              selectedSetting = settings.first()
-            }
-            comboBox(settings, RunConfigSettingRenderer()).bindItem(::selectedSetting)
+          val settings = getRunConfigSettings()
+          if (settings.isEmpty()) {
+            mode = NEW_CONFIG
           }
+          row {
+              radioButton("Add to existing run configuration", EXISTING_CONFIG)
+              if (settings.isNotEmpty()) {
+                selectedSetting = settings.first()
+              }
+              comboBox(settings, RunConfigSettingRenderer()).bindItem(::selectedSetting)
+            }
+            .enabled(settings.isNotEmpty())
           row { radioButton("Add to a new run configuration", NEW_CONFIG) }
           row { checkBox("Open run configuration when done").bindSelected(::openRunConfigWhenDone) }
           row { checkBox("Set as current run configuration").bindSelected(::setAsCurrentRunConfig) }

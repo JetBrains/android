@@ -423,15 +423,17 @@ internal class BackupManagerImplTest {
     type: NotificationType,
     vararg actions: String,
   ) {
-    assertThat(this.groupId).isEqualTo("Backup")
-    assertThat(this.icon).isNull()
-    assertThat(this.important).isTrue()
-    assertThat(this.subtitle).isNull()
+    assertThat(this.groupId).named("group").isEqualTo("Backup")
+    assertThat(this.icon).named("icon").isNull()
+    assertThat(this.important).named("important").isEqualTo(actions.isNotEmpty())
+    assertThat(this.subtitle).named("subtitle").isNull()
 
-    assertThat(this.title).isEqualTo(title)
-    assertThat(this.content).isEqualTo(text)
-    assertThat(this.type).isEqualTo(type)
-    assertThat(this.actions.map { it::class.java.simpleName }).isEqualTo(actions.asList())
+    assertThat(this.title).named("title").isEqualTo(title)
+    assertThat(this.content).named("content").isEqualTo(text)
+    assertThat(this.type).named("type").isEqualTo(type)
+    assertThat(this.actions.map { it::class.java.simpleName })
+      .named("actions")
+      .isEqualTo(actions.asList())
   }
 
   @Test
@@ -450,6 +452,98 @@ internal class BackupManagerImplTest {
           "Application \"other-app\" is not debuggable and is not supported.",
         )
       )
+  }
+
+  @Test
+  fun backup_nonProjectApp(): Unit = runBlocking {
+    val backupFile =
+      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
+        ?: fail("Project base path unavailable")
+    backupFile.deleteIfExists()
+    val backupService = BackupService.getInstance(FakeAdbServicesFactory("non-project-app"))
+    project.replaceService(
+      ProjectAppsProvider::class.java,
+      object : ProjectAppsProvider {
+        override fun getApplicationIds(): Set<String> {
+          return setOf("project-app")
+        }
+      },
+      disposableRule.disposable,
+    )
+    val backupManagerImpl =
+      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
+    val serialNumber = "serial"
+
+    val result =
+      backupManagerImpl.doBackup(
+        serialNumber,
+        "non-project-app",
+        DEVICE_TO_DEVICE,
+        backupFile,
+        RUN_CONFIG,
+        true,
+      )
+
+    assertThat(result).isEqualTo(Success)
+    assertThat(notificationRule.notifications).hasSize(1)
+    notificationRule.notifications
+      .first()
+      .assert(title = "", text = "Backup completed successfully", INFORMATION)
+    backupFile.deleteExisting()
+  }
+
+  @Test
+  fun backup_nonProjectApp_backupDisabled(): Unit = runBlocking {
+    val backupFile =
+      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
+        ?: fail("Project base path unavailable")
+    backupFile.deleteIfExists()
+    val backupService =
+      BackupService.getInstance(
+        FakeAdbServicesFactory("non-project-app") {
+          it.addCommandOverride(Output("dumpsys package non-project-app", ""))
+          it.addContentOverride(
+            "content://com.google.android.gms.fileprovider/backup_testing_flows/auth_backup",
+            "valid",
+          )
+        }
+      )
+
+    project.replaceService(
+      ProjectAppsProvider::class.java,
+      object : ProjectAppsProvider {
+        override fun getApplicationIds(): Set<String> {
+          return setOf("project-app")
+        }
+      },
+      disposableRule.disposable,
+    )
+    val backupManagerImpl =
+      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
+    val serialNumber = "serial"
+
+    val result =
+      backupManagerImpl.doBackup(
+        serialNumber,
+        "non-project-app",
+        DEVICE_TO_DEVICE,
+        backupFile,
+        RUN_CONFIG,
+        true,
+      )
+
+    assertThat(result).isEqualTo(WithoutAppData)
+    assertThat(notificationRule.notifications).hasSize(1)
+    notificationRule.notifications
+      .first()
+      .assert(
+        title = "Backup completed successfully",
+        text =
+          "Only Restore Keys were backed up. App-data was not backed up since allowBackup property is false.",
+        INFORMATION,
+        "BackupDisabledLearnMoreAction",
+      )
+    backupFile.deleteExisting()
   }
 
   private fun backupManagerImpl(
