@@ -47,7 +47,7 @@ const val MAX_DIMENSION = 2000
 private const val NO_WALLPAPER_SELECTED = -1
 
 /** Empty device spec when the user has not specified any. */
-private const val NO_DEVICE_SPEC = ""
+const val NO_DEVICE_SPEC = ""
 
 interface ConfigurablePreviewElement<T> : PreviewElement<T> {
   /** Preview element configuration that affects how LayoutLib resolves the resources */

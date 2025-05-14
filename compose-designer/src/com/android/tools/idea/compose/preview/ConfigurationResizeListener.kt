@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.resources.ScreenOrientation
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.common.util.updateLayoutParams
+import com.android.tools.idea.compose.preview.util.deviceSize
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.intellij.openapi.Disposable
@@ -83,29 +83,6 @@ class ConfigurationResizeListener(
       sceneManager.executeInRenderSession(false) { updateLayoutParams(viewObj, newDeviceSize) }
     }
     sceneManager.requestRenderWithNewSize(newDeviceSize.width, newDeviceSize.height)
-  }
-
-  private fun calculateDimensions(
-    x: Int,
-    y: Int,
-    mScreenOrientation: ScreenOrientation?,
-  ): Dimension {
-    // Determine if the desired orientation needs a swap.
-    val shouldSwapDimensions = (x > y) != (mScreenOrientation == ScreenOrientation.LANDSCAPE)
-
-    return if (shouldSwapDimensions) {
-      Dimension(y, x)
-    } else {
-      Dimension(x, y)
-    }
-  }
-
-  private fun Configuration.deviceSize(): Dimension {
-    val deviceState = deviceState ?: return Dimension(0, 0)
-    val orientation = deviceState.orientation
-    val x = deviceState.hardware.screen.xDimension
-    val y = deviceState.hardware.screen.yDimension
-    return calculateDimensions(x, y, orientation)
   }
 
   override fun dispose() {
