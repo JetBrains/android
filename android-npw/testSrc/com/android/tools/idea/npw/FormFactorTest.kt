@@ -32,13 +32,6 @@ class FormFactorTest {
   @Test
   fun mobileSupportedOnLollipopApi() {
     assertTrue(MOBILE.isSupported(LOLLIPOP))
-    assertTrue(MOBILE.isSupported(SystemImageTags.DEFAULT_TAG))
-  }
-
-  @Test
-  fun mobileNotSupportedOnAllowList() {
-    assertFalse(MOBILE.isSupported(SystemImageTags.WEAR_TAG))
-    assertFalse(MOBILE.isSupported(null))
   }
 
   @Test
@@ -50,13 +43,6 @@ class FormFactorTest {
   @Test
   fun automotiveSupportedOnPieApi() {
     assertTrue(AUTOMOTIVE.isSupported(PIE))
-    assertTrue(AUTOMOTIVE.isSupported(SystemImageTags.AUTOMOTIVE_TAG))
-  }
-
-  @Test
-  fun automotiveNotSupportedOnAllowList() {
-    assertFalse(AUTOMOTIVE.isSupported(SystemImageTags.WEAR_TAG))
-    assertFalse(AUTOMOTIVE.isSupported(null))
   }
 
   @Test

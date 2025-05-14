@@ -139,7 +139,6 @@ class AndroidVersionsInfoTest {
   @Test
   fun `mobile format has no minimum sdk limit`() {
     val androidVersionsInfo = AndroidVersionsInfo { arrayOf(mockedPlatform(1000)) }
-    androidVersionsInfo.loadLocalVersions()
     val targets = androidVersionsInfo.getKnownTargetVersions(FormFactor.MOBILE, 1)
     assertThat(targets.last().minApiLevel).isEqualTo(1000)
   }
@@ -147,7 +146,6 @@ class AndroidVersionsInfoTest {
   @Test
   fun `non-mobile formats have minimum sdk limit`() {
     val info = AndroidVersionsInfo { arrayOf(mockedPlatform(1000)) }
-    info.loadLocalVersions()
     val nonMobileFormats = FormFactor.entries - FormFactor.MOBILE
     for (format in nonMobileFormats) {
       val targets = info.getKnownTargetVersions(format, 1)

@@ -63,7 +63,6 @@ enum class FormFactor(
   val maxOfflineApiLevel: Int,
   val icon: Icon,
   val largeIcon: Icon,
-  private val apiTags: List<IdDisplay>,
 ) {
   MOBILE(
     "Mobile",
@@ -73,7 +72,6 @@ enum class FormFactor(
     HIGHEST_KNOWN_STABLE_API,
     FormFactors.MOBILE,
     FormFactors.MOBILE_LARGE,
-    listOf(DEFAULT_TAG, GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG),
   ),
   WEAR(
     "Wear",
@@ -83,7 +81,6 @@ enum class FormFactor(
     HIGHEST_KNOWN_API_WEAR,
     FormFactors.WEAR,
     FormFactors.WEAR_LARGE,
-    listOf(WEAR_TAG),
   ),
   TV(
     "TV",
@@ -93,7 +90,6 @@ enum class FormFactor(
     HIGHEST_KNOWN_API_TV,
     FormFactors.TV,
     FormFactors.TV_LARGE,
-    listOf(ANDROID_TV_TAG, GOOGLE_TV_TAG),
   ),
   AUTOMOTIVE(
     "Automotive",
@@ -103,7 +99,6 @@ enum class FormFactor(
     HIGHEST_KNOWN_API_AUTO,
     FormFactors.CAR,
     FormFactors.CAR_LARGE,
-    listOf(AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG),
   ),
   XR(
     "XR",
@@ -113,20 +108,12 @@ enum class FormFactor(
     HIGHEST_KNOWN_API_XR,
     FormFactors.MOBILE,
     FormFactors.MOBILE_LARGE,
-    listOf(XR_TAG),
   );
 
   override fun toString(): String = displayName
 
-  fun isSupported(tag: IdDisplay?): Boolean =
-    apiTags.isEmpty() || tag in apiTags
-
   fun isSupported(targetSdkLevel: Int): Boolean =
     !(this == MOBILE && targetSdkLevel == KITKAT_WATCH)
-
-  // Currently all form factors have emulators, but we keep this method to ease introduction of new
-  // form factors
-  fun hasEmulator(): Boolean = true
 
   // We want to expose new SDKs when creating new mobile projects.
   val hasUpperLimitForMinimumSdkSelection: Boolean

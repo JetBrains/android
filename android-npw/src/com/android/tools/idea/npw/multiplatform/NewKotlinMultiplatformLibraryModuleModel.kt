@@ -59,7 +59,6 @@ class NewKotlinMultiplatformLibraryModuleModel(
   override val androidSdkInfo =
     OptionalValueProperty(
       AndroidVersionsInfo()
-        .apply { loadLocalVersions() }
         .getKnownTargetVersions(FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API)
         .first()
     )
