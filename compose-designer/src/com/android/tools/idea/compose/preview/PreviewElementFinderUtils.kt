@@ -21,6 +21,7 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.compose.MULTIPLATFORM_PREVIEW_ANNOTATION_FQN
+import com.android.tools.compose.MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeImpl
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeInfo
@@ -229,7 +230,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
   val attributesProvider = UastAnnotationAttributesProvider(annotation, defaultValues)
   val previewElementDefinitionPsi = readAction { rootAnnotation.toSmartPsiPointer() }
   val annotatedMethod =
-    UastAnnotatedMethod(composableMethod, COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN)
+    UastAnnotatedMethod(composableMethod, setOf(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN, MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN))
   val nameHelper =
     AnnotationPreviewNameHelper.create(this, annotatedMethod.name) {
       readAction { isPreviewAnnotation() }
