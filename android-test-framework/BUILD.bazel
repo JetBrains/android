@@ -59,6 +59,7 @@ jvm_library(
     "//platform/editor-ui-api:editor-ui",
     "//platform/platform-impl:ide-impl",
     "//platform/platform-impl:ide-impl_test_lib",
+    "//jps/model-api:model",
     "//platform/projectModel-impl",
     "//platform/refactoring",
     "//platform/service-container",

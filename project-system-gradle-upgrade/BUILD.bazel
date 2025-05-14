@@ -41,6 +41,7 @@ jvm_library(
     "//platform/core-ui",
     "//platform/editor-ui-api:editor-ui",
     "//platform/platform-impl:ide-impl",
+    "//jps/model-api:model",
     "//platform/lang-api:lang",
     "//platform/lang-impl",
     "//platform/lvcs-impl",

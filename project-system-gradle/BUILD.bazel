@@ -271,6 +271,7 @@ jvm_library(
     "//platform/platform-impl:ide-impl",
     "//platform/platform-impl:ide-impl_test_lib",
     "//platform/indexing-api:indexing",
+    "//jps/model-api:model",
     "//jps/model-serialization",
     "//platform/lang-api:lang",
     "//platform/lang-core",

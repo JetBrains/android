@@ -33,6 +33,7 @@ jvm_library(
     "//platform/core-impl",
     "//platform/editor-ui-api:editor-ui",
     "//platform/ide-core",
+    "//jps/model-api:model",
     "//platform/projectModel-api:projectModel",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",

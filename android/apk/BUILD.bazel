@@ -35,6 +35,7 @@ jvm_library(
     "//platform/external-system-api:externalSystem",
     "//platform/platform-api:ide",
     "//platform/ide-core",
+    "//jps/model-api:model",
     "//platform/lang-core",
     "//platform/projectModel-api:projectModel",
     "//platform/testFramework",

@@ -105,6 +105,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//java/java-impl:impl",
     "//platform/editor-ui-api:editor-ui",
+    "//jps/model-api:model",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//java/testFramework",

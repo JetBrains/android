@@ -39,6 +39,7 @@ jvm_library(
     "//platform/extensions",
     "//platform/platform-api:ide",
     "//platform/indexing-api:indexing",
+    "//jps/model-api:model",
     "//platform/lang-api:lang",
     "//platform/lang-core",
     "//platform/projectModel-api:projectModel",

@@ -57,6 +57,7 @@ jvm_library(
     "//platform/platform-impl:ide-impl_test_lib",
     "//platform/progress/shared:ide-progress",
     "//platform/indexing-api:indexing",
+    "//jps/model-api:model",
     "//platform/lang-api:lang",
     "//platform/lang-core",
     "//platform/lang-impl",

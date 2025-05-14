@@ -82,6 +82,7 @@ jvm_library(
     "//platform/platform-impl:ide-impl",
     "//platform/platform-impl:ide-impl_test_lib",
     "//platform/platform-util-io:ide-util-io",
+    "//jps/model-api:model",
     "//platform/lang-api:lang",
     "//platform/lang-core",
     "//platform/lang-impl",

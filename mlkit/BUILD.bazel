@@ -58,6 +58,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util:util-ui",
     "//xml/dom-openapi:dom",
+    "//jps/model-api:model",
     "//plugins/kotlin/base/project-structure",
   ],
   runtime_deps = [":mlkit_resources"]
