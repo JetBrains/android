@@ -183,6 +183,28 @@ class BackupDialogTest {
   }
 
   @Test
+  fun showDialog_appComboBox_uninstalledProjectApp() {
+    project.replaceService(
+      ProjectAppsProvider::class.java,
+      object : ProjectAppsProvider {
+        override fun getApplicationIds(): Set<String> {
+          return setOf("installed-project-app", "uninstalled-project-app")
+        }
+      },
+      disposableRule.disposable,
+    )
+
+    createDialog(
+      initialApplication = "non-project-app",
+      debuggableApps = listOf("installed-project-app", "non-project-app"),
+    ) {
+      val applicationComboBox = it.findComponent<ComboBox<String>>("applicationIdComboBox")
+      assertThat(applicationComboBox.items())
+        .containsExactly("installed-project-app", "non-project-app")
+    }
+  }
+
+  @Test
   fun showDialog_changeType() {
     createDialog {
       it.findComponent<ComboBox<BackupType>>("typeComboBox").item = CLOUD
@@ -338,3 +360,5 @@ class BackupDialogTest {
     }
   }
 }
+
+private fun <T> ComboBox<T>.items() = (0 until itemCount).map(::getItemAt)

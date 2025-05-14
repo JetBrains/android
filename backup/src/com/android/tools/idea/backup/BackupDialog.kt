@@ -53,12 +53,7 @@ internal class BackupDialog(
   private val appIdToBackupEnabledMap: Map<String, Boolean>,
   private val dialogFactory: DialogFactory = DialogFactoryImpl(),
 ) : DialogWrapper(project) {
-  private val applicationIds =
-    buildList {
-        addAll(project.getService(ProjectAppsProvider::class.java).getApplicationIds())
-        addAll(appIdToBackupEnabledMap.keys)
-      }
-      .distinct()
+  private val applicationIds = appIdToBackupEnabledMap.keys.toList()
 
   private val applicationIdComboBox =
     ComboBox(DefaultComboBoxModel(applicationIds.sorted().toTypedArray())).apply {
