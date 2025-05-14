@@ -106,6 +106,12 @@ iml_module(
         "ModuleModelTest": {
             "test_filter": "com.android.tools.idea.npw.module.ModuleModelTest",
         },
+        "NewProjectTemplateRendererTest": {
+            "test_filter": "com.android.tools.idea.npw.model.NewProjectTemplateRendererTest",
+            "data": [
+                "//tools/base/build-system:gradle-distrib-8.11.1",
+            ],
+        },
         "other": {
             "shard_count": 10,
         },
@@ -215,6 +221,7 @@ maven_repository(
         "@maven//:com.android.tools.build.gradle_8.1.0",
         "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.guava.guava_19.0",
+        "@maven//:org.gradle.toolchains.foojay-resolver-convention.org.gradle.toolchains.foojay-resolver-convention.gradle.plugin_0.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-build-tools-impl_2.0.21",  # AddNewModulesToAppTest
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.24",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_2.0.21",  # AddNewModulesToAppTest

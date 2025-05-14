@@ -60,6 +60,8 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
      */
     @WorkerThread @Slow fun doDryRun(): Boolean
 
+    @WorkerThread @Slow fun onSourcesCreated() {}
+
     /** Do the actual work of writing the files. */
     @WorkerThread @Slow fun render()
 
@@ -136,6 +138,7 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
         }
       }
       log.info("Generate sources completed.")
+      templateRenderers.forEach { it.onSourcesCreated() }
 
       TransactionGuard.getInstance().submitTransactionAndWait {
         // This code needs to run in EDT.
