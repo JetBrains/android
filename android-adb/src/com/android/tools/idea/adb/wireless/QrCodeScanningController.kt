@@ -33,6 +33,7 @@ import java.time.Duration
 import java.util.concurrent.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.delay
 import kotlinx.coroutines.withContext
@@ -145,6 +146,7 @@ class QrCodeScanningController(
       .trackMdnsServices()
       .map { it.pairingMdnsServices.toSet() }
       .trackSetChanges()
+      .takeWhile { state == State.Polling }
       .collect {
         val newServices =
           when (it) {
