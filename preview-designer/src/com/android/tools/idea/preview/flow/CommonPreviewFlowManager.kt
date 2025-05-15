@@ -67,7 +67,7 @@ import org.jetbrains.kotlin.idea.base.util.module
  * [renderedPreviewElementsFlow].
  *
  * When a single non-null preview element is set through [setSingleFilter], that element will be
- * returned by [filteredPreviewElementsFlow], otherwise the [groupFilter] will be used for
+ * returned by [toRenderPreviewElementsFlow], otherwise the [groupFilter] will be used for
  * filtering.
  */
 class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
@@ -109,7 +109,7 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
    * rendered. These are all the previews in [allPreviewElementsFlow] filtered using [filterFlow].
    * This flow is only updated when the Preview representation is active.
    */
-  override val filteredPreviewElementsFlow =
+  override val toRenderPreviewElementsFlow =
     MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
 
   /**
@@ -227,12 +227,12 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
             availableGroupsFlow.value = uiCheckFilter.filterGroups(allGroups)
             uiCheckFilter.filterPreviewInstances(filteredPreviews)
           }
-          .collectLatest { filteredPreviewElementsFlow.value = it }
+          .collectLatest { toRenderPreviewElementsFlow.value = it }
       }
 
       // Trigger refreshes on available previews changes
       launch(workerThread) {
-        filteredPreviewElementsFlow
+        toRenderPreviewElementsFlow
           .filter {
             return@filter when (it) {
               is FlowableCollection.Uninitialized -> false

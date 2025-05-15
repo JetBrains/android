@@ -1299,7 +1299,7 @@ class ComposePreviewRepresentation(
 
           val previewsToRender =
             withContext(workerThread) {
-              composePreviewFlowManager.filteredPreviewElementsFlow.value.asCollection().toList()
+              composePreviewFlowManager.toRenderPreviewElementsFlow.value.asCollection().toList()
             }
           composeWorkBench.hasContent =
             previewsToRender.isNotEmpty() || mode.value is PreviewMode.UiCheck

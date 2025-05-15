@@ -143,7 +143,7 @@ class FocusModeTest() {
       override val allPreviewElementsFlow =
         MutableStateFlow(FlowableCollection.Present(previewElements))
 
-      override val filteredPreviewElementsFlow = MutableStateFlow(FlowableCollection.Uninitialized)
+      override val toRenderPreviewElementsFlow = MutableStateFlow(FlowableCollection.Uninitialized)
 
       override val renderedPreviewElementsFlow =
         MutableStateFlow<FlowableCollection<PreviewElement<*>>>(FlowableCollection.Uninitialized)

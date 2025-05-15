@@ -34,14 +34,15 @@ interface PreviewFlowManager<T : PreviewElement<*>> : PreviewGroupManager {
   val allPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 
   /**
-   * Flow containing the filtered [T]s from [allPreviewElementsFlow]. These filtered [T]s are
-   * sorted.
+   * Flow containing the filtered [T]s from [allPreviewElementsFlow], that are expected to be
+   * rendered. The content of this flow should differ from [renderedPreviewElementsFlow] iff there
+   * is a pending refresh to be done. These filtered [T]s are already sorted.
    */
-  val filteredPreviewElementsFlow: StateFlow<FlowableCollection<T>>
+  val toRenderPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 
   /**
    * Flow containing all the [T]s that have completed rendering. These are all the
-   * [filteredPreviewElementsFlow] that have rendered.
+   * [toRenderPreviewElementsFlow] that have rendered.
    *
    * This flow must be updated by calling [updateRenderedPreviews].
    */
@@ -49,7 +50,7 @@ interface PreviewFlowManager<T : PreviewElement<*>> : PreviewGroupManager {
 
   /**
    * Selects a single [T] preview element. If the value is non-null, then
-   * [filteredPreviewElementsFlow] will be a flow of a singleton containing that preview element. If
+   * [toRenderPreviewElementsFlow] will be a flow of a singleton containing that preview element. If
    * the value is null, then the single filter is removed.
    */
   fun setSingleFilter(previewElement: T?)
