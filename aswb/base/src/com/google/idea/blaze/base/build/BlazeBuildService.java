@@ -16,8 +16,8 @@
 package com.google.idea.blaze.base.build;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static com.google.common.util.concurrent.Futures.immediateFuture;
 
+import com.android.annotations.concurrency.WorkerThread;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -63,10 +63,10 @@ import com.google.idea.blaze.base.sync.sharding.BlazeBuildTargetSharder;
 import com.google.idea.blaze.base.sync.sharding.BlazeBuildTargetSharder.ShardedTargetsResult;
 import com.google.idea.blaze.base.toolwindow.Task;
 import com.google.idea.blaze.base.util.SaveUtil;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.util.List;
+import java.util.function.Function;
 import javax.annotation.Nullable;
 
 /** Utility to build various collections of targets. */
@@ -92,75 +92,47 @@ public class BlazeBuildService {
 
   public ListenableFuture<Boolean> buildFileForLabels(
       String displayFileName, ImmutableSet<com.google.idea.blaze.common.Label> labels) {
-    return buildFile(displayFileName, labels.stream().map(Label::create).collect(toImmutableSet()));
+    if (!Blaze.isBlazeProject(project) || displayFileName == null) {
+      return null;
+    }
+    ImmutableCollection<Label> targets = labels.stream().map(Label::create).collect(toImmutableSet());
+    return submitTask(project, context -> buildFileTask(displayFileName, targets, context));
   }
 
   public ListenableFuture<Boolean> buildFile(String displayFileName, ImmutableCollection<Label> targets) {
     if (!Blaze.isBlazeProject(project) || displayFileName == null) {
       return null;
     }
+    return submitTask(project, context -> buildFileTask(displayFileName, targets, context));
+  }
+
+  public Boolean buildFileTask(String displayFileName, ImmutableCollection<Label> targets, BlazeContext context1) {
     ProjectViewSet projectView = ProjectViewManager.getInstance(project).getProjectViewSet();
     BlazeProjectData projectData =
-        BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
+      BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
     if (projectView == null || projectData == null) {
       return null;
     }
 
     String title = "Make " + displayFileName;
-    return buildTargetExpressions(
-        project,
-        projectView,
-        projectData,
-        context -> Lists.newArrayList(targets),
-        new NotificationScope(
-            project, "Make", title, title + " completed successfully", title + " failed"),
-        title,
-        buildSystem);
+
+    final NotificationScope make = new NotificationScope(
+      project, "Make", title, title + " completed successfully", title + " failed");
+    return runTaskInBuildRootScope(context1, project, title,
+                                   BlazeUserSettings.getInstance()
+                                     .getShowProblemsViewOnRun(), make,
+                                   context2 -> buildTargetExpressionsCore(
+                                     context2, project, buildSystem,
+                                     projectView, projectData,
+                                     context -> Lists.newArrayList(
+                                       targets)));
   }
 
   public void buildProject() {
     if (!Blaze.isBlazeProject(project)) {
       return;
     }
-    ProjectViewSet projectView = ProjectViewManager.getInstance(project).getProjectViewSet();
-    BlazeProjectData projectData =
-        BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
-    if (projectView == null || projectData == null) {
-      return;
-    }
-
-    ScopedFunction<List<TargetExpression>> targets =
-        context -> {
-          try {
-            return SyncProjectTargetsHelper.getProjectTargets(
-                    project,
-                    context,
-                    projectView,
-                    projectData.getWorkspacePathResolver(),
-                    projectData.getWorkspaceLanguageSettings())
-                .getTargetsToSync();
-          } catch (SyncCanceledException e) {
-            context.setCancelled();
-            return null;
-          } catch (SyncFailedException e) {
-            context.setHasError();
-            return null;
-          }
-        };
-
-    buildTargetExpressions(
-        project,
-        projectView,
-        projectData,
-        targets,
-        new NotificationScope(
-            project,
-            "Make",
-            "Make project",
-            "Make project completed successfully",
-            "Make project failed"),
-        "Make project",
-        buildSystem);
+    submitTask(project, this::runBuildProjectTask);
 
     // In case the user touched a file, but didn't change its content. The user will get a false
     // positive for class file out of date. We need a way for the user to suppress the false
@@ -168,89 +140,135 @@ public class BlazeBuildService {
     project.putUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY, System.currentTimeMillis());
   }
 
-  private static ListenableFuture<Boolean> buildTargetExpressions(
-      Project project,
-      ProjectViewSet projectView,
-      BlazeProjectData projectData,
-      ScopedFunction<List<TargetExpression>> targetsFunction,
-      NotificationScope notificationScope,
-      String taskName,
-      BuildSystem buildSystem) {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      // a gross hack to avoid breaking change detector tests. We had a few tests which relied on
-      // this never being called *and* relied on PROJECT_LAST_BUILD_TIMESTAMP_KEY being set
-      return immediateFuture(true);
+  public  Boolean runBuildProjectTask(BlazeContext context) {
+    ProjectViewSet projectView = ProjectViewManager.getInstance(project).getProjectViewSet();
+    BlazeProjectData projectData =
+      BlazeProjectDataManager.getInstance(project).getBlazeProjectData();
+    if (projectView == null || projectData == null) {
+      return null;
     }
-    FocusBehavior problemsViewFocus = BlazeUserSettings.getInstance().getShowProblemsViewOnRun();
 
+    ScopedFunction<List<TargetExpression>> targets =
+      context1 -> {
+        try {
+          return SyncProjectTargetsHelper.getProjectTargets(
+              project,
+              context1,
+              projectView,
+              projectData.getWorkspacePathResolver(),
+              projectData.getWorkspaceLanguageSettings())
+            .getTargetsToSync();
+        } catch (SyncCanceledException e) {
+          context1.setCancelled();
+          return null;
+        } catch (SyncFailedException e) {
+          context1.setHasError();
+          return null;
+        }
+      };
+
+    final NotificationScope notificationScope = new NotificationScope(
+      project,
+      "Make",
+      "Make project",
+      "Make project completed successfully",
+      "Make project failed");
+    return runTaskInBuildRootScope(context, project, "Make project",
+                                   BlazeUserSettings.getInstance().getShowProblemsViewOnRun(),
+                                   notificationScope,
+                                   context1 -> buildTargetExpressionsCore(context1, project, buildSystem,
+                                                                         projectView, projectData,
+                                                                         targets));
+  }
+
+  private static ListenableFuture<Boolean> submitTask(Project project, final Function<BlazeContext, Boolean> task) {
     return ProgressiveTaskWithProgressIndicator.builder(project, "Building targets")
-            .submitTaskWithResult(
-                new ScopedTask<Boolean>() {
-                  @Override
-                  public Boolean execute(BlazeContext context) {
-                    Task task = new Task(project, taskName, Task.Type.MAKE);
-                    context
-                        .push(
-                            new ToolWindowScope.Builder(project, task)
-                                .setIssueParsers(
-                                    BlazeIssueParser.defaultIssueParsers(
-                                        project,
-                                        WorkspaceRoot.fromProject(project),
-                                        BlazeInvocationContext.ContextType.Sync))
-                                .build())
-                        .push(new ExperimentScope())
-                        .push(new ProblemsViewScope(project, problemsViewFocus))
-                        .push(new IdeaLogScope())
-                        .push(new TimingScope("Make", EventType.BlazeInvocation))
-                        .push(notificationScope);
+      .submitTaskWithResult(
+        new ScopedTask<>() {
+          @Override
+          public Boolean execute(BlazeContext context) {
+            return task.apply(context);
+          }
+        });
+  }
 
-                    List<TargetExpression> targets = targetsFunction.execute(context);
-                    if (targets == null) {
-                      return true;
-                    }
+  private static Boolean runTaskInBuildRootScope(BlazeContext context,
+                                                 Project project,
+                                                 String taskName,
+                                                 FocusBehavior problemsViewFocus,
+                                                 NotificationScope notificationScope,
+                                                 Function<BlazeContext, Boolean> buildTask) {
+    Task task = new Task(project, taskName, Task.Type.MAKE);
+    context
+      .push(
+        new ToolWindowScope.Builder(project, task)
+          .setIssueParsers(
+            BlazeIssueParser.defaultIssueParsers(
+              project,
+              WorkspaceRoot.fromProject(project),
+              BlazeInvocationContext.ContextType.Sync))
+          .build())
+      .push(new ExperimentScope())
+      .push(new ProblemsViewScope(project, problemsViewFocus))
+      .push(new IdeaLogScope())
+      .push(new TimingScope("Make", EventType.BlazeInvocation))
+      .push(notificationScope);
 
-                    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
+    return buildTask.apply(context);
+  }
 
-                    SaveUtil.saveAllFiles();
-                    BlazeBuildListener.EP_NAME.extensions().forEach(e -> e.buildStarting(project));
+  @WorkerThread
+  private static Boolean buildTargetExpressionsCore(BlazeContext context,
+                                                    Project project,
+                                                    BuildSystem buildSystem,
+                                                    ProjectViewSet projectView,
+                                                    BlazeProjectData projectData,
+                                                    ScopedFunction<List<TargetExpression>> targetsFunction) {
+    List<TargetExpression> targets = targetsFunction.execute(context);
+    if (targets == null) {
+      return true;
+    }
 
-                    BuildInvoker buildInvoker = buildSystem.getBuildInvoker(project);
+    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
 
-                    ShardedTargetsResult shardedTargets =
-                        BlazeBuildTargetSharder.expandAndShardTargets(
-                            project,
-                            context,
-                            projectView,
-                            projectData.getWorkspacePathResolver(),
-                            targets,
-                            buildInvoker,
-                            SyncStrategy.SERIAL);
-                    if (shardedTargets.buildResult.status == BuildResult.Status.FATAL_ERROR) {
-                      return false;
-                    }
-                    BlazeBuildOutputs buildOutputs =
-                        BlazeIdeInterface.getInstance()
-                            .build(
-                                project,
-                                context,
-                                workspaceRoot,
-                                projectData.getBlazeVersionData(),
-                                buildInvoker,
-                                projectView,
-                                shardedTargets.shardedTargets,
-                                projectData.getWorkspaceLanguageSettings(),
-                                ImmutableSet.of(OutputGroup.COMPILE),
-                                BlazeInvocationContext.OTHER_CONTEXT,
-                                shardedTargets.shardedTargets.shardCount() > 1);
+    SaveUtil.saveAllFiles();
+    BlazeBuildListener.EP_NAME.extensions().forEach(e -> e.buildStarting(project));
 
-                    refreshFileCachesAndNotifyListeners(context, buildOutputs, project);
+    BuildInvoker buildInvoker = buildSystem.getBuildInvoker(project);
 
-                    if (buildOutputs.buildResult().status != BuildResult.Status.SUCCESS) {
-                      context.setHasError();
-                    }
-                    return buildOutputs.buildResult().status == BuildResult.Status.SUCCESS;
-                  }
-                });
+    ShardedTargetsResult shardedTargets =
+        BlazeBuildTargetSharder.expandAndShardTargets(
+          project,
+          context,
+          projectView,
+          projectData.getWorkspacePathResolver(),
+          targets,
+          buildInvoker,
+          SyncStrategy.SERIAL);
+    if (shardedTargets.buildResult.status == BuildResult.Status.FATAL_ERROR) {
+      return false;
+    }
+    BlazeBuildOutputs buildOutputs =
+        BlazeIdeInterface.getInstance()
+            .build(
+              project,
+              context,
+              workspaceRoot,
+              projectData.getBlazeVersionData(),
+              buildInvoker,
+              projectView,
+              shardedTargets.shardedTargets,
+              projectData.getWorkspaceLanguageSettings(),
+              ImmutableSet.of(OutputGroup.COMPILE),
+              BlazeInvocationContext.OTHER_CONTEXT,
+                shardedTargets.shardedTargets.shardCount() > 1);
+
+    refreshFileCachesAndNotifyListeners(context, buildOutputs, project);
+
+    if (buildOutputs.buildResult().status != BuildResult.Status.SUCCESS) {
+      context.setHasError();
+    }
+    return buildOutputs.buildResult().status == BuildResult.Status.SUCCESS;
   }
 
   /**

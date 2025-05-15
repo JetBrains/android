@@ -18,6 +18,7 @@ package com.google.idea.blaze.base.settings;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.idea.blaze.base.projectview.ProjectViewManager.migrateImportSettingsToProjectViewFile;
 
+import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
 import com.google.idea.blaze.base.project.QuerySyncConversionUtility;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
@@ -47,6 +48,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
@@ -223,19 +225,19 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
   }
 
   private void reloadProjectViewUnderProgressAndWait() throws InterruptedException, ExecutionException {
-    SyncActionScopes.createAndSubmitRunTask(
-      project,
-      "Parsing project view files",
-      "Parsing project view files",
-      Optional.empty(), // Not logging reading project view files as syncing.
-      context -> {
-        final var importSettings = getImportSettings();
-        final var loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings);
-        migrateImportSettingsToProjectViewFile(project, importSettings,
-                                               Objects.requireNonNull(loadedProjectView.getTopLevelProjectViewFile()));
-        projectViewSet.set(loadedProjectView);
-      },
-      QuerySyncManager.TaskOrigin.AUTOMATIC).get();
+    // Not logging reading project view files as syncing.
+    ProgressiveTaskWithProgressIndicator.builder(project, "Parsing project view files")
+      .submitTaskWithResult(((Function<ProgressIndicator, Boolean>)indicator ->
+        SyncActionScopes.runTaskInSyncRootScope(project, "Parsing project view files",
+                                                "Parsing project view files", Optional.empty(), QuerySyncManager.TaskOrigin.AUTOMATIC,
+                                                indicator, BlazeUserSettings.getInstance(), context -> {
+            final var importSettings1 = getImportSettings();
+            final var loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings1);
+            migrateImportSettingsToProjectViewFile(project, importSettings1,
+                                                   Objects.requireNonNull(loadedProjectView.getTopLevelProjectViewFile()));
+            projectViewSet.set(loadedProjectView);
+          }
+        ))::apply).get();
   }
 
   public static String createLocationHash(String projectName) {

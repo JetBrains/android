@@ -22,13 +22,15 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
 import com.google.errorprone.annotations.CanIgnoreReturnValue
+import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator
 import com.google.idea.blaze.base.bazel.BuildSystemProvider
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
 import com.google.idea.blaze.base.projectview.ProjectViewManager
 import com.google.idea.blaze.base.scope.BlazeContext
-import com.google.idea.blaze.base.scope.scopes.SyncActionScopes
+import com.google.idea.blaze.base.scope.scopes.SyncActionScopes.runTaskInSyncRootScope
 import com.google.idea.blaze.base.settings.Blaze
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager
+import com.google.idea.blaze.base.settings.BlazeUserSettings
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap
 import com.google.idea.blaze.base.util.SaveUtil
 import com.google.idea.blaze.common.Label
@@ -334,14 +336,21 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     try {
       statsScope?.builder?.setTaskOrigin(taskOrigin)
       val innerResultFuture =
-        SyncActionScopes.createAndSubmitRunTask(
-          project,
-          operation.title,
-          operation.subTitle,
-          Optional.ofNullable(statsScope),
-          { context -> operation.execute(context) },
-          taskOrigin
-        )
+        ProgressiveTaskWithProgressIndicator.builder(project, operation.title)
+          .submitTaskWithResult { indicator ->
+            runTaskInSyncRootScope(
+              project,
+              operation.title,
+              operation.subTitle,
+              Optional.ofNullable(statsScope),
+              taskOrigin,
+              indicator,
+              BlazeUserSettings.getInstance()
+            ) { context ->
+              operation.execute(context)
+            }
+          }
+
       result.setFuture(innerResultFuture)
     }
     catch (t: Throwable) {
