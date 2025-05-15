@@ -618,38 +618,6 @@ studio_plugin(
 )
 
 studio_plugin(
-    name = "com.google.gct",
-    directory = "google-cloud-tools-as",
-    libs = [
-        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:gradle-appengine-builder-model-0.1.0",
-        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:google-api-services-appengine",
-        "//tools/studio/google/cloud/tools/android-studio-plugin/third_party/gradle-appengine-builder-model:gradle-appengine-builder-model-0.1.0",
-        "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
-        "//prebuilts/tools/common/m2:google-api-services-sourcerepo",
-    ],
-    license_files = [
-        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
-    ],
-    modules = {
-        "google-cloud-tools-as.jar": [
-            "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as",
-        ],
-    },
-    visibility = ["//visibility:public"],
-    deps = [
-        ":org.jetbrains.android",
-        "@intellij//:Git4Idea",
-        "@intellij//:com.intellij.gradle",
-        "@intellij//:com.intellij.java",
-        "@intellij//:intellij.platform.vcs.dvcs.impl",
-        "@intellij//:intellij.platform.vcs.impl",
-        "@intellij//:org.intellij.groovy",
-        "@intellij//:org.jetbrains.kotlin",
-        "@intellij//:org.jetbrains.plugins.gradle",
-    ],
-)
-
-studio_plugin(
     name = "com.android.tools.idea.smali",
     directory = "smali",
     modules = {"smali.jar": ["//tools/adt/idea/smali:intellij.android.smali"]},
@@ -837,7 +805,6 @@ android_studio(
         ":com.google.tools.ij.aiplugin",
         ":com.google.gct.directaccess",
         ":com.google.gct.testing",
-        ":com.google.gct",
         ":com.android.tools.idea.smali",
         ":com.google.gct.test.recorder",
         ":com.google.urlassistant",
@@ -1080,7 +1047,6 @@ iml_module(
         "//tools/adt/idea/design-plugin:intellij.android.design-plugin",
         "//tools/vendor/google/android-ndk",
         "//tools/vendor/google/git4insights",
-        "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as",
         "//tools/vendor/google/firebase",
         "//tools/studio/google/cloud/testing/directaccess",
         "//tools/studio/google/cloud/testing/firebase-testing",

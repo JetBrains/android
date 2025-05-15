@@ -2429,16 +2429,6 @@ public final class StudioFlags {
                     "Show marketing dialog after user logs in", true);
   // endregion Google Login
 
-  // region Cloud Integration
-  private static final FlagGroup CLOUD_INTEGRATION =
-    new FlagGroup(FLAGS, "cloud", "Cloud Integration");
-  // TODO(b/341816638): delete in L
-  public static final Flag<Boolean> SHOW_CLOUD_DEPRECATION_MESSAGES =
-    new BooleanFlag(CLOUD_INTEGRATION, "enabled", "Show bundled cloud plugin deprecation messages",
-                    "When enabled, deprecation messages will show when using functionality from the bundled cloud plugin.", true);
-
-  // endregion Cloud Integration
-
   // region Backup
   private static final FlagGroup BACKUP = new FlagGroup(FLAGS, "backup", "Backup");
   public static final Flag<Boolean> BACKUP_ENABLED =

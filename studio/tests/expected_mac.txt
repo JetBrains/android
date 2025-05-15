@@ -543,8 +543,6 @@ Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.md
 Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.openh264
 Android Studio Preview.app/Contents/license/ffmpeg-SOURCE_CODE.TXT
 Android Studio Preview.app/Contents/license/freemarker-NOTICE
-Android Studio Preview.app/Contents/license/google-api-services-source.jar-NOTICE
-Android Studio Preview.app/Contents/license/gradle-appengine-builder-model-0.1.0.jar-NOTICE
 Android Studio Preview.app/Contents/license/gson-2.3-NOTICE
 Android Studio Preview.app/Contents/license/hdrhistogram_license.txt
 Android Studio Preview.app/Contents/license/icudt75l.dat.txt
@@ -566,7 +564,6 @@ Android Studio Preview.app/Contents/license/libandroid_runtime.dylib.txt
 Android Studio Preview.app/Contents/license/libandroid_runtime.so.txt
 Android Studio Preview.app/Contents/license/mockito-all-1.9.5-NOTICE
 Android Studio Preview.app/Contents/license/r8_license.txt
-Android Studio Preview.app/Contents/license/samplesindex-v1-1.0-SNAPSHOT.jar-NOTICE
 Android Studio Preview.app/Contents/license/saxon-conditions.html
 Android Studio Preview.app/Contents/license/swt.jar-NOTICE
 Android Studio Preview.app/Contents/license/third-party-libraries.html
@@ -3058,12 +3055,6 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/proto-models-1.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/wire-runtime-jvm-5.3.1.jar
 Android Studio Preview.app/Contents/plugins/gemini/resources/recorder-release-androidTest.apk
 Android Studio Preview.app/Contents/plugins/git4insights/lib/git4insights.jar
-Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar
-Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
-Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-sourcerepo-v1-rev20230123-2.0.0.jar
-Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
-Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.so.jar
-Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar
 Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative.jar
 Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative.so.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-java.jar

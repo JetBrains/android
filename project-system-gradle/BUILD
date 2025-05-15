@@ -51,7 +51,6 @@ iml_module(
         "//tools/vendor/google/android-ndk:android-ndk",
         "//tools/vendor/google/firebase:firebase",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
-        "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as",
     ],
     # NOTE: If you are tempted to add to the above module_visibility list, please
     # first read  go/as-project-system-cleanup, and discuss with and get agreement

@@ -14,7 +14,6 @@
     <orderEntry type="module" module-name="intellij.android.design-plugin" />
     <orderEntry type="module" module-name="android-ndk" />
     <orderEntry type="module" module-name="git4insights" />
-    <orderEntry type="module" module-name="google-cloud-tools-as" />
     <orderEntry type="module" module-name="firebase" />
     <orderEntry type="module" module-name="directaccess" />
     <orderEntry type="module" module-name="firebase-testing" />

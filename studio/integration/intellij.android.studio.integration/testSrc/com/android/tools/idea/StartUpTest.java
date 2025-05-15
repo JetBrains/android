@@ -96,7 +96,6 @@ public class StartUpTest {
         "Modal Commit Interface",
         "GitHub",
         "GitLab",
-        "Google Cloud Tools For Android Studio",
         "Gradle",
         "Gradle Declarative Support",
         "Gradle-Java",
