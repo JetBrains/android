@@ -2492,7 +2492,7 @@ public final class StudioFlags {
     "Journey plugin dependency name used by automatic Gradle configuration",
     "The ID of the Journey AGP plugin to use in the init-script injected when JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION " +
     "is enabled, Use the `-dev` suffix to use a locally built plugin.",
-    "com.android.tools.journeys:journeys-gradle-plugin:0.0.1-alpha02"
+    "com.android.tools.journeys:journeys-gradle-plugin:0.0.1-alpha03"
   );
   public static final Flag<String> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION_EXTRA_REPOSITORY_URL = new StringFlag(
     JOURNEYS_WITH_GEMINI, "extra.repository.url.for.journeys.with.gemini.auto.gradle.configuration",
