@@ -37,6 +37,8 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     KOTLIN_EAP("Compilation Error", "%", true, Status.KOTLIN_EAP),
     NON_COMPOSE("Non-Compose Module", "%", false, Status.NON_KOTLIN), // TODO: ADD REAL METRICS. (Currently treated as internal error)
     NON_KOTLIN("Non-Kotlin file not supported", "%", false, Status.NON_KOTLIN),
+    NON_KOTLIN_IS_JAVA("Java file not supported", "%", false, Status.NON_KOTLIN), // TODO: Add new metrics.
+    NON_KOTLIN_IS_XML("XML file not supported", "%", false, Status.NON_KOTLIN), // TODO: Add new metrics.
     NON_PRIVATE_INLINE_FUNCTION("Modified function is a non-private inline function", "%", true, Status.NON_PRIVATE_INLINE_FUNCTION),
     UNABLE_TO_INLINE("Unable to inline function", "%", true, Status.UNABLE_TO_INLINE),
     UNABLE_TO_LOCATE_COMPOSE_GROUP("Unable to locate Compose Invalid Group", "%", false, Status.UNABLE_TO_LOCATE_COMPOSE_GROUP),
@@ -109,6 +111,10 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
                                                                " and will only work with the bundled Kotlin Plugin", null, null)
 
     fun nonKotlin(file: PsiFile) = LiveEditUpdateException(Error.NON_KOTLIN, "Modification to ${file.name} not supported", sourceFilename = null, cause = null)
+
+    fun nonKotlinIsJava(file: PsiFile) = LiveEditUpdateException(Error.NON_KOTLIN_IS_JAVA, "Modification to ${file.name} not supported", sourceFilename = null, cause = null)
+
+    fun nonKotlinIsXml(file: PsiFile) = LiveEditUpdateException(Error.NON_KOTLIN_IS_XML, "Modification to ${file.name} not supported", sourceFilename = null, cause = null)
 
     fun unsupportedSourceModificationAddedMethod(location: String, msg: String) =
       LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_METHOD_ADDED, msg, location, null)

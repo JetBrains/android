@@ -22,13 +22,17 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Co
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.gradleBuildFile
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.kotlinEap
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlin
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlinIsJava
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlinIsXml
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedBuildSrcChange
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.virtualFileNotExist
 import com.intellij.ide.plugins.PluginManager
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import com.intellij.psi.xml.XmlFile
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.util.projectStructure.module
@@ -62,13 +66,24 @@ internal fun checkIwiAvailable() {
 internal fun checkSupportedFiles(file: PsiFile) {
   val virtualFile = file.virtualFile ?: return // Extremely unlikely, but possible.
 
-  // Filter out non-kotlin file first so we don't end up with a lot of metrics related to non-kolin files.
-  if (file !is KtFile) {
-    throw nonKotlin(file)
-  }
-
+  // Filter out Gradle files first. KTS files are ktfiles so we don't want them to fall into NON_KOLTIN
+  // Also, we would like to see how often build modifications stop Live Edit.
   if (isGradleFile(file)) {
     throw gradleBuildFile(file)
+  }
+
+  if (file.language == JavaLanguage.INSTANCE) {
+    throw nonKotlinIsJava(file)
+  }
+
+  if (file is XmlFile) {
+    throw nonKotlinIsXml(file)
+  }
+
+  // Lastly we filter out all non-kotlin file that isn't known file type first before we pick out what specific things a given
+  // Kotlin file is doing for it to not be supported.
+  if (file !is KtFile) {
+    throw nonKotlin(file)
   }
 
   if (virtualFile.path.contains("buildSrc")) {
@@ -78,6 +93,7 @@ internal fun checkSupportedFiles(file: PsiFile) {
   if (!virtualFile.exists()) {
     throw virtualFileNotExist(virtualFile, file)
   }
+
 }
 
 internal fun checkJetpackCompose(project: Project) {
