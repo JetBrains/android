@@ -58,7 +58,6 @@ interface ConfigurablePreviewElement<T> : PreviewElement<T> {
 data class PreviewConfiguration
 internal constructor(
   val apiLevel: Int,
-  val theme: String?,
   val width: Int,
   val height: Int,
   val locale: String,
@@ -76,7 +75,6 @@ internal constructor(
     @JvmStatic
     fun cleanAndGet(
       apiLevel: Int? = null,
-      theme: String? = null,
       width: Int? = null,
       height: Int? = null,
       locale: String? = null,
@@ -91,7 +89,6 @@ internal constructor(
       // we will handle and any other error.
       PreviewConfiguration(
         apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
-        theme = theme,
         width =
           width?.takeIf { it != UNDEFINED_DIMENSION }?.coerceIn(MIN_DIMENSION, MAX_DIMENSION)
             ?: UNDEFINED_DIMENSION,
@@ -173,10 +170,6 @@ private fun PreviewConfiguration.applyTo(
     highestApiTarget(renderConfiguration)?.let { updateRenderConfigurationTargetIfChanged(it) }
   }
 
-  if (theme != null) {
-    renderConfiguration.setTheme(theme)
-  }
-
   renderConfiguration.locale = Locale.create(locale)
   renderConfiguration.fontScale = max(0f, fontScale)
   renderConfiguration.setWallpaper(Wallpaper.values().getOrNull(wallpaper))
@@ -203,7 +196,7 @@ private fun PreviewConfiguration.applyTo(
     // If there is no application theme set, we might need to change the theme when changing the
     // device, because different devices might
     // have different default themes.
-    renderConfiguration.setTheme(renderConfiguration.getPreferredTheme())
+    renderConfiguration.setTheme(renderConfiguration.preferredTheme)
   }
 
   if (uiMode != UNSET_UI_MODE_VALUE || device == null) {

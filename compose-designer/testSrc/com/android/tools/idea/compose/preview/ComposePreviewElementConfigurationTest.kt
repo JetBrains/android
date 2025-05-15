@@ -198,7 +198,7 @@ class ComposePreviewElementConfigurationTest {
         ),
         null,
         null,
-        PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null),
+        PreviewConfiguration.cleanAndGet(null, 123, 234, null, null, null, null),
       )
       .let { previewElement ->
         previewElement.applyConfigurationForTest(
@@ -227,7 +227,7 @@ class ComposePreviewElementConfigurationTest {
         ),
         null,
         null,
-        PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null),
+        PreviewConfiguration.cleanAndGet(null, 123, 234, null, null, null, null),
       )
       .let { previewElement ->
         previewElement.applyConfigurationForTest(
@@ -256,7 +256,7 @@ class ComposePreviewElementConfigurationTest {
         ),
         null,
         null,
-        PreviewConfiguration.cleanAndGet(null, null, 123, 234, null, null, null, null),
+        PreviewConfiguration.cleanAndGet(null, 123, 234, null, null, null, null),
       )
       .let { previewElement ->
         previewElement.applyConfigurationForTest(
@@ -291,7 +291,7 @@ class ComposePreviewElementConfigurationTest {
         ),
         null,
         null,
-        PreviewConfiguration.cleanAndGet(null, null, 100, 100, null, null, null, null),
+        PreviewConfiguration.cleanAndGet(null, 100, 100, null, null, null, null),
       )
       .let { previewElement ->
         previewElement.applyConfigurationForTest(
@@ -318,7 +318,7 @@ class ComposePreviewElementConfigurationTest {
         ),
         null,
         null,
-        PreviewConfiguration.cleanAndGet(null, null, 100, 100, null, null, null, null),
+        PreviewConfiguration.cleanAndGet(null, 100, 100, null, null, null, null),
       )
       .let { previewElement ->
         previewElement.applyConfigurationForTest(
@@ -348,7 +348,7 @@ class ComposePreviewElementConfigurationTest {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     Configuration.create(configManager, FolderConfiguration.createDefault()).also {
       val previewConfiguration =
-        PreviewConfiguration.cleanAndGet(30, null, null, null, null, null, null, null, null)
+        PreviewConfiguration.cleanAndGet(30, null, null, null, null, null, null, null)
       previewConfiguration.applyConfigurationForTest(
         it,
         highestApiTarget = { configManager.highestApiTarget },
@@ -364,17 +364,7 @@ class ComposePreviewElementConfigurationTest {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     Configuration.create(configManager, FolderConfiguration.createDefault()).also {
       val previewConfiguration =
-        PreviewConfiguration.cleanAndGet(
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          "id:pixel_4",
-          null,
-        )
+        PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, "id:pixel_4", null)
       previewConfiguration.applyConfigurationForTest(
         it,
         highestApiTarget = { configManager.highestApiTarget },
@@ -390,7 +380,6 @@ class ComposePreviewElementConfigurationTest {
     Configuration.create(configManager, FolderConfiguration.createDefault()).also {
       val previewConfiguration =
         PreviewConfiguration.cleanAndGet(
-          null,
           null,
           null,
           null,
@@ -426,7 +415,6 @@ class ComposePreviewElementConfigurationTest {
           null,
           null,
           null,
-          null,
           "spec:width=100dp,height=200dp,dpi=310",
           null,
         )
@@ -442,7 +430,6 @@ class ComposePreviewElementConfigurationTest {
     Configuration.create(configManager, FolderConfiguration.createDefault()).also {
       val previewConfiguration =
         PreviewConfiguration.cleanAndGet(
-          null,
           null,
           null,
           null,
@@ -474,7 +461,6 @@ class ComposePreviewElementConfigurationTest {
           null,
           null,
           null,
-          null,
           wallpaperParameterValue,
         )
       previewConfiguration.applyConfigurationForTest(
@@ -491,7 +477,7 @@ class ComposePreviewElementConfigurationTest {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     Configuration.create(configManager, FolderConfiguration.createDefault()).also {
       val previewConfiguration =
-        PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, deviceSpec)
+        PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, deviceSpec)
       previewConfiguration.applyConfigurationForTest(
         it,
         highestApiTarget = { null },

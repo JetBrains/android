@@ -209,7 +209,6 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals("Preview2 - preview2", it.displaySettings.name)
       assertEquals("groupA", it.displaySettings.group)
       assertEquals(12, it.configuration.apiLevel)
-      assertNull(it.configuration.theme)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
       assertEquals("en-rUS", it.configuration.locale)
