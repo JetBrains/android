@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.files.LogcatFileIo
 import com.android.tools.idea.logcat.util.LOGGER
@@ -43,6 +42,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private const val SAVE_PATH_KEY = "Logcat.SavePath"
@@ -86,7 +86,7 @@ internal class SaveLogcatAction :
     val projectApplicationIds =
       project.getService(ProjectApplicationIdsProvider::class.java)?.getPackageNames() ?: emptySet()
 
-    AndroidCoroutineScope(logcatPresenter, AndroidDispatchers.diskIoThread).launch {
+    logcatPresenter.createCoroutineScope(extraContext = Dispatchers.IO).launch {
       LogcatFileIo()
         .writeLogcat(file.toPath(), logcatMessages, device, filter, projectApplicationIds)
       val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
