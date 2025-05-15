@@ -139,6 +139,9 @@ private const val MAX_FIRST_COMPONENT_PROPORTION: Float = 0.9f
  * @param toolWindowId a tool window ID of which this view is to be displayed in.
  * @param runConfiguration a run configuration of a test. This is used for exporting test results into XML. Null is given
  * when this view displays an imported test result.
+ * @param myClock a clock used for time-related operations, defaults to the system clock.
+ * @param myIsImportedResult indicates if the displayed results are imported from a file (true) or from a live execution (false).
+ * @param canExportTestResults determines if exporting test results is allowed
  */
 class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   parentDisposable: Disposable,
@@ -148,6 +151,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   val runConfiguration: RunConfiguration? = null,
   private val myClock: Clock = Clock.systemDefaultZone(),
   @VisibleForTesting val myIsImportedResult: Boolean = false,
+  private val canExportTestResults: Boolean = true
 ) : ConsoleView,
     UserDataHolderBase(),
     BuildViewSettingsProvider,
@@ -490,7 +494,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
         showNotificationBalloonIfToolWindowIsNotActive()
 
         // Don't allow re-exporting the imported result or exporting a cancelled result.
-        if (!myIsImportedResult && testSuite.result != AndroidTestSuiteResult.CANCELLED) {
+        if (canExportTestResults && !myIsImportedResult && testSuite.result != AndroidTestSuiteResult.CANCELLED) {
           myExportTestResultsAction.apply {
             devices = myScheduledDevices.toList()
             rootResultsNode = myResultsTableView.rootResultsNode
@@ -586,6 +590,10 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
 
   private fun saveHistory() {
+    if (!canExportTestResults) {
+      return
+    }
+
     val runConfiguration = runConfiguration ?: return
     ProgressManager.getInstance().run(
       object : Task.Backgroundable(

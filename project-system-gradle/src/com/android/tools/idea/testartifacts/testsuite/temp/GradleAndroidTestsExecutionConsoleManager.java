@@ -91,8 +91,16 @@ public final class GradleAndroidTestsExecutionConsoleManager
     }
     if (!(configuration instanceof ExternalSystemRunConfiguration)) return null;
 
-    AndroidTestSuiteView consoleView =
-      new AndroidTestSuiteView(project, project, null, null, configuration, Clock.systemDefaultZone(), false);
+    AndroidTestSuiteView consoleView = new AndroidTestSuiteView(
+      project,
+      project,
+      null,
+      null,
+      configuration,
+      Clock.systemDefaultZone(),
+      false,
+      false
+    );
 
     if (task instanceof ExternalSystemExecuteTaskTask) {
       consoleView.addMessageFilter(new ReRunTaskFilter((ExternalSystemExecuteTaskTask)task, env));
