@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenshot
 
+import com.android.SdkConstants.EXT_PNG
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.android.tools.idea.ui.save.SaveConfigurationPanel
@@ -35,7 +36,7 @@ internal class DeviceScreenshotSettingsPage(private val project: Project) :
   override fun getId() = "device.screenshot"
 
   override fun createPanel(): DialogPanel =
-      SaveConfigurationPanel(state.saveConfig, state.fileExtension, Instant.now(), state.screenshotCount + 1, project).createPanel()
+      SaveConfigurationPanel(state.saveConfig, EXT_PNG, Instant.now(), state.screenshotCount + 1, project).createPanel()
 
   class Provider(private val project: Project) : ConfigurableProvider() {
 

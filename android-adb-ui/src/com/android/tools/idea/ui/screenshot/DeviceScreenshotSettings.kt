@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.screenshot
 
-import com.android.SdkConstants.EXT_PNG
 import com.android.tools.idea.ui.save.PostSaveAction
 import com.android.tools.idea.ui.save.SaveConfiguration
 import com.android.tools.idea.ui.save.SaveConfigurationResolver
@@ -36,9 +35,6 @@ internal class DeviceScreenshotSettings : PersistentStateComponent<DeviceScreens
   var scale: Double = 1.0
   var frameScreenshot: Boolean = false
   var screenshotCount: Int = 0
-  val fileExtension: String = EXT_PNG
-
-  private var initialized = false
 
   override fun getState(): DeviceScreenshotSettings = this
 
@@ -56,10 +52,6 @@ internal class DeviceScreenshotSettings : PersistentStateComponent<DeviceScreens
 
   override fun loadState(state: DeviceScreenshotSettings) {
     XmlSerializerUtil.copyBean(state, this)
-  }
-
-  override fun initializeComponent() {
-    initialized = true
   }
 
   companion object {

@@ -40,7 +40,7 @@ import kotlin.math.roundToInt
 /** A dialog for setting the options for a screen recording. */
 internal class ScreenRecorderOptionsDialog(
   private val project: Project,
-  private val canUseEmulatorRecording: Boolean,
+  private val emulatorRecordingAvailable: Boolean,
   private val apiLevel: Int,
 ) : DialogWrapper(project) {
 
@@ -51,6 +51,7 @@ internal class ScreenRecorderOptionsDialog(
   private val saveLocation: String
     get() = saveConfigResolver.expandSaveLocation (saveConfig.saveLocation)
   private lateinit var saveLocationText: JEditorPane
+  private var fileExtension: String = "mp4"
 
   init {
     title = message("screenrecord.options.title")
@@ -60,7 +61,7 @@ internal class ScreenRecorderOptionsDialog(
   override fun createCenterPanel(): JComponent {
     return panel {
       row {
-        text(getMaxRecordingLengthText(canUseEmulatorRecording && settings.useEmulatorRecordingWhenAvailable))
+        text(getMaxRecordingLengthText(emulatorRecordingAvailable && settings.useEmulatorRecordingWhenAvailable))
           .applyToComponent { recordingLengthField = this }
       }
       row(message("screenrecord.options.bit.rate")) {
@@ -80,11 +81,14 @@ internal class ScreenRecorderOptionsDialog(
           .bindSelected(settings::showTaps)
       }.contextHelp(message("screenrecord.options.show.taps.tooltip"))
 
-      if (canUseEmulatorRecording) {
+      if (emulatorRecordingAvailable) {
         row {
           checkBox(message("screenrecord.options.use.emulator.recording"))
             .bindSelected(settings::useEmulatorRecordingWhenAvailable)
-            .onChanged { recordingLengthField.text = getMaxRecordingLengthText(it.isSelected) }
+            .onChanged {
+              fileExtension = if (it.isSelected) "webm" else "mp4"
+              recordingLengthField.text = getMaxRecordingLengthText(it.isSelected)
+            }
         }.contextHelp(message("screenrecord.options.use.emulator.recording.tooltip"))
       }
 
@@ -114,8 +118,9 @@ internal class ScreenRecorderOptionsDialog(
   }
 
   private fun configureSave() {
-    settings.emulatorRecordingAvailable = canUseEmulatorRecording
-    ShowSettingsUtil.getInstance().showSettingsDialog(project, DeviceScreenRecordingSettingsPage::class.java)
+    ShowSettingsUtil.getInstance().showSettingsDialog(project, DeviceScreenRecordingSettingsPage::class.java) {
+      it.fileExtension = fileExtension
+    }
     saveLocationText.text = saveLocation
   }
 

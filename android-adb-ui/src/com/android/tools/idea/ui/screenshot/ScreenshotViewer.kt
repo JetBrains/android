@@ -312,8 +312,8 @@ class ScreenshotViewer(
 
   private fun saveScreenshotWithoutAsking(): Boolean {
     val image = displayedImageRef.get() ?: return false
-    val expandedFilename = saveConfigResolver.expandFilenamePattern(saveConfig.saveLocation, saveConfig.filenameTemplate,
-                                                                    settings.fileExtension, image.timestamp, settings.screenshotCount + 1)
+    val expandedFilename = saveConfigResolver.expandFilenamePattern(
+        saveConfig.saveLocation, saveConfig.filenameTemplate, EXT_PNG, image.timestamp, settings.screenshotCount + 1)
     val file = adjustToAvoidExistingFiles(Paths.get(expandedFilename))
     try {
       Files.createDirectories(file.parent)

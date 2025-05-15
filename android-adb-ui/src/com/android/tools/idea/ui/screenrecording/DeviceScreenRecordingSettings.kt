@@ -42,12 +42,7 @@ internal class DeviceScreenRecordingSettings : PersistentStateComponent<DeviceSc
   var bitRateMbps: Int = DEFAULT_BIT_RATE_MBPS
   var showTaps: Boolean = false
   var useEmulatorRecordingWhenAvailable: Boolean = true
-  @Transient var emulatorRecordingAvailable: Boolean = false
   var recordingCount: Int = 0
-  val fileExtension: String
-    get() = if (useEmulatorRecordingWhenAvailable && emulatorRecordingAvailable) "webm" else "mp4"
-
-  private var initialized = false
 
   override fun getState(): DeviceScreenRecordingSettings = this
 
@@ -68,11 +63,6 @@ internal class DeviceScreenRecordingSettings : PersistentStateComponent<DeviceSc
   override fun loadState(state: DeviceScreenRecordingSettings) {
     XmlSerializerUtil.copyBean(state, this)
   }
-
-  override fun initializeComponent() {
-    initialized = true
-  }
-
 
   fun toScreenRecorderOptions(displayId: Int, size: Dimension?, timeLimitSec: Int): ScreenRecorderOptions {
     val width: Int
