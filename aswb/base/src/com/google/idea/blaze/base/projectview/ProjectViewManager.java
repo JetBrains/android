@@ -111,13 +111,13 @@ public abstract class ProjectViewManager {
         Notifications.Bus.notify(
           new Notification(
             "QuerySync",
-            "Congratulation! Project is auto-converted into QuerySync.",
-            NotificationType.INFORMATION).addAction(new NotificationAction("go/query-sync") {
+            "Your project was auto-converted to Query Sync. To learn more, click the link below.",
+            NotificationType.INFORMATION).addAction(new NotificationAction("go/query-sync#auto-convert") {
 
             @Override
             public void actionPerformed(@NotNull AnActionEvent e,
                                         @NotNull Notification notification) {
-              BrowserUtil.browse("http://go/query-sync");
+              BrowserUtil.browse("http://go/query-sync#auto-convert");
 
             }
           }),
