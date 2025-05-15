@@ -258,7 +258,7 @@ fun JourneyScreenshot(modifier: Modifier, path: String) {
     imageBitmap = null
     withContext(Dispatchers.IO) {
       try {
-        val bytes = file.inputStream().readAllBytes()
+        val bytes = file.inputStream().use { it.readAllBytes() }
         imageBitmap = bytes.decodeToImageBitmap()
       } catch (e: Exception) {
         error = true
