@@ -69,8 +69,9 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
 
     val annotationEntry = element.parentOfType<KtAnnotationEntry>() ?: return null
     val uElement =
-      (annotationEntry.toUElement() as? UAnnotation)?.takeIf { it.isPreviewAnnotation() }
-        ?: return null
+      (annotationEntry.toUElement() as? UAnnotation)?.takeIf {
+        it.isPreviewAnnotation(includingMultiplatform = false)
+      } ?: return null
 
     // Do not show the picker if there are any syntax issues with the annotation
     if (annotationEntry.hasIssues()) return null
