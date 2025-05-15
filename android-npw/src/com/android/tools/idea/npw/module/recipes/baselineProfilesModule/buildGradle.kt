@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
+import com.android.sdklib.AndroidMajorVersion
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.flavorsConfigurationsBuildGradle
+import com.android.tools.idea.npw.module.recipes.compileSdk
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
-import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
+import com.android.tools.idea.npw.module.recipes.minSdk
+import com.android.tools.idea.npw.module.recipes.targetSdk
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.renderIf
 import com.intellij.openapi.module.Module
 
-private const val BENCHMARK_MIN_COMPILE_SDK = 34
-private const val BENCHMARK_MIN_API = 28
+private val BENCHMARK_MIN_COMPILE_SDK = AndroidVersion(34, 0)
+private val BENCHMARK_MIN_API = AndroidMajorVersion(28)
 
 fun baselineProfilesBuildGradle(
   newModule: ModuleTemplateData,
@@ -119,7 +123,7 @@ ${emptyPluginsBlock()}
 
 android {
   namespace '$packageName'
-  ${toAndroidFieldVersion("compileSdk", "${maxOf(BENCHMARK_MIN_COMPILE_SDK, apis.buildApi.api)}", agpVersion)}
+  ${compileSdk(maxOf(BENCHMARK_MIN_COMPILE_SDK, apis.buildApi), agpVersion)}
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -129,8 +133,8 @@ android {
   $kotlinOptionsBlock
 
   defaultConfig {
-        ${toAndroidFieldVersion("minSdk", "${maxOf(apis.minApi.api, BENCHMARK_MIN_API)}", agpVersion)}
-        ${toAndroidFieldVersion("targetSdk", "${maxOf(apis.targetApi.api, BENCHMARK_MIN_API)}", agpVersion)}
+        ${minSdk(maxOf(apis.minApi, BENCHMARK_MIN_API), agpVersion)}
+        ${targetSdk(maxOf(apis.targetApi, BENCHMARK_MIN_API), agpVersion)}
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

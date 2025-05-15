@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.module.recipes.androidModule
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.sdklib.AndroidMajorVersion
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.wizard.template.CppStandardType
@@ -30,9 +32,9 @@ fun buildGradle(
   isDynamicFeature: Boolean,
   /** The application ID; also used for the namespace. */
   applicationId: String,
-  buildApiString: String,
-  minApi: String,
-  targetApi: String,
+  buildApi: AndroidVersion,
+  minApi: AndroidMajorVersion,
+  targetApi: AndroidMajorVersion,
   useAndroidX: Boolean,
   isCompose: Boolean = false,
   baseFeatureName: String = "base",
@@ -47,7 +49,7 @@ fun buildGradle(
   val androidConfigBlock =
     androidConfig(
       agpVersion = agpVersion,
-      buildApiString = buildApiString,
+      buildApi = buildApi,
       minApi = minApi,
       targetApi = targetApi,
       useAndroidX = useAndroidX,

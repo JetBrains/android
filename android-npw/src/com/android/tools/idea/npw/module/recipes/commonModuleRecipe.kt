@@ -78,9 +78,9 @@ fun RecipeExecutor.generateCommonModule(
       isLibraryProject,
       data.isDynamic,
       applicationId = data.namespace,
-      apis.buildApi.apiString,
-      minApi.apiString,
-      apis.targetApi.apiString,
+      apis.buildApi,
+      minApi,
+      apis.targetApi,
       useAndroidX,
       formFactorNames = projectData.includedFormFactorNames,
       hasTests = generateGenericLocalTests,
@@ -100,7 +100,7 @@ fun RecipeExecutor.generateCommonModule(
     data.isDynamic -> addPlugin("com.android.dynamic-feature", classpathModule, version)
     else -> addPlugin("com.android.application", classpathModule, version)
   }
-  addKotlinIfNeeded(projectData, targetApi = apis.targetApi.api, noKtx = noKtx)
+  addKotlinIfNeeded(projectData, targetApi = apis.targetApi.apiLevel, noKtx = noKtx)
   setJavaKotlinCompileOptions(data.projectTemplateData.language == Language.Kotlin)
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
@@ -117,7 +117,7 @@ fun RecipeExecutor.generateCommonModule(
 
   if (!isLibraryProject) {
     when (iconsGenerationStyle) {
-      IconsGenerationStyle.ALL -> copyIcons(resOut, minApi.api)
+      IconsGenerationStyle.ALL -> copyIcons(resOut, minApi.apiLevel)
       IconsGenerationStyle.MIPMAP_ONLY -> copyMipmapFolder(resOut)
       IconsGenerationStyle.MIPMAP_SQUARE_ONLY -> copyMipmapFile(resOut, "ic_launcher.webp")
       IconsGenerationStyle.NONE -> Unit

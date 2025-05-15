@@ -73,9 +73,9 @@ fun RecipeExecutor.generateDynamicFeatureModule(
       isLibraryProject = false,
       isDynamicFeature = true,
       applicationId = moduleData.namespace,
-      buildApiString = buildApi.apiString,
-      minApi = minApi.apiString,
-      targetApi = targetApi.apiString,
+      buildApi = buildApi,
+      minApi = minApi,
+      targetApi = targetApi,
       useAndroidX = useAndroidX,
       baseFeatureName = baseFeature.name,
       formFactorNames = projectData.includedFormFactorNames,
@@ -89,7 +89,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
     "com.android.tools.build:gradle",
     projectData.agpVersion.toString(),
   )
-  addKotlinIfNeeded(projectData, targetApi = targetApi.api)
+  addKotlinIfNeeded(projectData, targetApi = targetApi.apiLevel)
   setJavaKotlinCompileOptions(language == Language.Kotlin)
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))

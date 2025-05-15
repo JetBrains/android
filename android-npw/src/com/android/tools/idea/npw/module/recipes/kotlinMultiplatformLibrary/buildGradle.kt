@@ -16,21 +16,24 @@
 package com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.sdklib.AndroidMajorVersion
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
+import com.android.tools.idea.npw.module.recipes.compileSdk
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
-import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
+import com.android.tools.idea.npw.module.recipes.minSdk
 
 fun buildKmpGradle(
   agpVersion: AgpVersion,
   name: String,
   packageName: String,
-  compileApiString: String,
-  minApi: String,
+  compileApi: AndroidVersion,
+  minApi: AndroidMajorVersion,
 ): String {
   val androidTargetBlock =
     androidTargetConfig(
       agpVersion = agpVersion,
-      compileApiString = compileApiString,
+      compileApi = compileApi,
       minApi = minApi,
       packageName = packageName,
     )
@@ -103,8 +106,8 @@ fun buildKmpGradle(
 private fun androidTargetConfig(
   agpVersion: AgpVersion,
   packageName: String,
-  compileApiString: String,
-  minApi: String,
+  compileApi: AndroidVersion,
+  minApi: AndroidMajorVersion,
 ): String {
   return """
       // Target declarations - add or remove as needed below. These define
@@ -112,8 +115,8 @@ private fun androidTargetConfig(
       // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
     androidLibrary {
       namespace '$packageName'
-      ${toAndroidFieldVersion("compileSdk", compileApiString, agpVersion)}
-      ${toAndroidFieldVersion("minSdk", minApi, agpVersion)}
+      ${compileSdk(compileApi, agpVersion)}
+      ${minSdk(minApi, agpVersion)}
 
       withHostTestBuilder {
       }

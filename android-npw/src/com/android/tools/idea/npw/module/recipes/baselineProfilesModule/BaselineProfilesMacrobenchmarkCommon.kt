@@ -72,7 +72,7 @@ object BaselineProfilesMacrobenchmarkCommon {
 
     addKotlinIfNeeded(
       newModule.projectTemplateData,
-      targetApi = newModule.apis.targetApi.api,
+      targetApi = newModule.apis.targetApi.apiLevel,
       noKtx = true,
     )
 

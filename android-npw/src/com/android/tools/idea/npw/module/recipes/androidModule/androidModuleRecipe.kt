@@ -39,7 +39,7 @@ fun RecipeExecutor.generateAndroidModule(
   useVersionCatalog: Boolean = true,
 ) {
   val useAndroidX = data.projectTemplateData.androidXSupport
-  val addBackupRules = data.projectTemplateData.isNewProject && data.apis.targetApi.api >= 31
+  val addBackupRules = data.projectTemplateData.isNewProject && data.apis.targetApi.apiLevel >= 31
   val isMaterial3 = data.isMaterial3
   check(data.category != Category.Compose || data.isCompose) {
     "Template in Compose category must have isCompose set"
