@@ -2140,7 +2140,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "editor.ai.transform.session.diff.editor.viewer.enabled",
                     "Enable the new DiffEditorViewer UI that can show multiple-file diffs.",
                     "When enabled, uses the new DiffEditorViewer UI.",
-                    false);
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_ALLOW_TRANSFORMS_WITH_CITATIONS =
     new BooleanFlag(STUDIOBOT, "editor.ai.transform.allow.transforms.with.citations",
