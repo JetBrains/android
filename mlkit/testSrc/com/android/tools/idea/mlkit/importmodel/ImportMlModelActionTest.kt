@@ -17,69 +17,61 @@ package com.android.tools.idea.mlkit.importmodel
 
 import com.android.tools.idea.mlkit.MlProjectTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.EdtAndroidProjectRule
-import com.android.tools.idea.testing.JavaLibraryDependency
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.collect.ImmutableList
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.util.AndroidBundle
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 /** Unit tests for [ImportMlModelAction]. */
 @RunsInEdt
 class ImportMlModelActionTest {
-  private var myEvent: AnActionEvent? = null
-  private var myAction: ImportMlModelAction? = null
+  private val myAction = ImportMlModelAction()
 
-  @Rule var projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
-  @Before
-  fun setUp() {
-    myAction = ImportMlModelAction()
-  }
-
-  private fun setupProject(version: String?, version2: Int) {
+  private fun setupProjectAndEvent(agpVersion: String, minSdkVersion: Int): AnActionEvent {
     MlProjectTestUtil.setupTestMlProject(
       projectRule.project,
-      version,
-      version2,
-      ImmutableList.of<JavaLibraryDependency?>(),
+      agpVersion,
+      minSdkVersion,
+      ImmutableList.of(),
     )
 
     val dataContext =
       SimpleDataContext.builder()
-        .add<Project?>(CommonDataKeys.PROJECT, projectRule.project)
-        .add<Module?>(PlatformCoreDataKeys.MODULE, projectRule.project.gradleModule(":"))
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(PlatformCoreDataKeys.MODULE, projectRule.project.gradleModule(":"))
         .build()
-    myEvent = TestActionEvent.createTestEvent(dataContext)
+
+    return TestActionEvent.createTestEvent(dataContext)
   }
 
   @Test
   fun allConditionsMet_shouldEnabledPresentation() {
-    setupProject(ImportMlModelAction.MIN_AGP_VERSION, ImportMlModelAction.MIN_SDK_VERSION)
-    myAction!!.update(myEvent!!)
-    Truth.assertThat(myEvent!!.getPresentation().isEnabled()).isTrue()
+    val event =
+      setupProjectAndEvent(ImportMlModelAction.MIN_AGP_VERSION, ImportMlModelAction.MIN_SDK_VERSION)
+
+    myAction.update(event)
+    assertThat(event.presentation.isEnabled).isTrue()
   }
 
   @Test
   fun lowAgpVersion_shouldDisablePresentation() {
-    setupProject("3.6.0", ImportMlModelAction.MIN_SDK_VERSION)
+    val event = setupProjectAndEvent("3.6.0", ImportMlModelAction.MIN_SDK_VERSION)
 
-    myAction!!.update(myEvent!!)
+    myAction.update(event)
 
-    Truth.assertThat(myEvent!!.getPresentation().isEnabled()).isFalse()
-    Truth.assertThat(myEvent!!.getPresentation().getText())
+    assertThat(event.presentation.isEnabled).isFalse()
+    assertThat(event.presentation.text)
       .isEqualTo(
         AndroidBundle.message(
           "android.wizard.action.requires.new.agp",
@@ -91,12 +83,16 @@ class ImportMlModelActionTest {
 
   @Test
   fun lowMinSdkApi_shouldDisablePresentation() {
-    setupProject(ImportMlModelAction.MIN_AGP_VERSION, ImportMlModelAction.MIN_SDK_VERSION - 2)
+    val event =
+      setupProjectAndEvent(
+        ImportMlModelAction.MIN_AGP_VERSION,
+        ImportMlModelAction.MIN_SDK_VERSION - 2,
+      )
 
-    myAction!!.update(myEvent!!)
+    myAction.update(event)
 
-    Truth.assertThat(myEvent!!.getPresentation().isEnabled()).isFalse()
-    Truth.assertThat(myEvent!!.getPresentation().getText())
+    assertThat(event.presentation.isEnabled).isFalse()
+    assertThat(event.presentation.text)
       .isEqualTo(
         AndroidBundle.message(
           "android.wizard.action.requires.minsdk",
