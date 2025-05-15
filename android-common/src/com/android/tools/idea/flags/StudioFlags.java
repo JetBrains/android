@@ -1588,11 +1588,6 @@ public final class StudioFlags {
     "If enabled, the project will be treated as a Compose project, showing Previews if available and enhancing the Compose editing",
     false);
 
-  public static final Flag<Boolean> COMPOSE_FAST_PREVIEW_AUTO_DISABLE = new BooleanFlag(
-    COMPOSE, "fast.preview.auto.disable", "If enabled, Fast Preview can auto-disable",
-    "If enabled, if fast preview finds a compiler problem, it will be auto disable until the user re-enables it",
-    false);
-
   public static final Flag<Boolean> COMPOSE_ALLOCATION_LIMITER = new BooleanFlag(
     COMPOSE, "allocation.limiter", "If enabled, limits allocations per render",
     "If enabled, limits the number of allocations that user code can do in a single render action",
