@@ -13,86 +13,96 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.mlkit.importmodel;
+package com.android.tools.idea.mlkit.importmodel
 
-import static com.android.tools.idea.mlkit.importmodel.ImportMlModelAction.MIN_AGP_VERSION;
-import static com.android.tools.idea.mlkit.importmodel.ImportMlModelAction.MIN_SDK_VERSION;
-import static com.android.tools.idea.mlkit.importmodel.ImportMlModelAction.TITLE;
-import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
-import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
-import static com.google.common.truth.Truth.assertThat;
+import com.android.tools.idea.mlkit.MlProjectTestUtil
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.JavaLibraryDependency
+import com.android.tools.idea.testing.gradleModule
+import com.android.tools.idea.testing.onEdt
+import com.google.common.collect.ImmutableList
+import com.google.common.truth.Truth
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
+import org.jetbrains.android.util.AndroidBundle
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-import com.android.tools.idea.mlkit.MlProjectTestUtil;
-import com.android.tools.idea.testing.AndroidProjectRule;
-import com.android.tools.idea.testing.EdtAndroidProjectRule;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
-import com.intellij.testFramework.RunsInEdt;
-import com.intellij.testFramework.TestActionEvent;
-import org.jetbrains.android.util.AndroidBundle;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-/**
- * Unit tests for {@link ImportMlModelAction}.
- */
+/** Unit tests for [ImportMlModelAction]. */
 @RunsInEdt
-public class ImportMlModelActionTest {
+class ImportMlModelActionTest {
+  private var myEvent: AnActionEvent? = null
+  private var myAction: ImportMlModelAction? = null
 
-  private AnActionEvent myEvent;
-  private ImportMlModelAction myAction;
-
-  @Rule
-  public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
+  @Rule var projectRule: EdtAndroidProjectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
   @Before
-  public void setUp() {
-    myAction = new ImportMlModelAction();
+  fun setUp() {
+    myAction = ImportMlModelAction()
   }
 
-  private void setupProject(String version, int version2) {
+  private fun setupProject(version: String?, version2: Int) {
     MlProjectTestUtil.setupTestMlProject(
-      projectRule.getProject(), version, version2, ImmutableList.of());
+      projectRule.project,
+      version,
+      version2,
+      ImmutableList.of<JavaLibraryDependency?>(),
+    )
 
-    DataContext dataContext =
+    val dataContext =
       SimpleDataContext.builder()
-        .add(CommonDataKeys.PROJECT, projectRule.getProject())
-        .add(PlatformCoreDataKeys.MODULE, gradleModule(projectRule.getProject(), ":"))
-        .build();
-    myEvent = TestActionEvent.createTestEvent(dataContext);
+        .add<Project?>(CommonDataKeys.PROJECT, projectRule.project)
+        .add<Module?>(PlatformCoreDataKeys.MODULE, projectRule.project.gradleModule(":"))
+        .build()
+    myEvent = TestActionEvent.createTestEvent(dataContext)
   }
 
   @Test
-  public void allConditionsMet_shouldEnabledPresentation() {
-    setupProject(MIN_AGP_VERSION, MIN_SDK_VERSION);
-    myAction.update(myEvent);
-    assertThat(myEvent.getPresentation().isEnabled()).isTrue();
+  fun allConditionsMet_shouldEnabledPresentation() {
+    setupProject(ImportMlModelAction.MIN_AGP_VERSION, ImportMlModelAction.MIN_SDK_VERSION)
+    myAction!!.update(myEvent!!)
+    Truth.assertThat(myEvent!!.getPresentation().isEnabled()).isTrue()
   }
 
   @Test
-  public void lowAgpVersion_shouldDisablePresentation() {
-    setupProject("3.6.0", MIN_SDK_VERSION);
+  fun lowAgpVersion_shouldDisablePresentation() {
+    setupProject("3.6.0", ImportMlModelAction.MIN_SDK_VERSION)
 
-    myAction.update(myEvent);
+    myAction!!.update(myEvent!!)
 
-    assertThat(myEvent.getPresentation().isEnabled()).isFalse();
-    assertThat(myEvent.getPresentation().getText()).isEqualTo(
-      AndroidBundle.message("android.wizard.action.requires.new.agp", TITLE, MIN_AGP_VERSION));
+    Truth.assertThat(myEvent!!.getPresentation().isEnabled()).isFalse()
+    Truth.assertThat(myEvent!!.getPresentation().getText())
+      .isEqualTo(
+        AndroidBundle.message(
+          "android.wizard.action.requires.new.agp",
+          ImportMlModelAction.TITLE,
+          ImportMlModelAction.MIN_AGP_VERSION,
+        )
+      )
   }
 
   @Test
-  public void lowMinSdkApi_shouldDisablePresentation() {
-    setupProject(MIN_AGP_VERSION, MIN_SDK_VERSION - 2);
+  fun lowMinSdkApi_shouldDisablePresentation() {
+    setupProject(ImportMlModelAction.MIN_AGP_VERSION, ImportMlModelAction.MIN_SDK_VERSION - 2)
 
-    myAction.update(myEvent);
+    myAction!!.update(myEvent!!)
 
-    assertThat(myEvent.getPresentation().isEnabled()).isFalse();
-    assertThat(myEvent.getPresentation().getText()).isEqualTo(
-      AndroidBundle.message("android.wizard.action.requires.minsdk", TITLE, MIN_SDK_VERSION));
+    Truth.assertThat(myEvent!!.getPresentation().isEnabled()).isFalse()
+    Truth.assertThat(myEvent!!.getPresentation().getText())
+      .isEqualTo(
+        AndroidBundle.message(
+          "android.wizard.action.requires.minsdk",
+          ImportMlModelAction.TITLE,
+          ImportMlModelAction.MIN_SDK_VERSION,
+        )
+      )
   }
 }
