@@ -19,8 +19,8 @@ iml_module(
                 "ci:perfgate-win",
             ],
         },
-        "Benchmark1000KotlinMultiplatformCpu": {
-            "test_filer": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000KotlinMultiplatformCpuTest",
+        "Benchmark2000KotlinMultiplatformCpu": {
+            "test_filer": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000KotlinMultiplatformCpuTest",
             "tags": [
                 "noci:studio-win",
                 "noci:studio-linux",
@@ -195,8 +195,8 @@ iml_module(
                 "ci:perfgate-linux",
             ],
         },
-        "Benchmark1000KotlinMultiplatformMemory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000KotlinMultiplatformMemoryTest",
+        "Benchmark2000KotlinMultiplatformMemory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000KotlinMultiplatformMemoryTest",
             "tags": [
                 "manual",
                 "noci:studio-win",

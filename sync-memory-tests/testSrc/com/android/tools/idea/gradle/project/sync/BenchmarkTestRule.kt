@@ -29,7 +29,7 @@ const val SUBSET_500_NAME = "500Modules"
 const val SUBSET_1000_NAME = "1000Modules"
 const val SUBSET_2000_NAME = "2000Modules"
 const val SUBSET_4200_NAME = "4200Modules"
-const val SUBSET_KMP_1000_NAME = "1000KmpModules"
+const val SUBSET_KMP_2000_NAME = "2000KmpModules"
 const val MULTI_APP_100_NAME = "100Apps_1300Modules"
 const val MULTI_APP_190_NAME = "190Apps_2200Modules"
 

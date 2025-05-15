@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_1000
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_200
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_2000
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_4200
-import com.android.tools.idea.gradle.project.sync.BenchmarkProject.KMP_1000
+import com.android.tools.idea.gradle.project.sync.BenchmarkProject.KMP_2000
 import com.android.tools.idea.gradle.project.sync.MULTI_APP_100_NAME
 import com.android.tools.idea.gradle.project.sync.MULTI_APP_190_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_GRADLE_LATEST_NAME
@@ -29,7 +29,7 @@ import com.android.tools.idea.gradle.project.sync.SUBSET_1000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_200_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_4200_NAME
-import com.android.tools.idea.gradle.project.sync.SUBSET_KMP_1000_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_KMP_2000_NAME
 import com.android.tools.idea.gradle.project.sync.createBenchmarkTestRule
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.intellij.util.io.createDirectories
@@ -44,8 +44,8 @@ class Benchmark1000MemoryTest {
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
-class Benchmark1000KotlinMultiplatformMemoryTest {
-  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_KMP_1000_NAME, KMP_1000)
+class Benchmark2000KotlinMultiplatformMemoryTest {
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_KMP_2000_NAME, KMP_2000)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
