@@ -107,6 +107,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
+    "//platform/workspace/storage",
     "//spellchecker",
     "//spellchecker:spellchecker_test_lib",
     "//xml/xml-analysis-impl:analysis-impl",
