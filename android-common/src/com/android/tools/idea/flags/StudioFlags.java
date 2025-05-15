@@ -2243,7 +2243,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "chat.response.cancellation.enabled",
                     "Enable cancellation in Chat Timeline",
                     "When enabled, the chat will show a banner that will allow cancelling ongoing responses.",
-                    enabledUpTo(DEV));
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
