@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.save
 
 import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.PROJECT_DIR_MACRO
 import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.USER_HOME_MACRO
+import com.android.tools.idea.ui.screenshot.convertFilenameTemplateFromOldFormat
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -91,7 +92,7 @@ class SaveConfigurationResolverTest {
 
   @Test
   fun testConvertFilenameTemplateFromOldFormat() {
-    assertThat(SaveConfigurationResolver.convertFilenameTemplateFromOldFormat("Screenshot_%Y%y%M%D_%H%m%S_%d%3d%p"))
+    assertThat(convertFilenameTemplateFromOldFormat("Screenshot_%Y%y%M%D_%H%m%S_%d%3d%p"))
         .isEqualTo("Screenshot_<yyyy><yy><MM><dd>_<HH><mm><ss>_<#><###><project>")
   }
 

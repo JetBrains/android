@@ -33,7 +33,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.ui.save.PostSaveAction
-import com.android.tools.idea.ui.screenshot.ScreenshotViewer.ScreenshotConfiguration
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
@@ -98,10 +97,12 @@ class ScreenshotViewerTest {
   private val openedFiles = mutableListOf<String>()
   private val testRootDisposable
     get() = projectRule.disposable
+  private val settings by lazy { DeviceScreenshotSettings.getInstance() }
 
   @Before
   fun setUp() {
     UIManager.setLookAndFeel(DarculaLaf())
+    settings.loadState(DeviceScreenshotSettings())
   }
 
   @After
@@ -110,7 +111,7 @@ class ScreenshotViewerTest {
     dispatchAllEventsInIdeEventQueue()
     findModelessDialog<ScreenshotViewer>()?.close(CLOSE_EXIT_CODE)
     dispatchAllEventsInIdeEventQueue()
-    service<ScreenshotConfiguration>().loadState(ScreenshotConfiguration())
+    settings.loadState(DeviceScreenshotSettings())
   }
 
   @Test
@@ -132,9 +133,9 @@ class ScreenshotViewerTest {
   @Test
   fun testResolutionChange() {
     StudioFlags.SCREENSHOT_RESIZING.overrideForTest(true, testRootDisposable)
-    val config = service<ScreenshotConfiguration>()
-    assertThat(config.scale == 1.0)
-    config.scale = 0.5
+    val settings = DeviceScreenshotSettings.getInstance()
+    assertThat(settings.scale == 1.0)
+    settings.scale = 0.5
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
@@ -146,7 +147,7 @@ class ScreenshotViewerTest {
     @Suppress("UNCHECKED_CAST") val resolutionComboBox = ui.getComponent<ComboBox<*>> { it.item is Int } as ComboBox<Int>
     assertThat(resolutionComboBox.item).isEqualTo(50)
     resolutionComboBox.item = 25
-    assertThat(config.scale == 0.25)
+    assertThat(settings.scale == 0.25)
     waitForCondition(2.seconds) { imageComponent.document.value?.width == 25 }
     assertThat(imageComponent.document.value.height).isEqualTo(50)
   }

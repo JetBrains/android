@@ -22,13 +22,11 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.fileChooser.PathChooserDialog
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.ui.validation.DialogValidation
 import com.intellij.openapi.util.io.FileUtilRt.getExtension
 import com.intellij.openapi.util.io.FileUtilRt.getNameWithoutExtension
 import com.intellij.ui.TextAccessor
-import com.intellij.ui.components.dialog
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.COLUMNS_LARGE
 import com.intellij.ui.dsl.builder.COLUMNS_MEDIUM
@@ -37,7 +35,6 @@ import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.dsl.builder.panel
-import java.awt.Component
 import java.io.File
 import java.nio.file.InvalidPathException
 import java.nio.file.Paths
@@ -47,25 +44,16 @@ import javax.swing.JEditorPane
 import javax.swing.JTextField
 import javax.swing.event.HyperlinkEvent
 
-internal class SaveConfigurationDialog(
-  project: Project,
-  saveLocation: String,
-  filenameTemplate: String,
-  postSaveAction: PostSaveAction,
+/** Dialog panel for modifying a save configuration. */
+internal class SaveConfigurationPanel(
+  private val saveConfig: SaveConfiguration,
   private val fileExtension: String,
   private val timestamp: Instant,
   private val sequentialNumber: Int,
+  project: Project,
 ) {
 
-  val saveLocation: String
-    get() = saveConfigResolver.generalizeSaveLocation(expandedSaveLocation.trim())
-  val filenameTemplate: String
-    get() = normalizeFilename(filenameTemplateInternal).replace(File.separatorChar, '/')
-  var postSaveAction: PostSaveAction = postSaveAction
-    private set
   private val saveConfigResolver = project.service<SaveConfigurationResolver>()
-  private var expandedSaveLocation: String = saveConfigResolver.expandSaveLocation(saveLocation)
-  private var filenameTemplateInternal: String = filenameTemplate.replace('/', File.separatorChar)
   private lateinit var preview: JEditorPane
   private lateinit var saveLocationField: TextAccessor
   private lateinit var filenameTemplateField: JTextField
@@ -77,21 +65,24 @@ internal class SaveConfigurationDialog(
   }
 
   /** Creates contents of the dialog. */
-  private fun createPanel(): DialogPanel {
+  fun createPanel(): DialogPanel {
     return panel {
       row(message("configure.screenshot.dialog.save.location")) {
+        @Suppress("UnstableApiUsage")
         textFieldWithBrowseButton(fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
           .also { it.putUserData(PathChooserDialog.PREFER_LAST_OVER_EXPLICIT, false) })
           .columns(COLUMNS_LARGE)
-          .bindText(::expandedSaveLocation)
+          .bindText({ saveConfigResolver.expandSaveLocation(saveConfig.saveLocation) },
+                    { saveConfig.saveLocation = saveConfigResolver.generalizeSaveLocation(it.trim())})
           .validationOnInput(validation)
           .onChanged { preview.text = generatePreview() }
           .applyToComponent { saveLocationField = this }
       }
       row(message("configure.screenshot.dialog.filename")) {
         textField()
-          .bindText(::filenameTemplateInternal)
-          .columns(COLUMNS_MEDIUM)
+          .bindText({ saveConfig.filenameTemplate.replace('/', File.separatorChar) },
+                    { saveConfig.filenameTemplate = it.trim().replace(File.separatorChar, '/') })
+          .columns(COLUMNS_LARGE)
           .validationOnInput(validation)
           .onChanged { preview.text = generatePreview() }
           .applyToComponent { filenameTemplateField = this }
@@ -130,19 +121,9 @@ internal class SaveConfigurationDialog(
       }
       row("After Saving:") {
         comboBox(PostSaveAction.entries.filter(PostSaveAction::isSupported))
-          .bindItem(::postSaveAction) { postSaveAction = it!! }
+          .bindItem(saveConfig::postSaveAction) { saveConfig.postSaveAction = it!! }
       }
     }
-  }
-
-  /** Creates the dialog wrapper. */
-  fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
-    return dialog(
-        title = message("configure.screenshot.dialog.title"),
-        resizable = true,
-        panel = createPanel(),
-        project = project,
-        parent = parent)
   }
 
   private fun generatePreview(): String {

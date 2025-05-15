@@ -19,5 +19,18 @@
         serviceInterface="com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache"
         serviceImplementation="com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCacheImpl"/>
     <notificationGroup id="Screen Capture" displayType="BALLOON" bundle="messages.AndroidAdbUiBundle" key="screenshot.notification.title"/>
+
+    <groupConfigurable id="screenshot.screenrecording" parentId="tools"
+                       bundle="messages.AndroidAdbUiBundle"
+                       displayNameKey="configurable.group.screenshot.screenrecording.text"
+                       descriptionKey="configurable.group.screenshot.screenrecording.description"/>
+    <projectConfigurable id="device.screenshot" groupId="screenshot.screenrecording"
+                         provider="com.android.tools.idea.ui.screenshot.DeviceScreenshotSettingsPage$Provider"
+                         bundle="messages.AndroidAdbUiBundle"
+                         key="device.screenshot.text"/>
+    <projectConfigurable id="device.screenrecording" groupId="screenshot.screenrecording"
+                         provider="com.android.tools.idea.ui.screenrecording.DeviceScreenRecordingSettingsPage$Provider"
+                         bundle="messages.AndroidAdbUiBundle"
+                         key="device.screenrecording.text"/>
   </extensions>
 </idea-plugin>

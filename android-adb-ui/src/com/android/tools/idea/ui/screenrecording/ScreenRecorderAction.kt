@@ -74,10 +74,11 @@ class ScreenRecorderAction : DumbAwareAction(
     val displayInfoProvider = event.getData(DISPLAY_INFO_PROVIDER_KEY)
     val project = event.project ?: return
     val avdFolder = params.avdFolder
-    val options = ScreenRecorderPersistentOptions.getInstance()
-    val dialog = ScreenRecorderOptionsDialog(options, project, avdFolder != null, params.featureLevel)
+    val dialog = ScreenRecorderOptionsDialog(project, avdFolder != null, params.featureLevel)
     if (dialog.showAndGet()) {
-      startRecordingAsync(options, params, displayId, displayInfoProvider, if (options.useEmulatorRecording) avdFolder else null, project)
+      val settings = DeviceScreenRecordingSettings.getInstance()
+      val avdFolderForRecording = if (settings.useEmulatorRecordingWhenAvailable) avdFolder else null
+      startRecordingAsync(settings, params, displayId, displayInfoProvider, avdFolderForRecording, project)
     }
   }
 
@@ -88,12 +89,12 @@ class ScreenRecorderAction : DumbAwareAction(
 
   @UiThread
   private fun startRecordingAsync(
-      options: ScreenRecorderPersistentOptions,
-      params: ScreenRecordingParameters,
-      displayId: Int,
-      displayInfoProvider: DisplayInfoProvider?,
-      avdFolder: Path?,
-      project: Project) {
+    options: DeviceScreenRecordingSettings,
+    params: ScreenRecordingParameters,
+    displayId: Int,
+    displayInfoProvider: DisplayInfoProvider?,
+    avdFolder: Path?,
+    project: Project) {
     val adbSession: AdbSession = AdbLibApplicationService.instance.session
     val serialNumber = params.serialNumber
     recordingInProgress.add(serialNumber)
@@ -127,7 +128,7 @@ class ScreenRecorderAction : DumbAwareAction(
             adbSession)
         }
         val timeLimit = if (timeLimitSec > 0) timeLimitSec else MAX_RECORDING_DURATION_MINUTES_LEGACY * 60
-        val recorder = ScreenRecorder(project, recodingProvider, ScreenRecorderPersistentOptions.getInstance(), params.deviceName)
+        val recorder = ScreenRecorder(project, recodingProvider, params.deviceName)
         recorder.recordScreen(timeLimit)
       }
       finally {

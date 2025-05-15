@@ -87,25 +87,5 @@ internal class SaveConfigurationResolver(private val project: Project) {
     private fun String.startsWithFollowedBySeparator(prefix: String): Boolean {
       return startsWith(prefix) && (length == prefix.length || this[prefix.length] == '/')
     }
-
-    /** Converts the given filename template from the format that was used in Narwhal preview to the new format. */
-    // TODO: Remove after Narwhal is released to stable.
-    @JvmStatic
-    fun convertFilenameTemplateFromOldFormat(oldTemplate: String): String {
-      if (oldTemplate.contains('<') && oldTemplate.contains('>')) {
-        return oldTemplate // Already in the new format.
-      }
-      return oldTemplate
-          .replace("%Y", "<yyyy>")
-          .replace("%y", "<yy>")
-          .replace("%M", "<MM>")
-          .replace("%D", "<dd>")
-          .replace("%H", "<HH>")
-          .replace("%m", "<mm>")
-          .replace("%S", "<ss>")
-          .replace("%d", "<#>")
-          .replace(Regex("%(\\d+)d")) { match -> "<${"#".repeat(match.groupValues[1].toInt())}>" }
-          .replace("%p", "<project>")
-    }
   }
 }

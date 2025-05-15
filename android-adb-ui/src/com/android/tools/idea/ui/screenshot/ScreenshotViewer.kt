@@ -22,9 +22,7 @@ import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.android.tools.idea.ui.save.PostSaveAction
-import com.android.tools.idea.ui.save.SaveConfigurationDialog
 import com.android.tools.idea.ui.save.SaveConfigurationResolver
-import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.convertFilenameTemplateFromOldFormat
 import com.android.tools.pixelprobe.color.Colors
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
@@ -37,11 +35,6 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.State
-import com.intellij.openapi.components.Storage
-import com.intellij.openapi.components.StoragePathMacros.NON_ROAMABLE_FILE
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileChooser.FileChooserFactory
@@ -51,10 +44,12 @@ import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
 import com.intellij.openapi.fileTypes.NativeFileType.openAssociatedApplication
 import com.intellij.openapi.ide.CopyPasteManager
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
@@ -68,7 +63,6 @@ import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.components.BorderLayoutPanel
-import com.intellij.util.xmlb.XmlSerializerUtil
 import org.intellij.images.editor.ImageFileEditor
 import org.jetbrains.android.util.runOnDisposalOfAnyOf
 import org.jetbrains.annotations.NonNls
@@ -89,7 +83,7 @@ import java.nio.file.Paths
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.Date
-import java.util.Locale
+import java.util.Locale.ROOT
 import java.util.concurrent.atomic.AtomicReference
 import java.util.zip.Deflater
 import javax.imageio.IIOImage
@@ -114,12 +108,13 @@ import kotlin.math.roundToInt
  * @param screenshotProvider an optional provider of additional screenshots. The *Recapture*
  *     button is hidden if not provided
  * @param screenshotDecorator an optional postprocessor used for framing and clipping.
- *     The *Frame screenshot* checkbox and the framing options are hidden if not provided
+ *     The framing options are hidden if not provided
  * @param framingOptions available choices of frames. Ignored if [screenshotDecorator]
  *     is null. The pull-down list of framing options is shown only when [screenshotDecorator] is
  *     not null and there are two or more framing options.
  * @param defaultFramingOption the index of the default framing option in the [framingOptions] list
  * @param allowImageRotation determines whether the rotation buttons are available or not
+ * @param dialogLocationArbiter allows multiple dialogs to avoid being displayed on top of each other
 */
 class ScreenshotViewer(
   private val project: Project,
@@ -131,17 +126,20 @@ class ScreenshotViewer(
   defaultFramingOption: Int,
   private val allowImageRotation: Boolean,
   private val dialogLocationArbiter: DialogLocationArbiter? = null,
-) : DialogWrapper(project, true), DataProvider {
-
-  private val timestampFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ROOT)
+) : DialogWrapper(project), DataProvider {
 
   private val editorProvider: FileEditorProvider = getImageFileEditorProvider()
   private val imageFileEditor = editorProvider.createEditor(project, backingFile) as ImageFileEditor
 
-  private val config = service<ScreenshotConfiguration>()
   private val saveConfigResolver = project.service<SaveConfigurationResolver>()
+  private val settings = DeviceScreenshotSettings.getInstance()
+  private val saveConfig
+    get() = settings.saveConfig
   private val saveLocation: String
-    get() = saveConfigResolver.expandSaveLocation (config.saveLocation)
+    get() = saveConfigResolver.expandSaveLocation (saveConfig.saveLocation)
+  private var scale = settings.scale
+  private var frameScreenshot = settings.frameScreenshot
+  private lateinit var dialogPanel: DialogPanel
   private lateinit var saveLocationText: JEditorPane
 
   private var decorationComboBox = ComboBox<ScreenshotDecorationOption>()
@@ -170,8 +168,7 @@ class ScreenshotViewer(
 
   private val defaultFileName: String
     get() {
-      val timestamp = Date()
-      val timestampSuffix = timestampFormat.format(timestamp)
+      val timestampSuffix = SimpleDateFormat("yyyyMMdd_HHmmss", ROOT).format(Date())
       return "Screenshot_$timestampSuffix"
     }
 
@@ -207,7 +204,7 @@ class ScreenshotViewer(
     decorationComboBox.setModel(decorationOptions)
 
     when {
-      config.frameScreenshot && decorationComboBox.itemCount > defaultFramingOption + frameOptionStartIndex ->
+      frameScreenshot && decorationComboBox.itemCount > defaultFramingOption + frameOptionStartIndex ->
           decorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex) // Select the default framing option.
       isPlayCompatibleWearScreenshot -> decorationComboBox.setSelectedItem(ScreenshotDecorationOption.PLAY_COMPATIBLE)
       canClipDeviceMask -> decorationComboBox.setSelectedItem(ScreenshotDecorationOption.DISPLAY_SHAPE_CLIP)
@@ -215,7 +212,7 @@ class ScreenshotViewer(
     }
 
     val decorationListener = ActionListener {
-      config.frameScreenshot = (decorationOptions.selectedItem as ScreenshotDecorationOption).framingOption != null
+      frameScreenshot = (decorationOptions.selectedItem as ScreenshotDecorationOption).framingOption != null
       processScreenshot()
     }
     decorationComboBox.addActionListener(decorationListener)
@@ -226,7 +223,7 @@ class ScreenshotViewer(
   }
 
   override fun createCenterPanel(): JComponent {
-    val panel = panel {
+    dialogPanel = panel {
       row {
         button(message("screenshot.dialog.recapture.button.text")) { doRefreshScreenshot() }
           .applyToComponent {
@@ -250,7 +247,7 @@ class ScreenshotViewer(
         row(message("screenshot.options.resolution")) {
           comboBox(listOf(100, 50, 25))
             .onChanged { updateScale(it.item / 100.0) }
-            .applyToComponent { item = (config.scale * 100).roundToInt() }
+            .applyToComponent { item = (scale * 100).roundToInt() }
         }
       }
       if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
@@ -258,7 +255,7 @@ class ScreenshotViewer(
           text(message("screenrecord.options.save.directory"))
           text(saveLocation)
             .applyToComponent { saveLocationText = this }
-          link(message("configure.save.button.text")) { configureSave() }
+          link(message("configure.save.link.text")) { configureSave() }
             .align(AlignX.RIGHT)
         }
       }
@@ -276,7 +273,18 @@ class ScreenshotViewer(
         }
       }
     }
-    return sizingPanel.addToCenter(panel)
+    return sizingPanel.addToCenter(dialogPanel)
+  }
+
+  /**
+   * This override is needed because [createCenterPanel] doesn't return [DialogPanel] and because
+   * [DeviceScreenshotSettings.scale] and [DeviceScreenshotSettings.frameScreenshot] have to be updated
+   * only after a successful screenshot saving.
+   */
+  override fun applyFields() {
+    dialogPanel.apply()
+    settings.scale = scale
+    settings.frameScreenshot = frameScreenshot
   }
 
   override fun getHelpId(): String =
@@ -304,13 +312,13 @@ class ScreenshotViewer(
 
   private fun saveScreenshotWithoutAsking(): Boolean {
     val image = displayedImageRef.get() ?: return false
-    val expandedFilename =
-        saveConfigResolver.expandFilenamePattern(config.saveLocation, config.filenameTemplate, EXT_PNG, image.timestamp, config.screenshotCount + 1)
+    val expandedFilename = saveConfigResolver.expandFilenamePattern(saveConfig.saveLocation, saveConfig.filenameTemplate,
+                                                                    settings.fileExtension, image.timestamp, settings.screenshotCount + 1)
     val file = adjustToAvoidExistingFiles(Paths.get(expandedFilename))
     try {
       Files.createDirectories(file.parent)
       writePng(image.image, file)
-      config.screenshotCount++
+      settings.screenshotCount++
       screenshotFile = file
       logScreenshotUsage()
     }
@@ -320,7 +328,7 @@ class ScreenshotViewer(
       return false
     }
 
-    when (config.postSaveAction) {
+    when (saveConfig.postSaveAction) {
       PostSaveAction.NONE -> {}
       PostSaveAction.SHOW_IN_FOLDER -> RevealFileAction.openFile(file)
       PostSaveAction.OPEN -> LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file)?.let { openAssociatedApplication(it) }
@@ -463,7 +471,7 @@ class ScreenshotViewer(
   }
 
   private fun updateScale(scale: Double) {
-    config.scale = scale
+    this.scale = scale
     processScreenshot()
   }
 
@@ -477,22 +485,8 @@ class ScreenshotViewer(
   }
 
   private fun configureSave() {
-    val dialog = SaveConfigurationDialog(
-        project,
-        config.saveLocation,
-        config.filenameTemplate,
-        config.postSaveAction,
-        EXT_PNG,
-        displayedImageRef.get()?.timestamp ?: Instant.now(),
-        config.screenshotCount + 1)
-    if (dialog.createWrapper(null, rootPane).showAndGet()) {
-      config.filenameTemplate = dialog.filenameTemplate
-      config.saveLocation = dialog.saveLocation
-      config.postSaveAction = dialog.postSaveAction
-
-      saveLocationText.text = saveLocation
-      pack()
-    }
+    ShowSettingsUtil.getInstance().showSettingsDialog(project, DeviceScreenshotSettingsPage::class.java)
+    saveLocationText.text = saveLocation
   }
 
   private fun processScreenshot(rotationQuadrants: Int = 0) {
@@ -519,7 +513,7 @@ class ScreenshotViewer(
 
   private fun processImage(sourceImage: ScreenshotImage): BufferedImage {
     val decoration = decorationComboBox.selectedItem as ScreenshotDecorationOption
-    return screenshotDecorator.decorate(sourceImage.rotatedAndScaled(scale = config.scale), decoration)
+    return screenshotDecorator.decorate(sourceImage.rotatedAndScaled(scale = scale), decoration)
   }
 
   private fun updateEditorImage() {
@@ -575,26 +569,6 @@ class ScreenshotViewer(
         throw UnsupportedFlavorException(dataFlavor)
       }
       return image
-    }
-  }
-
-  @Service
-  @State(name = "ScreenshotConfiguration", storages = [Storage(NON_ROAMABLE_FILE)])
-  internal class ScreenshotConfiguration : PersistentStateComponent<ScreenshotConfiguration> {
-    var frameScreenshot: Boolean = false
-    var saveLocation: String = SaveConfigurationResolver.DEFAULT_SAVE_LOCATION
-    var scale: Double = 1.0
-    var filenameTemplate: String = "Screenshot_<yyyy><MM><dd>_<HH><mm><ss>"
-    var screenshotCount: Int = 0
-    var postSaveAction: PostSaveAction = PostSaveAction.OPEN
-
-    override fun getState(): ScreenshotConfiguration {
-      return this
-    }
-
-    override fun loadState(state: ScreenshotConfiguration) {
-      XmlSerializerUtil.copyBean<ScreenshotConfiguration>(state, this)
-      filenameTemplate = convertFilenameTemplateFromOldFormat(filenameTemplate)
     }
   }
 

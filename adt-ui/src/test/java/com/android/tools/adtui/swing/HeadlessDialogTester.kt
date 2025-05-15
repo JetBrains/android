@@ -41,6 +41,7 @@ import com.intellij.openapi.ui.DialogWrapperPeerFactory
 import com.intellij.openapi.ui.popup.StackingPopupDispatcher
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.ComponentUtil
@@ -568,6 +569,7 @@ private class HeadlessDialogWrapperPeer(
     }
 
     init {
+      setGlassPane(IdeGlassPaneImpl(this));
       putClientProperty("DIALOG_ROOT_PANE", true)
       border = UIManager.getBorder("Window.border")
     }
