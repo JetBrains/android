@@ -1481,6 +1481,12 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> PREVIEW_PAGINATION = new BooleanFlag(
+    PREVIEW_COMMON, "pagination",
+    "Support paginating the previews",
+    "If enabled, the previews shown in a file will be paginated",
+    false
+  );
   //endregion
 
   //region Compose

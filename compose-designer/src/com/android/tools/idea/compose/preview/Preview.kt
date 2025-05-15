@@ -87,6 +87,7 @@ import com.android.tools.idea.preview.modes.CommonPreviewModeManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
+import com.android.tools.idea.preview.pagination.PreviewPaginationManager
 import com.android.tools.idea.preview.representation.CommonPreviewStateManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
@@ -200,6 +201,7 @@ private fun createPreviewElementDataProvider(
       COMPOSE_PREVIEW_MANAGER,
       PreviewModeManager.KEY,
       PreviewGroupManager.KEY,
+      PreviewPaginationManager.KEY,
       PreviewFlowManager.KEY,
       PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE,
       PREVIEW_ELEMENT_INSTANCE,
@@ -212,6 +214,7 @@ private fun createPreviewElementDataProvider(
       when (dataId) {
         COMPOSE_PREVIEW_MANAGER.name,
         PreviewModeManager.KEY.name -> composePreviewManager
+        PreviewPaginationManager.KEY.name -> previewFlowManager.previewFlowPaginator
         PreviewGroupManager.KEY.name,
         PreviewFlowManager.KEY.name -> previewFlowManager
         PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name,
@@ -646,6 +649,7 @@ class ComposePreviewRepresentation(
     when (it) {
       COMPOSE_PREVIEW_MANAGER.name,
       PreviewModeManager.KEY.name -> this@ComposePreviewRepresentation
+      PreviewPaginationManager.KEY.name -> composePreviewFlowManager.previewFlowPaginator
       PreviewGroupManager.KEY.name,
       PreviewFlowManager.KEY.name -> composePreviewFlowManager
       PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { slowId -> getSlowData(slowId) }

@@ -73,6 +73,7 @@ import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
+import com.android.tools.idea.preview.pagination.PreviewPaginationManager
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
@@ -259,6 +260,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
             when (it) {
               PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
               PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
+              PreviewPaginationManager.KEY.name -> previewFlowManager.previewFlowPaginator
               PreviewGroupManager.KEY.name,
               PreviewFlowManager.KEY.name -> previewFlowManager
               FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
@@ -359,6 +361,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
             CommonDataKeys.PROJECT,
             PreviewModeManager.KEY,
             PreviewGroupManager.KEY,
+            PreviewPaginationManager.KEY,
             PreviewFlowManager.KEY,
             FastPreviewSurface.KEY,
             PreviewInvalidationManager.KEY,
@@ -370,6 +373,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
               PREVIEW_ELEMENT_INSTANCE.name -> previewElement
               CommonDataKeys.PROJECT.name -> project
               PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
+              PreviewPaginationManager.KEY.name -> previewFlowManager.previewFlowPaginator
               PreviewGroupManager.KEY.name -> previewFlowManager
               PreviewFlowManager.KEY.name -> previewFlowManager
               FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
