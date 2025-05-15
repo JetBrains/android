@@ -2409,6 +2409,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> USE_1P_LOGIN_UI =
     new BooleanFlag(GOOGLE_LOGIN, "use.1p.login.ui", "Use 1P login UI",
                     "Use 1P login UI to show the OAuth scopes that will be requested", false);
+  public static final Flag<String> CHIME_ENDPOINT =
+    new StringFlag(GOOGLE_LOGIN, "chime.endpoint", "Chime Endpoint",
+                   "Endpoint to use for Chime API", "notifications-pa.googleapis.com");
+  public static final Flag<Boolean> SHOW_MARKETING_DIALOG =
+    new BooleanFlag(GOOGLE_LOGIN, "show.marketing.dialog", "Show marketing dialog",
+                    "Show marketing dialog after user logs in", true);
   // endregion Google Login
 
   // region Cloud Integration
