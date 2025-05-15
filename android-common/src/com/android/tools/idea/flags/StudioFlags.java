@@ -1243,11 +1243,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> SCREENSHOT_STREAMLINED_SAVING = new BooleanFlag(
     SCREENSHOT, "streamlined.saving", "Save Screenshots and Screen Recordings without Asking User",
     "Save screenshots and screen recordings without asking user",
-    enabledUpTo(CANARY));
+    true);
   public static final Flag<Boolean> SCREENSHOT_RESIZING = new BooleanFlag(
     SCREENSHOT, "resizing", "Allow Screenshots to Be Resized",
     "Allow screenshots to be resized",
-    enabledUpTo(CANARY));
+    true);
   public static final Flag<Boolean> MULTI_DISPLAY_SCREENSHOTS = new BooleanFlag(
     SCREENSHOT, "multi.display", "Take Screenshots of All Displays",
     "Take screenshots of all device displays",
