@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.logcat.message.LogcatMessage
 
 /**
@@ -37,15 +38,22 @@ import com.android.tools.idea.logcat.message.LogcatMessage
 internal class MessageBacklog(private var maxSize: Int) {
 
   // The internal messages collection is exposed as a copy of the internal ArrayDeque
-  private val _messages = ArrayDeque<LogcatMessage>()
+  @GuardedBy("self") private val _messages = ArrayDeque<LogcatMessage>()
+
   val messages: List<LogcatMessage>
-    get() = _messages.toList()
+    get() = synchronized(_messages) { _messages.toList() }
+
+  private var isEmpty: Boolean = true
 
   private var size = 0
 
   init {
     assert(maxSize > 0)
   }
+
+  fun isEmpty() = isEmpty
+
+  fun isNotEmpty() = !isEmpty
 
   fun addAll(collection: List<LogcatMessage>) {
     val addedSize = collection.sumOf { it.message.length }
@@ -57,35 +65,43 @@ internal class MessageBacklog(private var maxSize: Int) {
     // It would be simpler to just add the messages and then remove the overflowing ones but this
     // way is slightly more efficient in terms of
     // memory thrashing.
-    if (addedSize >= maxSize) {
-      _messages.clear()
-      size = addedSize
-      val i =
-        collection.indexOfFirst {
-          size -= it.message.length
-          size <= maxSize
+    synchronized(_messages) {
+      if (addedSize >= maxSize) {
+        _messages.clear()
+        size = addedSize
+        val i =
+          collection.indexOfFirst {
+            size -= it.message.length
+            size <= maxSize
+          }
+        _messages.addAll(collection.subList(i + 1, collection.size))
+      } else {
+        size += addedSize
+        while (size > maxSize) {
+          size -= _messages.removeFirst().message.length
         }
-      _messages.addAll(collection.subList(i + 1, collection.size))
-    } else {
-      size += addedSize
-      while (size > maxSize) {
-        size -= _messages.removeFirst().message.length
+        _messages.addAll(collection)
       }
-      _messages.addAll(collection)
+      isEmpty = false
     }
   }
 
   fun setMaxSize(newSize: Int) {
-    if (newSize < maxSize) {
-      while (size > newSize) {
-        size -= _messages.removeFirst().message.length
+    synchronized(_messages) {
+      if (newSize < maxSize) {
+        while (size > newSize) {
+          size -= _messages.removeFirst().message.length
+        }
       }
+      maxSize = newSize
     }
-    maxSize = newSize
   }
 
   fun clear() {
-    _messages.clear()
-    size = 0
+    synchronized(_messages) {
+      _messages.clear()
+      size = 0
+      isEmpty = true
+    }
   }
 }

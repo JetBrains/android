@@ -58,9 +58,7 @@ internal class SaveLogcatAction :
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled =
-      e.getLogcatPresenter()?.let {
-        it.getSelectedDevice() != null && it.getBacklogMessages().isNotEmpty()
-      } ?: false
+      e.getLogcatPresenter()?.let { it.getSelectedDevice() != null && !it.isLogcatEmpty() } ?: false
   }
 
   override fun actionPerformed(e: AnActionEvent) {

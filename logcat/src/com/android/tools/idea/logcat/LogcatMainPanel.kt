@@ -733,7 +733,7 @@ constructor(
 
   private fun isLogsMissing(): Boolean {
     return document.immutableCharSequence.isEmpty() &&
-      messageBacklog.get().messages.isNotEmpty() &&
+      messageBacklog.get().isNotEmpty() &&
       !isMissingApplicationIds() &&
       headerPanel.filter.isNotEmpty()
   }
@@ -904,7 +904,7 @@ constructor(
     coroutineScope.launch { loadLogcatFile(LogcatFileIo().readLogcat(path), loadFilter = false) }
   }
 
-  override fun isLogcatEmpty() = messageBacklog.get().messages.isEmpty()
+  override fun isLogcatEmpty() = messageBacklog.get().isEmpty()
 
   override fun isShowing(): Boolean {
     // Return true in tests, so we can test the LogcatEvent flow
