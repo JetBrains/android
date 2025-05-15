@@ -66,7 +66,7 @@ class SyncedProjectsAllAgpTest(agpVersion: AgpVersionSoftwareEnvironmentDescript
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testParameters(): Collection<*> {
-      return applicableAgpVersions().filter { it >= AGP_33 && it != AGP_35_JDK_8 }.reversed().map { arrayOf(it) }
+      return applicableAgpVersions().filter { it >= AGP_40 }.reversed().map { arrayOf(it) }
     }
   }
 }

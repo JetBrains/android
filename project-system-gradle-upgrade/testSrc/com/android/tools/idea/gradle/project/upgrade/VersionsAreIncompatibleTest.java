@@ -33,67 +33,67 @@ import static org.junit.Assert.assertTrue;
  */
 @RunWith(Parameterized.class)
 public class VersionsAreIncompatibleTest {
-  @Parameterized.Parameters
+  @Parameterized.Parameters(name="{0},{1}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-      {"3.3.0-alpha09", "3.3.0-alpha09", false},
-      {"3.3.0-alpha09", "3.3.0-alpha91", true},
-      {"3.3.9-alpha09", "3.3.0-alpha10", true},
-      {"3.3.0-alpha09", "3.3.0-beta01", true},
-      {"3.3.0-alpha09", "3.3.0", true},
-      {"3.3.0", "3.3.1", false},
-      {"3.3.0", "4.0.0", false},
-      {"3.3.0-beta01", "3.4.0-alpha10", true},
-      {"3.3.0", "3.4.0-alpha10", false},
-      {"3.3.0-alpha01", "3.3.0-dev", false},
-      {"3.3.0-alpha08", "3.3.0-alpha08", false},
-      {"3.3.0-alpha09", "3.3.0-alpha08", true},
-      {"3.4.0", "3.3.0-alpha08", true},
-      {"3.4.0-alpha01", "3.3.0-alpha08", true},
-      {"3.3.0-alpha01", "3.4.0-alpha08", true},
+      {"4.1.0-alpha09", "4.1.0-alpha09", false},
+      {"4.1.0-alpha09", "4.1.0-alpha91", true},
+      {"4.1.0-alpha09", "4.1.0-alpha10", true},
+      {"4.1.0-alpha09", "4.1.0-beta01", true},
+      {"4.1.0-alpha09", "4.1.0", true},
+      {"4.1.0", "4.1.1", false},
+      {"4.1.0", "7.0.0", false},
+      {"4.1.0-beta01", "4.2.0-alpha10", true},
+      {"4.1.0", "4.2.0-alpha10", false},
+      {"4.1.0-alpha01", "4.1.0-dev", false},
+      {"4.1.0-alpha08", "4.1.0-alpha08", false},
+      {"4.1.0-alpha09", "4.1.0-alpha08", true},
+      {"4.2.0", "4.1.0-alpha08", true},
+      {"4.2.0-alpha01", "4.1.0-alpha08", true},
+      {"4.1.0-alpha01", "4.2.0-alpha08", true},
 
       // Treat -rc as effectively stable.  (Upgrades will be recommended, but not forced)
-      {"3.3.1-rc01", "3.5.0-dev", false},
-      {"3.3.1-rc01", "3.5.0-alpha01", false},
-      {"3.4.0-rc02", "3.4.0-rc03", false},
-      {"3.4.0-rc02", "3.4.0", false},
-      {"3.4.0-rc02", "3.5.0", false},
+      {"4.1.1-rc01", "4.3.0-dev", false},
+      {"4.1.1-rc01", "4.3.0-alpha01", false},
+      {"4.2.0-rc02", "4.2.0-rc03", false},
+      {"4.2.0-rc02", "4.2.0", false},
+      {"4.2.0-rc02", "4.3.0", false},
 
-      {"3.4.0-alpha03", "3.4.0-rc01", true},
-      {"3.4.0-beta03", "3.4.0-rc02", true},
-      {"3.4.0-alpha03", "3.5.0", true},
-      {"3.4.0-alpha05", "3.4.0", true},
+      {"4.2.0-alpha03", "4.2.0-rc01", true},
+      {"4.2.0-beta03", "4.2.0-rc02", true},
+      {"4.2.0-alpha03", "4.3.0", true},
+      {"4.2.0-alpha05", "4.2.0", true},
 
-      {"3.4.0-rc01", "3.5.0-alpha01", false},
-      {"3.4.0-rc02", "3.5.0-alpha01", false},
-      {"3.3.1", "3.5.0-alpha01", false},
+      {"4.2.0-rc01", "4.3.0-alpha01", false},
+      {"4.2.0-rc02", "4.3.0-alpha01", false},
+      {"4.1.1", "4.3.0-alpha01", false},
 
       // Force upgrades from -dev to any later stable version.
-      {"3.4.0-dev", "3.4.0", true},
+      {"4.2.0-dev", "4.2.0", true},
       // Declare AGP -dev incompatible with earlier stable versions.
-      {"3.4.0-dev", "3.3.0", true},
+      {"4.2.0-dev", "4.1.0", true},
 
       // Do not force upgrades to -dev of prereleases.
-      {"3.4.0-alpha01", "3.4.0-dev", false},
-      {"3.4.0-beta02", "3.4.0-dev", false},
-      {"3.4.0-rc03", "3.4.0-dev", false},
+      {"4.2.0-alpha01", "4.2.0-dev", false},
+      {"4.2.0-beta02", "4.2.0-dev", false},
+      {"4.2.0-rc03", "4.2.0-dev", false},
 
       // Do not force upgrades to -dev of previous-cycle previews.
-      {"3.4.0-alpha01", "3.5.0-dev", false},
-      {"3.4.0-beta02", "3.5.0-dev", false},
-      {"3.4.0-rc03", "3.5.0-dev", false},
+      {"4.2.0-alpha01", "4.3.0-dev", false},
+      {"4.2.0-beta02", "4.3.0-dev", false},
+      {"4.2.0-rc03", "4.3.0-dev", false},
 
       // Force upgrades from -dev of previous-cycle to previews of current cycle.
-      {"3.4.0-dev", "3.5.0-dev", true},
-      {"3.4.0-dev", "3.5.0-alpha01", true},
-      {"3.4.0-dev", "3.5.0-beta02", true},
-      {"3.4.0-dev", "3.5.0-rc03", true},
+      {"4.2.0-dev", "4.3.0-dev", true},
+      {"4.2.0-dev", "4.3.0-alpha01", true},
+      {"4.2.0-dev", "4.3.0-beta02", true},
+      {"4.2.0-dev", "4.3.0-rc03", true},
 
       // Do not force upgrades from -dev to previews of the same cycle.
-      {"3.4.0-dev", "3.4.0-alpha01", false},
-      {"3.4.0-dev", "3.4.0-beta02", false},
+      {"4.2.0-dev", "4.2.0-alpha01", false},
+      {"4.2.0-dev", "4.2.0-beta02", false},
       // But RCs are treated like releases.
-      {"3.4.0-dev", "3.4.0-rc03", true},
+      {"4.2.0-dev", "4.2.0-rc03", true},
     });
   }
 
@@ -102,7 +102,7 @@ public class VersionsAreIncompatibleTest {
 
   private final boolean myForceUpgrade;
 
-  private static final AgpVersion unsupportedVersion = AgpVersion.parse("3.1.0");
+  private static final AgpVersion unsupportedVersion = AgpVersion.parse("3.6.0");
 
   public VersionsAreIncompatibleTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
     myCurrent = AgpVersion.parse(current);

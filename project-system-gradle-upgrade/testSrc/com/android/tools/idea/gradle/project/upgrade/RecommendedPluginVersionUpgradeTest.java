@@ -32,7 +32,7 @@ import static org.junit.Assert.*;
  */
 @RunWith(Parameterized.class)
 public class RecommendedPluginVersionUpgradeTest {
-  @Parameterized.Parameters
+  @Parameterized.Parameters(name="{0},{1}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
       // Test for old AGP versions, which should all force rather than recommend.
@@ -44,13 +44,17 @@ public class RecommendedPluginVersionUpgradeTest {
       {"2.3.0-alpha1", "2.3.0-dev", false},
       {"1.5.0-beta1", "3.4.0", false},
       {"2.3.0-alpha1", "3.4.0", false},
+      {"3.6.0-alpha01", "4.0.0", false},
+      {"3.6.0-beta01", "4.0.0", false},
+      {"3.6.0-rc01", "4.0.0", false},
+      {"3.6.0", "4.0.0", false},
       // Test for deprecated AGP versions, which should force (if a prerelease) or recommend (if not).  (Move these to the set
       // above and change the expectations to false when the minimum version changes, and possibly implement a new set of
       // deprecated expectations.)
-      {"3.6.0-alpha01", "4.0.0", false},
-      {"3.6.0-beta01", "4.0.0", false},
-      {"3.6.0-rc01", "4.0.0", true},
-      {"3.6.0", "4.0.0", true},
+      {"4.2.0-alpha01", "7.0.0", false},
+      {"4.2.0-beta01", "7.0.0", false},
+      {"4.2.0-rc01", "7.0.0", true},
+      {"4.2.0", "7.0.0", true},
       // We never suggest to upgrade from alpha/beta version to another alpha/beta version.
       // It is handled by force upgrade.
       {"4.3.0-alpha02", "4.3.0-alpha01", false},

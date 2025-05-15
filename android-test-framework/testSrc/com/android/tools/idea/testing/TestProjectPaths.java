@@ -36,9 +36,6 @@ public final class TestProjectPaths {
   public static final String ETR_WITHOUT_ANDROIDX = "projects/EtrTestProject";
   public static final String HELLO_JNI = "projects/helloJni";
   public static final String IMPORTING = "projects/importing";
-  public static final String INSTANT_APP = "projects/instantApp";
-  public static final String INSTANT_APP_LIBRARY_DEPENDENCY = "projects/instantAppLibraryDependency";
-  public static final String INSTANT_APP_RESOURCE_HOST = "projects/instantAppResourceHost";
   public static final String INSTANT_APP_WITH_DYNAMIC_FEATURES = "projects/instantAppWithDynamicFeatures";
   public static final String INSTRUMENTATION_RUNNER = "projects/instrumentationRunner";
   public static final String INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR = "projects/instrumentationRunnerAndroidTestOrchestrator";
