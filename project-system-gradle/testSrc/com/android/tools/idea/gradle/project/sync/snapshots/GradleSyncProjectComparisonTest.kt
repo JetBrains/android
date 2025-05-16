@@ -139,7 +139,7 @@ data class ProjectStructureSnapshotTestDef(
   }
 }
 
-private object LightGradleSyncReferenceTestProject: LightGradleSyncTestProject {
+private object LightGradleSyncReferenceTestProject: LightGradleTestProject {
   override val templateProject: TemplateBasedTestProject = TestProject.LIGHT_SYNC_REFERENCE
   override val modelBuilders: List<ModuleModelBuilder> = listOf(
     JavaModuleModelBuilder.rootModuleBuilder.copy(

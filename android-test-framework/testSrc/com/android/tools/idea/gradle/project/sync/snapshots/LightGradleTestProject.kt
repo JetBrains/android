@@ -36,7 +36,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import java.io.File
 import java.nio.file.Path
 
-interface LightGradleSyncTestProject : TestProjectDefinition {
+interface LightGradleTestProject : TestProjectDefinition {
   val templateProject: TemplateBasedTestProject
   val modelBuilders: List<ModuleModelBuilder>
 
@@ -92,11 +92,11 @@ interface LightGradleSyncTestProject : TestProjectDefinition {
   }
 }
 
-enum class LightGradleSyncTestProjects(
+enum class LightGradleTestProjects(
   override val templateProject: TemplateBasedTestProject,
   override val modelBuilders: List<ModuleModelBuilder>
 
-) : LightGradleSyncTestProject {
+) : LightGradleTestProject {
   SIMPLE_APPLICATION(
     AndroidCoreTestProject.SIMPLE_APPLICATION,
     listOf(

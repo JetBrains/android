@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersionProcessor
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
-import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
+import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleTestProjects
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -50,7 +50,7 @@ class FixNdkVersionProcessorTest {
   @RunsInEdt
   class NonGradle {
     @get:Rule
-    val projectRule = AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION)
+    val projectRule = AndroidProjectRule.testProject(LightGradleTestProjects.SIMPLE_APPLICATION)
 
     @get:Rule
     var expect: Expect = Expect.createAndEnableStackTrace()

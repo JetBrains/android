@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects;
+import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleTestProjects;
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -80,7 +80,7 @@ import org.mockito.InOrder;
  * Tests for {@link SyncIssuesReporter}.
  */
 public class SyncIssuesReporterTest {
-  @Rule public AndroidProjectRule projectRule = AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION);
+  @Rule public AndroidProjectRule projectRule = AndroidProjectRule.testProject(LightGradleTestProjects.SIMPLE_APPLICATION);
 
   private IdeSyncIssue mySyncIssue;
   private BaseSyncIssuesReporter myStrategy1;

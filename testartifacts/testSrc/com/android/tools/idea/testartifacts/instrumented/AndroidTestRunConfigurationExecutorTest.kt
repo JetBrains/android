@@ -10,7 +10,7 @@ import com.android.tools.idea.execution.common.assertTaskPresentedInStats
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
-import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
+import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleTestProjects
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.DefaultStudioProgramRunner
@@ -53,7 +53,7 @@ private const val ORCHESTRATOR_APP_ID = "android.support.test.orchestrator"
 private const val ANDROIDX_ORCHESTRATOR_APP_ID = "androidx.test.orchestrator"
 
 class AndroidTestRunConfigurationExecutorTest {
-  private val projectRule = AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION)
+  private val projectRule = AndroidProjectRule.testProject(LightGradleTestProjects.SIMPLE_APPLICATION)
 
   private val fakeAdb = FakeAdbTestRule()
 

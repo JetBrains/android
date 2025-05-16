@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState.GRADLE_BUILD_TOPIC
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
+import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleTestProjects
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject.Companion.openTestProject
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.gradle.getMainModule
@@ -55,7 +55,7 @@ class GradleBuildSystemFilePreviewServicesTest {
 
     @Test
     fun `build targets can be obtained`() {
-      projectRule.openTestProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION) {
+      projectRule.openTestProject(LightGradleTestProjects.SIMPLE_APPLICATION) {
         val appModule = project.gradleModule(":app")!!.getMainModule()
         BuildTargetReference.gradleOnly(appModule)
         BuildTargetReference.from(appModule, appModule.fileUnderGradleRoot("src/main/java/google/simpleapplication/MyActivity.java")!!)

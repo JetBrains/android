@@ -19,7 +19,7 @@ import com.android.tools.idea.databinding.finders.BindingKotlinScopeEnlarger
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
-import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -40,7 +40,7 @@ import org.junit.rules.RuleChain
 
 @RunsInEdt
 class ViewBindingCompletionKotlinTest {
-  private object ViewBindingCompletionTestProject : LightGradleSyncTestProject {
+  private object ViewBindingCompletionTestProject : LightGradleTestProject {
     override val templateProject: TemplateBasedTestProject =
       AndroidCoreTestProject.SIMPLE_APPLICATION
     override val modelBuilders: List<ModuleModelBuilder> =
