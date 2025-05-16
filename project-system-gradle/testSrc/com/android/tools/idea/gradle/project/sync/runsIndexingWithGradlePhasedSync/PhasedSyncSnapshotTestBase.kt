@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.nameProperties
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
+import com.intellij.openapi.externalSystem.util.Order
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
@@ -36,27 +37,14 @@ import java.io.File
 
 abstract class PhasedSyncSnapshotTestBase {
 
-  lateinit var intermediateDump: ModuleDumpWithType
-  lateinit var isAndroidByPath:  Map<File, Boolean>
+  private val modelDumpSyncContributor = ModelDumpSyncContributor()
+  internal val intermediateDump get() = modelDumpSyncContributor.intermediateDump
+  internal val isAndroidByPath get() = modelDumpSyncContributor.isAndroidByPath
 
 
   @Suppress("UnstableApiUsage")
   fun setupPhasedSyncIntermediateStateCollector(disposable: Disposable) {
-    val testSyncContributor = object : GradleSyncContributor {
-
-      override suspend fun onModelFetchCompleted(context: ProjectResolverContext,
-                                                 storage: MutableEntityStorage) {
-        isAndroidByPath = context.allBuilds.flatMap { buildModel ->
-          buildModel.projects.map { projectModel ->
-            val isAndroidProject = context.getProjectModel(projectModel, Versions::class.java) != null
-            projectModel.projectDirectory to isAndroidProject
-          }
-        }.toMap()
-
-        intermediateDump = context.project().dumpModules(isAndroidByPath)
-      }
-    }
-    GradleSyncContributor.EP_NAME.point.registerExtension(testSyncContributor, disposable)
+    GradleSyncContributor.EP_NAME.point.registerExtension(modelDumpSyncContributor, disposable)
   }
 
   companion object {
@@ -221,4 +209,24 @@ fun getProjectSpecificIssues(testProject: TestProject) = when(testProject) {
     "/CONENT_ENTRY" // Yes typo
   )
   else -> emptySet()
+}
+
+
+@Suppress("UnstableApiUsage")
+@Order(Int.MAX_VALUE)
+internal class ModelDumpSyncContributor: GradleSyncContributor {
+  lateinit var isAndroidByPath:  Map<File, Boolean>
+  lateinit var intermediateDump: ModuleDumpWithType
+
+  override suspend fun onModelFetchCompleted(context: ProjectResolverContext,
+                                             storage: MutableEntityStorage) {
+    isAndroidByPath = context.allBuilds.flatMap { buildModel ->
+      buildModel.projects.map { projectModel ->
+        val isAndroidProject = context.getProjectModel(projectModel, Versions::class.java) != null
+        projectModel.projectDirectory to isAndroidProject
+      }
+    }.toMap()
+
+    intermediateDump = context.project().dumpModules(isAndroidByPath)
+  }
 }
