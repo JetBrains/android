@@ -78,6 +78,7 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
+import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
@@ -175,6 +176,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       emulateStartupActivityForTest(getProject());
     }
 
+    // TODO(b/418973297): Consolidate all init logic in the different test frameworks
+    WorkspaceModelCacheImpl.forceEnableCaching(getTestRootDisposable());
     GradleSpecificInitializer.initializePhasedSync();
 
     // Use per-project code style settings so we never modify the IDE defaults.

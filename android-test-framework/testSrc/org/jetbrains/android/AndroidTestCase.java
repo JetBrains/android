@@ -62,6 +62,7 @@ import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -157,6 +158,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myFixture.setTestDataPath(getTestDataPath());
     myModule = moduleFixtureBuilder.getFixture().getModule();
 
+    // TODO(b/418973297): Consolidate all init logic in the different test frameworks
+    WorkspaceModelCacheImpl.forceEnableCaching(getTestRootDisposable());
     GradleSpecificInitializer.initializePhasedSync();
 
     // Must be done before addAndroidFacet, and must always be done, even if a test provides
