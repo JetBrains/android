@@ -206,7 +206,7 @@ internal class BackupManagerImplTest {
     val backupService =
       BackupService.getInstance(
         FakeAdbServicesFactory("app3") {
-          it.addCommandOverride(Output("dumpsys package app3", ""))
+          it.addCommandOverride(Output("dumpsys package app3", "pkgFlags=[ DEBUGGABLE ]"))
           it.addContentOverride(
             "content://com.google.android.gms.fileprovider/backup_testing_flows/auth_backup",
             "valid",
@@ -264,7 +264,7 @@ internal class BackupManagerImplTest {
     val backupService =
       BackupService.getInstance(
         FakeAdbServicesFactory("app3") {
-          it.addCommandOverride(Output("dumpsys package app3", ""))
+          it.addCommandOverride(Output("dumpsys package app3", "pkgFlags=[ DEBUGGABLE ]"))
           it.addContentOverride(
             "content://com.google.android.gms.fileprovider/backup_testing_flows/auth_backup",
             "",
@@ -501,7 +501,9 @@ internal class BackupManagerImplTest {
     val backupService =
       BackupService.getInstance(
         FakeAdbServicesFactory("non-project-app") {
-          it.addCommandOverride(Output("dumpsys package non-project-app", ""))
+          it.addCommandOverride(
+            Output("dumpsys package non-project-app", "pkgFlags=[ DEBUGGABLE ]")
+          )
           it.addContentOverride(
             "content://com.google.android.gms.fileprovider/backup_testing_flows/auth_backup",
             "valid",

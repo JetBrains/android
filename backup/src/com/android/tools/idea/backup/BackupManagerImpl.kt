@@ -26,6 +26,7 @@ import com.android.backup.BackupResult.Success
 import com.android.backup.BackupResult.WithoutAppData
 import com.android.backup.BackupService
 import com.android.backup.BackupType
+import com.android.backup.ErrorCode.APP_NOT_DEBUGGABLE
 import com.android.backup.ErrorCode.APP_NOT_INSTALLED
 import com.android.backup.ErrorCode.BACKUP_NOT_ACTIVATED
 import com.android.backup.ErrorCode.BACKUP_NOT_ENABLED
@@ -389,6 +390,7 @@ internal constructor(
       BACKUP_NOT_SUPPORTED -> false
       BACKUP_NOT_ACTIVATED -> false
       APP_NOT_INSTALLED -> false
+      APP_NOT_DEBUGGABLE -> false
       BACKUP_NOT_ENABLED -> false
       else -> true
     }
