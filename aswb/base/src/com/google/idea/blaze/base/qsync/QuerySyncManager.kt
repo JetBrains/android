@@ -34,7 +34,6 @@ import com.google.idea.blaze.base.util.SaveUtil
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
-import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.TargetsToBuild
 import com.intellij.notification.Notification
@@ -122,12 +121,13 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun reloadProject(
     querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin
   ): ListenableFuture<Boolean> {
-    return runSync(
+    return run(
       "Loading project",
       "Re-loading project",
       querySyncActionStats,
       { context -> loadProject(context) },
-      taskOrigin
+      taskOrigin,
+      OperationType.SYNC
     )
   }
 
@@ -153,9 +153,6 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 
   private fun assertProjectLoaded() = checkNotNull(loadedProject) { "Project not loaded yet" }
 
-  val artifactTracker: ArtifactTracker<*>
-    get() = assertProjectLoaded().artifactTracker
-
   val renderJarArtifactTracker: RenderJarArtifactTracker
     get() = assertProjectLoaded().renderJarArtifactTracker
 
@@ -164,12 +161,13 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 
   @CanIgnoreReturnValue
   fun onStartup(querySyncActionStats: QuerySyncActionStatsScope): ListenableFuture<Boolean> {
-    return runSync(
+    return run(
       "Loading project",
       "Initializing project structure",
       querySyncActionStats,
       ThrowingScopedOperation { context -> this.loadProject(context) },
-      TaskOrigin.STARTUP
+      TaskOrigin.STARTUP,
+      OperationType.SYNC
     )
   }
 
@@ -177,7 +175,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun fullSync(
     querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin
   ): ListenableFuture<Boolean> {
-    return runSync(
+    return run(
       "Updating project structure",
       "Re-importing project",
       querySyncActionStats,
@@ -189,7 +187,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
           loadedProject.fullSync(context)
         }
       },
-      taskOrigin
+      taskOrigin,
+      OperationType.SYNC
     )
   }
 
@@ -197,7 +196,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun deltaSync(
     querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin
   ): ListenableFuture<Boolean> {
-    return runSync(
+    return run(
       "Updating project structure",
       "Refreshing project",
       querySyncActionStats,
@@ -209,7 +208,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
           loadedProject.deltaSync(context)
         }
       },
-      taskOrigin
+      taskOrigin,
+      OperationType.SYNC
     )
   }
 
@@ -219,7 +219,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     taskOrigin: TaskOrigin
   ): ListenableFuture<Boolean> {
     assertProjectLoaded()
-    return runSync(
+    return run(
       "Updating build structure",
       "Refreshing build structure",
       querySyncActionStats,
@@ -238,31 +238,12 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
           loadedProject.syncQueryData(context, lastQuery)
         }
       },
-      taskOrigin
+      taskOrigin,
+      OperationType.SYNC
     )
   }
 
-  fun runBuild(
-    title: String,
-    subTitle: String,
-    querySyncActionStatsScope: QuerySyncActionStatsScope,
-    operation: ThrowingScopedOperation,
-    taskOrigin: TaskOrigin
-  ): ListenableFuture<Boolean> {
-    return run(title, subTitle, querySyncActionStatsScope, operation, taskOrigin, OperationType.BUILD_DEPS)
-  }
-
-  private fun runSync(
-    title: String,
-    subTitle: String,
-    querySyncActionStatsScope: QuerySyncActionStatsScope,
-    operation: ThrowingScopedOperation,
-    taskOrigin: TaskOrigin
-  ): ListenableFuture<Boolean> {
-    return run(title, subTitle, querySyncActionStatsScope, operation, taskOrigin, OperationType.SYNC)
-  }
-
-  private fun run(
+  fun run(
     title: String,
     subTitle: String,
     querySyncActionStatsScope: QuerySyncActionStatsScope,
@@ -329,12 +310,13 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     if (targets.isEmpty()) {
       return Futures.immediateFuture(true)
     }
-    return runBuild(
+    return run(
       "Building dependencies",
       "Building...",
       querySyncActionStats,
       { context -> assertProjectLoaded().enableAnalysis(context, targets) },
-      taskOrigin
+      taskOrigin,
+      OperationType.BUILD_DEPS
     )
   }
 
@@ -346,7 +328,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     if (targets.isEmpty()) {
       return Futures.immediateFuture(true)
     }
-    return runBuild(
+    return run(
       "Building dependencies for affected targets",
       "Building...",
       querySyncActionStats,
@@ -354,7 +336,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
         val loadedProject = assertProjectLoaded()
         loadedProject.enableAnalysis(context, loadedProject.getTargetsDependingOn(targets))
       },
-      taskOrigin
+      taskOrigin,
+      OperationType.BUILD_DEPS
     )
   }
 
@@ -363,12 +346,13 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin
   ): ListenableFuture<Boolean> {
     assertProjectLoaded()
-    return runBuild(
+    return run(
       "Enabling analysis for all project targets",
       "Building dependencies",
       querySyncActionStats,
       { context -> assertProjectLoaded().enableAnalysis(context) },
-      taskOrigin
+      taskOrigin,
+      OperationType.BUILD_DEPS
     )
   }
 

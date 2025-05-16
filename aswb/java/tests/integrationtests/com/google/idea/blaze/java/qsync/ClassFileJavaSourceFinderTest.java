@@ -77,12 +77,6 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
   public Path projectAbsolutePath;
 
   @Before
-  public void initArtifactTracker() {
-    // We can't use when(...).thenReturn(...) here due to generic arg in getArtifactTracker:
-    doReturn(artifactTracker).when(querySyncManager).getArtifactTracker();
-  }
-
-  @Before
   public void initJar() throws IOException {
     String localRelativeArtifactPath = "com/test/libtest.jar";
     final var testDataJar = testData.get(localRelativeArtifactPath);
@@ -112,7 +106,6 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
         new ClassFileJavaSourceFinder(
             getFixture().getProject(), querySyncManager, Path.of("/"), Path.of("/"), psiClassFile);
     expect.that(djsf.findSourceFile()).isNull();
-    verify(querySyncManager, never()).getArtifactTracker();
   }
 
   @Test
