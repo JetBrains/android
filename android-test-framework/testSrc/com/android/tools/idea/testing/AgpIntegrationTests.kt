@@ -108,9 +108,11 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
     return listOfNotNull(
       (agpVersion ?: "current"),
       gradleVersion?.let { "g=$it" },
+      jdkVersion?.let { "j=$it" },
       kotlinVersion?.let { "k=$it" },
       modelVersion.takeIf { it != ModelVersion.V2 }?.let { "m=$it" },
-    ).joinToString(", ", "Agp(", ")")
+      compileSdk.takeIf { it != "34" }?.let { "c=$it" },
+    ).joinToString(",", "Agp(", ")")
   }
   companion object {
     @JvmField
