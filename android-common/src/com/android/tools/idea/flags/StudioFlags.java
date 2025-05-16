@@ -2528,6 +2528,13 @@ public final class StudioFlags {
     "URL of extra repository used by automatic Gradle configuration (e.g. staging repo)",
     ""
   );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION_INIT_SCRIPT_V2 = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.auto.gradle.configuration.init.script.v2",
+    "Use a V2 version of Journeys init script which is used in the Gradle run configuration for Journeys with Gemini",
+    "Applies Journeys Gradle plugin to your Gradle project by the new version of Journeys Gradle init script." +
+    " This version includes a fix for ClassNotFound exception when AppPlugin is not applied in your root Gradle project (b/418228060).",
+    enabledUpTo(CANARY)
+  );
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RECORDING = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.recording", "Enable Journeys with Gemini recording",
     "Enable recording of Journeys with Gemini",
