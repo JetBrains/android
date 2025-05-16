@@ -106,8 +106,9 @@ class KeystoreStepTest : LightPlatformTestCase() {
     val wizard = setupWizardHelper()
     whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
     val unsortedModulesOrder = listOf("appB", "app1", "appD", "xappC", "appA")
+    val moduleBridge = module as ModuleBridge
     unsortedModulesOrder.forEach { name ->
-      val nModule = object : ModuleBridge by module {
+      val nModule = object : ModuleBridge by moduleBridge {
         override fun getName(): String = name
         override fun dispose() {}
       }
