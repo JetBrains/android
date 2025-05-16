@@ -2417,7 +2417,7 @@ public final class StudioFlags {
     new FlagGroup(FLAGS, "google.login", "Google Login");
   public static final Flag<Boolean> ENABLE_COMBINED_LOGIN_COMPOSE_UI =
     new BooleanFlag(GOOGLE_LOGIN, "combined.login.use.compose.flow", "Enable combined login using Compose",
-                    "When enabled, a combined sign-in flow using Compose will show when logging in for a new user.", false);
+                    "When enabled, a combined sign-in flow using Compose will show when logging in for a new user.", enabledUpTo(CANARY));
   public static final Flag<Boolean> USE_1P_LOGIN_UI =
     new BooleanFlag(GOOGLE_LOGIN, "use.1p.login.ui", "Use 1P login UI",
                     "Use 1P login UI to show the OAuth scopes that will be requested", false);
@@ -2571,7 +2571,7 @@ public final class StudioFlags {
       "enable",
       "Enable Settings Sync feature",
       "Enable Settings Sync feature",
-      false);
+      enabledUpTo(CANARY));
   // endregion Settings sync
 
   // region PROJECT_TOOL_WINDOW
