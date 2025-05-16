@@ -55,7 +55,7 @@ class Benchmark500CpuTest {
 
 class Benchmark1000CpuTest {
   @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(SUBSET_1000_NAME, STANDARD_1000)
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 15)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 15, enableAnalyzers = false)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(6.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }

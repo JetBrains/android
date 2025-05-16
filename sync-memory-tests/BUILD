@@ -19,14 +19,6 @@ iml_module(
                 "ci:perfgate-win",
             ],
         },
-        "Benchmark1000Cpu": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
-            "tags": [
-                "noci:studio-win",
-                "noci:studio-linux",
-                "ci:perfgate-linux",
-            ],
-        },
         # This test is run in release branch, too but not analyzed due to small number of runs per test
         # A larger number of runs per test allows to detect regressions amongst the noise
         "Benchmark2000Cpu": {
@@ -140,6 +132,14 @@ iml_module(
         },
         "Benchmark1000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryTest",
+            "tags": [
+                "noci:studio-win",
+                "noci:studio-linux",
+                "ci:perfgate-linux",
+            ],
+        },
+        "Benchmark1000Cpu": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
             "tags": [
                 "noci:studio-win",
                 "noci:studio-linux",
