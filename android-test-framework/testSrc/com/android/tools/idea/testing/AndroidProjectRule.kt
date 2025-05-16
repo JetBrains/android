@@ -45,6 +45,7 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.platform.diagnostic.telemetry.TelemetryManager
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil
@@ -500,6 +501,7 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
   }
 
   override fun after(description: Description) {
+    TelemetryManager.getInstance().forceFlushMetricsBlocking()
     runInEdtAndWait {
       if (withAndroidSdk) {
         removeAllAndroidSdks()
