@@ -23,6 +23,7 @@ import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.Versions
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
+import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.convert
 import com.android.tools.idea.gradle.project.sync.idea.entities.AndroidGradleSourceSetEntitySource
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
@@ -77,11 +78,10 @@ internal class SyncContributorGradleProjectContext(
   val project: Project,
   val buildModel: GradleLightBuild,
   val projectModel: GradleLightProject,
+  val syncOptions: SyncActionOptions,
   val versions: ModelVersions,
 ) {
   private val virtualFileUrlManager = project.workspaceModel.getVirtualFileUrlManager()
-
-  val syncOptions = context.getSyncOptions(project)
   // Create an entity source representing each project root
   val rootIdeaProjectEntitySource = GradleLinkedProjectEntitySource(File(context.projectPath).toVirtualFileUrl())
   // For each build, create an entity source representing the Gradle build, as the root project source as parent
@@ -99,15 +99,18 @@ internal class SyncContributorGradleProjectContext(
   fun File.toVirtualFileUrl() = toVirtualFileUrl(virtualFileUrlManager)
 
   companion object {
-    internal suspend fun create(context: ProjectResolverContext,
+    internal fun create(context: ProjectResolverContext,
+                                project: Project,
+                                syncOptions: SyncActionOptions,
                                 buildModel: GradleLightBuild,
                                 projectModel: GradleLightProject): SyncContributorGradleProjectContext? =
       context.getProjectModel(projectModel, Versions::class.java)?.convert()?.let {
         SyncContributorGradleProjectContext(
           context,
-          context.project(),
+          project,
           buildModel,
           projectModel,
+          syncOptions,
           it
         )
       }
@@ -130,11 +133,14 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
   }
 
   private suspend fun configureModulesForSourceSets(context: ProjectResolverContext, storage: MutableEntityStorage) {
+    val project = context.project()
+    val syncOptions = context.getSyncOptions(project)
+
     val existingSourceSetEntities = MutableEntityStorage.from(storage.toSnapshot())
     val allAndroidContexts = context.allBuilds.flatMap { buildModel ->
       buildModel.projects.mapNotNull allProjects@{ projectModel ->
         checkCanceled()
-        SyncContributorGradleProjectContext.create(context, buildModel, projectModel)
+        SyncContributorGradleProjectContext.create(context, project, syncOptions, buildModel, projectModel)
       }
     }
     val newModuleEntities =  allAndroidContexts.flatMap { it.getAllSourceSetModuleEntities() }
