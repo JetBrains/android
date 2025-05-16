@@ -45,5 +45,10 @@ public class FakeRClass1 {
 
     public static final int Styleable2_attr1 = 0;
     public static final int Styleable2_attr2 = 1;
+
+    public static final int[] Styleable3 = {
+    };
   }
+  public static class xml {
+  };
 }
