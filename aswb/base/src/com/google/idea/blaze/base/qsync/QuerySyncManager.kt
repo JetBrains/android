@@ -86,7 +86,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 
   @Volatile
   private var loadedProject: QuerySyncProject? = null
-  fun getLoadedProject(): Optional<QuerySyncProject> = Optional.ofNullable(loadedProject)
+  fun getLoadedProject(): Optional<ReadonlyQuerySyncProject> = Optional.ofNullable(loadedProject)
 
   private val syncStatus: QuerySyncStatus = QuerySyncStatus(project)
   val fileListener: QuerySyncAsyncFileListener = QuerySyncAsyncFileListener.createAndListen(project, this)
@@ -119,23 +119,6 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 
     @Throws(BuildException::class)
     fun execute(context: BlazeContext)
-  }
-
-  fun operation(
-    title: String,
-    subTitle: String,
-    operationType: OperationType,
-    operation: ThrowingScopedOperation,
-  ): QuerySyncOperation {
-    return object : QuerySyncOperation {
-      override val title: String = title
-      override val subTitle: String = subTitle
-      override val operationType: OperationType = operationType
-
-      override fun execute(context: BlazeContext) {
-        operation.execute(context)
-      }
-    }
   }
 
   fun interface ThrowingScopedOperation {
@@ -183,9 +166,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   }
 
   val currentSnapshot: Optional<QuerySyncProjectSnapshot>
-    get() = getLoadedProject()
-      .map { it.snapshotHolder }
-      .flatMap { it.current }
+    get() = getLoadedProject().flatMap { it.currentSnapshot }
 
   private fun assertProjectLoaded() = checkNotNull(loadedProject) { "Project not loaded yet" }
 
@@ -478,6 +459,11 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       assertProjectLoaded().resetQuerySyncState(context)
     }
 
+  @Throws(BuildException::class)
+  fun invalidateQuerySyncState(context: BlazeContext) {
+    loadedProject?.invalidateQuerySyncState(context)
+  }
+
   fun canEnableAnalysisFor(workspaceRelativePath: Path): Boolean {
     return loadedProject?.canEnableAnalysisFor(workspaceRelativePath) ?: false
   }
@@ -556,6 +542,12 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   val querySyncUrl: Optional<String>
     get() = BuildSystemProvider.getBuildSystemProvider(Blaze.getBuildSystemName(project))?.querySyncDocumentationUrl ?: Optional.empty()
 
+  fun getDependencyTracker(): DependencyTracker? = loadedProject?.dependencyTracker
+
+  fun buildAppInspector(context: BlazeContext, inspectorTarget: Label): List<Path> {
+    return loadedProject?.buildAppInspector(context, inspectorTarget)?.toList().orEmpty()
+  }
+
   override fun dispose() = Unit
 
   companion object {
@@ -563,6 +555,33 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 
     @JvmStatic
     fun getInstance(project: Project): QuerySyncManager = project.getService(QuerySyncManager::class.java)
+
+    @JvmStatic
+    fun createOperation(
+      title: String,
+      subTitle: String,
+      operationType: OperationType,
+      operation: ThrowingScopedOperation,
+    ): QuerySyncOperation {
+      return operation(title, subTitle, operationType) { context -> operation.execute(context) }
+    }
+
+    private fun operation(
+      title: String,
+      subTitle: String,
+      operationType: OperationType,
+      operation: (context: BlazeContext) -> Unit,
+    ): QuerySyncOperation {
+      return object : QuerySyncOperation {
+        override val title: String = title
+        override val subTitle: String = subTitle
+        override val operationType: OperationType = operationType
+
+        override fun execute(context: BlazeContext) {
+          operation(context)
+        }
+      }
+    }
 
     private fun createProjectLoader(project: Project): ProjectLoader {
       val buildSystemName = Blaze.getBuildSystemName(project) ?: error("Cannot determine the build system")

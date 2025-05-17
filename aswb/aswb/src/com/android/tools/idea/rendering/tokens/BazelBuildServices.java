@@ -37,6 +37,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import kotlinx.coroutines.Deferred;
 import kotlinx.coroutines.guava.ListenableFutureKt;
@@ -88,7 +89,7 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
       manager.runOperation(
         scope,
         TaskOrigin.USER_ACTION,
-        manager.operation(
+        QuerySyncManager.createOperation(
           "Build & Refresh", "Building and refreshing", OperationType.BUILD_DEPS, context -> buildAndRefresh(manager, context, labels))));
   }
 
@@ -99,7 +100,7 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
                                       @NotNull BlazeContext context,
                                       @NotNull Set<@NotNull Label> labels) throws BuildException {
     try {
-      manager.getLoadedProject().orElseThrow().getDependencyTracker()
+      Optional.ofNullable(manager.getDependencyTracker()).orElseThrow()
         .buildDependenciesForTargets(context, DependencyBuildRequest.filePreviews(labels));
     }
     catch (IOException exception) {

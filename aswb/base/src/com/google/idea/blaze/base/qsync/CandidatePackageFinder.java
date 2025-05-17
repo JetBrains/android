@@ -41,14 +41,12 @@ public class CandidatePackageFinder {
 
   private static final int BAZEL_QUERY_EXIT_CODE_COMMAND_FAILURE = 7;
 
-  public static CandidatePackageFinder create(QuerySyncProject project, Project ideProject) {
+  public static CandidatePackageFinder create(ReadonlyQuerySyncProject project, Project ideProject) {
     BlazeContext context = BlazeContext.create();
     BuildInvoker invoker = project.getBuildSystem().getBuildInvoker(ideProject);
     Path workspacePath = WorkspaceRoot.fromProject(ideProject).path();
-    return new CandidatePackageFinder(ideProject, invoker, workspacePath, context);
+    return new CandidatePackageFinder(invoker, workspacePath, context);
   }
-
-  private final Project ideProject;
 
   private final BuildInvoker buildInvoker;
   private final Path workspaceRoot;
@@ -56,8 +54,7 @@ public class CandidatePackageFinder {
 
   @VisibleForTesting
   CandidatePackageFinder(
-      Project ideProject, BuildInvoker buildInvoker, Path workspaceRoot, BlazeContext context) {
-    this.ideProject = ideProject;
+      BuildInvoker buildInvoker, Path workspaceRoot, BlazeContext context) {
     this.buildInvoker = buildInvoker;
     this.workspaceRoot = workspaceRoot;
     this.context = context;

@@ -71,6 +71,26 @@ import java.util.zip.GZIPOutputStream
 import kotlin.jvm.optionals.getOrNull
 
 /**
+ * Encapsulates a loaded query sync project and it's dependencies  for readonly consumers.
+ *
+ *
+ * This class also maintains a [QuerySyncProjectData] instance whose job is to expose
+ * project state to the rest of the plugin and IDE.
+ */
+interface ReadonlyQuerySyncProject {
+  val buildSystem: BuildSystem
+  val projectDefinition: ProjectDefinition
+  val workspaceRoot: WorkspaceRoot
+  val currentSnapshot: Optional<QuerySyncProjectSnapshot>
+  val projectData: QuerySyncProjectData
+  fun getWorkingSet(create: BlazeContext): Set<Path>
+  fun dependsOnAnyOf_DO_NOT_USE_BROKEN(target: Label, deps: Set<Label>): Boolean
+  fun containsPath(absolutePath: Path): Boolean
+  fun explicitlyExcludesPath(absolutePath: Path): Boolean
+  fun getBugreportFiles(): Map<String, ByteSource>
+}
+
+/**
  * Encapsulates a loaded querysync project and it's dependencies.
  *
  *
@@ -82,7 +102,7 @@ class QuerySyncProject(
   private val snapshotFilePath: Path,
   val snapshotHolder: SnapshotHolder,
   val importSettings: BlazeImportSettings,
-  val workspaceRoot: WorkspaceRoot,
+  override val workspaceRoot: WorkspaceRoot,
   val artifactTracker: ArtifactTracker<*>,
   val buildArtifactCache: BuildArtifactCache,
   val artifactStore: ProjectArtifactStore,
@@ -91,19 +111,21 @@ class QuerySyncProject(
   private val appInspectorTracker: AppInspectorTracker,
   private val projectQuerier: ProjectQuerier,
   private val snapshotBuilder: SnapshotBuilder,
-  val projectDefinition: ProjectDefinition,
+  override val projectDefinition: ProjectDefinition,
   val projectViewSet: ProjectViewSet,
 // TODO(mathewi) only one of these two should strictly be necessary:
   val workspacePathResolver: WorkspacePathResolver,
   val projectPathResolver: ProjectPath.Resolver,
   val workspaceLanguageSettings: WorkspaceLanguageSettings,
   val sourceToTargetMap: QuerySyncSourceToTargetMap,
-  val buildSystem: BuildSystem,
+  override val buildSystem: BuildSystem,
   val projectProtoTransforms: ProjectProtoTransform.Registry,
   val handledRuleKinds: Set<String>
-) {
+) : ReadonlyQuerySyncProject {
+  override val currentSnapshot: Optional<QuerySyncProjectSnapshot>
+    get() = snapshotHolder.current
 
-  val projectData: QuerySyncProjectData
+  override val projectData: QuerySyncProjectData
     get() {
       var projectData = QuerySyncProjectData(workspacePathResolver, workspaceLanguageSettings)
       val snapshot = this.snapshotHolder.current.getOrNull()
@@ -238,7 +260,7 @@ class QuerySyncProject(
 
   /** Returns workspace-relative paths of modified files, according to the VCS  */
   @Throws(BuildException::class)
-  fun getWorkingSet(context: BlazeContext): Set<Path> {
+  override fun getWorkingSet(context: BlazeContext): Set<Path> {
     SaveUtil.saveAllFiles()
     val vcsState: VcsState
     val computed = projectQuerier.getVcsState(context)
@@ -389,7 +411,7 @@ class QuerySyncProject(
   }
 
   /** Returns true if `absolutePath` is in a project include  */
-  fun containsPath(absolutePath: Path): Boolean {
+  override fun containsPath(absolutePath: Path): Boolean {
     if (!workspaceRoot.isInWorkspace(absolutePath.toFile())) {
       return false
     }
@@ -403,7 +425,7 @@ class QuerySyncProject(
    *
    * A path not added or excluded the project definition will return false for both `containsPath` and `explicitlyExcludesPath`
    */
-  fun explicitlyExcludesPath(absolutePath: Path): Boolean {
+  override fun explicitlyExcludesPath(absolutePath: Path): Boolean {
     if (!workspaceRoot.isInWorkspace(absolutePath.toFile())) {
       return false
     }
@@ -490,7 +512,7 @@ class QuerySyncProject(
     }
   }
 
-  fun getBugreportFiles(): Map<String, ByteSource> =
+  override fun getBugreportFiles(): Map<String, ByteSource> =
     ImmutableMap.builder<String, ByteSource>()
       .put(snapshotFilePath.fileName.toString(), MoreFiles.asByteSource(snapshotFilePath))
       .putAll(artifactTracker.getBugreportFiles())
@@ -500,7 +522,7 @@ class QuerySyncProject(
       .build()
 
   // TODO: b/397649793 - Remove this method when fixed.
-  fun dependsOnAnyOf_DO_NOT_USE_BROKEN(target: Label, deps: ImmutableSet<Label>): Boolean {
+  override fun dependsOnAnyOf_DO_NOT_USE_BROKEN(target: Label, deps: Set<Label>): Boolean {
     return snapshotHolder
       .current
       .map { it.graph() }

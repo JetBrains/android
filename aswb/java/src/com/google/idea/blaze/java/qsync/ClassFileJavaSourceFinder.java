@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.QuerySyncProject;
+import com.google.idea.blaze.base.qsync.ReadonlyQuerySyncProject;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.intellij.openapi.diagnostic.Logger;
@@ -149,8 +150,7 @@ public class ClassFileJavaSourceFinder {
     QuerySyncProjectSnapshot snapshot =
         querySyncManager
             .getLoadedProject()
-            .map(QuerySyncProject::getSnapshotHolder)
-            .flatMap(SnapshotHolder::getCurrent)
+            .flatMap(ReadonlyQuerySyncProject::getCurrentSnapshot)
             .orElse(null);
     if (snapshot == null) {
       return ImmutableSet.of();

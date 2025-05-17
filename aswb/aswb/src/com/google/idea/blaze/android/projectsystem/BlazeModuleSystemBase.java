@@ -63,6 +63,7 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.QuerySyncProject;
+import com.google.idea.blaze.base.qsync.ReadonlyQuerySyncProject;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
@@ -433,8 +434,7 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
       ProjectProto.Project projectProto =
           QuerySyncManager.getInstance(project)
               .getLoadedProject()
-              .map(QuerySyncProject::getSnapshotHolder)
-              .flatMap(SnapshotHolder::getCurrent)
+              .flatMap(ReadonlyQuerySyncProject::getCurrentSnapshot)
               .map(QuerySyncProjectSnapshot::project)
               .orElse(null);
       if (projectProto == null) {

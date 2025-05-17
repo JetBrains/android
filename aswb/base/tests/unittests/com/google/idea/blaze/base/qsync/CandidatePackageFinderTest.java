@@ -64,7 +64,7 @@ public class CandidatePackageFinderTest {
   public void getCandidatePackages_checkQuery_dir() throws Exception {
     CandidatePackageFinder cpf =
         new CandidatePackageFinder(
-            ideProject, buildInvoker, tempDir.getRoot().toPath(), BlazeContext.create());
+            buildInvoker, tempDir.getRoot().toPath(), BlazeContext.create());
 
     tempDir.newFolder("package", "path");
     when(buildInvoker.invokeQuery(commandCaptor.capture(), any()))
@@ -81,7 +81,7 @@ public class CandidatePackageFinderTest {
   public void getCandidatePackages_checkQuery_file() throws Exception {
     CandidatePackageFinder cpf =
         new CandidatePackageFinder(
-            ideProject, buildInvoker, tempDir.getRoot().toPath(), BlazeContext.create());
+            buildInvoker, tempDir.getRoot().toPath(), BlazeContext.create());
 
     Files.write(tempDir.newFolder("package", "path").toPath().resolve("BUILD"), new byte[] {});
 
@@ -99,7 +99,7 @@ public class CandidatePackageFinderTest {
   public void getCandidatePackages_multipleCandidatesForPathProvided() throws Exception {
     CandidatePackageFinder cpf =
         new CandidatePackageFinder(
-            ideProject, buildInvoker, tempDir.getRoot().toPath(), BlazeContext.create());
+            buildInvoker, tempDir.getRoot().toPath(), BlazeContext.create());
 
     tempDir.newFolder("package", "path");
 
@@ -117,7 +117,7 @@ public class CandidatePackageFinderTest {
   public void getCandidatePackages_singleCandidateForPathProvided() throws Exception {
     CandidatePackageFinder cpf =
         new CandidatePackageFinder(
-            ideProject, buildInvoker, tempDir.getRoot().toPath(), BlazeContext.create());
+            buildInvoker, tempDir.getRoot().toPath(), BlazeContext.create());
 
     tempDir.newFolder("package", "path", "subpath");
 
@@ -147,7 +147,7 @@ public class CandidatePackageFinderTest {
   public void getCandidatePackages_noCandidateForPathProvided() throws Exception {
     CandidatePackageFinder cpf =
         new CandidatePackageFinder(
-            ideProject, buildInvoker, tempDir.getRoot().toPath(), BlazeContext.create());
+            buildInvoker, tempDir.getRoot().toPath(), BlazeContext.create());
 
     tempDir.newFolder("package", "path", "subpath");
 

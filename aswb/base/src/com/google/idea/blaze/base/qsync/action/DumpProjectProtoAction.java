@@ -4,6 +4,7 @@ import com.google.common.io.MoreFiles;
 import com.google.idea.blaze.base.actions.BlazeProjectAction;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.QuerySyncProject;
+import com.google.idea.blaze.base.qsync.ReadonlyQuerySyncProject;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -26,8 +27,7 @@ public class DumpProjectProtoAction extends BlazeProjectAction {
     QuerySyncManager qsm = QuerySyncManager.getInstance(project);
     QuerySyncProjectSnapshot snapshot =
         qsm.getLoadedProject()
-            .map(QuerySyncProject::getSnapshotHolder)
-            .flatMap(SnapshotHolder::getCurrent)
+            .flatMap(ReadonlyQuerySyncProject::getCurrentSnapshot)
             .orElse(null);
     if (snapshot == null) {
       qsm.notifyError("Failed to dump project", "Not loaded");
