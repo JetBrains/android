@@ -83,7 +83,8 @@ class AndroidVersionsInfoTest {
    */
   @Test
   fun stableAndroidTarget() {
-    val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(OLDER_VERSION, 0))
+    val versionItem =
+      AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(OLDER_VERSION, 0))
     assertEquals(OLDER_VERSION, versionItem.minApiLevel)
     assertEquals(OLDER_VERSION.toString(), versionItem.minApiLevelStr)
     assertEquals(NPW_CURRENT_VERSION, versionItem.buildApiLevel)
@@ -95,7 +96,10 @@ class AndroidVersionsInfoTest {
   /** For preview Android target versions, the Build API should be the same as the preview */
   @Test
   fun withPreviewAndroidTarget() {
-    val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(FUTURE_VERSION - 1, "TEST_CODENAME"))
+    val versionItem =
+      AndroidVersionsInfo.VersionItem.fromAndroidVersion(
+        AndroidVersion(FUTURE_VERSION - 1, "TEST_CODENAME")
+      )
     assertEquals("API TEST_CODENAME Preview", versionItem.label)
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
     assertEquals("TEST_CODENAME", versionItem.minApiLevelStr)
@@ -108,7 +112,8 @@ class AndroidVersionsInfoTest {
   /** For future Android target versions, the Build API should be updated too */
   @Test
   fun futureAndroidVersion() {
-    val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(FUTURE_VERSION, 0))
+    val versionItem =
+      AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(FUTURE_VERSION, 0))
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
     assertEquals(FUTURE_VERSION.toString(), versionItem.minApiLevelStr)
     assertEquals(FUTURE_VERSION, versionItem.buildApiLevel)
