@@ -85,8 +85,11 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
     var manager = QuerySyncManager.getInstance(project);
 
     return ListenableFutureKt.asDeferred(
-      manager.run("Build & Refresh", "Building and refreshing", scope, context -> buildAndRefresh(manager, context, labels),
-                  TaskOrigin.USER_ACTION, OperationType.BUILD_DEPS));
+      manager.runOperation(
+        scope,
+        TaskOrigin.USER_ACTION,
+        manager.operation(
+          "Build & Refresh", "Building and refreshing", OperationType.BUILD_DEPS, context -> buildAndRefresh(manager, context, labels))));
   }
 
   /**

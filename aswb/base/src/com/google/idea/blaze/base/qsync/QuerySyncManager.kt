@@ -110,6 +110,32 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     OTHER,
   }
 
+  interface QuerySyncOperation {
+    val title: String
+    val subTitle: String
+    val operationType: OperationType
+
+    @Throws(BuildException::class)
+    fun execute(context: BlazeContext)
+  }
+
+  fun operation(
+    title: String,
+    subTitle: String,
+    operationType: OperationType,
+    operation: ThrowingScopedOperation,
+  ): QuerySyncOperation {
+    return object : QuerySyncOperation {
+      override val title: String = title
+      override val subTitle: String = subTitle
+      override val operationType: OperationType = operationType
+
+      override fun execute(context: BlazeContext) {
+        operation.execute(context)
+      }
+    }
+  }
+
   fun interface ThrowingScopedOperation {
     @Throws(BuildException::class)
     fun execute(context: BlazeContext)
@@ -120,17 +146,23 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 
   @CanIgnoreReturnValue
   fun reloadProject(
-    querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin
+    querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    return run(
-      "Loading project",
-      "Re-loading project",
+    return runOperation(
       querySyncActionStats,
-      { context -> loadProject(context) },
       taskOrigin,
-      OperationType.SYNC
+      reloadProjectOperation()
     )
   }
+
+  private fun reloadProjectOperation(): QuerySyncOperation =
+    operation(
+      title = "Loading project",
+      subTitle = "Re-loading project",
+      operationType = OperationType.SYNC
+    ) { context ->
+      loadProject(context)
+    }
 
   @Throws(BuildException::class)
   fun loadProject(context: BlazeContext) {
@@ -142,7 +174,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
         loadedProject = newProject
         newProject.sync(context, projectData)
       }
-    } catch (e: IOException) {
+    }
+    catch (e: IOException) {
       throw BuildException("Failed to load project", e)
     }
   }
@@ -162,105 +195,126 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 
   @CanIgnoreReturnValue
   fun onStartup(querySyncActionStats: QuerySyncActionStatsScope): ListenableFuture<Boolean> {
-    return run(
-      "Loading project",
-      "Initializing project structure",
+    return runOperation(
       querySyncActionStats,
-      ThrowingScopedOperation { context -> this.loadProject(context) },
       TaskOrigin.STARTUP,
-      OperationType.SYNC
+      startupOperation()
     )
   }
+
+  private fun startupOperation(): QuerySyncOperation =
+    operation(
+      title = "Loading project",
+      subTitle = "Initializing project structure",
+      operationType = OperationType.SYNC
+    ) { context ->
+      loadProject(context)
+    }
 
   @CanIgnoreReturnValue
   fun fullSync(
-    querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin
+    querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    return run(
-      "Updating project structure",
-      "Re-importing project",
+    return runOperation(
       querySyncActionStats,
-      ThrowingScopedOperation { context ->
-        val loadedProject = loadedProjectUnlessDefinitionHasChanged(context)
-        if (loadedProject == null) {
-          loadProject(context)
-        } else {
-          loadedProject.fullSync(context)
-        }
-      },
       taskOrigin,
-      OperationType.SYNC
+      fullSyncOperation()
     )
   }
 
+  private fun fullSyncOperation(): QuerySyncOperation =
+    operation(
+      title = "Updating project structure",
+      subTitle = "Re-importing project",
+      operationType = OperationType.SYNC
+    ) { context ->
+      val loadedProject = loadedProjectUnlessDefinitionHasChanged(context)
+      if (loadedProject == null) {
+        loadProject(context)
+      }
+      else {
+        loadedProject.fullSync(context)
+      }
+    }
+
   @CanIgnoreReturnValue
   fun deltaSync(
-    querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin
+    querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    return run(
-      "Updating project structure",
-      "Refreshing project",
+    return runOperation(
       querySyncActionStats,
-      ThrowingScopedOperation { context ->
-        val loadedProject = loadedProjectUnlessDefinitionHasChanged(context)
-        if (loadedProject == null) {
-          loadProject(context)
-        } else {
-          loadedProject.deltaSync(context)
-        }
-      },
       taskOrigin,
-      OperationType.SYNC
+      deltaSyncOperation()
     )
   }
+
+  private fun deltaSyncOperation(): QuerySyncOperation =
+    operation(
+      title = "Updating project structure",
+      subTitle = "Refreshing project",
+      operationType = OperationType.SYNC
+    ) { context ->
+      val loadedProject = loadedProjectUnlessDefinitionHasChanged(context)
+      if (loadedProject == null) {
+        loadProject(context)
+      }
+      else {
+        loadedProject.deltaSync(context)
+      }
+    }
 
   fun syncQueryDataIfNeeded(
     workspaceRelativePaths: Collection<Path>,
     querySyncActionStats: QuerySyncActionStatsScope,
-    taskOrigin: TaskOrigin
+    taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
     assertProjectLoaded()
-    return run(
-      "Updating build structure",
-      "Refreshing build structure",
-      querySyncActionStats,
-      ThrowingScopedOperation { context ->
-        if (fileListener.hasModifiedBuildFiles() ||
-            getTargetsToBuildByPaths(workspaceRelativePaths).any { it.requiresQueryDataRefresh() }) {
-          val originallyLoadedProject = loadedProject
-          val loadedProject = loadedProjectUnlessDefinitionHasChanged(context) ?: let {
-            val newlyLoadedProject = loader.loadProject(context)
-            if (!context.hasErrors()) {
-              this.loadedProject = newlyLoadedProject
-            }
-            newlyLoadedProject
-          } ?: return@ThrowingScopedOperation // Context should have the error.
-          val lastQuery = originallyLoadedProject?.snapshotHolder()?.queryData()
-          loadedProject.syncQueryData(context, lastQuery)
-        }
-      },
-      taskOrigin,
-      OperationType.SYNC
+    return runOperation(
+      querySyncActionStats, taskOrigin,
+      syncQueryDataIfNeededOperation(workspaceRelativePaths)
     )
   }
 
-  fun run(
-    title: String,
-    subTitle: String,
-    querySyncActionStatsScope: QuerySyncActionStatsScope,
-    operation: ThrowingScopedOperation,
+  private fun syncQueryDataIfNeededOperation(workspaceRelativePaths: Collection<Path>): QuerySyncOperation =
+    operation(
+      title = "Updating build structure",
+      subTitle = "Refreshing build structure",
+      operationType = OperationType.SYNC
+    ) { context ->
+      if (fileListener.hasModifiedBuildFiles() ||
+          getTargetsToBuildByPaths(
+            workspaceRelativePaths).any { it.requiresQueryDataRefresh() }) {
+        val originallyLoadedProject = loadedProject
+        val loadedProject =
+          loadedProjectUnlessDefinitionHasChanged(context)
+          ?: let {
+            val newlyLoadedProject = loader.loadProject(context)
+            if (!context.hasErrors()) {
+              loadedProject = newlyLoadedProject
+            }
+            newlyLoadedProject
+          } ?: return@operation
+        // Context should have the error.
+        val lastQuery = originallyLoadedProject?.snapshotHolder()?.queryData()
+        loadedProject.syncQueryData(context, lastQuery)
+      }
+    }
+
+  fun runOperation(
+    statsScope: QuerySyncActionStatsScope?,
     taskOrigin: TaskOrigin,
-    operationType: OperationType
+    operation: QuerySyncOperation,
   ): ListenableFuture<Boolean> {
     val result = SettableFuture.create<Boolean>()
-    syncStatus.operationStarted(operationType)
+    syncStatus.operationStarted(operation.operationType)
     Futures.addCallback(
       result,
       object : FutureCallback<Boolean> {
         override fun onSuccess(success: Boolean) {
           if (success) {
             syncStatus.operationEnded()
-          } else {
+          }
+          else {
             syncStatus.operationFailed()
           }
         }
@@ -268,7 +322,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
         override fun onFailure(throwable: Throwable) {
           if (result.isCancelled) {
             syncStatus.operationCancelled()
-          } else {
+          }
+          else {
             syncStatus.operationFailed()
             logger.error("Sync failed", throwable)
           }
@@ -277,18 +332,19 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       MoreExecutors.directExecutor()
     )
     try {
-      querySyncActionStatsScope.builder.setTaskOrigin(taskOrigin)
+      statsScope?.builder?.setTaskOrigin(taskOrigin)
       val innerResultFuture =
         SyncActionScopes.createAndSubmitRunTask(
           project,
-          title,
-          subTitle,
-          Optional.of(querySyncActionStatsScope),
-          operation,
+          operation.title,
+          operation.subTitle,
+          Optional.ofNullable(statsScope),
+          { context -> operation.execute(context) },
           taskOrigin
         )
       result.setFuture(innerResultFuture)
-    } catch (t: Throwable) {
+    }
+    catch (t: Throwable) {
       result.setException(t)
       throw t
     }
@@ -305,85 +361,113 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 
   @CanIgnoreReturnValue
   fun enableAnalysis(
-    targets: Set<Label>, querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin
+    targets: Set<Label>, querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
     assertProjectLoaded()
     if (targets.isEmpty()) {
       return Futures.immediateFuture(true)
     }
-    return run(
-      "Building dependencies",
-      "Building...",
+    return runOperation(
       querySyncActionStats,
-      { context -> assertProjectLoaded().enableAnalysis(context, targets) },
       taskOrigin,
-      OperationType.BUILD_DEPS
+      enableAnalysisOperation(targets)
     )
   }
+
+  private fun enableAnalysisOperation(targets: Set<Label>): QuerySyncOperation =
+    operation(
+      title = "Building dependencies",
+      subTitle = "Building...",
+      operationType = OperationType.BUILD_DEPS
+    ) { context ->
+      assertProjectLoaded().enableAnalysis(context, targets)
+    }
 
   @CanIgnoreReturnValue
   fun enableAnalysisForReverseDeps(
-    targets: Set<Label>, querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin
+    targets: Set<Label>, querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
     assertProjectLoaded()
     if (targets.isEmpty()) {
       return Futures.immediateFuture(true)
     }
-    return run(
-      "Building dependencies for affected targets",
-      "Building...",
+    return runOperation(
       querySyncActionStats,
-      { context ->
-        val loadedProject = assertProjectLoaded()
-        loadedProject.enableAnalysis(context, loadedProject.getTargetsDependingOn(targets))
-      },
       taskOrigin,
-      OperationType.BUILD_DEPS
+      enableAnalysisForReverseDependenciesOperation(targets)
     )
   }
+
+  private fun enableAnalysisForReverseDependenciesOperation(targets: Set<Label>): QuerySyncOperation =
+    operation(
+      title = "Building dependencies for affected targets",
+      subTitle = "Building...",
+      operationType = OperationType.BUILD_DEPS
+    ) { context ->
+      val loadedProject = assertProjectLoaded()
+      loadedProject.enableAnalysis(context, loadedProject.getTargetsDependingOn(targets))
+    }
 
   @CanIgnoreReturnValue
   fun enableAnalysisForWholeProject(
-    querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin
+    querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
     assertProjectLoaded()
-    return run(
-      "Enabling analysis for all project targets",
-      "Building dependencies",
+    return runOperation(
       querySyncActionStats,
-      { context -> assertProjectLoaded().enableAnalysis(context) },
       taskOrigin,
-      OperationType.BUILD_DEPS
+      enableAnalysisForWholeProjectOperation()
     )
   }
+
+  private fun enableAnalysisForWholeProjectOperation(): QuerySyncOperation =
+    operation(
+      title = "Enabling analysis for all project targets",
+      subTitle = "Building dependencies",
+      operationType = OperationType.BUILD_DEPS
+    ) { context ->
+      assertProjectLoaded().enableAnalysis(context)
+    }
 
   @CanIgnoreReturnValue
   fun clearAllDependencies(
-    querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin
+    querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    return run(
-      "Clearing dependencies",
-      "Removing all built dependencies",
+    return runOperation(
       querySyncActionStats,
-      { context -> assertProjectLoaded().cleanDependencies(context) },
       taskOrigin,
-      OperationType.OTHER
+      clearAllDependenciesOperation()
     )
   }
 
+  private fun clearAllDependenciesOperation(): QuerySyncOperation =
+    operation(
+      title = "Clearing dependencies",
+      subTitle = "Removing all built dependencies",
+      operationType = OperationType.OTHER
+    ) { context ->
+      assertProjectLoaded().cleanDependencies(context)
+    }
+
   @CanIgnoreReturnValue
   fun resetQuerySyncState(
-    querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin
+    querySyncActionStats: QuerySyncActionStatsScope, taskOrigin: TaskOrigin,
   ): ListenableFuture<Boolean> {
-    return run(
-      "Resetting query sync",
-      "Clearing artifacts and running full query",
+    return runOperation(
       querySyncActionStats,
-      { context -> assertProjectLoaded().resetQuerySyncState(context) },
       taskOrigin,
-      OperationType.OTHER
+      resetQuerySyncOperation()
     )
   }
+
+  private fun resetQuerySyncOperation(): QuerySyncOperation =
+    operation(
+      title = "Resetting query sync",
+      subTitle = "Clearing artifacts and running full query",
+      operationType = OperationType.OTHER
+    ) { context ->
+      assertProjectLoaded().resetQuerySyncState(context)
+    }
 
   fun canEnableAnalysisFor(workspaceRelativePath: Path): Boolean {
     return loadedProject?.canEnableAnalysisFor(workspaceRelativePath) ?: false
@@ -444,15 +528,21 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   fun cleanCacheNow() = cacheCleaner.cleanNow()
 
   fun purgeBuildCache(actionScope: QuerySyncActionStatsScope) {
-    run(
-      "Purging build cache",
-      "Deleting all cached build artifacts",
+    runOperation(
       actionScope,
-      ThrowingScopedOperation { c -> assertProjectLoaded().buildArtifactCache.purge() },
       TaskOrigin.USER_ACTION,
-      OperationType.OTHER
+      purgeBuildCacheOperation()
     )
   }
+
+  private fun purgeBuildCacheOperation(): QuerySyncOperation =
+    operation(
+      title = "Purging build cache",
+      subTitle = "Deleting all cached build artifacts",
+      operationType = OperationType.OTHER
+    ) { context ->
+      assertProjectLoaded().buildArtifactCache.purge()
+    }
 
   val querySyncUrl: Optional<String>
     get() = BuildSystemProvider.getBuildSystemProvider(Blaze.getBuildSystemName(project))?.querySyncDocumentationUrl ?: Optional.empty()
