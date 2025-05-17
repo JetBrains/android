@@ -152,13 +152,10 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   @Throws(BuildException::class)
   fun loadProject(context: BlazeContext) {
     try {
-      val newProject = loader.loadProject(context)
-      if (!context.hasErrors()) {
-        newProject ?: error("Failed to load the project")
-        val projectData = newProject.readSnapshotFromDisk(context)
-        loadedProject = newProject
-        newProject.sync(context, projectData)
-      }
+      val newProject = loader.loadProject()
+      val projectData = newProject.readSnapshotFromDisk(context)
+      loadedProject = newProject
+      newProject.sync(context, projectData)
     }
     catch (e: IOException) {
       throw BuildException("Failed to load project", e)
@@ -271,10 +268,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
         val loadedProject =
           loadedProjectUnlessDefinitionHasChanged(context)
           ?: let {
-            val newlyLoadedProject = loader.loadProject(context)
-            if (!context.hasErrors()) {
-              loadedProject = newlyLoadedProject
-            }
+            val newlyLoadedProject = loader.loadProject()
+            loadedProject = newlyLoadedProject
             newlyLoadedProject
           } ?: return@operation
         // Context should have the error.

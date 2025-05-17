@@ -130,13 +130,13 @@ public class ProjectLoaderImpl implements ProjectLoader {
   }
 
   @Override
-  public @Nullable QuerySyncProject loadProject(BlazeContext context) throws BuildException {
-    LoadProjectResult loadProjectResult = doLoadProject(context);
+  public QuerySyncProject loadProject() throws BuildException {
+    LoadProjectResult loadProjectResult = doLoadProject();
     return loadProjectResult.result();
   }
 
-  public LoadProjectResult doLoadProject(BlazeContext context) throws BuildException {
-    QuerySyncProjectDeps deps = instantiateDeps(context);
+  public LoadProjectResult doLoadProject() throws BuildException {
+    QuerySyncProjectDeps deps = instantiateDeps();
     final var querySyncProject =  loadProject(deps);
     return new LoadProjectResult(querySyncProject, deps);
   }
@@ -194,7 +194,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     return new ProjectToLoadDefinition(workspaceRoot, buildSystem, projectDefinition, projectViewSet, workspaceLanguageSettings);
   }
 
-  private QuerySyncProjectDeps instantiateDeps(BlazeContext context) throws BuildException {
+  private QuerySyncProjectDeps instantiateDeps() {
     BlazeImportSettings importSettings =
         Preconditions.checkNotNull(
             BlazeImportSettingsManager.getInstance(project).getImportSettings());

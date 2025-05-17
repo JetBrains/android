@@ -27,7 +27,7 @@ public interface ProjectLoader {
    */
   ProjectToLoadDefinition loadProjectDefinition(ProjectViewSet projectViewSet);
 
-  @Nullable QuerySyncProject loadProject(BlazeContext context) throws BuildException;
+  QuerySyncProject loadProject() throws BuildException;
 
   ModificationTracker getProjectModificationTracker();
 }
