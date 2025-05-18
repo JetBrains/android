@@ -334,13 +334,11 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     syncBody: (BlazeContext) -> QuerySyncProjectSnapshot) {
     BlazeContext.create(parentContext).use { context ->
       context.push(SyncQueryStatsScope())
+      val fileListenerSyncCompleter = fileListener.syncStarted();
       try {
-        for (syncListener in SyncListener.EP_NAME.extensionList) {
-          syncListener.onQuerySyncStart(project, context)
-        }
-
         val newSnapshot = syncBody(context)
         loadedProject?.let { querySyncProject ->
+          fileListenerSyncCompleter.run()
           // TODO: Revisit SyncListeners once we switch fully to qsync
           for (syncListener in SyncListener.EP_NAME.extensions) {
             // A callback shared between the old and query sync implementations.
@@ -357,6 +355,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
           }
         }
       } finally {
+        // TODO: Revisit SyncListeners once we switch fully to qsync
         for (syncListener in SyncListener.EP_NAME.extensions) {
           // A query sync specific callback.
           syncListener.afterQuerySync(project, context)

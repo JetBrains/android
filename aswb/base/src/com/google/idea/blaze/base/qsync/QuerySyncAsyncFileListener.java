@@ -37,6 +37,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
 
 /** {@link AsyncFileListener} for monitoring project changes requiring a re-sync */
@@ -44,7 +45,8 @@ public class QuerySyncAsyncFileListener implements AsyncFileListener {
 
   private final Project project;
 
-  private final AtomicBoolean hasDirtyBuildFiles = new AtomicBoolean(false);
+  private final AtomicInteger changeCounter = new AtomicInteger(0);
+  private final AtomicInteger lastCompletedSyncStamp = new AtomicInteger(0);
 
   @VisibleForTesting
   public QuerySyncAsyncFileListener(Project project) {
@@ -71,11 +73,11 @@ public class QuerySyncAsyncFileListener implements AsyncFileListener {
   }
 
   public boolean hasModifiedBuildFiles() {
-    return hasDirtyBuildFiles.get();
+    return lastCompletedSyncStamp.get() < changeCounter.get();
   }
 
-  public void clearState() {
-    hasDirtyBuildFiles.set(false);
+  public void clearState(int lastCompletedSyncStamp) {
+    this.lastCompletedSyncStamp.set(lastCompletedSyncStamp);
   }
 
   @Override
@@ -103,7 +105,7 @@ public class QuerySyncAsyncFileListener implements AsyncFileListener {
                     if (UnsyncedFileEditorNotificationProvider.NOTIFY_ON_BUILD_FILE_CHANGES
                             .getValue()
                         && buildFileModified) {
-                      hasDirtyBuildFiles.set(true);
+                      changeCounter.incrementAndGet();
                     }
 
                     EditorNotifications.getInstance(project).updateAllNotifications();
@@ -137,21 +139,8 @@ public class QuerySyncAsyncFileListener implements AsyncFileListener {
     return false;
   }
 
-  /** Interface for requesting project syncs. */
-  public interface SyncRequester {
-    void requestSync();
-  }
-
-  /**
-   * {@link com.google.idea.blaze.base.sync.SyncListener} for clearing file listener state on syncs
-   */
-  public static class QuerySyncListener implements SyncListener {
-
-    @Override
-    public void onQuerySyncStart(Project project, BlazeContext context) {
-      QuerySyncAsyncFileListener fileListener =
-          QuerySyncManager.getInstance(project).getFileListener();
-      fileListener.clearState();
-    }
+  public Runnable syncStarted() {
+    final var syncStartedStamp = changeCounter.get();
+    return () -> { clearState(syncStartedStamp); };
   }
 }
