@@ -138,7 +138,7 @@ class QuerySyncProject(
     lastQuery: PostQuerySyncData?,
   ): QuerySyncProjectSnapshot {
     val coreSyncResult = syncCore(context, lastQuery)
-    return updateProjectSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
+    return updateProjectStructureAndSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
   }
 
   @Throws(BuildException::class)
@@ -174,7 +174,7 @@ class QuerySyncProject(
           projectQuerier.fullQuery(projectDefinition, context)
         else
           projectQuerier.update(projectDefinition, lastQuery, context)
-      val graph = getBuildGraphData(postQuerySyncData, context)
+      val graph = buildGraphData(postQuerySyncData, context)
       return CoreSyncResult(postQuerySyncData, graph)
     } catch (e: IOException) {
       throw BuildException(e)
@@ -237,9 +237,9 @@ class QuerySyncProject(
     } catch (e: IOException) {
       throw BuildException("Failed to clear dependency info", e)
     }
-    val postQuerySyncData = snapshotHolder.current.orElseThrow().queryData()
-    val graph = getBuildGraphData(postQuerySyncData, context)
-    updateProjectSnapshot(context, postQuerySyncData, graph)
+    val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
+    val graph = currentSnapshot.orElseThrow().graph()
+    updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
   }
 
   @Throws(BuildException::class)
@@ -257,14 +257,14 @@ class QuerySyncProject(
     BlazeContext.create(parentContext).use { context ->
       context.push(BuildDepsStatsScope())
       if (this.dependencyTracker.buildDependenciesForTargets(context, request)) {
-        val postQuerySyncData = snapshotHolder.current.orElseThrow().queryData()
-        val graph = getBuildGraphData(postQuerySyncData, context)
-        updateProjectSnapshot(context, postQuerySyncData, graph)
+        val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
+        val graph = currentSnapshot.orElseThrow().graph()
+        updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
       }
     }
   }
 
-  private fun getBuildGraphData(
+  private fun buildGraphData(
     postQuerySyncData: PostQuerySyncData,
     context: Context<*>
   ): BuildGraphData {
@@ -272,7 +272,7 @@ class QuerySyncProject(
   }
 
   @Throws(BuildException::class)
-  private fun updateProjectSnapshot(
+  private fun updateProjectStructureAndSnapshot(
     context: BlazeContext,
     queryData: PostQuerySyncData,
     graph: BuildGraphData
