@@ -1117,7 +1117,7 @@ class EmulatorToolWindowPanelTest {
 
   private fun FakeUi.mousePressOn(component: Component) {
     val location: Point = getPosition(component)
-    mouse.press(location.x, location.y)
+    mouse.press(location.x + component.width / 2, location.y + component.height / 2)
     // Allow events to propagate.
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
