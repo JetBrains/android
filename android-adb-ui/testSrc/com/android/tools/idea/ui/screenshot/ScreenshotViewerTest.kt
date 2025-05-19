@@ -59,6 +59,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -110,7 +111,7 @@ class ScreenshotViewerTest {
     dispatchInvocationEventsFor(100.milliseconds)
     dispatchAllEventsInIdeEventQueue()
     findModelessDialog<ScreenshotViewer>()?.close(CLOSE_EXIT_CODE)
-    dispatchAllEventsInIdeEventQueue()
+    waitUntilIndexesAreReady(projectRule.project) // Closing a screenshot viewer triggers deletion of the backing file and indexing.
     settings.loadState(DeviceScreenshotSettings())
   }
 
