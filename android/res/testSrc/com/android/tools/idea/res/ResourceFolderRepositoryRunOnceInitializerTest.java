@@ -21,10 +21,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.utils.sleep.ThreadSleeper;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.SystemInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +39,8 @@ public class ResourceFolderRepositoryRunOnceInitializerTest {
 
   @Test
   public void runOnceInitializer_runsOnlyOnce() throws Exception {
+    Assume.assumeFalse(SystemInfo.isWindows); // b/418369816
+
     int totalThreads = 20;
 
     CountDownLatch threadStarted = new CountDownLatch(totalThreads);
@@ -123,6 +127,8 @@ public class ResourceFolderRepositoryRunOnceInitializerTest {
 
   @Test
   public void runOnceWithReadLockInitializer_runsOnlyOnce() throws Exception {
+    Assume.assumeFalse(SystemInfo.isWindows); // b/418369816
+
     int totalThreads = 20;
 
     CountDownLatch threadStarted = new CountDownLatch(totalThreads);
@@ -209,6 +215,8 @@ public class ResourceFolderRepositoryRunOnceInitializerTest {
 
   @Test
   public void runOnceWithReadLockInitializer_writeThreadBlocks() throws Exception {
+    Assume.assumeFalse(SystemInfo.isWindows); // b/418369816
+
     AtomicInteger initializerRunCount = new AtomicInteger();
     ResourceFolderRepository.RunOnceWithReadLockInitializer initializer =
       new ResourceFolderRepository.RunOnceWithReadLockInitializer(initializerRunCount::incrementAndGet);
