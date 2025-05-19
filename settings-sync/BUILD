@@ -17,6 +17,7 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
+        "//tools/adt/idea/.idea/libraries:mockito",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

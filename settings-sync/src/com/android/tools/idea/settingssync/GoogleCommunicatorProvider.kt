@@ -69,7 +69,7 @@ class GoogleLoginStateListener(private val coroutineScope: CoroutineScope) {
   fun startListening() {
     coroutineScope.launch {
       GoogleLoginService.instance.allUsersFlow
-        .filterNot { syncUser == null || GoogleLoginService.instance.isInitialized == false }
+        .filterNot { syncUser == null }
         .map { it[syncUser]?.isLoggedIn(feature) == true }
         .distinctUntilChanged()
         .collect { isLoggedIn ->
