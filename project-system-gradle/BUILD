@@ -170,7 +170,7 @@ iml_module(
             ],
         },
         "runs_gradle": {
-            "test_filter": ".runsGradle",
+            "test_filter": ".runsGradle\\.",
             "tags": [
                 "cpu:4",
                 "noci:studio-win",

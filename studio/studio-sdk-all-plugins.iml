@@ -35,6 +35,8 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.jetbrains.performancePlugin" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-com.jetbrains.sh" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-hg4idea" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.compose.ide.plugin.gradleTooling.rt" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.debugger.streams.core" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.git.commit.modal" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grid" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.grid.core.impl" level="project" />
@@ -54,6 +56,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.ktor.client.cio" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.microba" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.skiko" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.performanceTesting.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.bookmarks.backend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.bookmarks.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.clouds" level="project" />
@@ -77,8 +80,9 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.foundation" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.ideLafBridge" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.core" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extension.gfmAlerts" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extension.gfmTables" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.gfmAlerts" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.gfmStrikethrough" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.gfmTables" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.ideLafBridgeStyling" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.ui" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.kernel.backend" level="project" />
@@ -123,7 +127,6 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.idea.reposearch" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.java.decompiler" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.kotlin" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.platform.debugger.streams" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.plugins.clangConfig" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.plugins.clangFormat" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-org.jetbrains.plugins.github" level="project" />

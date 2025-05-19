@@ -29,33 +29,16 @@ import javax.swing.tree.TreePath
  * paths.
  */
 class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentTreeSelectionModel {
-  /** Used to save the last range notified. */
-  private data class NotifiedRange(val start: Int, val end: Int)
-
   private val selectionListeners: MutableList<(List<Any>) -> Unit> =
     ContainerUtil.createConcurrentList()
   private val autoScrollListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
   private var isUpdating = false
 
   init {
-    var lastNotifiedRange = NotifiedRange(-1, -1)
     table.selectionModel.addListSelectionListener {
-      if (it.valueIsAdjusting) return@addListSelectionListener
-      val notifiedRange = NotifiedRange(it.firstIndex, it.lastIndex)
-      if (isUpdating) {
-        // If the table is updating, put the fireSelectionChanged at the end of the update. The
-        // update happens in the UI thread
-        // so invokeLater will ensure this will happen after the current update.
-        invokeLater {
-          if (lastNotifiedRange == notifiedRange) return@invokeLater
-          lastNotifiedRange = notifiedRange
-          fireSelectionChanged()
-        }
-        return@addListSelectionListener
+      if (!isUpdating && !it.valueIsAdjusting) {
+        fireSelectionChanged()
       }
-      if (lastNotifiedRange == notifiedRange) return@addListSelectionListener
-      lastNotifiedRange = notifiedRange
-      fireSelectionChanged()
     }
   }
 

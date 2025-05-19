@@ -838,6 +838,7 @@ iml_test(
     data = first_launch_test_data,
     module = ":intellij.android.core.integration",
     tags = [
+        "manual",  # b/389922725
         "studio-e2e-test",
     ],
     tags_linux = ["block-network"],

@@ -540,30 +540,32 @@ internal class ComposePreviewViewImpl(
       return null
     }
 
-    return ActionData(
-      message("action.generate.previews.for.file.empty.panel"),
-      StudioIcons.StudioBot.LOGO,
-    ) {
-      val psiFile = psiFilePointer.element ?: return@ActionData
-      val selectedEditor =
-        (FileEditorManager.getInstance(psiFile.project).selectedEditor as? TextEditorWithPreview)
-          ?.editor ?: return@ActionData
-      val simpleContext =
-        SimpleDataContext.builder()
-          .add(CommonDataKeys.PSI_FILE, psiFile)
-          .add(CommonDataKeys.EDITOR, selectedEditor)
-          .add(CommonDataKeys.PROJECT, psiFile.project)
-          .build()
-      val event =
-        AnActionEvent.createEvent(
-          previewGeneratorFactory.createPreviewGenerator(),
-          simpleContext,
-          null,
-          ActionPlaces.UNKNOWN,
-          ActionUiKind.NONE,
-          null,
-        )
-      ActionUtil.invokeAction(previewGeneratorFactory.createPreviewGenerator(), event, null)
+    return previewGeneratorFactory.createPreviewGenerator()?.let { previewGenerator ->
+      ActionData(
+        message("action.generate.previews.for.file.empty.panel"),
+        StudioIcons.StudioBot.LOGO,
+      ) {
+        val psiFile = psiFilePointer.element ?: return@ActionData
+        val selectedEditor =
+          (FileEditorManager.getInstance(psiFile.project).selectedEditor as? TextEditorWithPreview)
+            ?.editor ?: return@ActionData
+        val simpleContext =
+          SimpleDataContext.builder()
+            .add(CommonDataKeys.PSI_FILE, psiFile)
+            .add(CommonDataKeys.EDITOR, selectedEditor)
+            .add(CommonDataKeys.PROJECT, psiFile.project)
+            .build()
+        val event =
+          AnActionEvent.createEvent(
+            previewGenerator,
+            simpleContext,
+            null,
+            ActionPlaces.UNKNOWN,
+            ActionUiKind.NONE,
+            null,
+          )
+        ActionUtil.invokeAction(previewGenerator, event, null)
+      }
     }
   }
 

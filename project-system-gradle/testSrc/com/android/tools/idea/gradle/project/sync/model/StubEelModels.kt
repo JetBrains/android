@@ -34,6 +34,9 @@ class StubLocalPosixEelApi(private val envVariables: Map<String, String>) : Ijen
   override val descriptor: EelDescriptor get() = throw UnsupportedOperationException()
   override suspend fun execute(builder: EelExecApi.ExecuteProcessOptions): EelResult<EelProcess, ExecuteProcessError> = EelProcessResultImpl.createErrorResult(errno = 12345, message = "mock result")
   override suspend fun fetchLoginShellEnvVariables(): Map<String, String> = envVariables
+  override suspend fun findExeFilesInPath(binaryName: String): List<EelPath> {
+    TODO("Not yet implemented")
+  }
 }
 
 class StubEelNioBridgeService(private val eelDescriptor: EelDescriptor) : EelNioBridgeService {
