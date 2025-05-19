@@ -525,6 +525,9 @@ class CategoryTableTest {
     assertThat(scrollPane.verticalScrollBar.isVisible).isTrue()
     assertThat(scrollPane.verticalScrollBar.width).isGreaterThan(0)
     assertThat(table.width).isEqualTo(widthWithoutScrollbar - scrollPane.verticalScrollBar.width)
+
+    assertThat(table.preferredSize).isNotNull()
+    assertThat(table.maximumSize).isNotNull()
   }
 
   @Test
