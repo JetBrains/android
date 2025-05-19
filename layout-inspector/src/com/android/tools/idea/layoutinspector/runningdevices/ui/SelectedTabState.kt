@@ -22,7 +22,6 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
-import com.android.tools.idea.layoutinspector.model.InspectorModel.SelectionListener
 import com.android.tools.idea.layoutinspector.properties.DimensionUnitAction
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.runningdevices.SPLITTER_KEY
@@ -116,7 +115,6 @@ data class SelectedTabState(
     wrapUi(uiConfig)
     tabComponents.displayView.add(rendererPanel)
 
-    layoutInspector.inspectorModel.addSelectionListener(selectionChangedListener)
     layoutInspector.processModel?.addSelectedProcessListeners(
       EdtExecutorService.getInstance(),
       selectedProcessListener,
@@ -285,16 +283,10 @@ data class SelectedTabState(
     unwrapUi()
 
     tabComponents.displayView.remove(rendererPanel)
-    layoutInspector.inspectorModel.removeSelectionListener(selectionChangedListener)
     layoutInspector.processModel?.removeSelectedProcessListener(selectedProcessListener)
 
     tabComponents.tabContentPanelContainer.revalidate()
     tabComponents.tabContentPanelContainer.repaint()
-  }
-
-  // TODO(b/397664222) move this insider the renderer
-  private val selectionChangedListener: SelectionListener = SelectionListener { _, _, _ ->
-    rendererPanel.refresh()
   }
 
   private val selectedProcessListener = {
