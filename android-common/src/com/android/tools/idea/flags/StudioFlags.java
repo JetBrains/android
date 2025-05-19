@@ -2166,12 +2166,6 @@ public final class StudioFlags {
                     "When enabled, the Chat toolwindow will use the Jewel-based UI, implemented in Compose for Desktop.",
                     true);
 
-  public static final Flag<Boolean> STUDIOBOT_USE_AIDA_SIMPLIFIED_ONBOARDING =
-    new BooleanFlag(STUDIOBOT, "chat.use.aida.simplified.onboarding",
-                    "Use the simplified AIDA onboarding flow.",
-                    "When enabled, the AIDA model onboarding will use the new simplified flow. Only applied if the Compose Chat toolwindow is enabled.",
-                    true);
-
   public static final Flag<Boolean> STUDIOBOT_CONTEXT_ATTACHMENT_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.enable.context.attachment",
                     "Enable @file attachment and the context drawer.",
