@@ -72,6 +72,8 @@ interface SessionStatistics {
   /** A frame was received. */
   fun frameReceived()
 
+  fun foldInfoReceived()
+
   /** A debugger was detected. Indicate if the debugger [isPaused] during attach. */
   fun debuggerInUse(isPaused: Boolean)
 
@@ -123,6 +125,8 @@ class SessionStatisticsImpl(
   private val system = SystemViewToggleStatistics()
   private val goto = GotoDeclarationStatistics()
 
+  private var hasFoldEvent = false
+
   override fun start() {
     attach.start()
     live.start()
@@ -139,6 +143,8 @@ class SessionStatisticsImpl(
     compose.save { data.composeBuilder }
     system.save { data.systemBuilder }
     goto.save { data.gotoDeclarationBuilder }
+
+    data.hasFoldEvent = hasFoldEvent
   }
 
   override fun selectionMadeFromImage(view: ViewNode?) {
@@ -197,6 +203,10 @@ class SessionStatisticsImpl(
 
   override fun frameReceived() {
     compose.frameReceived()
+  }
+
+  override fun foldInfoReceived() {
+    hasFoldEvent = true
   }
 
   override fun debuggerInUse(isPaused: Boolean) {
