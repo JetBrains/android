@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.preview.focus
 
+import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.concurrency.asCollection
+import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -56,7 +58,10 @@ class FocusMode(rootComponent: JComponent) {
   }
 
   private val focusModeTabs =
-    FocusModeTabs(rootComponent, selectedProvider, keysProvider, selectionListener)
+    FocusModeTabs(rootComponent, selectedProvider, keysProvider, selectionListener).apply {
+      component.border = ActionsToolbar.BORDER
+      component.background = Colors.DEFAULT_BACKGROUND_COLOR
+    }
 
   /** [JPanel] for [FocusTabs]. */
   val component: JComponent = focusModeTabs.component
