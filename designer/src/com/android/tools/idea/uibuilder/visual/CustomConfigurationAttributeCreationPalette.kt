@@ -45,6 +45,7 @@ import java.awt.BorderLayout
 import java.awt.DefaultFocusTraversalPolicy
 import java.awt.GridLayout
 import java.awt.event.ActionEvent
+import java.util.SortedMap
 import javax.swing.AbstractAction
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JButton
@@ -175,10 +176,8 @@ class CustomConfigurationAttributeCreationPalette(
       groupDevices(
         ConfigurationManager.getOrCreateInstance(module).devices.filter { !it.isDeprecated }
       )
-    val devices =
-      groupedDevices
-        .toSortedMap(Comparator { d1, d2 -> d1.orderOfOption - d2.orderOfOption })
-        .flatMap { it.value }
+
+    val devices = getDeviceGroupsSortedAsMap(groupedDevices).flatMap { it.value }
     val boxModel = MyComboBoxModel(devices, { it.displayName })
     val box = CommonComboBox(boxModel)
     box.addActionListener { selectedDevice = boxModel.selectedValue }
@@ -380,3 +379,17 @@ private val DeviceGroup?.orderOfOption: Int
       DeviceGroup.OTHER -> 7
       else -> 8
     }
+
+/**
+ * Takes a map of grouped devices and returns a new [SortedMap] where the keys ([DeviceGroup]) are
+ * sorted according to the predefined `orderOfOption`.
+ *
+ * @param groupedDevices A map where keys are [DeviceGroup] and values are lists of [Device]s.
+ * @return A [SortedMap] containing the same entries as [groupedDevices], but with keys sorted based
+ *   on [DeviceGroup.orderOfOption].
+ */
+fun getDeviceGroupsSortedAsMap(
+  groupedDevices: Map<DeviceGroup, List<Device>>
+): SortedMap<DeviceGroup, List<Device>> {
+  return groupedDevices.toSortedMap(compareBy { it.orderOfOption })
+}

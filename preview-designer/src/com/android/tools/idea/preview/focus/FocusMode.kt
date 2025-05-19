@@ -33,7 +33,7 @@ import org.jetbrains.annotations.TestOnly
  * If Focus mode is enabled, one preview at a time is available with dropdown to select between
  * them. Focus mode is always enabled for Essentials mode.
  */
-class FocusMode(rootComponent: JComponent) {
+class FocusMode(rootComponent: JComponent, vararg additionalComponents: JComponent) {
 
   private val selectionListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, key ->
     val previewElement = key?.element
@@ -69,6 +69,7 @@ class FocusMode(rootComponent: JComponent) {
 
   init {
     component.add(focusModeTabs, BorderLayout.NORTH)
+    additionalComponents.forEach { component.add(it, BorderLayout.CENTER) }
   }
 
   /**

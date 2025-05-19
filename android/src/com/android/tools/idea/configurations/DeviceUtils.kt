@@ -35,19 +35,19 @@ import kotlin.math.hypot
 
 private val DEVICE_CACHES = ContainerUtil.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
 
-enum class DeviceGroup {
-  NEXUS,
-  NEXUS_XL,
-  NEXUS_TABLET,
-  WEAR,
-  DESKTOP,
-  TV,
-  AUTOMOTIVE,
-  GENERIC,
-  OTHER,
-  ADDITIONAL_DEVICE,
-  CANONICAL_DEVICE,
-  XR,
+enum class DeviceGroup(val displayName: String) {
+  NEXUS("Nexus/Pixel Phones"),
+  NEXUS_XL("Large Nexus/Pixel Phones"),
+  NEXUS_TABLET("Tablets"),
+  WEAR("Wear OS"),
+  DESKTOP("Desktop"),
+  TV("Android TV"),
+  AUTOMOTIVE("Android Auto"),
+  GENERIC("Generic Devices"),
+  OTHER("Other Devices"),
+  ADDITIONAL_DEVICE("More Devices"),
+  CANONICAL_DEVICE("Reference Devices"),
+  XR("XR Devices");
 }
 
 /**
