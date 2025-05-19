@@ -179,7 +179,7 @@ public final class StudioFlags {
     NPW, "xr.template",
     "Enable XR template",
     "Allows the XR template to be used.",
-    enabledUpTo(CANARY));
+    true);
 
   public static final Flag<Boolean> NPW_ENABLE_NAVIGATION_UI_TEMPLATE = new BooleanFlag(
     NPW, "navigationui.template",
