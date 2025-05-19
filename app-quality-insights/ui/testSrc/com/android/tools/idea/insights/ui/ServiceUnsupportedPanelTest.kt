@@ -20,6 +20,7 @@ import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel.TAB_PANEL
+import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo.DeliveryType.PANEL
 import com.intellij.ui.HyperlinkLabel
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.fail
@@ -33,7 +34,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.timeout
 import org.mockito.kotlin.verify
 
-class ServiceDeprecatedPanelTest {
+class ServiceUnsupportedPanelTest {
   private val tracker = mock<AppInsightsTracker>()
   private val scope = CoroutineScope(EmptyCoroutineContext)
   private val activeTabFlow = MutableStateFlow(false)
@@ -49,17 +50,34 @@ class ServiceDeprecatedPanelTest {
   @Test
   fun `userNotified is logged only once`() {
     createPanel()
-    verify(tracker, never()).logServiceDeprecated(eq(TAB_PANEL), eq(null), eq(null), eq(null))
+    verify(tracker, never())
+      .logServiceDeprecated(eq(TAB_PANEL), eq(PANEL), eq(null), eq(null), eq(null), eq(null))
 
     activeTabFlow.value = true
     verify(tracker, timeout(5000).times(1))
-      .logServiceDeprecated(eq(TAB_PANEL), eq(true), anyOrNull(), anyOrNull())
+      .logServiceDeprecated(eq(TAB_PANEL), eq(PANEL), eq(true), anyOrNull(), anyOrNull(), eq(null))
 
     activeTabFlow.value = false
-    verify(tracker).logServiceDeprecated(eq(TAB_PANEL), anyOrNull(), anyOrNull(), anyOrNull())
+    verify(tracker)
+      .logServiceDeprecated(
+        eq(TAB_PANEL),
+        eq(PANEL),
+        anyOrNull(),
+        anyOrNull(),
+        anyOrNull(),
+        eq(null),
+      )
 
     activeTabFlow.value = true
-    verify(tracker).logServiceDeprecated(eq(TAB_PANEL), anyOrNull(), anyOrNull(), anyOrNull())
+    verify(tracker)
+      .logServiceDeprecated(
+        eq(TAB_PANEL),
+        eq(PANEL),
+        anyOrNull(),
+        anyOrNull(),
+        anyOrNull(),
+        eq(null),
+      )
   }
 
   @Test
@@ -70,7 +88,8 @@ class ServiceDeprecatedPanelTest {
         ?: fail("More info label not found")
     moreInfoLabel.doClick()
 
-    verify(tracker).logServiceDeprecated(eq(TAB_PANEL), eq(null), eq(true), eq(null))
+    verify(tracker)
+      .logServiceDeprecated(eq(TAB_PANEL), eq(PANEL), eq(null), eq(true), eq(null), eq(null))
   }
 
   @Test
@@ -81,9 +100,10 @@ class ServiceDeprecatedPanelTest {
         ?: fail("Update label not found")
     updateLabel.doClick()
 
-    verify(tracker).logServiceDeprecated(eq(TAB_PANEL), eq(null), eq(null), eq(true))
+    verify(tracker)
+      .logServiceDeprecated(eq(TAB_PANEL), eq(PANEL), eq(null), eq(null), eq(true), eq(null))
   }
 
   private fun createPanel() =
-    ServiceDeprecatedPanel(scope, activeTabFlow, tracker, deprecationData) {}
+    ServiceUnsupportedPanel(scope, activeTabFlow, tracker, deprecationData) {}
 }

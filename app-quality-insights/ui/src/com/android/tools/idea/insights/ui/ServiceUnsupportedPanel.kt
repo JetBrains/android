@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ui.HyperlinkLabel
@@ -41,7 +42,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-class ServiceDeprecatedPanel(
+class ServiceUnsupportedPanel(
   scope: CoroutineScope,
   activeTabFlow: Flow<Boolean>,
   private val tracker: AppInsightsTracker,
@@ -84,15 +85,7 @@ class ServiceDeprecatedPanel(
         border = JBUI.Borders.empty(16)
         val iconPanel =
           JPanel(BorderLayout()).apply {
-            val iconLabel =
-              JBLabel(
-                  if (deprecationData.showUpdateAction) {
-                    AllIcons.General.Warning
-                  } else {
-                    AllIcons.General.Error
-                  }
-                )
-                .apply { isOpaque = false }
+            val iconLabel = JBLabel(AllIcons.General.Error).apply { isOpaque = false }
             add(iconLabel, BorderLayout.NORTH)
             isOpaque = false
           }
@@ -147,17 +140,11 @@ class ServiceDeprecatedPanel(
       override fun paintBorder(g: Graphics) {
         super.paintComponent(g)
         with(g as Graphics2D) {
-          val color =
-            if (deprecationData.showUpdateAction) {
-              Banner.WARNING_BACKGROUND
-            } else {
-              Banner.ERROR_BACKGROUND
-            }
           setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
           setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
-          g.color = color
+          g.color = Banner.ERROR_BACKGROUND
           g.fillRoundRect(0, 0, width - 1, height - 1, 12, 12)
-          g.color = color.brighter()
+          g.color = Banner.ERROR_BACKGROUND.brighter()
           g.drawRoundRect(0, 0, width - 1, height - 1, 12, 12)
         }
       }
@@ -177,6 +164,7 @@ class ServiceDeprecatedPanel(
   ) =
     tracker.logServiceDeprecated(
       AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel.TAB_PANEL,
+      DevServiceDeprecationInfo.DeliveryType.PANEL,
       userNotified,
       userClickedMoreInfo,
       userClickedUpdate,

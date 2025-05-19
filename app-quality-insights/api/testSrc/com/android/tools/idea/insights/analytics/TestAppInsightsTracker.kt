@@ -19,6 +19,7 @@ import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.ai.AiInsight
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
 
 object TestAppInsightsTracker : AppInsightsTracker {
   override fun logZeroState(
@@ -97,8 +98,10 @@ object TestAppInsightsTracker : AppInsightsTracker {
 
   override fun logServiceDeprecated(
     panel: AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel,
+    deliveryType: DevServiceDeprecationInfo.DeliveryType,
     userNotified: Boolean?,
     userClickedMoreInfo: Boolean?,
     userClickedUpdate: Boolean?,
+    userClickedDismiss: Boolean?,
   ) = Unit
 }
