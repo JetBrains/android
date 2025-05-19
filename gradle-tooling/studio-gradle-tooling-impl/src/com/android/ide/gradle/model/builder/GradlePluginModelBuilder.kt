@@ -29,7 +29,8 @@ class GradlePluginModelBuilder : ToolingModelBuilder {
   override fun buildAll(modelName: String, project: Project): Any {
     return GradlePluginModelImpl(
       project.plugins.hasPlugin("androidx.navigation.safeargs"),
-      project.plugins.hasPlugin("androidx.navigation.safeargs.kotlin")
+      project.plugins.hasPlugin("androidx.navigation.safeargs.kotlin"),
+      project.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform") || project.plugins.hasPlugin("kotlin-multiplatform"),
     )
   }
 }
