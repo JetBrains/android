@@ -131,6 +131,7 @@ class AndroidPluginModuleConsistencyTest : AndroidPluginProjectConsistencyTestCa
           val isGradleDslDeclarativeLangModule = "intellij.android.gradle.declarative.lang" == otherAndroidModuleName
                                                  || "intellij.android.gradle.declarative.lang.ide" == otherAndroidModuleName
                                                  || "intellij.android.gradle.declarative.lang.sync" == otherAndroidModuleName
+                                                 || "intellij.android.gradle.declarative.lang.flags" == otherAndroidModuleName
                                                  || "intellij.android.gradle.dsl.flags" == otherAndroidModuleName
 
           !isGradleDslModule && !isGradleDslDeclarativeLangModule && otherAndroidModuleName.startsWith("intellij.android")
