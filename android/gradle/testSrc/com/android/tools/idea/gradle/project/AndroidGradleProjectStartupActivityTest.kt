@@ -45,7 +45,7 @@ import org.mockito.kotlin.whenever
  * Tests for [AndroidGradleProjectStartupActivity].
  */
 class AndroidGradleProjectStartupActivityTest {
-  private val myProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val myProjectRule = AndroidProjectRule.inMemory()
 
   @Mock
   private lateinit var myInfo: Info
