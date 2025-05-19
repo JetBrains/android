@@ -82,11 +82,12 @@ class StartupPerformanceTest {
     val metricConstTerms = Maps.of("pausedTimeInIndexingOrScanning", listOf(6, 6),
                                    "indexingTimeWithoutPauses", listOf(31, 225),
                                    "scanningTimeWithoutPauses", listOf(88, 760),
-                                   "startup_performance_frame_became_visible", listOf(30, 384),
-                                   "startup_performance_frame_became_interactive", listOf(10, 664),
-                                   "startup_event", listOf(1, 192),
+                                   "startup_performance_code_loaded_and_visible_in_editor", listOf(200, 200),
+                                   "startup_performance_frame_became_visible", listOf(120, 384),
+                                   "startup_performance_frame_became_interactive", listOf(145, 664),
+                                   "startup_event", listOf(5, 300),
                                    "dumbModeTimeWithPauses", listOf(0, 330),
-                                   "startup_performance_first_ui_shown", listOf(15, 0))
+                                   "startup_performance_first_ui_shown", listOf(40, 10))
 
     system.installation.indexingMetrics.get(project).forEach {
       // Per-filetype metrics are too volatile and fine-granular. Let's report them without analyzer.

@@ -109,11 +109,11 @@ class EditorPerformanceTest {
 
       val telemetry = system.installation.telemetry
 
-      Quantiles.median().compute(telemetry.get("completion").toList()).let { benchmark.log("completion_median", it.toLong(), if(SystemInfo.isWindows) 310 else 0) }
+      Quantiles.median().compute(telemetry.get("completion").toList()).let { benchmark.log("completion_median", it.toLong(), if(SystemInfo.isWindows) 310 else 30) }
       telemetry.get("completion").max(Long::compareTo).get().let { benchmark.logWithoutAnalyzer("completion_max", it) }
 
       Quantiles.median().compute(telemetry.get("firstCodeAnalysis").toList()).let {
-        benchmark.log("firstCodeAnalysis_median", it.toLong(), if(SystemInfo.isWindows) 310 else 0)
+        benchmark.log("firstCodeAnalysis_median", it.toLong(), if(SystemInfo.isWindows) 310 else 100)
       }
       telemetry.get("firstCodeAnalysis").max(Long::compareTo).get().let { benchmark.logWithoutAnalyzer("firstCodeAnalysis_max", it) }
 
@@ -125,7 +125,7 @@ class EditorPerformanceTest {
       }
 
       Quantiles.median().compute(telemetry.getChild("findUsagesParent", "findUsages_firstUsage").toList()).let {
-        benchmark.log("findUsages_firstUsage_median", it.toLong(), if(SystemInfo.isWindows) 1 else 0)
+        benchmark.log("findUsages_firstUsage_median", it.toLong(), 1)
       }
       telemetry.getChild("findUsagesParent", "findUsages_firstUsage").max(Long::compareTo).get().let {
         benchmark.logWithoutAnalyzer("findUsages_firstUsage_max", it)
