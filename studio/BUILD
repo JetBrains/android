@@ -720,6 +720,7 @@ studio_plugin(
         "//tools/vendor/google/ml/aiplugin/core:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/core:gemini_plugin_proto",
+        "//tools/vendor/google/ml:aiplugin.login.sdkcompat",
     ],
     modules = {
         "aiplugin.jar": [

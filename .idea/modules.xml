@@ -28,6 +28,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin-test-utils.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin-test-utils.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/lang/kotlin/aiplugin.lang.kotlin-tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/login-compat/aiplugin.login.sdkcompat.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/login-compat/aiplugin.login.sdkcompat.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/client/aiplugin.mcp.client.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/client/aiplugin.mcp.client.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/client-tests/aiplugin.mcp.client-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/client-tests/aiplugin.mcp.client-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/model/api/aiplugin.model.api.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/model/api/aiplugin.model.api.iml" />
