@@ -17,43 +17,27 @@ package com.android.tools.idea.wear.dwf.importer.wfs
 
 import com.android.SdkConstants.FD_MAIN
 import com.android.SdkConstants.FD_RES
-import com.android.SdkConstants.FD_RES_RAW
 import com.android.SdkConstants.FD_SOURCES
-import com.android.ide.common.xml.XmlPrettyPrinter
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportException.InvalidHoneyFaceFileException
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.MISSING_MAIN_MODULE
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.UNKNOWN
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Success
-import com.android.tools.idea.wear.dwf.importer.wfs.honeyface.HoneyFaceParser
-import com.android.tools.idea.wear.dwf.importer.wfs.honeyface.HoneyFaceXmlConverter
+import com.android.tools.idea.wear.dwf.importer.wfs.extractors.WFSFileExtractor
 import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.io.Decompressor
+import kotlin.io.path.exists
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.annotations.TestOnly
-import java.io.File
-import java.nio.file.Path
-import kotlin.io.path.exists
-
-private val EXCLUDED_FILES =
-  setOf("res/drawable-nodpi/preview_circular.png", "res/values/strings.xml")
-
-private const val WATCH_FACE_FILENAME = "watchface.xml"
-private const val HONEY_FACE_FILENAME = "honeyface.json"
-private const val WFS_PREVIEW_FILENAME = "latest_preview.png"
-private const val STUDIO_PREVIEW_FILENAME = "preview.png"
 
 private val LOG = Logger.getInstance(WatchFaceStudioFileImporter::class.java)
 
@@ -65,92 +49,66 @@ private val LOG = Logger.getInstance(WatchFaceStudioFileImporter::class.java)
  */
 @Service(Service.Level.PROJECT)
 class WatchFaceStudioFileImporter
-private constructor(private val project: Project,
-                    private val defaultDispatcher: CoroutineDispatcher,
-                    private val ioDispatcher: CoroutineDispatcher) {
+private constructor(
+  private val project: Project,
+  private val defaultDispatcher: CoroutineDispatcher,
+  private val ioDispatcher: CoroutineDispatcher,
+  private val wfsFileExtractor: WFSFileExtractor = WFSFileExtractor(ioDispatcher = ioDispatcher),
+) {
 
-  private constructor(project: Project) : this(project = project, defaultDispatcher = Dispatchers.Default, ioDispatcher = Dispatchers.IO)
+  private constructor(
+    project: Project
+  ) : this(
+    project = project,
+    defaultDispatcher = Dispatchers.Default,
+    ioDispatcher = Dispatchers.IO,
+  )
 
-  private val parser: HoneyFaceParser = HoneyFaceParser()
-  private val xmlConverter: HoneyFaceXmlConverter = HoneyFaceXmlConverter()
-
-  suspend fun import(wfsFile: VirtualFile): WFSImportResult = withContext(defaultDispatcher) {
-    val mainModuleRoot =
-      AndroidRootUtil.findModuleRootFolderPath(
-        project.modules.first { it.getModuleSystem().isProductionAndroidModule() }
-      )
-    if (mainModuleRoot == null) {
-      return@withContext Error(MISSING_MAIN_MODULE)
-    }
-    val mainFolderPath = mainModuleRoot.toPath().resolve(FD_SOURCES).resolve(FD_MAIN)
-    if (!mainFolderPath.exists()) {
-      withContext(ioDispatcher) { mainFolderPath.toFile().mkdirs() }
-    }
-    val resFolderPath = mainFolderPath.resolve(FD_RES)
-    if (!resFolderPath.exists()) {
-      withContext(ioDispatcher) { resFolderPath.toFile().mkdirs() }
-    }
-
-    try {
-      extractWFSFiles(wfsFile, mainFolderPath, resFolderPath)
-      generateRawWatchFaceFile(mainFolderPath, resFolderPath)
-    }
-    catch (e: Throwable) {
-      LOG.warn("An error occurred when importing the Watch Face Studio file.", e)
-      return@withContext Error()
-    }
-    finally {
-      edtWriteAction {
-        LocalFileSystem.getInstance().findFileByNioFile(mainFolderPath)?.refresh(false, true)
+  suspend fun import(wfsFile: VirtualFile): WFSImportResult =
+    withContext(defaultDispatcher) {
+      val mainModuleRoot =
+        AndroidRootUtil.findModuleRootFolderPath(
+          project.modules.first { it.getModuleSystem().isProductionAndroidModule() }
+        )
+      if (mainModuleRoot == null) {
+        return@withContext Error(MISSING_MAIN_MODULE)
       }
-    }
-    Success
-  }
-
-  private suspend fun extractWFSFiles(
-    wfsFile: VirtualFile,
-    mainFolderPath: Path,
-    resFolderPath: Path,
-  ) {
-    withContext(ioDispatcher) {
-      Decompressor.Zip(wfsFile.toNioPath())
-        .entryFilter { it -> it.name !in EXCLUDED_FILES }
-        .extract(mainFolderPath)
-
-      val wfsPreviewFile = mainFolderPath.resolve(WFS_PREVIEW_FILENAME).toFile()
-      if (wfsPreviewFile.exists()) {
-        val previewFileDestination = resFolderPath.resolve(STUDIO_PREVIEW_FILENAME).toFile()
-
-        FileUtil.copy(previewFileDestination, previewFileDestination)
-        FileUtil.delete(wfsPreviewFile)
+      val mainFolderPath = mainModuleRoot.toPath().resolve(FD_SOURCES).resolve(FD_MAIN)
+      if (!mainFolderPath.exists()) {
+        withContext(ioDispatcher) { mainFolderPath.toFile().mkdirs() }
       }
-    }
-  }
+      val resFolderPath = mainFolderPath.resolve(FD_RES)
+      if (!resFolderPath.exists()) {
+        withContext(ioDispatcher) { resFolderPath.toFile().mkdirs() }
+      }
 
-  private suspend fun generateRawWatchFaceFile(mainFolderPath: Path, resFolderPath: Path) =
-    withContext(ioDispatcher) {
-      val honeyFaceFile = File(mainFolderPath.toFile(), HONEY_FACE_FILENAME)
-      val honeyFace =
-        parser.parse(honeyFaceFile)
-          ?: throw InvalidHoneyFaceFileException("Failed to parse the HoneyFace file.")
-      FileUtil.delete(honeyFaceFile)
-
-      val rawWatchFaceXmlDocument = xmlConverter.toXml(honeyFace)
-      val rawWatchFaceFile = resFolderPath.resolve(FD_RES_RAW).resolve(WATCH_FACE_FILENAME).toFile()
-
-      FileUtil.createIfDoesntExist(rawWatchFaceFile)
-      FileUtil.writeToFile(
-        rawWatchFaceFile,
-        XmlPrettyPrinter.prettyPrint(rawWatchFaceXmlDocument, false),
-      )
+      try {
+        wfsFileExtractor.extract(wfsFile, mainFolderPath, resFolderPath)
+      } catch (e: Throwable) {
+        LOG.warn("An error occurred when importing the Watch Face Studio file.", e)
+        return@withContext Error()
+      } finally {
+        edtWriteAction {
+          LocalFileSystem.getInstance().findFileByNioFile(mainFolderPath)?.refresh(false, true)
+        }
+      }
+      Success
     }
 
   companion object {
     fun getInstance(project: Project): WatchFaceStudioFileImporter = project.service()
 
     @TestOnly
-    internal fun getInstanceForTest(project: Project, defaultDispatcher: CoroutineDispatcher, ioDispatcher: CoroutineDispatcher) =
-      WatchFaceStudioFileImporter(project = project, defaultDispatcher = defaultDispatcher, ioDispatcher = ioDispatcher)
+    internal fun getInstanceForTest(
+      project: Project,
+      defaultDispatcher: CoroutineDispatcher,
+      ioDispatcher: CoroutineDispatcher,
+    ) =
+      WatchFaceStudioFileImporter(
+        project = project,
+        defaultDispatcher = defaultDispatcher,
+        ioDispatcher = ioDispatcher,
+      )
   }
 }
 
