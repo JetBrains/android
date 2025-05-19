@@ -64,7 +64,7 @@ final class BlazeNdkSupportEnabler implements SyncListener, QuerySyncProjectList
   public QuerySyncProjectListener createListener(QuerySyncManager querySyncManager) {
     return new QuerySyncProjectListener() {
       @Override
-      public void onNewProjectSnapshot(Context<?> context, ReadonlyQuerySyncProject querySyncProject, QuerySyncProjectSnapshot instance) {
+      public void onNewProjectStructure(Context<?> context, ReadonlyQuerySyncProject querySyncProject, QuerySyncProjectSnapshot instance) {
         Set<QuerySyncLanguage> allLanguages =
             Sets.union(
                 instance.queryData().projectDefinition().languageClasses(),

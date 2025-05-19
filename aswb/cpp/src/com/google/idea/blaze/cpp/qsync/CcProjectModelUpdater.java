@@ -56,7 +56,7 @@ public class CcProjectModelUpdater implements QuerySyncProjectListener {
   }
 
   @Override
-  public void onNewProjectSnapshot(Context<?> context, ReadonlyQuerySyncProject querySyncProject, QuerySyncProjectSnapshot instance) {
+  public void onNewProjectStructure(Context<?> context, ReadonlyQuerySyncProject querySyncProject, QuerySyncProjectSnapshot instance) {
     updateProjectModel(querySyncProject, instance.project(), context);
   }
 

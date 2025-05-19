@@ -8,7 +8,7 @@ aswb_library(
     ]),
     visibility = [
         "//tools/adt/idea/aswb/querysync:__subpackages__",
-        "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",
+        "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",
     ],
     deps = [
         "//prebuilts/tools/common/m2:jsr305-2.0.1",

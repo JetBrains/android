@@ -22,11 +22,11 @@ import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 /** A listener interface for new project snapshots. */
 public interface QuerySyncProjectListener {
   /**
-   * A new snapshot has been created, replacing any existing instance.
+   * A new snapshot has got a different project structure, i.e. instance.project() has changed.
    *
    * <p>This will be called on a background thread (from the {@link
    * com.google.idea.blaze.base.async.executor.BlazeExecutor} pool.
    */
-  void onNewProjectSnapshot(Context<?> context, ReadonlyQuerySyncProject querySyncProject, QuerySyncProjectSnapshot instance)
+  void onNewProjectStructure(Context<?> context, ReadonlyQuerySyncProject querySyncProject, QuerySyncProjectSnapshot instance)
       throws BuildException;
 }

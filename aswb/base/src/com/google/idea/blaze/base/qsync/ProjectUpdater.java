@@ -92,7 +92,7 @@ public class ProjectUpdater implements QuerySyncProjectListener {
   }
 
   @Override
-  public void onNewProjectSnapshot(Context<?> context, ReadonlyQuerySyncProject querySyncProject, QuerySyncProjectSnapshot graph) {
+  public void onNewProjectStructure(Context<?> context, ReadonlyQuerySyncProject querySyncProject, QuerySyncProjectSnapshot graph) {
     updateProjectModel(querySyncProject, graph.project(), context);
   }
 

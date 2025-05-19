@@ -56,7 +56,7 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
 
   private var lastProjectProtoSnapshot: ProjectProto.Project = ProjectProto.Project.getDefaultInstance()
 
-  override fun onNewProjectSnapshot(
+  override fun onNewProjectStructure(
     context: Context<*>,
     querySyncProject: ReadonlyQuerySyncProject,
     graph: QuerySyncProjectSnapshot,
