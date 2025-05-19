@@ -1788,7 +1788,7 @@ public final class StudioFlags {
     "xr.device.support.enabled",
     "XR Device Support Enabled",
     "Enable the support of XR device in the device manager",
-    enabledUpTo(CANARY));
+    true);
   // endregion
 
   //region DDMLIB
