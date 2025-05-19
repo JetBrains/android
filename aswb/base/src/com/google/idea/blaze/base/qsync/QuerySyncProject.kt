@@ -95,7 +95,6 @@ interface ReadonlyQuerySyncProject {
  */
 class QuerySyncProject(
   val ideProject: Project,
-  private val snapshotFilePath: Path,
   private val snapshotHolder: SnapshotHolder,
   val importSettings: BlazeImportSettings,
   override val workspaceRoot: WorkspaceRoot,
@@ -109,14 +108,14 @@ class QuerySyncProject(
   private val snapshotBuilder: SnapshotBuilder,
   override val projectDefinition: ProjectDefinition,
   override val projectViewSet: ProjectViewSet,
-// TODO(mathewi) only one of these two should strictly be necessary:
+  // TODO(mathewi) only one of these two should strictly be necessary:
   val workspacePathResolver: WorkspacePathResolver,
   override val projectPathResolver: ProjectPath.Resolver,
   val workspaceLanguageSettings: WorkspaceLanguageSettings,
   val sourceToTargetMap: QuerySyncSourceToTargetMap,
   override val buildSystem: BuildSystem,
   val projectProtoTransforms: ProjectProtoTransform.Registry,
-  val handledRuleKinds: Set<String>
+  val handledRuleKinds: Set<String>,
 ) : ReadonlyQuerySyncProject {
   private val currentSnapshot: Optional<QuerySyncProjectSnapshot>
     get() = snapshotHolder.current
@@ -152,13 +151,13 @@ class QuerySyncProject(
   @JvmRecord
   data class CoreSyncResult(
     val postQuerySyncData: PostQuerySyncData,
-    val graph: BuildGraphData
+    val graph: BuildGraphData,
   )
 
   @Throws(BuildException::class)
   fun syncCore(
     context: BlazeContext,
-    lastQuery: PostQuerySyncData?
+    lastQuery: PostQuerySyncData?,
   ): CoreSyncResult {
     try {
       SaveUtil.saveAllFiles()
@@ -186,7 +185,7 @@ class QuerySyncProject(
    */
   fun getProjectTargets(
     context: BlazeContext,
-    workspaceRelativePaths: Collection<Path>
+    workspaceRelativePaths: Collection<Path>,
   ): Set<TargetsToBuild> {
     return snapshotHolder()
       ?.let { snapshot ->
@@ -259,7 +258,7 @@ class QuerySyncProject(
 
   private fun buildGraphData(
     postQuerySyncData: PostQuerySyncData,
-    context: Context<*>
+    context: Context<*>,
   ): BuildGraphData {
     return BlazeQueryParser(postQuerySyncData.querySummary(), context, ImmutableSet.copyOf(handledRuleKinds)).parse()
   }
@@ -268,7 +267,7 @@ class QuerySyncProject(
   fun updateProjectStructureAndSnapshot(
     context: BlazeContext,
     queryData: PostQuerySyncData,
-    graph: BuildGraphData
+    graph: BuildGraphData,
   ): QuerySyncProjectSnapshot {
     val newSnapshot =
       snapshotBuilder.createBlazeProjectSnapshot(
@@ -284,7 +283,7 @@ class QuerySyncProject(
 
   @Throws(IOException::class, BuildException::class)
   fun buildAppInspector(
-    parentContext: BlazeContext, inspector: Label
+    parentContext: BlazeContext, inspector: Label,
   ): ImmutableCollection<Path> {
     BlazeContext.create(parentContext).use { context ->
       context.push(BuildDepsStatsScope())
@@ -336,7 +335,7 @@ class QuerySyncProject(
 
   @Throws(IOException::class)
   fun readSnapshotFromDisk(context: BlazeContext): PostQuerySyncData? {
-    val f = snapshotFilePath.toFile()
+    val f = getSnapshotFilePath(ideProject).toFile()
     if (!f.exists()) {
       return null
     }
@@ -409,7 +408,7 @@ class QuerySyncProject(
 
   @Throws(IOException::class)
   private fun writeToDisk(snapshot: QuerySyncProjectSnapshot) {
-    AtomicFileWriter.create(snapshotFilePath).use { writer ->
+    AtomicFileWriter.create(getSnapshotFilePath(ideProject)).use { writer ->
       GZIPOutputStream(writer.outputStream).use { zip ->
         val message = SnapshotSerializer().visit(snapshot.queryData()).toProto()
         val codedOutput = CodedOutputStream.newInstance(zip, 1024 * 1024)
@@ -450,14 +449,16 @@ class QuerySyncProject(
     }
   }
 
-  override fun getBugreportFiles(): Map<String, ByteSource> =
-    ImmutableMap.builder<String, ByteSource>()
+  override fun getBugreportFiles(): Map<String, ByteSource> {
+    val snapshotFilePath = getSnapshotFilePath(ideProject)
+    return ImmutableMap.builder<String, ByteSource>()
       .put(snapshotFilePath.fileName.toString(), MoreFiles.asByteSource(snapshotFilePath))
       .putAll(artifactTracker.getBugreportFiles())
       .putAll(snapshotHolder.getBugreportFiles())
       .putAll(artifactStore.getBugreportFiles())
       .putAll(buildArtifactCache.getBugreportFiles())
       .build()
+  }
 
   // TODO: b/397649793 - Remove this method when fixed.
   override fun dependsOnAnyOf_DO_NOT_USE_BROKEN(target: Label, deps: Set<Label>): Boolean {
@@ -472,3 +473,8 @@ class QuerySyncProject(
     private val logger = Logger.getInstance(QuerySyncProject::class.java)
   }
 }
+
+private fun getSnapshotFilePath(project: Project): Path {
+  return Path.of(project.basePath).resolve("qsyncdata.gz")
+}
+

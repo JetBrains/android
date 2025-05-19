@@ -95,7 +95,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
                                      BuildSystem buildSystem,
                                      WorkspaceLanguageSettings workspaceLanguageSettings,
                                      ProjectDefinition latestProjectDef,
-                                     Path snapshotFilePath,
                                      ProjectPath.Resolver projectPathResolver,
                                      Registry projectTransformRegistry,
                                      SnapshotHolder snapshotHolder,
@@ -139,7 +138,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
     QuerySyncProject querySyncProject =
         new QuerySyncProject(
           project,
-          result.snapshotFilePath(),
           result.snapshotHolder(),
           result.importSettings(),
           result.workspaceRoot(),
@@ -197,7 +195,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
     final var workspaceRoot = projectToLoad.workspaceRoot();
     final var latestProjectDef = projectToLoad.definition();
     final var buildSystem = projectToLoad.buildSystem();
-    Path snapshotFilePath = getSnapshotFilePath(importSettings);
 
     WorkspaceLanguageSettings workspaceLanguageSettings = projectToLoad.workspaceLanguageSettings();
 
@@ -275,7 +272,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     QuerySyncSourceToTargetMap sourceToTargetMap =
         new QuerySyncSourceToTargetMap(snapshotHolder, workspaceRoot.path());
     return new QuerySyncProjectDeps(importSettings, workspaceRoot, new WorkspacePathResolverImpl(workspaceRoot), projectViewSet, buildSystem,
-                                    workspaceLanguageSettings, latestProjectDef, snapshotFilePath, projectPathResolver, projectTransformRegistry,
+                                    workspaceLanguageSettings, latestProjectDef,  projectPathResolver, projectTransformRegistry,
                                     snapshotHolder, artifactCache, artifactTracker, renderJarArtifactTracker, appInspectorArtifactTracker,
                                     appInspectorTracker, artifactStore, dependencyBuilder, dependencyTracker, snapshotBuilder,
                                     projectQuerier, sourceToTargetMap, handledRules);
@@ -315,10 +312,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
 
   protected AppInspectorBuilder createAppInspectorBuilder(BuildSystem buildSystem) {
     return new BazelAppInspectorBuilder(project, buildSystem);
-  }
-
-  private Path getSnapshotFilePath(BlazeImportSettings importSettings) {
-    return BlazeDataStorage.getProjectDataDir(importSettings).toPath().resolve("qsyncdata.gz");
   }
 
   /**
