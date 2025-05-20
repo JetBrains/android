@@ -65,6 +65,7 @@ import java.io.IOException
 import java.nio.file.Path
 import java.util.Objects
 import java.util.Optional
+import java.util.Optional.empty
 import java.util.function.Supplier
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
@@ -390,8 +391,8 @@ class QuerySyncProject(
     GZIPInputStream(FileInputStream(f)).use { `in` ->
       return SnapshotDeserializer()
         .readFrom(`in`, context)
-        .map{ it.syncData }
         .getOrNull()
+        ?.syncData
     }
   }
 

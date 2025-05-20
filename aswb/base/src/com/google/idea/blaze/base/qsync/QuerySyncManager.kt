@@ -34,6 +34,7 @@ import com.google.idea.blaze.base.settings.BlazeUserSettings
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap
 import com.google.idea.blaze.base.util.SaveUtil
 import com.google.idea.blaze.common.Label
+import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
@@ -146,20 +147,25 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       subTitle = "Re-loading project",
       operationType = OperationType.SYNC
     ) { context ->
-      loadProject(context)
+      val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
+      result.project.sync(context, result.existingPostQuerySyncData)
     }
 
+  private class ReloadProjectResult(val project: QuerySyncProject, val existingPostQuerySyncData: PostQuerySyncData?)
+
   @Throws(BuildException::class)
-  fun loadProject(context: BlazeContext) {
-    try {
-      val newProject = loader.loadProject()
-      val projectData = newProject.readSnapshotFromDisk(context)
-      loadedProject = newProject
-      newProject.sync(context, projectData)
-    }
-    catch (e: IOException) {
-      throw BuildException("Failed to load project", e)
-    }
+  private fun reloadProjectIfDefinitionHasChanged(project: QuerySyncProject?, context: BlazeContext): ReloadProjectResult {
+    val loadedProject = loadedProjectUnlessDefinitionHasChanged(context)
+                      ?: runCatching { loader.loadProject() }.getOrElse { throw BuildException("Failed to load project", it) }
+    val existingQueryData = project?.currentSnapshot?.getOrNull()?.queryData()
+                            ?: runCatching { loadedProject.readSnapshotFromDisk(context) }
+                              .getOrElse {
+                                context.output(PrintOutput("Failed to read snapshot from disk. Error: ${it.message}"))
+                                logger.error("Failed to read snapshot from disk", it)
+                                null
+                              }
+    this.loadedProject = loadedProject
+    return ReloadProjectResult(project = loadedProject, existingPostQuerySyncData = existingQueryData)
   }
 
   val currentSnapshot: Optional<QuerySyncProjectSnapshot>
@@ -188,7 +194,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       subTitle = "Initializing project structure",
       operationType = OperationType.SYNC
     ) { context ->
-      loadProject(context)
+      val result= reloadProjectIfDefinitionHasChanged(project = null, context)
+      result.project.sync(context, result.existingPostQuerySyncData)
     }
 
   @CanIgnoreReturnValue
@@ -208,13 +215,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       subTitle = "Re-importing project",
       operationType = OperationType.SYNC
     ) { context ->
-      val loadedProject = loadedProjectUnlessDefinitionHasChanged(context)
-      if (loadedProject == null) {
-        loadProject(context)
-      }
-      else {
-        loadedProject.sync(context, lastQuery = null)
-      }
+      val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
+      result.project.sync(context, lastQuery = null)
     }
 
   @CanIgnoreReturnValue
@@ -234,13 +236,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       subTitle = "Refreshing project",
       operationType = OperationType.SYNC
     ) { context ->
-      val loadedProject = loadedProjectUnlessDefinitionHasChanged(context)
-      if (loadedProject == null) {
-        loadProject(context)
-      }
-      else {
-        loadedProject.sync(context, loadedProject.currentSnapshot.getOrNull()?.queryData())
-      }
+      val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
+      result.project.sync(context, result.existingPostQuerySyncData)
     }
 
   fun syncQueryDataIfNeeded(
@@ -262,19 +259,9 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       if (fileListener.hasModifiedBuildFiles() ||
-          getTargetsToBuildByPaths(
-            workspaceRelativePaths).any { it.requiresQueryDataRefresh() }) {
-        val originallyLoadedProject = loadedProject
-        val loadedProject =
-          loadedProjectUnlessDefinitionHasChanged(context)
-          ?: let {
-            val newlyLoadedProject = loader.loadProject()
-            loadedProject = newlyLoadedProject
-            newlyLoadedProject
-          } ?: return@operation
-        // Context should have the error.
-        val lastQuery = originallyLoadedProject?.snapshotHolder()?.queryData()
-        loadedProject.syncQueryData(context, lastQuery)
+          getTargetsToBuildByPaths(workspaceRelativePaths).any { it.requiresQueryDataRefresh() }) {
+        val result = reloadProjectIfDefinitionHasChanged(loadedProject, context)
+        result.project.syncQueryData(context, result.existingPostQuerySyncData)
       }
     }
 
