@@ -7,12 +7,6 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
-jvm_resources(
-  name = "gradle-dsl-groovy_resources_1",
-  files = glob(["src/META-INF/**/*"]),
-  strip_prefix = "src"
-)
-
 jvm_library(
   name = "gradle-dsl-groovy",
   module_name = "intellij.android.gradle.dsl.groovy",
@@ -29,9 +23,6 @@ jvm_library(
     "//platform/core-impl",
     "//android/gradle-dsl",
   ],
-  runtime_deps = [
-    ":gradle-dsl-groovy_resources",
-    ":gradle-dsl-groovy_resources_1",
-  ]
+  runtime_deps = [":gradle-dsl-groovy_resources"]
 )
 ### auto-generated section `build intellij.android.gradle.dsl.groovy` end
