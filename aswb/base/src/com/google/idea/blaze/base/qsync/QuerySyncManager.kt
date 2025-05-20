@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.qsync
 
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.ImmutableSet
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -25,12 +26,16 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator
 import com.google.idea.blaze.base.bazel.BuildSystemProvider
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
+import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope
 import com.google.idea.blaze.base.projectview.ProjectViewManager
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.scope.scopes.SyncActionScopes.runTaskInSyncRootScope
 import com.google.idea.blaze.base.settings.Blaze
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager
 import com.google.idea.blaze.base.settings.BlazeUserSettings
+import com.google.idea.blaze.base.sync.SyncListener
+import com.google.idea.blaze.base.sync.SyncMode
+import com.google.idea.blaze.base.sync.SyncResult
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap
 import com.google.idea.blaze.base.util.SaveUtil
 import com.google.idea.blaze.common.Label
@@ -148,7 +153,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
-      result.project.sync(context, result.existingPostQuerySyncData)
+      runSync(context) { context -> result.project.sync(context, result.existingPostQuerySyncData) }
     }
 
   private class ReloadProjectResult(val project: QuerySyncProject, val existingPostQuerySyncData: PostQuerySyncData?)
@@ -195,7 +200,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(project = null, context)
-      result.project.sync(context, result.existingPostQuerySyncData)
+      runSync(context) { context -> result.project.sync(context, result.existingPostQuerySyncData) }
     }
 
   @CanIgnoreReturnValue
@@ -216,7 +221,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
-      result.project.sync(context, lastQuery = null)
+      runSync(context) { context -> result.project.sync(context, lastQuery = null) }
     }
 
   @CanIgnoreReturnValue
@@ -237,7 +242,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
-      result.project.sync(context, result.existingPostQuerySyncData)
+      runSync(context) { context -> result.project.sync(context, result.existingPostQuerySyncData) }
     }
 
   fun syncQueryDataIfNeeded(
@@ -321,6 +326,43 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       throw t
     }
     return result
+  }
+
+  @Throws(BuildException::class)
+  fun runSync(
+    parentContext: BlazeContext,
+    syncBody: (BlazeContext) -> QuerySyncProjectSnapshot) {
+    BlazeContext.create(parentContext).use { context ->
+      context.push(SyncQueryStatsScope())
+      try {
+        for (syncListener in SyncListener.EP_NAME.extensionList) {
+          syncListener.onQuerySyncStart(project, context)
+        }
+
+        val newSnapshot = syncBody(context)
+        loadedProject?.let { querySyncProject ->
+          // TODO: Revisit SyncListeners once we switch fully to qsync
+          for (syncListener in SyncListener.EP_NAME.extensions) {
+            // A callback shared between the old and query sync implementations.
+            syncListener.onSyncComplete(
+              project,
+              context,
+              querySyncProject.importSettings,
+              querySyncProject.projectViewSet,
+              ImmutableSet.of(),
+              querySyncProject.projectData,
+              SyncMode.FULL,
+              SyncResult.SUCCESS
+            )
+          }
+        }
+      } finally {
+        for (syncListener in SyncListener.EP_NAME.extensions) {
+          // A query sync specific callback.
+          syncListener.afterQuerySync(project, context)
+        }
+      }
+    }
   }
 
   fun getTargetsToBuildByPaths(workspaceRelativePaths: Collection<Path>): Set<TargetsToBuild> {
@@ -438,7 +480,9 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       subTitle = "Clearing artifacts and running full query",
       operationType = OperationType.OTHER
     ) { context ->
-      assertProjectLoaded().resetQuerySyncState(context)
+      val loadedProject = assertProjectLoaded()
+      loadedProject.invalidateQuerySyncState(context)
+      runSync(context) { context -> loadedProject.sync(context, lastQuery = null) }
     }
 
   @Throws(BuildException::class)

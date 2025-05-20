@@ -29,9 +29,6 @@ import com.google.idea.blaze.base.projectview.ProjectViewSet
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.settings.BlazeImportSettings
-import com.google.idea.blaze.base.sync.SyncListener
-import com.google.idea.blaze.base.sync.SyncMode
-import com.google.idea.blaze.base.sync.SyncResult
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap
@@ -59,13 +56,11 @@ import com.google.idea.blaze.qsync.project.TargetsToBuild
 import com.google.protobuf.CodedOutputStream
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.util.containers.orNull
 import java.io.FileInputStream
 import java.io.IOException
 import java.nio.file.Path
 import java.util.Objects
 import java.util.Optional
-import java.util.Optional.empty
 import java.util.function.Supplier
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
@@ -138,42 +133,12 @@ class QuerySyncProject(
 
   fun getSourceToTargetMap(): SourceToTargetMap = sourceToTargetMap
 
-  @Throws(BuildException::class)
-  fun sync(parentContext: BlazeContext, lastQuery: PostQuerySyncData?) {
-    BlazeContext.create(parentContext).use { context ->
-      context.push(SyncQueryStatsScope())
-      try {
-        for (syncListener in SyncListener.EP_NAME.extensionList) {
-          syncListener.onQuerySyncStart(this.ideProject, context)
-        }
-
-        val coreSyncResult = syncCore(context, lastQuery)
-        val newSnapshot =
-          updateProjectSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
-
-        // TODO: Revisit SyncListeners once we switch fully to qsync
-        for (syncListener in SyncListener.EP_NAME.extensions) {
-          // A callback shared between the old and query sync implementations.
-          syncListener.onSyncComplete(
-            this.ideProject,
-            context,
-            importSettings,
-            projectViewSet,
-            ImmutableSet.of(),
-            QuerySyncProjectData(workspacePathResolver, workspaceLanguageSettings).withSnapshot(
-              newSnapshot
-            ),
-            SyncMode.FULL,
-            SyncResult.SUCCESS
-          )
-        }
-      } finally {
-        for (syncListener in SyncListener.EP_NAME.extensions) {
-          // A query sync specific callback.
-          syncListener.afterQuerySync(this.ideProject, context)
-        }
-      }
-    }
+  fun sync(
+    context: BlazeContext,
+    lastQuery: PostQuerySyncData?,
+  ): QuerySyncProjectSnapshot {
+    val coreSyncResult = syncCore(context, lastQuery)
+    return updateProjectSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
   }
 
   @Throws(BuildException::class)
@@ -275,12 +240,6 @@ class QuerySyncProject(
     val postQuerySyncData = snapshotHolder.current.orElseThrow().queryData()
     val graph = getBuildGraphData(postQuerySyncData, context)
     updateProjectSnapshot(context, postQuerySyncData, graph)
-  }
-
-  @Throws(BuildException::class)
-  fun resetQuerySyncState(context: BlazeContext) {
-    invalidateQuerySyncState(context)
-    sync(context, lastQuery = null)
   }
 
   @Throws(BuildException::class)

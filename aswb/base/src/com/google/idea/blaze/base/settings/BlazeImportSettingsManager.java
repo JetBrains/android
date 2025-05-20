@@ -100,14 +100,6 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
     }
   }
 
-  public void resetImportSettings() {
-    synchronized (this) {
-      importSettings.set(null);
-      loadedImportSettings = null;
-      BlazeImportSettingsManager.getInstance(project).initImportSettings(Optional.empty());
-    }
-  }
-
   private void initImportSettings(Optional<BlazeImportSettings> loadedImportSettings) {
     final var projectBasePath = project.getBasePath();
     if (projectBasePath == null) {
