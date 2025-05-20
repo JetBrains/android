@@ -26,22 +26,17 @@ import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import java.util.Collection;
 import java.util.Optional;
+import javax.annotation.Nullable;
 
 /** Updates project info according to the newly generated build graph. */
-public class ProjectStatsLogger implements QuerySyncProjectListener {
+public class ProjectStatsLogger {
 
-  /** Entry point for instantiating {@link ProjectStatsLogger}. */
-  public static class Provider implements QuerySyncProjectListenerProvider {
-    @Override
-    public QuerySyncProjectListener createListener(QuerySyncManager querySyncManager) {
-      return new ProjectStatsLogger();
+  public static void logSyncStats(Context<?> context,
+                                  @Nullable QuerySyncProject querySyncProject,
+                                  @Nullable QuerySyncProjectSnapshot instance) {
+    if (querySyncProject == null || instance == null) {
+      return;
     }
-  }
-
-  public ProjectStatsLogger() {  }
-
-  @Override
-  public void onNewProjectSnapshot(Context<?> context, ReadonlyQuerySyncProject querySyncProject, QuerySyncProjectSnapshot instance) {
     final var projectViewSet = querySyncProject.getProjectViewSet();
     Optional.ofNullable(context.getScope(QuerySyncActionStatsScope.class))
         .ifPresent(

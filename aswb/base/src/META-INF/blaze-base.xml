@@ -636,7 +636,6 @@
   <extensions defaultExtensionNs="com.google.idea.blaze.qsync">
     <ArtifactFetcher implementation="com.google.idea.blaze.base.qsync.cache.FileApiArtifactFetcher"/>
     <QuerySyncListenerProvider implementation="com.google.idea.blaze.base.qsync.ProjectUpdater$Provider" />
-    <QuerySyncListenerProvider implementation="com.google.idea.blaze.base.qsync.ProjectStatsLogger$Provider" />
   </extensions>
 
   <projectListeners>

@@ -28,6 +28,7 @@ import com.google.idea.blaze.base.bazel.BuildSystemProvider
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope
 import com.google.idea.blaze.base.projectview.ProjectViewManager
+import com.google.idea.blaze.base.qsync.ProjectStatsLogger.logSyncStats
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.scope.scopes.SyncActionScopes.runTaskInSyncRootScope
 import com.google.idea.blaze.base.settings.Blaze
@@ -334,7 +335,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
               indicator,
               BlazeUserSettings.getInstance()
             ) { context ->
-              operation.execute(context)
+                operation.execute(context)
+                logSyncStats(context, loadedProject, currentSnapshot.getOrNull()) // Not logging new prosject stats on exception.
             }
           }
 
