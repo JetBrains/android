@@ -122,6 +122,7 @@ internal class ScreenRecorderOptionsDialog(
       it.fileExtension = fileExtension
     }
     saveLocationText.text = saveLocation
+    pack()
   }
 
   private fun getMaxRecordingLengthText(forEmulator: Boolean): @Nls String {

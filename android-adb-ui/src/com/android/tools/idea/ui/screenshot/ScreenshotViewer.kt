@@ -487,6 +487,7 @@ class ScreenshotViewer(
   private fun configureSave() {
     ShowSettingsUtil.getInstance().showSettingsDialog(project, DeviceScreenshotSettingsPage::class.java)
     saveLocationText.text = saveLocation
+    pack()
   }
 
   private fun processScreenshot(rotationQuadrants: Int = 0) {
