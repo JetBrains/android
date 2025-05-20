@@ -1805,6 +1805,26 @@ public final class StudioFlags {
   );
   // endregion DDMLIB
 
+  // region Play Policy Insights
+  private static final FlagGroup PLAY_POLICY_INSIGHTS = new FlagGroup(FLAGS, "playpolicyinsights", "Play Policy Insights");
+
+  public static final Flag<Boolean> ENABLE_PLAY_POLICY_INSIGHTS =
+    new BooleanFlag(
+      PLAY_POLICY_INSIGHTS,
+      "play.policy.insights",
+      "Play Policy Insights",
+      "Enable Play Policy Insights",
+      enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> PLAY_POLICY_INSIGHTS_AUTO_UPDATE =
+    new BooleanFlag(
+      PLAY_POLICY_INSIGHTS,
+      "play.policy.insights.auto.update",
+      "Play Policy Insights Auto Update",
+      "Update Play Policy lint rule library to the latest",
+      false);
+  // endregion Play Policy Insights
+
   // region Firebase Test Lab
   private static final FlagGroup FIREBASE_TEST_LAB = new FlagGroup(FLAGS, "firebasetestlab", "Firebase Test Lab");
 
