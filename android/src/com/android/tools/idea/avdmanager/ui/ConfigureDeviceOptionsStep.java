@@ -51,6 +51,7 @@ import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.JBDimension;
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.BorderFactory;
@@ -117,7 +118,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<>(AvdWizardUtils.ALL_DEVICE_TAGS));
+    myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<>(new ArrayList<>(AvdWizardUtils.ALL_DEVICE_TAGS)));
 
     myDeviceTypeComboBox.setRenderer(SimpleListCellRenderer.create(
       DEFAULT_DEVICE_TYPE_LABEL, value -> SystemImageTags.DEFAULT_TAG.equals(value) ? DEFAULT_DEVICE_TYPE_LABEL : value.getDisplay()));
