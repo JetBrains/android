@@ -104,13 +104,11 @@ internal class ScreenRecorderOptionsDialog(
     }
   }
 
-  override fun getDimensionServiceKey(): String {
-    return SCREEN_RECORDER_DIMENSIONS_KEY
-  }
+  override fun getDimensionServiceKey(): String =
+      SCREEN_RECORDER_DIMENSIONS_KEY
 
-  override fun getHelpId(): String {
-    return "${HELP_PREFIX}r/studio-ui/am-video.html"
-  }
+  override fun getHelpId(): String =
+      "${HELP_PREFIX}r/studio-ui/am-video.html"
 
   override fun createDefaultActions() {
     super.createDefaultActions()
