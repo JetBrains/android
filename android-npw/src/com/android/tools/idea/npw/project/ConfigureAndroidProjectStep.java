@@ -573,10 +573,10 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myDocumentationLink.setVisible(documentationUrl != null);
   }
 
-  private static boolean hasValidSdkComposeVersion(VersionItem skdItem, @Nullable Template renderTemplate) {
+  private static boolean hasValidSdkComposeVersion(VersionItem sdkItem, @Nullable Template renderTemplate) {
     return renderTemplate == null ||
            !renderTemplate.getConstraints().contains(TemplateConstraint.Compose) ||
-           skdItem.getTargetApiLevel() >= AndroidVersion.VersionCodes.S;
+           sdkItem.getCompileSdk().isAtLeast(AndroidVersion.VersionCodes.S);
   }
 
   private void createUIComponents() {

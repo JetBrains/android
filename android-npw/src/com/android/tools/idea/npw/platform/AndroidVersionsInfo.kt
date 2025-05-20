@@ -85,8 +85,8 @@ class AndroidVersionsInfo(
       // Install build tools, if not already installed
       add(DetailsTypes.getBuildToolsPath(getRecommendedBuildToolsRevision(sdkHandler, REPO_LOG)))
       // Install the default platform, if that's the one that will be used.
-      if (installItems.any { it.buildApiLevelStr == HIGHEST_KNOWN_STABLE_API.toString() }) {
-        add(DetailsTypes.getPlatformPath(AndroidVersion(HIGHEST_KNOWN_STABLE_API, null)))
+      if (installItems.any { it.compileSdk == AndroidVersion(HIGHEST_KNOWN_STABLE_API, 0) }) {
+        add(DetailsTypes.getPlatformPath(AndroidVersion(HIGHEST_KNOWN_STABLE_API, 0)))
       }
     }
 
@@ -94,31 +94,8 @@ class AndroidVersionsInfo(
   }
 
   data class VersionItem(val minSdk: AndroidVersion, val compileSdk: AndroidVersion) {
-    /**
-     * The equivalent integer API level that will be compiled against. (For previews, this is the
-     * "feature level".)
-     */
-    val buildApiLevel: Int
-      get() = compileSdk.featureLevel
-
-    /**
-     * The compile SDK version to use in generated build.gradle files. This must be parseable by
-     * AndroidVersion.fromString().
-     */
-    val buildApiLevelStr: String
-      get() = compileSdk.apiStringWithExtension
-
     val minApiLevel: Int
       get() = minSdk.featureLevel
-
-    val minApiLevelStr: String // Can be a number or a codename (eg "L", "N", etc)
-      get() = minSdk.majorVersion.apiString
-
-    val targetApiLevel: Int
-      get() = buildApiLevel
-
-    val targetApiLevelStr: String
-      get() = compileSdk.majorVersion.apiString
 
     val label: String
       get() = minSdk.getFullApiName(includeReleaseName = true, includeCodeName = true)

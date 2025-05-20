@@ -199,7 +199,7 @@ class ModuleTemplateDataBuilder(
         targetApi = buildVersion.compileSdk.majorVersion,
         minApi = buildVersion.minSdk.majorVersion,
         // The highest supported/recommended appCompact version is P(28)
-        appCompatVersion = buildVersion.buildApiLevel.coerceAtMost(P),
+        appCompatVersion = buildVersion.compileSdk.featureLevel.coerceAtMost(P),
       )
   }
 

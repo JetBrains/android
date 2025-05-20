@@ -62,7 +62,7 @@ class AndroidApiLevelComboBoxTest {
       val savedApi =
         PropertiesComponent.getInstance()
           .getValue(getPropertiesComponentMinSdkKey(formFactor), "none")
-      assertEquals(items[2].minApiLevelStr, savedApi)
+      assertEquals(items[2].minSdk.apiStringWithExtension, savedApi)
 
       // Makes sure that if you already have a previously saved API level, we force it up to at
       // least the recommended API level

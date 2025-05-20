@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.model
 
+import com.android.sdklib.AndroidMajorVersion
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateModule
@@ -23,10 +24,8 @@ data class TemplateMetrics(
   val templateType: TemplateComponent.TemplateType,
   val wizardContext: TemplateComponent.WizardUiContext,
   val moduleType: TemplateModule.ModuleType,
-  val minSdk: Int,
-  val minSdkCodename: String,
-  val targetSdk: Int,
-  val targetSdkCodename: String,
+  val minSdk: AndroidMajorVersion?,
+  val targetSdk: AndroidMajorVersion?,
   val bytecodeLevel: BytecodeLevel?,
   val useGradleKts: Boolean,
   val useAppCompat: Boolean,

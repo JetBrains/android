@@ -61,15 +61,16 @@ class AndroidApiLevelComboBox : JComboBox<VersionItem?>() {
     // If the savedApiLevel is not available, just pick the last target in the list (-1 if the list
     // is empty)
     selectedIndex =
-      (0 until itemCount).firstOrNull { getItemAt(it)!!.minApiLevelStr == savedApiLevel }
-        ?: (itemCount - 1)
+      (0 until itemCount).firstOrNull {
+        getItemAt(it)!!.minSdk.apiStringWithExtension == savedApiLevel
+      } ?: (itemCount - 1)
   }
 
   private fun saveSelectedApi(e: ItemEvent) {
     if (e.stateChange == ItemEvent.SELECTED && e.item != null) {
       val item = e.item as VersionItem
       PropertiesComponent.getInstance()
-        .setValue(getPropertiesComponentMinSdkKey(formFactor), item.minApiLevelStr)
+        .setValue(getPropertiesComponentMinSdkKey(formFactor), item.minSdk.apiStringWithExtension)
     }
   }
 }

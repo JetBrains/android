@@ -214,10 +214,8 @@ abstract class ModuleModel(
             templateType = NO_ACTIVITY,
             wizardContext = wizardContext,
             moduleType = moduleTemplateRendererToModuleType(loggingEvent),
-            minSdk = androidSdkInfo.valueOrNull?.minApiLevel ?: 0,
-            minSdkCodename = androidSdkInfo.valueOrNull?.minApiLevelStr ?: "",
-            targetSdk = androidSdkInfo.valueOrNull?.targetApiLevel ?: 0,
-            targetSdkCodename = androidSdkInfo.valueOrNull?.targetApiLevelStr ?: "",
+            minSdk = androidSdkInfo.valueOrNull?.minSdk?.majorVersion,
+            targetSdk = androidSdkInfo.valueOrNull?.compileSdk?.majorVersion,
             bytecodeLevel =
               (this@ModuleModel as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
             useGradleKts = useGradleKts.get(),
