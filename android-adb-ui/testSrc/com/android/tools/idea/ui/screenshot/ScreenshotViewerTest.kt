@@ -517,7 +517,7 @@ class ScreenshotViewerTest {
       Disposer.register(parentDisposable, this)
     }
 
-    override fun captureScreenshot(): ScreenshotImage {
+    override suspend fun captureScreenshot(): ScreenshotImage {
       captured = true
       return screenshotImage
     }

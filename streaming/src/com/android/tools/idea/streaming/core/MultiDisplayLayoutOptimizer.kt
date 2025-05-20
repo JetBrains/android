@@ -142,7 +142,7 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
     val indices = IntArray(rectangleSizes.size) { i -> i }
     val currentLayout = Array<Node?>(nodesArraySize) { null }
     val bestLayout = Array<Node?>(nodesArraySize) { null }
-    var bestScale = 0.0
+    var bestScale = -1.0
     val layoutGenerator = LayoutGenerator(indices, null, 0, currentLayout)
     while (layoutGenerator.next()) {
       val scale = calculateScale(availableSpace, currentLayout)

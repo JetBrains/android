@@ -20,6 +20,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.util.ExceptionUtil
+import kotlinx.coroutines.runBlocking
 
 /**
  * A task that captures a screenshot from a device.
@@ -38,7 +39,7 @@ open class ScreenshotTask(
     indicator.isIndeterminate = true
     indicator.text = AndroidAdbUiBundle.message("screenshot.task.step.obtain")
     try {
-      screenshot = screenshotProvider.captureScreenshot()
+      screenshot = runBlocking { screenshotProvider.captureScreenshot() }
     }
     catch (e: Exception) {
       error = ExceptionUtil.getMessage(e) ?: AndroidAdbUiBundle.message("screenshot.error.generic", e.javaClass.name)

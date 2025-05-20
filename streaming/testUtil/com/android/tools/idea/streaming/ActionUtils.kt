@@ -15,16 +15,11 @@
  */
 package com.android.tools.idea.streaming
 
-import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayView
-import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
-import com.android.tools.idea.streaming.core.ZoomablePanel
 import com.android.tools.idea.streaming.device.DEVICE_CLIENT_KEY
 import com.android.tools.idea.streaming.device.DEVICE_CONTROLLER_KEY
-import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
 import com.android.tools.idea.streaming.device.DeviceView
 import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
-import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
@@ -39,6 +34,7 @@ import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DataSnapshotProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.project.Project
 import java.awt.Component
 import java.awt.event.KeyEvent
@@ -104,13 +100,10 @@ private class TestDataSnapshotProvider(
   override fun dataSnapshot(sink: DataSink) {
     sink.apply {
       extra?.let { dataSnapshot(it) }
-      set(EMULATOR_VIEW_KEY, emulatorView)
+      (component as? UiDataProvider)?.let { uiDataSnapshot(it) }
       set(EMULATOR_CONTROLLER_KEY, emulatorView?.emulator)
-      set(DEVICE_VIEW_KEY, deviceView)
       set(DEVICE_CLIENT_KEY, deviceView?.deviceClient)
       set(DEVICE_CONTROLLER_KEY, deviceView?.deviceController)
-      set(DISPLAY_VIEW_KEY, displayView)
-      set(ZOOMABLE_KEY, component as? ZoomablePanel)
       set(SERIAL_NUMBER_KEY, displayView?.deviceSerialNumber)
       set(CommonDataKeys.PROJECT, project)
       set(PlatformCoreDataKeys.CONTEXT_COMPONENT, component)

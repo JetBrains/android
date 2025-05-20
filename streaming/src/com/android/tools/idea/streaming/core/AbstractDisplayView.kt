@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
@@ -370,6 +371,8 @@ abstract class AbstractDisplayView(
 
   override fun uiDataSnapshot(sink: DataSink) {
     sink[DISPLAY_ID_KEY] = displayId
+    sink[DISPLAY_VIEW_KEY] = this
+    sink[ZOOMABLE_KEY] = this
   }
 
   protected fun MouseWheelEvent.getNormalizedScrollAmount(): Double =

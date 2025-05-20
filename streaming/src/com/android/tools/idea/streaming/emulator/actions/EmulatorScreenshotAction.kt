@@ -17,16 +17,15 @@ package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.SdkConstants
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
-import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.io.writeImage
-import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.adtui.device.SkinDefinition
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.emulator.ALL_EMULATOR_VIEWS_KEY
-import com.android.tools.idea.streaming.emulator.DeferredResultStreamObserver
-import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
-import com.android.tools.idea.streaming.emulator.EmulatorView
+import com.android.tools.idea.streaming.emulator.getScreenshot
+import com.android.tools.idea.ui.DISPLAY_ID_KEY
+import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
 import com.android.tools.idea.ui.screenshot.DialogLocationArbiter
 import com.android.tools.idea.ui.screenshot.FramingOption
 import com.android.tools.idea.ui.screenshot.ScreenshotDecorator
@@ -39,11 +38,16 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.NlsContexts.ProgressTitle
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.runBlocking
+import com.intellij.platform.ide.progress.withBackgroundProgress
+import com.intellij.platform.ide.progress.withModalProgress
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.awt.AlphaComposite
 import java.awt.Color
 import java.awt.Graphics2D
@@ -55,88 +59,91 @@ import java.io.IOException
 import javax.imageio.IIOException
 import javax.imageio.ImageIO
 
-/**
- * Takes a screenshot of the Emulator display, saves it to a file, and opens it in editor.
- */
+/** Takes a screenshot of the Emulator display, saves it to a file, and opens it in editor. */
 class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
     val project: Project = event.project ?: return
-    val emulatorViews = when {
-      !StudioFlags.MULTI_DISPLAY_SCREENSHOTS.get() || event.place == "EmulatorView" -> listOf(getEmulatorView(event) ?: return)
-      else -> event.getData(ALL_EMULATOR_VIEWS_KEY) ?: return
+    val emulatorController = getEmulatorController(event) ?: return
+    val displayInfoProvider = event.getData(DISPLAY_INFO_PROVIDER_KEY) ?: return
+    val displayIds = when {
+      !StudioFlags.MULTI_DISPLAY_SCREENSHOTS.get() || event.place == "EmulatorView" -> intArrayOf(event.getData(DISPLAY_ID_KEY) ?: 0)
+      else -> displayInfoProvider.getIdsOfAllDisplays()
     }
-    val dialogLocationArbiter = if (emulatorViews.size > 1) DialogLocationArbiter() else null
-    for (emulatorView in emulatorViews) {
-      emulatorView.emulator.getScreenshot(getScreenshotRequest(emulatorView.displayId),
-                                          ScreenshotReceiver(emulatorView, project, dialogLocationArbiter))
+    val waitingForScreenshot = CompletableDeferred<Unit>()
+    val scope = emulatorController.createCoroutineScope()
+    scope.launch {
+      withProgress(project, "Obtaining screenshot from device\u2026") {
+        waitingForScreenshot.await()
+      }
+    }
+
+    scope.launch {
+      try {
+        val dialogLocationArbiter = if (displayIds.size > 1) DialogLocationArbiter() else null
+        for (displayId in displayIds) {
+          val screenshotProto = emulatorController.getScreenshot(createScreenshotRequest(displayId))
+          val format = screenshotProto.format
+          val skin = displayInfoProvider.getSkin(displayId)
+          val imageBytes = screenshotProto.image
+          val image = ImageIO.read(imageBytes.newInput()) ?: throw IIOException("Corrupted screenshot image")
+
+          val emulatorConfig = emulatorController.emulatorConfig
+          val screenshotImage = ScreenshotImage(image, format.rotation.rotationValue,
+                                                emulatorConfig.deviceType, emulatorConfig.avdName, displayId)
+          val screenshotDecorator = EmulatorScreenshotDecorator(displayId, skin)
+          val framingOptions = if (displayId == PRIMARY_DISPLAY_ID && skin != null) listOf(avdFrame) else listOf()
+          val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
+          val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
+          val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
+          processedImage.writeImage("PNG", file)
+          val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:
+              throw IOException("Unable to save screenshot")
+          val screenshotProvider = EmulatorScreenshotProvider(emulatorController, displayId)
+          ApplicationManager.getApplication().invokeLater {
+            val viewer = ScreenshotViewer(project, screenshotImage, backingFile, screenshotProvider, screenshotDecorator, framingOptions, 0,
+                                          false, dialogLocationArbiter)
+            viewer.show()
+          }
+        }
+      }
+      catch (e: Throwable) {
+        val message = "Error obtaining screenshot"
+        thisLogger().error(message, e)
+        ApplicationManager.getApplication().invokeLater {
+          Messages.showErrorDialog(project, message, "Take Screenshot")
+        }
+      }
+      finally {
+        waitingForScreenshot.complete(Unit)
+      }
+    }
+  }
+
+  suspend fun <T> withProgress(project: Project, title: @ProgressTitle String, action: suspend CoroutineScope.() -> T): T {
+    return if (ApplicationManager.getApplication().isUnitTestMode) {
+      withBackgroundProgress(project, title, action) // Use of withModalProgress in a test may cause a deadlock.
+    }
+    else {
+      withModalProgress(project, title, action)
     }
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-  private class ScreenshotReceiver(
-    private val emulatorView: EmulatorView,
-    private val project: Project,
-    private val dialogLocationArbiter: DialogLocationArbiter?,
-  ) : EmptyStreamObserver<Image>() {
-
-    override fun onNext(message: Image) {
-      executeOnPooledThread {
-        showScreenshotViewer(message)
-      }
-    }
-
-    private fun showScreenshotViewer(screenshot: Image) {
-      try {
-        val imageBytes = screenshot.image
-        val image = ImageIO.read(imageBytes.newInput()) ?: throw IIOException("Corrupted screenshot image")
-
-        val screenshotDecorator = EmulatorScreenshotDecorator(emulatorView)
-        val emulatorController = emulatorView.emulator
-        val emulatorConfig = emulatorController.emulatorConfig
-        val displayId = emulatorView.displayId
-        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue,
-                                              emulatorConfig.deviceType, emulatorConfig.avdName, displayId)
-        val framingOptions = if (displayId == PRIMARY_DISPLAY_ID && emulatorController.getSkin() != null) listOf(avdFrame) else listOf()
-        val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
-        val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
-        val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
-        processedImage.writeImage("PNG", file)
-        val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?: throw IOException("Unable to save screenshot")
-        val screenshotProvider = EmulatorScreenshotProvider(emulatorController, displayId)
-        ApplicationManager.getApplication().invokeLater {
-          val viewer = ScreenshotViewer(project, screenshotImage, backingFile, screenshotProvider, screenshotDecorator, framingOptions, 0,
-                                        false, dialogLocationArbiter)
-          viewer.show()
-        }
-      }
-      catch (e: Exception) {
-        thisLogger().error("Error while displaying screenshot viewer", e)
-      }
-    }
-  }
-
-  private class EmulatorScreenshotProvider(
-    private val emulatorController: EmulatorController,
-    private val displayId: Int,
-  ) : ScreenshotProvider {
+  private class EmulatorScreenshotProvider(private val emulator: EmulatorController, private val displayId: Int) : ScreenshotProvider {
 
     init {
-      Disposer.register(emulatorController, this)
+      Disposer.register(emulator, this)
     }
 
-    @Throws(RuntimeException::class, CancellationException::class)
-    override fun captureScreenshot(): ScreenshotImage {
-      val receiver = DeferredResultStreamObserver<Image>()
-      emulatorController.getScreenshot(getScreenshotRequest(displayId), receiver)
-
+    override suspend fun captureScreenshot(): ScreenshotImage {
       try {
-        val screenshot = runBlocking { receiver.deferredResult.await() }
-        val deviceName = emulatorController.emulatorConfig.avdName
+        val screenshot = emulator.getScreenshot(createScreenshotRequest(displayId))
+        val emulatorConfig = emulator.emulatorConfig
+        val deviceName = emulatorConfig.avdName
         val image = ImageIO.read(screenshot.image.newInput()) ?: throw RuntimeException("Corrupted screenshot image")
-        return ScreenshotImage(image, screenshot.format.rotation.rotationValue, emulatorController.emulatorConfig.deviceType, deviceName,
-                               displayId)
+        return ScreenshotImage(image, screenshot.format.rotation.rotationValue, emulatorConfig.deviceType, deviceName, displayId)
       }
       catch (e: Throwable) {
         throwIfUnchecked(e)
@@ -148,16 +155,18 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     }
   }
 
-  private class EmulatorScreenshotDecorator(val emulatorView: EmulatorView) : ScreenshotDecorator {
+  private class EmulatorScreenshotDecorator(private val displayId: Int, private val skinDefinition: SkinDefinition?) : ScreenshotDecorator {
+
+    override val canClipToDisplayShape: Boolean
+      get() = true
 
     override fun decorate(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
-      if (emulatorView.displayId != PRIMARY_DISPLAY_ID) {
+      if (displayId != PRIMARY_DISPLAY_ID) {
         return screenshotImage.image // Decorations are applied only to the primary display.
       }
       val image = screenshotImage.image
       val w = image.width
       val h = image.height
-      val skinDefinition = emulatorView.emulator.getSkin(emulatorView.currentPosture?.posture)
       val skin = skinDefinition?.createScaledLayout(w, h, screenshotImage.screenshotOrientationQuadrants)
       val arcWidth = skin?.displayCornerSize?.width ?: 0
       val arcHeight = skin?.displayCornerSize?.height ?: 0
@@ -199,9 +208,6 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       drawImage(image, null, displayRectangle.x, displayRectangle.y)
       clip = null
     }
-
-    override val canClipToDisplayShape: Boolean
-      get() = true
   }
 }
 
@@ -209,5 +215,5 @@ private val avdFrame = object : FramingOption {
   override val displayName = "Show Device Frame"
 }
 
-private fun getScreenshotRequest(displayId: Int) =
+private fun createScreenshotRequest(displayId: Int) =
     ImageFormat.newBuilder().setFormat(ImageFormat.ImgFormat.PNG).setDisplay(displayId).build()

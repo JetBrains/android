@@ -21,7 +21,6 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.INFINITE_DURATION
 import com.android.adblib.shellAsText
 import com.android.adblib.tools.screenCapAsBufferedImage
-import com.android.annotations.concurrency.Slow
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.adblib.AdbLibService
@@ -30,7 +29,6 @@ import com.android.tools.idea.ui.DisplayInfoProvider
 import com.android.tools.idea.ui.util.getPhysicalDisplayIdFromDumpsysOutput
 import com.google.common.base.Throwables.throwIfUnchecked
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 
@@ -54,9 +52,7 @@ class ShellCommandScreenshotProvider(
   /** This simplified constructor is intended exclusively for use in TestRecorderScreenshotTask. */
   constructor(project: Project, serialNumber: String) : this(project, serialNumber, DeviceType.HANDHELD, "Device", PRIMARY_DISPLAY_ID)
 
-  @Slow
-  @Throws(RuntimeException::class, CancellationException::class)
-  override fun captureScreenshot(): ScreenshotImage {
+  override suspend fun captureScreenshot(): ScreenshotImage {
     val deviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
 
     val dumpsysJob = coroutineScope.async {
