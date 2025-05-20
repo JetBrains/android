@@ -2,7 +2,10 @@ load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
 
 aswb_library(
     name = "qsync",
-    srcs = glob(["*.java"]),
+    srcs = glob([
+        "*.java",
+        "*.kt",
+    ]),
     visibility = [
         "//tools/adt/idea/aswb/querysync:__subpackages__",
         "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",

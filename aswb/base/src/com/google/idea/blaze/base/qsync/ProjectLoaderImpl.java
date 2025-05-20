@@ -153,7 +153,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
           result.artifactCache(),
           result.artifactStore(),
           result.renderJarArtifactTracker(),
-          result.appInspectorArtifactTracker(),
           result.dependencyTracker(),
           result.appInspectorTracker(),
           result.projectQuerier(),
@@ -219,13 +218,13 @@ public class ProjectLoaderImpl implements ProjectLoader {
         ProjectPath.Resolver.create(workspaceRoot.path(), ideProjectBasePath);
 
     Registry projectTransformRegistry = new Registry();
-    SnapshotHolder graph = new SnapshotHolder();
-    graph.addListener((c, i) -> projectModificationTracker.incModificationCount());
+    SnapshotHolder snapshotHolder = new SnapshotHolder();
+    snapshotHolder.addListener((c, i) -> projectModificationTracker.incModificationCount());
     BuildArtifactCache artifactCache = project.getService(BuildArtifactCache.class);
 
     DependencyBuilder dependencyBuilder =
       createDependencyBuilder(
-        workspaceRoot, latestProjectDef, graph, buildSystem, vcsHandler, artifactCache, handledRules);
+        workspaceRoot, latestProjectDef, snapshotHolder, buildSystem, vcsHandler, artifactCache, handledRules);
 
     ArtifactTracker<BlazeContext> artifactTracker;
     RenderJarArtifactTracker renderJarArtifactTracker;
@@ -260,13 +259,13 @@ public class ProjectLoaderImpl implements ProjectLoader {
             artifactCache,
             new FileRefresher(project));
     DependencyTracker dependencyTracker =
-        new DependencyTrackerImpl(graph, dependencyBuilder, artifactTracker);
+        new DependencyTrackerImpl(snapshotHolder, dependencyBuilder, artifactTracker);
     ProjectRefresher projectRefresher =
         new ProjectRefresher(
             vcsHandler.map(it -> (VcsStateDiffer)it::diffVcsState).orElse(VcsStateDiffer.NONE),
             workspaceRoot.path(),
             enableExperimentalQuery.getValue(),
-            graph::getCurrent,
+            snapshotHolder::getCurrent,
             runQueryInWorkspace::getValue);
     SnapshotBuilder snapshotBuilder =
         new SnapshotBuilder(
@@ -282,10 +281,10 @@ public class ProjectLoaderImpl implements ProjectLoader {
             vcsHandler,
             new BazelVersionHandler(buildSystem, buildSystem.getBuildInvoker(project)));
     QuerySyncSourceToTargetMap sourceToTargetMap =
-        new QuerySyncSourceToTargetMap(graph, workspaceRoot.path());
+        new QuerySyncSourceToTargetMap(snapshotHolder, workspaceRoot.path());
     return new QuerySyncProjectDeps(importSettings, workspaceRoot, new WorkspacePathResolverImpl(workspaceRoot), projectViewSet, buildSystem,
                                     workspaceLanguageSettings, latestProjectDef, snapshotFilePath, projectPathResolver, projectTransformRegistry,
-                                    graph, artifactCache, artifactTracker, renderJarArtifactTracker, appInspectorArtifactTracker,
+                                    snapshotHolder, artifactCache, artifactTracker, renderJarArtifactTracker, appInspectorArtifactTracker,
                                     appInspectorTracker, artifactStore, dependencyBuilder, dependencyTracker, snapshotBuilder,
                                     projectQuerier, sourceToTargetMap, handledRules);
   }

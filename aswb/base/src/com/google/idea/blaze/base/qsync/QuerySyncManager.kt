@@ -51,6 +51,7 @@ import java.io.IOException
 import java.nio.file.Path
 import java.util.Optional
 import kotlin.concurrent.Volatile
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * The project component for a query based sync.
@@ -234,7 +235,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
             }
             newlyLoadedProject
           } ?: return@ThrowingScopedOperation // Context should have the error.
-          val lastQuery = originallyLoadedProject?.snapshotHolder?.current?.map { it.queryData() } ?: Optional.empty()
+          val lastQuery = originallyLoadedProject?.snapshotHolder()?.queryData()
           loadedProject.syncQueryData(context, lastQuery)
         }
       },
