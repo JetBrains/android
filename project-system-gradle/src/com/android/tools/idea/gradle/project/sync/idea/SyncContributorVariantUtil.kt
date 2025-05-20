@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.builder.model.v2.ide.AndroidArtifact
 import com.android.builder.model.v2.ide.BasicArtifact
+import com.android.builder.model.v2.ide.BasicVariant
 import com.android.builder.model.v2.ide.JavaArtifact
 import com.android.builder.model.v2.ide.SourceProvider
 import com.android.builder.model.v2.models.AndroidDsl
@@ -35,12 +36,7 @@ import org.jetbrains.plugins.gradle.model.GradleLightProject
 
 /** Returns all source sets (main and for a selected variant) for a given gradle project. */
 internal fun SyncContributorGradleProjectContext.getAllSourceSetsFromModels(): List<SourceSetData> {
-  val variantName = getVariantName(
-    syncOptions,
-    projectModel,
-    basicAndroidProject,
-    androidDsl
-  ) ?: return emptyList()
+  val variantName = getVariantName() ?: return emptyList()
 
   val (buildType, flavors) = basicAndroidProject.variants
     .singleOrNull { it.name == variantName }
@@ -141,21 +137,16 @@ internal fun SyncContributorGradleProjectContext.getSourceSetDataForAndroidProje
   return sourceSets
 }
 
-internal fun getVariantName(
-  syncOptions: SyncActionOptions,
-  gradleProject: GradleLightProject,
-  basicAndroidProject: BasicAndroidProject,
-  androidDsl: AndroidDsl
-): String? =
+internal fun SyncContributorGradleProjectContext.getVariantName(): String? =
   when (syncOptions) {
     is SingleVariantSyncActionOptions ->
-      syncOptions.switchVariantRequest.takeIf { it?.moduleId == gradleProject.moduleId() }?.variantName // newly user-selected variant
-      ?: syncOptions.selectedVariants.getSelectedVariant(gradleProject.moduleId()) // variants selected by the last sync
+      // newly user-selected variant
+      syncOptions.switchVariantRequest.takeIf { it?.moduleId == projectModel.moduleId() }?.variantName
+      // variants selected by the last sync, only if it still exists
+      ?: syncOptions.selectedVariants.getSelectedVariant(projectModel.moduleId()).takeIf { basicAndroidProject.variants.map { it.name }.contains(it) }
     else -> null
-  } ?: basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors) // default variant
-
-
-
+  } // default variant as specified by the build script
+  ?: basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors) // default variant
 
 private fun createSourceSetDataForSourceProvider(name: IdeArtifactName,
                                                  provider: SourceProvider,
