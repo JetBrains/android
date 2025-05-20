@@ -138,21 +138,6 @@ class QuerySyncProject(
   fun getSourceToTargetMap(): SourceToTargetMap = sourceToTargetMap
 
   @Throws(BuildException::class)
-  fun fullSync(context: BlazeContext) {
-    sync(context, lastQuery = null)
-  }
-
-  @Throws(BuildException::class)
-  fun deltaSync(context: BlazeContext) {
-    syncWithCurrentSnapshot(context)
-  }
-
-  @Throws(BuildException::class)
-  private fun syncWithCurrentSnapshot(context: BlazeContext) {
-    sync(context, snapshotHolder.current.map { it.queryData() }.orNull())
-  }
-
-  @Throws(BuildException::class)
   fun sync(parentContext: BlazeContext, lastQuery: PostQuerySyncData?) {
     BlazeContext.create(parentContext).use { context ->
       context.push(SyncQueryStatsScope())
@@ -294,7 +279,7 @@ class QuerySyncProject(
   @Throws(BuildException::class)
   fun resetQuerySyncState(context: BlazeContext) {
     invalidateQuerySyncState(context)
-    fullSync(context)
+    sync(context, lastQuery = null)
   }
 
   @Throws(BuildException::class)

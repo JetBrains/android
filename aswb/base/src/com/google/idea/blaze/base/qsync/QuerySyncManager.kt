@@ -216,7 +216,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
         loadProject(context)
       }
       else {
-        loadedProject.fullSync(context)
+        loadedProject.sync(context, lastQuery = null)
       }
     }
 
@@ -242,7 +242,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
         loadProject(context)
       }
       else {
-        loadedProject.deltaSync(context)
+        loadedProject.sync(context, loadedProject.currentSnapshot.getOrNull()?.queryData())
       }
     }
 
