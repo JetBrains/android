@@ -60,8 +60,6 @@ import com.google.idea.blaze.qsync.query.QuerySpec.QueryStrategy;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.EnumExperiment;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.openapi.util.SimpleModificationTracker;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -80,7 +78,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
 
   protected final ListeningExecutorService executor;
 
-  private final SimpleModificationTracker projectModificationTracker;
   protected final Project project;
 
   /**
@@ -101,7 +98,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
                                      Path snapshotFilePath,
                                      ProjectPath.Resolver projectPathResolver,
                                      Registry projectTransformRegistry,
-                                     SnapshotHolder graph,
+                                     SnapshotHolder snapshotHolder,
                                      BuildArtifactCache artifactCache,
                                      ArtifactTracker<BlazeContext> artifactTracker,
                                      RenderJarArtifactTracker renderJarArtifactTracker,
@@ -124,7 +121,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
   protected ProjectLoaderImpl(ListeningExecutorService executor, Project project) {
     this.executor = executor;
     this.project = project;
-    this.projectModificationTracker = new SimpleModificationTracker();
   }
 
   @Override
@@ -144,7 +140,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
         new QuerySyncProject(
           project,
           result.snapshotFilePath(),
-          result.graph(),
+          result.snapshotHolder(),
           result.importSettings(),
           result.workspaceRoot(),
           result.artifactTracker(),
@@ -164,7 +160,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
           result.buildSystem(),
           result.projectTransformRegistry(),
           result.handledRuleKinds());
-    QuerySyncProjectListenerProvider.registerListenersFor(QuerySyncManager.getInstance(project), result.graph());
     result.projectTransformRegistry().addAll(ProjectProtoTransformProvider.getAll(result.latestProjectDef()));
 
     return querySyncProject;
@@ -216,8 +211,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
         ProjectPath.Resolver.create(workspaceRoot.path(), ideProjectBasePath);
 
     Registry projectTransformRegistry = new Registry();
-    SnapshotHolder snapshotHolder = new SnapshotHolder();
-    snapshotHolder.addListener((c, q, i) -> projectModificationTracker.incModificationCount());
+    SnapshotHolder snapshotHolder = QuerySyncManager.getInstance(project).getSnapshotHolder();
     BuildArtifactCache artifactCache = project.getService(BuildArtifactCache.class);
 
     DependencyBuilder dependencyBuilder =
@@ -363,10 +357,5 @@ public class ProjectLoaderImpl implements ProjectLoader {
                            .add(Path.of(BazelDependencyBuilder.INVOCATION_FILES_DIR))
                            .build())
       .build();
-  }
-
-  @Override
-  public ModificationTracker getProjectModificationTracker() {
-    return projectModificationTracker;
   }
 }

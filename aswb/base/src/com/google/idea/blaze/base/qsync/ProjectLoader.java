@@ -27,6 +27,4 @@ public interface ProjectLoader {
   ProjectToLoadDefinition loadProjectDefinition(ProjectViewSet projectViewSet);
 
   QuerySyncProject loadProject() throws BuildException;
-
-  ModificationTracker getProjectModificationTracker();
 }

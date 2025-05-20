@@ -120,7 +120,7 @@ public class JavaBinaryContextProvider implements BinaryContextProvider {
       return null;
     }
     BuildGraphData buildGraphData =
-        querySyncProject
+      QuerySyncManager.getInstance(project)
             .getCurrentSnapshot()
             .map(QuerySyncProjectSnapshot::graph)
             .orElse(null);

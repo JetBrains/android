@@ -51,6 +51,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -133,8 +134,13 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     fun execute(context: BlazeContext)
   }
 
-  val projectModificationTracker: ModificationTracker
-    get() = loader.projectModificationTracker
+  private val projectModificationTracker_ = SimpleModificationTracker()
+  val projectModificationTracker: ModificationTracker = projectModificationTracker_
+  val snapshotHolder: SnapshotHolder = SnapshotHolder()
+    .also { snapshotHolder ->
+      snapshotHolder.addListener({ _, _, _ -> projectModificationTracker_.incModificationCount() })
+      QuerySyncProjectListenerProvider.createListenersFor(this).forEach { snapshotHolder.addListener(it) }
+    }
 
   @CanIgnoreReturnValue
   fun reloadProject(
@@ -178,7 +184,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   }
 
   val currentSnapshot: Optional<QuerySyncProjectSnapshot>
-    get() = getLoadedProject().flatMap { it.currentSnapshot }
+    get() = snapshotHolder.current
 
   private fun assertProjectLoaded() = checkNotNull(loadedProject) { "Project not loaded yet" }
 

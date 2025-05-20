@@ -78,7 +78,6 @@ interface ReadonlyQuerySyncProject {
   val projectViewSet: ProjectViewSet
   val workspaceRoot: WorkspaceRoot
   val projectPathResolver: ProjectPath.Resolver
-  val currentSnapshot: Optional<QuerySyncProjectSnapshot>
   val projectData: QuerySyncProjectData
   fun getWorkingSet(create: BlazeContext): Set<Path>
   fun dependsOnAnyOf_DO_NOT_USE_BROKEN(target: Label, deps: Set<Label>): Boolean
@@ -97,7 +96,7 @@ interface ReadonlyQuerySyncProject {
 class QuerySyncProject(
   val ideProject: Project,
   private val snapshotFilePath: Path,
-  val snapshotHolder: SnapshotHolder,
+  private val snapshotHolder: SnapshotHolder,
   val importSettings: BlazeImportSettings,
   override val workspaceRoot: WorkspaceRoot,
   val artifactTracker: ArtifactTracker<*>,
@@ -119,7 +118,7 @@ class QuerySyncProject(
   val projectProtoTransforms: ProjectProtoTransform.Registry,
   val handledRuleKinds: Set<String>
 ) : ReadonlyQuerySyncProject {
-  override val currentSnapshot: Optional<QuerySyncProjectSnapshot>
+  private val currentSnapshot: Optional<QuerySyncProjectSnapshot>
     get() = snapshotHolder.current
 
   override val projectData: QuerySyncProjectData
@@ -243,7 +242,7 @@ class QuerySyncProject(
     } catch (e: IOException) {
       throw BuildException("Failed to clear dependency info", e)
     }
-    onNewSnapshot(context, QuerySyncProjectSnapshot.EMPTY)
+    updateProjectStructureAndSnapshot(context, QuerySyncProjectSnapshot.EMPTY.queryData(), QuerySyncProjectSnapshot.EMPTY.graph())
   }
 
   @Throws(IOException::class, BuildException::class)

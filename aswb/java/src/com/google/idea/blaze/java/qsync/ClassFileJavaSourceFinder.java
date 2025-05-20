@@ -147,8 +147,7 @@ public class ClassFileJavaSourceFinder {
 
     QuerySyncProjectSnapshot snapshot =
         querySyncManager
-            .getLoadedProject()
-            .flatMap(ReadonlyQuerySyncProject::getCurrentSnapshot)
+            .getCurrentSnapshot()
             .orElse(null);
     if (snapshot == null) {
       return ImmutableSet.of();

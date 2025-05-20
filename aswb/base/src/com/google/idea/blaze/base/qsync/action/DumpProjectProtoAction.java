@@ -23,10 +23,7 @@ public class DumpProjectProtoAction extends BlazeProjectAction {
   @Override
   protected void actionPerformedInBlazeProject(Project project, AnActionEvent e) {
     QuerySyncManager qsm = QuerySyncManager.getInstance(project);
-    QuerySyncProjectSnapshot snapshot =
-        qsm.getLoadedProject()
-            .flatMap(ReadonlyQuerySyncProject::getCurrentSnapshot)
-            .orElse(null);
+    QuerySyncProjectSnapshot snapshot = qsm.getCurrentSnapshot().orElse(null);
     if (snapshot == null) {
       qsm.notifyError("Failed to dump project", "Not loaded");
       return;

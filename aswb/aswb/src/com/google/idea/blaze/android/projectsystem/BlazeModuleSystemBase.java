@@ -426,8 +426,7 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
     if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
       ProjectProto.Project projectProto =
           QuerySyncManager.getInstance(project)
-              .getLoadedProject()
-              .flatMap(ReadonlyQuerySyncProject::getCurrentSnapshot)
+              .getCurrentSnapshot()
               .map(QuerySyncProjectSnapshot::project)
               .orElse(null);
       if (projectProto == null) {

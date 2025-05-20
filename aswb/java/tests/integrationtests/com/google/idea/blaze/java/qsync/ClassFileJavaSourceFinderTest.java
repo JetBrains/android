@@ -69,7 +69,6 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
   public Path javaDepsAbsolutePath;
   public Path libraryArtifactPath;
   public Path projectAbsolutePath;
-  public ReadonlyQuerySyncProject readonlyQuerySyncProject;
 
   @Before
   public void initJar() throws IOException {
@@ -81,12 +80,6 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
     libraryArtifactPath = javaDepsAbsolutePath.relativize(libraryArtifactAbsolutePath);
     Files.createDirectories(libraryArtifactAbsolutePath.getParent());
     Files.copy(Path.of(testDataJar), libraryArtifactAbsolutePath);
-  }
-
-  @Before
-  public void initBlazeProject() {
-    readonlyQuerySyncProject = mock(ReadonlyQuerySyncProject.class);
-    when(querySyncManager.getLoadedProject()).thenReturn(Optional.of(readonlyQuerySyncProject));
   }
 
   @Test
@@ -139,7 +132,7 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
                 "digest-libtest.jar",
                 Path.of("blaze-out/k8/bin/com/test/libtest.jar"), Label.of("//com/test:test"))))
             .build()));
-    when(readonlyQuerySyncProject.getCurrentSnapshot()).thenReturn(
+    when(querySyncManager.getCurrentSnapshot()).thenReturn(
       Optional.of(QuerySyncProjectSnapshot.EMPTY.toBuilder()
                     .artifactState(artifactState)
                     .build()));
@@ -179,7 +172,7 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
                 "digest-libtest.jar",
                 Path.of("blaze-out/k8/bin/com/test/libtest.jar"), Label.of("//com/test:test"))))
             .build()));
-    when(readonlyQuerySyncProject.getCurrentSnapshot()).thenReturn(
+    when(querySyncManager.getCurrentSnapshot()).thenReturn(
       Optional.of(QuerySyncProjectSnapshot.EMPTY.toBuilder()
                     .artifactState(artifactState)
                     .build()));
