@@ -419,7 +419,12 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
           "Building dependencies for:\n  " + Joiner.on("\n  ").join(targets)
         )
       )
-      assertProjectLoaded().enableAnalysis(context, DependencyTracker.DependencyBuildRequest.multiTarget(targets))
+      val assertProjectLoaded = assertProjectLoaded()
+      if (assertProjectLoaded.buildDependencies(context, DependencyTracker.DependencyBuildRequest.multiTarget(targets))) {
+        val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
+        val graph = currentSnapshot.orElseThrow().graph()
+        assertProjectLoaded.updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
+      }
     }
 
   @CanIgnoreReturnValue
@@ -449,7 +454,12 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
           "Building reverse dependencies for:\n  " + Joiner.on("\n  ").join(targets)
         )
       )
-      loadedProject.enableAnalysis(context, DependencyTracker.DependencyBuildRequest.multiTarget(loadedProject.getTargetsDependingOn(targets)))
+      if (loadedProject.buildDependencies(context, DependencyTracker.DependencyBuildRequest.multiTarget(
+          loadedProject.getTargetsDependingOn(targets)))) {
+        val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
+        val graph = currentSnapshot.orElseThrow().graph()
+        loadedProject.updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
+      }
     }
 
   @CanIgnoreReturnValue
@@ -471,7 +481,12 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.BUILD_DEPS
     ) { context ->
       context.output(PrintOutput.output("Building project dependencies..."))
-      assertProjectLoaded().enableAnalysis(context, DependencyTracker.DependencyBuildRequest.wholeProject())
+      val assertProjectLoaded = assertProjectLoaded()
+      if (assertProjectLoaded.buildDependencies(context, DependencyTracker.DependencyBuildRequest.wholeProject())) {
+        val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
+        val graph = currentSnapshot.orElseThrow().graph()
+        assertProjectLoaded.updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
+      }
     }
 
   @CanIgnoreReturnValue

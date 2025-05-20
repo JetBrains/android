@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.qsync
 
-import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
@@ -226,7 +225,15 @@ class QuerySyncProject(
     context: BlazeContext,
     request: DependencyTracker.DependencyBuildRequest,
   ): Boolean {
-    return this.dependencyTracker.buildDependenciesForTargets(context, request)
+    BlazeContext.create(context).use { context ->
+      try {
+        context.push(BuildDepsStatsScope())
+        return this.dependencyTracker.buildDependenciesForTargets(context, request)
+      }
+      catch (e: IOException) {
+        throw BuildException("Failed to build dependencies", e)
+      }
+    }
   }
 
   private fun buildGraphData(
@@ -264,21 +271,6 @@ class QuerySyncProject(
     }
   }
 
-  @Throws(BuildException::class)
-  fun enableAnalysis(context: BlazeContext, request: DependencyTracker.DependencyBuildRequest) {
-    try {
-      BlazeContext.create(context).use { context ->
-        context.push(BuildDepsStatsScope())
-        if (buildDependencies(context, request)) {
-          val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
-          val graph = currentSnapshot.orElseThrow().graph()
-          updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
-        }
-      }
-    } catch (e: IOException) {
-      throw BuildException("Failed to build dependencies", e)
-    }
-  }
   fun canEnableAnalysisFor(workspacePath: Path): Boolean {
     return getProjectTargets(BlazeContext.create(), listOf(workspacePath)).isNotEmpty()
   }
