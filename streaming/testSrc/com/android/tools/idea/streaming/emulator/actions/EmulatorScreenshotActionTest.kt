@@ -21,7 +21,6 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
-import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.swing.DataManagerRule
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
@@ -36,15 +35,11 @@ import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
-import com.android.tools.idea.streaming.executeStreamingAction
+import com.android.tools.idea.testing.HeadlessTaskSupportRule
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
-import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
-import com.android.tools.idea.ui.DisplayInfoProvider
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.DataSnapshotProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
@@ -61,7 +56,6 @@ import org.intellij.images.editor.ImageFileEditor
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Component
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.IOException
@@ -81,7 +75,7 @@ class EmulatorScreenshotActionTest {
 
   @get:Rule
   val ruleChain = RuleChain(projectRule, DataManagerRule(projectRule), emulatorRule, ClipboardSynchronizationDisablementRule(),
-                            EdtRule(), HeadlessDialogRule())
+                            HeadlessTaskSupportRule(), EdtRule(), HeadlessDialogRule())
 
   private lateinit var avdFolder: Path
   private val emulator: FakeEmulator by lazy { emulatorRule.newEmulator(avdFolder) }
@@ -257,33 +251,6 @@ class EmulatorScreenshotActionTest {
   @Suppress("SameParameterValue")
   private fun getGoldenFile(name: String): Path =
       TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
-
-  private fun executeScreenshotAction(source: Component, vararg emulatorViews: EmulatorView, place: String = ActionPlaces.TOOLBAR) {
-    val views = if (emulatorViews.isEmpty() && source is EmulatorView) arrayOf(source) else emulatorViews
-    val dataProvider = DataSnapshotProvider { sink -> sink[DISPLAY_INFO_PROVIDER_KEY] = TestDisplayInfoProvider(*views) }
-    executeStreamingAction("android.device.screenshot", source, project, place, extra = dataProvider)
-  }
-
-  private class TestDisplayInfoProvider(private vararg val emulatorViews: EmulatorView) : DisplayInfoProvider {
-
-    override fun getIdsOfAllDisplays(): IntArray =
-        IntArray(emulatorViews.size) { emulatorViews[it].displayId }
-
-    override fun getDisplaySize(displayId: Int): Dimension =
-        findView(displayId)?.deviceDisplaySize ?: throw IllegalArgumentException()
-
-    override fun getDisplayOrientation(displayId: Int): Int =
-        findView(displayId)?.displayOrientationQuadrants ?: throw IllegalArgumentException()
-
-    override fun getScreenshotRotation(displayId: Int): Int =
-        findView(displayId)?.displayOrientationCorrectionQuadrants ?: throw IllegalArgumentException()
-
-    override fun getSkin(displayId: Int): SkinDefinition? =
-        findView(displayId)?.getSkin()
-
-    private fun findView(displayId: Int): EmulatorView? =
-        emulatorViews.find { it.displayId == displayId }
-  }
 }
 
 private fun ScreenshotViewer.waitForUpdateAndGetImage(expectTransparentCorner: Boolean = true): BufferedImage {

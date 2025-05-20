@@ -40,13 +40,10 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.NlsContexts.ProgressTitle
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.platform.ide.progress.withModalProgress
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.awt.AlphaComposite
 import java.awt.Color
@@ -73,7 +70,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     val waitingForScreenshot = CompletableDeferred<Unit>()
     val scope = emulatorController.createCoroutineScope()
     scope.launch {
-      withProgress(project, "Obtaining screenshot from device\u2026") {
+      withModalProgress(project, "Obtaining screenshot from device\u2026") {
         waitingForScreenshot.await()
       }
     }
@@ -117,15 +114,6 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       finally {
         waitingForScreenshot.complete(Unit)
       }
-    }
-  }
-
-  suspend fun <T> withProgress(project: Project, title: @ProgressTitle String, action: suspend CoroutineScope.() -> T): T {
-    return if (ApplicationManager.getApplication().isUnitTestMode) {
-      withBackgroundProgress(project, title, action) // Use of withModalProgress in a test may cause a deadlock.
-    }
-    else {
-      withModalProgress(project, title, action)
     }
   }
 
