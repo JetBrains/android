@@ -2,7 +2,7 @@
 
 load(
     ":build_dependencies_android_deps.bzl",
-    "ANDROID_IDE_INFO",
+    _ide_android_not_validated = "IDE_ANDROID",
 )
 
 # Load external dependencies of this aspect. These are loaded in a separate file and re-exported as necessary
@@ -44,6 +44,13 @@ IDE_JAVA = _validate_ide(
     template = struct(
         srcs_attributes = [],  # Additional srcs like attributes.
         get_java_info = _target_rule_function,  # A function that takes a rule and returns a JavaInfo like structure (or the provider itself).
+    ),
+)
+
+IDE_ANDROID = _validate_ide(
+    _ide_android_not_validated,
+    template = struct(
+        get_android_info = _target_rule_function,  # A function that takes a rule and returns a JavaInfo like structure (or the provider itself).
     ),
 )
 
@@ -332,37 +339,9 @@ def declares_android_resources(target, ctx):
     Returns:
       True if the target has resource files and an android provider.
     """
-    if _get_android_provider(target) == None:
+    if IDE_ANDROID.get_android_info(target, ctx.rule) == None:
         return False
     return hasattr(ctx.rule.attr, "resource_files") and len(ctx.rule.attr.resource_files) > 0
-
-def _get_android_provider(target):
-    if ANDROID_IDE_INFO and ANDROID_IDE_INFO in target:
-        return target[ANDROID_IDE_INFO]
-    elif hasattr(android_common, "AndroidIdeInfo"):
-        if android_common.AndroidIdeInfo in target:
-            return target[android_common.AndroidIdeInfo]
-        else:
-            return None
-    elif hasattr(target, "android"):
-        # Backwards compatibility: supports android struct provider
-        legacy_android = getattr(target, "android")
-
-        # Transform into AndroidIdeInfo form
-        return struct(
-            aar = legacy_android.aar,
-            java_package = legacy_android.java_package,
-            manifest = legacy_android.manifest,
-            idl_source_jar = getattr(legacy_android.idl.output, "source_jar", None),
-            idl_class_jar = getattr(legacy_android.idl.output, "class_jar", None),
-            defines_android_resources = legacy_android.defines_resources,
-            idl_import_root = getattr(legacy_android.idl, "import_root", None),
-            idl_generated_java_files = getattr(legacy_android.idl, "generated_java_files", []),
-            resource_jar = legacy_android.resource_jar,
-            signed_apk = legacy_android.apk,
-            apks_under_test = legacy_android.apks_under_test,
-        )
-    return None
 
 def declares_aar_import(ctx):
     """
@@ -478,7 +457,7 @@ def _collect_own_java_artifacts(
 
     # Targets recognised as java_proto_info can have java_info dependencies.
     java_proto_info = IDE_JAVA_PROTO.get_java_proto_info(target, ctx.rule)
-    android = _get_android_provider(target)
+    android_info = IDE_ANDROID.get_android_info(target, ctx.rule)
 
     if must_build_main_artifacts:
         # For rules that we do not follow dependencies of (either because they don't
@@ -506,17 +485,17 @@ def _collect_own_java_artifacts(
                 own_ide_aar_files.append(ide_aar)
 
     else:
-        if android != None:
-            resource_package = android.java_package
+        if android_info != None:
+            resource_package = android_info.java_package
 
             if generate_aidl_classes:
                 add_base_idl_jar = False
-                idl_jar = android.idl_class_jar
+                idl_jar = android_info.idl_class_jar
                 if idl_jar != None:
                     own_jar_files.append(idl_jar)
                     add_base_idl_jar = True
 
-                generated_java_files = android.idl_generated_java_files
+                generated_java_files = android_info.idl_generated_java_files
                 if generated_java_files:
                     own_gensrc_files += generated_java_files
                     add_base_idl_jar = True
@@ -572,7 +551,7 @@ def _collect_own_java_artifacts(
                     else:
                         own_gensrc_files.append(file)
 
-    if not (java_info or kotlin_info or android or java_proto_info or own_gensrc_files or own_src_file_paths or own_srcjar_file_paths):
+    if not (java_info or kotlin_info or android_info or java_proto_info or own_gensrc_files or own_src_file_paths or own_srcjar_file_paths):
         return None
     if own_jar_files or len(own_jar_depsets) > 1:
         own_jar_depset = depset(own_jar_files, transitive = own_jar_depsets)
@@ -870,11 +849,11 @@ def _get_ide_aar_file(target, ctx):
     The function builds a minimalistic .aar file that contains resources and the
     manifest only.
     """
-    android = _get_android_provider(target)
-    full_aar = android.aar
+    android_info = IDE_ANDROID.get_android_info(target, ctx.rule)
+    full_aar = android_info.aar
     if full_aar:
         resource_files = _collect_resource_files(ctx)
-        resource_map = _build_ide_aar_file_map(android.manifest, resource_files)
+        resource_map = _build_ide_aar_file_map(android_info.manifest, resource_files)
         aar = ctx.actions.declare_file(full_aar.short_path.removesuffix(".aar") + "_ide/" + full_aar.basename)
         _package_ide_aar(ctx, aar, resource_map)
         return aar

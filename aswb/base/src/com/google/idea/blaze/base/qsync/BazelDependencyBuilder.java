@@ -53,6 +53,7 @@ import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
+import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.VersionChecker;
 import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler;
 import com.google.idea.blaze.common.Context;
@@ -343,8 +344,10 @@ public class BazelDependencyBuilder implements DependencyBuilder {
                                               it.queryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL2))
       .orElse(false)) {
       return getBundledAspectPath("build_dependencies_android_rules_android_deps.bzl");
+    } else if (BlazeProjectDataManager.getInstance(project).getBlazeProjectData().getBlazeVersionData().bazelIsAtLeastVersion(7,1,0)) {
+      return getBundledAspectPath("build_dependencies_android_deps.bzl");
     }
-    return getBundledAspectPath("build_dependencies_android_deps.bzl");
+    return getBundledAspectPath("build_dependencies_legacy_android_deps.bzl");
   }
 
   private ByteSource getByteSourceFromString(String content) {

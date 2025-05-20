@@ -588,6 +588,7 @@ jvm_import(
 intellij_integration_test_suite(
     name = "integration_tests",
     srcs = glob(["tests/integrationtests/**/*.java"]),
+    data = ["//tools/adt/idea/aswb/aspect:aspect_files"],
     plugins = [":com.google.idea.blaze.base"],
     required_plugins = "com.google.idea.blaze.base",
     tags = ["noci:studio-win"],

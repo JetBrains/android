@@ -25,10 +25,13 @@ import com.google.common.io.ByteSource;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.MockProjectViewManager;
 import com.google.idea.blaze.base.bazel.BazelBuildSystemProvider;
+import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
+import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
 import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.artifacts.MockArtifactCache;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
@@ -58,27 +61,14 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
 
   @Before
   public void before() {
-    // TODO: b/388249589 - reuse com.google.idea.blaze.android.google3.qsync.testrules.QuerySyncEnvironmentRule instead.
-    System.setProperty(
-      "qsync.aspect.build_dependencies.bzl.file",
-      getRunfilesWorkspaceRoot()
-        .toPath()
-        .resolve("tools/adt/idea/aswb/aspect/build_dependencies.bzl")
-        .toString());
-    System.setProperty(
-      "qsync.aspect.build_dependencies_deps.bzl.file",
-      getRunfilesWorkspaceRoot()
-        .toPath()
-        .resolve("tools/adt/idea/aswb/aspect/build_dependencies_deps.bzl")
-        .toString());
-    System.setProperty(
-      "qsync.aspect.build_dependencies_android_deps.bzl.file",
-      getRunfilesWorkspaceRoot()
-        .toPath()
-        .resolve("tools/adt/idea/aswb/aspect/build_dependencies_android_deps.bzl")
-        .toString());
+    experimentService.setExperimentString(
+      BazelDependencyBuilder.aspectLocation,
+      getRunfilesWorkspaceRoot().toPath().resolve("tools/adt/idea/aswb").toString());
     ServiceContainerUtil.registerComponentInstance(ApplicationManager.getApplication(), ExperimentService.class, experimentService,
                                                    getTestRootDisposable());
+    BlazeProjectDataManager mockProjectDataManager =
+      new MockBlazeProjectDataManager(MockBlazeProjectDataBuilder.builder(workspaceRoot).build());
+    registerProjectService(BlazeProjectDataManager.class, mockProjectDataManager);
   }
 
   @Test
