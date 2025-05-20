@@ -52,7 +52,6 @@ public class ProjectArtifactStore {
   private static final Logger logger = Logger.getInstance(ProjectArtifactStore.class);
 
   private final Path projectDir;
-  private final Path workspacePath;
   private final BuildArtifactCache artifactCache;
   private final FileRefresher fileRefresher;
   private final Path projectDirectoriesFile;
@@ -61,11 +60,9 @@ public class ProjectArtifactStore {
 
   public ProjectArtifactStore(
       Path projectDir,
-      Path workspacePath,
       BuildArtifactCache artifactCache,
       FileRefresher fileRefresher) {
     this.projectDir = projectDir;
-    this.workspacePath = workspacePath;
     this.artifactCache = artifactCache;
     this.fileRefresher = fileRefresher;
     this.projectDirectoriesFile = projectDir.resolve(".project-artifact-dirs");
@@ -113,7 +110,6 @@ public class ProjectArtifactStore {
       ArtifactDirectoryUpdate dirUpdate =
           new ArtifactDirectoryUpdate(
               artifactCache,
-              workspacePath,
               root,
               entry.getValue());
       try {

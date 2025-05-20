@@ -244,7 +244,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
     ProjectArtifactStore artifactStore =
         new ProjectArtifactStore(
             ideProjectBasePath,
-            workspaceRoot.path(),
             artifactCache,
             new FileRefresher(project));
     DependencyTracker dependencyTracker =

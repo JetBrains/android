@@ -41,7 +41,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,18 +60,15 @@ public class ArtifactDirectoryUpdate {
   private final static Logger LOG = Logger.getLogger(ArtifactDirectoryUpdate.class.getSimpleName());
 
   private final BuildArtifactCache artifactCache;
-  private final Path workspaceRoot;
   private final Path root;
   private final ArtifactDirectoryContents contents;
   private final Set<Path> updatedPaths;
 
   public ArtifactDirectoryUpdate(
       BuildArtifactCache artifactCache,
-      Path workspaceRoot,
       Path root,
       ArtifactDirectoryContents contents) {
     this.artifactCache = artifactCache;
-    this.workspaceRoot = workspaceRoot;
     this.root = root;
     this.contents = contents;
     updatedPaths = Sets.newHashSet();
@@ -168,13 +164,6 @@ public class ArtifactDirectoryUpdate {
     if (!updated.equals(existing)) {
       return true;
     }
-    if (!updated.getWorkspaceRelativePath().isEmpty()) {
-      // the existing and updated are identical, but since it's a workspace file it may have
-      // changed since we last used it.
-      // TODO(mathewi) we could condider using a readonly snapshot path here in the case that the
-      //   VCS supports it to avoid updating files from the workspace that have not actually changed
-      return true;
-    }
     return false;
   }
 
@@ -229,15 +218,6 @@ public class ArtifactDirectoryUpdate {
       } catch (ExecutionException e) {
         throw new BuildException("Failed to fetch artifact " + artifact, e);
       }
-    } else if (!artifact.getWorkspaceRelativePath().isEmpty()) {
-      // TODO(mathewi) using the workspace root here means this could fail if the file is no longer
-      //    present in the workspace. We should support using a readonly workspace snapshot if the
-      //    VCS supports that, and probably also fail gracefully (emit a warning?) in this case.
-      Path srcFile = workspaceRoot.resolve(artifact.getWorkspaceRelativePath());
-      if (!Files.exists(srcFile)) {
-        return Optional.empty();
-      }
-      return Optional.of(new CachedArtifact(srcFile));
     } else {
       throw new IllegalArgumentException("Invalid artifact: " + artifact);
     }
