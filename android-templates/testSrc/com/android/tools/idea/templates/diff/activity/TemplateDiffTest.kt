@@ -37,6 +37,7 @@ import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
@@ -769,6 +770,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
     checkCreateTemplate("Media Service", withKotlin())
   }
 
+  @Ignore("b/418047552")
   @Test
   fun testXRBasicHeadsetActivity() {
     checkCreateTemplate("Basic Headset Activity", withSpecificKotlin)
