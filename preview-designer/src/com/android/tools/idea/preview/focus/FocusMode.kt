@@ -24,6 +24,7 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.actionSystem.DataContext
+import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import org.jetbrains.annotations.TestOnly
@@ -63,8 +64,12 @@ class FocusMode(rootComponent: JComponent) {
       component.background = Colors.DEFAULT_BACKGROUND_COLOR
     }
 
-  /** [JPanel] for [FocusTabs]. */
-  val component: JComponent = focusModeTabs.component
+  /** [JPanel] for [FocusMode]. */
+  val component: JComponent = JPanel(BorderLayout())
+
+  init {
+    component.add(focusModeTabs, BorderLayout.NORTH)
+  }
 
   /**
    * Simulates a selected [PreviewElementKey] change, firing the [selectionListener]. Intended to be
