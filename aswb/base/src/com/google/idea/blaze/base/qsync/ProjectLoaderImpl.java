@@ -27,7 +27,6 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.section.Glob;
 import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection;
-import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore;
 import com.google.idea.blaze.base.qsync.cc.CcProjectProtoTransform;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
@@ -44,9 +43,9 @@ import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.DependenciesProjectProtoUpdater;
+import com.google.idea.blaze.qsync.ProjectBuilder;
 import com.google.idea.blaze.qsync.ProjectProtoTransform.Registry;
 import com.google.idea.blaze.qsync.ProjectRefresher;
-import com.google.idea.blaze.qsync.SnapshotBuilder;
 import com.google.idea.blaze.qsync.VcsStateDiffer;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
@@ -103,10 +102,9 @@ public class ProjectLoaderImpl implements ProjectLoader {
                                      RenderJarArtifactTracker renderJarArtifactTracker,
                                      AppInspectorArtifactTracker appInspectorArtifactTracker,
                                      AppInspectorTracker appInspectorTracker,
-                                     ProjectArtifactStore artifactStore,
                                      DependencyBuilder dependencyBuilder,
                                      DependencyTracker dependencyTracker,
-                                     SnapshotBuilder snapshotBuilder,
+                                     ProjectBuilder projectBuilder,
                                      ProjectQuerier projectQuerier,
                                      QuerySyncSourceToTargetMap sourceToTargetMap,
                                      ImmutableSet<String> handledRuleKinds) {
@@ -143,12 +141,11 @@ public class ProjectLoaderImpl implements ProjectLoader {
           result.workspaceRoot(),
           result.artifactTracker(),
           result.artifactCache(),
-          result.artifactStore(),
           result.renderJarArtifactTracker(),
           result.dependencyTracker(),
           result.appInspectorTracker(),
           result.projectQuerier(),
-          result.snapshotBuilder(),
+          result.projectBuilder(),
           result.latestProjectDef(),
           result.projectViewSet(),
           result.workspacePathResolver(),
@@ -241,11 +238,6 @@ public class ProjectLoaderImpl implements ProjectLoader {
                                           ideProjectBasePath.resolve(ArtifactDirectories.INSPECTORS.relativePath()));
     AppInspectorTracker appInspectorTracker =
         new AppInspectorTrackerImpl(appInspectorBuilder, appInspectorArtifactTracker);
-    ProjectArtifactStore artifactStore =
-        new ProjectArtifactStore(
-            ideProjectBasePath,
-            artifactCache,
-            new FileRefresher(project));
     DependencyTracker dependencyTracker =
         new DependencyTrackerImpl(snapshotHolder, dependencyBuilder, artifactTracker);
     ProjectRefresher projectRefresher =
@@ -255,8 +247,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
             enableExperimentalQuery.getValue(),
             snapshotHolder::getCurrent,
             runQueryInWorkspace::getValue);
-    SnapshotBuilder snapshotBuilder =
-        new SnapshotBuilder(
+    ProjectBuilder snapshotBuilder =
+        new ProjectBuilder(
             executor,
             createWorkspaceRelativePackageReader(),
             workspaceRoot.path()
@@ -273,7 +265,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     return new QuerySyncProjectDeps(importSettings, workspaceRoot, new WorkspacePathResolverImpl(workspaceRoot), projectViewSet, buildSystem,
                                     workspaceLanguageSettings, latestProjectDef,  projectPathResolver, projectTransformRegistry,
                                     snapshotHolder, artifactCache, artifactTracker, renderJarArtifactTracker, appInspectorArtifactTracker,
-                                    appInspectorTracker, artifactStore, dependencyBuilder, dependencyTracker, snapshotBuilder,
+                                    appInspectorTracker,  dependencyBuilder, dependencyTracker, snapshotBuilder,
                                     projectQuerier, sourceToTargetMap, handledRules);
   }
 

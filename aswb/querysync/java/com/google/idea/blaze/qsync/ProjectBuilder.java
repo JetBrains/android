@@ -30,13 +30,13 @@ import java.nio.file.Path;
  * Project refresher creates an appropriate {@link RefreshOperation} based on the project and
  * current VCS state.
  */
-public class SnapshotBuilder {
+public class ProjectBuilder {
 
   private final ListeningExecutorService executor;
   private final PackageReader workspaceRelativePackageReader;
   private final Path workspaceRoot;
 
-  public SnapshotBuilder(
+  public ProjectBuilder(
       ListeningExecutorService executor,
       PackageReader workspaceRelativePackageReader,
       Path workspaceRoot) {
@@ -50,7 +50,7 @@ public class SnapshotBuilder {
    * from the {@code postQuerySyncData} and a function {@code applyBuiltDependenciesTransform} that
    * applies transformations required to account for any currently synced(i.e. built) dependencies.
    */
-  public QuerySyncProjectSnapshot createBlazeProjectSnapshot(
+  public Project createBlazeProjectStructure(
     Context<?> context,
     PostQuerySyncData postQuerySyncData,
     BuildGraphData graph,
@@ -68,14 +68,7 @@ public class SnapshotBuilder {
             context,
             postQuerySyncData.projectDefinition(),
             executor);
-    Project project =
-        projectProtoTransform.apply(
-          graphToProjectConverter.createProject(graph), graph, artifactTrackerState, context);
-    return QuerySyncProjectSnapshot.builder()
-        .queryData(postQuerySyncData)
-        .graph(graph)
-        .artifactState(artifactTrackerState)
-        .project(project)
-        .build();
+    return projectProtoTransform.apply(
+      graphToProjectConverter.createProject(graph), graph, artifactTrackerState, context);
   }
 }

@@ -25,14 +25,12 @@ import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.projectview.ProjectViewSet
-import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.settings.BlazeImportSettings
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap
 import com.google.idea.blaze.base.util.SaveUtil
-import com.google.idea.blaze.common.AtomicFileWriter
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
@@ -40,28 +38,22 @@ import com.google.idea.blaze.common.artifact.BuildArtifactCache
 import com.google.idea.blaze.common.vcs.VcsState
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.BlazeQueryParser
+import com.google.idea.blaze.qsync.ProjectBuilder
 import com.google.idea.blaze.qsync.ProjectProtoTransform
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
-import com.google.idea.blaze.qsync.SnapshotBuilder
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
 import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
-import com.google.idea.blaze.qsync.project.SnapshotDeserializer
-import com.google.idea.blaze.qsync.project.SnapshotSerializer
+import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.TargetsToBuild
-import com.google.protobuf.CodedOutputStream
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import java.io.FileInputStream
 import java.io.IOException
 import java.nio.file.Path
-import java.util.Objects
 import java.util.Optional
 import java.util.function.Supplier
-import java.util.zip.GZIPInputStream
-import java.util.zip.GZIPOutputStream
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -99,12 +91,11 @@ class QuerySyncProject(
   override val workspaceRoot: WorkspaceRoot,
   val artifactTracker: ArtifactTracker<*>,
   val buildArtifactCache: BuildArtifactCache,
-  val artifactStore: ProjectArtifactStore,
   val renderJarArtifactTracker: RenderJarArtifactTracker, // TODO: delete
   val dependencyTracker: DependencyTracker,
   private val appInspectorTracker: AppInspectorTracker,
   private val projectQuerier: ProjectQuerier,
-  private val snapshotBuilder: SnapshotBuilder,
+  private val projectBuilder: ProjectBuilder,
   override val projectDefinition: ProjectDefinition,
   override val projectViewSet: ProjectViewSet,
   // TODO(mathewi) only one of these two should strictly be necessary:
@@ -243,24 +234,6 @@ class QuerySyncProject(
     return BlazeQueryParser(postQuerySyncData.querySummary(), context, ImmutableSet.copyOf(handledRuleKinds)).parse()
   }
 
-  @Throws(BuildException::class)
-  fun updateProjectStructureAndSnapshot(
-    context: BlazeContext,
-    queryData: PostQuerySyncData,
-    graph: BuildGraphData,
-  ): QuerySyncProjectSnapshot {
-    val newSnapshot =
-      snapshotBuilder.createBlazeProjectSnapshot(
-        context,
-        queryData,
-        graph,
-        artifactTracker.getStateSnapshot(),
-        projectProtoTransforms.composedTransform
-      )
-    onNewSnapshot(context, newSnapshot)
-    return newSnapshot
-  }
-
   @Throws(IOException::class, BuildException::class)
   fun buildAppInspector(
     parentContext: BlazeContext, inspector: Label,
@@ -289,18 +262,18 @@ class QuerySyncProject(
     return pendingTargets.isEmpty()
   }
 
-  @Throws(IOException::class)
-  fun readSnapshotFromDisk(context: BlazeContext): PostQuerySyncData? {
-    val f = getSnapshotFilePath(ideProject).toFile()
-    if (!f.exists()) {
-      return null
-    }
-    GZIPInputStream(FileInputStream(f)).use { `in` ->
-      return SnapshotDeserializer()
-        .readFrom(`in`, context)
-        .getOrNull()
-        ?.syncData
-    }
+  class CreateProjectStructureResult(val projectStructure: ProjectProto.Project, val artifactState: ArtifactTracker.State)
+  fun createProjectStructure(context: BlazeContext, queryData: PostQuerySyncData, graph: BuildGraphData): CreateProjectStructureResult {
+    val artifactTrackerState = artifactTracker.getStateSnapshot()
+    val newProjectStructure =
+      projectBuilder.createBlazeProjectStructure(
+        context,
+        queryData,
+        graph,
+        artifactTrackerState,
+        projectProtoTransforms.composedTransform
+      )
+    return CreateProjectStructureResult(newProjectStructure, artifactTrackerState)
   }
 
   /** Returns true if `absolutePath` is in a project include  */
@@ -362,56 +335,12 @@ class QuerySyncProject(
     return snapshotPath.map { !it.resolve(workspaceRelative).toFile().exists() }
   }
 
-  @Throws(IOException::class)
-  private fun writeToDisk(snapshot: QuerySyncProjectSnapshot) {
-    AtomicFileWriter.create(getSnapshotFilePath(ideProject)).use { writer ->
-      GZIPOutputStream(writer.outputStream).use { zip ->
-        val message = SnapshotSerializer().visit(snapshot.queryData()).toProto()
-        val codedOutput = CodedOutputStream.newInstance(zip, 1024 * 1024)
-        message.writeTo(codedOutput)
-        codedOutput.flush()
-      }
-      writer.onWriteComplete()
-    }
-  }
-
-  @Throws(BuildException::class)
-  private fun onNewSnapshot(context: BlazeContext, newSnapshot: QuerySyncProjectSnapshot) {
-    // update the artifact store for the new snapshot
-    var newSnapshot = newSnapshot
-    val newArtifactDirectoriesSnapshot = newSnapshot.project().artifactDirectories
-    val result = artifactStore.update(newArtifactDirectoriesSnapshot, context)
-    if (!result.incompleteTargets.isEmpty()) {
-      val limit = 20
-      logger.warn(
-        "${result.incompleteTargets.size} project deps had missing artifacts:\n  ${
-          result.incompleteTargets
-            .take(limit)
-            .joinToString("\n  ") { Objects.toString(it) }
-        }"
-      )
-      if (result.incompleteTargets.size > limit) {
-        logger.warn("  (and ${result.incompleteTargets.size - limit} more)")
-      }
-    }
-    // update the snapshot with any missing artifacts:
-    newSnapshot = newSnapshot.toBuilder().incompleteTargets(result.incompleteTargets).build()
-
-    snapshotHolder.setCurrent(context, this, newSnapshot)
-    try {
-      writeToDisk(newSnapshot)
-    } catch (e: IOException) {
-      throw BuildException("Failed to write snapshot to disk", e)
-    }
-  }
-
   override fun getBugreportFiles(): Map<String, ByteSource> {
     val snapshotFilePath = getSnapshotFilePath(ideProject)
     return ImmutableMap.builder<String, ByteSource>()
       .put(snapshotFilePath.fileName.toString(), MoreFiles.asByteSource(snapshotFilePath))
       .putAll(artifactTracker.getBugreportFiles())
       .putAll(snapshotHolder.getBugreportFiles())
-      .putAll(artifactStore.getBugreportFiles())
       .putAll(buildArtifactCache.getBugreportFiles())
       .build()
   }
@@ -430,7 +359,7 @@ class QuerySyncProject(
   }
 }
 
-private fun getSnapshotFilePath(project: Project): Path {
+fun getSnapshotFilePath(project: Project): Path {
   return Path.of(project.basePath).resolve("qsyncdata.gz")
 }
 
