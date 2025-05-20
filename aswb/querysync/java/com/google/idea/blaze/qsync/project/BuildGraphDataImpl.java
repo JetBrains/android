@@ -53,6 +53,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -526,11 +527,12 @@ public record BuildGraphDataImpl(
   }
 
   /**
-   * Traverses the dependency graph starting from {@code projectTargets} and returns the first level of dependencies which are either not in
-   * the project scope or must be built as they are not directly supported by the IDE.
+   * Traverses the dependency graph starting from {@code projectTargets} and returns the first level
+   * of dependencies which are either not in the project scope or must be built as they are not
+   * directly supported by the IDE.
    */
   @Override
-  public Set<Label> getExternalDependencies(Collection<Label> projectTargets) {
+  public ImmutableSet<Label> getExternalDependencies(Collection<Label> projectTargets) {
     final var externalDeps = new LinkedHashSet<Label>();
     final var seen = new HashSet<>(projectTargets);
     final var queue = new ArrayDeque<Label>(projectTargets);
@@ -547,7 +549,7 @@ public record BuildGraphDataImpl(
         queue.addAll(targetInfo.deps().stream().filter(seen::add).toList());
       }
     }
-    return externalDeps;
+    return externalDeps.stream().collect(toImmutableSet());
   }
 
   @Override
@@ -565,12 +567,51 @@ public record BuildGraphDataImpl(
    *
    * @return Requested targets. The {@link RequestedTargets#buildTargets()} will match the parameter
    *     given; the {@link RequestedTargets#expectedDependencyTargets()} will be determined by the
-   *     {@link #getDependencyTrackingIncludeExternalDependencies(ProjectTarget)} of the targets given.
+   *     {@link #getDependencyTrackingIncludeExternalDependencies(ProjectTarget)} of the targets
+   *     given.
    */
- @Override
- public RequestedTargets computeRequestedTargets(Collection<Label> projectTargets) {
-    final var externalDeps = getExternalDependencies(projectTargets);
-    return new RequestedTargets(ImmutableSet.copyOf(projectTargets), ImmutableSet.copyOf(externalDeps));
+  @Override
+  public RequestedTargets computeRequestedTargets(Collection<Label> projectTargets) {
+    final var filteredProjectTargets = filterRedundantTargets(projectTargets);
+    final var externalDeps = getExternalDependencies(filteredProjectTargets);
+    return new RequestedTargets(filteredProjectTargets, externalDeps);
+  }
+
+  /**
+   * Use the direct and transitive dependencies of an initial set of targets to prune the initial
+   * set of redundant targets. Redundant targets that are contained in any of the direct/indirect
+   * dependencies of the initial set of targets. This improves performance by reducing the targets
+   * that are built.
+   */
+  public ImmutableSet<Label> filterRedundantTargets(Collection<Label> projectTargets) {
+    return filterRedundantTargets(
+        t -> {
+          final var target = storage.targetMap.getOrDefault(t, null);
+          return target == null ? Collections.emptySet() : target.deps();
+        },
+        new HashSet<>(projectTargets));
+  }
+
+  /**
+   * Filter the initial set of targets to a minimal set that may be reached based on the provided
+   * graph by running BFS (breadth-first search) on the direct/transitively linked targets on the
+   * map.
+   */
+  public static <T> ImmutableSet<T> filterRedundantTargets(
+      Function<T, Set<T>> graph, Set<T> starting) {
+    // Store the direct dependencies of the starting set of targets in a queue and run BFS.
+    final var queue =
+        starting.stream()
+            .flatMap(t -> graph.apply(t).stream())
+            .collect(Collectors.toCollection(ArrayDeque::new));
+    final var visited = new HashSet<>();
+    while (!queue.isEmpty()) {
+      T target = queue.remove();
+      if (visited.add(target)) {
+        queue.addAll(graph.apply(target));
+      }
+    }
+    return starting.stream().filter(t -> !visited.contains(t)).collect(toImmutableSet());
   }
 
   @Override

@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static com.google.idea.blaze.qsync.QuerySyncTestUtils.NOOP_CONTEXT;
 import static com.google.idea.blaze.qsync.QuerySyncTestUtils.getQuerySummary;
+import static java.util.Map.entry;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -30,7 +31,10 @@ import com.google.idea.blaze.qsync.testdata.TestData;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -544,6 +548,79 @@ public class BuildGraphDataImplTest {
     assertThat(targets.buildTargets())
         .containsExactly(TestData.CC_EXTERNAL_DEP_QUERY.getAssumedOnlyLabel());
     assertThat(targets.expectedDependencyTargets()).isEmpty();
+  }
+
+  private Set<String> filterRedundantTargets(
+      Map<String, ImmutableSet<String>> graph, Set<String> targets) {
+    return BuildGraphDataImpl.filterRedundantTargets(
+        t -> graph.getOrDefault(t, ImmutableSet.of()), targets);
+  }
+
+  @Test
+  public void filterRedundantTargets_scenario1() throws Exception {
+    Map<String, ImmutableSet<String>> graph =
+        Map.ofEntries(
+            entry("A", ImmutableSet.of("B")),
+            entry("B", ImmutableSet.of("C")),
+            entry("C", ImmutableSet.of("D")));
+    assertThat(
+            filterRedundantTargets(graph, ImmutableSet.of("A", "D")).equals(ImmutableSet.of("A")))
+        .isTrue();
+    assertThat(
+            filterRedundantTargets(graph, ImmutableSet.of("B", "C")).equals(ImmutableSet.of("B")))
+        .isTrue();
+  }
+
+  @Test
+  public void filterRedundantTargets_scenario2() throws Exception {
+    Map<String, ImmutableSet<String>> graph =
+        Map.ofEntries(
+            entry("A", ImmutableSet.of("B")),
+            entry("B", ImmutableSet.of("C")),
+            entry("Z", ImmutableSet.of("D")));
+    assertThat(
+            filterRedundantTargets(graph, ImmutableSet.of("C", "D"))
+                .equals(ImmutableSet.of("C", "D")))
+        .isTrue();
+  }
+
+  @Test
+  public void filterRedundantTargets_scenario3() throws Exception {
+    Map<String, ImmutableSet<String>> graph =
+        Map.ofEntries(
+            entry("A", ImmutableSet.of()),
+            entry("B", ImmutableSet.of()),
+            entry("C", ImmutableSet.of()));
+    assertThat(
+            filterRedundantTargets(graph, ImmutableSet.of("A", "C"))
+                .equals(ImmutableSet.of("A", "C")))
+        .isTrue();
+  }
+
+  @Test
+  public void filterRedundantTargets_scenario4() throws Exception {
+    Map<String, ImmutableSet<String>> graph =
+        Map.ofEntries(
+            entry("A", ImmutableSet.of("B", "C")),
+            entry("B", ImmutableSet.of("D")),
+            entry("C", ImmutableSet.of("D")),
+            entry("E", ImmutableSet.of("C")));
+    assertThat(
+            filterRedundantTargets(graph, ImmutableSet.of("A", "D")).equals(ImmutableSet.of("A")))
+        .isTrue();
+    assertThat(
+            filterRedundantTargets(graph, ImmutableSet.of("A", "E", "D"))
+                .equals(ImmutableSet.of("A", "E")))
+        .isTrue();
+  }
+
+  @Test
+  public void filterRedundantTargets_invalid_data() throws Exception {
+    Map<String, ImmutableSet<String>> graph = Map.ofEntries(entry("A", ImmutableSet.of("")));
+    assertThat(filterRedundantTargets(graph, ImmutableSet.of("B")).equals(ImmutableSet.of("B")))
+        .isTrue();
+    assertThat(filterRedundantTargets(graph, ImmutableSet.<String>of()).equals(ImmutableSet.of()))
+        .isTrue();
   }
 
   @Test
