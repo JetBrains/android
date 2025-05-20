@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.TEXT_VIEW;
+
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -22,6 +26,7 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
+import com.android.tools.idea.common.scene.ScenePickerImpl;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
@@ -34,12 +39,6 @@ import java.awt.event.InputEvent;
 import java.util.Objects;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
-
-import static com.android.SdkConstants.BUTTON;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
 
 public class ConstraintAnchorTargetTest extends SceneTest {
 
@@ -215,7 +214,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
   }
 
   private void testAnchorSize(AnchorTarget anchorTarget, Point[] hitPoints, Point[] nonHitPoints) {
-    ScenePicker picker = new ScenePicker();
+    ScenePickerImpl picker = ScenePickerImpl.createForTest();
 
     anchorTarget.addHit(myScene.getSceneManager().getSceneViews().get(0).getContext(), picker, 0);
 
@@ -404,7 +403,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
 
   public void testCannotBeClickedByRightClickEvent() {
     SceneComponent inner = myScene.getSceneComponent("inner");
-    ScenePicker picker = new ScenePicker();
+    ScenePickerImpl picker = ScenePickerImpl.createForTest();
 
     ConstraintAnchorTarget topEdge = new ConstraintAnchorTarget(AnchorTarget.Type.TOP, true);
     topEdge.addHit(myScreen.getScreen().getContext(), picker, InputEvent.BUTTON3_DOWN_MASK);

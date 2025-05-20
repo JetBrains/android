@@ -167,12 +167,11 @@ public class DrawConnection implements DrawCommand {
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet color = sceneContext.getColorSet();
-    ScenePicker picker = sceneContext.getScenePicker();
     SecondarySelector secondarySelector = mySecondarySelector;
     g.setColor(color.getConstraints());
 
     boolean animate =
-      draw(g, color, picker, secondarySelector, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType,
+      draw(g, color, sceneContext.getScenePickerForWrite(), secondarySelector, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType,
            myMargin, myMarginDistance,
            myIsMarginReference, myModeFrom, myModeTo, myStateChangeTime);
     if (animate) {
@@ -322,7 +321,7 @@ public class DrawConnection implements DrawCommand {
 
   public static boolean draw(Graphics2D g,
                              ColorSet color,
-                             ScenePicker picker,
+                             ScenePicker.Writer picker,
                              SecondarySelector secondarySelector,
                              int connectionType,
                              @SwingCoordinate Rectangle source,
@@ -897,7 +896,7 @@ public class DrawConnection implements DrawCommand {
                                    @SwingCoordinate Rectangle source,
                                    @SwingCoordinate Rectangle dest,
                                    Color color,
-                                   Color hoverColor, ScenePicker picker,
+                                   Color hoverColor, ScenePicker.Writer picker,
                                    SecondarySelector secondarySelector, boolean hover) {
 
     if (hover) {

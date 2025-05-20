@@ -62,7 +62,7 @@ class EmptyDesignerTarget(private val surface: DesignSurface<*>) : BaseTarget() 
 
   override fun addHit(
     transform: SceneContext,
-    picker: ScenePicker,
+    picker: ScenePicker.Writer,
     @JdkConstants.InputEventMask modifiersEx: Int,
   ) {
     picker.addRect(

@@ -17,14 +17,13 @@ package com.android.tools.idea.common.scene;
 
 import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * This class provides efficient detection of many objects
  */
-public class ScenePicker {
+public class ScenePickerImpl implements ScenePicker.Writer, ScenePicker.Reader {
   private final static int MAX_DATA_SIZE = 10;
   private final static int INITAL_OBJECT_STORE = 30;
   private final static double EPSILON = 0.00001;
@@ -53,14 +52,7 @@ public class ScenePicker {
     myEngines[OBJECT_CIRCLE] = mCircle;
   }
 
-  /**
-   * for all objects
-   */
-  public void foreachObject(Consumer<Object> consumer){
-    for (int i = 0; i < mObjectCount; i++) {
-      consumer.accept(mObjects[i]);
-    }
-  }
+  ScenePickerImpl() {}
 
   /**
    * Search through all the shapes added and find shapes in range
@@ -69,8 +61,9 @@ public class ScenePicker {
    * @param y location y
    * @return the list of objects hit on x,y
    */
-  public ImmutableList<HitResult> find(int x, int y) {
-    ImmutableList.Builder<HitResult> builder = new ImmutableList.Builder<>();
+  @Override
+  public ImmutableList<ScenePicker.HitResult> find(int x, int y) {
+    ImmutableList.Builder<ScenePicker.HitResult> builder = new ImmutableList.Builder<>();
     for (int i = 0; i < mObjectCount; i++) {
       int p = i * 4;
       int x1 = mRect[p++];
@@ -80,7 +73,7 @@ public class ScenePicker {
       if (inRect(x, y, x1, y1, x2, y2)) {
         SelectionEngine selector = myEngines[mTypes[i]];
         if (selector.inRange(i, x, y)) {
-          builder.add(new HitResult(mObjects[i], selector.distance()));
+          builder.add(new ScenePicker.HitResult(mObjects[i], selector.distance()));
         }
       }
     }
@@ -129,62 +122,22 @@ public class ScenePicker {
     mRect = Arrays.copyOf(mRect, mRect.length * 2);
   }
 
-  /**
-   * Add a line to the set
-   *
-   * @param e
-   * @param range
-   * @param x1
-   * @param y1
-   * @param x2
-   * @param y2
-   */
+  @Override
   public void addLine(Object e, int range, int x1, int y1, int x2, int y2, int width) {
     mLine.add(e, range, x1, y1, x2, y2, width);
   }
 
-  /**
-   * Add a rectangle
-   *
-   * @param e
-   * @param range
-   * @param x1
-   * @param y1
-   * @param x2
-   * @param y2
-   */
+  @Override
   public void addRect(Object e, int range, int x1, int y1, int x2, int y2) {
     mRectangle.add(e, range, x1, y1, x2, y2);
   }
 
-  /**
-   * Add a Circle
-   *
-   * @param e
-   * @param range
-   * @param x1
-   * @param y1
-   * @param r
-   */
+  @Override
   public void addCircle(Object e, int range, int x1, int y1, int r) {
     mCircle.add(e, range, x1, y1, r);
   }
 
-  /**
-   * Add a Bezier curve == to moveTo(x1,y1) curveTo(x2,y2,x3,y3,x4,y4);
-   *
-   * @param e
-   * @param range
-   * @param x1
-   * @param y1
-   * @param x2
-   * @param y2
-   * @param x3
-   * @param y3
-   * @param x4
-   * @param y4
-   * @param w
-   */
+  @Override
   public void addCurveTo(Object e, int range, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int width) {
     mCurve.add(e, range, x1, y1, x2, y2, x3, y3, x4, y4, width);
   }
@@ -592,5 +545,9 @@ public class ScenePicker {
     }
   }
 
-  public record HitResult(@NotNull Object object, double distance) { }
+  @TestOnly
+  @NotNull
+  public static ScenePickerImpl createForTest() {
+    return new ScenePickerImpl();
+  }
 }

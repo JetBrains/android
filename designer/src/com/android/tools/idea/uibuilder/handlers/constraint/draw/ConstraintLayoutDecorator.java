@@ -511,7 +511,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         }
 
         DrawConnection
-          .buildDisplayList(list, SecondarySelector.get(child.getNlComponent(), SecondarySelector.Constraint.values()[i]), connectType,
+          .buildDisplayList(list, new SecondarySelector(child.getNlComponent(), SecondarySelector.Constraint.values()[i]), connectType,
                             source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
                             isMarginReference, bias, previousMode, currentMode, changeStart);
         if (((anchorTarget != null && anchorTarget.isMouseHovered()) || hoverConnection) && viewSelected) {
@@ -547,7 +547,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
 
       DrawConnection
         .buildDisplayList(list,
-                          SecondarySelector.get(child.getNlComponent(), SecondarySelector.Constraint.BASELINE),
+                          new SecondarySelector(child.getNlComponent(), SecondarySelector.Constraint.BASELINE),
                           DrawConnection.TYPE_BASELINE, source_rect,
                           DrawConnection.TYPE_BASELINE, dest_rect,
                           DrawConnection.TYPE_BASELINE,

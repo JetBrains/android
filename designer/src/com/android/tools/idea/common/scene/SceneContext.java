@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -33,8 +33,12 @@ import org.jetbrains.annotations.TestOnly;
  * This provides the information for painting the related {@link SceneView} such like transform from dp to screen space.
  */
 public abstract class SceneContext {
-  // Picker is used to record all graphics drawn to support selection
-  private final ScenePicker myGraphicsPicker = new ScenePicker();
+  // Pickers are used to record all graphics drawn to support selection.
+  // We use a double-buffer approach. One picker is used for reading and the other for writing.
+  // This ensures that the picker is not modified half way through a user mouse interaction.
+  private ScenePickerImpl myReadPicker = new ScenePickerImpl();
+  private ScenePickerImpl myWritePicker = new ScenePickerImpl();
+  private final Object myCurrentWritePickerLock = new Object();
   private Long myTime;
   @SwingCoordinate private int myMouseX = -1;
   @SwingCoordinate private int myMouseY = -1;
@@ -124,9 +128,24 @@ public abstract class SceneContext {
   @NotNull
   public abstract ColorSet getColorSet();
 
+  /**
+   * Gets a {@link ScenePicker.Writer} that can be used to add new shapes to the scene for picker detection.
+   */
   @NotNull
-  public ScenePicker getScenePicker() {
-    return myGraphicsPicker;
+  public ScenePicker.Writer getScenePickerForWrite() {
+    return myWritePicker;
+  }
+
+  /**
+   * Swaps the current read-mode picker with the write-mode picker. After this, the write picker will be empty.
+   */
+  void swapPickerBuffer() {
+    synchronized (myCurrentWritePickerLock) {
+      ScenePickerImpl temp = myReadPicker;
+      myReadPicker = myWritePicker;
+      myWritePicker = temp;
+      myWritePicker.reset();
+    }
   }
 
   /**
@@ -139,8 +158,10 @@ public abstract class SceneContext {
    */
   @Nullable
   public Object findClickedGraphics(@SwingCoordinate int x, @SwingCoordinate int y) {
-    ScenePicker.HitResult hit = Iterables.getLast(myGraphicsPicker.find(x, y), null);
-    return hit != null ? hit.object() : null;
+    synchronized (myCurrentWritePickerLock) {
+      ScenePicker.HitResult hit = Iterables.getLast(myReadPicker.find(x, y), null);
+      return hit != null ? hit.object() : null;
+    }
   }
 
   public double getScale() { return 1; }
@@ -156,6 +177,7 @@ public abstract class SceneContext {
   }
 
   private static SceneContext lazySingleton;
+
 
   /**
    * Provide an Identity transform used in testing

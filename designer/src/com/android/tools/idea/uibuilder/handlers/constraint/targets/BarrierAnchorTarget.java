@@ -77,7 +77,7 @@ public class BarrierAnchorTarget extends ConstraintAnchorTarget {
 
   @Override
   public void addHit(@NotNull SceneContext transform,
-                     @NotNull ScenePicker picker,
+                     @NotNull ScenePicker.Writer picker,
                      @JdkConstants.InputEventMask int modifiersEx) {
     picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
                    transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));

@@ -738,7 +738,7 @@ public class SceneComponent {
     return rectangle;
   }
 
-  public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker, @InputEventMask int modifiersEx) {
+  public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePickerImpl picker, @InputEventMask int modifiersEx) {
     myHitProvider.addHit(this, sceneTransform, picker);
 
     ImmutableList<Target> targets = getTargets();

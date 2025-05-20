@@ -15,25 +15,26 @@
  */
 package com.android.tools.idea.common.scene;
 
-import static com.android.tools.idea.common.scene.ScenePicker.*;
-
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.FlatteningPathIterator;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.PathIterator;
+import java.awt.geom.Rectangle2D;
 import java.util.function.Consumer;
 import junit.framework.TestCase;
-
-import java.awt.geom.*;
 
 /**
  * Test ScenePicker
  */
-public class ScenePickerTest extends TestCase {
+public class ScenePickerImplTest extends TestCase {
   double expectedDistance = 0;
   double error = 0;
-  private Consumer<HitResult> myHitConsumer;
+  private Consumer<ScenePicker.HitResult> myHitConsumer;
 
-  private void findHits(ScenePicker scenePicker, int x, int y) {
-    scenePicker.find(x, y).forEach((hit) -> myHitConsumer.accept(hit));
+  private void findHits(ScenePickerImpl scenePickerImpl, int x, int y) {
+    scenePickerImpl.find(x, y).forEach((hit) -> myHitConsumer.accept(hit));
   }
 
   public void testLine() {
@@ -43,10 +44,10 @@ public class ScenePickerTest extends TestCase {
   }
 
   private void testLine(int range, int w) {
-    ScenePicker scenePicker = new ScenePicker();
-    scenePicker.reset();
-    scenePicker.addLine(1, range, 10, 10, 100, 100, w);
-    scenePicker.addLine(1, range, 2100, 2100, 1100, 1100, w);
+    ScenePickerImpl scenePickerImpl = new ScenePickerImpl();
+    scenePickerImpl.reset();
+    scenePickerImpl.addLine(1, range, 10, 10, 100, 100, w);
+    scenePickerImpl.addLine(1, range, 2100, 2100, 1100, 1100, w);
     boolean[] found = new boolean[1];
     myHitConsumer = (hit) -> {
       assertEquals(1, Math.toIntExact((Integer)hit.object()));
@@ -54,34 +55,34 @@ public class ScenePickerTest extends TestCase {
       found[0] = true;
     };
     expectedDistance = 0;
-    findHits(scenePicker, 10, 10);
+    findHits(scenePickerImpl, 10, 10);
     assertTrue(found[0]);
     found[0] = false;
-    findHits(scenePicker, 50, 50);
-    assertTrue(found[0]);
-
-    found[0] = false;
-    findHits(scenePicker, 99, 99);
+    findHits(scenePickerImpl, 50, 50);
     assertTrue(found[0]);
 
     found[0] = false;
-    findHits(scenePicker, 100, 100);
+    findHits(scenePickerImpl, 99, 99);
+    assertTrue(found[0]);
+
+    found[0] = false;
+    findHits(scenePickerImpl, 100, 100);
     assertTrue(found[0]);
     found[0] = false;
     expectedDistance = Math.max(Math.hypot(7, 7) - w, 0);
 
-    findHits(scenePicker, 3, 3);
+    findHits(scenePickerImpl, 3, 3);
     assertTrue(found[0]);
 
     found[0] = false;
-    findHits(scenePicker, 0, 0);
+    findHits(scenePickerImpl, 0, 0);
     assertFalse(found[0]);
   }
 
   public void testRect() {
-    ScenePicker scenePicker = new ScenePicker();
-    scenePicker.reset();
-    scenePicker.addRect(1, 10, 10, 10, 100, 100);
+    ScenePickerImpl scenePickerImpl = new ScenePickerImpl();
+    scenePickerImpl.reset();
+    scenePickerImpl.addRect(1, 10, 10, 10, 100, 100);
     boolean[] found = new boolean[1];
     myHitConsumer = (hit) -> {
       assertEquals(1, Math.toIntExact((Integer)hit.object()));
@@ -98,7 +99,7 @@ public class ScenePickerTest extends TestCase {
       y = y * 9 + 11;
 
       found[0] = false;
-      findHits(scenePicker, x, y);
+      findHits(scenePickerImpl, x, y);
       assertTrue(x + "," + y, found[0]);
     }
 
@@ -108,43 +109,43 @@ public class ScenePickerTest extends TestCase {
     for (PathIterator pi = s.getPathIterator(null); !pi.isDone(); pi.next()) {
       pi.currentSegment(point);
       found[0] = false;
-      findHits(scenePicker, (int)point[0], (int)point[1]);
+      findHits(scenePickerImpl, (int)point[0], (int)point[1]);
       assertTrue((int)point[0] + "," + (int)point[1], found[0]);
     }
     found[0] = false;
-    findHits(scenePicker, 50, 50);
+    findHits(scenePickerImpl, 50, 50);
     assertTrue(found[0]);
 
     found[0] = false;
-    findHits(scenePicker, 99, 99);
+    findHits(scenePickerImpl, 99, 99);
     assertTrue(found[0]);
 
     found[0] = false;
-    findHits(scenePicker, 99, 99);
+    findHits(scenePickerImpl, 99, 99);
     assertTrue(found[0]);
 
     found[0] = false;
     expectedDistance = (102 - 100);
-    findHits(scenePicker, 102, 99);
+    findHits(scenePickerImpl, 102, 99);
     assertTrue(found[0]);
 
     found[0] = false;
     expectedDistance = 0;
-    findHits(scenePicker, 100, 100);
+    findHits(scenePickerImpl, 100, 100);
     assertTrue(found[0]);
 
     found[0] = false;
     expectedDistance = Math.hypot(6, 6);
-    findHits(scenePicker, 4, 4);
+    findHits(scenePickerImpl, 4, 4);
     assertTrue(found[0]);
 
     found[0] = false;
     expectedDistance = Math.hypot(10, 10);
-    findHits(scenePicker, 0, 0);
+    findHits(scenePickerImpl, 0, 0);
     assertFalse(found[0]);
 
-    scenePicker.reset();
-    scenePicker.addRect(1, 10, 11, 11, 10, 10);
+    scenePickerImpl.reset();
+    scenePickerImpl.addRect(1, 10, 11, 11, 10, 10);
     error = 5;
     for (int y = 0; y < 20; y += 1) {
       for (int x = 0; x < 20; x += 1) {
@@ -155,7 +156,7 @@ public class ScenePickerTest extends TestCase {
         expectedDistance = Math.min(expectedDistance, Math.hypot(x - 11, y - 11));
 
         found[0] = false;
-        findHits(scenePicker, x, y);
+        findHits(scenePickerImpl, x, y);
         if (found[0]) {
           assertTrue(x + "," + y + " dist " + expectedDistance, !(expectedDistance > 12));
         }
@@ -174,8 +175,8 @@ public class ScenePickerTest extends TestCase {
 
   private void testCurveTo(int range, int w)
   {
-    ScenePicker scenePicker = new ScenePicker();
-    scenePicker.reset();
+    ScenePickerImpl scenePickerImpl = new ScenePickerImpl();
+    scenePickerImpl.reset();
     int x1 = 10;
     int y1 = 10;
     int x2 = 40;
@@ -185,7 +186,7 @@ public class ScenePickerTest extends TestCase {
     int x4 = 100;
     int y4 = 100;
     error = 3;
-    scenePicker.addCurveTo(1, range, x1, y1, x2, y2, x3, y3, x4, y4, w);
+    scenePickerImpl.addCurveTo(1, range, x1, y1, x2, y2, x3, y3, x4, y4, w);
     boolean[] found = new boolean[1];
 
     myHitConsumer = (hit) -> {
@@ -202,7 +203,7 @@ public class ScenePickerTest extends TestCase {
 
       pi.currentSegment(point);
       found[0] = false;
-      findHits(scenePicker, (int)point[0], (int)point[1]);
+      findHits(scenePickerImpl, (int)point[0], (int)point[1]);
       assertTrue((int)point[0] + "," + (int)point[1], found[0]);
     }
 
@@ -217,7 +218,7 @@ public class ScenePickerTest extends TestCase {
 
       pi.currentSegment(point);
       found[0] = false;
-      findHits(scenePicker, (int)point[0], (int)point[1]);
+      findHits(scenePickerImpl, (int)point[0], (int)point[1]);
       assertFalse((int)point[0] + "," + (int)point[1], found[0]);
     }
   }
@@ -225,8 +226,8 @@ public class ScenePickerTest extends TestCase {
   public void testCircle() {
     boolean[] found = new boolean[1];
 
-    ScenePicker scenePicker = new ScenePicker();
-    scenePicker.reset();
+    ScenePickerImpl scenePickerImpl = new ScenePickerImpl();
+    scenePickerImpl.reset();
     myHitConsumer = (hit) -> {
       assertEquals(1, Math.toIntExact((Integer)hit.object()));
       assertEquals(expectedDistance, hit.distance(), error);
@@ -241,12 +242,12 @@ public class ScenePickerTest extends TestCase {
       for (int range = 0; range <= maxRadius - r; range++) {
         for (int x = x1 - maxRadius; x <= x1 + maxRadius; x++) {
           for (int y = y1 - maxRadius; y <= y1 + maxRadius; y++) {
-            scenePicker.reset();
-            scenePicker.addCircle(1, range, x1, y1, r);
+            scenePickerImpl.reset();
+            scenePickerImpl.addCircle(1, range, x1, y1, r);
             found[0] = false;
             expectedDistance = Math.max(Math.hypot(x - x1, y - y1) - r, 0);
 
-            findHits(scenePicker, x, y);
+            findHits(scenePickerImpl, x, y);
 
             assertEquals(x + "," + y + "," + r + "," + range, found[0], expectedDistance <= range);
           }
@@ -256,12 +257,12 @@ public class ScenePickerTest extends TestCase {
   }
 
   public void testAddingMany() {
-    ScenePicker scenePicker = new ScenePicker();
-    scenePicker.reset();
+    ScenePickerImpl scenePickerImpl = new ScenePickerImpl();
+    scenePickerImpl.reset();
     error = 2;
 
     for (int i = 0; i < 1000; i++) {
-      scenePicker.addCircle(1, 3, 2 * (i % 100), 2 * (i / 100), 0);
+      scenePickerImpl.addCircle(1, 3, 2 * (i % 100), 2 * (i / 100), 0);
     }
 
     boolean[] found = new boolean[1];
@@ -274,13 +275,13 @@ public class ScenePickerTest extends TestCase {
     for (int i = 0; i < 1000; i++) {
       expectedDistance = Math.hypot(1, 1);
       found[0] = false;
-      findHits(scenePicker, 2 * (i % 100), 2 * (i / 100));
+      findHits(scenePickerImpl, 2 * (i % 100), 2 * (i / 100));
       assertTrue(found[0]);
     }
   }
 
   public void testEllipseCode() {
-    ScenePicker scenePicker = new ScenePicker() {
+    ScenePickerImpl scenePickerImpl = new ScenePickerImpl() {
       {
         int x1 = 10;
         int y1 = 10;
@@ -303,7 +304,7 @@ public class ScenePickerTest extends TestCase {
   }
 
   public void testCurveHit() {
-    ScenePicker scenePicker = new ScenePicker() {
+    ScenePickerImpl scenePickerImpl = new ScenePickerImpl() {
       {
         int x1 = 10;
         int y1 = 10;
@@ -327,8 +328,8 @@ public class ScenePickerTest extends TestCase {
   }
 
   public void testEdgeCasesCurveTo() {
-    ScenePicker scenePicker = new ScenePicker();
-    scenePicker.reset();
+    ScenePickerImpl scenePickerImpl = new ScenePickerImpl();
+    scenePickerImpl.reset();
     int x1 = 1;
     int y1 = 1;
     int x2 = 4;
@@ -338,7 +339,7 @@ public class ScenePickerTest extends TestCase {
     int x4 = 10;
     int y4 = 10;
     error = 3;
-    scenePicker.addCurveTo(1, 4, x1, y1, x2, y2, x3, y3, x4, y4, 0);
+    scenePickerImpl.addCurveTo(1, 4, x1, y1, x2, y2, x3, y3, x4, y4, 0);
 
     myHitConsumer = (hit) -> {
       assertEquals(1, Math.toIntExact((Integer)hit.object()));
@@ -351,7 +352,7 @@ public class ScenePickerTest extends TestCase {
       @SuppressWarnings("IntegerDivisionInFloatingPointContext") double y = (i / 100) / 100.;
       x = 13 * x - 1;
       y = 13 * y - 1;
-      findHits(scenePicker, (int)x, (int)y);
+      findHits(scenePickerImpl, (int)x, (int)y);
     }
   }
 }

@@ -32,7 +32,7 @@ object NavActionSourceHitProvider : DefaultHitProvider() {
   override fun addHit(
     component: SceneComponent,
     sceneTransform: SceneContext,
-    picker: ScenePicker,
+    picker: ScenePicker.Writer,
   ) {
     NavDestinationHitProvider.addHit(component, sceneTransform, picker)
 
