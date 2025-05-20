@@ -19,12 +19,9 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.section.sections.ImportSection;
 import com.google.idea.blaze.common.Context;
-import com.google.idea.blaze.qsync.QuerySyncProjectListener;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
-import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
 import java.util.Collection;
@@ -36,22 +33,16 @@ public class ProjectStatsLogger implements QuerySyncProjectListener {
   /** Entry point for instantiating {@link ProjectStatsLogger}. */
   public static class Provider implements QuerySyncProjectListenerProvider {
     @Override
-    public QuerySyncProjectListener createListener(QuerySyncProject querySyncProject) {
-      return new ProjectStatsLogger(
-          querySyncProject.getArtifactTracker(), querySyncProject.getProjectViewSet());
+    public QuerySyncProjectListener createListener(QuerySyncManager querySyncManager) {
+      return new ProjectStatsLogger();
     }
   }
 
-  private ArtifactTracker<?> artifactTracker;
-  private ProjectViewSet projectViewSet;
-
-  public ProjectStatsLogger(ArtifactTracker<?> artifactTracker, ProjectViewSet projectViewSet) {
-    this.artifactTracker = artifactTracker;
-    this.projectViewSet = projectViewSet;
-  }
+  public ProjectStatsLogger() {  }
 
   @Override
-  public void onNewProjectSnapshot(Context<?> context, QuerySyncProjectSnapshot instance) {
+  public void onNewProjectSnapshot(Context<?> context, ReadonlyQuerySyncProject querySyncProject, QuerySyncProjectSnapshot instance) {
+    final var projectViewSet = querySyncProject.getProjectViewSet();
     Optional.ofNullable(context.getScope(QuerySyncActionStatsScope.class))
         .ifPresent(
             scope -> {
@@ -76,6 +67,5 @@ public class ProjectStatsLogger implements QuerySyncProjectListener {
                           .mapToInt(Collection::size)
                           .sum());
             });
-    ;
   }
 }

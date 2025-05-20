@@ -47,7 +47,6 @@ import com.google.idea.blaze.qsync.DependenciesProjectProtoUpdater;
 import com.google.idea.blaze.qsync.ProjectProtoTransform.Registry;
 import com.google.idea.blaze.qsync.ProjectRefresher;
 import com.google.idea.blaze.qsync.SnapshotBuilder;
-import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.google.idea.blaze.qsync.VcsStateDiffer;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
@@ -67,7 +66,6 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Loads a project, either from saved state or from a {@code .blazeproject} file, yielding a {@link
@@ -166,7 +164,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
           result.buildSystem(),
           result.projectTransformRegistry(),
           result.handledRuleKinds());
-    QuerySyncProjectListenerProvider.registerListenersFor(querySyncProject);
+    QuerySyncProjectListenerProvider.registerListenersFor(QuerySyncManager.getInstance(project), result.graph());
     result.projectTransformRegistry().addAll(ProjectProtoTransformProvider.getAll(result.latestProjectDef()));
 
     return querySyncProject;
@@ -219,7 +217,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
 
     Registry projectTransformRegistry = new Registry();
     SnapshotHolder snapshotHolder = new SnapshotHolder();
-    snapshotHolder.addListener((c, i) -> projectModificationTracker.incModificationCount());
+    snapshotHolder.addListener((c, q, i) -> projectModificationTracker.incModificationCount());
     BuildArtifactCache artifactCache = project.getService(BuildArtifactCache.class);
 
     DependencyBuilder dependencyBuilder =

@@ -30,7 +30,6 @@ import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
-import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.google.idea.blaze.qsync.artifacts.MockArtifactCache;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;

@@ -88,6 +88,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 ) : Disposable {
   constructor(project: Project) : this(project, createProjectLoader(project))
 
+  val ideProject: Project get() = project
   private val logger = thisLogger()
 
   @Volatile
@@ -165,7 +166,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   private fun reloadProjectIfDefinitionHasChanged(project: QuerySyncProject?, context: BlazeContext): ReloadProjectResult {
     val loadedProject = loadedProjectUnlessDefinitionHasChanged(context)
                       ?: runCatching { loader.loadProject() }.getOrElse { throw BuildException("Failed to load project", it) }
-    val existingQueryData = project?.currentSnapshot?.getOrNull()?.queryData()
+    val existingQueryData = currentSnapshot.getOrNull()?.queryData()
                             ?: runCatching { loadedProject.readSnapshotFromDisk(context) }
                               .getOrElse {
                                 context.output(PrintOutput("Failed to read snapshot from disk. Error: ${it.message}"))

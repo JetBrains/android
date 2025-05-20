@@ -15,12 +15,12 @@
  */
 package com.google.idea.blaze.cpp.qsync;
 
-import com.google.idea.blaze.base.qsync.QuerySyncProject;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
+import com.google.idea.blaze.base.qsync.QuerySyncProjectListener;
 import com.google.idea.blaze.base.qsync.QuerySyncProjectListenerProvider;
+import com.google.idea.blaze.base.qsync.ReadonlyQuerySyncProject;
 import com.google.idea.blaze.common.Context;
-import com.google.idea.blaze.qsync.QuerySyncProjectListener;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
-import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
@@ -38,32 +38,29 @@ public class CcProjectModelUpdater implements QuerySyncProjectListener {
     public Provider() {}
 
     @Override
-    public QuerySyncProjectListener createListener(QuerySyncProject querySyncProject) {
-      return create(querySyncProject.getIdeProject(), querySyncProject.getProjectPathResolver());
+    public QuerySyncProjectListener createListener(QuerySyncManager querySyncManager) {
+      return create(querySyncManager.getIdeProject());
     }
   }
 
-  private final ProjectPath.Resolver pathResolver;
   private final OCWorkspace readonlyOcWorkspace;
   private final Project project;
 
-  public static CcProjectModelUpdater create(Project project, ProjectPath.Resolver pathResolver) {
-    return new CcProjectModelUpdater(pathResolver, OCWorkspace.getInstance(project), project);
+  public static CcProjectModelUpdater create(Project project) {
+    return new CcProjectModelUpdater(OCWorkspace.getInstance(project), project);
   }
 
-  public CcProjectModelUpdater(
-      ProjectPath.Resolver pathResolver, OCWorkspace ocWorkspace, Project project) {
-    this.pathResolver = pathResolver;
+  public CcProjectModelUpdater(OCWorkspace ocWorkspace, Project project) {
     this.readonlyOcWorkspace = ocWorkspace;
     this.project = project;
   }
 
   @Override
-  public void onNewProjectSnapshot(Context<?> context, QuerySyncProjectSnapshot instance) {
-    updateProjectModel(instance.project(), context);
+  public void onNewProjectSnapshot(Context<?> context, ReadonlyQuerySyncProject querySyncProject, QuerySyncProjectSnapshot instance) {
+    updateProjectModel(querySyncProject, instance.project(), context);
   }
 
-  public void updateProjectModel(ProjectProto.Project spec, Context<?> context) {
+  public void updateProjectModel(ReadonlyQuerySyncProject querySyncProject, ProjectProto.Project spec, Context<?> context) {
     if (!spec.hasCcWorkspace()) {
       return;
     }
@@ -71,7 +68,7 @@ public class CcProjectModelUpdater implements QuerySyncProjectListener {
     // TODO(b/307720763) Check & rationalise the update here, to ensure the project does not
     //   get out of sync.
     CcProjectModelUpdateOperation updateOp =
-        new CcProjectModelUpdateOperation(context, readonlyOcWorkspace, pathResolver);
+        new CcProjectModelUpdateOperation(context, readonlyOcWorkspace, querySyncProject.getProjectPathResolver());
     try {
       updateOp.visitWorkspace(spec.getCcWorkspace());
       updateOp.preCommit();

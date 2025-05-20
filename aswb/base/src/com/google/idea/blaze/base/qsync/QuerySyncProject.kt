@@ -44,7 +44,6 @@ import com.google.idea.blaze.qsync.BlazeQueryParser
 import com.google.idea.blaze.qsync.ProjectProtoTransform
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.google.idea.blaze.qsync.SnapshotBuilder
-import com.google.idea.blaze.qsync.SnapshotHolder
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
@@ -76,7 +75,9 @@ import kotlin.jvm.optionals.getOrNull
 interface ReadonlyQuerySyncProject {
   val buildSystem: BuildSystem
   val projectDefinition: ProjectDefinition
+  val projectViewSet: ProjectViewSet
   val workspaceRoot: WorkspaceRoot
+  val projectPathResolver: ProjectPath.Resolver
   val currentSnapshot: Optional<QuerySyncProjectSnapshot>
   val projectData: QuerySyncProjectData
   fun getWorkingSet(create: BlazeContext): Set<Path>
@@ -108,10 +109,10 @@ class QuerySyncProject(
   private val projectQuerier: ProjectQuerier,
   private val snapshotBuilder: SnapshotBuilder,
   override val projectDefinition: ProjectDefinition,
-  val projectViewSet: ProjectViewSet,
+  override val projectViewSet: ProjectViewSet,
 // TODO(mathewi) only one of these two should strictly be necessary:
   val workspacePathResolver: WorkspacePathResolver,
-  val projectPathResolver: ProjectPath.Resolver,
+  override val projectPathResolver: ProjectPath.Resolver,
   val workspaceLanguageSettings: WorkspaceLanguageSettings,
   val sourceToTargetMap: QuerySyncSourceToTargetMap,
   override val buildSystem: BuildSystem,
@@ -140,6 +141,7 @@ class QuerySyncProject(
       val coreSyncResult = syncCore(context, lastQuery)
       snapshotHolder.setCurrent(
         context,
+        this,
         this.snapshotHolder.current.orElseThrow().toBuilder()
           .queryData(coreSyncResult.postQuerySyncData)
           .graph(coreSyncResult.graph)
@@ -441,7 +443,7 @@ class QuerySyncProject(
     // update the snapshot with any missing artifacts:
     newSnapshot = newSnapshot.toBuilder().incompleteTargets(result.incompleteTargets).build()
 
-    snapshotHolder.setCurrent(context, newSnapshot)
+    snapshotHolder.setCurrent(context, this, newSnapshot)
     try {
       writeToDisk(newSnapshot)
     } catch (e: IOException) {

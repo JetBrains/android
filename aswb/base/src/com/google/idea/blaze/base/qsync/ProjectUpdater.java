@@ -17,7 +17,6 @@ package com.google.idea.blaze.base.qsync;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation.JAVA_DEPS_LIB_NAME;
 import static java.util.Arrays.stream;
 
 import com.google.common.collect.ImmutableList;
@@ -25,15 +24,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.settings.BlazeImportSettings;
+import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.google.idea.blaze.base.util.UrlUtil;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.PrintOutput;
-import com.google.idea.blaze.qsync.QuerySyncProjectListener;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto;
@@ -45,7 +42,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.ModuleTypeManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.RootsChangeRescanningInfo;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LibraryOrderEntry;
@@ -53,10 +49,8 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.SourceFolder;
-import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.Library.ModifiableModel;
-import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.openapi.vfs.VfsUtil;
 import java.io.File;
 import java.nio.file.Path;
@@ -74,39 +68,17 @@ public class ProjectUpdater implements QuerySyncProjectListener {
   /** Entry point for instantiating {@link ProjectUpdater}. */
   public static class Provider implements QuerySyncProjectListenerProvider {
     @Override
-    public QuerySyncProjectListener createListener(QuerySyncProject querySyncProject) {
+    public QuerySyncProjectListener createListener(QuerySyncManager querySyncManager) {
       return QuerySync.enableLibraryEntity()
-          ? new ProjectUpdaterWithWorkspaceEntity(
-              querySyncProject.getIdeProject(),
-              querySyncProject.getProjectViewSet(),
-              querySyncProject.getWorkspaceRoot(),
-              querySyncProject.getProjectPathResolver())
-          : new ProjectUpdater(
-              querySyncProject.getIdeProject(),
-              querySyncProject.getImportSettings(),
-              querySyncProject.getProjectViewSet(),
-              querySyncProject.getWorkspaceRoot(),
-              querySyncProject.getProjectPathResolver());
+             ? new ProjectUpdaterWithWorkspaceEntity(querySyncManager.getIdeProject())
+             : new ProjectUpdater(querySyncManager.getIdeProject());
     }
   }
 
   private final Project project;
-  private final BlazeImportSettings importSettings;
-  private final ProjectViewSet projectViewSet;
-  private final WorkspaceRoot workspaceRoot;
-  private final ProjectPath.Resolver projectPathResolver;
 
-  public ProjectUpdater(
-      Project project,
-      BlazeImportSettings importSettings,
-      ProjectViewSet projectViewSet,
-      WorkspaceRoot workspaceRoot,
-      ProjectPath.Resolver projectPathResolver) {
+  public ProjectUpdater(Project project) {
     this.project = project;
-    this.importSettings = importSettings;
-    this.projectViewSet = projectViewSet;
-    this.workspaceRoot = workspaceRoot;
-    this.projectPathResolver = projectPathResolver;
   }
 
   public static ModuleType<?> mapModuleType(ProjectProto.ModuleType type) {
@@ -120,11 +92,15 @@ public class ProjectUpdater implements QuerySyncProjectListener {
   }
 
   @Override
-  public void onNewProjectSnapshot(Context<?> context, QuerySyncProjectSnapshot graph) {
-    updateProjectModel(graph.project(), context);
+  public void onNewProjectSnapshot(Context<?> context, ReadonlyQuerySyncProject querySyncProject, QuerySyncProjectSnapshot graph) {
+    updateProjectModel(querySyncProject, graph.project(), context);
   }
 
-  private void updateProjectModel(ProjectProto.Project spec, Context<?> context) {
+  private void updateProjectModel(ReadonlyQuerySyncProject querySyncProject, ProjectProto.Project spec, Context<?> context) {
+    final var importSettings = BlazeImportSettingsManager.getInstance(project).getImportSettings();
+    final var projectViewSet = querySyncProject.getProjectViewSet();
+    final var projectPathResolver = querySyncProject.getProjectPathResolver();
+    final var workspaceRoot = querySyncProject.getWorkspaceRoot();
     File imlDirectory = new File(BlazeDataStorage.getProjectDataDir(importSettings), "modules");
     Transactions.submitWriteActionTransactionAndWait(
         () -> {
@@ -140,7 +116,7 @@ public class ProjectUpdater implements QuerySyncProjectListener {
           }
           ImmutableMap.Builder<String, Library> libMapBuilder = ImmutableMap.builder();
           for (ProjectProto.Library libSpec : spec.getLibraryList()) {
-            Library library = getOrCreateLibrary(models, libSpec);
+            Library library = getOrCreateLibrary(projectPathResolver, workspaceRoot, models, libSpec);
             libMapBuilder.put(libSpec.getName(), library);
           }
           ImmutableMap<String, Library> libMap = libMapBuilder.buildOrThrow();
@@ -236,8 +212,8 @@ public class ProjectUpdater implements QuerySyncProjectListener {
     entry.setExported(false);
   }
 
-  private Library getOrCreateLibrary(
-      IdeModifiableModelsProvider models, ProjectProto.Library libSpec) {
+  private Library getOrCreateLibrary(ProjectPath.Resolver projectPathResolver, WorkspaceRoot workspaceRoot,
+    IdeModifiableModelsProvider models, ProjectProto.Library libSpec) {
     // TODO this needs more work, it's a bit messy.
     Library library = models.getLibraryByName(libSpec.getName());
     if (library == null) {

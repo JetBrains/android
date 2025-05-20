@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Bazel Authors. All rights reserved.
+ * Copyright 2025 The Bazel Authors. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.qsync
+package com.google.idea.blaze.base.qsync
 
 import com.google.common.collect.ImmutableMap
 import com.google.common.io.ByteSource
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
+import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import java.util.Optional
 
 /** Keeps a reference to the most up-to date [QuerySyncProjectSnapshot] instance.  */
@@ -35,7 +36,7 @@ class SnapshotHolder {
   }
 
   @Throws(BuildException::class)
-  fun setCurrent(context: Context<*>, newInstance: QuerySyncProjectSnapshot) {
+  fun setCurrent(context: Context<*>, querySyncProject: QuerySyncProject, newInstance: QuerySyncProjectSnapshot) {
     val listeners  = synchronized(lock) {
       if (currentInstance == newInstance) {
         return
@@ -44,7 +45,7 @@ class SnapshotHolder {
       this.listeners.toList()
     }
     for (l in listeners) {
-      l.onNewProjectSnapshot(context, newInstance)
+      l.onNewProjectSnapshot(context, querySyncProject, newInstance)
     }
   }
 
@@ -56,7 +57,8 @@ class SnapshotHolder {
   fun getBugreportFiles(): Map<String, ByteSource> {
     val instance = synchronized(lock) { currentInstance }
     return ImmutableMap.of(
-      "projectProto", instance?.let { ByteSource.wrap(it.project().toByteArray()) } ?: ByteSource.empty()
+      "projectProto",
+      instance?.let { ByteSource.wrap(it.project().toByteArray()) } ?: ByteSource.empty()
     )
   }
 }

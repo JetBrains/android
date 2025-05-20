@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.qsync;
 
-import com.google.idea.blaze.qsync.QuerySyncProjectListener;
 import com.intellij.openapi.extensions.ExtensionPointName;
 
 /** Extension point to provide {@link QuerySyncProjectListener} instances. */
@@ -24,11 +23,11 @@ public interface QuerySyncProjectListenerProvider {
   ExtensionPointName<QuerySyncProjectListenerProvider> EXTENSION_POINT =
       ExtensionPointName.create("com.google.idea.blaze.qsync.QuerySyncListenerProvider");
 
-  static void registerListenersFor(QuerySyncProject querySyncProject) {
+  static void registerListenersFor(QuerySyncManager querySyncManager, SnapshotHolder snapshotHolder) {
     EXTENSION_POINT.getExtensionList().stream()
-        .map(p -> p.createListener(querySyncProject))
-        .forEach(querySyncProject.getSnapshotHolder()::addListener);
+        .map(p -> p.createListener(querySyncManager))
+        .forEach(snapshotHolder::addListener);
   }
 
-  QuerySyncProjectListener createListener(QuerySyncProject project);
+  QuerySyncProjectListener createListener(QuerySyncManager querySyncManager);
 }
