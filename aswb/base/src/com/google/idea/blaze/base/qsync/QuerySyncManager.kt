@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.qsync
 
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableSet
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
@@ -57,7 +58,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.serviceContainer.NonInjectable
-import java.io.IOException
 import java.nio.file.Path
 import java.util.Optional
 import kotlin.concurrent.Volatile
@@ -414,7 +414,12 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       subTitle = "Building...",
       operationType = OperationType.BUILD_DEPS
     ) { context ->
-      assertProjectLoaded().enableAnalysis(context, targets)
+      context.output(
+        PrintOutput.output(
+          "Building dependencies for:\n  " + Joiner.on("\n  ").join(targets)
+        )
+      )
+      assertProjectLoaded().enableAnalysis(context, DependencyTracker.DependencyBuildRequest.multiTarget(targets))
     }
 
   @CanIgnoreReturnValue
@@ -439,7 +444,12 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.BUILD_DEPS
     ) { context ->
       val loadedProject = assertProjectLoaded()
-      loadedProject.enableAnalysis(context, loadedProject.getTargetsDependingOn(targets))
+      context.output(
+        PrintOutput.output(
+          "Building reverse dependencies for:\n  " + Joiner.on("\n  ").join(targets)
+        )
+      )
+      loadedProject.enableAnalysis(context, DependencyTracker.DependencyBuildRequest.multiTarget(loadedProject.getTargetsDependingOn(targets)))
     }
 
   @CanIgnoreReturnValue
@@ -460,7 +470,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       subTitle = "Building dependencies",
       operationType = OperationType.BUILD_DEPS
     ) { context ->
-      assertProjectLoaded().enableAnalysis(context)
+      context.output(PrintOutput.output("Building project dependencies..."))
+      assertProjectLoaded().enableAnalysis(context, DependencyTracker.DependencyBuildRequest.wholeProject())
     }
 
   @CanIgnoreReturnValue
@@ -480,7 +491,12 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       subTitle = "Removing all built dependencies",
       operationType = OperationType.OTHER
     ) { context ->
-      assertProjectLoaded().cleanDependencies(context)
+      val assertProjectLoaded = assertProjectLoaded()
+      runCatching { assertProjectLoaded.artifactTracker.clear() }
+        .getOrElse { throw BuildException("Failed to clear dependency info", it) }
+      val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
+      val graph = currentSnapshot.orElseThrow().graph()
+      assertProjectLoaded.updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
     }
 
   @CanIgnoreReturnValue
@@ -501,7 +517,10 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.OTHER
     ) { context ->
       val loadedProject = assertProjectLoaded()
-      loadedProject.invalidateQuerySyncState(context)
+      loadedProject.runCatching { loadedProject.artifactTracker.clear() }
+        .getOrElse<Unit, Unit> { throw BuildException("Failed to clear dependency info", it) }
+      loadedProject.updateProjectStructureAndSnapshot(context, QuerySyncProjectSnapshot.EMPTY.queryData(),
+                                                      QuerySyncProjectSnapshot.EMPTY.graph())
       runSync(context) { context ->
         val coreSyncResult = loadedProject.syncCore(context, null)
         loadedProject.updateProjectStructureAndSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
@@ -510,7 +529,15 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
 
   @Throws(BuildException::class)
   fun invalidateQuerySyncState(context: BlazeContext) {
-    loadedProject?.invalidateQuerySyncState(context)
+    loadedProject?.let { loadedProject ->
+      loadedProject.runCatching { loadedProject.artifactTracker.clear() }
+        .getOrElse { throw BuildException("Failed to clear dependency info", it) }
+      loadedProject.updateProjectStructureAndSnapshot(
+        context,
+        QuerySyncProjectSnapshot.EMPTY.queryData(),
+        QuerySyncProjectSnapshot.EMPTY.graph()
+      )
+    }
   }
 
   fun canEnableAnalysisFor(workspaceRelativePath: Path): Boolean {

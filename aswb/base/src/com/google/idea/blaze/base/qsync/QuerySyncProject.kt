@@ -222,38 +222,11 @@ class QuerySyncProject(
     return vcsState.modifiedFiles()
   }
 
-  @Throws(BuildException::class)
-  fun cleanDependencies(context: BlazeContext) {
-    try {
-      artifactTracker.clear()
-    } catch (e: IOException) {
-      throw BuildException("Failed to clear dependency info", e)
-    }
-    val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
-    val graph = currentSnapshot.orElseThrow().graph()
-    updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
-  }
-
-  @Throws(BuildException::class)
-  fun invalidateQuerySyncState(context: BlazeContext) {
-    try {
-      artifactTracker.clear()
-    } catch (e: IOException) {
-      throw BuildException("Failed to clear dependency info", e)
-    }
-    updateProjectStructureAndSnapshot(context, QuerySyncProjectSnapshot.EMPTY.queryData(), QuerySyncProjectSnapshot.EMPTY.graph())
-  }
-
-  @Throws(IOException::class, BuildException::class)
-  fun build(parentContext: BlazeContext, request: DependencyTracker.DependencyBuildRequest) {
-    BlazeContext.create(parentContext).use { context ->
-      context.push(BuildDepsStatsScope())
-      if (this.dependencyTracker.buildDependenciesForTargets(context, request)) {
-        val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
-        val graph = currentSnapshot.orElseThrow().graph()
-        updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
-      }
-    }
+  fun buildDependencies(
+    context: BlazeContext,
+    request: DependencyTracker.DependencyBuildRequest,
+  ): Boolean {
+    return this.dependencyTracker.buildDependenciesForTargets(context, request)
   }
 
   private fun buildGraphData(
@@ -292,29 +265,20 @@ class QuerySyncProject(
   }
 
   @Throws(BuildException::class)
-  fun enableAnalysis(context: BlazeContext, projectTargets: Set<Label>) {
+  fun enableAnalysis(context: BlazeContext, request: DependencyTracker.DependencyBuildRequest) {
     try {
-      context.output(
-        PrintOutput.output(
-          "Building dependencies for:\n  " + Joiner.on("\n  ").join(projectTargets)
-        )
-      )
-      build(context, DependencyTracker.DependencyBuildRequest.multiTarget(projectTargets))
+      BlazeContext.create(context).use { context ->
+        context.push(BuildDepsStatsScope())
+        if (buildDependencies(context, request)) {
+          val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
+          val graph = currentSnapshot.orElseThrow().graph()
+          updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
+        }
+      }
     } catch (e: IOException) {
       throw BuildException("Failed to build dependencies", e)
     }
   }
-
-  @Throws(BuildException::class)
-  fun enableAnalysis(context: BlazeContext) {
-    try {
-      context.output(PrintOutput.output("Building dependencies for project"))
-      build(context, DependencyTracker.DependencyBuildRequest.wholeProject())
-    } catch (e: IOException) {
-      throw BuildException("Failed to build dependencies", e)
-    }
-  }
-
   fun canEnableAnalysisFor(workspacePath: Path): Boolean {
     return getProjectTargets(BlazeContext.create(), listOf(workspacePath)).isNotEmpty()
   }
