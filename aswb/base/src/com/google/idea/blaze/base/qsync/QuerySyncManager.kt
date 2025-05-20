@@ -153,7 +153,10 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
-      runSync(context) { context -> result.project.sync(context, result.existingPostQuerySyncData) }
+      runSync(context) { context ->
+        val coreSyncResult = result.project.syncCore(context, result.existingPostQuerySyncData)
+        result.project.updateProjectStructureAndSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
+      }
     }
 
   private class ReloadProjectResult(val project: QuerySyncProject, val existingPostQuerySyncData: PostQuerySyncData?)
@@ -200,7 +203,10 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(project = null, context)
-      runSync(context) { context -> result.project.sync(context, result.existingPostQuerySyncData) }
+      runSync(context) { context ->
+        val coreSyncResult = result.project.syncCore(context, result.existingPostQuerySyncData)
+        result.project.updateProjectStructureAndSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
+      }
     }
 
   @CanIgnoreReturnValue
@@ -221,7 +227,10 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
-      runSync(context) { context -> result.project.sync(context, lastQuery = null) }
+      runSync(context) { context ->
+        val coreSyncResult = result.project.syncCore(context, null)
+        result.project.updateProjectStructureAndSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
+      }
     }
 
   @CanIgnoreReturnValue
@@ -242,7 +251,10 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
-      runSync(context) { context -> result.project.sync(context, result.existingPostQuerySyncData) }
+      runSync(context) { context ->
+        val coreSyncResult = result.project.syncCore(context, result.existingPostQuerySyncData)
+        result.project.updateProjectStructureAndSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
+      }
     }
 
   fun syncQueryDataIfNeeded(
@@ -481,7 +493,10 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     ) { context ->
       val loadedProject = assertProjectLoaded()
       loadedProject.invalidateQuerySyncState(context)
-      runSync(context) { context -> loadedProject.sync(context, lastQuery = null) }
+      runSync(context) { context ->
+        val coreSyncResult = loadedProject.syncCore(context, null)
+        loadedProject.updateProjectStructureAndSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
+      }
     }
 
   @Throws(BuildException::class)

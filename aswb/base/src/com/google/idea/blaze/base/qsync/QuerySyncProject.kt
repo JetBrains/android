@@ -133,14 +133,6 @@ class QuerySyncProject(
 
   fun getSourceToTargetMap(): SourceToTargetMap = sourceToTargetMap
 
-  fun sync(
-    context: BlazeContext,
-    lastQuery: PostQuerySyncData?,
-  ): QuerySyncProjectSnapshot {
-    val coreSyncResult = syncCore(context, lastQuery)
-    return updateProjectStructureAndSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
-  }
-
   @Throws(BuildException::class)
   fun syncQueryData(parentContext: BlazeContext, lastQuery: PostQuerySyncData?) {
     BlazeContext.create(parentContext).use { context ->
@@ -157,13 +149,13 @@ class QuerySyncProject(
   }
 
   @JvmRecord
-  private data class CoreSyncResult(
+  data class CoreSyncResult(
     val postQuerySyncData: PostQuerySyncData,
     val graph: BuildGraphData
   )
 
   @Throws(BuildException::class)
-  private fun syncCore(
+  fun syncCore(
     context: BlazeContext,
     lastQuery: PostQuerySyncData?
   ): CoreSyncResult {
@@ -272,7 +264,7 @@ class QuerySyncProject(
   }
 
   @Throws(BuildException::class)
-  private fun updateProjectStructureAndSnapshot(
+  fun updateProjectStructureAndSnapshot(
     context: BlazeContext,
     queryData: PostQuerySyncData,
     graph: BuildGraphData
