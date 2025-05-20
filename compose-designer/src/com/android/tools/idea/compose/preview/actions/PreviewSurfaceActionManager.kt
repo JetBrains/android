@@ -106,6 +106,7 @@ internal class PreviewSurfaceActionManager(
   override fun getSceneViewContextToolbarActions(): List<AnAction> =
     listOf(Separator()) +
       listOfNotNull(
+          ToggleResizePanelVisibilityAction().visibleOnlyInFocus(),
           SavePreviewInNewSizeAction().visibleOnlyInFocus(),
           RevertToOriginalSizeAction().visibleOnlyInFocus(),
           EnableUiCheckAction(),

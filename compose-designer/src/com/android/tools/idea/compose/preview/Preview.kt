@@ -30,6 +30,7 @@ import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.actions.RESIZE_PANEL_INSTANCE_KEY
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationPreview
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber
@@ -652,6 +653,7 @@ class ComposePreviewRepresentation(
       PREVIEW_VIEW_MODEL_STATUS.name -> status()
       FastPreviewSurface.KEY.name -> this@ComposePreviewRepresentation
       PreviewInvalidationManager.KEY.name -> this@ComposePreviewRepresentation
+      RESIZE_PANEL_INSTANCE_KEY.name -> activeResizePanelInFocusMode
       else -> null
     }
   }
@@ -795,6 +797,8 @@ class ComposePreviewRepresentation(
       var lastMode: PreviewMode? = null
 
       previewModeManager.mode.collect {
+        activeResizePanelInFocusMode?.isVisible = false
+
         (it.selected as? PsiComposePreviewElementInstance).let { element ->
           composePreviewFlowManager.setSingleFilter(element)
         }

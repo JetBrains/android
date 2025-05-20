@@ -19,6 +19,7 @@ import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
+// ToggleResizePanelVisibilityAction()
 // SavePreviewInNewSize()
 // RevertToOriginalSize()
 // EnableUiCheckAction(),
@@ -26,7 +27,7 @@ import org.mockito.kotlin.whenever
 // EnableInteractiveAction(),
 // DeployToDeviceAction()
 // in wrappers
-private const val EXPECTED_NUMBER_OF_ACTIONS = 6
+private const val EXPECTED_NUMBER_OF_ACTIONS = 7
 
 // EnableUiCheckAction(),
 // EnableInteractiveAction(),

@@ -67,10 +67,10 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
   /*
    * Declares the UI components that constitute the ResizePanel.
    * These components are arranged horizontally using a FlowLayout, creating
-   * the visual structure for device selection and custom dimension input:
+   * the visual structure for device selection, custom dimension input, and panel visibility control:
    *
-   * [ Device Picker ▼ ]  [ WidthTF ] x [ HeightTF ] dp
-   * (devicePickerButton) (widthTxtF) (x) (heightTxtF) (unitLbl)
+   * [ Device Picker ▼ ]  [ WidthTF ] x [ HeightTF ] dp  [X]
+   * (devicePickerBtn)    (widthTxtF) (x) (heightTxtF) (unitLbl) (closeBtn)
    *
    * - devicePickerButton: Displays the current device/state (e.g., "Pixel 5", "Custom")
    * and triggers a popup list of devices for selection.
@@ -78,12 +78,14 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
    * - xLabel:            A simple label displaying the 'x' character as a separator.
    * - heightTextField:   Text field for manually inputting the desired height in dp.
    * - unitLabel:         A label displaying the measurement unit, typically "dp".
+   * - closeButton:       A button to hide this ResizePanel and revert the preview to its original device/state.
    */
   private val devicePickerButton: JButton
   private val widthTextField: JBTextField
   private val xLabel: JBLabel
   private val heightTextField: JBTextField
   private val unitLabel: JBLabel
+  private val closeButton: JButton
 
   private var currentPopupListItems: List<DropDownListItem> = emptyList()
   private var currentModuleForList: Module? = null
@@ -100,6 +102,10 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     if ((flags and ConfigurationListener.CFG_DEVICE) != 0) {
       if (currentConfiguration != null) {
         hasBeenResized = true
+        val panelWasHidden = !isVisible
+        if (panelWasHidden) {
+          isVisible = true
+        }
       }
       updatePanelFromConfiguration()
     }
@@ -116,6 +122,7 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     xLabel = JBLabel("x")
     heightTextField = JBTextField()
     unitLabel = JBLabel(SdkConstants.UNIT_DP)
+    closeButton = getCloseButton()
 
     val textFieldPreferredWidth = JBUI.scale(textFieldWidth)
     widthTextField.preferredSize =
@@ -128,11 +135,43 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     add(xLabel)
     add(heightTextField)
     add(unitLabel)
+    add(closeButton)
 
     Disposer.register(parentDisposable, this)
     clearAndDisablePanel()
 
     setUpTextFieldListeners()
+    isVisible = false
+  }
+
+  private fun getCloseButton(): JButton {
+    val closeButton = JButton(AllIcons.Actions.Close)
+    closeButton.isBorderPainted = false
+    closeButton.isContentAreaFilled = false
+    closeButton.isOpaque = false
+    closeButton.toolTipText = message("resize.panel.hide.revert.tooltip")
+    closeButton.addActionListener { handleCloseAndRevert() }
+    return closeButton
+  }
+
+  private fun handleCloseAndRevert() {
+    if (
+      originalDeviceSnapshot != null &&
+        originalDeviceStateSnapshot != null &&
+        currentConfiguration != null
+    ) {
+      currentConfiguration!!.setEffectiveDevice(
+        originalDeviceSnapshot!!,
+        originalDeviceStateSnapshot!!,
+      )
+    }
+    hasBeenResized = false
+    isVisible = false
+
+    parent?.run {
+      revalidate()
+      repaint()
+    }
   }
 
   /**
@@ -247,11 +286,12 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
       originalDeviceStateSnapshot = null
       hasBeenResized = false
     }
+    isVisible = false
     updatePanelFromConfiguration()
   }
 
   private fun setEnabledIncludingChildren(enabled: Boolean) {
-    this.isEnabled = enabled
+    isEnabled = enabled
     listOf(devicePickerButton, widthTextField, xLabel, heightTextField, unitLabel).forEach {
       it.isEnabled = enabled
     }
