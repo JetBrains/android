@@ -43,6 +43,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.platform.ide.progress.withModalProgress
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import java.awt.AlphaComposite
@@ -103,6 +104,9 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
             viewer.show()
           }
         }
+      }
+      catch (e: CancellationException) {
+        throw e
       }
       catch (e: Throwable) {
         val message = "Error obtaining screenshot"
