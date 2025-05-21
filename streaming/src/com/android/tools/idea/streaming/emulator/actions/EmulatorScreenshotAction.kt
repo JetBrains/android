@@ -68,18 +68,23 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       !StudioFlags.MULTI_DISPLAY_SCREENSHOTS.get() || event.place == "EmulatorView" -> intArrayOf(event.getData(DISPLAY_ID_KEY) ?: 0)
       else -> displayInfoProvider.getIdsOfAllDisplays()
     }
-    val waitingForScreenshot = CompletableDeferred<Unit>()
+
+    if (displayIds.isEmpty()) { // Should not happen but check for safety.
+      return
+    }
     val scope = emulatorController.createCoroutineScope()
+    val waitingForScreenshot = CompletableDeferred<Unit>()
     scope.launch {
       withModalProgress(project, "Obtaining screenshot from device\u2026") {
         waitingForScreenshot.await()
       }
     }
 
-    scope.launch {
-      try {
-        val dialogLocationArbiter = if (displayIds.size > 1) DialogLocationArbiter() else null
-        for (displayId in displayIds) {
+    val dialogLocationArbiter = if (displayIds.size > 1) DialogLocationArbiter() else null
+    var errorCount = 0
+    for (displayId in displayIds) {
+      scope.launch {
+        try {
           val screenshotProto = emulatorController.getScreenshot(createScreenshotRequest(displayId))
           val format = screenshotProto.format
           val skin = displayInfoProvider.getSkin(displayId)
@@ -90,7 +95,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
           val screenshotImage = ScreenshotImage(image, format.rotation.rotationValue,
                                                 emulatorConfig.deviceType, emulatorConfig.avdName, displayId)
           val screenshotDecorator = EmulatorScreenshotDecorator(displayId, skin)
-          val framingOptions = if (displayId == PRIMARY_DISPLAY_ID && skin != null) listOf(avdFrame) else listOf()
+          val framingOptions = if (displayId == PRIMARY_DISPLAY_ID && skin != null) listOf(AvdFrame()) else listOf()
           val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
           val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
           val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
@@ -99,29 +104,35 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
               throw IOException("Unable to save screenshot")
           val screenshotProvider = EmulatorScreenshotProvider(emulatorController, displayId)
           ApplicationManager.getApplication().invokeLater {
-            val viewer = ScreenshotViewer(project, screenshotImage, backingFile, screenshotProvider, screenshotDecorator, framingOptions, 0,
-                                          false, dialogLocationArbiter)
+            val viewer = ScreenshotViewer(project, screenshotImage, backingFile, screenshotProvider, screenshotDecorator,
+                                          framingOptions, 0, false, dialogLocationArbiter)
             viewer.show()
           }
         }
-      }
-      catch (e: CancellationException) {
-        throw e
-      }
-      catch (e: Throwable) {
-        val message = "Error obtaining screenshot"
-        thisLogger().error(message, e)
-        ApplicationManager.getApplication().invokeLater {
-          Messages.showErrorDialog(project, message, "Take Screenshot")
+        catch (e: CancellationException) {
+          throw e
         }
-      }
-      finally {
-        waitingForScreenshot.complete(Unit)
+        catch (e: Throwable) {
+          val message = "Error obtaining screenshot"
+          thisLogger().error(message, e)
+          if (++errorCount == 1) { // Show error dialog no more than once.
+            ApplicationManager.getApplication().invokeLater {
+              Messages.showErrorDialog(project, message, "Take Screenshot")
+            }
+          }
+        }
+        finally {
+          waitingForScreenshot.complete(Unit)
+        }
       }
     }
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+  private class AvdFrame : FramingOption {
+    override val displayName = "Show Device Frame"
+  }
 
   private class EmulatorScreenshotProvider(private val emulator: EmulatorController, private val displayId: Int) : ScreenshotProvider {
 
@@ -201,10 +212,6 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       clip = null
     }
   }
-}
-
-private val avdFrame = object : FramingOption {
-  override val displayName = "Show Device Frame"
 }
 
 private fun createScreenshotRequest(displayId: Int) =
