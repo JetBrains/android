@@ -2264,6 +2264,12 @@ public final class StudioFlags {
                     "Enables the \"Suggest Commit Message\" button in the Commit tool window",
                     true);
 
+  public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION_OVERRIDE =
+    new BooleanFlag(STUDIOBOT, "commit.message.suggestion.override",
+                    "Allow users to override prompt for suggesting commit messages",
+                    "Enables the \"Commit Message Generation\" in Prompt Library setting",
+                    enabledUpTo(CANARY));
+
   public static final Flag<Boolean> README_GENERATION =
     new BooleanFlag(STUDIOBOT, "readme.generation",
                     "Use ML model to create a README",
