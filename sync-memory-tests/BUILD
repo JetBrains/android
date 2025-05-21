@@ -198,7 +198,6 @@ iml_module(
         "Benchmark2000KotlinMultiplatformMemory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000KotlinMultiplatformMemoryTest",
             "tags": [
-                "manual",
                 "noci:studio-win",
                 "noci:studio-linux",
                 "ci:perfgate-linux",
