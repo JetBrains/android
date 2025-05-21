@@ -91,7 +91,6 @@ class GitCommitTracker(
 
     outputReaderFuture.get()
     if (process.exitValue() != 0) {
-      LOG.warn("Process ${processBuilder.command()} returned exit code ${process.exitValue()}")
       return null
     }
     return output.toString()
