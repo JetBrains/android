@@ -174,7 +174,7 @@ class DeviceClient(
           connection.established.complete(Unit)
         }
         catch (e: Throwable) {
-          connectionHolder.set(null)
+          connectionHolder.compareAndSet(connection, null)
           AdbLibApplicationService.instance.session.throwIfCancellationOrDeviceDisconnected(e)
           connection.established.completeExceptionally(e)
         }
