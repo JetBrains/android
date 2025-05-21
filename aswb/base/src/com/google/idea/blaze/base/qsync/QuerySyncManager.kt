@@ -192,7 +192,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       subTitle = "Re-loading project",
       operationType = OperationType.SYNC
     ) { context ->
-      val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
+      val result= reloadProjectIfDefinitionHasChanged(context)
       syncStatsScope(context) { context ->
         syncQueryData(context, result.existingPostQuerySyncData)
       }
@@ -201,9 +201,16 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   private class ReloadProjectResult(val project: QuerySyncProject, val existingPostQuerySyncData: PostQuerySyncData?)
 
   @Throws(BuildException::class)
-  private fun reloadProjectIfDefinitionHasChanged(project: QuerySyncProject?, context: BlazeContext): ReloadProjectResult {
-    val loadedProject = loadedProjectUnlessDefinitionHasChanged(context)
-                      ?: runCatching { loader.loadProject() }.getOrElse { throw BuildException("Failed to load project", it) }
+  private fun reloadProjectIfDefinitionHasChanged(context: BlazeContext): ReloadProjectResult {
+    reloadProjectDefinitionIfChanged(context)
+    val loadedProject =
+      loadedProject
+        ?.takeUnless {
+          val currentProjectViewSet = BlazeImportSettingsManager.getInstance(ideProject).projectViewSet
+          it.projectViewSet != currentProjectViewSet ||
+          it.projectDefinition != loader.loadProjectDefinition(currentProjectViewSet).definition
+        }
+      ?: runCatching { loader.loadProject() }.getOrElse { throw BuildException("Failed to load project", it) }
     val existingQueryData = currentSnapshot.getOrNull()?.queryData()
                             ?: runCatching { readSnapshotFromDisk(context) }
                               .getOrElse {
@@ -242,7 +249,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       subTitle = "Initializing project structure",
       operationType = OperationType.SYNC
     ) { context ->
-      val result= reloadProjectIfDefinitionHasChanged(project = null, context)
+      val result= reloadProjectIfDefinitionHasChanged(context)
       syncStatsScope(context) { context ->
         syncQueryData(context, result.existingPostQuerySyncData)
       }
@@ -265,7 +272,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       subTitle = "Re-importing project",
       operationType = OperationType.SYNC
     ) { context ->
-      val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
+      val result= reloadProjectIfDefinitionHasChanged(context)
       syncStatsScope(context) { context ->
         syncQueryData(context, postQuerySyncData = null)
       }
@@ -288,7 +295,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       subTitle = "Refreshing project",
       operationType = OperationType.SYNC
     ) { context ->
-      val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
+      val result= reloadProjectIfDefinitionHasChanged(context)
       syncStatsScope(context) { context ->
         syncQueryData(context, result.existingPostQuerySyncData)
       }
@@ -315,7 +322,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     ) { context ->
       if (fileListener.hasModifiedBuildFiles() ||
           getTargetsToBuildByPaths(workspaceRelativePaths).any { it.requiresQueryDataRefresh() }) {
-        val result = reloadProjectIfDefinitionHasChanged(loadedProject, context)
+        val result = reloadProjectIfDefinitionHasChanged(context)
         syncQueryData(context, result.existingPostQuerySyncData)
       }
     }
@@ -721,22 +728,17 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
    * @return true if the [ProjectDefinition] has changed.
    */
   @Throws(BuildException::class)
-  private fun loadedProjectUnlessDefinitionHasChanged(context: BlazeContext): QuerySyncProject? {
-    val loadedProject = loadedProject ?: return null
+  private fun reloadProjectDefinitionIfChanged(context: BlazeContext) {
     // Ensure edits to the project view and any imports have been saved
     SaveUtil.saveAllFiles()
     val projectViewManager = ProjectViewManager.getInstance(project)
-    val importSettings = BlazeImportSettingsManager.getInstance(project).importSettings ?: return null
-    val projectToLoadDefinition = loader.loadProjectDefinition(
-      projectViewManager.doLoadProjectView(
+    val importSettings = BlazeImportSettingsManager.getInstance(project).importSettings ?: return
+    val currentProjectViewSet = projectViewManager.doLoadProjectView(
         BlazeContext.create(),  /* Load silently for comparison*/
         importSettings
       )
-    )
-    val projectDefinition = projectToLoadDefinition.definition
-    return loadedProject.takeUnless {
-      loadedProject.projectDefinition != projectDefinition ||
-      importSettings.workspaceRoot != projectToLoadDefinition.workspaceRoot.directory().toString()
+    if (BlazeImportSettingsManager.getInstance(project).projectViewSet != currentProjectViewSet) {
+      ProjectViewManager.getInstance(project).reloadProjectView(context)
     }
   }
 
