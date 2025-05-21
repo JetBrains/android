@@ -26,6 +26,7 @@ import java.util.Map;
 public class BitmapDecoder {
   enum PixelFormat {
     ARGB_8888,
+    BGR_888,
     RGB_565,
     ALPHA_8
   }
@@ -47,6 +48,7 @@ public class BitmapDecoder {
 
   protected static final Map<PixelFormat, BitmapExtractor> SUPPORTED_FORMATS = ImmutableMap.of(
     PixelFormat.ARGB_8888, new ARGB8888_BitmapExtractor(),
+    PixelFormat.BGR_888, new BGR888_BitmapExtractor(),
     PixelFormat.RGB_565, new RGB565_BitmapExtractor(),
     PixelFormat.ALPHA_8, new ALPHA8_BitmapExtractor());
 
@@ -84,6 +86,29 @@ public class BitmapDecoder {
           argb |= ((long) rgba[i + 1] & 0xff) << 8;  // g
           argb |= ((long) rgba[i + 2] & 0xff);       // b
           argb |= ((long) rgba[i + 3] & 0xff) << 24; // a
+          bufferedImage.setRGB(x, y, (int) (argb & 0xffffffffL));
+        }
+      }
+
+      return bufferedImage;
+    }
+  }
+
+  private static class BGR888_BitmapExtractor implements BitmapExtractor {
+    @Override
+    public BufferedImage getImage(int width, int height, byte[] bgr) {
+
+      @SuppressWarnings("UndesirableClassUsage")
+      BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+      for (int y = 0; y < height; y++) {
+        int stride = y * width;
+        for (int x = 0; x < width; x++) {
+          int i = (stride + x) * 3;
+          long argb = 0;
+          argb |= ((long) bgr[i + 2] & 0xff) << 16; // r
+          argb |= ((long) bgr[i + 1] & 0xff) << 8;  // g
+          argb |= ((long) bgr[i    ] & 0xff);       // b
+          argb |= ((long) 0xff) << 24; // a
           bufferedImage.setRGB(x, y, (int) (argb & 0xffffffffL));
         }
       }
