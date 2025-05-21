@@ -54,7 +54,7 @@ interface LightGradleTestProject : TestProjectDefinition {
     sdk: Sdk?,
     syncReady: Boolean
   ): PreparedTestProject {
-    val preparedProject = templateProject.prepareTestProject(integrationTestEnvironment, name, agpVersion, ndkVersion, sdk = null, syncReady)
+    val preparedProject = templateProject.prepareTestProject(integrationTestEnvironment, name, agpVersion, ndkVersion, sdk, syncReady)
     preparedProject.root.resolve(".gradle").mkdir()
     return object: PreparedTestProject {
       override fun <T> open(
