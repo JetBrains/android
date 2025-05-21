@@ -24,6 +24,7 @@ import com.android.tools.idea.serverflags.protos.Date
 import com.android.tools.idea.serverflags.protos.DevServicesDeprecationMetadata
 import com.intellij.openapi.components.service
 import java.text.DateFormat
+import java.time.LocalDate
 import java.util.Calendar
 import java.util.Locale
 
@@ -86,6 +87,8 @@ data class DevServicesDeprecationData(
   val showUpdateAction: Boolean,
   // Deprecation status of the service
   val status: DevServicesDeprecationStatus,
+  // Date at which the service changes status
+  val date: LocalDate? = null
 ) {
   fun isDeprecated() = status == DEPRECATED
 
@@ -157,7 +160,12 @@ class ServerFlagBasedDevServicesDeprecationDataProvider : DevServicesDeprecation
       description.substituteValues(serviceName, getDate()),
       moreInfoUrl,
       showUpdateAction,
-      DevServicesDeprecationStatus.fromProto(status)
+      DevServicesDeprecationStatus.fromProto(status),
+      if (hasDeprecationDate()) {
+        LocalDate.of(deprecationDate.year, deprecationDate.month, deprecationDate.day)
+      } else {
+        null
+      }
     )
 
   private fun DevServicesDeprecationMetadata.getDate() = if (this.hasDeprecationDate()) {
@@ -176,4 +184,6 @@ class ServerFlagBasedDevServicesDeprecationDataProvider : DevServicesDeprecation
     }
     return DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault()).format(calendar.time)
   }
+
+  private fun Date.toLocalDate(): LocalDate = LocalDate.of(year, month - 1, day)
 }
