@@ -2640,6 +2640,14 @@ public final class StudioFlags {
       "Use N2 deprecation policy",
       "Use N2 deprecation policy that supports DEPRECATED state",
       enabledUpTo(CANARY));
+  public static final Flag<String> DEFAULT_MORE_INFO_URL =
+    new StringFlag(
+      DEPRECATION_POLICY,
+      "default.more.info.url",
+      "Defaul More Info URL",
+      "Redirect to this URL if moreInfoUrl is not provided",
+      "https://developer.android.com/studio/releases#service-compat"
+    );
   // endregion deprecation policy
 
   private StudioFlags() { }

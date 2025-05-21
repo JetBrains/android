@@ -209,6 +209,17 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
     }
   }
 
+  @Test
+  fun `deprecation data contains default url when moreInfoUrl not provided`() {
+    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply {
+      header = "StudioProto"
+    }.build()
+    )
+
+    val deprecationData = provider.getCurrentDeprecationData("service")
+    assertThat(deprecationData.moreInfoUrl).isEqualTo(StudioFlags.DEFAULT_MORE_INFO_URL.get())
+  }
+
   private fun registerServiceProto(flag: Any) {
     registerFlag("dev_services/service", flag)
   }

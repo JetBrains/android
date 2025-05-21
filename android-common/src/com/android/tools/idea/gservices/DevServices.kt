@@ -158,7 +158,7 @@ class ServerFlagBasedDevServicesDeprecationDataProvider : DevServicesDeprecation
     DevServicesDeprecationData(
       header.substituteValues(serviceName, getDate()),
       description.substituteValues(serviceName, getDate()),
-      moreInfoUrl,
+      if (hasMoreInfoUrl()) moreInfoUrl else StudioFlags.DEFAULT_MORE_INFO_URL.get(),
       showUpdateAction,
       DevServicesDeprecationStatus.fromProto(status),
       if (hasDeprecationDate()) {
