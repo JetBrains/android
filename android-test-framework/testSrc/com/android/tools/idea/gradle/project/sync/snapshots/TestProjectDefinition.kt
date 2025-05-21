@@ -64,7 +64,7 @@ interface TestProjectDefinition {
       sdk: Sdk? = null,
       syncReady: Boolean = true
     ): PreparedTestProject {
-      return testProject.prepareTestProject(this, name, agpVersion, ndkVersion, sdk, syncReady)
+      return testProject.prepareTestProject(this, name, agpVersion, ndkVersion, sdk, syncReady = syncReady)
     }
   }
 }
