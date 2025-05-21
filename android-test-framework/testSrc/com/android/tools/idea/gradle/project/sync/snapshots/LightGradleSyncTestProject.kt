@@ -30,6 +30,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.createTestOpenProjectOptions
 import com.intellij.testFramework.runInEdtAndWait
@@ -47,7 +48,8 @@ interface LightGradleSyncTestProject : TestProjectDefinition {
     integrationTestEnvironment: IntegrationTestEnvironment,
     name: String,
     agpVersion: AgpVersionSoftwareEnvironment,
-    ndkVersion: String?
+    ndkVersion: String?,
+    sdk: Sdk?,
   ): PreparedTestProject {
     val preparedProject = templateProject.prepareTestProject(integrationTestEnvironment, name, agpVersion, ndkVersion)
     preparedProject.root.resolve(".gradle").mkdir()

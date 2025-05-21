@@ -50,7 +50,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-@Ignore("IDEA-354455")
 class CodeSwapActionTest {
 
   @get:Rule
