@@ -150,11 +150,15 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     closeButton.isContentAreaFilled = false
     closeButton.isOpaque = false
     closeButton.toolTipText = message("resize.panel.hide.revert.tooltip")
-    closeButton.addActionListener { handleCloseAndRevert() }
+    closeButton.addActionListener { revertResizingAndHidePanel() }
     return closeButton
   }
 
-  private fun handleCloseAndRevert() {
+  /**
+   * Reverts the preview to its original device and state, and hides the resize panel. This action
+   * is triggered by the close button.
+   */
+  private fun revertResizingAndHidePanel() {
     if (
       originalDeviceSnapshot != null &&
         originalDeviceStateSnapshot != null &&
@@ -167,11 +171,13 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     }
     hasBeenResized = false
     isVisible = false
+  }
 
-    parent?.run {
-      revalidate()
-      repaint()
-    }
+  /** Clears the panel's state, removing any existing configuration and hiding it. */
+  fun clearPanelAndHidePanel() {
+    currentConfiguration?.removeListener(configurationListenerInternal)
+    currentConfiguration = null
+    isVisible = false
   }
 
   /**

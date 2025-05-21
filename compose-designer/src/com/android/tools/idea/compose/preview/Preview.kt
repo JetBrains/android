@@ -797,8 +797,6 @@ class ComposePreviewRepresentation(
       var lastMode: PreviewMode? = null
 
       previewModeManager.mode.collect {
-        activeResizePanelInFocusMode?.isVisible = false
-
         (it.selected as? PsiComposePreviewElementInstance).let { element ->
           composePreviewFlowManager.setSingleFilter(element)
         }
@@ -1590,7 +1588,9 @@ class ComposePreviewRepresentation(
         withContext(uiThread) {
           activeResizePanelInFocusMode = ResizePanel(composeWorkBench.mainSurface)
           composeWorkBench.focusMode =
-            FocusMode(composeWorkBench.mainSurface, activeResizePanelInFocusMode!!)
+            FocusMode(composeWorkBench.mainSurface, activeResizePanelInFocusMode!!).apply {
+              addSelectionListener { activeResizePanelInFocusMode?.clearPanelAndHidePanel() }
+            }
         }
       }
     }

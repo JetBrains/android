@@ -43,7 +43,7 @@ class ToggleResizePanelVisibilityAction : AnAction() {
 
     if (!resizePanel.isVisible) {
       e.presentation.isEnabledAndVisible = true
-      e.presentation.text = message("action.toggle.resize.panel.visibility.action.showText")
+      e.presentation.text = message("action.toggle.resize.panel.visibility.action.show.text")
     }
   }
 
