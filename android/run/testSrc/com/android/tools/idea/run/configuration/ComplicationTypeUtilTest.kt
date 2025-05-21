@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.testutils.AssumeUtil
 import com.android.tools.deployer.model.component.Complication.ComplicationType.LONG_TEXT
 import com.android.tools.deployer.model.component.Complication.ComplicationType.RANGED_VALUE
 import com.android.tools.deployer.model.component.Complication.ComplicationType.SHORT_TEXT
@@ -42,6 +43,7 @@ import java.io.IOException
 import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.thread
 import com.intellij.util.ui.UIUtil
+import org.junit.Before
 
 class ComplicationTypeUtilsTest {
   @get:Rule
@@ -72,6 +74,11 @@ class ComplicationTypeUtilsTest {
           </application>
         </manifest>
 """
+
+  @Before
+  fun assumeNotWindows() {
+    AssumeUtil.assumeNotWindows() // TODO(b/418084011): fix on windows
+  }
 
   @Test
   fun testExtractSupportedComplicationTypes() {
