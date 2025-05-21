@@ -31,6 +31,7 @@ import com.google.idea.blaze.base.bazel.BuildSystemProvider
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope
 import com.google.idea.blaze.base.projectview.ProjectViewManager
+import com.google.idea.blaze.base.projectview.section.sections.EnableCodeAnalysisOnSyncSection
 import com.google.idea.blaze.base.qsync.ProjectStatsLogger.logSyncStats
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore
 import com.google.idea.blaze.base.scope.BlazeContext
@@ -253,6 +254,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       syncStatsScope(context) { context ->
         syncQueryData(context, result.existingPostQuerySyncData)
       }
+      autoEnableCodeAnalysis(context)
     }
 
   @CanIgnoreReturnValue
@@ -276,6 +278,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       syncStatsScope(context) { context ->
         syncQueryData(context, postQuerySyncData = null)
       }
+      autoEnableCodeAnalysis(context)
     }
 
   @CanIgnoreReturnValue
@@ -299,6 +302,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       syncStatsScope(context) { context ->
         syncQueryData(context, result.existingPostQuerySyncData)
       }
+      autoEnableCodeAnalysis(context)
     }
 
   fun syncQueryDataIfNeeded(
@@ -453,6 +457,13 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       it.applySyncResult(coreSyncResult)
     }
     lastQueryInstant = queryInstant
+  }
+
+  private fun autoEnableCodeAnalysis(context: BlazeContext) {
+    val project = loadedProject ?: return
+    if (project.projectViewSet.getScalarValue(EnableCodeAnalysisOnSyncSection.KEY).getOrDefault(false)) {
+      project.buildDependencies(context, DependencyTracker.DependencyBuildRequest.wholeProject())
+    }
   }
 
   @Throws(BuildException::class)
@@ -687,6 +698,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       syncStatsScope(context) { context ->
         syncQueryData(context, postQuerySyncData = null)
       }
+      autoEnableCodeAnalysis(context)
     }
 
   @Throws(BuildException::class)
