@@ -40,6 +40,9 @@ private const val STUDIO_PREVIEW_FILENAME = "preview.png"
  * A class that extracts watch face files from a `.wfs` file. This format is used by
  * [Watch Face Studio](https://developer.samsung.com/watch-face-studio/overview.html) before the
  * watch face is built/published.
+ *
+ * NOTE: This class is currently not complete and has been paused until we have business need to
+ * revisit it.
  */
 internal class WFSFileExtractor(
   private val ioDispatcher: CoroutineDispatcher,

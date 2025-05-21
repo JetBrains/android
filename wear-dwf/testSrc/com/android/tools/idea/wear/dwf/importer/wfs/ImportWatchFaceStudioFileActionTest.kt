@@ -34,6 +34,7 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import java.awt.Component
+import kotlin.io.path.Path
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -102,18 +103,20 @@ class ImportWatchFaceStudioFileActionTest {
   }
 
   @Test
-  fun `WFS file is imported when a file is selected`() = runTest {
+  fun `the file's path is imported when the file is selected`() = runTest {
     val dispatcher = StandardTestDispatcher(testScheduler)
     val action =
       ImportWatchFaceStudioFileAction(defaultDispatcher = dispatcher, edtDispatcher = dispatcher)
-    val wfsFile = mock<VirtualFile>()
-    fakeFileChooser(fileToSelect = wfsFile)
-    doReturn(WFSImportResult.Success).whenever(importer).import(wfsFile)
+    val path = Path("selected/file/path")
+    val file = mock<VirtualFile>()
+    whenever(file.toNioPath()).thenReturn(path)
+    fakeFileChooser(fileToSelect = file)
+    doReturn(WFSImportResult.Success).whenever(importer).import(path)
 
     action.actionPerformed(TestActionEvent.createTestEvent())
     advanceUntilIdle()
 
-    verify(importer).import(wfsFile)
+    verify(importer).import(path)
     val successNotification =
       notificationRule.notifications.find {
         it.type == NotificationType.INFORMATION &&
@@ -127,9 +130,11 @@ class ImportWatchFaceStudioFileActionTest {
     val dispatcher = StandardTestDispatcher(testScheduler)
     val action =
       ImportWatchFaceStudioFileAction(defaultDispatcher = dispatcher, edtDispatcher = dispatcher)
-    val wfsFile = mock<VirtualFile>()
-    fakeFileChooser(fileToSelect = wfsFile)
-    doReturn(WFSImportResult.Error()).whenever(importer).import(wfsFile)
+    val path = Path("selected/file/path")
+    val file = mock<VirtualFile>()
+    whenever(file.toNioPath()).thenReturn(path)
+    fakeFileChooser(fileToSelect = file)
+    doReturn(WFSImportResult.Error()).whenever(importer).import(path)
 
     action.actionPerformed(TestActionEvent.createTestEvent())
     advanceUntilIdle()
