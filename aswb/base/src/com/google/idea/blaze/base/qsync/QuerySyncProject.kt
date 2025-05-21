@@ -119,22 +119,6 @@ class QuerySyncProject(
 
   fun getSourceToTargetMap(): SourceToTargetMap = sourceToTargetMap
 
-  @Throws(BuildException::class)
-  fun syncQueryData(parentContext: BlazeContext, lastQuery: PostQuerySyncData?) {
-    BlazeContext.create(parentContext).use { context ->
-      context.push(SyncQueryStatsScope())
-      val coreSyncResult = syncCore(context, lastQuery)
-      snapshotHolder.setCurrent(
-        context,
-        this,
-        this.snapshotHolder.current.orElseThrow().toBuilder()
-          .queryData(coreSyncResult.postQuerySyncData)
-          .graph(coreSyncResult.graph)
-          .build()
-      )
-    }
-  }
-
   @JvmRecord
   data class CoreSyncResult(
     val postQuerySyncData: PostQuerySyncData,

@@ -77,6 +77,7 @@ import java.util.Optional
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import kotlin.concurrent.Volatile
+import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -185,8 +186,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
       runSync(context) { context ->
-        val coreSyncResult = result.project.syncCore(context, result.existingPostQuerySyncData)
-        updateProjectStructureAndSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
+        syncQueryData(context, result.existingPostQuerySyncData)
+        updateProjectStructureAndSnapshot(context)
       }
     }
 
@@ -204,13 +205,14 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
                                 null
                               }
     this.loadedProject = loadedProject
+    projectModificationTracker_.incModificationCount() // Loaded project should be managed by the SnapshotHolder. For now here.
     return ReloadProjectResult(project = loadedProject, existingPostQuerySyncData = existingQueryData)
   }
 
   val currentSnapshot: Optional<QuerySyncProjectSnapshot>
     get() = snapshotHolder.current
 
-  private fun assertProjectLoaded() = checkNotNull(loadedProject) { "Project not loaded yet" }
+  fun assertProjectLoaded() = checkNotNull(loadedProject) { "Project not loaded yet" }
 
   val renderJarArtifactTracker: RenderJarArtifactTracker
     get() = assertProjectLoaded().renderJarArtifactTracker
@@ -235,8 +237,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(project = null, context)
       runSync(context) { context ->
-        val coreSyncResult = result.project.syncCore(context, result.existingPostQuerySyncData)
-        updateProjectStructureAndSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
+        syncQueryData(context, result.existingPostQuerySyncData)
+        updateProjectStructureAndSnapshot(context)
       }
     }
 
@@ -259,8 +261,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
       runSync(context) { context ->
-        val coreSyncResult = result.project.syncCore(context, null)
-        updateProjectStructureAndSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
+        syncQueryData(context, postQuerySyncData = null)
+        updateProjectStructureAndSnapshot(context)
       }
     }
 
@@ -283,8 +285,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
       runSync(context) { context ->
-        val coreSyncResult = result.project.syncCore(context, result.existingPostQuerySyncData)
-        updateProjectStructureAndSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
+        syncQueryData(context, result.existingPostQuerySyncData)
+        updateProjectStructureAndSnapshot(context)
       }
     }
 
@@ -309,7 +311,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       if (fileListener.hasModifiedBuildFiles() ||
           getTargetsToBuildByPaths(workspaceRelativePaths).any { it.requiresQueryDataRefresh() }) {
         val result = reloadProjectIfDefinitionHasChanged(loadedProject, context)
-        result.project.syncQueryData(context, result.existingPostQuerySyncData)
+        syncQueryData(context, result.existingPostQuerySyncData)
       }
     }
 
@@ -410,22 +412,31 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     }
   }
 
+  private fun syncQueryData(
+    context: BlazeContext,
+    postQuerySyncData: PostQuerySyncData?
+  ) {
+    val coreSyncResult = assertProjectLoaded().syncCore(context, postQuerySyncData)
+    updateCurrentSnapshot(context) {
+      it.applySyncResult(coreSyncResult)
+    }
+  }
+
   @Throws(BuildException::class)
   fun updateProjectStructureAndSnapshot(
-    context: BlazeContext,
-    queryData: PostQuerySyncData,
-    graph: BuildGraphData,
+    context: BlazeContext
   ): QuerySyncProjectSnapshot {
     val loadedProject = assertProjectLoaded()
-    val result = loadedProject.createProjectStructure(context, queryData, graph)
+    val snapshot = currentSnapshot.getOrDefault(QuerySyncProjectSnapshot.EMPTY)
+    val result = loadedProject.createProjectStructure(context, snapshot.queryData(), snapshot.graph())
     return onNewSnapshot(
       context,
       loadedProject,
       QuerySyncProjectSnapshot
         .builder()
         .artifactState(result.artifactState)
-        .queryData(queryData)
-        .graph(graph)
+        .queryData(snapshot.queryData())
+        .graph(snapshot.graph())
         .project(result.projectStructure)
         .build()
     )
@@ -525,9 +536,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       )
       val assertProjectLoaded = assertProjectLoaded()
       if (assertProjectLoaded.buildDependencies(context, DependencyTracker.DependencyBuildRequest.multiTarget(targets))) {
-        val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
-        val graph = currentSnapshot.orElseThrow().graph()
-        updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
+        updateProjectStructureAndSnapshot(context)
       }
     }
 
@@ -560,9 +569,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       )
       if (loadedProject.buildDependencies(context, DependencyTracker.DependencyBuildRequest.multiTarget(
           loadedProject.getTargetsDependingOn(targets)))) {
-        val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
-        val graph = currentSnapshot.orElseThrow().graph()
-        updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
+        updateProjectStructureAndSnapshot(context)
       }
     }
 
@@ -587,9 +594,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       context.output(PrintOutput.output("Building project dependencies..."))
       val assertProjectLoaded = assertProjectLoaded()
       if (assertProjectLoaded.buildDependencies(context, DependencyTracker.DependencyBuildRequest.wholeProject())) {
-        val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
-        val graph = currentSnapshot.orElseThrow().graph()
-        updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
+        updateProjectStructureAndSnapshot(context)
       }
     }
 
@@ -613,9 +618,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       val assertProjectLoaded = assertProjectLoaded()
       runCatching { assertProjectLoaded.artifactTracker.clear() }
         .getOrElse { throw BuildException("Failed to clear dependency info", it) }
-      val postQuerySyncData = currentSnapshot.orElseThrow().queryData()
-      val graph = currentSnapshot.orElseThrow().graph()
-      updateProjectStructureAndSnapshot(context, postQuerySyncData, graph)
+      updateProjectStructureAndSnapshot(context)
     }
 
   @CanIgnoreReturnValue
@@ -638,11 +641,15 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       val loadedProject = assertProjectLoaded()
       loadedProject.runCatching { loadedProject.artifactTracker.clear() }
         .getOrElse<Unit, Unit> { throw BuildException("Failed to clear dependency info", it) }
-      updateProjectStructureAndSnapshot(context, QuerySyncProjectSnapshot.EMPTY.queryData(),
-                                                      QuerySyncProjectSnapshot.EMPTY.graph())
+      updateCurrentSnapshot(context) {
+        it.queryData(PostQuerySyncData.EMPTY)
+        it.graph(BuildGraphData.EMPTY)
+      }
+      // Reset the project to the emptyt state before running sync.
+      updateProjectStructureAndSnapshot(context)
       runSync(context) { context ->
-        val coreSyncResult = loadedProject.syncCore(context, null)
-        updateProjectStructureAndSnapshot(context, coreSyncResult.postQuerySyncData, coreSyncResult.graph)
+        syncQueryData(context, postQuerySyncData = null)
+        updateProjectStructureAndSnapshot(context)
       }
     }
 
@@ -651,11 +658,11 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     loadedProject?.let { loadedProject ->
       loadedProject.runCatching { loadedProject.artifactTracker.clear() }
         .getOrElse { throw BuildException("Failed to clear dependency info", it) }
-      updateProjectStructureAndSnapshot(
-        context,
-        QuerySyncProjectSnapshot.EMPTY.queryData(),
-        QuerySyncProjectSnapshot.EMPTY.graph()
-      )
+      updateCurrentSnapshot(context) {
+        it.queryData(PostQuerySyncData.EMPTY)
+        it.graph(BuildGraphData.EMPTY)
+      }
+      updateProjectStructureAndSnapshot(context)
     }
   }
 
@@ -790,4 +797,19 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       return buildSystemProvider.createProjectLoader(project)
     }
   }
+}
+
+fun QuerySyncProjectSnapshot.update(mutator: (QuerySyncProjectSnapshot.Builder) -> Unit): QuerySyncProjectSnapshot {
+  val builder = this.toBuilder()
+  mutator(builder)
+  return builder.build()
+}
+
+fun QuerySyncManager.updateCurrentSnapshot(context: BlazeContext, mutator: (QuerySyncProjectSnapshot.Builder) -> Unit) {
+  snapshotHolder.setCurrent(context, assertProjectLoaded(), currentSnapshot.orElse(QuerySyncProjectSnapshot.EMPTY).update(mutator))
+}
+
+fun QuerySyncProjectSnapshot.Builder.applySyncResult(coreSyncResult: QuerySyncProject.CoreSyncResult) {
+  queryData(coreSyncResult.postQuerySyncData)
+  graph(coreSyncResult.graph)
 }
