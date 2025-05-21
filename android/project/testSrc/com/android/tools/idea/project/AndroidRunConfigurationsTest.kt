@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.project
 
+import com.android.testutils.ignore.IgnoreTestRule
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnWindows
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.execution.common.DeployableToDevice
 import com.android.tools.idea.flags.StudioFlags
@@ -53,6 +56,9 @@ import org.mockito.Mockito.mock
 import java.io.File
 
 class AndroidRunConfigurationsTest {
+
+  @get:Rule
+  val ignoreTestRule = IgnoreTestRule()
 
   @get:Rule
   val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
@@ -149,6 +155,7 @@ class AndroidRunConfigurationsTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/418084011", condition = OnWindows::class)
   fun `wear configurations do not get added if their component is not declared in the manifest`() {
     StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(true)
     val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE)

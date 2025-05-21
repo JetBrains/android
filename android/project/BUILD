@@ -32,6 +32,7 @@ iml_module(
         "//tools/adt/idea/jps-model:intellij.android.jps.model",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
     ],
     test_jvm_flags = [
         "-Djdk.attach.allowAttachSelf=true",
