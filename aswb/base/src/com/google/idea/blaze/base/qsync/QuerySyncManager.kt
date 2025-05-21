@@ -79,6 +79,8 @@ import java.util.zip.GZIPOutputStream
 import kotlin.concurrent.Volatile
 import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrNull
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 /**
  * The project component for a query based sync.
@@ -113,6 +115,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   @Volatile
   private var loadedProject: QuerySyncProject? = null
   fun getLoadedProject(): Optional<ReadonlyQuerySyncProject> = Optional.ofNullable(loadedProject)
+  private var lastQueryInstant: Instant = Instant.DISTANT_PAST
 
   private val syncStatus: QuerySyncStatus = QuerySyncStatus(project)
   val fileListener: QuerySyncAsyncFileListener = QuerySyncAsyncFileListener.createAndListen(project, this)
@@ -185,7 +188,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
-      runSync(context) { context ->
+      syncStatsScope(context) { context ->
         syncQueryData(context, result.existingPostQuerySyncData)
         updateProjectStructureAndSnapshot(context)
       }
@@ -236,7 +239,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(project = null, context)
-      runSync(context) { context ->
+      syncStatsScope(context) { context ->
         syncQueryData(context, result.existingPostQuerySyncData)
         updateProjectStructureAndSnapshot(context)
       }
@@ -260,7 +263,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
-      runSync(context) { context ->
+      syncStatsScope(context) { context ->
         syncQueryData(context, postQuerySyncData = null)
         updateProjectStructureAndSnapshot(context)
       }
@@ -284,7 +287,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       operationType = OperationType.SYNC
     ) { context ->
       val result= reloadProjectIfDefinitionHasChanged(loadedProject, context)
-      runSync(context) { context ->
+      syncStatsScope(context) { context ->
         syncQueryData(context, result.existingPostQuerySyncData)
         updateProjectStructureAndSnapshot(context)
       }
@@ -358,11 +361,13 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
               taskOrigin,
               BlazeUserSettings.getInstance()
             ) { context ->
-              context.push(ProgressIndicatorScope(indicator))
-              context.addCancellationHandler { indicator.cancel() }
-              statsScope?.let { context.push(it) }
-              operation.execute(context)
-              logSyncStats(context, loadedProject, currentSnapshot.getOrNull()) // Not logging new prosject stats on exception.
+              withSyncEventsPublished(context) {
+                context.push(ProgressIndicatorScope(indicator))
+                context.addCancellationHandler { indicator.cancel() }
+                statsScope?.let { context.push(it) }
+                operation.execute(context)
+                logSyncStats(context, loadedProject, currentSnapshot.getOrNull()) // Not logging new project stats on exception.
+              }
             }
           }
 
@@ -375,40 +380,57 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     return result
   }
 
-  @Throws(BuildException::class)
-  fun runSync(
-    parentContext: BlazeContext,
-    syncBody: (BlazeContext) -> QuerySyncProjectSnapshot,
-  ) {
-    BlazeContext.create(parentContext).use { context ->
-      context.push(SyncQueryStatsScope())
-      val fileListenerSyncCompleter = fileListener.syncStarted();
-      try {
-        val newSnapshot = syncBody(context)
-        loadedProject?.let { querySyncProject ->
-          fileListenerSyncCompleter.run()
+  private fun <T> withSyncEventsPublished(context: BlazeContext, block: () -> T): T {
+    val originalSnapshot = currentSnapshot.orElse(QuerySyncProjectSnapshot.EMPTY)
+    val fileListenerSyncCompleter = fileListener.syncStarted();
+    val previousQueryInstant = lastQueryInstant
+    try {
+      return block()
+        .also {
+          // On success only.
+          val newSnapshot = currentSnapshot.orElse(QuerySyncProjectSnapshot.EMPTY)
+          if (lastQueryInstant > previousQueryInstant) {
+            // Pending changes remain if sync failed.
+            fileListenerSyncCompleter.run()
+          }
+
+          val querySyncProject = loadedProject ?: return@also
           // TODO: Revisit SyncListeners once we switch fully to qsync
-          for (syncListener in SyncListener.EP_NAME.extensions) {
-            // A callback shared between the old and query sync implementations.
-            syncListener.onSyncComplete(
-              project,
-              context,
-              querySyncProject.importSettings,
-              querySyncProject.projectViewSet,
-              ImmutableSet.of(),
-              querySyncProject.projectData,
-              SyncMode.FULL,
-              SyncResult.SUCCESS
-            )
+          if (originalSnapshot != newSnapshot) {
+            // Sync that does not change anything is an no-op.
+            for (syncListener in SyncListener.EP_NAME.extensions) {
+              // A callback shared between the old and query sync implementations.
+              syncListener.onSyncComplete(
+                project,
+                context,
+                querySyncProject.importSettings,
+                querySyncProject.projectViewSet,
+                ImmutableSet.of(),
+                querySyncProject.projectData,
+                SyncMode.FULL,
+                SyncResult.SUCCESS
+              )
+            }
           }
         }
-      } finally {
-        // TODO: Revisit SyncListeners once we switch fully to qsync
-        for (syncListener in SyncListener.EP_NAME.extensions) {
-          // A query sync specific callback.
-          syncListener.afterQuerySync(project, context)
-        }
+    } finally {
+      // TODO: Revisit SyncListeners once we switch fully to qsync
+      // Note: Any sync operation is a query sync operation from the point of view or Android Studio listeners (none of which exist for a
+      // valid reason). Various subsystem like Android resources refresh their caches on this event and this is the enableCodeAnalysis event
+      // that actually matters to them. Unfortunately those listeners make various assumptions about what normally happens when a project is
+      // opened etc. so publishing events on actual change only might not be safe.
+      for (syncListener in SyncListener.EP_NAME.extensions) {
+        // A query sync specific callback.
+        syncListener.afterQuerySync(project, context)
       }
+    }
+  }
+
+  @Throws(BuildException::class)
+  fun syncStatsScope(parentContext: BlazeContext, block: (BlazeContext) -> Unit) {
+    BlazeContext.create(parentContext).use { context ->
+      context.push(SyncQueryStatsScope())
+      block(context)
     }
   }
 
@@ -416,10 +438,12 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     context: BlazeContext,
     postQuerySyncData: PostQuerySyncData?
   ) {
+    val queryInstant = Clock.System.now()
     val coreSyncResult = assertProjectLoaded().syncCore(context, postQuerySyncData)
     updateCurrentSnapshot(context) {
       it.applySyncResult(coreSyncResult)
     }
+    lastQueryInstant = queryInstant
   }
 
   @Throws(BuildException::class)
@@ -647,7 +671,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       }
       // Reset the project to the emptyt state before running sync.
       updateProjectStructureAndSnapshot(context)
-      runSync(context) { context ->
+      syncStatsScope(context) { context ->
         syncQueryData(context, postQuerySyncData = null)
         updateProjectStructureAndSnapshot(context)
       }
