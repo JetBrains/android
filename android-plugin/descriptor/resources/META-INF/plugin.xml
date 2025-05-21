@@ -10,10 +10,10 @@
   <vendor>JetBrains, Google</vendor>
 
   <change-notes><![CDATA[
-    This release contains updates from Android Studio Meerkat Feature Drop Canary 5.
+    This release contains updates from Android Studio Meerkat Feature Drop Stable.
 
     For detailed information, please refer to the release notes available at:
-    <a href="https://androidstudio.googleblog.com/2025/02/android-studio-meerkat-feature-drop_13.html">Android Studio Meerkat Feature Drop Canary 5</a>.]]>
+    <a href="https://androidstudio.googleblog.com/2025/05/android-studio-meerkat-feature-drop.html">Android Studio Meerkat Feature Drop</a>.]]>
   </change-notes>
 
   <dependencies>
