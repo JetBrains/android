@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.AnalyticsSettings
@@ -164,8 +163,6 @@ class ComposePreviewRepresentationTest {
   private val logger = Logger.getInstance(ComposePreviewRepresentationTest::class.java)
 
   @get:Rule val projectRule = ComposeProjectRule()
-
-  @get:Rule val flagRule = FlagRule(StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT, 30)
 
   private val project
     get() = projectRule.project
