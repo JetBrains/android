@@ -118,7 +118,8 @@ internal class SyncContributorAndroidProjectContext(
 
   private val holderModuleEntityNullable: ModuleEntity? = storage.resolve(ModuleId(resolveModuleName()))
   val holderModuleEntity: ModuleEntity by lazy { checkNotNull(holderModuleEntityNullable) { "Holder module can't be null!" } }
-  val isValidContext = holderModuleEntityNullable != null
+  // TODO(b/384022658): Spaces in module names are causing issues, fix them to  be consistent with data services too.
+  val isValidContext = holderModuleEntityNullable != null && !resolveModuleName().contains("\\s".toRegex())
 
   companion object {
     internal fun create(context: ProjectResolverContext,
