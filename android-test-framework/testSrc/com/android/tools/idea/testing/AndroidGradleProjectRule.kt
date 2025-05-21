@@ -198,7 +198,7 @@ private fun gradleModuleNotFound(gradlePath: String): Nothing =
   throw RuntimeException("No module with Gradle path: $gradlePath")
 
 class EdtAndroidGradleProjectRule(val projectRule: AndroidGradleProjectRule) :
-  TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
+  TestRule by RuleChain.outerRule(EdtRule()).around(projectRule)!! {
   val project: Project
     get() = projectRule.project
 
