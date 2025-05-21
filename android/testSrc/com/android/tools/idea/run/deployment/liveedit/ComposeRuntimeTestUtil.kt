@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.compose.ComposePluginIrGenerationExtension
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule

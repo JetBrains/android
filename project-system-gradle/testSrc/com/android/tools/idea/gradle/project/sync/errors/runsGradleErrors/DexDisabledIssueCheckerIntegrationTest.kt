@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.errors.DexDisabledIssue
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
@@ -78,7 +78,7 @@ class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
     val gradlePropertiesFile = project.baseDir.findChild("gradle.properties")!!
     runWriteAction {
       gradlePropertiesFile.setBinaryContent("""
-          org.gradle.java.installations.paths=${TestUtils.getJava17Jdk().toString().replace("\\", "/")}
+          org.gradle.java.installations.paths=${TestUtils.getEmbeddedJdk17Path().toString().replace("\\", "/")}
       """.trimIndent().toByteArray(Charsets.UTF_8))
     }
 
