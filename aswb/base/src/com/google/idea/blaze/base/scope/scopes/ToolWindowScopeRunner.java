@@ -17,7 +17,6 @@ package com.google.idea.blaze.base.scope.scopes;
 
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
 import com.google.idea.blaze.base.issueparser.BlazeIssueParser;
-import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.scope.BlazeScope;
@@ -27,29 +26,25 @@ import com.google.idea.blaze.base.toolwindow.Task;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import java.util.Optional;
 
 /**
  * A utility class to run a background action that needs the Bazel output tool window.
  */
-public class SyncActionScopes {
+public class ToolWindowScopeRunner {
   private static final BoolExperiment showWindowOnAutomaticSyncErrors =
     new BoolExperiment("querysync.autosync.show.console.on.error", true);
 
-  public static boolean runTaskInSyncRootScope(Project project,
-                                               String title,
-                                               String subTitle,
-                                               Optional<QuerySyncActionStatsScope> querySyncActionStatsScope,
-                                               QuerySyncManager.TaskOrigin taskOrigin,
-                                               ProgressIndicator indicator,
-                                               BlazeUserSettings userSettings,
-                                               QuerySyncManager.ThrowingScopedOperation operation) {
+  public static boolean runTaskWithToolWindow(Project project,
+                                              String title,
+                                              String subTitle,
+                                              QuerySyncManager.TaskOrigin taskOrigin,
+                                              BlazeUserSettings userSettings,
+                                              QuerySyncManager.ThrowingScopedOperation operation) {
     return Scope.root(
       context -> {
         Task task = new Task(project, subTitle, Task.Type.SYNC);
         BlazeScope scope =
           new ToolWindowScope.Builder(project, task)
-            .setProgressIndicator(indicator)
             .showSummaryOutput()
             .setPopupBehavior(
               taskOrigin == QuerySyncManager.TaskOrigin.AUTOMATIC
@@ -64,10 +59,7 @@ public class SyncActionScopes {
                 BlazeInvocationContext.ContextType.Sync))
             .build();
         context
-          .push(new ProgressIndicatorScope(indicator))
-          .push(scope);
-        querySyncActionStatsScope.ifPresent(context::push);
-        context
+          .push(scope)
           .push(
             new ProblemsViewScope(
               project, userSettings.getShowProblemsViewOnSync()))

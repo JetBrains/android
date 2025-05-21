@@ -20,7 +20,6 @@ import com.google.common.base.Joiner
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.io.ByteSource
-import com.google.common.io.MoreFiles
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -33,10 +32,10 @@ import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsSc
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope
 import com.google.idea.blaze.base.projectview.ProjectViewManager
 import com.google.idea.blaze.base.qsync.ProjectStatsLogger.logSyncStats
-import com.google.idea.blaze.base.qsync.QuerySyncProject.Companion
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore
 import com.google.idea.blaze.base.scope.BlazeContext
-import com.google.idea.blaze.base.scope.scopes.SyncActionScopes.runTaskInSyncRootScope
+import com.google.idea.blaze.base.scope.scopes.ProgressIndicatorScope
+import com.google.idea.blaze.base.scope.scopes.ToolWindowScopeRunner.runTaskWithToolWindow
 import com.google.idea.blaze.base.settings.Blaze
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager
 import com.google.idea.blaze.base.settings.BlazeUserSettings
@@ -350,17 +349,18 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       val innerResultFuture =
         ProgressiveTaskWithProgressIndicator.builder(project, operation.title)
           .submitTaskWithResult { indicator ->
-            runTaskInSyncRootScope(
+            runTaskWithToolWindow(
               project,
               operation.title,
               operation.subTitle,
-              Optional.ofNullable(statsScope),
               taskOrigin,
-              indicator,
               BlazeUserSettings.getInstance()
             ) { context ->
-                operation.execute(context)
-                logSyncStats(context, loadedProject, currentSnapshot.getOrNull()) // Not logging new prosject stats on exception.
+              context.push(ProgressIndicatorScope(indicator))
+              context.addCancellationHandler { indicator.cancel() }
+              statsScope?.let { context.push(it) }
+              operation.execute(context)
+              logSyncStats(context, loadedProject, currentSnapshot.getOrNull()) // Not logging new prosject stats on exception.
             }
           }
 
@@ -376,7 +376,8 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
   @Throws(BuildException::class)
   fun runSync(
     parentContext: BlazeContext,
-    syncBody: (BlazeContext) -> QuerySyncProjectSnapshot) {
+    syncBody: (BlazeContext) -> QuerySyncProjectSnapshot,
+  ) {
     BlazeContext.create(parentContext).use { context ->
       context.push(SyncQueryStatsScope())
       val fileListenerSyncCompleter = fileListener.syncStarted();

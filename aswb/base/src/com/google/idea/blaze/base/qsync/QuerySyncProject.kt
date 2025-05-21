@@ -107,9 +107,6 @@ class QuerySyncProject(
   val projectProtoTransforms: ProjectProtoTransform.Registry,
   val handledRuleKinds: Set<String>,
 ) : ReadonlyQuerySyncProject {
-  private val currentSnapshot: Optional<QuerySyncProjectSnapshot>
-    get() = snapshotHolder.current
-
   override val projectData: QuerySyncProjectData
     get() {
       var projectData = QuerySyncProjectData(workspacePathResolver, workspaceLanguageSettings)

@@ -24,6 +24,7 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStats;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope;
 import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.base.scope.output.StatusOutput;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.query.QuerySpec;
@@ -103,6 +104,7 @@ public class BazelQueryRunner implements QueryRunner {
 
     syncQueryStatsBuilder.ifPresent(
         stats -> stats.setQueryFlags(commandBuilder.build().toArgumentList()));
+    context.output(new StatusOutput("Running query..."));
     try (InputStream queryStream = invoker.invokeQuery(commandBuilder, context)) {
       QuerySummary querySummary = readFrom(query.queryStrategy(), queryStream, context);
       int packagesWithErrorsCount = querySummary.getPackagesWithErrorsCount();

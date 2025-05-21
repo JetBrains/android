@@ -28,7 +28,7 @@ import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocation
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.scope.scopes.SyncActionScopes;
+import com.google.idea.blaze.base.scope.scopes.ToolWindowScopeRunner;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -219,10 +219,11 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
   private void reloadProjectViewUnderProgressAndWait() throws InterruptedException, ExecutionException {
     // Not logging reading project view files as syncing.
     ProgressiveTaskWithProgressIndicator.builder(project, "Parsing project view files")
+      .setCancelable(false)
       .submitTaskWithResult(((Function<ProgressIndicator, Boolean>)indicator ->
-        SyncActionScopes.runTaskInSyncRootScope(project, "Parsing project view files",
-                                                "Parsing project view files", Optional.empty(), QuerySyncManager.TaskOrigin.AUTOMATIC,
-                                                indicator, BlazeUserSettings.getInstance(), context -> {
+        ToolWindowScopeRunner.runTaskWithToolWindow(project, "Parsing project view files",
+                                                    "Parsing project view files", QuerySyncManager.TaskOrigin.AUTOMATIC,
+                                                    BlazeUserSettings.getInstance(), context -> {
             final var importSettings1 = getImportSettings();
             final var loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings1);
             migrateImportSettingsToProjectViewFile(project, importSettings1,
