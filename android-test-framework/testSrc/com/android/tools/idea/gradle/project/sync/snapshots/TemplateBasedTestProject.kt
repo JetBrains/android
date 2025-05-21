@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.switchVariant
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.IndexingTestUtil
@@ -143,9 +144,10 @@ interface TemplateBasedTestProject : TestProjectDefinition {
     integrationTestEnvironment: IntegrationTestEnvironment,
     name: String,
     agpVersion: AgpVersionSoftwareEnvironment,
-    ndkVersion: String?
+    ndkVersion: String?,
+    sdk: Sdk?,
   ): PreparedTestProject {
-    val resolvedAgpVersion = agpVersion.resolve()
+    val resolvedAgpVersion = agpVersion.resolve(sdk)
     val root = integrationTestEnvironment.prepareGradleProject(
       templateAbsolutePath,
       resolvedAgpVersion,
