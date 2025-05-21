@@ -17,25 +17,21 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.builder.model.v2.ide.AndroidArtifact
 import com.android.builder.model.v2.ide.BasicArtifact
-import com.android.builder.model.v2.ide.BasicVariant
 import com.android.builder.model.v2.ide.JavaArtifact
 import com.android.builder.model.v2.ide.SourceProvider
-import com.android.builder.model.v2.models.AndroidDsl
-import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
 import com.android.tools.idea.gradle.project.sync.Modules
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
-import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.convertArtifactName
 import com.android.tools.idea.gradle.project.sync.getDefaultVariant
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import org.jetbrains.plugins.gradle.model.GradleLightProject
 
 /** Returns all source sets (main and for a selected variant) for a given gradle project. */
-internal fun SyncContributorGradleProjectContext.getAllSourceSetsFromModels(): List<SourceSetData> {
+internal fun SyncContributorAndroidProjectContext.getAllSourceSetsFromModels(): List<SourceSetData> {
   val variantName = getVariantName() ?: return emptyList()
 
   val (buildType, flavors) = basicAndroidProject.variants
@@ -49,7 +45,7 @@ internal fun SyncContributorGradleProjectContext.getAllSourceSetsFromModels(): L
 
 
 @Suppress("DEPRECATION") // Need to be backwards compatible here
-internal fun SyncContributorGradleProjectContext.getSourceSetDataForBasicAndroidProject(
+internal fun SyncContributorAndroidProjectContext.getSourceSetDataForBasicAndroidProject(
   variantName: String,
   buildTypeForVariant: String?,
   productFlavorsForVariant: List<String>): List<SourceSetData> {
@@ -110,7 +106,7 @@ internal fun SyncContributorGradleProjectContext.getSourceSetDataForBasicAndroid
 }
 
 @Suppress("DEPRECATION") // Need to be backwards compatible here
-internal fun SyncContributorGradleProjectContext.getSourceSetDataForAndroidProject(selectedVariantName: String): List<SourceSetData>{
+internal fun SyncContributorAndroidProjectContext.getSourceSetDataForAndroidProject(selectedVariantName: String): List<SourceSetData>{
   val sourceSets = mutableListOf<SourceSetData>()
 
   androidProject.variants
@@ -137,7 +133,7 @@ internal fun SyncContributorGradleProjectContext.getSourceSetDataForAndroidProje
   return sourceSets
 }
 
-internal fun SyncContributorGradleProjectContext.getVariantName(): String? =
+internal fun SyncContributorAndroidProjectContext.getVariantName(): String? =
   when (syncOptions) {
     is SingleVariantSyncActionOptions ->
       // newly user-selected variant

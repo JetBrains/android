@@ -73,13 +73,11 @@ import kotlin.io.path.absolute
 // Need the source type to be nullable because of how AndroidManifest is handled.
 internal typealias SourceSetData = Pair<String, Map<out ExternalSystemSourceType?, Set<File>>>
 
-internal class SyncContributorGradleProjectContext(
+internal open class SyncContributorProjectContext(
   val context: ProjectResolverContext,
   val project: Project,
   val buildModel: GradleLightBuild,
   val projectModel: GradleLightProject,
-  val syncOptions: SyncActionOptions,
-  val versions: ModelVersions,
 ) {
   private val virtualFileUrlManager = project.workspaceModel.getVirtualFileUrlManager()
   // Create an entity source representing each project root
@@ -88,7 +86,29 @@ internal class SyncContributorGradleProjectContext(
   val buildEntitySource = GradleBuildEntitySource(rootIdeaProjectEntitySource, buildModel.buildIdentifier.rootDir.toVirtualFileUrl())
   // For each project in the build, create an entity source representing the project, as the build entity source as the parent.
   val projectEntitySource = GradleProjectEntitySource(buildEntitySource, projectModel.projectDirectory.toVirtualFileUrl())
+
+  val isGradleRootProject = buildEntitySource.linkedProjectEntitySource.projectRootUrl == projectEntitySource.projectRootUrl
+
   val externalProject = context.getProjectModel(projectModel, ExternalProject::class.java)!!
+
+  fun File.toVirtualFileUrl() = toVirtualFileUrl(virtualFileUrlManager)
+}
+
+
+internal class SyncContributorAndroidProjectContext(
+  context: ProjectResolverContext,
+  project: Project,
+  storage: MutableEntityStorage,
+  buildModel: GradleLightBuild,
+  projectModel: GradleLightProject,
+  val syncOptions: SyncActionOptions,
+  val versions: ModelVersions,
+) : SyncContributorProjectContext (
+    context,
+    project,
+    buildModel,
+    projectModel,
+){
   val basicAndroidProject = context.getProjectModel(projectModel, BasicAndroidProject::class.java)!!
   val androidProject = context.getProjectModel(projectModel, AndroidProject::class.java)!!
   val androidDsl = context.getProjectModel(projectModel, AndroidDsl::class.java)!!
@@ -96,23 +116,26 @@ internal class SyncContributorGradleProjectContext(
   // new fields. Consider renaming.
   val useContainer: Boolean = versions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]
 
-  fun File.toVirtualFileUrl() = toVirtualFileUrl(virtualFileUrlManager)
+  private val holderModuleEntityNullable: ModuleEntity? = storage.resolve(ModuleId(resolveModuleName()))
+  val holderModuleEntity: ModuleEntity by lazy { checkNotNull(holderModuleEntityNullable) { "Holder module can't be null!" } }
+  val isValidContext = holderModuleEntityNullable != null
 
   companion object {
     internal fun create(context: ProjectResolverContext,
-                                project: Project,
-                                syncOptions: SyncActionOptions,
-                                buildModel: GradleLightBuild,
-                                projectModel: GradleLightProject): SyncContributorGradleProjectContext? =
-      context.getProjectModel(projectModel, Versions::class.java)?.convert()?.let {
-        SyncContributorGradleProjectContext(
+                        project: Project,
+                        storage: MutableEntityStorage,
+                        syncOptions: SyncActionOptions,
+                        buildModel: GradleLightBuild,
+                          projectModel: GradleLightProject): SyncContributorAndroidProjectContext? {
+      return SyncContributorAndroidProjectContext(
           context,
           project,
+          storage,
           buildModel,
           projectModel,
           syncOptions,
-          it
-        )
+          context.getProjectModel(projectModel, Versions::class.java)?.convert() ?: return null
+        ).takeIf { it.isValidContext }
       }
   }
 }
@@ -140,7 +163,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
     val allAndroidContexts = context.allBuilds.flatMap { buildModel ->
       buildModel.projects.mapNotNull allProjects@{ projectModel ->
         checkCanceled()
-        SyncContributorGradleProjectContext.create(context, project, syncOptions, buildModel, projectModel)
+        SyncContributorAndroidProjectContext.create(context, project, storage, syncOptions, buildModel, projectModel)
       }
     }
     val newModuleEntities =  allAndroidContexts.flatMap { it.getAllSourceSetModuleEntities() }
@@ -165,7 +188,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
 }
 
 // helpers
-internal fun SyncContributorGradleProjectContext.getAllSourceSetModuleEntities(): List<ModuleEntity.Builder> {
+internal fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities(): List<ModuleEntity.Builder> {
   val allSourceSets = getAllSourceSetsFromModels()
 
   // This is the module name corresponding to the "holder" module
@@ -206,25 +229,22 @@ private fun findCommonAncestor(file1: File, file2: File) : File {
 }
 
 // entity creation
-private fun SyncContributorGradleProjectContext.findOrCreateModuleEntity(
+internal fun SyncContributorProjectContext.createModuleEntity(
   name: String,
-  entitySource: AndroidGradleSourceSetEntitySource,
-  moduleEntitiesMap: MutableMap<String, ModuleEntity.Builder>
-): ModuleEntity.Builder = moduleEntitiesMap.computeIfAbsent(name) {
-  ModuleEntity(
-    entitySource = entitySource,
-    name = name,
-    dependencies = listOf(
-      InheritedSdkDependency,
-      ModuleSourceDependency
-    )
-  ) {
-    // Annotate the module with external system info (with gradle path, external system type, etc.)
-    exModuleOptions = createModuleOptionsEntity(entitySource)
-  }
+  entitySource: EntitySource
+) =   ModuleEntity(
+  entitySource = entitySource,
+  name = name,
+  dependencies = listOf(
+    InheritedSdkDependency,
+    ModuleSourceDependency
+  )
+) {
+  // Annotate the module with external system info (with gradle path, external system type, etc.)
+  exModuleOptions = createModuleOptionsEntity(entitySource)
 }
 
-private fun SyncContributorGradleProjectContext.createModuleOptionsEntity(source: EntitySource) = ExternalSystemModuleOptionsEntity(
+private fun SyncContributorProjectContext.createModuleOptionsEntity(source: EntitySource) = ExternalSystemModuleOptionsEntity(
   entitySource = source
 ) {
   externalSystem = GradleConstants.SYSTEM_ID.id
@@ -234,10 +254,20 @@ private fun SyncContributorGradleProjectContext.createModuleOptionsEntity(source
 
   externalSystemModuleGroup = externalProject.group
   externalSystemModuleVersion = externalProject.version
-  externalSystemModuleType = GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY
+  if (entitySource is AndroidGradleSourceSetEntitySource) {
+    externalSystemModuleType = GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY
+  }
 }
 
-private fun SyncContributorGradleProjectContext.createContentRootEntity(
+private fun SyncContributorAndroidProjectContext.findOrCreateModuleEntity(
+  name: String,
+  entitySource: AndroidGradleSourceSetEntitySource,
+  moduleEntitiesMap: MutableMap<String, ModuleEntity.Builder>
+): ModuleEntity.Builder = moduleEntitiesMap.computeIfAbsent(name) {
+  createModuleEntity(name, entitySource)
+}
+
+private fun SyncContributorAndroidProjectContext.createContentRootEntity(
   entitySource: EntitySource,
   typeToDirsMap: Map<out ExternalSystemSourceType?, Set<File>>
 ): ContentRootEntity.Builder {
@@ -271,7 +301,7 @@ private fun SyncContributorGradleProjectContext.createContentRootEntity(
     }
   }
 
-private fun SyncContributorGradleProjectContext.createSourceRootEntity(
+private fun SyncContributorAndroidProjectContext.createSourceRootEntity(
   file: File,
   type: IExternalSystemSourceType,
   entitySource: EntitySource
@@ -297,7 +327,7 @@ private fun SyncContributorGradleProjectContext.createSourceRootEntity(
 
 
 // copied from platform and modified to have the sync contributor context
-private fun SyncContributorGradleProjectContext.resolveModuleName(): String {
+internal fun SyncContributorProjectContext.resolveModuleName(): String {
   val moduleName = resolveGradleProjectQualifiedName()
   val buildSrcGroup = context.getBuildSrcGroup(buildModel.name, buildModel.buildIdentifier)
   if (buildSrcGroup.isNullOrBlank()) {
@@ -306,7 +336,7 @@ private fun SyncContributorGradleProjectContext.resolveModuleName(): String {
   return "$buildSrcGroup.$moduleName"
 }
 
-private fun SyncContributorGradleProjectContext.resolveGradleProjectQualifiedName(): String {
+private fun SyncContributorProjectContext.resolveGradleProjectQualifiedName(): String {
   if (projectModel.path == ":") {
     return buildModel.name
   }
