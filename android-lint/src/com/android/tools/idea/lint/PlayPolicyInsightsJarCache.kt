@@ -44,7 +44,7 @@ import org.jetbrains.kotlin.incremental.createDirectory
 private const val GOOGLE_PLAY_POLICY_INSIGHTS_KEY = "play_policy_insights"
 private const val GROUP_ID = "com.google.play.policy.insights"
 private const val ARTIFACT_ID = "insights-lint"
-private const val BUNDLED_JAR_PATH = "insights-lint-0.1.0-alpha2.jar"
+private const val BUNDLED_JAR_PATH = "insights-lint-0.1.2.jar"
 private const val UPDATE_BACKOFF_MINUTES = 10L
 
 /** Load and cache the custom lint rule jar file for play policy insights. */
