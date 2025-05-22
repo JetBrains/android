@@ -99,6 +99,7 @@ jvm_library(
     "@lib//:junit4",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
+    "//java/testFramework",
   ],
   runtime_deps = [
     ":motion-editor_resources",

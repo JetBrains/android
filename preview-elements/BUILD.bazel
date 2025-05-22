@@ -36,6 +36,7 @@ jvm_library(
     "@lib//:kotlin-test",
     "@lib//:truth",
     "//android/preview-elements",
+    "//android/rendering",
     "//android/render-resources",
     "//android/layoutlib-loader",
   ]

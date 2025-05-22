@@ -94,6 +94,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
+    "//java/testFramework",
   ]
 )
 

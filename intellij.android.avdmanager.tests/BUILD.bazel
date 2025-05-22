@@ -40,6 +40,7 @@ jvm_library(
     "//platform/platform-util-io:ide-util-io",
     "//platform/util-ex",
     "@lib//:kotlinx-datetime-jvm",
+    "//java/testFramework",
   ]
 )
 

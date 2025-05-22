@@ -111,6 +111,7 @@ jvm_library(
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//xml/xml-parser:parser",
+    "//java/testFramework",
   ]
 )
 

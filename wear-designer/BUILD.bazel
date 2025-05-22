@@ -118,6 +118,7 @@ jvm_library(
     "//android/preview-designer:preview-designer-tests_test_lib",
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "//android/wear-preview-elements",
+    "//java/testFramework",
   ]
 )
 

@@ -98,6 +98,7 @@ jvm_library(
     "//platform/smRunner:smRunner_test_lib",
     "//xml/dom-openapi:dom",
     "//android/intellij.android.testutils:testutils_test_lib",
+    "//android/project-system-gradle-sync:projectSystem-gradle-sync",
   ]
 )
 

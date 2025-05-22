@@ -52,6 +52,7 @@
     <orderEntry type="module" module-name="intellij.android.preview-designer.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wear-preview-elements" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.wear-designer" />
 </module>
