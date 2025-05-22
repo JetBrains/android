@@ -46,8 +46,7 @@ public class AndroidSqlDefinedTableNameImpl extends AbstractAndroidSqlNameElemen
   }
 
   @Override
-  @NotNull
-  public AndroidSqlDefinedTablePsiReference getReference() {
+  public @NotNull AndroidSqlDefinedTablePsiReference getReference() {
     return PsiImplUtil.getReference(this);
   }
 

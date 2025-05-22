@@ -34,7 +34,6 @@ public interface AndroidSqlWithClauseTable extends PsiElement {
   @NotNull
   AndroidSqlWithClauseTableDef getWithClauseTableDef();
 
-  @Nullable
-  AndroidSqlTable getTableDefinition();
+  @Nullable AndroidSqlTable getTableDefinition();
 
 }

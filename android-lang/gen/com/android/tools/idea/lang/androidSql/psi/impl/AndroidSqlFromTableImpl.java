@@ -94,8 +94,7 @@ public class AndroidSqlFromTableImpl extends ASTWrapperPsiElement implements And
   }
 
   @Override
-  @Nullable
-  public AndroidSqlTable getSqlTable() {
+  public @Nullable AndroidSqlTable getSqlTable() {
     return PsiImplUtil.getSqlTable(this);
   }
 

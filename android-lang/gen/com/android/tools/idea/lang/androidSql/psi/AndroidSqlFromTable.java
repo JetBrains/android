@@ -49,7 +49,6 @@ public interface AndroidSqlFromTable extends AndroidSqlTableElement {
   @Nullable
   PsiElement getSingleQuoteStringLiteral();
 
-  @Nullable
-  AndroidSqlTable getSqlTable();
+  @Nullable AndroidSqlTable getSqlTable();
 
 }

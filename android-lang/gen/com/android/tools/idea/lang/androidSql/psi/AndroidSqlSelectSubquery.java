@@ -34,7 +34,6 @@ public interface AndroidSqlSelectSubquery extends AndroidSqlTableElement {
   @Nullable
   AndroidSqlWithClauseSelectStatement getWithClauseSelectStatement();
 
-  @Nullable
-  AndroidSqlTable getSqlTable();
+  @Nullable AndroidSqlTable getSqlTable();
 
 }

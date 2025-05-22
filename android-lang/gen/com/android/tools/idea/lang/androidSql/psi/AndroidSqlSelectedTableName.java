@@ -25,7 +25,6 @@ import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlSelectedTable
 
 public interface AndroidSqlSelectedTableName extends AndroidSqlNameElement {
 
-  @NotNull
-  AndroidSqlSelectedTablePsiReference getReference();
+  @NotNull AndroidSqlSelectedTablePsiReference getReference();
 
 }
