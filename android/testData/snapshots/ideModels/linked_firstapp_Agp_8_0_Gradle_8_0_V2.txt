@@ -747,8 +747,6 @@ MODULE                        : My_First_App
                                 releaseUnitTestRuntimeOnly    : <empty>
                                 releaseWearApp                : <empty>
                                 runtimeOnly                   : <empty>
-                                swiftExportClasspath          : <empty>
-                                swiftExportClasspathResolvable          : <empty>
                                 testAnnotationProcessor       : <empty>
                                 testApi                       : <empty>
                                 testApiDependenciesMetadata   : <empty>
@@ -965,8 +963,6 @@ MODULE                        : My_First_App
                         releaseWearApp                : <empty>
                         releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
