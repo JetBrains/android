@@ -2578,4 +2578,44 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
       )
       .forEach(::check)
   }
+
+  fun testNestedSimpleFunctions() {
+    // Regression test for b/419344817. If parsing for nested functions is done inefficiently, it
+    // leads to exponential time complexity. This test will timeout if that happens.
+    var func = "LENGTH(name)"
+    repeat(50) {
+      check("SELECT $func FROM employees")
+      func = "LENGTH($func)"
+    }
+  }
+
+  fun testNestedAggregateFunctionsWithDistinct() {
+    // Regression test for b/419344817. If parsing for nested functions is done inefficiently, it
+    // leads to exponential time complexity. This test will timeout if that happens.
+    var func = "LENGTH(DISTINCT name)"
+    repeat(50) {
+      check("SELECT $func FROM employees")
+      func = "LENGTH(DISTINCT $func)"
+    }
+  }
+
+  fun testNestedAggregateFunctionsWithOrderClause() {
+    // Regression test for b/419344817. If parsing for nested functions is done inefficiently, it
+    // leads to exponential time complexity. This test will timeout if that happens.
+    var func = "LENGTH(name ORDER BY name)"
+    repeat(50) {
+      check("SELECT $func FROM employees")
+      func = "LENGTH($func ORDER BY name)"
+    }
+  }
+
+  fun testNestedAggregateFunctions() {
+    // Regression test for b/419344817. If parsing for nested functions is done inefficiently, it
+    // leads to exponential time complexity. This test will timeout if that happens.
+    var func = "LENGTH(name) OVER 'window'"
+    repeat(50) {
+      check("SELECT ($func) FROM employees")
+      func = "LENGTH($func) OVER 'window'"
+    }
+  }
 }

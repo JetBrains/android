@@ -4855,19 +4855,26 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // function_name LPAREN ( STAR | expression_list )? RPAREN filter_clause? over_clause
-  //   | function_name LPAREN DISTINCT? ( STAR | expression_list order_clause? ) ? RPAREN filter_clause?
+  // function_name LPAREN STAR? RPAREN filter_clause? over_clause?
+  //   // 2. Aggregate functions with DISTINCT and optional ORDER BY
+  //   | function_name LPAREN DISTINCT expression_list order_clause? RPAREN filter_clause?
+  //   // 3. Aggregate functions with ORDER BY
+  //   // 4. Simple, aggregate, or window functions with arguments (but no DISTINCT/ORDER BY)
+  //   // Since these cases are identical up until the expression list, they're combined for evaluation until then.
+  //   | function_name LPAREN expression_list
+  //       (order_clause RPAREN filter_clause? | RPAREN filter_clause? over_clause?)
   public static boolean function_call_expression(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "function_call_expression")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, FUNCTION_CALL_EXPRESSION, "<function call expression>");
     result = function_call_expression_0(builder, level + 1);
     if (!result) result = function_call_expression_1(builder, level + 1);
+    if (!result) result = function_call_expression_2(builder, level + 1);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
-  // function_name LPAREN ( STAR | expression_list )? RPAREN filter_clause? over_clause
+  // function_name LPAREN STAR? RPAREN filter_clause? over_clause?
   private static boolean function_call_expression_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "function_call_expression_0")) return false;
     boolean result;
@@ -4877,25 +4884,16 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     result = result && function_call_expression_0_2(builder, level + 1);
     result = result && consumeToken(builder, RPAREN);
     result = result && function_call_expression_0_4(builder, level + 1);
-    result = result && over_clause(builder, level + 1);
+    result = result && function_call_expression_0_5(builder, level + 1);
     exit_section_(builder, marker, null, result);
     return result;
   }
 
-  // ( STAR | expression_list )?
+  // STAR?
   private static boolean function_call_expression_0_2(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "function_call_expression_0_2")) return false;
-    function_call_expression_0_2_0(builder, level + 1);
+    consumeTokenSmart(builder, STAR);
     return true;
-  }
-
-  // STAR | expression_list
-  private static boolean function_call_expression_0_2_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "function_call_expression_0_2_0")) return false;
-    boolean result;
-    result = consumeTokenSmart(builder, STAR);
-    if (!result) result = expression_list(builder, level + 1);
-    return result;
   }
 
   // filter_clause?
@@ -4905,68 +4903,109 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // function_name LPAREN DISTINCT? ( STAR | expression_list order_clause? ) ? RPAREN filter_clause?
+  // over_clause?
+  private static boolean function_call_expression_0_5(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "function_call_expression_0_5")) return false;
+    over_clause(builder, level + 1);
+    return true;
+  }
+
+  // function_name LPAREN DISTINCT expression_list order_clause? RPAREN filter_clause?
   private static boolean function_call_expression_1(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "function_call_expression_1")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
     result = parseFunctionName(builder, level + 1);
-    result = result && consumeToken(builder, LPAREN);
-    result = result && function_call_expression_1_2(builder, level + 1);
-    result = result && function_call_expression_1_3(builder, level + 1);
+    result = result && consumeTokensSmart(builder, 0, LPAREN, DISTINCT);
+    result = result && expression_list(builder, level + 1);
+    result = result && function_call_expression_1_4(builder, level + 1);
     result = result && consumeToken(builder, RPAREN);
-    result = result && function_call_expression_1_5(builder, level + 1);
-    exit_section_(builder, marker, null, result);
-    return result;
-  }
-
-  // DISTINCT?
-  private static boolean function_call_expression_1_2(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "function_call_expression_1_2")) return false;
-    consumeTokenSmart(builder, DISTINCT);
-    return true;
-  }
-
-  // ( STAR | expression_list order_clause? ) ?
-  private static boolean function_call_expression_1_3(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "function_call_expression_1_3")) return false;
-    function_call_expression_1_3_0(builder, level + 1);
-    return true;
-  }
-
-  // STAR | expression_list order_clause?
-  private static boolean function_call_expression_1_3_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "function_call_expression_1_3_0")) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
-    result = consumeTokenSmart(builder, STAR);
-    if (!result) result = function_call_expression_1_3_0_1(builder, level + 1);
-    exit_section_(builder, marker, null, result);
-    return result;
-  }
-
-  // expression_list order_clause?
-  private static boolean function_call_expression_1_3_0_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "function_call_expression_1_3_0_1")) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
-    result = expression_list(builder, level + 1);
-    result = result && function_call_expression_1_3_0_1_1(builder, level + 1);
+    result = result && function_call_expression_1_6(builder, level + 1);
     exit_section_(builder, marker, null, result);
     return result;
   }
 
   // order_clause?
-  private static boolean function_call_expression_1_3_0_1_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "function_call_expression_1_3_0_1_1")) return false;
+  private static boolean function_call_expression_1_4(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "function_call_expression_1_4")) return false;
     order_clause(builder, level + 1);
     return true;
   }
 
   // filter_clause?
-  private static boolean function_call_expression_1_5(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "function_call_expression_1_5")) return false;
+  private static boolean function_call_expression_1_6(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "function_call_expression_1_6")) return false;
     filter_clause(builder, level + 1);
+    return true;
+  }
+
+  // function_name LPAREN expression_list
+  //       (order_clause RPAREN filter_clause? | RPAREN filter_clause? over_clause?)
+  private static boolean function_call_expression_2(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "function_call_expression_2")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = parseFunctionName(builder, level + 1);
+    result = result && consumeToken(builder, LPAREN);
+    result = result && expression_list(builder, level + 1);
+    result = result && function_call_expression_2_3(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  // order_clause RPAREN filter_clause? | RPAREN filter_clause? over_clause?
+  private static boolean function_call_expression_2_3(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "function_call_expression_2_3")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = function_call_expression_2_3_0(builder, level + 1);
+    if (!result) result = function_call_expression_2_3_1(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  // order_clause RPAREN filter_clause?
+  private static boolean function_call_expression_2_3_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "function_call_expression_2_3_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = order_clause(builder, level + 1);
+    result = result && consumeToken(builder, RPAREN);
+    result = result && function_call_expression_2_3_0_2(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  // filter_clause?
+  private static boolean function_call_expression_2_3_0_2(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "function_call_expression_2_3_0_2")) return false;
+    filter_clause(builder, level + 1);
+    return true;
+  }
+
+  // RPAREN filter_clause? over_clause?
+  private static boolean function_call_expression_2_3_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "function_call_expression_2_3_1")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeTokenSmart(builder, RPAREN);
+    result = result && function_call_expression_2_3_1_1(builder, level + 1);
+    result = result && function_call_expression_2_3_1_2(builder, level + 1);
+    exit_section_(builder, marker, null, result);
+    return result;
+  }
+
+  // filter_clause?
+  private static boolean function_call_expression_2_3_1_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "function_call_expression_2_3_1_1")) return false;
+    filter_clause(builder, level + 1);
+    return true;
+  }
+
+  // over_clause?
+  private static boolean function_call_expression_2_3_1_2(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "function_call_expression_2_3_1_2")) return false;
+    over_clause(builder, level + 1);
     return true;
   }
 
