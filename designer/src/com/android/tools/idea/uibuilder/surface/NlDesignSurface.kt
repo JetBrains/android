@@ -47,7 +47,6 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
-import com.android.tools.idea.common.surface.getFitContentIntoWindowScale
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.getViewHandler
@@ -405,7 +404,7 @@ internal constructor(
       targetSwingX - swingViewportSize.width / 2,
       targetSwingY - swingViewportSize.height / 2,
     )
-    @SurfaceScale val fitScale = this.getFitContentIntoWindowScale(areaToCenter.size)
+    @SurfaceScale val fitScale = zoomController.getFitScale()
 
     if (zoomController.scale > fitScale) {
       // Scale down to fit selection.
