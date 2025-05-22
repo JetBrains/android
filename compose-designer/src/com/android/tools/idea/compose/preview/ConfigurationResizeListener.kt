@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.common.util.updateLayoutParams
+import com.android.tools.idea.common.util.updateLayoutParamsToWrapContent
 import com.android.tools.idea.compose.preview.util.deviceSize
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
@@ -80,7 +81,21 @@ class ConfigurationResizeListener(
   private suspend fun requestRender(newDeviceSize: Dimension) {
     if (!sceneManager.sceneRenderConfiguration.showDecorations) {
       val viewObj = sceneManager.viewObject ?: return
-      sceneManager.executeInRenderSession(false) { updateLayoutParams(viewObj, newDeviceSize) }
+      sceneManager.executeInRenderSession(false) {
+        if (sceneManager.forceNextResizeToWrapContent) {
+          // The SceneManager has been flagged to force the next resize (typically a revert of
+          // resizing) to wrap content for this shrink-mode preview.
+          // This ensures the Composable measures itself based on its content, how it's done by
+          // default
+          // see [com.android.tools.preview.ComposePreviewElementInstance.toPreviewXml].
+          updateLayoutParamsToWrapContent(viewObj)
+          // Reset the flag immediately after acting on it to ensure it only affects this single
+          // operation.
+          sceneManager.forceNextResizeToWrapContent = false
+        } else {
+          updateLayoutParams(viewObj, newDeviceSize)
+        }
+      }
     }
     sceneManager.requestRenderWithNewSize(newDeviceSize.width, newDeviceSize.height)
   }

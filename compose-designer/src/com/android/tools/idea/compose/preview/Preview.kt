@@ -1084,16 +1084,12 @@ class ComposePreviewRepresentation(
    * panel, typically after a render or a mode update.
    */
   private fun updateResizePanelConfigurationForFocusMode() {
-    val currentGlobalMode = previewModeManager.mode.value
     activeResizePanelInFocusMode?.let { panel ->
-      val focusMode = currentGlobalMode as? PreviewMode.Focus
-      if (focusMode != null) {
-        val focusedElement = focusMode.selected as? PsiComposePreviewElementInstance
-        val config = focusedElement?.let { getConfigurationForInstance(it) }
-        val module = surface.models.singleOrNull()?.module
-        panel.setConfiguration(config, module)
+      val focusedSceneManager = surface.sceneManagers.singleOrNull()
+      if (focusedSceneManager != null) {
+        panel.setSceneManager(focusedSceneManager)
       } else {
-        log.error("activeResizePanelInFocusMode is not null, but current mode is not Focus")
+        log.error("activeResizePanelInFocusMode is not null, but there are no single scene manager")
       }
     }
   }

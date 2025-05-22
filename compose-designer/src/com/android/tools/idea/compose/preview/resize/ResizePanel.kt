@@ -22,13 +22,17 @@ import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.configurations.updateScreenSize
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.getDimensionsInDp
+import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.util.getSdkDevices
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.visual.getDeviceGroupsSortedAsMap
+import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -89,6 +93,8 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
 
   private var currentPopupListItems: List<DropDownListItem> = emptyList()
   private var currentModuleForList: Module? = null
+  private var currentFocusedPreviewElement: PsiComposePreviewElementInstance? = null
+  private var currentSceneManager: LayoutlibSceneManager? = null
 
   private var isUpdatingFromConfig = false
   private var currentConfiguration: Configuration? = null
@@ -168,14 +174,19 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
    * close button or selects the "Original" device option from the dropdown.
    */
   private fun revertResizing() {
+    currentSceneManager?.forceNextResizeToWrapContent = isOriginalPreviewSizeModeWrap()
     currentConfiguration?.setEffectiveDevice(originalDeviceSnapshot, originalDeviceStateSnapshot)
+
     hasBeenResized = false
   }
 
   /** Clears the panel's state, removing any existing configuration and hiding it. */
   fun clearPanelAndHidePanel() {
     currentConfiguration?.removeListener(configurationListenerInternal)
+    currentSceneManager = null
     currentConfiguration = null
+    currentFocusedPreviewElement = null
+    currentModuleForList = null
     hasBeenResized = false
     isVisible = false
   }
@@ -270,18 +281,53 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     return popupItems
   }
 
-  fun setConfiguration(newConfiguration: Configuration?, module: Module?) {
+  /**
+   * Sets the [LayoutlibSceneManager] for the [ResizePanel], providing context for its operations.
+   * This method is called when the focused preview element (and thus its SceneManager) changes.
+   *
+   * @param sceneManager The [LayoutlibSceneManager] associated with the currently focused preview,
+   *   or null if none.
+   */
+  fun setSceneManager(sceneManager: LayoutlibSceneManager?) {
     currentConfiguration?.removeListener(configurationListenerInternal)
-    currentConfiguration = newConfiguration
-    currentModuleForList = module
+
+    currentSceneManager = sceneManager
+    val model = sceneManager?.model
+    currentConfiguration = model?.configuration
+    currentModuleForList = model?.module
+    currentFocusedPreviewElement = model?.dataProvider?.previewElement()
 
     originalDeviceSnapshot = currentConfiguration?.device
     originalDeviceStateSnapshot = currentConfiguration?.deviceState
     hasBeenResized = false
     currentConfiguration?.addListener(configurationListenerInternal)
-
     isVisible = false
     updatePanelFromConfiguration()
+  }
+
+  /**
+   * Determines if the original @Preview annotation for the currently focused element implies a
+   * "wrap content" sizing behavior when in shrink mode.
+   *
+   * This is true if:
+   * 1. The preview is in "shrink mode" (showDecorations = false).
+   * 2. The original @Preview annotation did not specify explicit widthDp or heightDp.
+   */
+  private fun isOriginalPreviewSizeModeWrap(): Boolean { // Renamed
+    val element = currentFocusedPreviewElement ?: return false
+
+    val isShrinkMode = !element.displaySettings.showDecoration
+
+    if (!isShrinkMode) {
+      return false
+    }
+
+    val originalAnnotationConfig = element.configuration
+    val originalDefinesNoExplicitDimensions =
+      originalAnnotationConfig.width == UNDEFINED_DIMENSION &&
+        originalAnnotationConfig.height == UNDEFINED_DIMENSION
+
+    return originalDefinesNoExplicitDimensions
   }
 
   private fun setEnabledIncludingChildren(enabled: Boolean) {

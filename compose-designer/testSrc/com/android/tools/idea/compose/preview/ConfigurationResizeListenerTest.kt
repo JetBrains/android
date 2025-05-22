@@ -346,6 +346,61 @@ class ConfigurationResizeListenerTest {
     Disposer.dispose(sceneManager)
   }
 
+  @Test
+  fun `listener uses wrapContent when forceNextResizeToWrapContent is true and in shrink mode`() =
+    runTest {
+      val viewObj = mock<View>()
+      val layoutParams =
+        ViewGroup.LayoutParams(
+          ViewGroup.LayoutParams.MATCH_PARENT,
+          ViewGroup.LayoutParams.MATCH_PARENT,
+        )
+      whenever(viewObj.layoutParams)
+        .thenReturn(layoutParams) // viewObj returns our real LayoutParams
+
+      val sceneManager =
+        mock<LayoutlibSceneManager>().also { sm ->
+          whenever(sm.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
+          whenever(sm.forceNextResizeToWrapContent).thenReturn(true)
+          whenever(sm.viewObject).thenReturn(viewObj)
+          whenever(sm.executeInRenderSessionAsync(any(), any(), any())).then {
+            val callback = it.getArgument(0, Runnable::class.java)
+            callback.run()
+            CompletableFuture.completedFuture(null)
+          }
+        }
+      showDecoration = false
+
+      val initialWidth = 500
+      val initialHeight = 600
+      val configuration = createConfiguration(initialWidth, initialHeight)
+
+      val dispatcher = StandardTestDispatcher(testScheduler)
+      val listener = ConfigurationResizeListener(sceneManager, configuration, dispatcher)
+      Disposer.register(sceneManager, listener)
+      configuration.addListener(listener)
+
+      advanceUntilIdle()
+
+      // Act
+      val newWidth = initialWidth + 100
+      val newHeight = initialHeight + 100
+      configuration.updateScreenSize(newWidth, newHeight)
+      advanceUntilIdle()
+
+      // Verify that the viewObj's LayoutParams were changed to WRAP_CONTENT
+      assertEquals(ViewGroup.LayoutParams.WRAP_CONTENT, viewObj.layoutParams.width)
+      assertEquals(ViewGroup.LayoutParams.WRAP_CONTENT, viewObj.layoutParams.height)
+
+      // Verify the flag was reset on the sceneManager
+      verify(sceneManager).forceNextResizeToWrapContent = false
+
+      // Verify requestRenderWithNewSize was called with the newDeviceSize from configuration.
+      verify(sceneManager).requestRenderWithNewSize(newWidth, newHeight)
+
+      Disposer.dispose(sceneManager)
+    }
+
   // Helper function to create a Configuration
   private fun createConfiguration(width: Int, height: Int): Configuration {
     val configuration =

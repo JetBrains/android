@@ -110,6 +110,16 @@ open class LayoutlibSceneManager(
     )
 
   /**
+   * If `true`, the next layout pass triggered via `ConfigurationResizeListener` should attempt to
+   * size the Composable content to `WRAP_CONTENT`.
+   *
+   * This flag is set by UI actions (like reverting to original size in `ResizePanel`) when a
+   * "shrink-mode" Composable (where `showDecorations` is false and its original `@Preview` did not
+   * define explicit dimensions) should revert to truly wrapping its content.
+   */
+  var forceNextResizeToWrapContent: Boolean = false
+
+  /**
    * Returns true if the current preview was resized and currently shown in a different size from
    * one specified in the file.
    */
