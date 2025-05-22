@@ -60,18 +60,14 @@ private class AsyncDisplay(disposable: Disposable, private val captureRepaints: 
         val sceneContext = sceneView.context
         val newDisplayList = DisplayList()
 
-        var needsAnotherRepaint = false
         val time = System.currentTimeMillis()
         val sceneVersion = scene.displayListVersion
-        needsAnotherRepaint = scene.layout(time, sceneContext)
+        scene.layout(time, sceneContext)
         sceneContext.time = time
         checkCanceled()
         scene.buildDisplayList(newDisplayList, time, sceneContext)
         cachedStateFlow.value = CachedState(sceneVersion, newDisplayList, sceneContext.scale)
-        if (needsAnotherRepaint) {
-          // Request the surface to be repainted so the new display list is painted
-          withContext(Dispatchers.Main) { scene.repaint() }
-        }
+        withContext(Dispatchers.Main) { scene.repaint() }
       }
     }
   }
