@@ -517,13 +517,14 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         psiFile,
         this,
         progressIndicator,
-        { _ -> onAfterRender() },
         previewElementModelAdapter,
         modelUpdater,
         navigationHandler,
         { _, layoutLibSceneManager -> configureLayoutlibSceneManager(layoutLibSceneManager) },
         refreshEventBuilder,
       )
+
+    onAfterRender()
 
     if (showingPreviewElements.size >= filePreviewElements.size) {
       previewFlowManager.updateRenderedPreviews(filePreviewElements)

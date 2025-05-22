@@ -329,16 +329,14 @@ class ComposePreviewViewImplTest {
         mainFileSmartPointer.element!!,
         fixture.testRootDisposable,
         EmptyProgressIndicator(),
-        {
-          previewView.hasRendered = true
-          previewView.hasContent = true
-        },
         testPreviewElementModelAdapter,
         DefaultModelUpdater(),
         navigationHandler = ComposePreviewNavigationHandler(),
         configureLayoutlibSceneManager = configureLayoutlibSceneManager,
         null,
       )
+      previewView.hasRendered = true
+      previewView.hasContent = true
     }
     ApplicationManager.getApplication().invokeAndWait {
       previewView.updateVisibilityAndNotifications()

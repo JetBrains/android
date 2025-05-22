@@ -1151,13 +1151,14 @@ class ComposePreviewRepresentation(
         filteredPreviews,
         psiFile,
         progressIndicator,
-        this::onAfterRender,
         previewElementModelAdapter,
         if (mode.value is PreviewMode.UiCheck) accessibilityModelUpdater else defaultModelUpdater,
         navigationHandler,
         this::configureLayoutlibSceneManagerForPreviewElement,
         refreshEventBuilder,
       )
+
+    onAfterRender(showingPreviewElements.size)
 
     if (previewModeManager.mode.value.isFocus) {
       // We need to get rid of the flickering when switching tabs in focus tabs b/287484743
