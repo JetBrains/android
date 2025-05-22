@@ -819,6 +819,9 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("AndroidResourcesEnabled") { agpFlags.androidResourcesEnabled.toString() }
         prop("DataBindingEnabled") { agpFlags.dataBindingEnabled.toString() }
         prop("GenerateManifestClass") { agpFlags.generateManifestClass.toString() }
+        if (agpFlags.disableAgpUpgradePrompt) {
+          prop("DisableAgpUpgradePrompt") { agpFlags.disableAgpUpgradePrompt.toString() }
+        }
       }
     }
 

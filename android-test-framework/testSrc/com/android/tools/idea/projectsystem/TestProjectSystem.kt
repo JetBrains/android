@@ -113,6 +113,7 @@ class TestProjectSystem @JvmOverloads constructor(
   var manifestOverrides = ManifestOverrides()
   var useAndroidX: Boolean = false
   var usesCompose: Boolean = false
+  var disableAgpUpgradePrompt: Boolean = true
 
   init {
     val sortedHighToLowDeps = availableDependencies.sortedBy { it.version }.reversed()
@@ -278,6 +279,9 @@ class TestProjectSystem @JvmOverloads constructor(
 
       override val usesCompose: Boolean
         get() = this@TestProjectSystem.usesCompose
+
+      override val disableAgpUpgradePrompt: Boolean
+        get() = this@TestProjectSystem.disableAgpUpgradePrompt
     }
 
     return TestAndroidModuleSystemImpl()

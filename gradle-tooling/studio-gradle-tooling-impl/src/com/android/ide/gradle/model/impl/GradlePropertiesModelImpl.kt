@@ -21,4 +21,5 @@ data class GradlePropertiesModelImpl(
   override val useAndroidX: Boolean?,
   override val excludeLibraryComponentsFromConstraints: Boolean?,
   override val generateManifestClass: Boolean?,
+  override val disableAgpUpgradePrompt: Boolean?,
 ) : GradlePropertiesModel

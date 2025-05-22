@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Im
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.STRONGLY_RECOMMEND
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationsManager
@@ -97,6 +98,11 @@ fun shouldRecommendPluginUpgrade(
 ): Recommendation {
   // Needed internally for development of Android support lib.
   if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return Recommendation(false, false)
+
+  val module = ModuleManager.getInstance(project).modules.firstOrNull { GradleFacet.getInstance(it) != null }
+  val disableAgpUpgradePrompt = module?.let { project.getProjectSystem().getModuleSystem(it).disableAgpUpgradePrompt } ?: false
+
+  if (disableAgpUpgradePrompt) return Recommendation(false, false)
 
   if (!RecommendedUpgradeReminder(project).shouldAsk()) return Recommendation(false, false)
   return shouldRecommendUpgrade(current, latestKnown, published)

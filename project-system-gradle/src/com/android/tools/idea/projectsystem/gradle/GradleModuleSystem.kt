@@ -476,7 +476,8 @@ class GradleModuleSystem(
 
   private data class AgpBuildGlobalFlags(
     val useAndroidX: Boolean,
-    val generateManifestClass: Boolean
+    val generateManifestClass: Boolean,
+    val disableAgpUpgradePrompt: Boolean
   )
 
   /**
@@ -517,6 +518,7 @@ class GradleModuleSystem(
       val agpBuildGlobalFlags = AgpBuildGlobalFlags(
         useAndroidX = gradleAndroidModel.androidProject.agpFlags.useAndroidX,
         generateManifestClass = gradleAndroidModel.androidProject.agpFlags.generateManifestClass,
+        disableAgpUpgradePrompt = gradleAndroidModel.androidProject.agpFlags.disableAgpUpgradePrompt
       )
       return CachedValueProvider.Result(agpBuildGlobalFlags, tracker)
     }
@@ -603,6 +605,9 @@ class GradleModuleSystem(
   override val desugarLibraryConfigFiles: List<Path>
     get() = GradleAndroidModel.get(module)?.androidProject?.desugarLibraryConfigFiles?.map { it.toPath() } ?: emptyList()
 
+  override val disableAgpUpgradePrompt: Boolean
+    get() = agpBuildGlobalFlags.disableAgpUpgradePrompt
+
   override val moduleDependencies: ModuleDependencies get() = StudioModuleDependencies(module)
 
   /**
@@ -661,6 +666,7 @@ class GradleModuleSystem(
     private val AGP_GLOBAL_FLAGS_DEFAULTS = AgpBuildGlobalFlags(
       useAndroidX = true,
       generateManifestClass = false,
+      disableAgpUpgradePrompt = false
     )
     private val DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION = AgpVersion.parse("8.1.0-alpha05")
 

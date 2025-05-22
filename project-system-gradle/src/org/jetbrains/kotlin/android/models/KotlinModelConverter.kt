@@ -216,7 +216,10 @@ class KotlinModelConverter {
 
     generateManifestClass = booleanFlagValuesList.firstOrNull {
       it.flag == ProtoBooleanFlag.GENERATE_MANIFEST_CLASS
-    }?.value ?: BooleanFlag.GENERATE_MANIFEST_CLASS.legacyDefault
+    }?.value ?: BooleanFlag.GENERATE_MANIFEST_CLASS.legacyDefault,
+
+    // b/425320603 - For now, not implemented in KMP only projects. Should be read from gradle.properties.
+    disableAgpUpgradePrompt = false
   )
 
   private fun SigningConfig.convert() = IdeSigningConfigImpl(

@@ -1262,7 +1262,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         parsedModelVersion < AgpVersion.parse("4.2.0-alpha01") -> false
         // Gradle property respected, implicitly defaulting to `false`
         else -> gradlePropertiesModel.generateManifestClass ?: false
-      }
+      },
+      disableAgpUpgradePrompt = gradlePropertiesModel.disableAgpUpgradePrompt ?: false
     )
   }
 

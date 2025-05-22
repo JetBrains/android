@@ -277,6 +277,9 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /** Whether AndroidX libraries should be used instead of legacy support libraries. */
   val useAndroidX: Boolean get() = true
 
+  /** Whether to disable AGP upgrade prompt. */
+  val disableAgpUpgradePrompt: Boolean get() = false
+
   /** Whether [desugarLibraryConfigFiles] can be determined for this AGP version */
   val desugarLibraryConfigFilesKnown: Boolean get() = false
 

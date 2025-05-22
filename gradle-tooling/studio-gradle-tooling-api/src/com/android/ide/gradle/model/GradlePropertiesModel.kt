@@ -26,4 +26,7 @@ interface GradlePropertiesModel {
 
   /** Whether to generate manifest classes. */
   val generateManifestClass: Boolean?
+
+  /** Whether to disable Android Gradle plugin upgrade prompt */
+  val disableAgpUpgradePrompt: Boolean?
 }

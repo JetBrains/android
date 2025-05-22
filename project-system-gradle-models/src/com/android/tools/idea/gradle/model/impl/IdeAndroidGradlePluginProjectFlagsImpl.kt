@@ -66,4 +66,6 @@ data class IdeAndroidGradlePluginProjectFlagsImpl(
 
   override val generateManifestClass: Boolean,
 
+  override val disableAgpUpgradePrompt: Boolean,
+
 ) : Serializable, IdeAndroidGradlePluginProjectFlags

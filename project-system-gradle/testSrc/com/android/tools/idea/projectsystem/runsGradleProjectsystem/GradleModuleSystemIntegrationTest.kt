@@ -25,6 +25,7 @@ import com.android.ide.common.repository.WellKnownMavenArtifactId.Companion.GUAV
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -50,7 +51,10 @@ import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
@@ -352,6 +356,42 @@ class GradleModuleSystemIntegrationTest {
       } finally {
         StudioFlags.COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE.clearOverride()
       }
+    }
+  }
+
+  @Test
+  fun testDisableAgpUpgradePromptProperty() {
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+
+    preparedProject.open { project ->
+      val module = project.gradleModule(":app")!!
+
+      val projectSystem = ProjectSystemService.getInstance(project).projectSystem
+      val moduleSystem = projectSystem.getModuleSystem(module)
+
+      val gradleProperties = project.guessProjectDir()?.findChild("gradle.properties")!!
+
+      assertThat(gradleProperties.exists()).isTrue()
+
+      ApplicationManager.getApplication().runWriteAction {
+        VfsUtil.saveText(gradleProperties, """
+        android.disableAgpUpgradePrompt=true
+      """.trimIndent())
+      }
+      GradleSyncInvoker.getInstance().requestProjectSync(project,
+                                                         GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED))
+
+      AndroidTestCase.assertTrue(moduleSystem.disableAgpUpgradePrompt)
+
+      ApplicationManager.getApplication().runWriteAction {
+        VfsUtil.saveText(gradleProperties, """
+        android.disableAgpUpgradePrompt=false
+      """.trimIndent())
+      }
+      GradleSyncInvoker.getInstance().requestProjectSync(project,
+                                                         GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED))
+
+      AndroidTestCase.assertFalse(moduleSystem.disableAgpUpgradePrompt)
     }
   }
 

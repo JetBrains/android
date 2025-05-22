@@ -60,4 +60,7 @@ interface IdeAndroidGradlePluginProjectFlags {
 
   /** Whether to generate manifest classes. */
   val generateManifestClass: Boolean
+
+  /** Whether to disable Android Gradle plugin upgrade prompt for this project. */
+  val disableAgpUpgradePrompt: Boolean
 }
