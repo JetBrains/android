@@ -67,10 +67,11 @@ fun parseViewInfo(rootViewInfo: ViewInfo, logger: Logger): List<ComposeViewInfo>
     assert(viewInfos.size == 1 || ApplicationManager.getApplication().isUnitTestMode) {
       // Skipping tests as they might have incomplete set up that results in viewInfos size being 0
       // if they are not directly testing related functionality
-      "Expected one ComposeViewInfo. Received multiple entries. This indicates a failure in the "
-      "stitchTree function's merging logic. While a list is accepted to prevent immediate failure, "
-      "the presence of multiple entries here requires investigation of stitchTree. Alternatively, "
-      "if multiple entries are now expected, this assert should be removed or modified."
+      "Expected one ComposeViewInfo. Received multiple entries. This indicates a failure in the " +
+        "stitchTree function's merging logic. While a list is accepted to prevent immediate " +
+        "failure, the presence of multiple entries here requires investigation of stitchTree. " +
+        "Alternatively, if multiple entries are now expected, this assert should be removed or " +
+        "modified."
     }
     return viewInfos
   } catch (e: Exception) {
