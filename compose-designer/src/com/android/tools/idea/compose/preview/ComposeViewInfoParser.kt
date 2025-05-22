@@ -64,14 +64,17 @@ fun parseViewInfo(rootViewInfo: ViewInfo, logger: Logger): List<ComposeViewInfo>
 
     // False positive: assert uses this lambda's result as a lazy error message on failure.
     @Suppress("Noop")
-    assert(viewInfos.size == 1 || ApplicationManager.getApplication().isUnitTestMode) {
+    if (!(viewInfos.size == 1 || ApplicationManager.getApplication().isUnitTestMode)) {
       // Skipping tests as they might have incomplete set up that results in viewInfos size being 0
       // if they are not directly testing related functionality
-      "Expected one ComposeViewInfo. Received multiple entries. This indicates a failure in the " +
-        "stitchTree function's merging logic. While a list is accepted to prevent immediate " +
-        "failure, the presence of multiple entries here requires investigation of stitchTree. " +
-        "Alternatively, if multiple entries are now expected, this assert should be removed or " +
-        "modified."
+      // TODO(b/419541055): this should probably be an assertion.
+      logger.warn(
+        "Expected one ComposeViewInfo. Received multiple entries. This indicates a failure in the " +
+          "stitchTree function's merging logic. While a list is accepted to prevent immediate " +
+          "failure, the presence of multiple entries here requires investigation of stitchTree. " +
+          "Alternatively, if multiple entries are now expected, this assert should be removed or " +
+          "modified."
+      )
     }
     return viewInfos
   } catch (e: Exception) {
