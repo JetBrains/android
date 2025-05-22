@@ -23,18 +23,30 @@ import com.intellij.codeInsight.completion.CompletionUtil
 import com.intellij.lang.LanguageBraceMatching
 import com.intellij.psi.TokenType
 
-abstract class AndroidSqlParserTest : AndroidParsingTestCase(AndroidSqlFileType.INSTANCE.defaultExtension, AndroidSqlParserDefinition()) {
+abstract class AndroidSqlParserTest :
+  AndroidParsingTestCase(
+    AndroidSqlFileType.INSTANCE.defaultExtension,
+    AndroidSqlParserDefinition(),
+  ) {
   override fun getTestDataPath() = com.android.tools.idea.lang.getTestDataPath()
 
   override fun setUp() {
     super.setUp()
-    // b/110189571: ParsingTestCase puts in place a new root area and registers just a few extension points in it. Our parser implementation
-    // ends up using LanguageBraceMatching which is not registered by ParsingTestCase and so LanguageBraceMatching.myCache ends up empty
-    // (because there was no registered extension point with the right name to get instances for) and the empty cache is not flushed at
-    // the end of the test (because only registered extension points get notified that the root area got replaced back to the default one).
-    // With the line below we register the right object for the duration of this test and also mak sure its cache gets cleared before
+    // b/110189571: ParsingTestCase puts in place a new root area and registers just a few extension
+    // points in it. Our parser implementation
+    // ends up using LanguageBraceMatching which is not registered by ParsingTestCase and so
+    // LanguageBraceMatching.myCache ends up empty
+    // (because there was no registered extension point with the right name to get instances for)
+    // and the empty cache is not flushed at
+    // the end of the test (because only registered extension points get notified that the root area
+    // got replaced back to the default one).
+    // With the line below we register the right object for the duration of this test and also mak
+    // sure its cache gets cleared before
     // EditingTest runs.
-    addExplicitExtension(LanguageBraceMatching.INSTANCE, AndroidSqlLanguage.INSTANCE, AndroidSqlPairedBraceMatcher()
+    addExplicitExtension(
+      LanguageBraceMatching.INSTANCE,
+      AndroidSqlLanguage.INSTANCE,
+      AndroidSqlPairedBraceMatcher(),
     )
   }
 
@@ -44,9 +56,7 @@ abstract class AndroidSqlParserTest : AndroidParsingTestCase(AndroidSqlFileType.
    * For now the PSI hierarchy is not finalized, so there's no point checking the tree shape.
    */
   protected fun check(input: String) {
-    assert(getErrorMessage(input) == null) {
-      "Parsing $input failed:\n${toParseTreeText(input)}"
-    }
+    assert(getErrorMessage(input) == null) { "Parsing $input failed:\n${toParseTreeText(input)}" }
 
     val lexer = AndroidSqlLexer()
     lexer.start(input)
@@ -62,8 +72,7 @@ class MiscParserTest : AndroidSqlParserTest() {
     try {
       check("foo")
       fail()
-    }
-    catch (e: AssertionError) {
+    } catch (e: AssertionError) {
       // Expected.
     }
   }
@@ -131,8 +140,9 @@ class MiscParserTest : AndroidSqlParserTest() {
               PsiElement(IDENTIFIER)('${CompletionUtil.DUMMY_IDENTIFIER_TRIMMED}')
           PsiErrorElement:'.', INDEXED, NOT or SET expected
             <empty list>
-      """.trimIndent(),
-      toParseTreeText("update ${CompletionUtil.DUMMY_IDENTIFIER}")
+      """
+        .trimIndent(),
+      toParseTreeText("update ${CompletionUtil.DUMMY_IDENTIFIER}"),
     )
 
     assertEquals(
@@ -148,8 +158,9 @@ class MiscParserTest : AndroidSqlParserTest() {
             PsiElement(IDENTIFIER)('${CompletionUtil.DUMMY_IDENTIFIER_TRIMMED}')
           PsiErrorElement:'=' expected
             <empty list>
-      """.trimIndent(),
-      toParseTreeText("update foo set ${CompletionUtil.DUMMY_IDENTIFIER}")
+      """
+        .trimIndent(),
+      toParseTreeText("update foo set ${CompletionUtil.DUMMY_IDENTIFIER}"),
     )
   }
 
@@ -176,7 +187,8 @@ class MiscParserTest : AndroidSqlParserTest() {
   }
 
   fun testLiterals() {
-    // TODO: The spec doesn't seem to be fully reflected in real sqlite, we need to verify all of that and other combinations.
+    // TODO: The spec doesn't seem to be fully reflected in real sqlite, we need to verify all of
+    // that and other combinations.
     check("select 12 from t")
     check("select 12.3 from t")
     check("select 10e-1 from t")
@@ -223,8 +235,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     AndroidSqlBindParameterImpl(BIND_PARAMETER)
                       PsiElement(NUMBERED_PARAMETER)('?')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM user WHERE id = ?")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT * FROM user WHERE id = ?"),
     )
     assertEquals(
       """
@@ -252,8 +265,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     AndroidSqlBindParameterImpl(BIND_PARAMETER)
                       PsiElement(NUMBERED_PARAMETER)('?1')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM user WHERE id = ?1")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT * FROM user WHERE id = ?1"),
     )
     assertEquals(
       """
@@ -281,8 +295,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     AndroidSqlBindParameterImpl(BIND_PARAMETER)
                       PsiElement(NAMED_PARAMETER)(':userId')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM user WHERE id = :userId")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT * FROM user WHERE id = :userId"),
     )
     assertEquals(
       """
@@ -310,8 +325,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     AndroidSqlBindParameterImpl(BIND_PARAMETER)
                       PsiElement(NAMED_PARAMETER)('@userId')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM user WHERE id = @userId")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT * FROM user WHERE id = @userId"),
     )
     assertEquals(
       """
@@ -339,8 +355,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     AndroidSqlBindParameterImpl(BIND_PARAMETER)
                       PsiElement(NAMED_PARAMETER)('${'$'}userId')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM user WHERE id = \$userId")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT * FROM user WHERE id = \$userId"),
     )
     assertEquals(
       """
@@ -368,8 +385,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     AndroidSqlBindParameterImpl(BIND_PARAMETER)
                       PsiElement(NAMED_PARAMETER)(':userId')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM user WHERE id = :userId")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT * FROM user WHERE id = :userId"),
     )
   }
 
@@ -384,8 +402,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             PsiElement(FULL)('FULL')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA auto_vacuum=FULL")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA auto_vacuum=FULL"),
     )
     assertEquals(
       """
@@ -398,8 +417,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             AndroidSqlSignedNumberImpl(SIGNED_NUMBER)
               PsiElement(NUMERIC_LITERAL)('1')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_keys=1")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_keys=1"),
     )
     assertEquals(
       """
@@ -411,8 +431,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             PsiElement(ON)('ON')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_keys=ON")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_keys=ON"),
     )
     assertEquals(
       """
@@ -424,8 +445,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             PsiElement(ON)('on')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_keys=on")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_keys=on"),
     )
     assertEquals(
       """
@@ -437,8 +459,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             PsiElement(IDENTIFIER)('OFF')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_keys=OFF")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_keys=OFF"),
     )
     assertEquals(
       """
@@ -450,8 +473,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             PsiElement(IDENTIFIER)('off')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_keys=off")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_keys=off"),
     )
     assertEquals(
       """
@@ -463,8 +487,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             PsiElement(IDENTIFIER)('yes')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_keys=yes")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_keys=yes"),
     )
     assertEquals(
       """
@@ -476,8 +501,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             PsiElement(IDENTIFIER)('YES')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_keys=YES")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_keys=YES"),
     )
     assertEquals(
       """
@@ -489,8 +515,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             PsiElement(NO)('no')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_keys=no")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_keys=no"),
     )
     assertEquals(
       """
@@ -502,8 +529,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             PsiElement(NO)('NO')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_keys=NO")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_keys=NO"),
     )
     assertEquals(
       """
@@ -516,8 +544,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             AndroidSqlBooleanLiteralImpl(BOOLEAN_LITERAL)
               PsiElement(TRUE)('true')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_keys=true")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_keys=true"),
     )
     assertEquals(
       """
@@ -530,8 +559,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             AndroidSqlBooleanLiteralImpl(BOOLEAN_LITERAL)
               PsiElement(TRUE)('TRUE')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_keys=TRUE")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_keys=TRUE"),
     )
     assertEquals(
       """
@@ -544,8 +574,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             AndroidSqlBooleanLiteralImpl(BOOLEAN_LITERAL)
               PsiElement(FALSE)('false')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_keys=false")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_keys=false"),
     )
     assertEquals(
       """
@@ -558,8 +589,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             AndroidSqlBooleanLiteralImpl(BOOLEAN_LITERAL)
               PsiElement(FALSE)('FALSE')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_keys=FALSE")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_keys=FALSE"),
     )
     assertEquals(
       """
@@ -571,8 +603,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''foo'')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA data_store_directory='foo'")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA data_store_directory='foo'"),
     )
     assertEquals(
       """
@@ -584,8 +617,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             PsiElement(DOUBLE_QUOTE_STRING_LITERAL)('"UTF-8"')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA encoding=\"UTF-8\"")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA encoding=\"UTF-8\""),
     )
     assertEquals(
       """
@@ -598,8 +632,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             PsiElement(IDENTIFIER)('my_table')
           PsiElement())(')')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA foreign_key_check(my_table)")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA foreign_key_check(my_table)"),
     )
     assertEquals(
       """
@@ -612,8 +647,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
             AndroidSqlSignedNumberImpl(SIGNED_NUMBER)
               PsiElement(NUMERIC_LITERAL)('0xfffe')
-      """.trimIndent(),
-      toParseTreeText("PRAGMA optimize=0xfffe")
+      """
+        .trimIndent(),
+      toParseTreeText("PRAGMA optimize=0xfffe"),
     )
   }
 
@@ -635,8 +671,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlFromTableImpl(FROM_TABLE)
                     AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                       PsiElement(IDENTIFIER)('user')
-      """.trimIndent(),
-      toParseTreeText("select 'age' from user")
+      """
+        .trimIndent(),
+      toParseTreeText("select 'age' from user"),
     )
     assertEquals(
       """
@@ -656,8 +693,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlFromTableImpl(FROM_TABLE)
                     AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                       PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''user'')
-      """.trimIndent(),
-      toParseTreeText("select age from 'user'")
+      """
+        .trimIndent(),
+      toParseTreeText("select age from 'user'"),
     )
     assertEquals(
       """
@@ -673,8 +711,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(=)('=')
           AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
             PsiElement(NULL)('NULL')
-      """.trimIndent(),
-      toParseTreeText("UPDATE 'table' SET 'order' = NULL")
+      """
+        .trimIndent(),
+      toParseTreeText("UPDATE 'table' SET 'order' = NULL"),
     )
     assertEquals(
       """
@@ -688,8 +727,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
                     AndroidSqlColumnNameImpl(COLUMN_NAME)
                       PsiElement(BACKTICK_LITERAL)('`age`')
-      """.trimIndent(),
-      toParseTreeText("select `age`")
+      """
+        .trimIndent(),
+      toParseTreeText("select `age`"),
     )
     assertEquals(
       """
@@ -703,8 +743,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     AndroidSqlBindParameterImpl(BIND_PARAMETER)
                       PsiElement(NAMED_PARAMETER)(':age')
-      """.trimIndent(),
-      toParseTreeText("select :age")
+      """
+        .trimIndent(),
+      toParseTreeText("select :age"),
     )
   }
 
@@ -732,8 +773,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                 AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                   PsiElement(NUMERIC_LITERAL)('3')
                 PsiElement())(')')
-      """.trimIndent(),
-      toParseTreeText("REPLACE INTO books VALUES(1,2,3)")
+      """
+        .trimIndent(),
+      toParseTreeText("REPLACE INTO books VALUES(1,2,3)"),
     )
     assertEquals(
       """
@@ -762,8 +804,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlFromTableImpl(FROM_TABLE)
                     AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                       PsiElement(IDENTIFIER)('books')
-      """.trimIndent(),
-      toParseTreeText("SELECT REPLACE('a','b','aa') FROM books")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT REPLACE('a','b','aa') FROM books"),
     )
   }
 
@@ -790,8 +833,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlFromTableImpl(FROM_TABLE)
                     AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                       PsiElement(IDENTIFIER)('book')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM user, book")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT * FROM user, book"),
     )
   }
 
@@ -841,8 +885,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     AndroidSqlBindParameterImpl(BIND_PARAMETER)
                       PsiElement(NAMED_PARAMETER)(':id')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM (SELECT * FROM user, book) WHERE id = :id")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT * FROM (SELECT * FROM user, book) WHERE id = :id"),
     )
     assertEquals(
       """
@@ -953,9 +998,11 @@ class MiscParserTest : AndroidSqlParserTest() {
                                   AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                                     PsiElement(IDENTIFIER)('minmax')
                       PsiElement())(')')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText(
-        "WITH minmax AS (SELECT (SELECT min(a) as min_a FROM Aaa), (SELECT max(a) FROM Aaa) as max_a) SELECT * FROM Aaa WHERE a=(SELECT foo FROM minmax)")
+        "WITH minmax AS (SELECT (SELECT min(a) as min_a FROM Aaa), (SELECT max(a) FROM Aaa) as max_a) SELECT * FROM Aaa WHERE a=(SELECT foo FROM minmax)"
+      ),
     )
   }
 
@@ -973,8 +1020,9 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(TO)('TO')
           AndroidSqlTableDefinitionNameImpl(TABLE_DEFINITION_NAME)
             PsiElement(IDENTIFIER)('myNewTable')
-      """.trimIndent(),
-      toParseTreeText("ALTER TABLE myTable RENAME TO myNewTable")
+      """
+        .trimIndent(),
+      toParseTreeText("ALTER TABLE myTable RENAME TO myNewTable"),
     )
   }
 
@@ -994,8 +1042,9 @@ class MiscParserTest : AndroidSqlParserTest() {
               PsiElement(IDENTIFIER)('status')
             AndroidSqlTypeNameImpl(TYPE_NAME)
               PsiElement(IDENTIFIER)('VARCHAR')
-      """.trimIndent(),
-      toParseTreeText("ALTER TABLE employees ADD status VARCHAR")
+      """
+        .trimIndent(),
+      toParseTreeText("ALTER TABLE employees ADD status VARCHAR"),
     )
   }
 
@@ -1015,8 +1064,9 @@ class MiscParserTest : AndroidSqlParserTest() {
             PsiElement(IDENTIFIER)('columnNameOld')
           PsiElement(TO)('TO')
           PsiElement(IDENTIFIER)('columnNameNew')
-      """.trimIndent(),
-      toParseTreeText("ALTER TABLE myTable RENAME COLUMN columnNameOld TO columnNameNew")
+      """
+        .trimIndent(),
+      toParseTreeText("ALTER TABLE myTable RENAME COLUMN columnNameOld TO columnNameNew"),
     )
 
     assertEquals(
@@ -1033,8 +1083,9 @@ class MiscParserTest : AndroidSqlParserTest() {
             PsiElement(IDENTIFIER)('columnNameOld')
           PsiElement(TO)('TO')
           PsiElement(IDENTIFIER)('columnNameNew')
-      """.trimIndent(),
-      toParseTreeText("ALTER TABLE myTable RENAME columnNameOld TO columnNameNew")
+      """
+        .trimIndent(),
+      toParseTreeText("ALTER TABLE myTable RENAME columnNameOld TO columnNameNew"),
     )
   }
 
@@ -1051,14 +1102,17 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(DROP)('DROP')
           AndroidSqlColumnNameImpl(COLUMN_NAME)
             PsiElement(IDENTIFIER)('status')
-      """.trimIndent(),
-      toParseTreeText("ALTER TABLE employees DROP status")
+      """
+        .trimIndent(),
+      toParseTreeText("ALTER TABLE employees DROP status"),
     )
   }
 
   // Regression test for b/243679694
   fun testRowValue() {
-    check("SELECT abc, def FROM some_table WHERE (abc, def) NOT IN (SELECT abc, def FROM other_table)")
+    check(
+      "SELECT abc, def FROM some_table WHERE (abc, def) NOT IN (SELECT abc, def FROM other_table)"
+    )
   }
 
   fun testBooleanLiterals() {
@@ -1088,8 +1142,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     AndroidSqlBooleanLiteralImpl(BOOLEAN_LITERAL)
                       PsiElement(TRUE)('TRUE')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM foo WHERE bar = TRUE")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT * FROM foo WHERE bar = TRUE"),
     )
 
     assertEquals(
@@ -1118,8 +1173,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     AndroidSqlBooleanLiteralImpl(BOOLEAN_LITERAL)
                       PsiElement(FALSE)('FALSE')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM foo WHERE bar = FALSE")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT * FROM foo WHERE bar = FALSE"),
     )
   }
 
@@ -1145,8 +1201,9 @@ class MiscParserTest : AndroidSqlParserTest() {
                     PsiElement(.)('.')
                     AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                       PsiElement(IDENTIFIER)('ConfigPackagesToKeep')
-      """.trimIndent(),
-      toParseTreeText("SELECT name from TEMP.ConfigPackagesToKeep")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT name from TEMP.ConfigPackagesToKeep"),
     )
   }
 
@@ -1200,7 +1257,8 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlFromTableImpl(FROM_TABLE)
                     AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                       PsiElement(IDENTIFIER)('employees')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText(
         """
         SELECT DENSE_RANK()
@@ -1210,7 +1268,7 @@ class MiscParserTest : AndroidSqlParserTest() {
          EXCLUDE CURRENT ROW)
         FROM employees
         """
-      )
+      ),
     )
 
     assertEquals(
@@ -1265,13 +1323,14 @@ class MiscParserTest : AndroidSqlParserTest() {
                   AndroidSqlFromTableImpl(FROM_TABLE)
                     AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                       PsiElement(IDENTIFIER)('employees')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText(
         """
         SELECT FIRST_VALUE(salary) FILTER (WHERE hire_date < '2023-01-01')
         OVER (PARTITION BY department ORDER BY hire_date) FROM employees
         """
-      )
+      ),
     )
   }
 }
@@ -1283,8 +1342,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
       FILE
         PsiErrorElement:<statement> expected, got 'foo'
           PsiElement(IDENTIFIER)('foo')
-      """.trimIndent(),
-      toParseTreeText("foo")
+      """
+        .trimIndent(),
+      toParseTreeText("foo"),
     )
   }
 
@@ -1315,8 +1375,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     AndroidSqlBindParameterImpl(BIND_PARAMETER)
                       PsiElement(NUMBERED_PARAMETER)('?')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM user WHERE id = ?")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT * FROM user WHERE id = ?"),
     )
   }
 
@@ -1327,8 +1388,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
         PsiElement(SELECT)('SELECT')
         PsiErrorElement:<result column>, ALL or DISTINCT expected
           <empty list>
-      """.trimIndent(),
-      toParseTreeText("SELECT ")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT "),
     )
   }
 
@@ -1348,8 +1410,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
         PsiElement(FROM)('FROM')
         PsiErrorElement:<table or subquery> expected
           <empty list>
-      """.trimIndent(),
-      toParseTreeText("SELECT foo FROM ")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT foo FROM "),
     )
   }
 
@@ -1377,8 +1440,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                     AndroidSqlFromTableImpl(FROM_TABLE)
                       AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                         PsiElement(IDENTIFIER)('bar')
-      """.trimIndent(),
-      toParseTreeText("WITH SELECT foo FROM bar")
+      """
+        .trimIndent(),
+      toParseTreeText("WITH SELECT foo FROM bar"),
     )
     assertEquals(
       """
@@ -1404,8 +1468,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                     AndroidSqlFromTableImpl(FROM_TABLE)
                       AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                         PsiElement(IDENTIFIER)('bar')
-      """.trimIndent(),
-      toParseTreeText("WITH ids SELECT foo FROM bar")
+      """
+        .trimIndent(),
+      toParseTreeText("WITH ids SELECT foo FROM bar"),
     )
     assertEquals(
       """
@@ -1432,8 +1497,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                     AndroidSqlFromTableImpl(FROM_TABLE)
                       AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                         PsiElement(IDENTIFIER)('bar')
-      """.trimIndent(),
-      toParseTreeText("WITH ids AS SELECT foo FROM bar")
+      """
+        .trimIndent(),
+      toParseTreeText("WITH ids AS SELECT foo FROM bar"),
     )
     assertEquals(
       """
@@ -1460,8 +1526,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                     AndroidSqlFromTableImpl(FROM_TABLE)
                       AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                         PsiElement(IDENTIFIER)('bar')
-      """.trimIndent(),
-      toParseTreeText("WITH ids AS foo SELECT foo FROM bar")
+      """
+        .trimIndent(),
+      toParseTreeText("WITH ids AS foo SELECT foo FROM bar"),
     )
     assertEquals(
       """
@@ -1492,8 +1559,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                     AndroidSqlFromTableImpl(FROM_TABLE)
                       AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                         PsiElement(IDENTIFIER)('bar')
-      """.trimIndent(),
-      toParseTreeText("WITH ids AS foo WHERE makes no sense SELECT foo FROM bar")
+      """
+        .trimIndent(),
+      toParseTreeText("WITH ids AS foo WHERE makes no sense SELECT foo FROM bar"),
     )
     assertEquals(
       """
@@ -1541,8 +1609,11 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                     AndroidSqlFromTableImpl(FROM_TABLE)
                       AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                         PsiElement(IDENTIFIER)('bar')
-      """.trimIndent(),
-      toParseTreeText("WITH ids AS (SELECT something stupid WHERE doesnt parse) SELECT foo FROM bar")
+      """
+        .trimIndent(),
+      toParseTreeText(
+        "WITH ids AS (SELECT something stupid WHERE doesnt parse) SELECT foo FROM bar"
+      ),
     )
   }
 
@@ -1604,8 +1675,11 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                   PsiElement(NOT)('NOT')
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     PsiElement(NULL)('NULL')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM user u JOIN (SELECT something stupid WHERE doesnt parse) x WHERE u.name IS NOT NULL")
+      """
+        .trimIndent(),
+      toParseTreeText(
+        "SELECT * FROM user u JOIN (SELECT something stupid WHERE doesnt parse) x WHERE u.name IS NOT NULL"
+      ),
     )
   }
 
@@ -1637,8 +1711,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                   AndroidSqlResultColumnImpl(RESULT_COLUMN)
                     AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                       PsiElement(NUMERIC_LITERAL)('32')
-      """.trimIndent(),
-      toParseTreeText("WITH x AS (WITH y doesn parse) SELECT 32")
+      """
+        .trimIndent(),
+      toParseTreeText("WITH x AS (WITH y doesn parse) SELECT 32"),
     )
   }
 
@@ -1714,8 +1789,11 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                                     AndroidSqlColumnNameImpl(COLUMN_NAME)
                                       PsiElement(IDENTIFIER)('y')
                       PsiElement())(')')
-      """.trimIndent(),
-      toParseTreeText("SELECT (WITH x AS (VALUES(17)) SELECT x) || (WITH y AS (VALUES(42)) SELECT y)")
+      """
+        .trimIndent(),
+      toParseTreeText(
+        "SELECT (WITH x AS (VALUES(17)) SELECT x) || (WITH y AS (VALUES(42)) SELECT y)"
+      ),
     )
     assertEquals(
       """
@@ -1772,8 +1850,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                                     AndroidSqlColumnNameImpl(COLUMN_NAME)
                                       PsiElement(IDENTIFIER)('y')
                       PsiElement())(')')
-      """.trimIndent(),
-      toParseTreeText("SELECT (WITH x AS ) || (WITH y AS (SELECT does parse at all) SELECT y)")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT (WITH x AS ) || (WITH y AS (SELECT does parse at all) SELECT y)"),
     )
     assertEquals(
       """
@@ -1846,8 +1925,11 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                                     AndroidSqlColumnNameImpl(COLUMN_NAME)
                                       PsiElement(IDENTIFIER)('y')
                       PsiElement())(')')
-      """.trimIndent(),
-      toParseTreeText("SELECT (WITH x AS (VALUES(17)) SELECT x) + (WITH y AS (VALUES(42)) SELECT y)")
+      """
+        .trimIndent(),
+      toParseTreeText(
+        "SELECT (WITH x AS (VALUES(17)) SELECT x) + (WITH y AS (VALUES(42)) SELECT y)"
+      ),
     )
   }
 
@@ -1858,8 +1940,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
         PsiElement(DELETE)('DELETE')
         PsiErrorElement:FROM expected
           <empty list>
-      """.trimIndent(),
-      toParseTreeText("DELETE ")
+      """
+        .trimIndent(),
+      toParseTreeText("DELETE "),
     )
   }
 
@@ -1871,8 +1954,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
         PsiElement(FROM)('FROM')
         PsiErrorElement:<single table statement table> expected
           <empty list>
-      """.trimIndent(),
-      toParseTreeText("DELETE FROM")
+      """
+        .trimIndent(),
+      toParseTreeText("DELETE FROM"),
     )
   }
 
@@ -1945,8 +2029,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                     PsiElement(NUMERIC_LITERAL)('4')
                   PsiElement())(')')
                 PsiElement())(')')
-      """.trimIndent(),
-      toParseTreeText("DELETE FROM t WHERE (1 IN (:ids)) AND (2 IN (3,4))")
+      """
+        .trimIndent(),
+      toParseTreeText("DELETE FROM t WHERE (1 IN (:ids)) AND (2 IN (3,4))"),
     )
   }
 
@@ -1976,8 +2061,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                   PsiElement(LIKE)('LIKE')
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''baz'')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM foo WHERE bar LIKE 'baz'")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT * FROM foo WHERE bar LIKE 'baz'"),
     )
 
     assertEquals(
@@ -2018,8 +2104,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                       AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                         PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''%'')
                     PsiElement())(')')
-      """.trimIndent(),
-      toParseTreeText("SELECT * FROM foo WHERE bar NOT LIKE ('%' || ? || '%')")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT * FROM foo WHERE bar NOT LIKE ('%' || ? || '%')"),
     )
   }
 
@@ -2065,8 +2152,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                   PsiElement(LIKE)('LIKE')
                   AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                     PsiElement(NUMERIC_LITERAL)('3')
-      """.trimIndent(),
-      toParseTreeText("DELETE FROM t WHERE a = 1 OR b IN (2,3) AND c LIKE 3")
+      """
+        .trimIndent(),
+      toParseTreeText("DELETE FROM t WHERE a = 1 OR b IN (2,3) AND c LIKE 3"),
     )
     assertEquals(
       """
@@ -2087,8 +2175,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                     PsiElement(LIKE)('LIKE')
                     AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                       PsiElement(NUMERIC_LITERAL)('10')
-      """.trimIndent(),
-      toParseTreeText("SELECT 10 + 10 LIKE 10")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT 10 + 10 LIKE 10"),
     )
     assertEquals(
       """
@@ -2109,8 +2198,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                       PsiElement(LIKE)('LIKE')
                       AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                         PsiElement(NUMERIC_LITERAL)('2')
-      """.trimIndent(),
-      toParseTreeText("SELECT 1 AND 2 LIKE 2")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT 1 AND 2 LIKE 2"),
     )
     assertEquals(
       """
@@ -2131,8 +2221,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                     PsiElement(==)('==')
                     AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                       PsiElement(NUMERIC_LITERAL)('1')
-      """.trimIndent(),
-      toParseTreeText("SELECT 2 == 2 == 1")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT 2 == 2 == 1"),
     )
     assertEquals(
       """
@@ -2161,8 +2252,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                     AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
                       PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''false'')
                     PsiElement(END)('END')
-      """.trimIndent(),
-      toParseTreeText("SELECT CASE 1 AND 0 WHEN 1 THEN 'true' ELSE 'false' END")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT CASE 1 AND 0 WHEN 1 THEN 'true' ELSE 'false' END"),
     )
   }
 
@@ -2188,8 +2280,9 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
                   AndroidSqlFromTableImpl(FROM_TABLE)
                     AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
                       PsiElement(IDENTIFIER)('mail')
-      """.trimIndent(),
-      toParseTreeText("SELECT rowId, * FROM mail")
+      """
+        .trimIndent(),
+      toParseTreeText("SELECT rowId, * FROM mail"),
     )
 
     assertEquals(
@@ -2223,8 +2316,11 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
           PsiElement())(')')
           PsiElement(WITHOUT)('WITHOUT')
           PsiElement(IDENTIFIER)('ROWID')
-      """.trimIndent(),
-      toParseTreeText("CREATE TABLE IF NOT EXISTS wordcount(word TEXT PRIMARY KEY, cnt INTEGER) WITHOUT ROWID")
+      """
+        .trimIndent(),
+      toParseTreeText(
+        "CREATE TABLE IF NOT EXISTS wordcount(word TEXT PRIMARY KEY, cnt INTEGER) WITHOUT ROWID"
+      ),
     )
 
     assertEquals(
@@ -2259,91 +2355,94 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
         PsiElement(WITHOUT)('WITHOUT')
         PsiErrorElement:ROWID expected, got 'MADEUP'
           PsiElement(IDENTIFIER)('MADEUP')
-      """.trimIndent(),
-      toParseTreeText("CREATE TABLE IF NOT EXISTS wordcount(word TEXT PRIMARY KEY, cnt INTEGER) WITHOUT MADEUP")
+      """
+        .trimIndent(),
+      toParseTreeText(
+        "CREATE TABLE IF NOT EXISTS wordcount(word TEXT PRIMARY KEY, cnt INTEGER) WITHOUT MADEUP"
+      ),
     )
   }
 
   /**
-   * Tests the parsing of the 'window_function_call_expression' rule.
-   * These test cases cover various window functions, including those with and without
-   * arguments, with and without frames, and with various window definition clauses.
+   * Tests the parsing of the 'window_function_call_expression' rule. These test cases cover various
+   * window functions, including those with and without arguments, with and without frames, and with
+   * various window definition clauses.
    */
   fun testWindowFunctions_parse() {
     listOf(
-      // ROW_NUMBER (simplest window function)
-      "SELECT ROW_NUMBER() OVER () FROM employees",
+        // ROW_NUMBER (simplest window function)
+        "SELECT ROW_NUMBER() OVER () FROM employees",
 
-      // RANK with ORDER BY
-      "SELECT RANK() OVER (ORDER BY salary) FROM employees",
+        // RANK with ORDER BY
+        "SELECT RANK() OVER (ORDER BY salary) FROM employees",
 
-      // DENSE_RANK with PARTITION BY
-      "SELECT DENSE_RANK() OVER (PARTITION BY department) FROM employees",
+        // DENSE_RANK with PARTITION BY
+        "SELECT DENSE_RANK() OVER (PARTITION BY department) FROM employees",
 
-      // LAG with offset
-      "SELECT LAG(salary, 1) OVER (ORDER BY hire_date) FROM employees",
+        // LAG with offset
+        "SELECT LAG(salary, 1) OVER (ORDER BY hire_date) FROM employees",
 
-      // LEAD with default value
-      "SELECT LEAD(salary, 1, 0) OVER (ORDER BY hire_date) FROM employees",
+        // LEAD with default value
+        "SELECT LEAD(salary, 1, 0) OVER (ORDER BY hire_date) FROM employees",
 
-      // NTILE
-      "SELECT NTILE(4) OVER (ORDER BY salary) FROM employees",
+        // NTILE
+        "SELECT NTILE(4) OVER (ORDER BY salary) FROM employees",
 
-      // FIRST_VALUE
-      "SELECT FIRST_VALUE(salary) OVER (PARTITION BY department ORDER BY hire_date) FROM employees",
+        // FIRST_VALUE
+        "SELECT FIRST_VALUE(salary) OVER (PARTITION BY department ORDER BY hire_date) FROM employees",
 
-      // LAST_VALUE
-      "SELECT LAST_VALUE(salary) OVER (PARTITION BY department ORDER BY hire_date RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) FROM employees",
+        // LAST_VALUE
+        "SELECT LAST_VALUE(salary) OVER (PARTITION BY department ORDER BY hire_date RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) FROM employees",
 
-      // NTH_VALUE
-      "SELECT NTH_VALUE(salary, 2) OVER (ORDER BY hire_date) FROM employees",
+        // NTH_VALUE
+        "SELECT NTH_VALUE(salary, 2) OVER (ORDER BY hire_date) FROM employees",
 
-      // CUME_DIST
-      "SELECT CUME_DIST() OVER (ORDER BY salary) FROM employees",
+        // CUME_DIST
+        "SELECT CUME_DIST() OVER (ORDER BY salary) FROM employees",
 
-      // PERCENT_RANK
-      "SELECT PERCENT_RANK() OVER (PARTITION BY department ORDER BY salary) FROM employees",
+        // PERCENT_RANK
+        "SELECT PERCENT_RANK() OVER (PARTITION BY department ORDER BY salary) FROM employees",
 
-      // STAR
-      "SELECT COUNT(*) OVER (PARTITION BY department) FROM employees",
+        // STAR
+        "SELECT COUNT(*) OVER (PARTITION BY department) FROM employees",
 
-      // STAR and ORDER BY
-      "SELECT RANK(*) OVER (ORDER BY salary DESC) FROM employees",
+        // STAR and ORDER BY
+        "SELECT RANK(*) OVER (ORDER BY salary DESC) FROM employees",
 
-      // window_definition - PARTITION BY multiple
-      "SELECT AVG(salary) OVER (PARTITION BY department, city) FROM employees",
+        // window_definition - PARTITION BY multiple
+        "SELECT AVG(salary) OVER (PARTITION BY department, city) FROM employees",
 
-      // window_definition - ORDER BY multiple
-      "SELECT FIRST_VALUE(salary) OVER (ORDER BY hire_date DESC, salary ASC) FROM employees",
+        // window_definition - ORDER BY multiple
+        "SELECT FIRST_VALUE(salary) OVER (ORDER BY hire_date DESC, salary ASC) FROM employees",
 
-      // frame_clause - frame_single - UNBOUNDED PRECEDING
-      "SELECT SUM(salary) OVER (ORDER BY salary ROWS UNBOUNDED PRECEDING) FROM employees",
+        // frame_clause - frame_single - UNBOUNDED PRECEDING
+        "SELECT SUM(salary) OVER (ORDER BY salary ROWS UNBOUNDED PRECEDING) FROM employees",
 
-      // frame_clause - BETWEEN with various frame boundaries
-      "SELECT SUM(salary) OVER (ORDER BY salary ROWS BETWEEN 1 PRECEDING AND 2 FOLLOWING) FROM employees",
+        // frame_clause - BETWEEN with various frame boundaries
+        "SELECT SUM(salary) OVER (ORDER BY salary ROWS BETWEEN 1 PRECEDING AND 2 FOLLOWING) FROM employees",
 
-      // window_definition - frame_spec - ROWS
-      "SELECT SUM(salary) OVER (ORDER BY salary ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) FROM employees",
+        // window_definition - frame_spec - ROWS
+        "SELECT SUM(salary) OVER (ORDER BY salary ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) FROM employees",
 
-      // window_definition - frame_spec - RANGE
-      """
+        // window_definition - frame_spec - RANGE
+        """
       SELECT AVG(salary)
       OVER (ORDER BY hire_date RANGE BETWEEN '1 year' PRECEDING AND '1 year' FOLLOWING)
       FROM employees
       """,
 
-      // window_definition - frame_spec - GROUPS
-      "SELECT SUM(salary) OVER (ORDER BY salary GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM employees",
+        // window_definition - frame_spec - GROUPS
+        "SELECT SUM(salary) OVER (ORDER BY salary GROUPS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM employees",
 
-      // EXCLUDE - NO OTHERS with ROWS
-      """
+        // EXCLUDE - NO OTHERS with ROWS
+        """
       SELECT RANK()
       OVER (ORDER BY salary DESC ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE NO OTHERS)
       FROM employees
       """,
 
-      // EXCLUDE - CURRENT ROW with RANGE
-      """
+        // EXCLUDE - CURRENT ROW with RANGE
+        """
       SELECT DENSE_RANK()
       OVER (PARTITION BY department
        ORDER BY salary
@@ -2352,127 +2451,131 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
       FROM employees
       """,
 
-      // EXCLUDE - GROUP with ROWS
-      """
+        // EXCLUDE - GROUP with ROWS
+        """
       SELECT NTILE(4)
       OVER (ORDER BY salary ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE GROUP)
       FROM employees""",
 
-      // EXCLUDE - TIES with RANGE
-      """
+        // EXCLUDE - TIES with RANGE
+        """
       SELECT RANK()
       OVER (ORDER BY salary RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING EXCLUDE TIES)
       FROM employees
       """,
 
-      // FIRST_VALUE with filter
-      """
+        // FIRST_VALUE with filter
+        """
       SELECT FIRST_VALUE(salary) FILTER (WHERE hire_date < '2023-01-01')
       OVER (PARTITION BY department ORDER BY hire_date) FROM employees
       """,
 
-      // FILTER
-      """
+        // FILTER
+        """
       SELECT SUM(salary) FILTER (WHERE hire_date < '2023-01-01')
       OVER (PARTITION BY department) FROM employees
       """,
-    ).forEach(::check)
+      )
+      .forEach(::check)
   }
 
   /**
-   * Tests the parsing of the 'simple_function_call_expression' rule.
-   * These test cases cover various scenarios including different numbers of arguments,
-   * nested function calls, and different types of expressions within the function arguments.
+   * Tests the parsing of the 'simple_function_call_expression' rule. These test cases cover various
+   * scenarios including different numbers of arguments, nested function calls, and different types
+   * of expressions within the function arguments.
    */
   fun testSimpleFunctions_parse() {
     listOf(
-      // No arguments
-      "SELECT ABS() FROM employees",
+        // No arguments
+        "SELECT ABS() FROM employees",
 
-      // One argument
-      "SELECT LENGTH(name) FROM employees",
+        // One argument
+        "SELECT LENGTH(name) FROM employees",
 
-      // Multiple arguments
-      "SELECT SUBSTR(name, 2, 3) FROM employees",
+        // Multiple arguments
+        "SELECT SUBSTR(name, 2, 3) FROM employees",
 
-      // Nested function call
-      "SELECT UPPER(TRIM(name)) FROM employees",
+        // Nested function call
+        "SELECT UPPER(TRIM(name)) FROM employees",
 
-      // Expression as argument
-      "SELECT LENGTH(name || ' ' || surname) FROM employees",
+        // Expression as argument
+        "SELECT LENGTH(name || ' ' || surname) FROM employees",
 
-      // Bind parameter
-      "SELECT INSTR(name, ?1) FROM employees",
+        // Bind parameter
+        "SELECT INSTR(name, ?1) FROM employees",
 
-      // Literal parameter
-      "SELECT LOWER('HELLO') FROM employees",
-    ).forEach(::check)
+        // Literal parameter
+        "SELECT LOWER('HELLO') FROM employees",
+      )
+      .forEach(::check)
   }
 
   /**
-   * Tests the parsing of aggregate functions.
-   * These test cases focus on features specific to aggregate functions that
-   * differentiate them from simple functions, such as DISTINCT, ORDER BY, and FILTER.
+   * Tests the parsing of aggregate functions. These test cases focus on features specific to
+   * aggregate functions that differentiate them from simple functions, such as DISTINCT, ORDER BY,
+   * and FILTER.
    */
   fun testAggregateFunctions_parse() {
     listOf(
-      // DISTINCT (simple functions don't have DISTINCT)
-      "SELECT COUNT(DISTINCT department) FROM employees",
+        // DISTINCT (simple functions don't have DISTINCT)
+        "SELECT COUNT(DISTINCT department) FROM employees",
 
-      // ORDER BY (simple functions don't have ORDER BY)
-      "SELECT GROUP_CONCAT(name, ', ' ORDER BY hire_date) FROM employees",
+        // ORDER BY (simple functions don't have ORDER BY)
+        "SELECT GROUP_CONCAT(name, ', ' ORDER BY hire_date) FROM employees",
 
-      // Multiple ORDER BY parts
-      "SELECT GROUP_CONCAT(name, ', ' ORDER BY department ASC, hire_date DESC) FROM employees",
+        // Multiple ORDER BY parts
+        "SELECT GROUP_CONCAT(name, ', ' ORDER BY department ASC, hire_date DESC) FROM employees",
 
-      // ORDER BY and COLLATE
-      "SELECT GROUP_CONCAT(name, ', ' ORDER BY name COLLATE NOCASE) FROM employees",
+        // ORDER BY and COLLATE
+        "SELECT GROUP_CONCAT(name, ', ' ORDER BY name COLLATE NOCASE) FROM employees",
 
-      // FILTER (simple functions don't have FILTER)
-      "SELECT SUM(salary) FILTER (WHERE hire_date < '2023-01-01') FROM employees",
+        // FILTER (simple functions don't have FILTER)
+        "SELECT SUM(salary) FILTER (WHERE hire_date < '2023-01-01') FROM employees",
 
-      // STAR with FILTER
-      "SELECT COUNT(*) FILTER (WHERE region = 'West') FROM employees",
+        // STAR with FILTER
+        "SELECT COUNT(*) FILTER (WHERE region = 'West') FROM employees",
 
-      // Empty parens with FILTER
-      "SELECT COUNT() FILTER (WHERE region = 'West') FROM employees",
+        // Empty parens with FILTER
+        "SELECT COUNT() FILTER (WHERE region = 'West') FROM employees",
 
-      // ORDER BY and FILTER
-      "SELECT GROUP_CONCAT(name, ', ' ORDER BY hire_date) FILTER (WHERE salary > 50000) FROM employees",
+        // ORDER BY and FILTER
+        "SELECT GROUP_CONCAT(name, ', ' ORDER BY hire_date) FILTER (WHERE salary > 50000) FROM employees",
 
-      // ORDER BY, FILTER, and DISTINCT
-      """
+        // ORDER BY, FILTER, and DISTINCT
+        """
       SELECT GROUP_CONCAT(DISTINCT department, ', ' ORDER BY department)
       FILTER (WHERE salary > 50000) FROM employees
       """,
-    ).forEach(::check)
+      )
+      .forEach(::check)
   }
 
   /**
-   * Tests the parsing of the 'window_clause' within the 'select_core_select' rule.
-   * These test cases focus on the window_clause itself and do NOT include any actual
-   * window functions, ensuring the parser can handle the window_clause correctly even
-   * when no window functions are present in the query.
+   * Tests the parsing of the 'window_clause' within the 'select_core_select' rule. These test cases
+   * focus on the window_clause itself and do NOT include any actual window functions, ensuring the
+   * parser can handle the window_clause correctly even when no window functions are present in the
+   * query.
    */
   fun testWindowClauses_parse() {
     listOf(
-      // select_core_select - with window_clause (single window)
-      "SELECT name, salary FROM employees WINDOW w AS (PARTITION BY department)",
+        // select_core_select - with window_clause (single window)
+        "SELECT name, salary FROM employees WINDOW w AS (PARTITION BY department)",
 
-      // select_core_select - with window_clause (multiple windows)
-      """
+        // select_core_select - with window_clause (multiple windows)
+        """
       SELECT name, salary, department FROM employees
       WINDOW w1 AS (PARTITION BY department), w2 AS (ORDER BY salary DESC)
       """,
 
-      // select_core_select - with window_clause and other clauses
-      """
+        // select_core_select - with window_clause and other clauses
+        """
       SELECT DISTINCT name, salary FROM employees
       WHERE salary > 50000
       GROUP BY department
       HAVING COUNT (*) > 1
       WINDOW w AS(ORDER BY hire_date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)
       """,
-    ).forEach(::check)
+      )
+      .forEach(::check)
   }
 }
