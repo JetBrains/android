@@ -91,21 +91,8 @@ def _package_dependencies_impl(target, ctx, params):
     dep_info = target[DependenciesInfo]
     java_info = IDE_JAVA.get_java_info(target, ctx.rule)
 
-    if params.experiment_multi_info_file:
-        java_info_files = _noneToEmpty(dep_info.java_info_files)
-        cc_info_files = _noneToEmpty(dep_info.cc_info_files)
-    else:
-        target_to_artifacts = target[DependenciesInfo].target_to_artifacts
-        if target_to_artifacts:
-            java_info_files = [_write_java_target_info(target.label, target_to_artifacts, ctx)]
-        else:
-            java_info_files = []
-
-        cc_compilation_info = target[DependenciesInfo].cc_compilation_info
-        if cc_compilation_info:
-            cc_info_files = [_write_cc_target_info(target.label, cc_compilation_info, ctx)] + [dep_info.cc_toolchain_info.file] if dep_info.cc_toolchain_info else []
-        else:
-            cc_info_files = []
+    java_info_files = _noneToEmpty(dep_info.java_info_files)
+    cc_info_files = _noneToEmpty(dep_info.cc_info_files)
 
     return [OutputGroupInfo(
         qs_jars = _noneToEmpty(dep_info.compile_time_jars),
@@ -234,8 +221,7 @@ def merge_dependencies_info(
         ctx,  # @unused
         java_dep_info,
         cc_dep_info,
-        cc_toolchain_dep_info,
-        experiment_multi_info_file):
+        cc_toolchain_dep_info):
     """Merge multiple DependenciesInfo providers into one.
 
     Depsets and dicts are merged. For members such as `cc_compilation_info`, we require that at most one of the
@@ -247,7 +233,6 @@ def merge_dependencies_info(
       java_dep_info: java dep info.
       cc_dep_info: cc dep info.
       cc_toolchain_dep_info: cc toolchain dep info.
-      experiment_multi_info_file: experiment multi info file flag.
     Returns:
       Merged dependencies info.
     """
@@ -258,13 +243,13 @@ def merge_dependencies_info(
     merged = create_dependencies_info(
         label = target.label,
         java_info_file = java_dep_info.info_file if java_dep_info else None,
-        java_info_files = java_dep_info.info_files if experiment_multi_info_file and java_dep_info else None,
+        java_info_files = java_dep_info.info_files if java_dep_info else None,
         compile_time_jars = java_dep_info.compile_time_jars if java_dep_info else None,
-        target_to_artifacts = java_dep_info.target_to_artifacts if not experiment_multi_info_file and java_dep_info else None,
+        target_to_artifacts = None,
         aars = java_dep_info.aars if java_dep_info else None,
         gensrcs = java_dep_info.gensrcs if java_dep_info else None,
         expand_sources = java_dep_info.expand_sources if java_dep_info else None,
-        cc_info_files = cc_dep_info.cc_info_files if experiment_multi_info_file and cc_dep_info else None,
+        cc_info_files = cc_dep_info.cc_info_files if cc_dep_info else None,
         cc_compilation_info = cc_dep_info.cc_compilation_info if cc_dep_info else None,
         cc_headers = cc_dep_info.cc_headers if cc_dep_info else None,
         cc_toolchain_info = cc_toolchain_dep_info.cc_toolchain_info if cc_toolchain_dep_info else None,
@@ -418,7 +403,6 @@ def collect_dependencies_for_test(target, ctx, include = []):
             always_build_rules = ALWAYS_BUILD_RULES,
             generate_aidl_classes = None,
             use_generated_srcjars = True,
-            experiment_multi_info_file = False,
         ),
     )
 
@@ -654,8 +638,7 @@ def _collect_own_and_dependency_java_artifacts(
         always_build_rules,
         generate_aidl_classes,
         use_generated_srcjars,
-        target_is_within_project_scope,
-        experiment_multi_info_file):
+        target_is_within_project_scope):
     own_files = _collect_own_java_artifacts(
         target,
         ctx,
@@ -694,9 +677,6 @@ def _collect_own_and_dependency_java_artifacts(
     own_and_transitive_gensrc_depsets = []
 
     for info in dependency_infos.values():
-        if not experiment_multi_info_file:
-            # NOTE: This is where the dependency graph used to be flattened causing huge total download size in the multi-target mode.
-            target_to_artifacts.update(info.target_to_artifacts)
         own_and_transitive_jar_depsets.append(info.compile_time_jars)
         own_and_transitive_ide_aar_depsets.append(info.aars)
         own_and_transitive_gensrc_depsets.append(info.gensrcs)
@@ -761,11 +741,11 @@ def _collect_dependencies_core_impl(
     )
     cc_dep_info = None
     if CcInfo in target:
-        cc_dep_info = _collect_cc_dependencies_core_impl(target, ctx, params.experiment_multi_info_file)
+        cc_dep_info = _collect_cc_dependencies_core_impl(target, ctx)
     cc_toolchain_dep_info = None
     if cc_common.CcToolchainInfo in target:
         cc_toolchain_dep_info = _collect_cc_toolchain_info(target, ctx)
-    return merge_dependencies_info(target, ctx, java_dep_info, cc_dep_info, cc_toolchain_dep_info, params.experiment_multi_info_file)
+    return merge_dependencies_info(target, ctx, java_dep_info, cc_dep_info, cc_toolchain_dep_info)
 
 def _collect_java_dependencies_core_impl(
         target,
@@ -782,7 +762,6 @@ def _collect_java_dependencies_core_impl(
         params.generate_aidl_classes,
         params.use_generated_srcjars,
         target_is_within_project_scope,
-        params.experiment_multi_info_file,
     )
 
     if own_and_dependencies == None:
@@ -798,28 +777,25 @@ def _collect_java_dependencies_core_impl(
         if "ij-ignore-source-transform" in ctx.rule.attr.tags:
             expand_sources = True
 
-    java_info_file = None
-    if params.experiment_multi_info_file:
-        java_info_file = _write_java_target_info(target.label, target_to_artifacts, ctx)
+    java_info_file = _write_java_target_info(target.label, target_to_artifacts, ctx)
 
     return create_java_dependencies_info(
-        info_file = java_info_file if params.experiment_multi_info_file else None,
-        info_files = depset([java_info_file], transitive = [d.java_info_files for d in dependency_infos.values()]) if params.experiment_multi_info_file else None,
-        target_to_artifacts = target_to_artifacts if not params.experiment_multi_info_file else None,
+        info_file = java_info_file,
+        info_files = depset([java_info_file], transitive = [d.java_info_files for d in dependency_infos.values()]),
+        target_to_artifacts = None,
         compile_time_jars = compile_jars,
         aars = aars,
         gensrcs = gensrcs,
         expand_sources = expand_sources,
     )
 
-def _collect_cc_dependencies_core_impl(target, ctx, experiment_multi_info_file):
+def _collect_cc_dependencies_core_impl(target, ctx):
     cc_info = _collect_own_and_dependency_cc_info(target, ctx.rule)
     cc_info_files = []
-    if experiment_multi_info_file:
-        cc_info_files = [_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] + ([cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else [])
+    cc_info_files = [_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] + ([cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else [])
 
     return create_cc_dependencies_info(
-        cc_info_files = depset(cc_info_files) if experiment_multi_info_file else None,
+        cc_info_files = depset(cc_info_files),
         cc_compilation_info = cc_info.compilation_info,
         cc_headers = cc_info.gen_headers,
         cc_toolchain_info = cc_info.cc_toolchain_info,
