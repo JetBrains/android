@@ -61,10 +61,10 @@ open class CommonPreviewViewModel(
       val actionData =
         ActionData("Re-enable rendering") {
           Bridge.setNativeCrash(false)
-          previewView.showLoadingMessage("Loading...")
+          UIUtil.invokeLaterIfNeeded { previewView.showLoadingMessage("Loading...") }
           runnable.run()
         }
-      previewView.showErrorMessage(message, null, actionData)
+      UIUtil.invokeLaterIfNeeded { previewView.showErrorMessage(message, null, actionData) }
       return true
     }
     return false
