@@ -159,24 +159,24 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
    * is triggered by the close button.
    */
   private fun revertResizingAndHidePanel() {
-    if (
-      originalDeviceSnapshot != null &&
-        originalDeviceStateSnapshot != null &&
-        currentConfiguration != null
-    ) {
-      currentConfiguration!!.setEffectiveDevice(
-        originalDeviceSnapshot!!,
-        originalDeviceStateSnapshot!!,
-      )
-    }
-    hasBeenResized = false
+    revertResizing()
     isVisible = false
+  }
+
+  /**
+   * Reverts the preview to its original device and state. This is called when the user clicks the
+   * close button or selects the "Original" device option from the dropdown.
+   */
+  private fun revertResizing() {
+    currentConfiguration?.setEffectiveDevice(originalDeviceSnapshot, originalDeviceStateSnapshot)
+    hasBeenResized = false
   }
 
   /** Clears the panel's state, removing any existing configuration and hiding it. */
   fun clearPanelAndHidePanel() {
     currentConfiguration?.removeListener(configurationListenerInternal)
     currentConfiguration = null
+    hasBeenResized = false
     isVisible = false
   }
 
@@ -233,14 +233,7 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     if (currentConfiguration == null && selectedItem !is DropDownListItem.OriginalItem) return
 
     if (selectedItem is DropDownListItem.OriginalItem) {
-      assert(originalDeviceSnapshot != null && originalDeviceStateSnapshot != null) {
-        "Original device option shouldn't be present if originalDeviceSnapshot or originalDeviceStateSnapshot is null"
-      }
-      currentConfiguration!!.setEffectiveDevice(
-        originalDeviceSnapshot!!,
-        originalDeviceStateSnapshot!!,
-      )
-      hasBeenResized = false
+      revertResizing()
     } else if (selectedItem is DropDownListItem.DeviceItem) {
       currentConfiguration?.setDevice(selectedItem.device, false)
     }
@@ -282,16 +275,11 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     currentConfiguration = newConfiguration
     currentModuleForList = module
 
-    if (newConfiguration != null) {
-      originalDeviceSnapshot = newConfiguration.device
-      originalDeviceStateSnapshot = newConfiguration.deviceState
-      hasBeenResized = false
-      currentConfiguration!!.addListener(configurationListenerInternal)
-    } else {
-      originalDeviceSnapshot = null
-      originalDeviceStateSnapshot = null
-      hasBeenResized = false
-    }
+    originalDeviceSnapshot = currentConfiguration?.device
+    originalDeviceStateSnapshot = currentConfiguration?.deviceState
+    hasBeenResized = false
+    currentConfiguration?.addListener(configurationListenerInternal)
+
     isVisible = false
     updatePanelFromConfiguration()
   }
