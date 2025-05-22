@@ -18,8 +18,8 @@
 package com.android.tools.idea.common.editor
 
 import com.android.tools.idea.common.surface.DesignSurface
-import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import java.awt.Component
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
@@ -36,7 +36,7 @@ import javax.swing.JComponent
  */
 fun DesignSurface<*>.showPopup(
   event: MouseEvent,
-  group: ActionGroup,
+  group: DefaultActionGroup,
   place: String,
   targetComponent: JComponent? = null,
 ) {
@@ -58,11 +58,11 @@ fun showPopup(
   invoker: Component,
   x: Int,
   y: Int,
-  group: ActionGroup,
+  group: DefaultActionGroup,
   place: String,
   targetComponent: JComponent? = null,
 ) {
-  if (group.getChildren(null).isEmpty()) {
+  if (group.getChildren(ActionManager.getInstance()).isEmpty()) {
     return
   }
   val actionManager = ActionManager.getInstance()
