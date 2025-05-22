@@ -30,12 +30,13 @@ import java.time.Instant
 internal class DeviceScreenRecordingSettingsPage(private val project: Project) :
     BoundConfigurable(message("device.screenrecording.text")), SearchableConfigurable {
 
+  var fileExtension: String = "mp4"
   private val state = DeviceScreenRecordingSettings.getInstance()
 
   override fun getId() = "device.screenrecording"
 
   override fun createPanel(): DialogPanel =
-      SaveConfigurationPanel(state.saveConfig, state.fileExtension, Instant.now(), state.recordingCount + 1, project).createPanel()
+      SaveConfigurationPanel(state.saveConfig, fileExtension, Instant.now(), state.recordingCount + 1, project).createPanel()
 
   class Provider(private val project: Project) : ConfigurableProvider() {
 

@@ -88,10 +88,6 @@ class BuildDependenciesHelper(val project: Project) {
     get() =// TODO: Any output from the context here is not shown in the console.
       syncManager.getLoadedProject().orElseThrow().getWorkingSet(BlazeContext.create())
 
-  fun getAffectedTargetsForPaths(paths: Set<Path>): Set<Label> {
-    return getTargetsToEnableAnalysisForPaths(paths.toList()).flatMap { it.targets }.toSet()
-  }
-
   fun determineTargetsAndRun(
     workspaceRelativePaths: Collection<Path>,
     disambiguateTargetPrompt: DisambiguateTargetPrompt,

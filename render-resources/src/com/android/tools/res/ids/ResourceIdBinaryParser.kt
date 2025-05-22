@@ -22,6 +22,10 @@ import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
+import org.objectweb.asm.util.TraceClassVisitor
+import java.io.PrintWriter
+import java.io.StringWriter
+import java.util.NoSuchElementException
 
 /** Loads the given [Class] from disk if available. */
 private fun Class<*>.loadClassBytes(fqcn: String = simpleName): ByteArray =
@@ -307,10 +311,15 @@ fun resourceIdClassBinaryParser(
   rClassBytes: ByteArray,
   resourceClassResolver: (String) -> ByteArray,
 ): ResourceClass {
-  val classReader = ClassReader(rClassBytes)
-  val resourceClassVisitor = ResourceClassVisitor(resourceClassResolver)
-  classReader.accept(resourceClassVisitor, 0)
-  return resourceClassVisitor.getResourceClass()
+  try {
+    val classReader = ClassReader(rClassBytes)
+    val resourceClassVisitor = ResourceClassVisitor(resourceClassResolver)
+    classReader.accept(resourceClassVisitor, 0)
+    return resourceClassVisitor.getResourceClass()
+  } catch (t: NoSuchElementException) {
+    // If the class fails to parser, try to log the contents. This to debug b/401185877
+    throw IllegalStateException("Invalid R class format\n${dumpClassToText(rClassBytes)}", t)
+  }
 }
 
 /**
@@ -324,3 +333,13 @@ fun resourceIdClassBinaryParser(rClass: Class<*>) =
     rClass.loadClassBytes(),
     resourceClassResolver = { rClass.loadClassBytes(it) },
   )
+
+private fun dumpClassToText(classBytes: ByteArray): String = try {
+  val classReader = ClassReader(classBytes)
+  val stringWriter = StringWriter()
+  val traceClassVisitor = TraceClassVisitor(PrintWriter(stringWriter))
+  classReader.accept(traceClassVisitor, 0)
+  stringWriter.toString()
+} catch (t: Throwable) {
+  ""
+}

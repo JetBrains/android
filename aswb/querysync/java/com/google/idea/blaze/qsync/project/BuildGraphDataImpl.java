@@ -251,7 +251,7 @@ public record BuildGraphDataImpl(
 
   // TODO: b/397649793 - Remove this method when fixed.
   @Override
-  public boolean dependsOnAnyOf_DO_NOT_USE_BROKEN(Label projectTarget, ImmutableSet<Label> deps) {
+  public boolean dependsOnAnyOf_DO_NOT_USE_BROKEN(Label projectTarget, Set<Label> deps) {
     ImmutableList<Label> projectTargetSingleton = ImmutableList.of(projectTarget);
     final var queue = new ArrayDeque<Label>(projectTargetSingleton);
     final var seen = new HashSet<>(projectTargetSingleton);

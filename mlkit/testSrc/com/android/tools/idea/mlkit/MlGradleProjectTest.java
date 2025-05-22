@@ -37,7 +37,7 @@ public class MlGradleProjectTest {
   @Rule
   public final AndroidProjectRule.Typed<JavaCodeInsightTestFixture, AndroidProjectRule.TestProjectTestHelpers> myProjectRule =
     AndroidProjectRule.testProject(
-      testProjectTemplateFromPath(TestDataPaths.PROJECT_WITH_TWO_LIB_MODULES_BUT_ONLY_ONE_ENABLED, TestDataPaths.TEST_DATA_ROOT));
+      testProjectTemplateFromPath(TestDataPaths.PROJECT_WITH_TWO_LIB_MODULES_BUT_ONLY_ONE_ENABLED, TestDataPaths.TEST_DATA_ROOT, true));
 
   @Test
   @RunsInEdt

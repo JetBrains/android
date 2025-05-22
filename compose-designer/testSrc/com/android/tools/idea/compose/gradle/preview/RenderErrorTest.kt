@@ -91,6 +91,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+// ToggleResizePanelVisibilityAction()
 // SavePreviewInNewSize()
 // RevertToOriginalSize()
 // EnableUiCheckAction(),
@@ -98,7 +99,7 @@ import org.junit.Test
 // EnableInteractiveAction(),
 // DeployToDeviceAction()
 // in wrappers
-private const val EXPECTED_NUMBER_OF_ACTIONS = 6
+private const val EXPECTED_NUMBER_OF_ACTIONS = 7
 
 class RenderErrorTest {
 

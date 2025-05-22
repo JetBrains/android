@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.sdklib.AndroidMajorVersion
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -28,7 +30,6 @@ import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.wizard.template.ApiTemplateData
-import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -56,8 +57,9 @@ class BaselineProfilesMacrobenchmarkCommonTest {
     val macrobenchmarkMinRev = "1.2.0"
     val gradleContent = "gradlecontent"
     val moduleName = "module_name"
-    val highestKnownApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString())
-    val apiTemplateData = ApiTemplateData(highestKnownApi, highestKnownApi, highestKnownApi, 0)
+    val highestKnownApi = AndroidVersion(HIGHEST_KNOWN_STABLE_API, 0)
+    val majorVersion = AndroidMajorVersion(HIGHEST_KNOWN_STABLE_API)
+    val apiTemplateData = ApiTemplateData(highestKnownApi, majorVersion, majorVersion, 0)
     val pluginVersion = AgpVersion.parse("0.0.0")
 
     var customizeCalled = false

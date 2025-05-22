@@ -31,7 +31,7 @@ object NavSelfActionHitProvider : NavActionHitProviderBase() {
   override fun addShapeHit(
     component: SceneComponent,
     sceneTransform: SceneContext,
-    picker: ScenePicker,
+    picker: ScenePicker.Writer,
   ) {
     val source = sourceRectangle(component, sceneTransform) ?: return
     val points = selfActionPoints(source, sceneTransform.inlineScale)

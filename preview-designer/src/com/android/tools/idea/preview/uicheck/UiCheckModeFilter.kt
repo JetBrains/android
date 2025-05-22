@@ -214,7 +214,7 @@ private fun <T : PreviewElementInstance<*>> fontSizePreviews(
             baseDisplaySettings.organizationGroup + message("ui.check.mode.font.scale.group"),
           organizationName =
             "${baseDisplaySettings.name} - ${message("ui.check.mode.font.scale.group")}",
-          showDecoration = isWearPreview,
+          showDecoration = isWearPreview || baseDisplaySettings.showDecoration,
         )
       baseInstance.createDerivedInstance(displaySettings, config)
     }
@@ -260,7 +260,7 @@ private fun <T : PreviewElementInstance<*>> colorBlindPreviews(
           baseName = baseDisplaySettings.name,
           parameterName = colorBlindMode.displayName,
           group = message("ui.check.mode.screen.accessibility.group"),
-          showDecoration = isWearPreview,
+          showDecoration = isWearPreview || baseDisplaySettings.showDecoration,
           organizationGroup =
             baseDisplaySettings.organizationGroup +
               message("ui.check.mode.screen.accessibility.group"),

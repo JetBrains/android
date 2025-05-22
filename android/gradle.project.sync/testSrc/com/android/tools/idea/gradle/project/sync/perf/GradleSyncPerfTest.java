@@ -119,14 +119,16 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   protected void patchPreparedProject(@NotNull File projectRoot,
                                       @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
                                       @Nullable String ndkVersion,
+                                      boolean syncReady,
                                       File... localRepos)
     throws IOException {
+    assertTrue(syncReady); // test is for sync
     final var gradleVersion = agpVersion.getGradleVersion();
     final var gradlePluginVersion = agpVersion.getAgpVersion();
     // Override settings just for tests (e.g. sdk.dir)
     AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
     // We need the wrapper for import to succeed
-    AndroidGradleTests.createGradleWrapper(projectRoot, gradleVersion);
+    AndroidGradleTests.createGradleWrapper(projectRoot, gradleVersion, true);
 
     //Update build.gradle in root directory
     updateBuildFile(gradlePluginVersion);

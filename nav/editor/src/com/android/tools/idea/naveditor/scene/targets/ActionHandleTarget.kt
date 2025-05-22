@@ -219,7 +219,7 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
 
   override fun addHit(
     transform: SceneContext,
-    picker: ScenePicker,
+    picker: ScenePicker.Writer,
     @JdkConstants.InputEventMask modifiersEx: Int,
   ) {
     @SwingCoordinate val centerX = transform.getSwingX(centerX.toInt())

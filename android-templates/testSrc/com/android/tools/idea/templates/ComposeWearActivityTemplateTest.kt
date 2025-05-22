@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.project.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
@@ -25,7 +26,6 @@ import com.android.tools.idea.templates.diff.activity.ProjectDiffer
 import com.android.tools.idea.templates.diff.activity.ProjectStateCustomizer
 import com.android.tools.idea.templates.diff.activity.TemplateDiffTest
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.Language
 import org.junit.Rule
 import org.junit.Test
@@ -69,8 +69,9 @@ class ComposeWearActivityTemplateTest {
   }
 
   private fun withApi(api: Int): ProjectStateCustomizer = { moduleData, projectData ->
-    val apiVersion = ApiVersion(api, api.toString())
-    moduleData.apis = moduleData.apis!!.copy(buildApi = apiVersion, targetApi = apiVersion)
+    val apiVersion = AndroidVersion(api, 0)
+    moduleData.apis =
+      moduleData.apis!!.copy(buildApi = apiVersion, targetApi = apiVersion.majorVersion)
   }
 
   private fun withKotlin(

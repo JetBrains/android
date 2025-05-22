@@ -47,11 +47,6 @@ public class BuildResultHelperBep implements BuildResultHelper {
   }
 
   @Override
-  public List<String> getBuildFlags() {
-    return BuildEventProtocolUtils.getBuildFlags(outputFile);
-  }
-
-  @Override
   public BuildEventStreamProvider getBepStream(Optional<String> completionBuildId) throws GetArtifactsException {
     try {
       return BuildEventStreamProvider.fromInputStream(new BufferedInputStream(new FileInputStream(outputFile)));

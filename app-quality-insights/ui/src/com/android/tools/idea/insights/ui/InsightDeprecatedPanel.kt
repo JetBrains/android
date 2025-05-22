@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.editor.colors.EditorColorsManager
@@ -162,6 +163,7 @@ class InsightDeprecatedPanel(
   ) =
     tracker.logServiceDeprecated(
       AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel.INSIGHTS_PANEL,
+      DevServiceDeprecationInfo.DeliveryType.PANEL,
       userNotified,
       userClickedMoreInfo,
       userClickedUpdate,

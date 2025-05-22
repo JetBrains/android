@@ -19,8 +19,10 @@ package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule
 import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.flavorsConfigurationsBuildGradle
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.ProductFlavorsWithDimensions
+import com.android.tools.idea.npw.module.recipes.compileSdk
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
-import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
+import com.android.tools.idea.npw.module.recipes.minSdk
+import com.android.tools.idea.npw.module.recipes.targetSdk
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.intellij.openapi.module.Module
@@ -63,11 +65,11 @@ ${emptyPluginsBlock()}
 
 android {
     namespace '$packageName'
-    ${toAndroidFieldVersion("compileSdk", apis.buildApi.apiString, agpVersion)}
+    ${compileSdk(apis.buildApi, agpVersion)}
 
     defaultConfig {
-        ${toAndroidFieldVersion("minSdk", apis.minApi.apiString, agpVersion)}
-        ${toAndroidFieldVersion("targetSdk", apis.targetApi.apiString, agpVersion)}
+        ${minSdk(apis.minApi, agpVersion)}
+        ${targetSdk(apis.targetApi, agpVersion)}
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

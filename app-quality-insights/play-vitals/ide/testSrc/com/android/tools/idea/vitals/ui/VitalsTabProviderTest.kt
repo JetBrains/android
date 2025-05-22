@@ -25,7 +25,8 @@ import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.StubAppInsightsProjectLevelController
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
-import com.android.tools.idea.insights.ui.ServiceDeprecatedPanel
+import com.android.tools.idea.insights.ui.ServiceDeprecatedBanner
+import com.android.tools.idea.insights.ui.ServiceUnsupportedPanel
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
@@ -170,7 +171,7 @@ class VitalsTabProviderTest {
   }
 
   @Test
-  fun `show service deprecated panel when service is deprecated`() = runTest {
+  fun `show service unsupported panel when service is unsupported`() = runTest {
     deprecation =
       DevServicesDeprecationData(
         "header",
@@ -181,7 +182,27 @@ class VitalsTabProviderTest {
       )
     val flow = populateTabAndGetComponentsFlow()
     flow.take(1).collect { component ->
-      assertThat(component).isInstanceOf(ServiceDeprecatedPanel::class.java)
+      assertThat(component).isInstanceOf(ServiceUnsupportedPanel::class.java)
+    }
+  }
+
+  @Test
+  fun `show deprecated banner when service is unsupported`() = runTest {
+    deprecation =
+      DevServicesDeprecationData(
+        "header",
+        "desc",
+        "url",
+        true,
+        DevServicesDeprecationStatus.DEPRECATED,
+      )
+    val flow = populateTabAndGetComponentsFlow()
+    flow.take(3).collectIndexed { idx, comp ->
+      when (idx) {
+        0,
+        1 -> assertThat(comp).isInstanceOf(ServiceDeprecatedBanner::class.java)
+        2 -> assertThat(comp.toString()).contains("placeholderContent")
+      }
     }
   }
 

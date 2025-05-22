@@ -29,5 +29,7 @@
                         serviceImplementation="com.android.tools.idea.gservices.ServerFlagBasedDevServicesDeprecationDataProvider" />
     <applicationService serviceInterface="com.android.tools.sdk.DeviceManagerDeviceFilter"
                         serviceImplementation="com.android.tools.sdk.StudioDeviceManagerDeviceFilter" />
+    <postStartupActivity implementation="com.android.tools.idea.gservices.StudioDeprecationChecker" />
+    <notificationGroup displayType="STICKY_BALLOON" id="StudioDeprecationNotification" />
   </extensions>
 </idea-plugin>

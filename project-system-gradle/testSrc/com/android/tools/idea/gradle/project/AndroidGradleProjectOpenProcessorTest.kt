@@ -39,7 +39,7 @@ class AndroidGradleProjectOpenProcessorTest {
 
   @Test(expected = RuntimeException::class)
   fun `should not allow project import when folder is not writeable`() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION, syncReady = false)
     root = preparedProject.root
     root.setWritable(false)
     preparedProject.open {}

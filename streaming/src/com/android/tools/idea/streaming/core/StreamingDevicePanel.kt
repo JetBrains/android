@@ -18,11 +18,13 @@ package com.android.tools.idea.streaming.core
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
+import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
 import com.android.tools.idea.ui.DisplayInfoProvider
 import com.intellij.codeInsight.hint.HintUtil
@@ -101,6 +103,9 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
 
     override fun getScreenshotRotation(displayId: Int): Int =
         displayPanels[displayId]?.displayView?.displayOrientationCorrectionQuadrants ?: throw IllegalArgumentException()
+
+    override fun getSkin(displayId: Int): SkinDefinition? =
+        (displayPanels[displayId]?.displayView as? EmulatorView)?.getSkin()
   }
 
   init {

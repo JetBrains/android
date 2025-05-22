@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenshot
 
+import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.containers.DisposableWrapperList
@@ -25,13 +26,13 @@ import java.awt.Rectangle
 import java.awt.Toolkit
 
 /** Arbitration mechanism allowing multiple dialogs to avoid being displayed on top of each other. */
+@UiThread
 class DialogLocationArbiter {
 
   private val shownDialogs = DisposableWrapperList<DialogWrapper>()
 
   /** Returns a screen location for the given dialog, or null to use the default location */
   fun suggestLocation(dialog: DialogWrapper): Point? {
-    println("suggestLocation: dialog at $dialog")
     val location = calculateSuggestedLocation(dialog.size)
     shownDialogs.add(dialog, dialog.disposable)
     return location
@@ -51,14 +52,11 @@ class DialogLocationArbiter {
     var location: Point? = null
     val sortedDialogs = ArrayList(shownDialogs)
     sortedDialogs.sortWith(compareBy<DialogWrapper> { it.location.y }.thenBy { it.location.x })
-    println("calculateSuggestedLocation: size=$size sortedDialogs=$sortedDialogs")
     for (dialog in sortedDialogs) {
-      println("calculateSuggestedLocation: dialog at ${dialog.location} ${dialog.size.width}x${dialog.size.height}")
       if (location == null || location == dialog.location) {
         location = calculateAdjustedLocation(dialog.location, size, dialog.window.graphicsConfiguration)
       }
     }
-    println("calculateSuggestedLocation: location=$location")
     return location
   }
 

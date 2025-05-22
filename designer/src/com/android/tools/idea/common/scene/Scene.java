@@ -24,12 +24,13 @@ import com.android.SdkConstants;
 import com.android.annotations.concurrency.AnyThread;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.annotations.InputEventMask;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -42,19 +43,18 @@ import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.common.scene.target.MultiComponentTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
-import com.android.tools.idea.rendering.parsers.PsiXmlFile;
-import com.android.tools.rendering.RenderService;
-import com.android.tools.rendering.RenderTask;
 import com.android.tools.idea.rendering.StudioRenderService;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.RenderTask;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -422,15 +422,8 @@ public class Scene implements SelectionListener, Disposable {
   void buildDisplayList(@NotNull DisplayList displayList, long time, SceneContext sceneContext) {
     SceneComponent root = myRoot;
     if (root != null) {
-      // clear the objects and release
-      sceneContext.getScenePicker().foreachObject(o -> {
-        if (o instanceof SecondarySelector) {
-          ((SecondarySelector)o).release();
-        }
-      });
-
-      sceneContext.getScenePicker().reset();
       root.buildDisplayList(time, displayList, sceneContext);
+      sceneContext.swapPickerBuffer();
       if (DEBUG) {
         System.out.println("========= DISPLAY LIST ======== \n" + displayList.serialize());
       }

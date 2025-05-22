@@ -20,6 +20,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.settingssync.onboarding.feature
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.gct.login2.CredentialedUser
+import com.google.gct.login2.GoogleLoginService
 import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.LoginUsersRule
 import com.google.gct.login2.UserInfoEnforcedFeature
@@ -36,12 +38,16 @@ import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 private const val TEST_EMAIL = "test_user@gmail.com"
 private val USER_INFO = UserInfoEnforcedFeature()
@@ -264,5 +270,99 @@ class GoogleLoginStateListenerTest {
       .containsExactly(SyncSettingsEvent.SyncRequest, SyncSettingsEvent.SyncRequest)
     assertThat(SettingsSyncStatusTracker.getInstance().currentStatus)
       .isInstanceOf(SettingsSyncStatusTracker.SyncStatus.Success::class.java)
+  }
+}
+
+// Special test setup for testing out specific code. For general testing purpose, please expand
+// GoogleLoginStateListenerTest above.
+class GoogleLoginStateListenerSimpleTest() {
+  private val applicationRule = ApplicationRule()
+  private val flagRule = FlagRule(StudioFlags.SETTINGS_SYNC_ENABLED, true)
+  private val disposableRule = DisposableRule()
+
+  @get:Rule
+  val rules: RuleChain =
+    RuleChain.outerRule(applicationRule).around(flagRule).around(disposableRule)
+
+  private val loginStates = mutableListOf<Boolean>()
+  private val syncEvents = mutableListOf<SyncSettingsEvent>()
+  private val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
+
+  private var _isInitialized = false
+  private val _allUsersFlow = MutableStateFlow<Map<String, CredentialedUser>>(emptyMap())
+
+  private lateinit var googleLoginStateListener: GoogleLoginStateListener
+  private lateinit var testListener: SettingsSyncEventListener
+
+  @Before
+  fun setUp() {
+    val loginService =
+      object : GoogleLoginService by mock(GoogleLoginService::class.java) {
+        override val isInitialized: Boolean
+          get() = _isInitialized
+
+        override val allUsersFlow: StateFlow<Map<String, CredentialedUser>>
+          get() = _allUsersFlow
+      }
+
+    ApplicationManager.getApplication()
+      .replaceService(GoogleLoginService::class.java, loginService, disposableRule.disposable)
+
+    googleLoginStateListener = GoogleLoginStateListener(scope)
+    ApplicationManager.getApplication()
+      .replaceService(
+        GoogleLoginStateListener::class.java,
+        googleLoginStateListener,
+        disposableRule.disposable,
+      )
+
+    ExtensionTestUtil.maskExtensions(
+      LoginFeature.Companion.EP_NAME,
+      listOf(feature, USER_INFO),
+      disposableRule.disposable,
+      false,
+    )
+
+    testListener =
+      object : SettingsSyncEventListener {
+        override fun loginStateChanged() {
+          loginStates.add(
+            loginService.allUsersFlow.value
+              .filterKeys { it == TEST_EMAIL }
+              .any { it.value.isLoggedIn(feature) }
+          )
+        }
+
+        override fun settingChanged(event: SyncSettingsEvent) {
+          syncEvents.add(event)
+        }
+      }
+    SettingsSyncEvents.getInstance().addListener(testListener)
+
+    // ensure initial state
+    SettingsSyncSettings.getInstance().syncEnabled = true
+    SettingsSyncLocalSettings.getInstance().userId = TEST_EMAIL
+    SettingsSyncLocalSettings.getInstance().providerCode = PROVIDER_CODE_GOOGLE
+  }
+
+  @After
+  fun tearDown() {
+    SettingsSyncEvents.getInstance().removeListener(testListener)
+  }
+
+  @Test
+  fun `pick up login event on startup`() = runTest {
+    googleLoginStateListener.startListening()
+    _allUsersFlow.emit(
+      mapOf<String, CredentialedUser>(
+        TEST_EMAIL to
+          mock<CredentialedUser>().apply { `when`(isLoggedIn(feature)).thenReturn(true) }
+      )
+    )
+
+    _isInitialized = true
+
+    // Verify
+    assertThat(loginStates).containsExactly(false, true)
   }
 }

@@ -23,11 +23,12 @@ import java.awt.Font
 import javax.swing.GroupLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.LayoutStyle
 
 private const val TITLE = "Take the Android Studio Survey"
 private const val TEXT_1 = "Help us improve Android Studio by taking a survey."
-private const val TEXT_2 = "You will be directed to a Qualtrics survey in your default browser."
-private const val TEXT_3 = "You may complete the survey at your convenience."
+private const val TEXT_2 = "You will be directed to a Qualtrics survey in your default browser. You may"
+private const val TEXT_3 = "complete the survey at your convenience."
 private const val ASK_AGAIN_BUTTON_TEXT = "Ask again later"
 private const val OPEN_SURVEY_BUTTON_TEXT = "Open survey"
 
@@ -35,7 +36,7 @@ class BenchmarkSurveyDialog()
   : DialogWrapper(null) {
 
   private val panel = JPanel().apply {
-    preferredSize = JBDimension(100, 100)
+    preferredSize = JBDimension(100, 200)
   }
 
   init {
@@ -47,27 +48,24 @@ class BenchmarkSurveyDialog()
 
     val label1 = JBLabel(TEXT_1).apply {
       font = Font(font.name, Font.BOLD, font.size)
-      preferredSize = JBDimension(40, 40)
     }
+    val label2 = JBLabel(TEXT_2)
+    val label3 = JBLabel(TEXT_3)
 
-    val label2 = JBLabel("$TEXT_2 $TEXT_3").apply {
-      isAllowAutoWrapping = true
-      preferredSize = JBDimension(40, 40)
-    }
-
-    val groupLayout = GroupLayout(panel).apply {
-      autoCreateGaps = true
-      autoCreateContainerGaps = true
-    }
+    val groupLayout = GroupLayout(panel)
 
     val vGroup = groupLayout.createSequentialGroup()
       .addComponent(label1)
+      .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
       .addComponent(label2)
+      .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+      .addComponent(label3)
     groupLayout.setVerticalGroup(vGroup)
 
     val hGroup = groupLayout.createParallelGroup()
       .addComponent(label1)
       .addComponent(label2)
+      .addComponent(label3)
     groupLayout.setHorizontalGroup(hGroup)
 
     panel.layout = groupLayout

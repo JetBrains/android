@@ -26,16 +26,37 @@ private const val errorMsg = "Please call setComponent to add a component to thi
 
 /** A shell for containing the contents of an insights tab. */
 class AppInsightsTabPanel : JPanel(BorderLayout()), Disposable {
+  var deprecatedBanner: ServiceDeprecatedBanner? = null
+    private set(value) {
+      if (field != null) {
+        remove(field)
+      }
+      if (value != null) {
+        super<JPanel>.add(value, BorderLayout.NORTH)
+      }
+      revalidate()
+      field = value
+    }
+
   fun setComponent(component: JComponent) {
-    val disposable = components.firstOrNull() as? Disposable
+    val disposables = components.filterIsInstance<Disposable>()
     removeAll()
-    if (disposable != null) {
-      Disposer.dispose(disposable)
+    if (disposables.isNotEmpty()) {
+      disposables.forEach { Disposer.dispose(it) }
     }
     if (component is Disposable) {
       Disposer.register(this, component)
     }
-    super.add(component)
+    deprecatedBanner?.let { super<JPanel>.add(it, BorderLayout.NORTH) }
+    super.add(component, BorderLayout.CENTER)
+  }
+
+  fun addDeprecatedBanner(banner: ServiceDeprecatedBanner, closeAction: () -> Unit) {
+    banner.setCloseAction {
+      deprecatedBanner = null
+      closeAction()
+    }
+    deprecatedBanner = banner
   }
 
   override fun dispose() = Unit

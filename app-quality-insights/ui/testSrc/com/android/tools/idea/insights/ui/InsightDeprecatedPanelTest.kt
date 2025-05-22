@@ -20,6 +20,7 @@ import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel.INSIGHTS_PANEL
+import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo.DeliveryType.PANEL
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.HyperlinkLabel
 import javax.swing.JButton
@@ -55,17 +56,41 @@ class InsightDeprecatedPanelTest {
   @Test
   fun `userNotified is logged only once`() {
     createPanel()
-    verify(tracker, never()).logServiceDeprecated(eq(INSIGHTS_PANEL), eq(null), eq(null), eq(null))
+    verify(tracker, never())
+      .logServiceDeprecated(eq(INSIGHTS_PANEL), eq(PANEL), eq(null), eq(null), eq(null), eq(null))
 
     insightVisibilityFlow.value = true
     verify(tracker, timeout(5000).times(1))
-      .logServiceDeprecated(eq(INSIGHTS_PANEL), eq(true), anyOrNull(), anyOrNull())
+      .logServiceDeprecated(
+        eq(INSIGHTS_PANEL),
+        eq(PANEL),
+        eq(true),
+        anyOrNull(),
+        anyOrNull(),
+        eq(null),
+      )
 
     insightVisibilityFlow.value = false
-    verify(tracker).logServiceDeprecated(eq(INSIGHTS_PANEL), anyOrNull(), anyOrNull(), anyOrNull())
+    verify(tracker)
+      .logServiceDeprecated(
+        eq(INSIGHTS_PANEL),
+        anyOrNull(),
+        anyOrNull(),
+        anyOrNull(),
+        eq(null),
+        eq(null),
+      )
 
     insightVisibilityFlow.value = true
-    verify(tracker).logServiceDeprecated(eq(INSIGHTS_PANEL), anyOrNull(), anyOrNull(), anyOrNull())
+    verify(tracker)
+      .logServiceDeprecated(
+        eq(INSIGHTS_PANEL),
+        anyOrNull(),
+        anyOrNull(),
+        anyOrNull(),
+        eq(null),
+        eq(null),
+      )
   }
 
   @Test
@@ -74,7 +99,8 @@ class InsightDeprecatedPanelTest {
     val moreInfoLabel = panel.findDescendant<HyperlinkLabel>() ?: fail("More info label not found")
     moreInfoLabel.doClick()
 
-    verify(tracker).logServiceDeprecated(eq(INSIGHTS_PANEL), eq(null), eq(true), eq(null))
+    verify(tracker)
+      .logServiceDeprecated(eq(INSIGHTS_PANEL), eq(PANEL), eq(null), eq(true), eq(null), eq(null))
   }
 
   @Test
@@ -83,7 +109,8 @@ class InsightDeprecatedPanelTest {
     val updateLabel = panel.findDescendant<JButton>() ?: fail("Update label not found")
     updateLabel.doClick()
 
-    verify(tracker).logServiceDeprecated(eq(INSIGHTS_PANEL), eq(null), eq(null), eq(true))
+    verify(tracker)
+      .logServiceDeprecated(eq(INSIGHTS_PANEL), eq(PANEL), eq(null), eq(null), eq(true), eq(null))
   }
 
   private fun createPanel() =

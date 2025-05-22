@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.sdklib.AndroidMajorVersion
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.generateMultiplatformModule
@@ -25,7 +27,6 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.wizard.template.ApiTemplateData
-import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
@@ -94,13 +95,9 @@ class KotlinMultiplatformModuleTest {
     projectRuleAgpVersion: AgpVersionSoftwareEnvironment,
   ): File {
     val name = "shared"
-    val buildApi =
-      ApiVersion(
-        StudioFlags.NPW_COMPILE_SDK_VERSION.get(),
-        StudioFlags.NPW_COMPILE_SDK_VERSION.get().toString(),
-      )
-    val targetApi = buildApi
-    val minApi = ApiVersion(34, "34")
+    val buildApi = AndroidVersion(StudioFlags.NPW_COMPILE_SDK_VERSION.get(), 0)
+    val targetApi = AndroidMajorVersion(StudioFlags.NPW_COMPILE_SDK_VERSION.get())
+    val minApi = AndroidMajorVersion(34)
     val kotlinVersion = "1.9.20"
     val agpVersion = AgpVersion(8, 3, 0)
     val packageName = "com.kmplib.packagename"

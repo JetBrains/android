@@ -18,13 +18,12 @@ package com.android.tools.idea.gradle.notification
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.gradle.project.sync.GradleFilesUpdater
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
-import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
+import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleTestProjects
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteIntentReadAction
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
@@ -38,7 +37,7 @@ import org.junit.Test
 class GradleSyncRequiredNotificationTest {
 
   @get:Rule
-  val androidProjectRule = AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION)
+  val androidProjectRule = AndroidProjectRule.testProjectNoSync(LightGradleTestProjects.SIMPLE_APPLICATION)
 
   private val project: Project
     get() = androidProjectRule.project

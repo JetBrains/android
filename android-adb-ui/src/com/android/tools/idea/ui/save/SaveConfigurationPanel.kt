@@ -29,7 +29,6 @@ import com.intellij.openapi.util.io.FileUtilRt.getNameWithoutExtension
 import com.intellij.ui.TextAccessor
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.COLUMNS_LARGE
-import com.intellij.ui.dsl.builder.COLUMNS_MEDIUM
 import com.intellij.ui.dsl.builder.HyperlinkEventAction
 import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindText
@@ -91,7 +90,7 @@ internal class SaveConfigurationPanel(
         text(generatePreview()).applyToComponent { preview = this }
       }
       row("") {
-        text(message("configure.screenshot.dialog.placeholders.description"), maxLineLength = 90)
+        text(message("configure.screenshot.dialog.placeholders.description"))
       }
       row("") {
         panel {

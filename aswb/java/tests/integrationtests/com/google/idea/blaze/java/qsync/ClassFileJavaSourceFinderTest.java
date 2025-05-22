@@ -19,29 +19,24 @@ import static com.google.common.truth.PathSubject.paths;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.Expect;
 import com.google.idea.blaze.base.TestData;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.qsync.QuerySyncProject;
+import com.google.idea.blaze.base.qsync.ReadonlyQuerySyncProject;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
-import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
-import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.testing.EdtRule;
 import com.google.idea.testing.java.LightJavaCodeInsightFixtureTestCase4Concrete;
-import com.google.protobuf.TextFormat;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -70,17 +65,10 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
   @Rule public final TestData testData = new TestData();
   @Mock public QuerySyncManager querySyncManager;
   @Mock public ArtifactTracker<?> artifactTracker;
-  private final SnapshotHolder snapshotHolder = new SnapshotHolder();
   public Path libraryArtifactAbsolutePath;
   public Path javaDepsAbsolutePath;
   public Path libraryArtifactPath;
   public Path projectAbsolutePath;
-
-  @Before
-  public void initArtifactTracker() {
-    // We can't use when(...).thenReturn(...) here due to generic arg in getArtifactTracker:
-    doReturn(artifactTracker).when(querySyncManager).getArtifactTracker();
-  }
 
   @Before
   public void initJar() throws IOException {
@@ -94,13 +82,6 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
     Files.copy(Path.of(testDataJar), libraryArtifactAbsolutePath);
   }
 
-  @Before
-  public void initBlazeProject() {
-    QuerySyncProject mockProject = mock(QuerySyncProject.class);
-    when(mockProject.getSnapshotHolder()).thenReturn(snapshotHolder);
-    when(querySyncManager.getLoadedProject()).thenReturn(Optional.of(mockProject));
-  }
-
   @Test
   public void project_not_loaded() {
     VirtualFile classFile =
@@ -112,7 +93,6 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
         new ClassFileJavaSourceFinder(
             getFixture().getProject(), querySyncManager, Path.of("/"), Path.of("/"), psiClassFile);
     expect.that(djsf.findSourceFile()).isNull();
-    verify(querySyncManager, never()).getArtifactTracker();
   }
 
   @Test
@@ -152,11 +132,10 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
                 "digest-libtest.jar",
                 Path.of("blaze-out/k8/bin/com/test/libtest.jar"), Label.of("//com/test:test"))))
             .build()));
-    snapshotHolder.setCurrent(
-        mock(Context.class),
-        QuerySyncProjectSnapshot.EMPTY.toBuilder()
-            .artifactState(artifactState)
-            .build());
+    when(querySyncManager.getCurrentSnapshot()).thenReturn(
+      Optional.of(QuerySyncProjectSnapshot.EMPTY.toBuilder()
+                    .artifactState(artifactState)
+                    .build()));
 
     PsiElement navElement = djsf.findSourceFile();
     assertThat(navElement).isNotNull();
@@ -193,11 +172,10 @@ public class ClassFileJavaSourceFinderTest extends LightJavaCodeInsightFixtureTe
                 "digest-libtest.jar",
                 Path.of("blaze-out/k8/bin/com/test/libtest.jar"), Label.of("//com/test:test"))))
             .build()));
-    snapshotHolder.setCurrent(
-      mock(Context.class),
-        QuerySyncProjectSnapshot.EMPTY.toBuilder()
-            .artifactState(artifactState)
-            .build());
+    when(querySyncManager.getCurrentSnapshot()).thenReturn(
+      Optional.of(QuerySyncProjectSnapshot.EMPTY.toBuilder()
+                    .artifactState(artifactState)
+                    .build()));
 
     PsiElement navElement = djsf.findSourceFile();
     assertThat(navElement).isNotNull();

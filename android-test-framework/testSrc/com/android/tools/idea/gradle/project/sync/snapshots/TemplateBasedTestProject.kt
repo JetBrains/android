@@ -143,7 +143,8 @@ interface TemplateBasedTestProject : TestProjectDefinition {
     integrationTestEnvironment: IntegrationTestEnvironment,
     name: String,
     agpVersion: AgpVersionSoftwareEnvironment,
-    ndkVersion: String?
+    ndkVersion: String?,
+    syncReady: Boolean
   ): PreparedTestProject {
     val resolvedAgpVersion = agpVersion.resolve()
     val root = integrationTestEnvironment.prepareGradleProject(
@@ -151,7 +152,8 @@ interface TemplateBasedTestProject : TestProjectDefinition {
       resolvedAgpVersion,
       getAdditionalRepos(),
       name,
-      ndkVersion = ndkVersion
+      ndkVersion = ndkVersion,
+      syncReady
     )
     if (autoMigratePackageAttribute && agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80) {
       migratePackageAttribute(root)
@@ -338,12 +340,14 @@ fun testProjectTemplateFromAbsolutePath(path: String): TemplateBasedTestProject 
   }
 }
 
-fun testProjectTemplateFromPath(path: String, testDataPath: String): TemplateBasedTestProject {
+fun testProjectTemplateFromPath(path: String, testDataPath: String, autoMigratePackageAttribute: Boolean = true): TemplateBasedTestProject {
   return object: TemplateBasedTestProject{
     override val name: String
       get() = File(path).name
     override val template: String
       get() = path
+    override val autoMigratePackageAttribute: Boolean
+      get() = autoMigratePackageAttribute
 
     override fun getTestDataDirectoryWorkspaceRelativePath(): String = testDataPath
 

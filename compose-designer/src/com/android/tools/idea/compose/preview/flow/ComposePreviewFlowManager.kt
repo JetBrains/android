@@ -99,7 +99,7 @@ internal class ComposePreviewFlowManager(
 
   /** Returns how many previews are available to be rendered in the current file. */
   fun previewsCount() =
-    (filteredPreviewElementsFlow.value as? FlowableCollection.Present<*>)?.collection?.size ?: 0
+    (toRenderPreviewElementsFlow.value as? FlowableCollection.Present<*>)?.collection?.size ?: 0
 
   /** Initializes the flows that will listen to different events and will call [requestRefresh]. */
   @OptIn(ExperimentalCoroutinesApi::class)

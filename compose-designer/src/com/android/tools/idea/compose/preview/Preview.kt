@@ -30,12 +30,14 @@ import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.actions.RESIZE_PANEL_INSTANCE_KEY
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationPreview
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.flow.ComposePreviewFlowManager
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
+import com.android.tools.idea.compose.preview.resize.ResizePanel
 import com.android.tools.idea.compose.preview.scene.ComposeAnimationToolbarUpdater
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
@@ -102,6 +104,7 @@ import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.android.tools.idea.util.toDisplayString
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.PreviewElementInstance
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewLiteModeEvent
@@ -650,6 +653,7 @@ class ComposePreviewRepresentation(
       PREVIEW_VIEW_MODEL_STATUS.name -> status()
       FastPreviewSurface.KEY.name -> this@ComposePreviewRepresentation
       PreviewInvalidationManager.KEY.name -> this@ComposePreviewRepresentation
+      RESIZE_PANEL_INSTANCE_KEY.name -> activeResizePanelInFocusMode
       else -> null
     }
   }
@@ -777,6 +781,15 @@ class ComposePreviewRepresentation(
       previewFlowManager = composePreviewFlowManager,
       previewModeManager = previewModeManager,
     )
+
+  /**
+   * The [ResizePanel] instance used when [PreviewMode.Focus] is active.
+   *
+   * This panel allows modifying the device configuration for the focused preview element. It is
+   * `null` when not in Focus mode and its lifecycle (creation/disposal) is tied to entering and
+   * exiting [PreviewMode.Focus].
+   */
+  private var activeResizePanelInFocusMode: ResizePanel? = null
 
   init {
     launch {
@@ -1052,6 +1065,31 @@ class ComposePreviewRepresentation(
             surface.notifyZoomToFit()
           }
         }
+        updateResizePanelConfigurationForFocusMode()
+      }
+    }
+  }
+
+  /**
+   * Updates the configuration of the [activeResizePanelInFocusMode] based on the currently selected
+   * element if the preview is in [PreviewMode.Focus].
+   *
+   * This method ensures that the resize panel, when active in focus mode, reflects the device
+   * configuration of the currently focused preview element. It should be called when there's a
+   * possibility that the focused preview or its configuration needs to be synced with the resize
+   * panel, typically after a render or a mode update.
+   */
+  private fun updateResizePanelConfigurationForFocusMode() {
+    val currentGlobalMode = previewModeManager.mode.value
+    activeResizePanelInFocusMode?.let { panel ->
+      val focusMode = currentGlobalMode as? PreviewMode.Focus
+      if (focusMode != null) {
+        val focusedElement = focusMode.selected as? PsiComposePreviewElementInstance
+        val config = focusedElement?.let { getConfigurationForInstance(it) }
+        val module = surface.models.singleOrNull()?.module
+        panel.setConfiguration(config, module)
+      } else {
+        log.error("activeResizePanelInFocusMode is not null, but current mode is not Focus")
       }
     }
   }
@@ -1299,7 +1337,7 @@ class ComposePreviewRepresentation(
 
           val previewsToRender =
             withContext(workerThread) {
-              composePreviewFlowManager.filteredPreviewElementsFlow.value.asCollection().toList()
+              composePreviewFlowManager.toRenderPreviewElementsFlow.value.asCollection().toList()
             }
           composeWorkBench.hasContent =
             previewsToRender.isNotEmpty() || mode.value is PreviewMode.UiCheck
@@ -1490,6 +1528,15 @@ class ComposePreviewRepresentation(
     previewModeManager.setMode(mode)
   }
 
+  private fun getConfigurationForInstance(selectedPreviewElement: PreviewElementInstance<*>) =
+    surface.models
+      .find { nlModel ->
+        val modelPreviewElement =
+          nlModel.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) as PreviewElementInstance<*>
+        modelPreviewElement.instanceId == selectedPreviewElement.instanceId
+      }
+      ?.configuration
+
   /**
    * Performs setup for [mode] when this mode is started from a previous mode of a different class.
    */
@@ -1539,7 +1586,11 @@ class ComposePreviewRepresentation(
       }
       is PreviewMode.Focus -> {
         withContext(uiThread) {
-          composeWorkBench.focusMode = FocusMode(composeWorkBench.mainSurface)
+          activeResizePanelInFocusMode = ResizePanel(composeWorkBench.mainSurface)
+          composeWorkBench.focusMode =
+            FocusMode(composeWorkBench.mainSurface, activeResizePanelInFocusMode!!).apply {
+              addSelectionListener { activeResizePanelInFocusMode?.clearPanelAndHidePanel() }
+            }
         }
       }
     }
@@ -1571,7 +1622,11 @@ class ComposePreviewRepresentation(
         requestVisibilityAndNotificationsUpdate()
       }
       is PreviewMode.Focus -> {
-        withContext(uiThread) { composeWorkBench.focusMode = null }
+        withContext(uiThread) {
+          composeWorkBench.focusMode = null
+          Disposer.dispose(activeResizePanelInFocusMode!!)
+          activeResizePanelInFocusMode = null
+        }
       }
     }
   }

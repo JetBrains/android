@@ -1,14 +1,11 @@
 package com.google.idea.blaze.base.qsync
 
 import com.google.common.collect.ImmutableSet
-import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
-import com.google.idea.blaze.base.projectview.ProjectViewSet
 import com.google.idea.blaze.base.qsync.entity.BazelEntitySource
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport
 import com.google.idea.blaze.base.util.UrlUtil
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
-import com.google.idea.blaze.qsync.QuerySyncProjectListener
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage.WORKSPACE_MODULE_NAME
 import com.google.idea.blaze.qsync.project.ProjectPath
@@ -45,12 +42,7 @@ import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.jps.model.java.JpsJavaExtensionService
 
 /** An object that monitors the build graph and applies the changes to the project structure by using WorkspaceEntity. */
-class ProjectUpdaterWithWorkspaceEntity(
-  private val project: Project,
-  private val projectViewSet: ProjectViewSet,
-  private val workspaceRoot: WorkspaceRoot,
-  private val projectPathResolver: ProjectPath.Resolver,
-) : QuerySyncProjectListener {
+class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyncProjectListener {
 
   enum class ProjectStructure {
     SHARDED_LIBRARY,
@@ -64,8 +56,9 @@ class ProjectUpdaterWithWorkspaceEntity(
 
   private var lastProjectProtoSnapshot: ProjectProto.Project = ProjectProto.Project.getDefaultInstance()
 
-  override fun onNewProjectSnapshot(
+  override fun onNewProjectStructure(
     context: Context<*>,
+    querySyncProject: ReadonlyQuerySyncProject,
     graph: QuerySyncProjectSnapshot,
   ) {
     val newProjectProtoSnapshot = graph.project()
@@ -73,8 +66,8 @@ class ProjectUpdaterWithWorkspaceEntity(
       context.output(PrintOutput.output("IDE project structure up-to-date"))
       return
     }
-    EntityWorker(project, newProjectProtoSnapshot, context).updateProjectModel()
-    updateProjectModel(newProjectProtoSnapshot, context)
+    EntityWorker(project, querySyncProject, newProjectProtoSnapshot, context).updateProjectModel()
+    updateProjectModel(querySyncProject, newProjectProtoSnapshot, context)
     lastProjectProtoSnapshot = newProjectProtoSnapshot
   }
 
@@ -97,9 +90,10 @@ class ProjectUpdaterWithWorkspaceEntity(
     companion object
   }
 
-  inner class EntityWorker(val project: Project, val spec: ProjectProto.Project, val context: Context<*>) {
+  inner class EntityWorker(val project: Project, val querySyncProject: ReadonlyQuerySyncProject, val spec: ProjectProto.Project, val context: Context<*>) {
     private val virtualFileManager = VirtualFileManager.getInstance()
     private val projectBase = Paths.get(project.getBasePath())
+    private val projectPathResolver = querySyncProject.projectPathResolver
 
     fun ProjectProto.JarDirectory.toIdeaUrl(): String {
       return UrlUtil.pathToIdeaUrl(projectBase.resolve(this.path))
@@ -215,12 +209,12 @@ class ProjectUpdaterWithWorkspaceEntity(
     )
   }
 
-  private fun updateProjectModel(spec: ProjectProto.Project, context: Context<*>) {
+  private fun updateProjectModel(querySyncProject: ReadonlyQuerySyncProject, spec: ProjectProto.Project, context: Context<*>) {
     Transactions.submitWriteActionTransactionAndWait {
       val models =
         ProjectDataManager.getInstance().createModifiableModelsProvider(project)
       for (syncPlugin in BlazeQuerySyncPlugin.EP_NAME.extensions) {
-        syncPlugin.updateProjectSettingsForQuerySync(project, context, projectViewSet)
+        syncPlugin.updateProjectSettingsForQuerySync(project, context, querySyncProject.projectViewSet)
       }
       for (moduleSpec in spec.getModulesList()) {
         val module =
@@ -240,7 +234,7 @@ class ProjectUpdaterWithWorkspaceEntity(
 
           val contentEntry =
             roots.addContentEntry(
-              UrlUtil.pathToUrl(projectPathResolver.resolve(projectPath).toString())
+              UrlUtil.pathToUrl(querySyncProject.projectPathResolver.resolve(projectPath).toString())
             )
           for (sfSpec in ceSpec.getSourcesList()) {
             val sourceFolderProjectPath = ProjectPath.create(sfSpec.getProjectPath())
@@ -254,7 +248,7 @@ class ProjectUpdaterWithWorkspaceEntity(
               if (sfSpec.getIsTest()) JavaSourceRootType.TEST_SOURCE else JavaSourceRootType.SOURCE
             val url =
               UrlUtil.pathToUrl(
-                projectPathResolver.resolve(sourceFolderProjectPath).toString(),
+                querySyncProject.projectPathResolver.resolve(sourceFolderProjectPath).toString(),
                 sourceFolderProjectPath.innerJarPath()
               )
             val unused =
@@ -262,13 +256,13 @@ class ProjectUpdaterWithWorkspaceEntity(
           }
           for (exclude in ceSpec.getExcludesList()) {
             contentEntry.addExcludeFolder(
-              UrlUtil.pathToIdeaDirectoryUrl(workspaceRoot.absolutePathFor(exclude))
+              UrlUtil.pathToIdeaDirectoryUrl(querySyncProject.workspaceRoot.absolutePathFor(exclude))
             )
           }
         }
 
         val workspaceLanguageSettings =
-          LanguageSupport.createWorkspaceLanguageSettings(projectViewSet)
+          LanguageSupport.createWorkspaceLanguageSettings(querySyncProject.projectViewSet)
 
         for (syncPlugin in BlazeQuerySyncPlugin.EP_NAME.extensions) {
           // TODO update ProjectProto.Module and updateProjectStructure() to allow a more
@@ -279,7 +273,7 @@ class ProjectUpdaterWithWorkspaceEntity(
             project,
             context,
             models,
-            workspaceRoot,
+            querySyncProject.workspaceRoot,
             module,
             ImmutableSet.copyOf<String?>(moduleSpec.getAndroidResourceDirectoriesList()),
             ImmutableSet.builder<String?>()

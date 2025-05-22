@@ -24,7 +24,9 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
-import com.android.tools.idea.insights.ui.ServiceDeprecatedPanel
+import com.android.tools.idea.insights.ui.ServiceDeprecatedBanner
+import com.android.tools.idea.insights.ui.ServiceUnsupportedPanel
+import com.android.tools.idea.insights.ui.logDeprecatedEvent
 import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.google.gct.login2.GoogleLoginService
@@ -70,13 +72,20 @@ class VitalsTabProvider : AppInsightsTabProvider {
     val scope = AndroidCoroutineScope(tabPanel)
     val deprecationData = getConfigurationManager(project).deprecationData
     val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
-    if (deprecationData.isDeprecated()) {
+    if (deprecationData.isUnsupported()) {
       tabPanel.setComponent(
-        ServiceDeprecatedPanel(scope, activeTabFlow, tracker, deprecationData) {
+        ServiceUnsupportedPanel(scope, activeTabFlow, tracker, deprecationData) {
           UpdateChecker.updateAndShowResult(project)
         }
       )
       return
+    }
+    if (deprecationData.isDeprecated()) {
+      val banner =
+        ServiceDeprecatedBanner.create(tracker, deprecationData) {
+          UpdateChecker.updateAndShowResult(project)
+        }
+      tabPanel.addDeprecatedBanner(banner) { tracker.logDeprecatedEvent(userClickedDismiss = true) }
     }
     tabPanel.setComponent(placeholderContent())
     scope.launch(AndroidDispatchers.diskIoThread) {

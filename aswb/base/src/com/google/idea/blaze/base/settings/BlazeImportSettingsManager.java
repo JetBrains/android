@@ -18,6 +18,7 @@ package com.google.idea.blaze.base.settings;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.idea.blaze.base.projectview.ProjectViewManager.migrateImportSettingsToProjectViewFile;
 
+import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
 import com.google.idea.blaze.base.project.QuerySyncConversionUtility;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
@@ -27,7 +28,7 @@ import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocation
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.scope.BlazeContext;
-import com.google.idea.blaze.base.scope.scopes.SyncActionScopes;
+import com.google.idea.blaze.base.scope.scopes.ToolWindowScopeRunner;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -47,6 +48,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
@@ -95,14 +97,6 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
       BlazeImportSettingsManager.getInstance(project).initImportSettings(
         Optional.ofNullable(BlazeImportSettingsManager.getInstance(project).loadedImportSettings));
       return importSettings.get();
-    }
-  }
-
-  public void resetImportSettings() {
-    synchronized (this) {
-      importSettings.set(null);
-      loadedImportSettings = null;
-      BlazeImportSettingsManager.getInstance(project).initImportSettings(Optional.empty());
     }
   }
 
@@ -223,19 +217,20 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
   }
 
   private void reloadProjectViewUnderProgressAndWait() throws InterruptedException, ExecutionException {
-    SyncActionScopes.createAndSubmitRunTask(
-      project,
-      "Parsing project view files",
-      "Parsing project view files",
-      Optional.empty(), // Not logging reading project view files as syncing.
-      context -> {
-        final var importSettings = getImportSettings();
-        final var loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings);
-        migrateImportSettingsToProjectViewFile(project, importSettings,
-                                               Objects.requireNonNull(loadedProjectView.getTopLevelProjectViewFile()));
-        projectViewSet.set(loadedProjectView);
-      },
-      QuerySyncManager.TaskOrigin.AUTOMATIC).get();
+    // Not logging reading project view files as syncing.
+    ProgressiveTaskWithProgressIndicator.builder(project, "Parsing project view files")
+      .setCancelable(false)
+      .submitTaskWithResult(((Function<ProgressIndicator, Boolean>)indicator ->
+        ToolWindowScopeRunner.runTaskWithToolWindow(project, "Parsing project view files",
+                                                    "Parsing project view files", QuerySyncManager.TaskOrigin.AUTOMATIC,
+                                                    BlazeUserSettings.getInstance(), context -> {
+            final var importSettings1 = getImportSettings();
+            final var loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings1);
+            migrateImportSettingsToProjectViewFile(project, importSettings1,
+                                                   Objects.requireNonNull(loadedProjectView.getTopLevelProjectViewFile()));
+            projectViewSet.set(loadedProjectView);
+          }
+        ))::apply).get();
   }
 
   public static String createLocationHash(String projectName) {

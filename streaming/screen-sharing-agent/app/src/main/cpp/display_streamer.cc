@@ -114,7 +114,7 @@ Size ComputeVideoSize(Size rotated_display_size, const CodecInfo& codec_info, Si
                      max(MIN_VIDEO_RESOLUTION / display_width, MIN_VIDEO_RESOLUTION / display_height));
   // The horizontal size alignment is multiple of 8 to accommodate FFmpeg video decoder.
   int32_t alignment_width = RoundUpToMultipleOf(codec_info.size_alignment.width, 8);
-  int32_t alignment_height = codec_info.size_alignment.height;
+  int32_t alignment_height = RoundUpToMultipleOf(codec_info.size_alignment.height, 2);
   // Video width is computed first and height is computed based on the width to make sure that,
   // if the video has a sightly different aspect ratio than the display, it is taller rather than
   // wider.

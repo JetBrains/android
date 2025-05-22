@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.stats
 
-import com.intellij.openapi.ui.DialogWrapper.OK_EXIT_CODE
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettings.optedIn
 import com.android.tools.analytics.CommonMetricsData
@@ -46,7 +45,9 @@ import com.google.wireless.android.sdk.stats.MachineDetails
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
 import com.google.wireless.android.sdk.stats.SafeModeStatsEvent
+import com.google.wireless.android.sdk.stats.SentimentSurveyEvent
 import com.intellij.ide.AppLifecycleListener
+import com.intellij.ide.BrowserUtil
 import com.intellij.ide.IdleTracker
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.ide.ui.LafManager
@@ -70,6 +71,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.apache.http.client.utils.URIBuilder
 import org.jetbrains.android.AndroidPluginDisposable
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import java.io.File
@@ -80,6 +82,7 @@ import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
 import java.util.TimeZone
+import java.util.UUID
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
@@ -91,8 +94,13 @@ import kotlin.time.Duration.Companion.milliseconds
 object AndroidStudioUsageTracker {
   private const val IDLE_TIME_BEFORE_SHOWING_DIALOG = 3 * 60 * 1000
   const val STUDIO_EXPERIMENTS_OVERRIDE = "studio.experiments.override"
-  private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN = 7
+  private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN_ASWB = 7
+  private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN_STUDIO = 180
   private const val IDX_ENVIRONMENT_VARIABLE = "GOOGLE_CLOUD_WORKSTATIONS"
+  private const val SENTIMENT_SURVEY_INTERVAL_FLAG_NAME = "analytics/surveys/sentiment/interval.days"
+  private const val SENTIMENT_SURVEY_RETRY_FLAG_NAME = "analytics/surveys/sentiment/retry.days"
+  private const val SENTIMENT_SURVEY_URL_FLAG_NAME = "analytics/surveys/sentiment/url"
+  private const val SENTIMENT_SURVEY_PARAMETER = "guid"
 
   /**
    * See [kotlinx.coroutines.channels.Channel.CHANNEL_DEFAULT_CAPACITY]
@@ -371,14 +379,9 @@ object AndroidStudioUsageTracker {
       return false
     }
 
-    val popupSentimentQuestionFrequency = AnalyticsSettings.popSentimentQuestionFrequency
-                                          ?: ServerFlagService.instance.getInt("analytics/settings/benchmark/question.frequency.days",
-                                                                               AnalyticsSettings.daysInYear())
-
     val lastSentimentAnswerDate = AnalyticsSettings.lastSentimentAnswerDate
-    val lastSentimentQuestionDate = AnalyticsSettings.lastSentimentQuestionDate
-
     val now = AnalyticsSettings.dateProvider.now()
+    val popupSentimentQuestionFrequency = getPopupQuestionFrequency()
 
     if (!exceedRefreshDeadline(now, lastSentimentAnswerDate, popupSentimentQuestionFrequency)) {
       return false
@@ -386,10 +389,16 @@ object AndroidStudioUsageTracker {
 
     // If we should ask the question based on dates, and asked but not answered then we should always prompt, even if this is
     // not the magic date for that user.
-    val daysToWaitForRequestingSentimentAgain = ServerFlagService.instance.getInt("analytics/surveys/benchmark/retry.interval.days",
-                                                                                  DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN)
-
+    val lastSentimentQuestionDate = AnalyticsSettings.lastSentimentQuestionDate
     if (lastSentimentQuestionDate != null) {
+      val daysToWaitForRequestingSentimentAgain = if (isASwB()) {
+        DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN_ASWB
+      }
+      else {
+        ServerFlagService.instance.getInt(SENTIMENT_SURVEY_RETRY_FLAG_NAME,
+                                          DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN_STUDIO)
+      }
+
       val startOfWaitForRequest =
         daysFromNow(now, -daysToWaitForRequestingSentimentAgain)
       return !lastSentimentQuestionDate.after(startOfWaitForRequest)
@@ -414,6 +423,9 @@ object AndroidStudioUsageTracker {
    */
   @OptIn(FlowPreview::class)
   fun requestUserSentiment() {
+    val id = UUID.randomUUID().toString()
+    logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_SCHEDULED)
+
     val scope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
     scope.launch(Dispatchers.EDT) {
       IdleTracker.getInstance().events
@@ -422,19 +434,10 @@ object AndroidStudioUsageTracker {
           val now = AnalyticsSettings.dateProvider.now()
 
           if (showBenchmarkSurvey()) {
-            val dialog = BenchmarkSurveyDialog()
-            val ret = dialog.showAndGet()
-
-            AnalyticsSettings.lastSentimentQuestionDate = now
-            AnalyticsSettings.lastSentimentAnswerDate = if (ret) {
-              now
-            }
-            else {
-              null
-            }
-            AnalyticsSettings.saveSettings()
+            showBenchmarkSurveyDialog(id, now)
           }
           else {
+            logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_DISPLAYED)
             val survey = ServerFlagService.instance.getProtoOrNull(SATISFACTION_SURVEY, DEFAULT_SATISFACTION_SURVEY)
             val followupSurvey = ServerFlagService.instance.getProtoOrNull(FOLLOWUP_SURVEY, DEFAULT_SATISFACTION_SURVEY)
 
@@ -449,6 +452,58 @@ object AndroidStudioUsageTracker {
           }
           true
         }
+    }
+  }
+
+  private fun showBenchmarkSurveyDialog(id: String, now: Date) {
+    val baseUrl = ServerFlagService.instance.getString(SENTIMENT_SURVEY_URL_FLAG_NAME) ?: return
+    val url = if (optedIn) {
+      URIBuilder(baseUrl)
+        .addParameter(SENTIMENT_SURVEY_PARAMETER, id)
+        .toString()
+    }
+    else {
+      baseUrl
+    }
+
+    logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_DISPLAYED)
+    AnalyticsSettings.lastSentimentQuestionDate = now
+
+    val ret = BenchmarkSurveyDialog().showAndGet()
+    val type: SentimentSurveyEvent.Type
+    val lastSentimentAnswerDate: Date?
+
+    if (ret) {
+      BrowserUtil.browse(url)
+      type = SentimentSurveyEvent.Type.TYPE_INVOKED
+      lastSentimentAnswerDate = now
+    }
+    else {
+      type = SentimentSurveyEvent.Type.TYPE_CANCELLED
+      lastSentimentAnswerDate = null
+    }
+
+    logSentimentSurveyEvent(id, type)
+    AnalyticsSettings.lastSentimentAnswerDate = lastSentimentAnswerDate
+    AnalyticsSettings.saveSettings()
+  }
+
+  private fun logSentimentSurveyEvent(id: String, type: SentimentSurveyEvent.Type) {
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
+                       .setKind(AndroidStudioEvent.EventKind.SENTIMENT_SURVEY_EVENT)
+                       .setSentimentSurveyEvent(SentimentSurveyEvent.newBuilder().apply {
+                         this.id = id
+                         this.type = type
+                       }))
+  }
+
+  private fun getPopupQuestionFrequency(): Int {
+    val settingsValue = AnalyticsSettings.popSentimentQuestionFrequency
+    return if (settingsValue > 0) {
+      settingsValue
+    }
+    else {
+      ServerFlagService.instance.getInt(SENTIMENT_SURVEY_INTERVAL_FLAG_NAME, AnalyticsSettings.daysInYear())
     }
   }
 
@@ -533,7 +588,11 @@ object AndroidStudioUsageTracker {
 
   // Do not show the browser-based benchmark survey for ASwB
   private fun showBenchmarkSurvey(): Boolean {
-    return StudioFlags.BENCHMARK_SURVEY_ENABLED.get() && UsageTracker.ideBrand != AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE
+    return StudioFlags.BENCHMARK_SURVEY_ENABLED.get() && !isASwB()
+  }
+
+  private fun isASwB(): Boolean {
+    return UsageTracker.ideBrand == AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE
   }
 
   class UsageTrackerAppLifecycleListener : AppLifecycleListener {

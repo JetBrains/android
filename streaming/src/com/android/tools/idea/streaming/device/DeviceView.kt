@@ -41,6 +41,7 @@ import com.android.tools.idea.streaming.device.xr.DeviceXrInputController
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
@@ -518,6 +519,13 @@ internal class DeviceView(
   override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {
     super.hardwareInputStateChanged(event, enabled)
     updateMultiTouchMode(event.inputEvent!!)
+  }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    super.uiDataSnapshot(sink)
+    sink[DEVICE_VIEW_KEY] = this
+    sink[DEVICE_CLIENT_KEY] = deviceClient
+    sink[DEVICE_CONTROLLER_KEY] = deviceController
   }
 
   private fun startClipboardSynchronization() {

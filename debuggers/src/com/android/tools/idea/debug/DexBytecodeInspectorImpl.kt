@@ -242,9 +242,8 @@ private fun findDexWithLocation(file: ApkFileUnit, location: Location): Dex? {
     val dexEntries = zipRepo.entries.filter { (name, _) -> name.endsWith(".dex") }
     for (entry in dexEntries) {
       val content = zipRepo.getContent(entry.key).array()
-      val dex = Dex.fromBytes(content)
-      val containsLocation = dex.classes.any { (name, _) -> name == signature }
-      if (containsLocation) {
+      val dex = Dex.fromBytes(content).getDexFileWithClass(signature)
+      if (dex != null) {
         return dex
       }
     }

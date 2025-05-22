@@ -28,8 +28,6 @@ import com.android.tools.idea.common.layout.LayoutManagerSwitcher
 import com.android.tools.idea.common.layout.SceneViewAlignment
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.layout.scroller.DesignSurfaceViewportScroller
-import com.android.tools.idea.common.layout.scroller.ReferencePointScroller
-import com.android.tools.idea.common.layout.scroller.TopLeftCornerScroller
 import com.android.tools.idea.common.layout.scroller.ZoomCenterScroller
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.DnDTransferComponent
@@ -50,7 +48,6 @@ import com.android.tools.idea.common.surface.SceneViewPanel
 import com.android.tools.idea.common.surface.SurfaceScale
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.common.surface.getFitContentIntoWindowScale
-import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.getViewHandler
@@ -419,48 +416,6 @@ internal constructor(
   }
 
   /**
-   * Creates a [ReferencePointScroller] that scrolls a given focus point of [NlDesignSurface]. The
-   * focus point could be either the coordinates of a focused scene view or the position of the
-   * mouse.
-   *
-   * @param port The view port were to apply the [ReferencePointScroller]
-   * @param newScrollPosition The scroll position of the next scrolling action.
-   * @param update The [ScaleChange] applied to this [NlDesignSurface].
-   * @param oldScrollPosition the previous scroll position
-   * @return A [ReferencePointScroller] to apply to this [NlDesignSurface].
-   */
-  private fun createScrollerForGroupedSurfaces(
-    port: DesignSurfaceViewport,
-    update: ScaleChange,
-    oldScrollPosition: Point,
-    newScrollPosition: Point,
-  ): DesignSurfaceViewportScroller {
-    val focusPoint = focusedSceneView?.let { Point(it.x, it.y) } ?: update.focusPoint
-    return if (focusPoint.x < 0 || focusPoint.y < 0) {
-      // zoom with top-left of the visible area as anchor
-      TopLeftCornerScroller(
-        Dimension(port.viewSize),
-        newScrollPosition,
-        update.previousScale,
-        update.newScale,
-      )
-    } else {
-      // zoom with mouse position as anchor, and considering its relative position to the existing
-      // scene views
-      ReferencePointScroller(
-        Dimension(port.viewSize),
-        Point(oldScrollPosition),
-        focusPoint,
-        update.previousScale,
-        update.newScale,
-        findSceneViewRectangles(),
-      ) {
-        sceneViewPanel.findMeasuredSceneViewRectangle(it, extentSize)
-      }
-    }
-  }
-
-  /**
    * Zoom (in or out) and move the scroll position to ensure that the given rectangle is fully
    * visible and centered. When zooming, the sceneViews may move around, and so the rectangle's
    * coordinates should be relative to the sceneView. The given rectangle should be a subsection of
@@ -527,17 +482,6 @@ internal constructor(
 
     viewportScroller =
       ZoomCenterScroller(Dimension(port.viewSize), Point(scrollPosition), zoomCenterInView)
-  }
-
-  /**
-   * When the surface is in "Animation Mode", the error display is not updated. This allows for the
-   * surface to render results faster without triggering updates of the issue panel per frame.
-   */
-  fun setRenderSynchronously(enabled: Boolean) {
-    isRenderingSynchronously = enabled
-
-    // If animation is enabled, scanner must be paused.
-    if (enabled) layoutScannerControl.pause() else layoutScannerControl.resume()
   }
 
   /** Return whenever surface is rotating. */

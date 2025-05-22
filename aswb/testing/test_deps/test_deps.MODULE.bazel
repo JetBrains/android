@@ -24,6 +24,7 @@ aswb_test_deps_repository(
         "https://github.com/bazelbuild/rules_proto/releases/download/7.1.0/rules_proto-7.1.0.tar.gz": "14a225870ab4e91869652cfd69ef2028277fc1dc4910d65d353b62d6e0ae21f4",
         "https://github.com/bazelbuild/rules_python/releases/download/1.0.0/rules_python-1.0.0.tar.gz": "4f7e2aa1eb9aa722d96498f5ef514f426c1f55161c3c9ae628c857a7128ceb07",
         "https://github.com/bazelbuild/rules_shell/releases/download/v0.3.0/rules_shell-v0.3.0.tar.gz": "d8cd4a3a91fc1dc68d4c7d6b655f09def109f7186437e3f50a9b60ab436a0c53",
+        "https://github.com/bazelbuild/rules_testing/releases/download/v0.8.0/rules_testing-v0.8.0.tar.gz": "89feaf18d6e2fc07ed7e34510058fc8d48e45e6d2ff8a817a718e8c8e4bcda0e",
         "https://github.com/bazelbuild/stardoc/releases/download/0.7.2/stardoc-0.7.2.tar.gz": "0e1ed4a98f26e718776bd64d053d02bb34d98572ccd03d6ba355112a1205706b",
         "https://github.com/google/ksp/releases/download/1.9.23-1.0.20/artifacts.zip": "ee0618755913ef7fd6511288a232e8fad24838b9af6ea73972a76e81053c8c2d",
         "https://github.com/google/ksp/releases/download/2.1.0-1.0.28/artifacts.zip": "fc27b08cadc061a4a989af01cbeccb613feef1995f4aad68f2be0f886a3ee251",

@@ -548,6 +548,9 @@
              id="javaInheritance"
              order="before explicitlyImported"/>
 
+    <weigher key="completion"
+             implementationClass="org.jetbrains.android.completion.AndroidRestrictToCompletionWeigher"
+             id="restrictTo" />
     <resolveScopeEnlarger implementation="org.jetbrains.android.AndroidResolveScopeEnlarger" />
 
     <java.elementFinder implementation="com.android.tools.idea.res.AndroidInternalRClassFinder"/>

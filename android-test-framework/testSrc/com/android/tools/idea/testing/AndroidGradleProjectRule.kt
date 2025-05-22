@@ -131,6 +131,7 @@ class AndroidGradleProjectRule(
   /**
    * Triggers loading the target Android Gradle project. Be sure to call [fixture]'s
    * [CodeInsightTestFixture.setTestDataPath] method before calling this method.
+   * Project may be synced for test purposes
    *
    * @param chosenModuleName If specified, which module will be used.
    * @param gradleVersion If specified, which Gradle version will be used.
@@ -158,7 +159,7 @@ class AndroidGradleProjectRule(
     GradleProjectImporter.withAfterCreate(afterCreate = ::afterCreate) {
       if (preLoad != null) {
         val rootFile =
-          delegateTestCase.prepareProjectForImport(projectPath, resolvedAgpVersion, ndkVersion)
+          delegateTestCase.prepareProjectForImport(projectPath, resolvedAgpVersion, ndkVersion, true)
 
         preLoad(rootFile)
         delegateTestCase.importProject(resolvedAgpVersion.jdkVersion)

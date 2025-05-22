@@ -309,6 +309,7 @@ class AgpUpgradeRefactoringProcessor(
     BlockEmulatorControlProcessor(this),
     BlockUnifiedTestPlatformProcessor(this),
     R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(this),
+    BlockR8IntegratedResourceShrinkingProcessor(this),
     R8OptimizedShrinkingDefaultRefactoringProcessor(this),
     AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
     AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(this),

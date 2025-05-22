@@ -38,6 +38,7 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.ImageUtils.ALPHA_MASK
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.device.SkinLayout
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
@@ -516,7 +517,7 @@ class EmulatorView(
       computeActualSize(screenshotShape.orientation)
 
   private fun computeActualSize(orientationQuadrants: Int): Dimension {
-    val skin = emulator.getSkin(currentPosture?.posture)
+    val skin = getSkin()
     return if (skin != null && deviceFrameVisible) {
       skin.getRotatedFrameSize(orientationQuadrants, deviceDisplaySize)
     }
@@ -533,6 +534,9 @@ class EmulatorView(
       mouseCoordinates = null
     }
   }
+
+  internal fun getSkin(): SkinDefinition? =
+      emulator.getSkin(currentPosture?.posture)
 
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
     EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
@@ -666,7 +670,7 @@ class EmulatorView(
   private fun requestScreenshotFeed(displaySize: Dimension, orientationQuadrants: Int) {
     if (isConnected && width != 0 && height != 0) {
       val maxSize = physicalSize.rotatedByQuadrants(-orientationQuadrants)
-      val skin = emulator.getSkin(currentPosture?.posture)
+      val skin = getSkin()
       if (skin != null && deviceFrameVisible) {
         // Scale down to leave space for the device frame.
         val layout = skin.layout
@@ -874,6 +878,7 @@ class EmulatorView(
   override fun uiDataSnapshot(sink: DataSink) {
     super.uiDataSnapshot(sink)
     sink[EMULATOR_VIEW_KEY] = this
+    sink[EMULATOR_CONTROLLER_KEY] = emulator
   }
 
   interface SourceFrameListener {

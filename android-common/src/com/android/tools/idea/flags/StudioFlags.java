@@ -179,7 +179,7 @@ public final class StudioFlags {
     NPW, "xr.template",
     "Enable XR template",
     "Allows the XR template to be used.",
-    enabledUpTo(CANARY));
+    true);
 
   public static final Flag<Boolean> NPW_ENABLE_NAVIGATION_UI_TEMPLATE = new BooleanFlag(
     NPW, "navigationui.template",
@@ -1126,7 +1126,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.xr.inspection", "Enable or disable support for XR inspection",
     "When this flag is enabled, xr inspection is enabled.",
-    enabledUpTo(CANARY));
+    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ON_DEVICE_RENDERING = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.on.device.rendering", "Always use on-device rendering",
@@ -1243,11 +1243,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> SCREENSHOT_STREAMLINED_SAVING = new BooleanFlag(
     SCREENSHOT, "streamlined.saving", "Save Screenshots and Screen Recordings without Asking User",
     "Save screenshots and screen recordings without asking user",
-    enabledUpTo(CANARY));
+    true);
   public static final Flag<Boolean> SCREENSHOT_RESIZING = new BooleanFlag(
     SCREENSHOT, "resizing", "Allow Screenshots to Be Resized",
     "Allow screenshots to be resized",
-    enabledUpTo(CANARY));
+    true);
   public static final Flag<Boolean> MULTI_DISPLAY_SCREENSHOTS = new BooleanFlag(
     SCREENSHOT, "multi.display", "Take Screenshots of All Displays",
     "Take screenshots of all device displays",
@@ -1347,6 +1347,12 @@ public final class StudioFlags {
     EDITOR, "remote.sdk.documentation.fetch.via.content.serving.api.enabled",
     "Enable use of the ContentServing API for fetching Android SDK documentation.",
     "If enabled, calls a OnePlatform HTTP API instead of the developers.android.com web server for documentation.",
+    enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> RESTRICT_TO_COMPLETION_WEIGHER = new BooleanFlag(
+    EDITOR, "restrict.to.completion.weigher",
+    "Enable use of the weigher that demotes elements annotated with @RestrictTo.",
+    "If enabled, the APIs that are annotated with @RestrictTo will have lower priority in the completion list.",
     enabledUpTo(CANARY));
 
   //endregion
@@ -1601,7 +1607,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_GENERATE_SAMPLE_DATA = new BooleanFlag(
     COMPOSE, "generate.sample.data", "Enable sample data generation for Compose",
     "Enable a Gemini context-menu action that generates sample data for a given Composable function",
-    enabledUpTo(DEV));
+    false);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_PREVIEW = new BooleanFlag(
     COMPOSE, "preview.generate.preview.action", "Enable editor action for generating Compose Previews",
@@ -1676,13 +1682,13 @@ public final class StudioFlags {
   public static final Flag<Boolean> WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION = new BooleanFlag(
     WEAR_DECLARATIVE_WATCH_FACE, "run.configuration.enabled", "Enable run configuration for Declarative Watch Faces",
     "If enabled, the Declarative Watch Face run configuration type will be available. Changing the value of this flag requires restarting Android Studio.",
-    enabledUpTo(CANARY)
+    enabledUpTo(STABLE)
   );
 
   public static final Flag<Boolean> WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT = new BooleanFlag(
     WEAR_DECLARATIVE_WATCH_FACE, "xml.editor.support.enabled", "Enable XML editor support for Declarative Watch Faces",
     "If enabled, the editor will support Watch Face Format in XML files",
-    enabledUpTo(CANARY)
+    enabledUpTo(STABLE)
   );
 
   public static final Flag<Boolean> WATCH_FACE_STUDIO_FILE_IMPORT = new BooleanFlag(
@@ -1782,7 +1788,7 @@ public final class StudioFlags {
     "xr.device.support.enabled",
     "XR Device Support Enabled",
     "Enable the support of XR device in the device manager",
-    enabledUpTo(CANARY));
+    true);
   // endregion
 
   //region DDMLIB
@@ -1798,6 +1804,26 @@ public final class StudioFlags {
     false
   );
   // endregion DDMLIB
+
+  // region Play Policy Insights
+  private static final FlagGroup PLAY_POLICY_INSIGHTS = new FlagGroup(FLAGS, "playpolicyinsights", "Play Policy Insights");
+
+  public static final Flag<Boolean> ENABLE_PLAY_POLICY_INSIGHTS =
+    new BooleanFlag(
+      PLAY_POLICY_INSIGHTS,
+      "play.policy.insights",
+      "Play Policy Insights",
+      "Enable Play Policy Insights",
+      enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> PLAY_POLICY_INSIGHTS_AUTO_UPDATE =
+    new BooleanFlag(
+      PLAY_POLICY_INSIGHTS,
+      "play.policy.insights.auto.update",
+      "Play Policy Insights Auto Update",
+      "Update Play Policy lint rule library to the latest",
+      false);
+  // endregion Play Policy Insights
 
   // region Firebase Test Lab
   private static final FlagGroup FIREBASE_TEST_LAB = new FlagGroup(FLAGS, "firebasetestlab", "Firebase Test Lab");
@@ -2160,12 +2186,6 @@ public final class StudioFlags {
                     "When enabled, the Chat toolwindow will use the Jewel-based UI, implemented in Compose for Desktop.",
                     true);
 
-  public static final Flag<Boolean> STUDIOBOT_USE_AIDA_SIMPLIFIED_ONBOARDING =
-    new BooleanFlag(STUDIOBOT, "chat.use.aida.simplified.onboarding",
-                    "Use the simplified AIDA onboarding flow.",
-                    "When enabled, the AIDA model onboarding will use the new simplified flow. Only applied if the Compose Chat toolwindow is enabled.",
-                    true);
-
   public static final Flag<Boolean> STUDIOBOT_CONTEXT_ATTACHMENT_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.enable.context.attachment",
                     "Enable @file attachment and the context drawer.",
@@ -2221,6 +2241,12 @@ public final class StudioFlags {
                     "When enabled, add prompt library settings screen.",
                     true);
 
+  public static final Flag<Boolean> STUDIOBOT_PROMPT_LIBRARY_RULES_ENABLED =
+    new BooleanFlag(STUDIOBOT, "prompt.library.rules",
+                    "Enable Rules Prompt Library",
+                    "When enabled, add Rules section to prompt library settings screen.",
+                    enabledUpTo(DEV));
+
   public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
                     "Enable Scroll to Bottom button",
@@ -2231,7 +2257,13 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "chat.response.cancellation.enabled",
                     "Enable cancellation in Chat Timeline",
                     "When enabled, the chat will show a banner that will allow cancelling ongoing responses.",
-                    enabledUpTo(DEV));
+                    enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> STUDIOBOT_SHOW_MODEL_NAME_IN_QUERY_BOX =
+    new BooleanFlag(STUDIOBOT, "chat.show.model.name",
+                    "Show model name in query box",
+                    "Shows the model name in the query box, with an animation when a query is submitted.",
+                    false);
 
   public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
@@ -2417,16 +2449,6 @@ public final class StudioFlags {
                     "Show marketing dialog after user logs in", true);
   // endregion Google Login
 
-  // region Cloud Integration
-  private static final FlagGroup CLOUD_INTEGRATION =
-    new FlagGroup(FLAGS, "cloud", "Cloud Integration");
-  // TODO(b/341816638): delete in L
-  public static final Flag<Boolean> SHOW_CLOUD_DEPRECATION_MESSAGES =
-    new BooleanFlag(CLOUD_INTEGRATION, "enabled", "Show bundled cloud plugin deprecation messages",
-                    "When enabled, deprecation messages will show when using functionality from the bundled cloud plugin.", true);
-
-  // endregion Cloud Integration
-
   // region Backup
   private static final FlagGroup BACKUP = new FlagGroup(FLAGS, "backup", "Backup");
   public static final Flag<Boolean> BACKUP_ENABLED =
@@ -2506,10 +2528,17 @@ public final class StudioFlags {
     "URL of extra repository used by automatic Gradle configuration (e.g. staging repo)",
     ""
   );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION_INIT_SCRIPT_V2 = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.auto.gradle.configuration.init.script.v2",
+    "Use a V2 version of Journeys init script which is used in the Gradle run configuration for Journeys with Gemini",
+    "Applies Journeys Gradle plugin to your Gradle project by the new version of Journeys Gradle init script." +
+    " This version includes a fix for ClassNotFound exception when AppPlugin is not applied in your root Gradle project (b/418228060).",
+    enabledUpTo(CANARY)
+  );
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RECORDING = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.recording", "Enable Journeys with Gemini recording",
     "Enable recording of Journeys with Gemini",
-    false
+    enabledUpTo(DEV)
   );
   // endregion JOURNEYS_WITH_GEMINI
 
@@ -2601,6 +2630,25 @@ public final class StudioFlags {
       "Enable the benchmark survey when requesting user satisfaction",
       false);
   // endregion Wifi 2.0
+
+  // region deprecation policy
+  private static final FlagGroup DEPRECATION_POLICY = new FlagGroup(FLAGS, "deprecationpolicy", "Deprecation Policy");
+  public static final Flag<Boolean> USE_POLICY_WITH_DEPRECATE =
+    new BooleanFlag(
+      DEPRECATION_POLICY,
+      "use.policy.with.deprecate",
+      "Use N2 deprecation policy",
+      "Use N2 deprecation policy that supports DEPRECATED state",
+      enabledUpTo(CANARY));
+  public static final Flag<String> DEFAULT_MORE_INFO_URL =
+    new StringFlag(
+      DEPRECATION_POLICY,
+      "default.more.info.url",
+      "Defaul More Info URL",
+      "Redirect to this URL if moreInfoUrl is not provided",
+      "https://developer.android.com/studio/releases#service-compat"
+    );
+  // endregion deprecation policy
 
   private StudioFlags() { }
 

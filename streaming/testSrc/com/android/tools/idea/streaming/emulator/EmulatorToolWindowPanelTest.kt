@@ -26,6 +26,7 @@ import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.swing.DataManagerRule
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessRootPaneContainer
@@ -61,7 +62,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.configurationStore.deserialize
 import com.intellij.configurationStore.serialize
 import com.intellij.ide.DataManager
-import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfoImpl
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -79,7 +79,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.TestDataProvider
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.LayeredIcon
@@ -144,8 +143,8 @@ class EmulatorToolWindowPanelTest {
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
   @get:Rule
-  val ruleChain: RuleChain =
-      RuleChain(projectRule, emulatorRule, ClipboardSynchronizationDisablementRule(), PortableUiFontRule(), EdtRule())
+  val ruleChain = RuleChain(projectRule, DataManagerRule(projectRule), emulatorRule, ClipboardSynchronizationDisablementRule(),
+                            PortableUiFontRule(), EdtRule())
 
   private var nullableEmulator: FakeEmulator? = null
 
@@ -163,8 +162,6 @@ class EmulatorToolWindowPanelTest {
     StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.overrideForTest(true, testRootDisposable)
     StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.overrideForTest(true, testRootDisposable)
     StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.overrideForTest(true, testRootDisposable)
-    HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable) // Necessary to properly update toolbar button states.
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     val mockScreenRecordingCache = mock<ScreenRecordingSupportedCache>()
     whenever(mockScreenRecordingCache.isScreenRecordingSupported(any())).thenReturn(true)
     projectRule.project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingCache, testRootDisposable)
@@ -1117,7 +1114,7 @@ class EmulatorToolWindowPanelTest {
 
   private fun FakeUi.mousePressOn(component: Component) {
     val location: Point = getPosition(component)
-    mouse.press(location.x, location.y)
+    mouse.press(location.x + component.width / 2, location.y + component.height / 2)
     // Allow events to propagate.
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }

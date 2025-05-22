@@ -135,7 +135,7 @@ object FeatureSurveys {
                    .getProtoOrNull(name, emptySurvey)
                  ?: return null
 
-    if (shouldInvokeFeatureSurvey(name)) {
+    if (!shouldInvokeFeatureSurvey(name)) {
       return null
     }
 
@@ -165,6 +165,8 @@ object FeatureSurveys {
           this.uniqueId = uniqueId
         }.build()
       })
+
+    FeatureSurveyChoiceLogger.featureSurveyInvoked(name, this.config.generalIntervalCompleted, this.config.specificIntervalCompleted)
 
     return notification
   }

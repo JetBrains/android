@@ -110,7 +110,7 @@ sealed class LoadingState<out T> {
     }
   }
 
-  data object Deprecated : Failure() {
+  data object ServiceUnsupported : Failure() {
     override val message = null
 
     override fun <U> map(fn: (Nothing) -> U) = this

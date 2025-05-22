@@ -19,8 +19,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.graph.Graph;
-import com.google.common.graph.Graphs;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.query.PackageSet;
@@ -98,7 +96,7 @@ public interface BuildGraphData {
   boolean doesDependencyPathContainRules(Path sourcePath, Path consumingSourcePath, Set<String> ruleKinds);
 
   // TODO: b/397649793 - Remove this method when fixed.
-  boolean dependsOnAnyOf_DO_NOT_USE_BROKEN(Label projectTarget, ImmutableSet<Label> deps);
+  boolean dependsOnAnyOf_DO_NOT_USE_BROKEN(Label projectTarget, Set<Label> deps);
 
   ImmutableSet<Path> getTargetSources(Label target, ProjectTarget.SourceType... types);
 

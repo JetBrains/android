@@ -21,7 +21,6 @@ import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListener
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.project.Project
 
 /**
@@ -46,13 +45,6 @@ internal class DeviceDisplayPanel(
     loadingPanel.startLoading() // The stopLoading method is called by DeviceView after a connection to the device is established.
 
     displayView.addConnectionStateListener(this)
-  }
-
-  override fun uiDataSnapshot(sink: DataSink) {
-    super.uiDataSnapshot(sink)
-    sink[DEVICE_CLIENT_KEY] = displayView.deviceClient
-    sink[DEVICE_CONTROLLER_KEY] = displayView.deviceController
-    sink[DEVICE_VIEW_KEY] = displayView
   }
 
   @UiThread

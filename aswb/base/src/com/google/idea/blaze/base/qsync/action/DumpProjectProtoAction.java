@@ -3,9 +3,8 @@ package com.google.idea.blaze.base.qsync.action;
 import com.google.common.io.MoreFiles;
 import com.google.idea.blaze.base.actions.BlazeProjectAction;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.qsync.QuerySyncProject;
+import com.google.idea.blaze.base.qsync.ReadonlyQuerySyncProject;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
-import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -24,11 +23,7 @@ public class DumpProjectProtoAction extends BlazeProjectAction {
   @Override
   protected void actionPerformedInBlazeProject(Project project, AnActionEvent e) {
     QuerySyncManager qsm = QuerySyncManager.getInstance(project);
-    QuerySyncProjectSnapshot snapshot =
-        qsm.getLoadedProject()
-            .map(QuerySyncProject::getSnapshotHolder)
-            .flatMap(SnapshotHolder::getCurrent)
-            .orElse(null);
+    QuerySyncProjectSnapshot snapshot = qsm.getCurrentSnapshot().orElse(null);
     if (snapshot == null) {
       qsm.notifyError("Failed to dump project", "Not loaded");
       return;

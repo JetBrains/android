@@ -332,7 +332,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   @TestOnly
   internal fun hasFlowInitializationFinishedForTest() =
-    previewFlowManager.filteredPreviewElementsFlow.value != FlowableCollection.Uninitialized
+    previewFlowManager.toRenderPreviewElementsFlow.value != FlowableCollection.Uninitialized
 
   private val previewFreshnessTracker =
     CodeOutOfDateTracker.create(buildTargetReference, this) { requestRefresh() }
@@ -558,7 +558,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       try {
         refreshProgressIndicator.text = message("refresh.progress.indicator.finding.previews")
         val filePreviewElements =
-          previewFlowManager.filteredPreviewElementsFlow.value.asCollection().toList()
+          previewFlowManager.toRenderPreviewElementsFlow.value.asCollection().toList()
 
         val needsFullRefresh =
           request.refreshType != CommonPreviewRefreshType.QUALITY && invalidated.getAndSet(false)
@@ -966,7 +966,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   }
 
   /**
-   * Returns the list of [PreviewFlowManager.filteredPreviewElementsFlow] that has been rendered.
+   * Returns the list of [PreviewFlowManager.toRenderPreviewElementsFlow] that has been rendered.
    * This method is for testing purposes only and should not be used outside of tests.
    */
   @TestOnly

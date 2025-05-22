@@ -67,13 +67,10 @@ public final class ResetQuerySyncAction extends DumbAwareAction {
     @Override
     public void invalidateCaches() {
       Arrays.stream(ProjectManager.getInstance().getOpenProjects())
-        .flatMap(project -> {
-          final var qsm = QuerySyncManager.getInstance(project);
-          return qsm.getLoadedProject().stream();
-        })
-        .forEach(project -> {
+        .map(QuerySyncManager::getInstance)
+        .forEach(qsm -> {
           try {
-            project.invalidateQuerySyncState(BlazeContext.create());
+            qsm.invalidateQuerySyncState(BlazeContext.create());
           }
           catch (BuildException e) {
             logger.error(e);

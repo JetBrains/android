@@ -31,6 +31,7 @@ import com.android.tools.configurations.updateScreenSize
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
@@ -194,10 +195,10 @@ class SavePreviewInNewSizeActionTest {
 
     val configuration = createConfiguration(500, 600)
 
-    val newWidth = 100
-    val newHeight = 200
+    val smallerSide = 100
+    val biggerSide = 200
 
-    configuration.updateScreenSize(newWidth, newHeight)
+    configuration.updateScreenSize(smallerSide, biggerSide)
     configuration.deviceState!!.orientation = ScreenOrientation.LANDSCAPE
 
     `when`(sceneManager.isResized).thenReturn(true)
@@ -231,7 +232,7 @@ class SavePreviewInNewSizeActionTest {
     val deviceSpec = newAnnotation.getValueForArgument("device")
     assertThat(deviceSpec)
       .isEqualTo(
-        "\"spec:width=${newWidth}dp,height=${newHeight}dp,dpi=${DEFAULT_DENSITY},orientation=landscape\""
+        "\"spec:width=${biggerSide}dp,height=${smallerSide}dp,dpi=${DEFAULT_DENSITY},orientation=landscape\""
       )
     assertThat(newAnnotation.text)
       .isEqualTo(
@@ -240,7 +241,7 @@ class SavePreviewInNewSizeActionTest {
               name = "MyPreview",
               group = "MyGroup",
               showSystemUi = true,
-              device = "spec:width=100dp,height=200dp,dpi=160,orientation=landscape"
+              device = "spec:width=200dp,height=100dp,dpi=160,orientation=landscape"
           )
         """
           .trimIndent()
@@ -391,6 +392,114 @@ class SavePreviewInNewSizeActionTest {
       .isEqualTo(ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE)
   }
 
+  @Test
+  fun `add new annotation for MultiPreview instance`() = runTest {
+    @Language("kotlin")
+    val composeTest =
+      projectRule.fixture.addFileToProject(
+        "src/Test.kt",
+        """
+          import androidx.compose.runtime.Composable
+          import androidx.compose.ui.tooling.preview.Preview
+
+          @Preview(name = "phone", device = "spec:width=360dp,height=640dp,dpi=480")
+          @Preview(name = "landscape", device = "spec:width=640dp,height=360dp,dpi=480")
+          annotation class DevicePreviews
+
+          @DevicePreviews
+          @Composable
+          fun MyComposable(text: String) {
+          }
+          """
+          .trimIndent(),
+      )
+
+    var previewElements =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+        projectRule.project,
+        composeTest.virtualFile,
+      )
+
+    val phonePreviewElement: PsiComposePreviewElement =
+      previewElements.find { it.displaySettings.name == "MyComposable - phone" }
+        as PsiComposePreviewElement
+    assertThat(phonePreviewElement).isNotNull()
+
+    phonePreviewElement.previewElementDefinition!!.element as KtAnnotationEntry
+
+    modeManager.setMode(PreviewMode.Focus(phonePreviewElement))
+
+    // Simulate a resize
+    val configuration =
+      createConfiguration(width = 845, height = 360, orientation = ScreenOrientation.LANDSCAPE)
+    configuration.updateScreenSize(845, 360) // Ensure internal state is updated
+
+    `when`(sceneManager.isResized).thenReturn(true)
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) =
+            phonePreviewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        }
+      )
+    `when`(model.configuration).thenReturn(configuration)
+
+    val action = SavePreviewInNewSizeAction()
+    val event = TestActionEvent.createTestEvent(getDataContext())
+
+    action.actionPerformed(event)
+
+    previewElements =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+        projectRule.project,
+        composeTest.virtualFile,
+      )
+
+    assertThat(previewElements.size).isEqualTo(3)
+    val newAnnotation =
+      previewElements
+        .find { it.configuration.width == 845 && it.configuration.height == 360 }
+        ?.previewElementDefinition!!
+        .element as KtAnnotationEntry
+
+    assertThat(newAnnotation.text)
+      .isEqualTo(
+        """
+        @Preview(
+            name = "phone",
+            device = "spec:width=360dp,height=640dp,dpi=480",
+            widthDp = 845,
+            heightDp = 360
+        )
+        """
+          .trimIndent()
+      )
+    @Language("kotlin")
+    val expectedContent =
+      """
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+
+      @Preview(name = "phone", device = "spec:width=360dp,height=640dp,dpi=480")
+      @Preview(name = "landscape", device = "spec:width=640dp,height=360dp,dpi=480")
+      annotation class DevicePreviews
+
+      @Preview(
+          name = "phone",
+          device = "spec:width=360dp,height=640dp,dpi=480",
+          widthDp = 845,
+          heightDp = 360
+      )
+      @DevicePreviews
+      @Composable
+      fun MyComposable(text: String) {
+      }
+    """
+        .trimIndent()
+
+    assertThat(newAnnotation.containingFile.text).isEqualTo(expectedContent)
+  }
+
   fun KtAnnotationEntry.getValueForArgument(name: String): String? {
     val valueArgument =
       valueArgumentList!!.arguments.find { it.getArgumentName()?.asName?.identifier == name }
@@ -398,15 +507,19 @@ class SavePreviewInNewSizeActionTest {
     return matchResult?.groups?.get(1)?.value
   }
 
-  private fun createConfiguration(width: Int, height: Int): Configuration {
+  private fun createConfiguration(
+    width: Int,
+    height: Int,
+    orientation: ScreenOrientation = ScreenOrientation.PORTRAIT,
+  ): Configuration {
     val manager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
     val configuration = Configuration.create(manager, FolderConfiguration())
-    configuration.setDevice(device(width, height), true)
+    configuration.setDevice(device(width, height, orientation), true)
 
     return configuration
   }
 
-  private fun device(width: Int, height: Int): Device =
+  private fun device(width: Int, height: Int, orientation: ScreenOrientation): Device =
     Device.Builder()
       .apply {
         setTagId("")
@@ -418,7 +531,7 @@ class SavePreviewInNewSizeActionTest {
           State().apply {
             name = "default"
             isDefaultState = true
-            orientation = ScreenOrientation.PORTRAIT
+            this.orientation = orientation
             hardware =
               Hardware().apply {
                 screen =

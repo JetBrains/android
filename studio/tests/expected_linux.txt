@@ -542,8 +542,6 @@ android-studio/license/ffmpeg-LICENSE.md
 android-studio/license/ffmpeg-LICENSE.openh264
 android-studio/license/ffmpeg-SOURCE_CODE.TXT
 android-studio/license/freemarker-NOTICE
-android-studio/license/google-api-services-source.jar-NOTICE
-android-studio/license/gradle-appengine-builder-model-0.1.0.jar-NOTICE
 android-studio/license/gson-2.3-NOTICE
 android-studio/license/hdrhistogram_license.txt
 android-studio/license/icudt75l.dat.txt
@@ -565,7 +563,6 @@ android-studio/license/libandroid_runtime.dylib.txt
 android-studio/license/libandroid_runtime.so.txt
 android-studio/license/mockito-all-1.9.5-NOTICE
 android-studio/license/r8_license.txt
-android-studio/license/samplesindex-v1-1.0-SNAPSHOT.jar-NOTICE
 android-studio/license/saxon-conditions.html
 android-studio/license/swt.jar-NOTICE
 android-studio/license/third-party-libraries.html
@@ -3048,13 +3045,8 @@ android-studio/plugins/gemini/lib/opencensus-contrib-http-util-0.31.1.jar
 android-studio/plugins/gemini/lib/proto-models-1.0.jar
 android-studio/plugins/gemini/lib/wire-runtime-jvm-5.3.1.jar
 android-studio/plugins/gemini/resources/recorder-release-androidTest.apk
+android-studio/plugins/gemini/resources/journeys/images/clipart/cursor_large.png
 android-studio/plugins/git4insights/lib/git4insights.jar
-android-studio/plugins/google-cloud-tools-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar
-android-studio/plugins/google-cloud-tools-as/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
-android-studio/plugins/google-cloud-tools-as/lib/google-api-services-sourcerepo-v1-rev20230123-2.0.0.jar
-android-studio/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
-android-studio/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.so.jar
-android-studio/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.so.jar
 android-studio/plugins/gradle-java/lib/gradle-java.jar

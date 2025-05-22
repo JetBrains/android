@@ -20,11 +20,10 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
+import java.awt.Cursor;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
 
 /**
  * Base implementation of a Target
@@ -95,7 +94,7 @@ public abstract class BaseTarget implements Target {
    */
   @Override
   public void addHit(@NotNull SceneContext transform,
-                     @NotNull ScenePicker picker,
+                     @NotNull ScenePicker.Writer picker,
                      @JdkConstants.InputEventMask int modifiersEx) {
     if (isHittable()) {
       picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),

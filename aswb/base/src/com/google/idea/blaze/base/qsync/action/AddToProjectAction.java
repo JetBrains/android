@@ -183,7 +183,7 @@ public class AddToProjectAction extends BlazeProjectAction {
       if (workspacePathToAdd == null) {
         return false;
       }
-      QuerySyncProject qsProject = qsManager.getLoadedProject().orElse(null);
+      final var qsProject = qsManager.getLoadedProject().orElse(null);
       if (qsProject == null) {
         return false;
       }
@@ -200,7 +200,7 @@ public class AddToProjectAction extends BlazeProjectAction {
         logger.warn("Cannot perform AddToProjectAction in current state!");
         return;
       }
-      QuerySyncProject qsProject = qsManager.getLoadedProject().orElseThrow();
+      final var qsProject = qsManager.getLoadedProject().orElseThrow();
 
       ApplicationManager.getApplication()
           .invokeLater(

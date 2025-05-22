@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
+import com.android.tools.idea.layoutinspector.model.InspectorModel.SelectionListener
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
@@ -78,6 +79,8 @@ class StudioRendererPanel(
 
   private val repaintDisplayView = { refresh() }
 
+  private val selectionChangedListener = SelectionListener { _, _, _ -> refresh() }
+
   companion object {
     private const val RENDERING_NOT_SUPPORTED_ID = "rendering.in.secondary.display.not.supported"
   }
@@ -101,17 +104,20 @@ class StudioRendererPanel(
 
     // re-render each time Layout Inspector model changes
     renderModel.modificationListeners.add(repaintDisplayView)
+
+    renderModel.model.addSelectionListener(selectionChangedListener)
   }
 
   override fun dispose() {
     renderModel.modificationListeners.remove(repaintDisplayView)
+    renderModel.model.removeSelectionListener(selectionChangedListener)
   }
 
   fun clearSelection() {
     renderModel.clearSelection()
   }
 
-  override fun refresh() {
+  private fun refresh() {
     revalidate()
     repaint()
   }

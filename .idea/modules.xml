@@ -3,8 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../../base/adb-proxy/adb-proxy.iml" filepath="$PROJECT_DIR$/../../base/adb-proxy/adb-proxy.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/core/aiplugin.agents.core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/core/aiplugin.agents.core.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/core-tests/aiplugin.agents.core-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/core-tests/aiplugin.agents.core-tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core/aiplugin.agents.agents-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core/aiplugin.agents.agents-core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core-tests/aiplugin.agents.agents-core-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core-tests/aiplugin.agents.agents-core-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/aiplugin.android.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/aiplugin.android.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android-plugin/aiplugin.android-plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android-plugin/aiplugin.android-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android-plugin/descriptor/aiplugin.android-plugin.descriptor.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android-plugin/descriptor/aiplugin.android-plugin.descriptor.iml" />
@@ -31,6 +31,8 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/client-tests/aiplugin.mcp.client-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/mcp/client-tests/aiplugin.mcp.client-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/model/api/aiplugin.model.api.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/model/api/aiplugin.model.api.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/model/api-tests/aiplugin.model.api-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/model/api-tests/aiplugin.model.api-tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer/aiplugin.rag.indexer.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer/aiplugin.rag.indexer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer-tests/aiplugin.rag.indexer-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer-tests/aiplugin.rag.indexer-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/sdkcompat/aiplugin.sdkcompat.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/sdkcompat/aiplugin.sdkcompat.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/studiobot-dogfood-plugin/aiplugin.studiobot-dogfood-plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/studiobot-dogfood-plugin/aiplugin.studiobot-dogfood-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/analytics/analytics.iml" filepath="$PROJECT_DIR$/analytics/analytics.iml" />
@@ -159,7 +161,6 @@
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/testing/firebase-testing/firebase-testing.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/testing/firebase-testing/firebase-testing.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/firebase/integration/firebase.integration.iml" filepath="$PROJECT_DIR$/../../vendor/google/firebase/integration/firebase.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/git4insights/git4insights.iml" filepath="$PROJECT_DIR$/../../vendor/google/git4insights/git4insights.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/tools/android-studio-plugin/google-cloud-tools-as.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/tools/android-studio-plugin/google-cloud-tools-as.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/tools/google-login-plugin/google-login-as.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/tools/google-login-plugin/google-login-as.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/tools/google-login-plugin/integration/google-login-as-integration.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/tools/google-login-plugin/integration/google-login-as-integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/intellij-integration/intellij-integration-tests.iml" filepath="$PROJECT_DIR$/intellij-integration/intellij-integration-tests.iml" />
@@ -184,6 +185,7 @@
       <module fileurl="file://$PROJECT_DIR$/app-quality-insights/api/intellij.android.app-quality-insights.api.iml" filepath="$PROJECT_DIR$/app-quality-insights/api/intellij.android.app-quality-insights.api.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-quality-insights/ide/intellij.android.app-quality-insights.ide.iml" filepath="$PROJECT_DIR$/app-quality-insights/ide/intellij.android.app-quality-insights.ide.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-quality-insights/ide/intellij.android.app-quality-insights.ide.tests.iml" filepath="$PROJECT_DIR$/app-quality-insights/ide/intellij.android.app-quality-insights.ide.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app-quality-insights/play-policy/ide/intellij.android.app-quality-insights.play-policy.ide.iml" filepath="$PROJECT_DIR$/app-quality-insights/play-policy/ide/intellij.android.app-quality-insights.play-policy.ide.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-quality-insights/play-vitals/ide/intellij.android.app-quality-insights.play-vitals.ide.iml" filepath="$PROJECT_DIR$/app-quality-insights/play-vitals/ide/intellij.android.app-quality-insights.play-vitals.ide.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-quality-insights/play-vitals/ide/intellij.android.app-quality-insights.play-vitals.ide.tests.iml" filepath="$PROJECT_DIR$/app-quality-insights/play-vitals/ide/intellij.android.app-quality-insights.play-vitals.ide.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-quality-insights/play-vitals/integration-tests/intellij.android.app-quality-insights.play-vitals.integration-tests.iml" filepath="$PROJECT_DIR$/app-quality-insights/play-vitals/integration-tests/intellij.android.app-quality-insights.play-vitals.integration-tests.iml" />

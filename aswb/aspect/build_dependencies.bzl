@@ -109,7 +109,7 @@ def _package_dependencies_impl(target, ctx, params):
 
     return [OutputGroupInfo(
         qs_jars = _noneToEmpty(dep_info.compile_time_jars),
-        qs_transitive_runtime_jars = java_info.transitive_runtime_jars if java_info else depset(),
+        qs_transitive_runtime_jars = java_info.transitive_runtime_jars_depset if java_info else depset(),
         qs_info = java_info_files,
         qs_aars = _noneToEmpty(dep_info.aars),
         qs_gensrcs = _noneToEmpty(dep_info.gensrcs),
@@ -558,8 +558,8 @@ def _collect_own_java_artifacts(
         # are collected via attribute traversal, but still requires jars for any
         # proto deps of the underlying proto_library.
         if java_info:
-            own_jar_depsets.append(java_info.compile_jars)
-            own_output_jar_files = [java_output.compile_jar for java_output in java_info.java_outputs if java_output.compile_jar]
+            own_jar_depsets.append(java_info.compile_jars_depset)
+            own_output_jar_files = java_info.java_output_compile_jars
 
         if declares_android_resources(target, ctx):
             ide_aar = _get_ide_aar_file(target, ctx)
@@ -601,12 +601,12 @@ def _collect_own_java_artifacts(
         # Add generated java_outputs (e.g. from annotation processing)
         generated_class_jars = []
         if java_info:
-            for java_output in java_info.java_outputs:
+            for generated_output in java_info.generated_outputs:
                 # Prefer source jars if they exist and are requested:
-                if use_generated_srcjars and java_output.generated_source_jar:
-                    own_gensrc_files.append(java_output.generated_source_jar)
-                elif java_output.generated_class_jar:
-                    generated_class_jars.append(java_output.generated_class_jar)
+                if use_generated_srcjars and generated_output.generated_source_jar:
+                    own_gensrc_files.append(generated_output.generated_source_jar)
+                elif generated_output.generated_class_jar:
+                    generated_class_jars.append(generated_output.generated_class_jar)
 
         if generated_class_jars:
             own_jar_files += generated_class_jars
@@ -654,6 +654,7 @@ def _collect_own_java_artifacts(
     else:
         # See the comment above.
         fail("Unexpected: " + str(own_jar_files) + " " + str(own_jar_depsets))
+
     return struct(
         jar_depset = own_jar_depset,
         output_jar_depset = depset(own_output_jar_files),

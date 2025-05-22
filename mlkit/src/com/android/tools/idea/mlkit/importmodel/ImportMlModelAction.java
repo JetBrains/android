@@ -30,13 +30,14 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.ui.DialogWrapper;
 import icons.StudioIcons;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Action to import machine learning model to Android project.
@@ -57,15 +58,27 @@ public class ImportMlModelAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
+    DialogWrapper dialogWrapper = createDialog(e);
+    if (dialogWrapper != null) {
+      dialogWrapper.show();
+    }
+  }
+
+  @VisibleForTesting
+  @Nullable
+  DialogWrapper createDialog(@NotNull AnActionEvent e) {
     Module module = e.getData(PlatformCoreDataKeys.MODULE);
     List<NamedModuleTemplate> moduleTemplates = getModuleTemplates(e);
-    if (!moduleTemplates.isEmpty() && module != null && e.getProject() != null) {
-      String title = "Import TensorFlow Lite model";
-      ModelWizard wizard = new ModelWizard.Builder()
-        .addStep(new ChooseMlModelStep(new MlWizardModel(module), moduleTemplates, e.getProject(), title))
-        .build();
-      new StudioWizardDialogBuilder(wizard, title).build().show();
+
+    if (moduleTemplates.isEmpty() || module == null || e.getProject() == null) {
+      return null;
     }
+
+    String title = "Import TensorFlow Lite model";
+    ModelWizard wizard = new ModelWizard.Builder()
+      .addStep(new ChooseMlModelStep(new MlWizardModel(module), moduleTemplates, e.getProject(), title))
+      .build();
+    return new StudioWizardDialogBuilder(wizard, title).build();
   }
 
   @Override

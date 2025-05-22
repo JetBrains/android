@@ -117,8 +117,7 @@ public final class RuntimeArtifactCacheImpl implements RuntimeArtifactCache {
     try {
       new ArtifactDirectoryUpdate(
         buildArtifactCache,
-              workspaceRoot,
-              runfilesDirectory,
+          runfilesDirectory,
               artifactDirectoryContents)
           .update();
     } catch (IOException e) {

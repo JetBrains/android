@@ -47,8 +47,7 @@ class BuildDependenciesForProjectAction : BlazeProjectAction() {
     val syncMan = getInstance(project)
     val snapshot =
       syncMan
-        .getLoadedProject()
-        .flatMap { it.snapshotHolder.current }
+        .currentSnapshot
         .orElse(null)
     if (snapshot == null) {
       syncMan.notifyError("Project not loaded", "Cannot enable analysis before project is loaded.")

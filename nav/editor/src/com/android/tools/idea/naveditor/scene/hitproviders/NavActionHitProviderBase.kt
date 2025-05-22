@@ -27,7 +27,7 @@ abstract class NavActionHitProviderBase : HitProvider {
   final override fun addHit(
     component: SceneComponent,
     sceneTransform: SceneContext,
-    picker: ScenePicker,
+    picker: ScenePicker.Writer,
   ) {
     addShapeHit(component, sceneTransform, picker)
 
@@ -50,7 +50,7 @@ abstract class NavActionHitProviderBase : HitProvider {
   abstract fun addShapeHit(
     component: SceneComponent,
     sceneTransform: SceneContext,
-    picker: ScenePicker,
+    picker: ScenePicker.Writer,
   )
 
   abstract fun iconRectangle(

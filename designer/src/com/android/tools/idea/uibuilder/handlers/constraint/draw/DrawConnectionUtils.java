@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
-import com.intellij.util.ui.JBFont;
-
 import static com.intellij.util.ui.JBUI.scale;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.ScenePicker;
+import com.intellij.util.ui.JBFont;
 import java.awt.BasicStroke;
 import java.awt.Canvas;
 import java.awt.Color;
@@ -479,7 +478,7 @@ public class DrawConnectionUtils {
    * @param length
    * @param archLen
    */
-  public static void drawPick(ScenePicker pick,
+  public static void drawPick(ScenePicker.Writer pick,
                               Object obj,
                               @SwingCoordinate int[] xPoints,
                               @SwingCoordinate int[] yPoints,
@@ -509,7 +508,7 @@ public class DrawConnectionUtils {
    * @param length
    * @param arches
    */
-  public static void pickRound(ScenePicker pick,
+  public static void pickRound(ScenePicker.Writer pick,
                                Object obj,
                                @SwingCoordinate int[] xPoints,
                                @SwingCoordinate int[] yPoints,
@@ -557,7 +556,7 @@ public class DrawConnectionUtils {
     pick.addLine(obj, 4, lastx, lasty, xPoints[p], yPoints[p], 4);
   }
 
-  private static void pickArc(ScenePicker pick,
+  private static void pickArc(ScenePicker.Writer pick,
                               Object obj, float x0, float y0, float x1, float y1, float a, float b,
                               float theta, boolean isMoreThanHalf, boolean isPositiveArc) {
 
@@ -640,7 +639,7 @@ public class DrawConnectionUtils {
    * @param start The start angle of the arc on the ellipse
    * @param sweep The angle (positive or negative) of the sweep of the arc on the ellipse
    */
-  private static void pickArcToBezier(ScenePicker pick,
+  private static void pickArcToBezier(ScenePicker.Writer pick,
                                       Object obj, double cx, double cy, double a, double b, double e1x,
                                       double e1y, double theta, double start, double sweep) {
     // Taken from equations at:

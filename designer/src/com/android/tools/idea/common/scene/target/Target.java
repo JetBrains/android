@@ -18,23 +18,22 @@ package com.android.tools.idea.common.scene.target;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.ScenePicker;
+import com.android.tools.idea.common.scene.ScenePickerImpl;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-
 import com.android.tools.idea.common.scene.draw.DrawCommand;
+import java.awt.Cursor;
+import java.util.List;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.util.List;
 
 /**
  * {@link Target} are associated with s {@link SceneComponent} and are used to handle
  * user interactions.
  *
- * A {@link Target} can be used to receive mouse event and can be detected by the {@link ScenePicker} to be passed
+ * A {@link Target} can be used to receive mouse event and can be detected by the {@link ScenePickerImpl} to be passed
  * in mouse event as closest target. If two target overlaps, the {@link #getPreferenceLevel()} will be used to select the one that will be selected.
  *
  * A Target
@@ -75,14 +74,14 @@ public interface Target {
                  @AndroidDpCoordinate int b);
 
   /**
-   * Implementing classes should use this method to add a hit region to the provided {@link ScenePicker} that can handle the interaction.
+   * Implementing classes should use this method to add a hit region to the provided {@link ScenePickerImpl} that can handle the interaction.
    *
-   * @param context     The {@link SceneContext} used to transform coodinates when adding a region to the {@link ScenePicker}
-   * @param picker      The picker to add the hii region too
+   * @param context     The {@link SceneContext} used to transform coodinates when adding a region to the {@link ScenePickerImpl}
+   * @param picker      The picker to add the hit region too
    * @param modifiersEx The current modifiers of interaction.
    */
   void addHit(@NotNull SceneContext context,
-              @NotNull ScenePicker picker,
+              @NotNull ScenePicker.Writer picker,
               @JdkConstants.InputEventMask int modifiersEx);
 
   void setComponent(@NotNull SceneComponent component);

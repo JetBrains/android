@@ -65,7 +65,6 @@ import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.common.proto.ProtoStringInterner;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.BlazeQueryParser;
-import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.OutputGroup;
 import com.google.idea.blaze.qsync.deps.OutputInfo;
@@ -431,7 +430,8 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     }
   }
 
-  protected Path getBundledAspectPath(String filename) {
+  @VisibleForTesting
+  public Path getBundledAspectPath(String filename) {
     return getBundledAspectPath("aspect", filename);
   }
 

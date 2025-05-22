@@ -258,7 +258,6 @@ message ProjectArtifact {
   ArtifactTransform transform = 2;
   oneof Origin {
     BuildArtifact build_artifact = 3;
-    string workspace_relative_path = 4;
   }
   string target = 5;
 

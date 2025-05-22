@@ -53,6 +53,7 @@
     <orderEntry type="module" module-name="intellij.android.wear-whs" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.device-manager-v2" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.ide" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-policy.ide" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-vitals.ide" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.plugin.descriptor" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />

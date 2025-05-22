@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui
 
+import com.android.tools.adtui.device.SkinDefinition
 import java.awt.Dimension
 
 /** Provides information about displays of an Android device. */
@@ -45,4 +46,11 @@ interface DisplayInfoProvider {
    * @throws IllegalArgumentException if the display does not exist.
    */
   fun getScreenshotRotation(displayId: Int): Int
+
+  /**
+   * Returns the skin for the display.
+   *
+   * @throws IllegalArgumentException if the display does not exist.
+   */
+  fun getSkin(displayId: Int): SkinDefinition?
 }

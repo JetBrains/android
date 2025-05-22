@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.adtui.common.AdtUiCursorType;
 import com.android.tools.adtui.common.AdtUiCursorsProvider;
-import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -165,7 +165,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
 
   @Override
   public void addHit(@NotNull SceneContext transform,
-                     @NotNull ScenePicker picker,
+                     @NotNull ScenePicker.Writer picker,
                      @JdkConstants.InputEventMask int modifiersEx) {
     if (isHittable()) {
       int halfSize = DrawResize.SIZE / 2;

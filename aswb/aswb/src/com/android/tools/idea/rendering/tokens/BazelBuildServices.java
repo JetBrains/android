@@ -25,6 +25,7 @@ import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsSc
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
+import com.google.idea.blaze.base.qsync.QuerySyncManager.OperationType;
 import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelper;
 import com.google.idea.blaze.base.qsync.action.BuildDependenciesHelperSelectTargetPopup;
@@ -36,6 +37,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import kotlinx.coroutines.Deferred;
 import kotlinx.coroutines.guava.ListenableFutureKt;
@@ -84,8 +86,11 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
     var manager = QuerySyncManager.getInstance(project);
 
     return ListenableFutureKt.asDeferred(
-      manager.runBuild("Build & Refresh", "Building and refreshing", scope, context -> buildAndRefresh(manager, context, labels),
-                       TaskOrigin.USER_ACTION));
+      manager.runOperation(
+        scope,
+        TaskOrigin.USER_ACTION,
+        QuerySyncManager.createOperation(
+          "Build & Refresh", "Building and refreshing", OperationType.BUILD_DEPS, context -> buildAndRefresh(manager, context, labels))));
   }
 
   /**
@@ -95,7 +100,7 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
                                       @NotNull BlazeContext context,
                                       @NotNull Set<@NotNull Label> labels) throws BuildException {
     try {
-      manager.getLoadedProject().orElseThrow().getDependencyTracker()
+      Optional.ofNullable(manager.getDependencyTracker()).orElseThrow()
         .buildDependenciesForTargets(context, DependencyBuildRequest.filePreviews(labels));
     }
     catch (IOException exception) {

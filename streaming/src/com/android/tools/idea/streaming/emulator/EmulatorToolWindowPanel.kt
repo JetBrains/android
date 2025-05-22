@@ -272,7 +272,6 @@ internal class EmulatorToolWindowPanel(
     super.uiDataSnapshot(sink)
     sink[EMULATOR_CONTROLLER_KEY] = emulator
     sink[EMULATOR_VIEW_KEY] = primaryDisplayView
-    sink[ALL_EMULATOR_VIEWS_KEY] = displayPanels.values.map { it.displayView }.toList()
     sink[NUMBER_OF_DISPLAYS_KEY] = displayPanels.size
     sink[SCREEN_RECORDER_PARAMETERS_KEY] = getScreenRecorderParameters()
   }

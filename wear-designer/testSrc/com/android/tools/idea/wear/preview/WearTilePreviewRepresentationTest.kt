@@ -181,7 +181,7 @@ class WearTilePreviewRepresentationTest {
       // go into focus mode
       run {
         val previewElement =
-          preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
+          preview.previewFlowManager.toRenderPreviewElementsFlow.value.asCollection().elementAt(1)
         preview.previewModeManager.setMode(PreviewMode.Focus(previewElement))
 
         expectFocusModeIsSet(preview, previewElement)
@@ -201,7 +201,7 @@ class WearTilePreviewRepresentationTest {
       // go into focus mode
       run {
         val previewElement =
-          preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
+          preview.previewFlowManager.toRenderPreviewElementsFlow.value.asCollection().elementAt(1)
         preview.previewModeManager.setMode(PreviewMode.AnimationInspection(previewElement))
 
         delayUntilCondition(250) { preview.currentAnimationPreview != null }
@@ -223,7 +223,7 @@ class WearTilePreviewRepresentationTest {
         wearTilePreviewEssentialsModeEnabled = true
 
         val previewElement =
-          preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().first()
+          preview.previewFlowManager.toRenderPreviewElementsFlow.value.asCollection().first()
 
         expectFocusModeIsSet(preview, previewElement)
       }

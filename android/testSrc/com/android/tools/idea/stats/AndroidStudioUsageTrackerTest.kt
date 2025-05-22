@@ -26,10 +26,12 @@ import com.android.tools.analytics.stubs.StubGraphicsDevice.Companion.withBounds
 import com.android.tools.analytics.stubs.StubGraphicsEnvironment
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean
 import com.android.tools.idea.mendel.MendelFlagsProvider
+import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.buildActiveExperimentList
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.getMachineDetails
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.shouldRequestUserSentiment
 import com.android.tools.idea.stats.FeatureSurveys.shouldInvokeFeatureSurvey
+import com.android.tools.idea.testing.registerServiceInstance
 import com.android.utils.DateProvider
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.DeviceInfo
@@ -39,6 +41,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.registerExtension
 import org.junit.Assert
+import org.mockito.Mockito
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.awt.GraphicsDevice
@@ -48,6 +51,10 @@ import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.TimeZone
+
+private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN_STUDIO = 180
+private const val SENTIMENT_SURVEY_INTERVAL_FLAG_NAME = "analytics/surveys/sentiment/interval.days"
+private const val SENTIMENT_SURVEY_RETRY_FLAG_NAME = "analytics/surveys/sentiment/retry.days"
 
 class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
   private val mockMendelFlagsProvider: MendelFlagsProvider = mock()
@@ -187,16 +194,16 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
       })
       Assert.assertTrue(shouldRequestUserSentiment())
 
-      // 91 days ago
+      // 181 days ago
       val calendar: Calendar = Calendar.getInstance()
       calendar.setTime(AnalyticsSettings.dateProvider.now())
-      calendar.add(Calendar.DAY_OF_YEAR, -91)
+      calendar.add(Calendar.DAY_OF_YEAR, -181)
 
       // opted in user who was asked more than the frequency set
       AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
         userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
         optedIn = true
-        popSentimentQuestionFrequency=90
+        popSentimentQuestionFrequency = 90
         lastSentimentAnswerDate = calendar.getTime()
         lastSentimentQuestionDate = calendar.getTime()
       })
@@ -206,7 +213,7 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
       AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
         userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
         optedIn = true
-        popSentimentQuestionFrequency=90
+        popSentimentQuestionFrequency = 90
         lastSentimentAnswerDate = AnalyticsSettings.dateProvider.now()
         lastSentimentQuestionDate = AnalyticsSettings.dateProvider.now()
       })
@@ -241,7 +248,7 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
       AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
         userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
         optedIn = true
-        lastSentimentQuestionDate = Date(116, 5, 11)
+        lastSentimentQuestionDate = Date(115, 10, 11)
       })
       Assert.assertTrue(shouldRequestUserSentiment())
 
@@ -258,7 +265,7 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
       AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
         userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
         optedIn = true
-        lastSentimentQuestionDate = Date(116, 5, 11)
+        lastSentimentQuestionDate = Date(115, 10, 11)
         lastSentimentAnswerDate = Date(115, 5, 10)
       })
       Assert.assertTrue(shouldRequestUserSentiment())
@@ -272,6 +279,65 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
       })
       Assert.assertFalse(shouldRequestUserSentiment())
 
+    }
+    finally {
+      AnalyticsSettings.dateProvider = DateProvider.SYSTEM
+    }
+  }
+
+  fun testShouldRequestUserSentimentOverrides() {
+    AnalyticsSettings.dateProvider = StubDateProvider(2025, 3, 1)
+    val service = Mockito.mock(ServerFlagService::class.java)
+    whenever(service.getInt(SENTIMENT_SURVEY_INTERVAL_FLAG_NAME,
+                            AnalyticsSettings.daysInYear())).thenReturn(100)
+    whenever(service.getInt(SENTIMENT_SURVEY_RETRY_FLAG_NAME, DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN_STUDIO
+    )).thenReturn(10)
+    ApplicationManager.getApplication()
+      .registerServiceInstance(ServerFlagService::class.java, service, testRootDisposable)
+
+    try {
+      // opted in user should not be asked again 9 days after declining to answer
+      val calendar = Calendar.getInstance()
+      calendar.setTime(AnalyticsSettings.dateProvider.now())
+      calendar.add(Calendar.DAY_OF_YEAR, -9)
+
+      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = true
+        lastSentimentQuestionDate = calendar.getTime()
+      })
+      Assert.assertFalse(shouldRequestUserSentiment())
+
+      // opted in user should be asked again 11 days after declining to answer
+      calendar.setTime(AnalyticsSettings.dateProvider.now())
+      calendar.add(Calendar.DAY_OF_YEAR, -11)
+
+      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = true
+        lastSentimentQuestionDate = calendar.getTime()
+      })
+      Assert.assertTrue(shouldRequestUserSentiment())
+
+      // opted in user should not be 29 days after last answer
+      calendar.setTime(AnalyticsSettings.dateProvider.now())
+      calendar.add(Calendar.DAY_OF_YEAR, -29)
+
+      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = true
+        lastSentimentAnswerDate = calendar.getTime()
+      })
+
+      Assert.assertFalse(shouldRequestUserSentiment())
+
+      // opted in user should be asked on 1st day of the year
+      calendar.setTime(AnalyticsSettings.dateProvider.now())
+      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = true
+      })
+      Assert.assertTrue(shouldRequestUserSentiment())
     }
     finally {
       AnalyticsSettings.dateProvider = DateProvider.SYSTEM

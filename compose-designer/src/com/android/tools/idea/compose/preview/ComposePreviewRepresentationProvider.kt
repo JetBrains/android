@@ -26,8 +26,6 @@ import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.actions.ComposeNotificationGroup
-import com.android.tools.idea.compose.preview.actions.RevertToOriginalSizeAction
-import com.android.tools.idea.compose.preview.actions.SavePreviewInNewSizeAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopUiCheckPreviewAction
 import com.android.tools.idea.compose.preview.actions.UiCheckDropDownAction
@@ -44,7 +42,6 @@ import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
-import com.android.tools.idea.preview.actions.visibleOnlyInFocus
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.find.FilePreviewElementFinder
@@ -103,8 +100,6 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) })
           .visibleOnlyInDefaultPreview(),
         CommonViewControlAction().visibleOnlyInStaticPreview(),
-        SavePreviewInNewSizeAction().visibleOnlyInFocus(),
-        RevertToOriginalSizeAction().visibleOnlyInFocus(),
         Separator.getInstance().visibleOnlyInUiCheck(),
         UiCheckDropDownAction().visibleOnlyInUiCheck(),
         StudioFlags.PREVIEW_FILTER.ifEnabled {

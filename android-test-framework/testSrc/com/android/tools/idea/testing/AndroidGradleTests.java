@@ -32,6 +32,7 @@ import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescri
 import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentUtil.resolveAgpVersionSoftwareEnvironment;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.application.ActionsKt.invokeAndWaitIfNeeded;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -194,6 +195,20 @@ public class AndroidGradleTests {
     updateToolingVersionsAndPaths(folderRootPath, resolveAgpVersionSoftwareEnvironment(AGP_CURRENT), null, emptyList());
   }
 
+  public static void updateToolingVersionsAndPathsNoSync(@NotNull File path,
+                                                   @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
+                                                   @Nullable String ndkVersion,
+                                                   @NotNull List<File> localRepos)
+    throws IOException {
+
+    internalUpdateToolingVersionsAndPaths(path,
+                                          true,
+                                          agpVersion,
+                                          ndkVersion,
+                                          localRepos,
+                                          false);
+  }
+
   public static void updateToolingVersionsAndPaths(@NotNull File path,
                                                    @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
                                                    @Nullable String ndkVersion,
@@ -204,14 +219,16 @@ public class AndroidGradleTests {
                                           true,
                                           agpVersion,
                                           ndkVersion,
-                                          localRepos);
+                                          localRepos,
+                                          true);
   }
 
   private static void internalUpdateToolingVersionsAndPaths(@NotNull File path,
                                                             boolean isRoot,
                                                             @NotNull ResolvedAgpVersionSoftwareEnvironment agpEnvironment,
                                                             @Nullable String ndkVersion,
-                                                            @NotNull List<File> localRepos) throws IOException {
+                                                            @NotNull List<File> localRepos,
+                                                            boolean syncEnabled) throws IOException {
 
     // Tools/base versions are the same but with then major incremented by 23
     int firstSeparator = agpEnvironment.getAgpVersion().indexOf('.');
@@ -239,11 +256,11 @@ public class AndroidGradleTests {
         updateGradleProperties(path, AgpVersion.parse(agpEnvironment.getAgpVersion()),
                                AndroidVersion.fromString(agpEnvironment.getCompileSdk()));
         // We need the wrapper for import to succeed
-        createGradleWrapper(path, agpEnvironment.getGradleVersion());
+        createGradleWrapper(path, agpEnvironment.getGradleVersion(), syncEnabled);
       }
       for (File child : notNullize(path.listFiles())) {
         internalUpdateToolingVersionsAndPaths(
-          child, false, agpEnvironment, ndkVersion, localRepos
+          child, false, agpEnvironment, ndkVersion, localRepos, syncEnabled
         );
       }
     }
@@ -569,12 +586,19 @@ public class AndroidGradleTests {
   /**
    * Creates a gradle wrapper for use in tests under the {@code projectRoot}.
    */
-  public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
+  public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion, boolean syncEnabled) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot, GradleVersion.version(gradleVersion), null);
     File path = GradleProjectSystemUtil.findEmbeddedGradleDistributionFile(gradleVersion);
-    if (path != null) {
+    if(syncEnabled) {
+      assertThat(path).named("Gradle zip file with version: %s", gradleVersion).isNotNull();
       assertAbout(file()).that(path).named("Gradle distribution path").isFile();
       wrapper.updateDistributionUrl(path);
+    } else {
+      // if test not about sync - we don't require to have gradle of certain version available
+      if (path != null) {
+        assertAbout(file()).that(path).named("Gradle distribution path").isFile();
+        wrapper.updateDistributionUrl(path);
+      }
     }
   }
 
@@ -755,12 +779,13 @@ public class AndroidGradleTests {
   public static void defaultPatchPreparedProject(@NotNull File projectRoot,
                                                  @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
                                                  @Nullable String ndkVersion,
+                                                 boolean syncReady,
                                                  File... localRepos) throws IOException {
     preCreateDotGradle(projectRoot);
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-    updateToolingVersionsAndPaths(projectRoot, agpVersion, ndkVersion,
-                                  Lists.newArrayList(localRepos));
+    internalUpdateToolingVersionsAndPaths(projectRoot, true, agpVersion, ndkVersion, Lists.newArrayList(localRepos), syncReady);
   }
+
 
   /**
    * Pre-creates .gradle directory under the project root to avoid it being asynchronously created by Gradle.
