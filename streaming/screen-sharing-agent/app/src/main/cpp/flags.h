@@ -23,7 +23,5 @@ constexpr int32_t TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02;
 constexpr int32_t STREAM_AUDIO = 0x04;
 constexpr int32_t USE_UINPUT = 0x08;
 constexpr int32_t DEVICE_IS_XR = 0x10;
-constexpr int32_t DEBUG_LAYOUT_UI_SETTINGS = 0x20;
-constexpr int32_t GESTURE_NAVIGATION_UI_SETTINGS = 0x40;
 
 }  // namespace screensharing
