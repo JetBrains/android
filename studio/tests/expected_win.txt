@@ -1903,6 +1903,7 @@ android-studio/plugins/android/resources/device-art-resources/xoom/thumb.png
 android-studio/plugins/android/resources/images/asset_studio/ic_banner_image.xml
 android-studio/plugins/android/resources/images/asset_studio/ic_launcher_background.xml
 android-studio/plugins/android/resources/images/asset_studio/ic_launcher_foreground.xml
+android-studio/plugins/android/resources/insights-lint-0.1.2.jar
 android-studio/plugins/android/resources/installer/arm64-v8a/installer
 android-studio/plugins/android/resources/installer/armeabi-v7a/installer
 android-studio/plugins/android/resources/installer/x86/installer
@@ -2320,8 +2321,8 @@ android-studio/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 android-studio/plugins/gemini/lib/libv1internal_java_rest.jar
 android-studio/plugins/gemini/lib/proto-models-1.0.jar
 android-studio/plugins/gemini/lib/wire-runtime-jvm-5.3.1.jar
-android-studio/plugins/gemini/resources/recorder-release-androidTest.apk
 android-studio/plugins/gemini/resources/journeys/images/clipart/cursor_large.png
+android-studio/plugins/gemini/resources/recorder-release-androidTest.apk
 android-studio/plugins/git4insights/lib/git4insights.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.jar
 android-studio/plugins/gradle-declarative/lib/gradle-declarative.so.jar

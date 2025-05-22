@@ -2627,6 +2627,7 @@ Android Studio Preview.app/Contents/plugins/android/resources/device-art-resourc
 Android Studio Preview.app/Contents/plugins/android/resources/images/asset_studio/ic_banner_image.xml
 Android Studio Preview.app/Contents/plugins/android/resources/images/asset_studio/ic_launcher_background.xml
 Android Studio Preview.app/Contents/plugins/android/resources/images/asset_studio/ic_launcher_foreground.xml
+Android Studio Preview.app/Contents/plugins/android/resources/insights-lint-0.1.2.jar
 Android Studio Preview.app/Contents/plugins/android/resources/installer/arm64-v8a/installer
 Android Studio Preview.app/Contents/plugins/android/resources/installer/armeabi-v7a/installer
 Android Studio Preview.app/Contents/plugins/android/resources/installer/x86/installer
@@ -3043,8 +3044,8 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/libserviceusage_v1_java_l
 Android Studio Preview.app/Contents/plugins/gemini/lib/libv1internal_java_rest.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/proto-models-1.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/wire-runtime-jvm-5.3.1.jar
-Android Studio Preview.app/Contents/plugins/gemini/resources/recorder-release-androidTest.apk
 Android Studio Preview.app/Contents/plugins/gemini/resources/journeys/images/clipart/cursor_large.png
+Android Studio Preview.app/Contents/plugins/gemini/resources/recorder-release-androidTest.apk
 Android Studio Preview.app/Contents/plugins/git4insights/lib/git4insights.jar
 Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative.jar
 Android Studio Preview.app/Contents/plugins/gradle-declarative/lib/gradle-declarative.so.jar
