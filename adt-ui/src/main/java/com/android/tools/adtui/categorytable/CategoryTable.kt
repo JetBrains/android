@@ -79,6 +79,11 @@ class CategoryTable<T : Any>(
   val emptyStatePanel: JComponent? = null,
 ) : JBPanel<CategoryTable<T>>(), Scrollable {
 
+  init {
+    // We don't use a layout manager; see doLayout()
+    layout = null
+  }
+
   /** The listener called when a category row is clicked. */
   var categoryRowMouseClickListener: CategoryRowMouseClickListener<T> =
     DefaultCategoryRowMouseClickListener()
@@ -503,12 +508,6 @@ class CategoryTable<T : Any>(
 
   override fun getPreferredSize(): Dimension =
     Dimension(header.preferredSize.width, rowComponents.sumOf { if (it.isVisible) it.preferredSize.height else 0 })
-
-  override fun getMinimumSize(): Dimension =
-    Dimension(header.minimumSize.width, rowComponents.sumOf { if (it.isVisible) it.minimumSize.height else 0 })
-
-  override fun getMaximumSize(): Dimension? =
-    Dimension(header.maximumSize.width, rowComponents.sumOf { if (it.isVisible) it.maximumSize.height else 0 })
 
   /**
    * Rather than implementing the whole LayoutManager interface, we perform the layout in doLayout.

@@ -36,6 +36,7 @@ import javax.swing.SortOrder
 import javax.swing.SwingUtilities.convertPoint
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Dimension
 
 @RunsInEdt
 class CategoryTableTest {
@@ -527,7 +528,7 @@ class CategoryTableTest {
     assertThat(table.width).isEqualTo(widthWithoutScrollbar - scrollPane.verticalScrollBar.width)
 
     assertThat(table.preferredSize).isNotNull()
-    assertThat(table.maximumSize).isNotNull()
+    assertThat(table.maximumSize).isEqualTo(Dimension(Short.MAX_VALUE.toInt(), Short.MAX_VALUE.toInt()))
   }
 
   @Test
