@@ -438,7 +438,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       // If there are no more objects to visit at this phase, transition to the next one
       while (toVisit.isEmpty() && phase != WalkGraphPhase.Finished) {
         // Next state
-        phase = WalkGraphPhase.values()[phase.ordinal + 1]
+        phase = WalkGraphPhase.entries[phase.ordinal + 1]
 
         // Add objects to toVisit on state transition
         when (phase) {

@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.intellij.ui.JBColor;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
-
-import javax.swing.*;
-import javax.swing.border.LineBorder;
-import java.awt.event.ActionEvent;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import com.intellij.ui.JBColor;
+import java.awt.event.ActionEvent;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.border.LineBorder;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 public final class StringTableCellEditorTest {
   private JTextField myComponent;
@@ -42,7 +41,7 @@ public final class StringTableCellEditorTest {
 
     assertFalse(new StringTableCellEditor(myComponent).stopCellEditing());
 
-    Mockito.verify(myComponent).setBorder(ArgumentMatchers.<LineBorder>argThat(
+    Mockito.verify(myComponent).setBorder(Mockito.<LineBorder>argThat(
       actual -> JBColor.RED.equals(actual.getLineColor()) && 1 == actual.getThickness() && !actual.getRoundedCorners()));
   }
 

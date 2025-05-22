@@ -1,7 +1,6 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.intentions;
 
-import com.android.resources.ResourceType;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.openapi.actionSystem.IdeActions;
@@ -11,10 +10,9 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
+import java.io.IOException;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
 
 public class AndroidAddStringResourceActionTest extends AndroidTestCase {
   private static final String BASE_PATH = "addStringRes/";

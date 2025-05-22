@@ -29,6 +29,7 @@ import com.android.tools.idea.run.deployment.liveedit.checkPsiErrorElement
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.validatePsiDiff
+import com.android.tools.idea.util.findAndroidModule
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -39,8 +40,13 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.KaCompilationResult
 import org.jetbrains.kotlin.analysis.api.components.KaCompilerTarget
 import org.jetbrains.kotlin.analysis.api.diagnostics.getDefaultMessageWithFactoryName
+import org.jetbrains.kotlin.analysis.api.projectStructure.contextModule
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.idea.base.facet.platform.platform
+import org.jetbrains.kotlin.idea.base.projectStructure.toKaSourceModuleForProductionOrTest
+import org.jetbrains.kotlin.platform.isCommon
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtPsiFactory
 
 @OptIn(KaExperimentalApi::class)
 internal class LiveEditCompilerForK2(
@@ -76,6 +82,20 @@ internal class LiveEditCompilerForK2(
 }
 
 @OptIn(KaExperimentalApi::class)
+private fun getCompileTargetFile(original: KtFile, module: Module): KtFile {
+  if (!module.platform.isCommon()) {
+    return original
+  }
+
+  val sourceModule = module.findAndroidModule()?.toKaSourceModuleForProductionOrTest() ?: return original
+
+  // create a dangling copy of this file with the proper (Android) context.
+  val danglingFile = KtPsiFactory(module.project).createFile(original.name, original.text)
+  danglingFile.contextModule = sourceModule
+  return danglingFile
+}
+
+@OptIn(KaExperimentalApi::class)
 fun backendCodeGenForK2(file: KtFile, module: Module, configuration: CompilerConfiguration): KaCompilationResult.Success {
   if (ModuleUtilCore.findModuleForFile(file) != module) {
     throw LiveEditUpdateException.internalErrorFileOutsideModule(file)
@@ -91,7 +111,7 @@ fun backendCodeGenForK2(file: KtFile, module: Module, configuration: CompilerCon
   ProgressManager.checkCanceled()
 
   analyze(file) {
-    val result = this@analyze.compile(file, configuration, KaCompilerTarget.Jvm(isTestMode = false)) {
+    val result = this@analyze.compile(getCompileTargetFile(file, module), configuration, KaCompilerTarget.Jvm(isTestMode = false)) {
       // This is a lambda for `allowedErrorFilter` parameter. `compiler` API internally filters diagnostic errors with
       // `allowedErrorFilter`. If `allowedErrorFilter(diagnosticError)` is true, the error will not be reported.
       // Since we want to always report the diagnostic errors, we just return `false` here.

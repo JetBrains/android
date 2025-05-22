@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.ClassRule;

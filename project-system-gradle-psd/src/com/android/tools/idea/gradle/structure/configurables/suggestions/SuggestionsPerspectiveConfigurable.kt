@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.suggestions
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.structure.configurables.AbstractCounterDisplayConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ModuleUnsupportedConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
@@ -59,7 +60,7 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
         else -> ModuleUnsupportedConfigurable(context, this, module)
       }
 
-  override fun getDisplayName(): String = "Suggestions"
+  override fun getDisplayName(): String = AndroidGradlePsdBundle.message("android.suggestions.perspective.configurable.display.name")
 
   override fun getCount(): Int = messageCount
 

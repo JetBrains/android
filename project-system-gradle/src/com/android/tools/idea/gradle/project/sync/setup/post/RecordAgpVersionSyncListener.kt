@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.post
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.project.Project

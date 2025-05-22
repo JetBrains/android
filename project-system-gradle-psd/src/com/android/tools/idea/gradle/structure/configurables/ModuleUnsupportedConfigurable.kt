@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractMainPanel
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.intellij.openapi.util.ActionCallback
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.navigation.Place
 import javax.swing.SwingConstants
@@ -27,7 +29,7 @@ class ModuleUnsupportedConfigurable(
   context: PsContext,
   perspectiveConfigurable: BasePerspectiveConfigurable,
   module: PsModule,
-  val message: String = "Nothing to show. Please select an Android module."
+  @NlsContexts.Label val message: String = AndroidGradlePsdBundle.message("android.module.unsupported.configurable.label.default")
 ) :
   AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, perspectiveConfigurable, module) {
 

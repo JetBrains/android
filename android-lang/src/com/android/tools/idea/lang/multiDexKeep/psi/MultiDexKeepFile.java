@@ -20,9 +20,7 @@ import com.android.tools.idea.lang.multiDexKeep.MultiDexKeepLanguage;
 import com.intellij.extapi.psi.PsiFileBase;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.FileViewProvider;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MultiDexKeepFile extends PsiFileBase {
   public MultiDexKeepFile(@NotNull FileViewProvider viewProvider) {
@@ -38,11 +36,5 @@ public class MultiDexKeepFile extends PsiFileBase {
   @Override
   public String toString() {
     return "MultiDexKeep File";
-  }
-
-  @Nullable
-  @Override
-  public Icon getIcon(int flags) {
-    return super.getIcon(flags);
   }
 }

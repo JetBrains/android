@@ -38,7 +38,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentMatchers.isNull
+import org.mockito.Mockito.isNull
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times

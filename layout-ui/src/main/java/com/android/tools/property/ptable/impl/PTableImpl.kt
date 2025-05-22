@@ -46,6 +46,8 @@ import com.intellij.ui.TableExpandableItemsHandler
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.util.preferredHeight
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Component
 import java.awt.Cursor
@@ -80,8 +82,6 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sign
 import kotlin.properties.Delegates
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 
 const val EXPANSION_RIGHT_PADDING = 4
 private const val COLUMN_COUNT = 2

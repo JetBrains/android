@@ -240,8 +240,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @NotNull
   private static String getConfigurationName(@NotNull Module module,
-                                                   @NotNull DependencyScope scope,
-                                                   @Nullable VirtualFile openedFile) {
+                                             @NotNull DependencyScope scope,
+                                             @Nullable VirtualFile openedFile) {
     if (!scope.isForProductionCompile()) {
       TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
 
@@ -253,7 +253,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @Nullable
-  private static String selectVersion(@NotNull ExternalLibraryDescriptor descriptor) {
+  static String selectVersion(@NotNull ExternalLibraryDescriptor descriptor) {
     String libraryArtifactId = descriptor.getLibraryArtifactId();
     String libraryGroupId = descriptor.getLibraryGroupId();
     String groupAndId = libraryGroupId + ":" + libraryArtifactId;

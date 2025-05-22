@@ -344,14 +344,14 @@ class NavigatingInteractionHandler(
         navigatables.firstOrNull()?.let {
           navigationHandler.navigateTo(sceneView, it!!, needsFocusEditor)
         }
-          ?: run {
-            if (needsFocusEditor) {
-              // Only allow default navigation when double clicking since it might take us to a
-              // different file
-              navigationHandler.handleNavigate(sceneView, true)
-            }
-            return@run false
+        ?: run {
+          if (needsFocusEditor) {
+            // Only allow default navigation when double clicking since it might take us to a
+            // different file
+            navigationHandler.handleNavigate(sceneView, true)
           }
+          return@run false
+        }
       if (!navigated) {
         val sceneComponent =
           scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import java.io.File
 import java.io.Serializable
 

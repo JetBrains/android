@@ -18,8 +18,7 @@ package com.android.tools.idea.gradle.structure.dependencies;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.UIUtil;
-
-import javax.swing.*;
+import javax.swing.JPanel;
 
 class LibraryDependenciesFormUi {
 

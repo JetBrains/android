@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewCompileFlow
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildMode
@@ -31,22 +32,25 @@ import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Co
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.findAndroidModule
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.search.EverythingGlobalScope
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.SlowOperations
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -57,7 +61,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.asJava.KotlinAsJavaSupport
+import org.jetbrains.kotlin.fileClasses.isJvmMultifileClassFile
 import org.jetbrains.kotlin.idea.util.projectStructure.module
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.analysisContext
+import org.jetbrains.uast.UFile
+import org.jetbrains.uast.toUElement
+import kotlin.collections.plus
 
 /**
  * This represents the build status of the project artifacts used to render previews without taking
@@ -233,9 +245,9 @@ private class RenderingBuildStatusManagerImpl(
                 }
 
               fun handleSuccess(scope: GlobalSearchScope): ProjectBuildStatus {
-                SlowOperations.allowSlowOperations(
-                  ThrowableComputable { preparedMarkUpToDateAction.markUpToDate(scope) }
-                )
+                SlowOperations.knownIssue("IDEA-359567").use {
+                  ThrowableComputable<Unit, Throwable> { preparedMarkUpToDateAction.markUpToDate(scope) }
+                }
                 // Clear the resources out of date flag
                 areResourcesOutOfDateFlow.value = false
                 return ProjectBuildStatus.Built
@@ -364,12 +376,18 @@ private class RenderingBuildStatusManagerImpl(
 
   private suspend fun editorHasExistingClassFile(): Boolean {
     val editorFile: PsiFile = runReadAction { editorFilePtr.element } ?: return false
-    val psiClassOwner = editorFile as? PsiClassOwner ?: return false
-    val classFileFinder = classFinderFactory(buildTargetReference)
 
-    return readAction { psiClassOwner.classes.mapNotNull { it.qualifiedName } }
-      .any() {
-        classFileFinder(it)
+    val fqNames = readAction {
+      val uFile = editorFile.toUElement(UFile::class.java)
+      val classes = when {
+        uFile != null -> uFile.classes.map { c -> c.javaPsi }
+        editorFile is PsiClassOwner -> editorFile.classes.asList()
+        else -> listOfNotNull(PsiTreeUtil.findChildOfType(editorFile, PsiClass::class.java))
       }
+      classes.mapNotNull { it.qualifiedName }
+    }
+
+    val classFileFinder = classFinderFactory(buildTargetReference)
+    return fqNames.any { classFileFinder(it) }
   }
 }

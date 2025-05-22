@@ -178,7 +178,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
       }
 
       // Find a class member that has a BaselineProfileRule applied.
-      for (member : PsiMember in classMembers) {
+      for (member: PsiMember in classMembers) {
         // Only evaluate direct field member of the top level class
         val rule = PsiTreeUtil
           .findChildrenOfType(member, PsiAnnotation::class.java)
@@ -223,8 +223,9 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
   private fun createOverridingInfo(
     icon: Icon,
     message: String,
-    actions: List<AnAction>): Info {
-    return object: Info(
+    actions: List<AnAction>,
+  ): Info {
+    return object : Info(
       icon,
       actions.toTypedArray(),
       { _ -> message }

@@ -1,0 +1,36 @@
+### auto-generated section `build intellij.android.core.editing.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "core-editing-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:kotlin-test",
+    "@lib//:truth",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android:core",
+    "//android/android-plugin:plugin_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//java/openapi:java",
+    "//java/java-impl:impl",
+    "//java/java-impl-refactorings:impl-refactorings",
+    "//java/java-psi-api:psi",
+    "//java/testFramework",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/lang-impl",
+    "//platform/refactoring",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//xml/dom-openapi:dom",
+    "//xml/xml-psi-api:psi",
+  ]
+)
+### auto-generated section `build intellij.android.core.editing.tests` end

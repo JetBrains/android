@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.imports
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject.Companion.openTestProject

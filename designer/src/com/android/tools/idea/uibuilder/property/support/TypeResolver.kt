@@ -374,7 +374,7 @@ object TypeResolver {
         parts.add(part)
       }
       part =
-        if (index >= 0) part[index].toLowerCase().toString() + part.substring(index + 1) else ""
+        if (index >= 0) part[index].lowercaseChar().toString() + part.substring(index + 1) else ""
     }
     return parts
   }

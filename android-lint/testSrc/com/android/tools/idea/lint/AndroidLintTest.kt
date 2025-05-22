@@ -173,12 +173,12 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
-import java.nio.charset.StandardCharsets
-import java.util.Locale
-import java.util.stream.Collectors
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.util.AndroidBundle
+import java.nio.charset.StandardCharsets
+import java.util.Locale
+import java.util.stream.Collectors
 
 class AndroidLintTest : AbstractAndroidLintTest() {
   override fun configureAdditionalModules(

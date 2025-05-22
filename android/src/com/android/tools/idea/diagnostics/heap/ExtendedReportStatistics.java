@@ -49,11 +49,11 @@ public class ExtendedReportStatistics {
   static final int NUMBER_OF_LOADERS_FOR_CLASS_NAME_THRESHOLD = 10;
   private static final String CLASS_FQN = "java.lang.Class";
 
-  @NotNull final List<ClusterHistogram> componentHistograms;
+  public @NotNull final List<ClusterHistogram> componentHistograms;
 
-  @NotNull final List<CategoryHistogram> categoryHistograms;
+  public @NotNull final List<CategoryHistogram> categoryHistograms;
 
-  @NotNull final Long2ObjectMap<ClusterHistogram> sharedClustersHistograms;
+  public @NotNull final Long2ObjectMap<ClusterHistogram> sharedClustersHistograms;
   @NotNull final Int2IntMap objectIdToMinDepth = new Int2IntOpenHashMap();
   @NotNull final Int2ByteMap objectIdToMinDepthKind = new Int2ByteOpenHashMap();
 
@@ -279,15 +279,15 @@ public class ExtendedReportStatistics {
                                                                 statistics).print(writer);
   }
 
-  class CategoryHistogram extends ClusterHistogram {
+  public class CategoryHistogram extends ClusterHistogram {
     public CategoryHistogram() {
       super(ClusterType.CATEGORY);
     }
   }
 
-  class ClusterHistogram {
+  public class ClusterHistogram {
 
-    enum ClusterType {
+    public enum ClusterType {
       COMPONENT,
       CATEGORY,
       SHARED_CLUSTER
@@ -295,9 +295,8 @@ public class ExtendedReportStatistics {
 
     @NotNull final Map<String, ObjectsStatistics> disposedButReferencedObjects = Maps.newHashMap();
 
-    @NotNull final Map<String, ObjectsStatistics> histogram =
-      Maps.newHashMap();
-    @NotNull final Map<String, ObjectsStatistics> rootHistogram = Maps.newHashMap();
+    public @NotNull final Map<String, ObjectsStatistics> histogram = Maps.newHashMap();
+    public @NotNull final Map<String, ObjectsStatistics> rootHistogram = Maps.newHashMap();
 
     @NotNull
     private final ClusterType clusterType;
@@ -368,7 +367,7 @@ public class ExtendedReportStatistics {
     }
   }
 
-  static class ClassObjectsStatistics {
+  public static class ClassObjectsStatistics {
     Set<ClassLoader> classLoaders;
     Set<Class<?>> classObjects;
 

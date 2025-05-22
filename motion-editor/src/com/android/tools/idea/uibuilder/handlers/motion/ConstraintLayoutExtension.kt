@@ -36,7 +36,6 @@ class ConstraintLayoutExtensionImpl : ConstraintComponentUtilities.ConstraintLay
                             targetDirection: Direction,
                             margin: Int): Boolean {
     if (!MotionSceneUtils.isUnderConstraintSet(source)) return false
-
     val srcIndex = sourceDirection.ordinal
     val attrib = ConstraintComponentUtilities.ATTRIB_MATRIX[srcIndex][targetDirection.ordinal]
                  ?: throw RuntimeException("cannot connect $sourceDirection to $targetDirection")

@@ -342,8 +342,9 @@ private constructor(private val scope: CoroutineScope, private val topic: Render
   @TestOnly fun getTotalRequestsInQueueForTest() = requestsLock.withLock { allPendingRequests.size }
 
   companion object {
-    private val coroutineScope =
+    private val coroutineScope by lazy {
       AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
+    }
     private val managersByTopicLock = ReentrantLock()
     @GuardedBy("managersByTopicLock")
     private val managersByTopic = mutableMapOf<RenderingTopic, PreviewRefreshManager>()

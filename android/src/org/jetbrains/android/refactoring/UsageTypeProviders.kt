@@ -21,7 +21,6 @@ import com.android.tools.idea.res.isResourceDeclaration
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
-import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.impl.compiled.ClsFieldImpl
 import com.intellij.psi.xml.XmlFile
@@ -47,8 +46,8 @@ private val ANDROID_MANIFEST_USAGE_TYPE = UsageType(AndroidBundle.messagePointer
 class AndroidResourceXmlUsageProvider : UsageTypeProviderEx {
   override fun getUsageType(element: PsiElement): UsageType? = getUsageType(element, UsageTarget.EMPTY_ARRAY)
 
-  override fun getUsageType(element: PsiElement?, targets: Array<out UsageTarget>): UsageType? {
-    val xmlFile = element?.containingFile as? XmlFile ?: return null
+  override fun getUsageType(element: PsiElement, targets: Array<out UsageTarget>): UsageType? {
+    val xmlFile = element.containingFile as? XmlFile ?: return null
     val domManager = DomManager.getDomManager(xmlFile.project) ?: return null
     val resourceReferencePsiElement = (targets.firstOrNull() as? PsiElementUsageTarget)?.element as? ResourceReferencePsiElement
     return when (domManager.getFileElement(xmlFile, AndroidDomElement::class.java)?.fileDescription) {

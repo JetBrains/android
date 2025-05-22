@@ -331,7 +331,7 @@ public class AccelerationErrorSolution {
       return output.getStdout();
     }
     else {
-      throw new ExecutionException(String.format("Error running: %1$s", process.getCommandLine()));
+      throw new ExecutionException(String.format("Error running: %1$s", process.getCommandLineForLog()));
     }
   }
 

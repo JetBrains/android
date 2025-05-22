@@ -35,7 +35,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootModificationUtil
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.IndexingTestUtil
@@ -62,7 +62,7 @@ import java.util.jar.JarOutputStream
  */
 fun addAndroidModule(moduleName: String, project: Project, packageName: String, createResources: (moduleResDir: File) -> Unit): Module {
   val root = project.basePath
-  val moduleDir = File(FileUtil.toSystemDependentName(root!!), moduleName)
+  val moduleDir = File(FileUtilRt.toSystemDependentName(root!!), moduleName)
   val moduleFilePath = File(moduleDir, moduleName + ModuleFileType.DOT_DEFAULT_EXTENSION)
 
   createAndroidManifest(moduleDir, packageName)
@@ -137,7 +137,6 @@ fun addAarDependency(
     emptyList()
   )
   ModuleRootModificationUtil.addDependency(module, library)
-  IndexingTestUtil.waitUntilIndexesAreReady(module.project)
 
   createResources(resDir)
   VfsUtil.markDirtyAndRefresh(false, true, true, aarDir.toVirtualFile(refresh = true))

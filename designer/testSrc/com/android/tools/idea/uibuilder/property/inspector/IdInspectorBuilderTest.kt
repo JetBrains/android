@@ -25,6 +25,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
+import java.util.Locale
 
 @RunsInEdt
 class IdInspectorBuilderTest {
@@ -63,7 +64,7 @@ class IdInspectorBuilderTest {
   fun testNotAvailableForPreferenceTags() {
     for (tagName in PreferenceUtils.VALUES) {
       val util =
-        InspectorTestUtil(projectRule, tagName, fileName = "${tagName.toLowerCase()}$DOT_XML")
+        InspectorTestUtil(projectRule, tagName, fileName = "${tagName.lowercase(Locale.getDefault())}$DOT_XML")
       val builder = IdInspectorBuilder(util.editorProvider)
       util.addProperty(ANDROID_URI, ATTR_ID, NlPropertyType.ID)
       builder.attachToInspector(util.inspector, util.properties)

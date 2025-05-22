@@ -109,7 +109,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.JdkOrderEntry
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ProjectFileIndex
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
@@ -144,12 +144,6 @@ import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.ColorsIcon
 import com.intellij.util.xml.DomManager
-import java.awt.Color
-import java.io.File
-import java.io.IOException
-import java.util.EnumSet
-import java.util.Properties
-import javax.swing.Icon
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.AndroidFileTemplateProvider
 import org.jetbrains.android.actions.CreateTypedResourceFileAction
@@ -171,6 +165,12 @@ import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import org.jetbrains.kotlin.util.collectionUtils.filterIsInstanceAnd
+import java.awt.Color
+import java.io.File
+import java.io.IOException
+import java.util.EnumSet
+import java.util.Properties
+import javax.swing.Icon
 
 private const val RESOURCE_CLASS_SUFFIX = "." + AndroidUtils.R_CLASS_NAME
 private const val ROOT_TAG_PROPERTY = "ROOT_TAG"
@@ -1244,10 +1244,10 @@ fun findStyleableAttrFieldsForStyleable(
  * repository is updated.
  */
 fun scheduleNewResolutionAndHighlighting(psiManager: PsiManager) {
-  ApplicationManager.getApplication().invokeLater {
+  ApplicationManager.getApplication().invokeLater({
     psiManager.dropResolveCaches()
     psiManager.dropPsiCaches()
-  }
+  }, psiManager.project.disposed)
 }
 
 private fun findResourceFieldsFromClass(
@@ -1857,7 +1857,7 @@ private fun findOrCreateResourceFile(
   dirName: String,
 ): VirtualFile? {
   val dir = AndroidUtils.createChildDirectoryIfNotExist(project, resDir, dirName)
-  val dirPath = FileUtil.toSystemDependentName(resDir.path + '/' + dirName)
+  val dirPath = FileUtilRt.toSystemDependentName(resDir.path + '/' + dirName)
   if (dir == null) {
     AndroidUtils.reportError(
       project,
@@ -2297,7 +2297,7 @@ fun findOrCreateStateListFiles(
           fileName += DOT_XML
         }
         for (dirName in dirNames) {
-          val dirPath = FileUtil.toSystemDependentName(resDir.path + '/' + dirName)
+          val dirPath = FileUtilRt.toSystemDependentName(resDir.path + '/' + dirName)
           val dir: VirtualFile =
             AndroidUtils.createChildDirectoryIfNotExist(project, resDir, dirName)
               ?: throw IOException("cannot make " + resDir + File.separatorChar + dirName)

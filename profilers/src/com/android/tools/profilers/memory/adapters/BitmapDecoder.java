@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.google.common.collect.ImmutableMap;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +25,8 @@ import java.awt.image.BufferedImage;
 import java.util.Map;
 
 public class BitmapDecoder {
-  enum PixelFormat {
+  @ApiStatus.Internal
+  public enum PixelFormat {
     ARGB_8888,
     RGB_565,
     ALPHA_8

@@ -15,16 +15,27 @@
  */
 package com.android.tools.idea.smali;
 
-import com.intellij.psi.tree.IElementType;
-import org.junit.Before;
-import org.junit.Test;
-
-import static com.android.tools.idea.smali.SmaliSyntaxHighlighter.*;
-import static com.android.tools.idea.smali.SmaliTokenSets.*;
+import static com.android.tools.idea.smali.SmaliSyntaxHighlighter.BRACES_ATTR_KEYS;
+import static com.android.tools.idea.smali.SmaliSyntaxHighlighter.EMPTY_KEYS;
+import static com.android.tools.idea.smali.SmaliSyntaxHighlighter.JAVA_IDENTIFIER_ATTR_KEYS;
+import static com.android.tools.idea.smali.SmaliSyntaxHighlighter.KEYWORD_ATTR_KEYS;
+import static com.android.tools.idea.smali.SmaliSyntaxHighlighter.NUMBER_ATTR_KEYS;
+import static com.android.tools.idea.smali.SmaliSyntaxHighlighter.PARENTHESES_ATTR_KEYS;
+import static com.android.tools.idea.smali.SmaliSyntaxHighlighter.STRING_ATTR_KEYS;
+import static com.android.tools.idea.smali.SmaliTokenSets.ACCESS_MODIFIER_TOKENS;
+import static com.android.tools.idea.smali.SmaliTokenSets.BRACES_TOKENS;
+import static com.android.tools.idea.smali.SmaliTokenSets.KEYWORD_TOKENS;
+import static com.android.tools.idea.smali.SmaliTokenSets.NUMBER_TOKENS;
+import static com.android.tools.idea.smali.SmaliTokenSets.PARENTHESES_TOKENS;
+import static com.android.tools.idea.smali.SmaliTokenSets.STRING_TOKENS;
 import static com.android.tools.idea.smali.psi.SmaliTypes.JAVA_IDENTIFIER;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
+
+import com.intellij.psi.tree.IElementType;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Tests for {@link SmaliSyntaxHighlighter}.

@@ -33,8 +33,6 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
-import java.io.DataInput
-import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.utils.printer.parentOfType
 import org.jetbrains.kotlin.idea.core.util.readString
@@ -42,6 +40,8 @@ import org.jetbrains.kotlin.idea.core.util.writeString
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtParameter
+import java.io.DataInput
+import java.io.DataOutput
 
 /**
  * Represents a type created via assisted injection.

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.variant.conflict
 
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder

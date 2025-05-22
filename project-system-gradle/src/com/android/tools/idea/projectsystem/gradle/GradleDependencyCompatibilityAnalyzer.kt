@@ -21,7 +21,6 @@ import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.gradle.RichVersion.Declaration
 import com.android.ide.common.gradle.RichVersion.Kind.STRICTLY
-import com.android.ide.common.gradle.Module as ExternalModule
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.gradle.VersionRange
 import com.android.ide.common.repository.GradleCoordinate
@@ -55,6 +54,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import org.jetbrains.annotations.TestOnly
 import java.util.ArrayDeque
+import com.android.ide.common.gradle.Module as ExternalModule
 
 private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
 private val groupsWithVersionIdentifyRequirements = listOf(SdkConstants.SUPPORT_LIB_GROUP_ID)

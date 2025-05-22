@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.rendering.AndroidBuildTargetReference

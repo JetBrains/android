@@ -35,7 +35,6 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;

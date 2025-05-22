@@ -146,9 +146,9 @@ internal class DeviceComboBox(
   fun handleItemError(item: DeviceComboItem, message: String): Boolean {
     val answer =
       MessageDialogBuilder.yesNo(
-          LogcatBundle.message("logcat.device.combo.error.title"),
-          LogcatBundle.message("logcat.device.combo.error.message", message),
-        )
+        LogcatBundle.message("logcat.device.combo.error.title"),
+        LogcatBundle.message("logcat.device.combo.error.message", message),
+      )
         .ask(project)
     if (answer) {
       deviceComboModel.remove(item)
@@ -215,7 +215,7 @@ internal class DeviceComboBox(
   fun addOrSelectFile(path: Path) {
     val fileItem =
       deviceComboModel.items.find { it is FileItem && it.path.pathString == path.pathString }
-        ?: deviceComboModel.addFile(path)
+      ?: deviceComboModel.addFile(path)
     selectedItem = fileItem
   }
 

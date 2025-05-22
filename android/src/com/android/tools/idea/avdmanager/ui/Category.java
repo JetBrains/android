@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 
-enum Category {
+public enum Category {
   PHONE("Phone", "pixel_fold", definition -> !definition.getIsDeprecated() && Device.isPhone(definition)),
   TABLET("Tablet", "pixel_tablet", definition -> !definition.getIsDeprecated() && Device.isTablet(definition)),
   WEAR_OS("Wear OS", "wearos_square", definition -> !definition.getIsDeprecated() && Device.isWear(definition)),

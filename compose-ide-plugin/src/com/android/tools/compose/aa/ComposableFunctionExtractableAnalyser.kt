@@ -69,7 +69,7 @@ class ComposableFunctionExtractableAnalyser : ExtractFunctionDescriptorModifier 
     }
     val outsideLambda =
       descriptor.extractionData.commonParent.parentOfType<KtLambdaArgument>(true)
-        ?: return descriptor
+      ?: return descriptor
     return if (outsideLambda.isComposable()) {
       descriptor.copy(
         renderedAnnotations = descriptor.renderedAnnotations + "@${ComposeClassIds.Composable.asFqNameString()}\n"

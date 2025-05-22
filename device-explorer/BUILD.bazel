@@ -1,0 +1,92 @@
+### auto-generated section `build intellij.android.device-explorer` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "device-explorer_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "device-explorer",
+  module_name = "intellij.android.device-explorer",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:protobuf",
+    "//android/android-adb:adb",
+    "//android/adt-ui",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/device-explorer-common",
+    "//android/device-explorer-files",
+    "//android/device-explorer-monitor",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+  ],
+  runtime_deps = [":device-explorer_resources"]
+)
+### auto-generated section `build intellij.android.device-explorer` end
+
+### auto-generated section `build intellij.android.device-explorer.integration.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "device-explorer-integration-tests_test",
+  srcs = glob(["integration/**/*.kt", "integration/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//android/as-driver/utils:android-as-driver-utils_test_lib",
+    "//android/device-explorer",
+  ]
+)
+### auto-generated section `build intellij.android.device-explorer.integration.tests` end
+
+### auto-generated section `build intellij.android.device-explorer.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "device-explorer-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:truth",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-common:common",
+    "//android/android-common:common-tests_test_lib",
+    "//android/device-explorer",
+    "//android/device-explorer-common",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//android/project-system:projectSystem",
+  ]
+)
+### auto-generated section `build intellij.android.device-explorer.tests` end

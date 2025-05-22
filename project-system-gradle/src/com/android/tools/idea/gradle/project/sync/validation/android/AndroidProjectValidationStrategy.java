@@ -20,7 +20,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-abstract class AndroidProjectValidationStrategy {
+public abstract class AndroidProjectValidationStrategy {
   @NotNull private final Project myProject;
 
   AndroidProjectValidationStrategy(@NotNull Project project) {

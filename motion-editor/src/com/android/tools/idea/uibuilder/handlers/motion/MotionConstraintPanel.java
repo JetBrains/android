@@ -37,7 +37,7 @@ public class MotionConstraintPanel extends WidgetConstraintPanel {
 
   public MotionConstraintPanel(@NotNull List<NlComponent> components) {
     super(components);
-    if (components==null || components.size()==0) {
+    if (components==null || components.isEmpty()) {
       mTitle.setText("Constraints");
       return;
     }

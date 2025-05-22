@@ -16,8 +16,8 @@
 package com.android.tools.idea.dom.xml;
 
 import com.intellij.util.xml.DefinesXml;
-import org.jetbrains.android.dom.AndroidDomElement;
 import java.util.List;
+import org.jetbrains.android.dom.AndroidDomElement;
 
 @DefinesXml
 public interface PathsElement extends AndroidDomElement {

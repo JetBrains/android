@@ -312,9 +312,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myChosenSnapshotComboBox.addItemListener(mySnapshotComboListener);
 
     myEmulator =
-        EmulatorPackages.getEmulatorPackage(
-            AndroidSdks.getInstance().tryToChooseSdkHandler(),
-            new StudioLoggerProgressIndicator(ConfigureAvdOptionsStep.class));
+      EmulatorPackages.getEmulatorPackage(
+        AndroidSdks.getInstance().tryToChooseSdkHandler(),
+        new StudioLoggerProgressIndicator(ConfigureAvdOptionsStep.class));
     myEmulatorFeatures = EmulatorFeatures.getEmulatorFeatures(myEmulator);
 
     boolean supportsVirtualCamera = myEmulatorFeatures.contains(EmulatorAdvancedFeatures.VIRTUAL_SCENE);

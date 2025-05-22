@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.SdkConstants
-import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.DrawableRenderer
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.diagnostic.Logger
@@ -25,14 +24,14 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.android.facet.AndroidFacet
+import org.xml.sax.SAXParseException
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.text.ParseException
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import javax.xml.parsers.DocumentBuilderFactory
-import org.jetbrains.android.facet.AndroidFacet
-import org.xml.sax.SAXParseException
 
 private val LOG = Logger.getInstance(DrawableAssetRenderer::class.java)
 

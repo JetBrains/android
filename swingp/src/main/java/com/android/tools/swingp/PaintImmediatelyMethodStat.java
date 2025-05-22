@@ -18,12 +18,12 @@ package com.android.tools.swingp;
 import com.android.tools.swingp.json.IncludeMethodsSerializer;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import sun.java2d.SunGraphics2D;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.AffineTransform;
 
 @JsonAdapter(IncludeMethodsSerializer.class)
 public class PaintImmediatelyMethodStat extends MethodStat {

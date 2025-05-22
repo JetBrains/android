@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.execution.common.debug.utils
 
-import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.Client
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.execution.common.debug.AndroidDebugger

@@ -16,17 +16,16 @@
 package com.android.tools.idea.sdk;
 
 import static com.android.sdklib.AndroidTargetHash.getTargetHashString;
-import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.Sdks.findAndroidTarget;
 import static com.android.tools.idea.testing.Sdks.findLatestAndroidTarget;
+import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -35,8 +34,11 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.generated.common.v1.LibraryType;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.testing.Sdks;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
 import com.android.tools.sdk.Annotations;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.OrderRootType;
@@ -46,9 +48,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -67,7 +67,7 @@ public class AndroidSdksTest extends HeavyPlatformTestCase {
     initMocks(this);
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
 
-    mySdkPath = getSdk().toFile();
+    mySdkPath = TestUtils.getSdk().toFile();
 
     Sdks.allowAccessToSdk(getTestRootDisposable());
 
@@ -177,8 +177,10 @@ public class AndroidSdksTest extends HeavyPlatformTestCase {
     VirtualFile[] classesRoots = sdk.getRootProvider().getFiles(CLASSES);
     assertThat(classesRoots).isNotEmpty();
 
-    VirtualFile[] sourcesRoots = sdk.getRootProvider().getFiles(SOURCES);
-    assertThat(sourcesRoots).isNotEmpty();
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      VirtualFile[] sourcesRoots = sdk.getRootProvider().getFiles(SOURCES);
+      assertThat(sourcesRoots).isNotEmpty();
+    }
   }
 
   private void verifyCorrectPath(@NotNull Sdk androidSdk) {

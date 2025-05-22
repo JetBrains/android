@@ -20,8 +20,6 @@ import static com.android.SdkConstants.DOT_XML;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.resources.ResourceUrl;
-import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -58,7 +56,7 @@ import org.w3c.dom.Node;
 /**
  * Static utilities for generating scaled-down {@link Icon} instances from image resources to display in the gutter.
  */
-class GutterIconFactory {
+public class GutterIconFactory {
   private static final Logger LOG = Logger.getInstance(GutterIconFactory.class);
   private static final int RENDERING_SCALING_FACTOR = 10;
 
@@ -102,7 +100,7 @@ class GutterIconFactory {
                                     int maxWidth, int maxHeight) {
     try {
       String xml = getXmlContent(file);
-      Image image;
+      Image image = null;
       // If drawable is a vector drawable, use the renderer inside Studio.
       // Otherwise, delegate to layoutlib.
       if (xml.contains("<vector")) {
@@ -122,7 +120,7 @@ class GutterIconFactory {
         StringBuilder builder = new StringBuilder(100);
         image = VdPreview.getPreviewFromVectorDocument(imageTargetSize, document, builder);
         image = ImageUtil.ensureHiDPI(image, ScaleContext.create());
-        if (builder.length() > 0) {
+        if (!builder.isEmpty()) {
           LOG.warn("Problems rendering " + file.getPresentableUrl() + ": " + builder);
         }
       }
@@ -148,8 +146,11 @@ class GutterIconFactory {
           // rendering call since the user might be referencing an invalid drawable so we are just less verbose about it. The user will
           // not see the preview next to the code when referencing invalid drawables.
           String message = String.format("Could not read/render icon image %1$s", file.getPresentableUrl());
-          LOG.debug(message, e);
-          image = null;
+          if (ApplicationManager.getApplication().isUnitTestMode()) {
+            LOG.error(message, e);
+          } else {
+            LOG.debug(message, e);
+          }
         } finally {
           Disposer.dispose(renderer);
         }
@@ -164,7 +165,11 @@ class GutterIconFactory {
     }
     catch (Throwable e) {
       String message = String.format("Could not read/render icon image %1$s", file.getPresentableUrl());
-      LOG.warn(message, e);
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        LOG.error(message, e);
+      } else {
+        LOG.warn(message, e);
+      }
     }
 
     return null;

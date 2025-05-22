@@ -26,6 +26,7 @@ import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.EmptyActionGroup

@@ -28,7 +28,6 @@ import com.intellij.psi.PsiModifierListOwner
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
-import org.jetbrains.kotlin.analysis.api.annotations.annotations
 import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
@@ -139,7 +138,7 @@ private fun serializeAttrValueToString(value: JvmAnnotationAttributeValue?): Str
   }
 
 /**
- * Converts a [KtAnnotationValue] to a [String].
+ * Converts a [KaAnnotationValue] to a [String].
  *
  * Returns `null` if any attr value cannot be serialized.
  */

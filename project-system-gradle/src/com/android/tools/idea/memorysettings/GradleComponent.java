@@ -25,7 +25,6 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.xml.util.XmlStringUtil;
 import java.awt.event.ItemEvent;
-import java.util.List;
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.util.AndroidBundle;

@@ -16,7 +16,7 @@
 package com.android.tools.idea.flags;
 
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
-import com.intellij.openapi.options.UnnamedConfigurable;
+
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;

@@ -18,14 +18,13 @@ package com.android.tools.rendering.classloading
 import com.android.tools.rendering.classloading.test.sandboxing.MethodInterceptTest
 import java.io.StringWriter
 import kotlin.reflect.jvm.javaMethod
-import org.bouncycastle.asn1.x500.style.RFC4519Style.owner
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
-import org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.Type
 
 class DoNotIntercept {
   fun noArgsInstanceMethod() {

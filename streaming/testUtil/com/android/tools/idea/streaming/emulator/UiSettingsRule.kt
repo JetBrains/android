@@ -28,7 +28,6 @@ import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.disposable
 import com.intellij.testFramework.ProjectRule
-import com.jetbrains.rd.util.forEachReversed
 import kotlinx.coroutines.runBlocking
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
@@ -169,7 +168,7 @@ class UiSettingsRule : ExternalResource() {
 
   private fun apply(base: Statement, description: Description, vararg rules: TestRule): Statement {
     var statement = super.apply(base, description)
-    rules.forEachReversed { statement = it.apply(statement, description) }
+    rules.reversed().forEach { statement = it.apply(statement, description) }
     return statement
   }
 }

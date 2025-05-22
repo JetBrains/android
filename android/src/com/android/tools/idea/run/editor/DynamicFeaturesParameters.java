@@ -575,7 +575,7 @@ public class DynamicFeaturesParameters {
     }
   }
 
-  private static class StripedRowCellRenderer extends DefaultTableCellRenderer {
+  public static class StripedRowCellRenderer extends DefaultTableCellRenderer {
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -587,7 +587,7 @@ public class DynamicFeaturesParameters {
   }
 
   @VisibleForTesting
-  class FeatureNameCellRenderer extends StripedRowCellRenderer {
+  public class FeatureNameCellRenderer extends StripedRowCellRenderer {
     @Override
     @NotNull
     public Component getTableCellRendererComponent(@NotNull JTable table, @Nullable Object value,

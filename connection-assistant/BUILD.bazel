@@ -1,0 +1,66 @@
+### auto-generated section `build intellij.android.connection-assistant` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "connection-assistant_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "connection-assistant",
+  module_name = "intellij.android.connection-assistant",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "//android/android-adb:adb",
+    "//android/analytics",
+    "//android/assistant",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//platform/util/concurrency",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/ide-core",
+    "//platform/util",
+    "//platform/util:util-ui",
+  ],
+  runtime_deps = [":connection-assistant_resources"]
+)
+### auto-generated section `build intellij.android.connection-assistant` end
+
+### auto-generated section `build intellij.android.connection-assistant-test` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "connection-assistant-test_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "@lib//:jaxb-api",
+    "//android/android-adb:adb",
+    "//android/assistant",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/connection-assistant",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+  ]
+)
+### auto-generated section `build intellij.android.connection-assistant-test` end

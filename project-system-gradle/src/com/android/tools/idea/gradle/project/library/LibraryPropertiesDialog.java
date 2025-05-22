@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.library;
 
+import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
+import static com.intellij.util.ui.JBUI.Borders.customLine;
+import static com.intellij.util.ui.UIUtil.findComponentOfType;
+import static com.intellij.util.ui.UIUtil.findComponentsOfType;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
@@ -29,19 +36,13 @@ import com.intellij.openapi.ui.ex.MultiLineLabel;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
+import java.awt.BorderLayout;
+import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.util.ArrayUtil.EMPTY_STRING_ARRAY;
-import static com.intellij.util.ui.JBUI.Borders.customLine;
-import static com.intellij.util.ui.UIUtil.findComponentOfType;
-import static com.intellij.util.ui.UIUtil.findComponentsOfType;
 
 public class LibraryPropertiesDialog extends DialogWrapper {
   @NotNull private final Project myProject;

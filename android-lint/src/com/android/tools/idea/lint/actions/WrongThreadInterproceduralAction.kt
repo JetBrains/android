@@ -33,7 +33,6 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import java.util.ArrayList
 import java.util.EnumSet
 import kotlin.system.measureTimeMillis
 

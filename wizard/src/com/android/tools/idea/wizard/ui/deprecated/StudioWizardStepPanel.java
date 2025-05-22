@@ -16,11 +16,10 @@
 package com.android.tools.idea.wizard.ui.deprecated;
 
 import com.intellij.ui.components.JBLabel;
+import java.awt.BorderLayout;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * A panel that provides a standard look and feel across wizard steps used in Android Studio.

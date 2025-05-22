@@ -178,7 +178,7 @@ public class CreateKeyPosition extends BaseCreateKey {
       toCommit = keyPosition = mKeyFrameSet.getChildTagWriter(KEY_TAG);
     }
     String pos = mPosition.getText();
-    if (pos.trim().length() == 0 || pos.equals(POS_PROMPT)) {
+    if (pos.trim().isEmpty() || pos.equals(POS_PROMPT)) {
       showErrorDialog("Must define the position of the view");
       return null;
     }
@@ -195,7 +195,7 @@ public class CreateKeyPosition extends BaseCreateKey {
     keyPosition.setAttribute("motion", "keyPositionType", (String) mType.getSelectedItem());
 
     String xStr = mPercentX.getText().trim();
-    if (xStr.length() > 0 && !xStr.equals(PERCENT_PROMPT)) {
+    if (!xStr.isEmpty() && !xStr.equals(PERCENT_PROMPT)) {
       try {
         float f = Float.parseFloat(xStr);
         keyPosition.setAttribute("motion", "percentX", xStr);
@@ -205,7 +205,7 @@ public class CreateKeyPosition extends BaseCreateKey {
       }
     }
     String yStr = mPercentY.getText().trim();
-    if (yStr.length() > 0 && !yStr.equals(PERCENT_PROMPT)) {
+    if (!yStr.isEmpty() && !yStr.equals(PERCENT_PROMPT)) {
       try {
         float f = Float.parseFloat(yStr);
         keyPosition.setAttribute("motion", "percentY", yStr);

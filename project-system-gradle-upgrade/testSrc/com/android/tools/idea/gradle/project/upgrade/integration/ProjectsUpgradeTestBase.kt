@@ -67,7 +67,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import java.io.File
 
-open class ProjectsUpgradeTestBase {
+abstract class ProjectsUpgradeTestBase {
 
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!

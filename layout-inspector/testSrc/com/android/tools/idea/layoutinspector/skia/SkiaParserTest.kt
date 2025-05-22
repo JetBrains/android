@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.skia
 import com.android.SdkConstants
 import com.android.testutils.AssumeUtil.assumeNotMac
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.FakeSdkRule
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.InspectorView
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo

@@ -17,7 +17,6 @@ package com.android.tools.idea.ui;
 
 import com.android.tools.idea.stats.Distribution;
 import com.android.tools.idea.stats.DistributionService;
-import com.android.tools.idea.ui.DistributionChartComponent;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -27,19 +26,19 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.MouseInputAdapter;
-import java.awt.*;
+import java.awt.Cursor;
+import java.awt.Window;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.event.MouseInputAdapter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An explanation dialog that helps the user select an API level.

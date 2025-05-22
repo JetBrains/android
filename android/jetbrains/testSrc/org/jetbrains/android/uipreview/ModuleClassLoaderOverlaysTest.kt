@@ -25,7 +25,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.Type
 import java.nio.file.Files
 import java.nio.file.Paths
 

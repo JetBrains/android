@@ -61,7 +61,7 @@ public class AndroidTypedIntegerRenderer extends NodeRendererImpl {
     throws EvaluateException {
     final Value value = descriptor.getValue();
 
-    BatchEvaluator.getBatchEvaluator(evaluationContext.getDebugProcess())
+    BatchEvaluator.getBatchEvaluator(evaluationContext)
       .invoke(new ResolveTypedIntegerCommand(descriptor, evaluationContext, value, listener));
 
     return value.toString();

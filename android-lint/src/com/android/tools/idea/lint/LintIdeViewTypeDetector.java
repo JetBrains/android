@@ -19,14 +19,14 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
-import com.android.tools.res.LocalResourceRepository;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.checks.ViewTypeDetector;
 import com.android.tools.lint.detector.api.Context;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Scope;
+import com.android.tools.res.LocalResourceRepository;
 import java.util.Collection;
 import java.util.Collections;
-import com.android.tools.idea.res.IdeResourcesUtil;
 
 public class LintIdeViewTypeDetector extends ViewTypeDetector {
   static final Implementation IMPLEMENTATION = new Implementation(

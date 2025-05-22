@@ -17,7 +17,6 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.run.deployment.liveedit.setOptions
 import com.intellij.openapi.module.Module
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments

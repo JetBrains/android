@@ -35,13 +35,13 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel.Status
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import kotlin.time.Duration.Companion.seconds
 
 @VisibleForTesting val CONNECTED_STATE = AttachErrorState.MODEL_UPDATED
 @VisibleForTesting const val CONNECT_TIMEOUT_SECONDS: Long = 30L

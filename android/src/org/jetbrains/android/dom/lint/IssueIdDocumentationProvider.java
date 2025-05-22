@@ -15,9 +15,6 @@
  */
 package org.jetbrains.android.dom.lint;
 
-import static com.android.tools.lint.detector.api.TextFormat.TEXT;
-
-import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.Vendor;
 import com.android.tools.lint.detector.api.Issue;

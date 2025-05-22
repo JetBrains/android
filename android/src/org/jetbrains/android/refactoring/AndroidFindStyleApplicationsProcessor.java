@@ -1,3 +1,4 @@
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.refactoring;
 
 import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFileInResourceFolderType;
@@ -422,7 +423,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     }
   }
 
-  enum MyScope {
+  public enum MyScope {
     PROJECT, MODULE, FILE
   }
 }

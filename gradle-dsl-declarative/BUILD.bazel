@@ -1,0 +1,37 @@
+### auto-generated section `build intellij.android.gradle.dsl.declarative` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "gradle-dsl-declarative_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "gradle-dsl-declarative",
+  module_name = "intellij.android.gradle.dsl.declarative",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "//platform/core-impl",
+    "//platform/analysis-api:analysis",
+    "//platform/lang-api:lang",
+    "//platform/core-api:core",
+    "//platform/code-style-impl:codeStyle-impl",
+    "//android/gradle-dsl",
+    "//uast/uast-common:uast",
+    "//platform/lang-impl",
+    "//plugins/gradle",
+    "//plugins/kotlin/base/code-insight:kotlin-base-code-insight",
+    "//plugins/kotlin/base/util:kotlin-base-util",
+    "//android/gradle-declarative-lang",
+    "@lib//:commons-lang3",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+  ],
+  runtime_deps = [
+    ":gradle-dsl-declarative_resources",
+    "//android/gradle-declarative-lang-ide",
+  ]
+)
+### auto-generated section `build intellij.android.gradle.dsl.declarative` end

@@ -30,17 +30,17 @@ import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
 import javax.swing.JTable
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
-import com.intellij.testFramework.DisposableRule
 
 class CaptureNodeSummaryDetailsViewTest {
   @get:Rule

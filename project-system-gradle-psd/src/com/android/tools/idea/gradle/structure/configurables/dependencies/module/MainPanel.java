@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependency;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBSplitter;

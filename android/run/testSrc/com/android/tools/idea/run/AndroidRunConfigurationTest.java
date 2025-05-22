@@ -163,8 +163,8 @@ public class AndroidRunConfigurationTest {
                               consolePrinter,
                               new RunStats(myProjectRule.getProject()));
     verify(device).executeShellCommand(eq("am start -n com.example.mypackage/com.example.mypackage.MyActivity " +
-                 "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
-                 any(), anyLong(), any());
+                                          "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
+                                       any(), anyLong(), any());
 
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.TIRAMISU));
     myRunConfiguration.launch(app,
@@ -184,11 +184,11 @@ public class AndroidRunConfigurationTest {
   @Test
   public void testDeepLinkLaunch() throws Exception {
 
-   testDeepLink("example://host/path", "", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'example://host/path'");
-   testDeepLink("example://host/path", "-D", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'example://host/path' -D");
-   testDeepLink("https://example.com/example?foo=bar&baz=duck", "", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'https://example.com/example?foo=bar&baz=duck'");
-   testDeepLink("text'with'single'quotes", "", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'text'\\''with'\\''single'\\''quotes'");
-   testDeepLink("example://host/path", "", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'example://host/path'");
+    testDeepLink("example://host/path", "", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'example://host/path'");
+    testDeepLink("example://host/path", "-D", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'example://host/path' -D");
+    testDeepLink("https://example.com/example?foo=bar&baz=duck", "", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'https://example.com/example?foo=bar&baz=duck'");
+    testDeepLink("text'with'single'quotes", "", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'text'\\''with'\\''single'\\''quotes'");
+    testDeepLink("example://host/path", "", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'example://host/path'");
 
   }
 

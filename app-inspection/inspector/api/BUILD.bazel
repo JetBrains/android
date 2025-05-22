@@ -1,0 +1,43 @@
+### auto-generated section `build intellij.android.app-inspection.inspector.api` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "android-app-inspection-inspector-api",
+  module_name = "intellij.android.app-inspection.inspector.api",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:protobuf",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:google-protobuf-java-util",
+  ]
+)
+
+jvm_library(
+  name = "android-app-inspection-inspector-api_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [":android-app-inspection-inspector-api"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:protobuf",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:google-protobuf-java-util",
+    "//android/android-common:common",
+    "//platform/util",
+  ]
+)
+
+jvm_test(
+  name = "android-app-inspection-inspector-api_test",
+  runtime_deps = [":android-app-inspection-inspector-api_test_lib"]
+)
+### auto-generated section `build intellij.android.app-inspection.inspector.api` end

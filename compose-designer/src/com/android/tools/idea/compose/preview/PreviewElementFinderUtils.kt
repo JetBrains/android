@@ -60,10 +60,9 @@ import org.jetbrains.uast.UMethod
  * This method must be called under a read lock.
  */
 @RequiresReadLock
-fun UAnnotation.isPreviewAnnotation() =
+fun UAnnotation.isPreviewAnnotation(includingMultiplatform: Boolean = true) =
   (COMPOSE_PREVIEW_ANNOTATION_NAME == qualifiedName?.substringAfterLast(".") &&
-    COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName) ||
-    MULTIPLATFORM_PREVIEW_ANNOTATION_FQN == qualifiedName
+    COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName) || (includingMultiplatform && MULTIPLATFORM_PREVIEW_ANNOTATION_FQN == qualifiedName)
 
 /**
  * Returns true if the [UElement] is a `@Preview` annotation.

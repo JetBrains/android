@@ -31,7 +31,7 @@ import javax.swing.plaf.basic.BasicComboBoxEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class Editor extends BasicComboBoxEditor {
+public final class Editor extends BasicComboBoxEditor {
   @NotNull
   private final SkinComboBoxModel myModel;
 
@@ -46,7 +46,7 @@ final class Editor extends BasicComboBoxEditor {
   }
 
   @VisibleForTesting
-  Editor(@NotNull SkinComboBoxModel model, @Nullable Project project, @NotNull Function<Project, Optional<Path>> choosePath) {
+  public Editor(@NotNull SkinComboBoxModel model, @Nullable Project project, @NotNull Function<Project, Optional<Path>> choosePath) {
     myModel = model;
     myProject = project;
     myChoosePath = choosePath;

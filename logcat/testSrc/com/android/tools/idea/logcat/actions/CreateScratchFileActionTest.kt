@@ -32,9 +32,9 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
-import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.fail
 
 /** Tests for [CreateScratchFileAction] */
 @RunsInEdt

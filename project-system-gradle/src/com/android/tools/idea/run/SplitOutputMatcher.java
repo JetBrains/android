@@ -18,7 +18,7 @@ package com.android.tools.idea.run;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.build.OutputFile;
+import com.android.build.VariantOutput;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.model.IdeFilterData;
 import com.google.common.base.Strings;
@@ -57,7 +57,7 @@ public class SplitOutputMatcher {
 
         // find a matching output.
         for (IdeAndroidArtifactOutput variantOutput : outputs) {
-            String abiFilter = getFilter(variantOutput, OutputFile.ABI);
+            String abiFilter = getFilter(variantOutput, VariantOutput.ABI);
 
             if (abiFilter != null && !deviceAbis.contains(abiFilter)) {
                 continue;

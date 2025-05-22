@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import org.jetbrains.annotations.VisibleForTesting
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
-import kotlin.Comparator
 import kotlin.concurrent.withLock
 import kotlin.math.min
 

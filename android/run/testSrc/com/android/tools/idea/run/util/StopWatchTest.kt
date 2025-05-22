@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.run.util
 
+import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-
-import com.google.common.truth.Truth.assertThat
 
 class StopWatchTest {
   private  lateinit var testTimeSource: TestTimeSource

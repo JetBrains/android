@@ -18,21 +18,13 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.descendantsOfType
-import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.base.util.module
-import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.KtFile
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
 
 internal fun validatePsiDiff(inputs: Collection<LiveEditCompilerInput>, file: KtFile) {
   val oldState = inputs.first().oldState // All these should be the same; they all refer to the same file. This will get refactored.

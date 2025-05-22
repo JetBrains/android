@@ -17,14 +17,15 @@ package com.android.tools.adtui.device
 
 import com.android.annotations.concurrency.Slow
 import com.intellij.util.containers.CollectionFactory
-import org.jetbrains.kotlin.utils.ThreadSafe
+//import org.jetbrains.kotlin.utils.ThreadSafe
 import java.nio.file.Path
 
 /**
  * Cache of AVD skin definitions. The cache stores weak [SkinDefinition] references, so clients are expected
  * to maintain their own strong [SkinDefinition] references.
  */
-@ThreadSafe
+// TODO AS Ladybug Feature Drop Canary 5 - Find where is the ThreadSafe annotation moved
+//@ThreadSafe
 class SkinDefinitionCache {
   /** Skin definitions keyed by skin definition folders. */
   private val folderToSkin: MutableMap<Path, SkinDefinition?> = CollectionFactory.createConcurrentWeakValueMap()

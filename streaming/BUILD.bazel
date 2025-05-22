@@ -1,0 +1,292 @@
+### auto-generated section `build intellij.android.streaming` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "streaming_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "streaming",
+  module_name = "intellij.android.streaming",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:android-streaming-ffmpeg-javacpp",
+    "@lib//:guava",
+    "@lib//:hdr_histogram",
+    "@lib//:fastutil-min",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-coroutines-guava",
+    "@lib//:protobuf",
+    "@lib//:android-streaming-ffmpeg",
+    "@lib//:caffeine",
+    "//android/android-adb:adb",
+    "//android/android-adb-ui:adb-ui",
+    "//android/adt-ui",
+    "//android/analytics",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/layout-ui",
+    "//android/render-resources",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/collaboration-tools:collaborationTools",
+    "//platform/util/concurrency",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/execution",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/ide-core-impl",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-util-io:ide-util-io",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/projectModel-impl",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-ex",
+    "//platform/util/jdom",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//plugins/kotlin/idea",
+    "//android/project-system:projectSystem",
+    "//platform/platform-impl/ui:ide-ui",
+  ],
+  runtime_deps = [
+    ":streaming_resources",
+    "@lib//:android-streaming-ffmpeg-linux-x64",
+    "@lib//:android-streaming-ffmpeg-macos-aarch64",
+    "@lib//:android-streaming-ffmpeg-macos-x64",
+    "@lib//:android-streaming-ffmpeg-windows-x64",
+    "@lib//:android-streaming-javacpp-linux-x64",
+    "@lib//:android-streaming-javacpp-macos-aarch64",
+    "@lib//:android-streaming-javacpp-macos-x64",
+    "@lib//:android-streaming-javacpp-windows-x64",
+  ]
+)
+### auto-generated section `build intellij.android.streaming` end
+
+### auto-generated section `build intellij.android.streaming.integration` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "streaming-integration_test",
+  srcs = glob(["integration/**/*.kt", "integration/**/*.java"], allow_empty = True, exclude = [
+    "integration/event-logger/**/*",
+    "integration/languages/**/*",
+  ]),
+  associates = ["//android/streaming"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:layoutlib",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/artwork",
+    "//android/as-driver/utils:android-as-driver-utils_test_lib",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/project-system-gradle-models:projectSystem-gradle-models",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//platform/platform-api:ide",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//android/android-adb:adb",
+    "@lib//:guava",
+    "//java/testFramework",
+  ]
+)
+### auto-generated section `build intellij.android.streaming.integration` end
+
+### auto-generated section `build intellij.android.streaming.testUtil` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+java_library(
+  name = "streaming-testUtil",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "streaming-testUtil_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testUtil/**/*.kt", "testUtil/**/*.java"], allow_empty = True),
+  associates = ["//android/streaming"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:fastutil-min",
+    "@lib//:android-streaming-test_util-ffmpeg",
+    "@lib//:android-streaming-test_util-ffmpeg-javacpp",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:mockito",
+    "@lib//:mockito-kotlin",
+    "@lib//:truth",
+    "//android/android-adb:adb",
+    "//android/android-adb:adb-testUtil_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/ide-core-impl",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-ex",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+    "//platform/util:util-ui",
+    "//android/project-system:projectSystem",
+  ],
+  runtime_deps = [
+    "@lib//:android-streaming-test_util-ffmpeg-linux-x64",
+    "@lib//:android-streaming-test_util-ffmpeg-macos-aarch64",
+    "@lib//:android-streaming-test_util-ffmpeg-macos-x64",
+    "@lib//:android-streaming-test_util-ffmpeg-windows-x64",
+    "@lib//:android-streaming-test_util-javacpp-linux-x64",
+    "@lib//:android-streaming-test_util-javacpp-macos-aarch64",
+    "@lib//:android-streaming-test_util-javacpp-macos-x64",
+    "@lib//:android-streaming-test_util-javacpp-windows-x64",
+  ]
+)
+
+jvm_test(
+  name = "streaming-testUtil_test",
+  runtime_deps = [":streaming-testUtil_test_lib"]
+)
+### auto-generated section `build intellij.android.streaming.testUtil` end
+
+### auto-generated section `build intellij.android.streaming.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+java_library(
+  name = "streaming-tests",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "streaming-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True, exclude = ["testSrc/testApp/**/*"]),
+  associates = ["//android/streaming"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:layoutlib",
+    "@lib//:android-streaming-tests-ffmpeg",
+    "@lib//:android-streaming-tests-ffmpeg-javacpp",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:fastutil-min",
+    "@lib//:http-client",
+    "@lib//:jimfs",
+    "@lib//:kotlin-test",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-coroutines-test",
+    "@lib//:ktor-client-cio",
+    "@lib//:mockito",
+    "@lib//:protobuf",
+    "@lib//:truth",
+    "//android/android-adb:adb",
+    "//android/android-adb:adb-testUtil_test_lib",
+    "//android/android-adb-ui:adb-ui",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/streaming:streaming-testUtil_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/execution",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/ide-core-impl",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/platform-util-io:ide-util-io",
+    "//images",
+    "//images:images_test_lib",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/testFramework/core",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-ex",
+    "//platform/util/jdom",
+    "//platform/util:util-ui",
+    "//plugins/webp",
+    "//android/project-system:projectSystem",
+    "@lib//:mockito-kotlin",
+  ],
+  runtime_deps = [
+    "@lib//:android-streaming-tests-ffmpeg-linux-x64",
+    "@lib//:android-streaming-tests-ffmpeg-macos-aarch64",
+    "@lib//:android-streaming-tests-ffmpeg-macos-x64",
+    "@lib//:android-streaming-tests-ffmpeg-windows-x64",
+    "@lib//:android-streaming-tests-javacpp-linux-x64",
+    "@lib//:android-streaming-tests-javacpp-macos-aarch64",
+    "@lib//:android-streaming-tests-javacpp-macos-x64",
+    "@lib//:android-streaming-tests-javacpp-windows-x64",
+  ]
+)
+
+jvm_test(
+  name = "streaming-tests_test",
+  runtime_deps = [":streaming-tests_test_lib"]
+)
+### auto-generated section `build intellij.android.streaming.tests` end

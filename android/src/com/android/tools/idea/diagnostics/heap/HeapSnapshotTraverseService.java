@@ -70,7 +70,9 @@ public final class HeapSnapshotTraverseService {
 
   @NotNull
   private final Alarm alarm;
-  private boolean triedToLoadAgent = false;
+
+  // TODO Fix: nvuk We are disabling loading of the agent since native files arent available in IntelliJ due to signing issue.
+  private boolean triedToLoadAgent = true;
   private boolean agentSuccessfullyLoaded = false;
 
   HeapSnapshotTraverseService() {

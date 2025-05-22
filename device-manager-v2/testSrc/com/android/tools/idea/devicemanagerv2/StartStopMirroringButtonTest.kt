@@ -25,10 +25,10 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.components.service
 import com.intellij.testFramework.ProjectRule
 import icons.StudioIcons
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 

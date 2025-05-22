@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.intellij.openapi.Disposable
-import java.util.*
+import java.util.Spliterator
 import java.util.function.Consumer
 import java.util.stream.Stream
 

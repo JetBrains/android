@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.actions;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;

@@ -19,18 +19,18 @@ import com.android.SdkConstants
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 import org.jetbrains.kotlin.psi.KtFile
-import org.objectweb.asm.Opcodes.*
-import org.objectweb.asm.Type
-import org.objectweb.asm.tree.AbstractInsnNode
-import org.objectweb.asm.tree.FieldInsnNode
-import org.objectweb.asm.tree.IntInsnNode
-import org.objectweb.asm.tree.LdcInsnNode
-import org.objectweb.asm.tree.MethodInsnNode
-import org.objectweb.asm.tree.MethodNode
-import org.objectweb.asm.tree.analysis.Analyzer
-import org.objectweb.asm.tree.analysis.BasicInterpreter
-import org.objectweb.asm.tree.analysis.BasicValue
-import org.objectweb.asm.tree.analysis.Frame
+import org.jetbrains.org.objectweb.asm.Opcodes.*
+import org.jetbrains.org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.tree.AbstractInsnNode
+import org.jetbrains.org.objectweb.asm.tree.FieldInsnNode
+import org.jetbrains.org.objectweb.asm.tree.IntInsnNode
+import org.jetbrains.org.objectweb.asm.tree.LdcInsnNode
+import org.jetbrains.org.objectweb.asm.tree.MethodInsnNode
+import org.jetbrains.org.objectweb.asm.tree.MethodNode
+import org.jetbrains.org.objectweb.asm.tree.analysis.Analyzer
+import org.jetbrains.org.objectweb.asm.tree.analysis.BasicInterpreter
+import org.jetbrains.org.objectweb.asm.tree.analysis.BasicValue
+import org.jetbrains.org.objectweb.asm.tree.analysis.Frame
 
 interface GroupTable {
   /**
@@ -123,7 +123,7 @@ fun computeGroupTable(classes: List<IrClass>, groups: List<ComposeGroup>): Group
     val outerClass = classesByName[clazz.enclosingMethod?.outerClass] ?: continue
     val outerMethod =
       outerClass.methods.singleOrNull { it.name == clazz.enclosingMethod?.outerMethod && it.desc == clazz.enclosingMethod.outerMethodDesc }
-        ?: continue
+      ?: continue
     inners.computeIfAbsent(outerMethod) { mutableListOf() }.add(clazz)
   }
 

@@ -18,7 +18,7 @@
 package com.android.tools.idea.testing
 
 import com.android.SdkConstants
-import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
+import com.android.test.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion

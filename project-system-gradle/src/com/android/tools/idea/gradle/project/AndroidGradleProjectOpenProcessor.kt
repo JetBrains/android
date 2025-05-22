@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.GradleProjects
@@ -33,6 +34,7 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.projectImport.ProjectOpenProcessor
 import com.intellij.ui.IdeUICustomization
@@ -48,6 +50,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
     get() = "Android Gradle"
 
   override fun canOpenProject(file: VirtualFile): Boolean =
+      (Registry.`is`("android.gradle.importer.enabled") || IdeInfo.getInstance().isAndroidStudio) &&
       GradleProjects.canImportAsGradleProject(file)
 
   override fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {

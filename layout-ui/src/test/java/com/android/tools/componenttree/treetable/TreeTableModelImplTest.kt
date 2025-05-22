@@ -32,13 +32,13 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.ui.UIUtil
-import javax.swing.SwingUtilities
-import javax.swing.event.TreeModelEvent
-import javax.swing.tree.TreeSelectionModel
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.SwingUtilities
+import javax.swing.event.TreeModelEvent
+import javax.swing.tree.TreeSelectionModel
 
 class TreeTableModelImplTest {
   companion object {

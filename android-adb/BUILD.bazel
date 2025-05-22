@@ -1,0 +1,136 @@
+### auto-generated section `build intellij.android.adb` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "adb_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "adb",
+  module_name = "intellij.android.adb",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-coroutines-guava",
+    "@lib//:zxing-core",
+    "@lib//:protobuf",
+    "//android/adt-ui",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/util/concurrency",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/xdebugger-api:debugger",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-util-io:ide-util-io",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//android/analytics",
+    "//platform/xdebugger-impl:debugger-impl",
+  ],
+  runtime_deps = [":adb_resources"]
+)
+### auto-generated section `build intellij.android.adb` end
+
+### auto-generated section `build intellij.android.adb.testUtil` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+java_library(
+  name = "adb-testUtil",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "adb-testUtil_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testUtil/**/*.kt", "testUtil/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "//android/android-adb:adb",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//platform/core-api:core",
+    "//platform/extensions",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+  ]
+)
+
+jvm_test(
+  name = "adb-testUtil_test",
+  runtime_deps = [":adb-testUtil_test_lib"]
+)
+### auto-generated section `build intellij.android.adb.testUtil` end
+
+### auto-generated section `build intellij.android.adb.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "adb-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/android-adb:adb"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-coroutines-test",
+    "@lib//:mockito",
+    "@lib//:protobuf",
+    "@lib//:truth",
+    "@lib//:zxing-core",
+    "//android/android-adb:adb-testUtil_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/artwork",
+    "//android/android-common:common",
+    "//android/android-common:common-tests_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//platform/core-api:core",
+    "//platform/lang-impl",
+    "//platform/core-ui",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/ide-core-impl",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/testFramework/common",
+    "//platform/util",
+    "//platform/util/jdom",
+    "//platform/util:util-ui",
+  ]
+)
+### auto-generated section `build intellij.android.adb.tests` end

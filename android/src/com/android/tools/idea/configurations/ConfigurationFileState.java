@@ -22,7 +22,6 @@ import com.android.sdklib.devices.State;
 import com.android.tools.configurations.Configuration;
 import com.google.common.base.Strings;
 import com.intellij.util.xmlb.annotations.Tag;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

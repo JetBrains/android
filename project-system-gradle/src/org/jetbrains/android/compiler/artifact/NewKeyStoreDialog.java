@@ -6,16 +6,17 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import java.awt.BorderLayout;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import org.jetbrains.android.exportSignedPackage.NewKeyForm;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.android.util.SaveFileListener;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Collections;
-import java.util.List;
 
 public class NewKeyStoreDialog extends DialogWrapper {
   private JPanel myNewKeyPanel;

@@ -55,7 +55,7 @@ internal class LogcatEmitterProcessListener(private val process: DebugProcessImp
   override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
     try {
       val eventContext = process.suspendManager.eventContexts.firstOrNull() ?: return
-      val vm = process.virtualMachineProxy
+      val vm = eventContext.virtualMachineProxy
       val logClass = vm.classesByName(ANDROID_LOG_CLASS_NAME).first() as ClassType
       val logMethod = logClass.methodsByName(ANDROID_LOG_METHOD_NAME, ANDROID_LOG_METHOD_SIGNATURE).first()
 

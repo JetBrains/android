@@ -24,7 +24,7 @@ import java.util.Objects
  * A deployment target for an app, binding a Device with a BootOption. A user actually selects these
  * (and not devices) with the combobox or the Select Multiple Devices dialog.
  */
-internal class DeploymentTarget(val device: DeploymentTargetDevice, val bootOption: BootOption) {
+class DeploymentTarget(val device: DeploymentTargetDevice, val bootOption: BootOption) {
 
   val deviceId: DeviceId
     get() = device.id

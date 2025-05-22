@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dependencies.runsGradleDependencies
 
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dependencies.CommonPluginsInserter
 import com.android.tools.idea.gradle.dependencies.ExactDependencyMatcher
 import com.android.tools.idea.gradle.dependencies.FalsePluginMatcher

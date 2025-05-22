@@ -1,0 +1,43 @@
+### auto-generated section `build intellij.android.projectSystem.gradle.repositorySearch` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "projectSystem-gradle-repositorySearch",
+  module_name = "intellij.android.projectSystem.gradle.repositorySearch",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:gson",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "//android/android:core",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/ide-core",
+    "//platform/platform-util-io:ide-util-io",
+    "//platform/util",
+    "//platform/util/jdom",
+  ]
+)
+### auto-generated section `build intellij.android.projectSystem.gradle.repositorySearch` end
+
+### auto-generated section `build intellij.android.projectSystem.gradle.repositorySearch.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "projectSystem-gradle-repositorySearch-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "//android/project-system-gradle-repository-search:projectSystem-gradle-repositorySearch",
+  ]
+)
+### auto-generated section `build intellij.android.projectSystem.gradle.repositorySearch.tests` end

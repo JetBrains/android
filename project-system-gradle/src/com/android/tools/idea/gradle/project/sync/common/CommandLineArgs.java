@@ -31,7 +31,6 @@ import static com.android.tools.idea.gradle.util.GradleInvocationParams.addAndro
 import static com.intellij.util.ArrayUtil.toStringArray;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;

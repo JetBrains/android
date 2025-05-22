@@ -57,9 +57,10 @@ interface GradleSyncState {
   fun subscribe(project: Project, listener: GradleSyncListenerWithRoot, disposable: Disposable): MessageBusConnection
 
   companion object {
-    @JvmField
-    val JDK_LOCATION_WARNING_NOTIFICATION_GROUP: NotificationGroup =
+    @JvmStatic
+    val JDK_LOCATION_WARNING_NOTIFICATION_GROUP: NotificationGroup by lazy {
       NotificationGroupManager.getInstance().getNotificationGroup("JDK Location different to JAVA_HOME")
+    }
 
     /**
      * These methods allow the registering of listeners to [GradleSyncState].
@@ -86,19 +87,19 @@ interface GradleSyncState {
     @JvmStatic
     fun getInstance(project: Project): GradleSyncState =
       project.getService(GradleSyncState::class.java)
-        ?: if (ApplicationManager.getApplication().isUnitTestMode) object : GradleSyncState {
-          override val isSyncInProgress: Boolean = false
-          override val externalSystemTaskId: ExternalSystemTaskId? = null
-          override val lastSyncFinishedTimeStamp: Long = -1
-          override val lastSyncedGradleVersion: GradleVersion? = null
-          override fun lastSyncFailed(): Boolean = false
-          override fun isSyncNeeded(): ThreeState = ThreeState.NO
-          override fun getSyncNeededReason(): GradleSyncNeededReason? = null
-          override fun subscribe(project: Project, listener: GradleSyncListenerWithRoot, disposable: Disposable): MessageBusConnection {
-            error("Not supported in unit test mode")
-          }
+      ?: if (ApplicationManager.getApplication().isUnitTestMode) object : GradleSyncState {
+        override val isSyncInProgress: Boolean = false
+        override val externalSystemTaskId: ExternalSystemTaskId? = null
+        override val lastSyncFinishedTimeStamp: Long = -1
+        override val lastSyncedGradleVersion: GradleVersion? = null
+        override fun lastSyncFailed(): Boolean = false
+        override fun isSyncNeeded(): ThreeState = ThreeState.NO
+        override fun getSyncNeededReason(): GradleSyncNeededReason? = null
+        override fun subscribe(project: Project, listener: GradleSyncListenerWithRoot, disposable: Disposable): MessageBusConnection {
+          error("Not supported in unit test mode")
         }
-        else error("GradleSyncState service is not registered.")
+      }
+      else error("GradleSyncState service is not registered.")
   }
 }
 

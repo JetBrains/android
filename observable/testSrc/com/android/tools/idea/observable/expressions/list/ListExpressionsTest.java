@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.observable.expressions.list;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.observable.collections.ObservableList;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import java.util.Locale;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public final class ListExpressionsTest {
 

@@ -25,10 +25,10 @@ import com.google.common.hash.Hashing
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.diagnostic.Logger
+import org.jetbrains.android.facet.AndroidFacet
 import java.util.Objects
 import java.util.concurrent.Executor
 import java.util.function.Consumer
-import org.jetbrains.android.facet.AndroidFacet
 
 /** Usage tracker implementation for Compose MultiPreview. */
 interface MultiPreviewUsageTracker {

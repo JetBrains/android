@@ -27,11 +27,11 @@ import com.intellij.ide.projectView.impl.ProjectViewImpl
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.project.Project
-import com.intellij.ui.icons.CachedImageIcon
 import com.intellij.ui.DeferredIconImpl
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RetrievableIcon
 import com.intellij.ui.RowIcon
+import com.intellij.ui.icons.CachedImageIcon
 import sun.swing.ImageIconUIResource
 import java.io.File
 import javax.swing.Icon
@@ -71,7 +71,7 @@ fun <T : Any> Project.dumpAndroidProjectView(
       this is LayeredIcon -> {
         // b/256898739 ignore symlink overlay for ProjectView snapshot
         // When running from bazel some of NDK files are symlinked, while running from IDE direct path is used
-        val significantLayers = allLayers.filter { icon -> icon != AllIcons.Nodes.Symlink }
+        val significantLayers = allLayers.filter { icon -> icon != AllIcons.Nodes.Symlink }.filterNotNull()
         if (significantLayers.size == 1) {
           getIcon(0)?.toText()
         }

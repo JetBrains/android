@@ -16,13 +16,13 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule

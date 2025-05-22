@@ -37,7 +37,7 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * [PsiElementFinder] that provides light Manifest classes.
  *
- * This class is a project service, but it's not declared as [PsiElementFinder.EP_NAME] extension.
+ * This class is a project service, but it's not declared as [PsiElementFinder.EP] extension.
  * The reason for that is that it's up to the project system to decide whether to use this logic
  * (see [ProjectSystemPsiElementFinder]).
  */

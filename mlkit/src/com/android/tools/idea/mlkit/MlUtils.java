@@ -24,7 +24,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.mlkit.MlNames;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Streams;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;

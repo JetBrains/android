@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.toml
 
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -26,10 +27,26 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.VfsTestUtil
 import org.junit.Assume.assumeTrue
 import org.junit.Test
+import org.junit.runners.Parameterized
 import org.mockito.Mockito.mock
 import com.google.common.truth.Truth.assertThat
 
 class TomlDslParserTest : LightPlatformTestCase() {
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "For file: {0}")
+    fun filePath() = listOf("gradle/libs.versions.toml", "build.gradle.toml")
+  }
+
+  override fun setUp() {
+    DeclarativeIdeSupport.override(true)
+    super.setUp()
+  }
+
+  override fun tearDown() {
+    DeclarativeIdeSupport.clearOverride()
+    super.tearDown()
+  }
 
   @Test
   fun testSingleLibraryLiteralString() {

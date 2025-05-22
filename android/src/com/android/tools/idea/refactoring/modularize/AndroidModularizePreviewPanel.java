@@ -45,7 +45,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.nio.charset.Charset;
 import java.util.*;
-import org.jetbrains.kotlin.psi.KtClass;
+
 import org.jetbrains.kotlin.psi.KtFile;
 
 public class AndroidModularizePreviewPanel {

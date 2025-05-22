@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.EventListener;
+import org.jetbrains.annotations.NotNull;
 
 public interface GradleSyncListener extends EventListener {
 

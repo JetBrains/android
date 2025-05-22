@@ -17,7 +17,6 @@ package com.android.tools.idea.psi.light
 
 import com.android.tools.idea.psi.annotateType
 import com.intellij.lang.Language
-import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiType

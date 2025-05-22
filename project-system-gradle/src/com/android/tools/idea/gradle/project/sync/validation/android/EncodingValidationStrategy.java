@@ -15,24 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
+import static com.android.tools.idea.project.messages.MessageType.INFO;
+
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
-
-import static com.android.tools.idea.project.messages.MessageType.INFO;
-
-class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
+public class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
   @NotNull private final EncodingProjectManager myEncodings;
   @NotNull private final Charset myProjectEncoding;
   @NotNull private final AgpVersion myOneDotTwoPluginVersion;
@@ -44,7 +43,7 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
   }
 
   @VisibleForTesting
-  EncodingValidationStrategy(@NotNull Project project, @NotNull EncodingProjectManager encodings) {
+  public EncodingValidationStrategy(@NotNull Project project, @NotNull EncodingProjectManager encodings) {
     super(project);
     myEncodings = encodings;
     myProjectEncoding = myEncodings.getDefaultCharset();
@@ -75,7 +74,7 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
   }
 
   @Override
-  void fixAndReportFoundIssues() {
+  public void fixAndReportFoundIssues() {
     if (myMismatchingEncoding != null) {
       Project project = getProject();
 
@@ -95,12 +94,12 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
 
   @VisibleForTesting
   @Nullable
-  String getMismatchingEncoding() {
+  public String getMismatchingEncoding() {
     return myMismatchingEncoding;
   }
 
   @VisibleForTesting
-  void setMismatchingEncoding(@Nullable String mismatchingEncoding) {
+  public void setMismatchingEncoding(@Nullable String mismatchingEncoding) {
     myMismatchingEncoding = mismatchingEncoding;
   }
 }

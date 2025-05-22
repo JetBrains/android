@@ -16,15 +16,14 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.resources.ResourceType
-import com.android.tools.idea.ui.resourcemanager.rendering.ImageCacheRule
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCacheRule
 import com.android.tools.idea.ui.resourcemanager.rendering.StubAssetPreviewManager
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockVirtualFile
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.UIUtil
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color

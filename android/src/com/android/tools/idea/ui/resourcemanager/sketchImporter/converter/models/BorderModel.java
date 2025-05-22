@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models;
 
-import static com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.InheritedProperties.DEFAULT_OPACITY;
-
 import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 

@@ -130,13 +130,13 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
       .all { it.selectedIndex != -1 }
 
   private fun populateAvailableQualifiers(comboBox: ComboBox<*>) {
-    var availableQualifiers = viewModel.getAvailableQualifiers().map { ResourceQualifierWrapper(it) }
+    var availableQualifiers: List<ResourceQualifierWrapper> = viewModel.getAvailableQualifiers().map { ResourceQualifierWrapper(it) }
     val selectedItem = comboBox.selectedItem as ResourceQualifierWrapper?
     if (selectedItem != null) {
       // Prepend the selected element which is not in the available qualifiers.
       availableQualifiers = listOf(selectedItem) + availableQualifiers
     }
-    (comboBox as ComboBox<ResourceQualifierWrapper?>).model = CollectionComboBoxModel(availableQualifiers, selectedItem)
+    (comboBox as ComboBox<ResourceQualifierWrapper?>).model = CollectionComboBoxModel(availableQualifiers.toMutableList<ResourceQualifierWrapper?>(), selectedItem)
   }
 
   /**

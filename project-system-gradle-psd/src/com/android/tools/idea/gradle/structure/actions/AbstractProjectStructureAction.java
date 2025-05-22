@@ -16,24 +16,14 @@
 package com.android.tools.idea.gradle.structure.actions;
 
 import com.android.tools.idea.gradle.actions.AndroidStudioGradleAction;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl;
-import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-
-import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT;
 
 public abstract class AbstractProjectStructureAction extends AndroidStudioGradleAction {
   public AbstractProjectStructureAction(@Nullable String text) {
@@ -58,11 +48,6 @@ public abstract class AbstractProjectStructureAction extends AndroidStudioGradle
         doPerform(module, ((AndroidProjectSettingsServiceImpl)service), e);
       }
     }
-  }
-
-  @Override
-  public @NotNull ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.BGT;
   }
 
   protected abstract Module getTargetModule(@NotNull AnActionEvent e);

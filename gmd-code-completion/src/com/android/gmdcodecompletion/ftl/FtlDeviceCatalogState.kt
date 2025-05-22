@@ -19,7 +19,7 @@ import com.android.gmdcodecompletion.GmdDeviceCatalog
 import com.android.gmdcodecompletion.GmdDeviceCatalogState
 import com.intellij.util.xmlb.Converter
 import com.intellij.util.xmlb.annotations.OptionTag
-import com.jetbrains.rd.util.Date
+import java.util.Date
 
 /** This class stores data that is persisted by FtlDeviceCatalogService across idea applications */
 data class FtlDeviceCatalogState(

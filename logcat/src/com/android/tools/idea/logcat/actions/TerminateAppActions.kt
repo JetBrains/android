@@ -33,8 +33,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import javax.swing.Icon
 import kotlinx.coroutines.launch
+import javax.swing.Icon
 
 /** A base class for actions that perform app termination */
 internal sealed class TerminateAppActions(text: String, icon: Icon) :

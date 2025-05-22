@@ -229,7 +229,7 @@ public class DetachedToolWindowManager implements Disposable {
     }
   }
 
-  interface DetachedToolWindowFactory {
+  public interface DetachedToolWindowFactory {
     DetachedToolWindow create(@NotNull Project project, @NotNull String workBenchName, @NotNull ToolWindowDefinition definition);
   }
 }

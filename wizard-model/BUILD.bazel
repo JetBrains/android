@@ -1,0 +1,49 @@
+### auto-generated section `build intellij.android.wizard.model` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "wizard-model",
+  module_name = "intellij.android.wizard.model",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "//android/observable",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/util",
+    "//platform/util-rt",
+  ]
+)
+
+jvm_library(
+  name = "wizard-model_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [":wizard-model"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//android/observable",
+    "//android/observable:observable_test_lib",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+  ]
+)
+
+jvm_test(
+  name = "wizard-model_test",
+  runtime_deps = [":wizard-model_test_lib"]
+)
+### auto-generated section `build intellij.android.wizard.model` end

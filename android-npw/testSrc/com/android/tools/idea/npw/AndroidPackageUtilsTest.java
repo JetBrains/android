@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw;
 
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
@@ -24,12 +26,9 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.mockito.Mockito;
-
-import java.io.File;
-
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 
 /**
  * Tests for {@link AndroidPackageUtils}.

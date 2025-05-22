@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.dsl.api.crashlytics.CrashlyticsModel
 import com.android.tools.idea.gradle.dsl.api.crashlytics.FirebaseCrashlyticsModel
 import com.android.tools.idea.gradle.dsl.model.BlockModelBuilder
 import com.android.tools.idea.gradle.dsl.model.BlockModelProvider
-import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement
 import com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElement.CRASHLYTICS

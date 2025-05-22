@@ -1,0 +1,37 @@
+### auto-generated section `build intellij.android.as-driver.utils` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+java_library(
+  name = "android-as-driver-utils",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "android-as-driver-utils_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:ktor-client-cio",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//platform/analysis-api:analysis",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+    "//platform/core-api:core",
+    "@lib//:gson",
+  ]
+)
+
+jvm_test(
+  name = "android-as-driver-utils_test",
+  runtime_deps = [":android-as-driver-utils_test_lib"]
+)
+### auto-generated section `build intellij.android.as-driver.utils` end

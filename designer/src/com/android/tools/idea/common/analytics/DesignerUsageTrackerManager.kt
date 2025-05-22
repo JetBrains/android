@@ -24,12 +24,12 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.Executor
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
-import org.jetbrains.annotations.TestOnly
 
 class DesignerUsageTrackerManager<T, K : Disposable>(
   private val factory: (Executor, K?, Consumer<AndroidStudioEvent.Builder>) -> T,

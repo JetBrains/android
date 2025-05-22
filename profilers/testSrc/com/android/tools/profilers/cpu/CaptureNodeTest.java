@@ -26,7 +26,7 @@ import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.intellij.util.containers.ContainerUtil;
-import java.lang.reflect.Array;
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;

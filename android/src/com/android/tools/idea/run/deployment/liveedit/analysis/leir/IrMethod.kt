@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis.leir
 
-import org.objectweb.asm.Type
-import org.objectweb.asm.tree.ClassNode
-import org.objectweb.asm.tree.MethodNode
-import org.objectweb.asm.tree.analysis.Analyzer
-import org.objectweb.asm.tree.analysis.BasicInterpreter
-import org.objectweb.asm.tree.analysis.BasicValue
+
+import org.jetbrains.org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.tree.MethodNode
 
 class IrMethod(val clazz: IrClass, val node: MethodNode) {
   val name: String = node.name

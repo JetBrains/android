@@ -17,8 +17,6 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -133,15 +131,15 @@ public abstract class LazyMemoryObjectTreeNode<T extends MemoryObject> extends M
 
   @NotNull
   @Override
-  public ImmutableList<MemoryObjectTreeNode<T>> getChildren() {
+  public List<MemoryObjectTreeNode<T>> getChildren() {
     expandNode();
     return super.getChildren();
   }
 
   @VisibleForTesting
-  ImmutableList<MemoryObjectTreeNode<T>> getBuiltChildren() {
+  List<MemoryObjectTreeNode<T>> getBuiltChildren() {
     ensureOrder();
-    return ContainerUtil.immutableList(myChildrenView);
+    return List.copyOf(myChildrenView);
   }
 
   public void reset() {

@@ -16,18 +16,17 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * All the CDep resolvers collected.
  */
-class CDepIncludeResolver extends IncludeResolver {
+public class CDepIncludeResolver extends IncludeResolver {
   @NotNull private final IncludeResolver[] myResolvers;
 
-  CDepIncludeResolver() {
+  public CDepIncludeResolver() {
     myResolvers = new IncludeResolver[]{new CDepMultipackageIncludeResolver(), new CDepSimplePackageIncludeResolver()};
   }
 

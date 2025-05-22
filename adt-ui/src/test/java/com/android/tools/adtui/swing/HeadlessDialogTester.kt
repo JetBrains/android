@@ -209,8 +209,7 @@ private val dispatchEventMethod = ReflectionUtil.getDeclaredMethod(EventQueue::c
 /**
  * Implementation of [DialogWrapperPeerFactory] for headless tests involving dialogs.
  */
-class HeadlessDialogWrapperPeerFactory : DialogWrapperPeerFactory() {
-
+private class HeadlessDialogWrapperPeerFactory : DialogWrapperPeerFactory() {
   override fun createPeer(wrapper: DialogWrapper, project: Project?, canBeParent: Boolean): DialogWrapperPeer {
     return HeadlessDialogWrapperPeer(wrapper, project)
   }
@@ -390,9 +389,9 @@ private class HeadlessDialogWrapperPeer(
     ComponentUtil.decorateWindowHeader(rootPane)
     val window = window
     if (window is JDialog && !window.isUndecorated) {
-      ToolbarService.getInstance().setTransparentTitleBar(window, rootPane) { runnable: Runnable ->
+      ToolbarService.getInstance().setTransparentTitleBar(window = window, rootPane = rootPane, onDispose = { runnable ->
         Disposer.register(wrapper.disposable, runnable::run)
-      }
+      })
     }
 
     val dialog = MyDialog()

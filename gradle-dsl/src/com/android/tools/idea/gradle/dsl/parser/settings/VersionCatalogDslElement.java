@@ -84,13 +84,13 @@ public class VersionCatalogDslElement extends GradleDslBlockElement implements G
     return false;
   }
 
-  @Override
-  @Nullable
-  public String getAccessMethodName() { return VERSION_CATALOG.namedObjectAssociatedName; }
-
   private static boolean callHasFilesArgument(GradleDslMethodCall call) {
     return ContainerUtil.exists(call.getArguments(), arg ->
       arg instanceof GradleDslMethodCall
       && "files".equals(arg.getName()));
   }
+
+  @Override
+  @Nullable
+  public String getAccessMethodName() { return VERSION_CATALOG.namedObjectAssociatedName; }
 }

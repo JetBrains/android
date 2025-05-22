@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.testing;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+import static com.intellij.util.ArrayUtilRt.EMPTY_INT_ARRAY;
+import static org.junit.Assert.assertNotNull;
+
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.editor.Document;
@@ -29,17 +34,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
-import static com.intellij.util.ArrayUtilRt.EMPTY_INT_ARRAY;
-import static org.junit.Assert.assertNotNull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Utility functions for working with HighlightInfos in a source file

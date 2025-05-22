@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.npw.project
 
-import com.android.builder.model.SourceProvider
-
-import java.io.File
-
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
+import com.android.builder.model.SourceProvider
 import com.android.builder.model.v2.CustomSourceDirectory
 import com.android.tools.idea.projectsystem.AndroidModulePaths
+import java.io.File
 
 class SourceProviderAdapter(private val name: String, private val paths: AndroidModulePaths) : SourceProvider {
 

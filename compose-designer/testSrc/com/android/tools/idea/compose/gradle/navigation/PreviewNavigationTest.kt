@@ -48,10 +48,6 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.util.concurrent.CountDownLatch
-import javax.swing.JPanel
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.junit.Assert.assertEquals
@@ -61,6 +57,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.util.concurrent.CountDownLatch
+import javax.swing.JPanel
 
 private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandler {
   /**

@@ -17,14 +17,17 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies.detai
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor;
-import com.android.tools.idea.gradle.structure.model.*;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.openapi.util.Disposer;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import kotlin.Unit;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class SingleDeclaredLibraryDependencyDetails implements ConfigurationDependencyDetails {
   private JPanel myMainPanel;

@@ -1,0 +1,21 @@
+### auto-generated section `build intellij.android.gradle.dsl.flags` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "gradle-dsl-flags_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "gradle-dsl-flags",
+  module_name = "intellij.android.gradle.dsl.flags",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:kotlin-stdlib",
+    "//platform/util",
+  ],
+  runtime_deps = [":gradle-dsl-flags_resources"]
+)
+### auto-generated section `build intellij.android.gradle.dsl.flags` end

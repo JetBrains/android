@@ -101,7 +101,7 @@ class LayoutPanel extends JPanel {
   private void tableSelection() {
     int index = mConstraintSetTable.getSelectedRow();
     Track.layoutTableSelect(mMeModel.myTrack);
-    MTag[] tag = (index == -1 || mDisplayedRows.size() == 0) ? new MTag[0] : new MTag[]{mDisplayedRows.get(index)};
+    MTag[] tag = (index == -1 || mDisplayedRows.isEmpty()) ? new MTag[0] : new MTag[]{mDisplayedRows.get(index)};
     if (tag.length != 0) {
       mMeModel.setSelectedViewIDs(Arrays.asList(Utils.stripID(tag[0].getAttributeValue("id"))));
     }
@@ -181,7 +181,7 @@ class LayoutPanel extends JPanel {
   }
 
   private String getMask(ArrayList<MTag> children, HashMap<String, Attribute> attrs, String id) {
-    if (children.size() == 0 || attrs.size() > 1 && id != null) {
+    if (children.isEmpty() || attrs.size() > 1 && id != null) {
       return "all";
     }
     else {

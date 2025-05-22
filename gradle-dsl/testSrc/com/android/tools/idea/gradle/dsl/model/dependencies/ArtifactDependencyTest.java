@@ -41,7 +41,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import static org.junit.Assume.assumeTrue;
 
-import com.android.tools.idea.flags.DeclarativeStudioSupport;
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -80,6 +80,8 @@ import org.jetbrains.kotlin.psi.KtCallExpression;
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.toml.lang.psi.TomlLiteral;
 import org.toml.lang.psi.impl.TomlInlineTableImpl;

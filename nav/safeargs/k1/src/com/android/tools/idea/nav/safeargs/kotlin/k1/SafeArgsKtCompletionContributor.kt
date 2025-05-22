@@ -31,7 +31,7 @@ import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.idea.KotlinDescriptorIconProvider
-import org.jetbrains.kotlin.idea.base.utils.fqname.isImported
+import org.jetbrains.kotlin.idea.base.util.isImported
 import org.jetbrains.kotlin.idea.completion.DeclarationLookupObjectImpl
 import org.jetbrains.kotlin.idea.completion.handlers.KotlinClassifierInsertHandler
 import org.jetbrains.kotlin.idea.imports.importableFqName

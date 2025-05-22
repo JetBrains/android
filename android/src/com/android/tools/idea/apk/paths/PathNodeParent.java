@@ -16,13 +16,12 @@
 package com.android.tools.idea.apk.paths;
 
 import com.google.common.base.Joiner;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class PathNodeParent {
   @NotNull private final Map<String, PathNode> myChildrenByPathSegment = new LinkedHashMap<>();

@@ -51,7 +51,7 @@ class AndroidStudioHelpTest : AndroidTestCase() {
     ApplicationManager.getApplication().replaceService(BrowserLauncher::class.java, TestBrowserLauncher, testRootDisposable)
     HelpManager.getInstance().invokeHelp(null)
 
-    val version = "${ApplicationInfo.getInstance().majorVersion}.${ApplicationInfo.getInstance().minorVersion}"
+    val version = "${ApplicationInfo.getInstance().majorVersion}.${ApplicationInfo.getInstance().minorVersionMainPart}"
     assertThat(TestBrowserLauncher.lastUrl)
       .startsWith("https://www.jetbrains.com/help/idea/$version/?top")
   }
@@ -63,11 +63,9 @@ class AndroidStudioHelpTest : AndroidTestCase() {
       lastUrl = url
     }
 
-    override fun browse(file: File) {
-    }
+    override fun browse(file: File) { }
 
-    override fun browse(file: Path) {
-    }
+    override fun browse(file: Path) { }
 
     override fun browse(url: String, browser: WebBrowser?, project: Project?) {
       lastUrl = url

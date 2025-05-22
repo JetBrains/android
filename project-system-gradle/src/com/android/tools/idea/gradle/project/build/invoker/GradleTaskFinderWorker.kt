@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleBuilds
-import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath

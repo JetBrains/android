@@ -1,0 +1,81 @@
+<!--
+  ~ Copyright (C) 2019 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+
+  <actions resource-bundle="messages.LayoutInspectorBundle">
+    <action id="Android.RunLayoutInspector"
+            class="com.android.tools.idea.layoutinspector.ShowLayoutInspectorAction"
+            icon="StudioIcons.Shell.Menu.LAYOUT_INSPECTOR">
+      <add-to-group group-id="AndroidToolsGroup" />
+    </action>
+
+    <group id="ToggleLayoutInspectorActionGroup">
+      <separator/>
+      <add-to-group group-id="StreamingToolbarSecondary" anchor="first"/>
+    </group>
+
+    <action
+        id="com.android.tools.idea.layoutinspector.toggle.layout.inspector.action"
+        class="com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleLayoutInspectorAction"
+        text="Toggle Layout Inspector"
+        description="Toggles Layout Inspection on and off for this device."
+        icon="StudioIcons.Shell.ToolWindows.CAPTURES" >
+      <add-to-group group-id="ToggleLayoutInspectorActionGroup" anchor="first"/>
+    </action>
+
+  </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <fileType name="Layout Inspector" extensions="li"
+              implementationClass="com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileType" fieldName="INSTANCE"/>
+
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
+    <android.toolWindow id="Layout Inspector"
+                      anchor="bottom"
+                      secondary="true"
+                      icon="StudioIcons.Shell.ToolWindows.CAPTURES"
+                      factoryClass="com.android.tools.idea.layoutinspector.LayoutInspectorToolWindowFactory"/>
+
+    <fileEditorProvider implementation="com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileEditor$Provider"/>
+
+    <applicationService serviceImplementation="com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings"/>
+
+    <projectService serviceImplementation="com.android.tools.idea.layoutinspector.LayoutInspectorProjectService"/>
+    <projectService
+        serviceInterface="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager"
+        serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerImpl"/>
+    <projectService serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver" />
+    <notificationGroup id="LAYOUT_INSPECTOR_DISCOVERY" displayType="TOOL_WINDOW" toolWindowId="Running Devices"/>
+
+    <projectConfigurable groupId="tools" id="layout.inspector"
+                             bundle="messages.LayoutInspectorBundle"
+                             provider="com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurableProvider"
+                             key="layout.inspector"/>
+  </extensions>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.getComposeLayoutInspectorJarToken"
+                    interface="com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposeLayoutInspectorJarToken"/>
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.transport">
+    <transportConfigContributor implementation="com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.LayoutInspectorTransportConfigContributor" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.devicemanagerv2">
+    <deviceManagerOverflowActionContributor implementation="com.android.tools.idea.layoutinspector.LayoutInspectorDeviceManagerOverflowActionContributor" />
+  </extensions>
+</idea-plugin>

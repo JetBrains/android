@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.res.FileRelevanceKt;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
@@ -125,6 +126,8 @@ public class GradleFiles implements Disposable.Default {
     if (file == null) {
       return;
     }
+
+    if (!CommonAndroidUtil.getInstance().isAndroidProject(myProject)) return;
 
     Callable<GradleFileState> fileStateCallable = () -> {
       if (!file.isValid()) return new GradleFileState(false, false);

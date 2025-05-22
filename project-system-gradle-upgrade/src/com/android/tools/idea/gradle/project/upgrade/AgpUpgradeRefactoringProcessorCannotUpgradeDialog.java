@@ -23,7 +23,6 @@ import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.util.ui.JBDimension;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;

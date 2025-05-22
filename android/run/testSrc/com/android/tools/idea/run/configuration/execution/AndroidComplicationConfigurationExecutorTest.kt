@@ -41,6 +41,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
@@ -52,6 +53,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
 
 
+@Ignore("FakeAdbTestRule hangs")
 class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecutorBaseTest() {
   private object TestWatchFaceInfo : ComplicationWatchFaceInfo {
     override val complicationSlots: List<ComplicationSlot> = emptyList()

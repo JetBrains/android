@@ -122,12 +122,12 @@ public final class RenderStatsManager {
       }
 
       JsonObject threadObject = gson.toJsonTree(threadStat).getAsJsonObject();
-      if (threadObject.getAsJsonArray("events").size() > 0) {
+      if (!threadObject.getAsJsonArray("events").isEmpty()) {
         threads.add(threadObject);
       }
     });
     ourGlobalThreadStats.removeAll(staleThreads); // Can't remove in the forEach, or it will cause a ConcurrentModificationException.
-    return threads.size() == 0 ? JsonNull.INSTANCE : threads;
+    return threads.isEmpty() ? JsonNull.INSTANCE : threads;
   }
 
   static void push(@NotNull MethodStat methodStat) {

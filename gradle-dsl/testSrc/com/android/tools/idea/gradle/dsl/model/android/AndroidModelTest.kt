@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
-import com.android.tools.idea.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.AndroidDeclarativeType
@@ -27,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.registry.Registry
 import org.jetbrains.annotations.SystemDependent
 import org.junit.After
 import org.junit.Before
@@ -41,14 +41,16 @@ class AndroidModelTest : GradleFileModelTestCase() {
   @Before
   override fun before() {
     DeclarativeIdeSupport.override(true)
-    DeclarativeStudioSupport.override(true)
+    // Registry is used for a reason because 'StudioDeclarativeFlags' can't be used from 'gradle-dsl' main classloader
+    // since it's declared in the content module 'intellij.android.gradle.dsl.flags'
+    Registry.get("gradle.declarative.studio.support").setValue(true)
     super.before()
   }
 
   @After
   fun onAfter() {
     DeclarativeIdeSupport.clearOverride()
-    DeclarativeStudioSupport.clearOverride()
+    Registry.get("gradle.declarative.studio.support").resetToDefault()
   }
 
   private fun runBasicAndroidBlockTest(buildFile: TestFileName) {

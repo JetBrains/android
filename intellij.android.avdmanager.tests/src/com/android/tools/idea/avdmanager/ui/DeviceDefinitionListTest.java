@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager.ui;
 
 import static org.junit.Assert.assertEquals;
 
-import com.android.sdklib.devices.Device;
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;

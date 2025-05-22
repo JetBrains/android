@@ -52,7 +52,7 @@ public class RangeSelectionComponent extends AnimatedComponent {
 
   // Make the handle hitbox slightly larger than it actual is to make it easier to click on.
   @VisibleForTesting
-  static final float HANDLE_HITBOX_WIDTH = 10.0f;
+  public static final float HANDLE_HITBOX_WIDTH = 10.0f;
 
   // Minimum distance to keep handles separate from each other. This keeps handles from overlapping when selection range is too small.
   private static final float MIN_HANDLE_DISTANCE = 2.0f;

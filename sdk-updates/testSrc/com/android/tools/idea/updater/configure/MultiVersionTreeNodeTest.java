@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.repository.Revision;
 import com.android.repository.api.UpdatablePackage;
 import com.android.repository.testframework.FakePackage;
 import com.google.common.collect.ImmutableList;
+import java.util.List;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link MultiVersionTreeNode}

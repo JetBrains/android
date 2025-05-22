@@ -41,11 +41,11 @@ import com.android.tools.idea.flags.StudioFlags
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Maps
 import com.google.common.truth.Truth.assertThat
-import java.nio.file.Path
-import java.nio.file.Paths
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
+import java.nio.file.Path
+import java.nio.file.Paths
 
 class AvdOptionsModelTest : AndroidTestCase() {
 

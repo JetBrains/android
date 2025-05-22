@@ -31,7 +31,6 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.util.androidFacet
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.ExecutionException
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -47,7 +46,6 @@ import com.intellij.util.graph.GraphAlgorithms
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.LinkedList
 import java.util.Locale
-import kotlin.jvm.Throws
 
 /**
  * Utility class for finding the AndroidFacet that is responsible for the launch of the process with the given name.

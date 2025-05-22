@@ -3,11 +3,9 @@
 package com.android.tools.idea.run.editor;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.IdeChannel.Channel.CANARY;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.backup.BackupManager;
-import com.android.tools.idea.flags.ChannelDefault;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
@@ -35,7 +33,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ex.ConfigurableCardPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.LabeledComponent;
+import com.intellij.openapi.ui.LabeledComponentNoThrow;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactManager;
@@ -66,14 +64,14 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
 
   // Deploy options
   private ComboBox myDeployOptionCombo;
-  private LabeledComponent<ComboBox> myCustomArtifactLabeledComponent;
+  private LabeledComponentNoThrow<ComboBox> myCustomArtifactLabeledComponent;
   private final ComboBox myArtifactCombo;
-  private LabeledComponent<JBTextField> myPmOptionsLabeledComponent;
+  private LabeledComponentNoThrow<JBTextField> myPmOptionsLabeledComponent;
 
   // Launch options
   private ComboBox myLaunchOptionCombo;
   private ConfigurableCardPanel myLaunchOptionsCardPanel;
-  private LabeledComponent<JBTextField> myAmOptionsLabeledComponent;
+  private LabeledComponentNoThrow<JBTextField> myAmOptionsLabeledComponent;
   private JComponent myDynamicFeaturesParametersComponent;
   private JBCheckBox myInstantAppDeployCheckBox;
   private JBCheckBox myAllUsersCheckbox;

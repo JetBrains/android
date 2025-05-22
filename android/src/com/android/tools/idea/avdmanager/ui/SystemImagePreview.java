@@ -17,14 +17,15 @@ package com.android.tools.idea.avdmanager.ui;
 
 import static java.util.stream.Collectors.joining;
 
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.ISystemImage;
+import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.repository.IdDisplay;
+import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AccelAlert;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.ui.ChooseApiLevelDialog;
 import com.google.common.annotations.VisibleForTesting;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repository.IdDisplay;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -38,13 +39,21 @@ import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import icons.AndroidIcons;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
+import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.TestOnly;
 
 /**
@@ -115,7 +124,7 @@ public class SystemImagePreview {
   private static boolean isChinaLocalizedWearOsImage(@Nullable SystemImageDescription image) {
     return image != null &&
            image.isWearImage() &&
-           image.getSystemImage().getPackage().getPath().contains(SystemImage.WEAR_CN_DIRECTORY);
+           image.getSystemImage().getPackage().getPath().contains(ISystemImage.WEAR_CN_DIRECTORY);
   }
 
   /**

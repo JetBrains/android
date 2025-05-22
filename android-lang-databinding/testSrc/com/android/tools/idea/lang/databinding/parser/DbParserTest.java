@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.lang.databinding.parser;
 
+import com.android.tools.idea.lang.databinding.LangDataBindingTestDataKt;
 import com.android.tools.idea.lang.databinding.config.DbFileType;
 import com.android.tools.idea.lang.databinding.config.DbParserDefinition;
-import com.android.tools.idea.lang.databinding.LangDataBindingTestDataKt;
 import com.intellij.testFramework.ParsingTestCase;
 
 public class DbParserTest extends ParsingTestCase {

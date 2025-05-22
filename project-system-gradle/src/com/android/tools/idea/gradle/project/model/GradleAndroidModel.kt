@@ -52,7 +52,6 @@ import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.pom.java.LanguageLevel
-import com.jetbrains.rd.util.getOrCreate
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.util.EnumSet
@@ -328,7 +327,7 @@ class GradleAndroidModel(
     fun createFactory(project: Project, libraryResolver: IdeLibraryModelResolver): (GradleAndroidModelData) -> GradleAndroidModel {
       val models = mutableMapOf<GradleAndroidModelData, GradleAndroidModel>()
       return fun(data: GradleAndroidModelData): GradleAndroidModel {
-        return models.getOrCreate(data) { GradleAndroidModel(it, project, libraryResolver) }
+        return models.computeIfAbsent(data) { GradleAndroidModel(it, project, libraryResolver) }
       }
     }
   }

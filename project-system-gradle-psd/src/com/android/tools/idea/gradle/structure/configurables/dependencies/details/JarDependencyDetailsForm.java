@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies.details;
 
 import com.intellij.ui.components.JBLabel;
-import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import org.jdesktop.swingx.JXLabel;
 

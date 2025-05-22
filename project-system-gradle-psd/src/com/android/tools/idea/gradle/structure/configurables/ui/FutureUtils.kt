@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.concurrency.addCallback
-import com.google.common.base.Function
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture

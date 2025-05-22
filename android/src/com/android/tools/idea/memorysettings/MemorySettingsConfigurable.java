@@ -20,6 +20,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -72,7 +73,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
   @Override
   public String getDisplayName() {
-    return "Memory Settings";
+    return AndroidBundle.message("configurable.MemorySettingsConfigurable.display.name");
   }
 
   @Override
@@ -115,7 +116,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     myComponent = null;
   }
 
-  static class MyComponent {
+  public static class MyComponent {
     private static final int MIN_IDE_XMX = 1024;
     private static final int DEFAULT_IDE_XMX = 2048;
     private static final int SIZE_INCREMENT = 1024;
@@ -155,8 +156,10 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     }
 
     private void setUI() {
-      myInfoLabel.setText(XmlStringUtil.wrapInHtml("<body>" + AndroidBundle.message("memory.settings.panel.top.message") + "</body>"));
-      myIdeBottomLabel.setText(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.ide.bottom.message")));
+      myInfoLabel.setText(XmlStringUtil.wrapInHtml("<body>"
+                                                   + AndroidBundle.message("memory.settings.panel.top.message", ApplicationNamesInfo.getInstance().getFullProductName())
+                                                   + "</body>"));
+      myIdeBottomLabel.setText(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.ide.bottom.message", ApplicationNamesInfo.getInstance().getFullProductName())));
       myIdeBottomLabel.setFontColor(UIUtil.FontColor.BRIGHTER);
 
       if (myRecommendedIdeXmx > myCurrentIdeXmx) {

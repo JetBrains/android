@@ -132,7 +132,6 @@ public class StartUpTest {
         "TestNG",
         "TextMate Bundles",
         "Toml",
-        "Turbo Complete",
         "Visual Studio Keymap",
         "WebP Support",
         "YAML"

@@ -31,9 +31,9 @@ import com.android.tools.idea.layoutinspector.resource.UI_MODE_NIGHT_NO
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_NORMAL
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.common.truth.Truth.assertThat
-import java.lang.String.join
 import org.junit.After
 import org.junit.Test
+import java.lang.String.join
 
 class FromProtoConversionTest {
   private var stringIndex = 0

@@ -22,7 +22,7 @@ import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.dialogs.AddDeeplinkDialog
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.wireless.android.sdk.stats.NavEditorEvent
-import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.*
+import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_DEEP_LINK
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction

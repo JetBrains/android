@@ -20,9 +20,9 @@ import com.android.builder.model.SyncIssue
 import com.android.ide.common.gradle.Component
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
-import com.android.testutils.TestUtils
-import com.android.testutils.TestUtils.getLatestAndroidPlatform
-import com.android.testutils.TestUtils.getSdk
+import com.android.test.testutils.TestUtils
+import com.android.test.testutils.TestUtils.getLatestAndroidPlatform
+import com.android.test.testutils.TestUtils.getSdk
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
@@ -83,7 +83,6 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
-import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
@@ -155,6 +154,7 @@ import com.intellij.gradle.toolingExtension.impl.model.sourceSetModel.DefaultGra
 import com.intellij.gradle.toolingExtension.impl.model.taskModel.DefaultGradleTaskModel
 import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil
+import com.intellij.ide.impl.runUnderModalProgressIfIsEdt
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
@@ -180,7 +180,6 @@ import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
-import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectEx
@@ -194,6 +193,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
@@ -218,9 +218,7 @@ import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.core.script.SCRIPT_DEPENDENCIES_SOURCES
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
-import org.jetbrains.kotlin.idea.gradleJava.scripting.GradleScriptDependenciesSource
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -239,6 +237,7 @@ import org.jetbrains.plugins.gradle.util.setBuildSrcModule
 import java.io.File
 import java.io.IOException
 import java.nio.file.Paths
+import java.util.Locale
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -1465,7 +1464,7 @@ private fun setupTestProjectFromAndroidModelCore(
   projectDataNode.addChild(
     DataNode<JavaProjectData>(
       JavaProjectData.KEY,
-      JavaProjectData(GRADLE_SYSTEM_ID, buildPath.systemIndependentPath, LanguageLevel.JDK_1_6, null),
+      JavaProjectData(GRADLE_SYSTEM_ID, buildPath.systemIndependentPath, LanguageLevel.JDK_1_6, null, emptyList()),
       null
     )
   )
@@ -1611,12 +1610,14 @@ private fun setupTestProjectFromAndroidModelCore(
   val externalProjectData = InternalExternalProjectInfo(GradleConstants.SYSTEM_ID, rootProjectBasePath.path, projectDataNode)
   (ExternalProjectsManager.getInstance(project) as ExternalProjectsManagerImpl).updateExternalProjectData(externalProjectData)
 
-  ProjectDataManager.getInstance().importData(projectDataNode, project)
+  runWithModalProgressBlocking(project, "import project data from dataNodes") {
+    ProjectDataManager.getInstance().importData(projectDataNode, project)
+  }
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   // Effectively getTestRootDisposable(), which is not the project itself but its earlyDisposable.
   IdeSdks.removeJdksOn((project as? ProjectEx)?.earlyDisposable ?: project)
-  runWriteAction {
+  runWithModalProgressBlocking(project, "invoking IdeaSyncPopulateProjectTask") {
     task.populateProject(
       projectDataNode,
       null
@@ -2178,7 +2179,7 @@ internal fun IntegrationTestEnvironment.prepareGradleProject(
       *additionalRepositories.toTypedArray()
     )
   }
-  if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.toLowerCase() == "y") {
+  if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.lowercase(Locale.getDefault()) == "y") {
     println("Test project ${testProjectAbsolutePath.name} prepared at '$projectPath'")
   }
   return projectPath
@@ -2280,24 +2281,14 @@ private fun <T> openPreparedProject(
           fixDummySyncViewManager(project, project, options.syncViewEventHandler)
         }
 
-        // NOTE: `::afterCreate` is passed to both `withAfterCreate` and `openOrImport` because, unfortunately, `openOrImport` does not
-        // pass it down to `ProjectOpenProcessor`s.
-
-        val project = GradleProjectImporter.withAfterCreate(afterCreate = { project -> afterCreate(project) }) {
-          ProjectUtil.openOrImport(
+        val project = runUnderModalProgressIfIsEdt {
+          ProjectUtil.openOrImportAsync(
             projectPath.toPath(),
-            OpenProjectTask.build()
-              .withProjectToClose(null)
-              .withForceOpenInNewFrame(true)
-              .copy(
-                beforeOpen = {
-                  blockingContext {
-                    afterCreate(it)
-                    true
-                  }
-                },
-              )
-          )!!
+            OpenProjectTask {
+              projectToClose = null
+              forceOpenInNewFrame = true
+            }
+          )?.also { afterCreate(it) } ?: error("Failed to open or import project")
         }
         // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
         emulateStartupActivityForTest(project)
@@ -2575,9 +2566,9 @@ fun injectSyncOutputDumper(
         outputHandler(project, text)
       }
 
-      override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
+      override fun onFailure(proojecPath: String, id: ExternalSystemTaskId, exception: Exception) {
         if (id.ideProjectId != projectId) return
-        syncExceptionHandler(project, e)
+        syncExceptionHandler(project, exception)
       }
     },
     disposable
@@ -2661,7 +2652,7 @@ fun updatePluginsResolutionManagement(origContent: String, pluginDefinitions: St
 }
 
 private fun Project.maybeOutputDiagnostics() {
-  if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.toLowerCase() == "y") {
+  if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.lowercase(Locale.getDefault()) == "y") {
     // Nothing is needed right now.
   }
 }
@@ -2670,8 +2661,4 @@ fun disableKtsIndexing(project: Project, disposable: Disposable) {
   val ep = WorkspaceFileIndexImpl.EP_NAME
   val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
   ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
-
-  if (KotlinPluginModeProvider.isK2Mode()) {
-    SCRIPT_DEPENDENCIES_SOURCES.getPoint(project).unregisterExtension(GradleScriptDependenciesSource::class.java)
-  }
 }

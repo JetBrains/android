@@ -17,7 +17,6 @@ package com.android.tools.idea.psi.light
 
 import com.intellij.lang.Language
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import com.intellij.psi.impl.light.LightParameter
 

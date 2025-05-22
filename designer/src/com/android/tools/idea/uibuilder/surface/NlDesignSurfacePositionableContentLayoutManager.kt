@@ -84,8 +84,8 @@ class NlDesignSurfacePositionableContentLayoutManager(layoutOption: SurfaceLayou
     val dimension =
       currentLayout.getRequiredSize(content, availableSize.width, availableSize.height, null)
     dimension.setSize(
-      max(surface.scrollableViewMinSize.width.toDouble(), dimension.width.toDouble()),
-      max(surface.scrollableViewMinSize.height.toDouble(), dimension.height.toDouble()),
+      max(surface.scrollableViewMinSize.width, dimension.width),
+      max(surface.scrollableViewMinSize.height, dimension.height),
     )
 
     return dimension

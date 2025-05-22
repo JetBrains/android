@@ -21,10 +21,15 @@ import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.MIN_RESIZABLE_DEVICE_API
 import com.android.sdklib.devices.Abi
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.ConfigKey.DEVICE_NAME
+import com.android.sdklib.internal.avd.HardwareProperties
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidDevice
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
@@ -40,8 +45,14 @@ class AndroidDeviceSpecUtilTest {
 
   private var myFile: File? = null
 
+  @Before
+  fun setUp() {
+    StudioFlags.RISC_V.override(true)
+  }
+
   @After
   fun cleanUp() {
+    StudioFlags.RISC_V.clearOverride()
     myFile?.delete()
   }
 

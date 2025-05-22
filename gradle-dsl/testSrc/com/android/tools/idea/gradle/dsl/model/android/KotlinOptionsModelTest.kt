@@ -21,7 +21,6 @@ import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
 import java.io.File
-import java.lang.IllegalArgumentException
 
 class KotlinOptionsModelTest : GradleFileModelTestCase() {
   @Test

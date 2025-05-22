@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.event;
 
-import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_ID;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
@@ -23,14 +22,11 @@ import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACH
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_UNATTACHABLE_RESPONSE;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_UNSPECIFIED_RESPONSE;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.ActivityComponent;
 import com.android.tools.adtui.EventComponent;
-import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
@@ -44,8 +40,7 @@ import com.android.tools.profilers.StudioProfilersView;
 import com.google.common.truth.Truth;
 import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.DisposableRule;
-import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.components.JBPanel;
+
 import java.awt.Component;
 import java.util.Arrays;
 import java.util.List;

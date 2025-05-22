@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.profilers.AndroidProfilerBundle.message
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
@@ -29,6 +30,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowId
 import icons.StudioIcons
+import org.jetbrains.annotations.Nls
 import javax.swing.Icon
 
 /**
@@ -39,6 +41,7 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
    * A setting maps to a child executor in the group, containing metadata for the child executor.
    */
   class ProfilerSetting(profilingMode: ProfilingMode) : AbstractProfilerSetting(profilingMode) {
+    @get:Nls
     override val actionName: String
       get() = if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
         when (profilingMode) {
@@ -96,13 +99,13 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
 
   override fun getDisabledIcon(): Icon = toolWindowIcon
 
-  override fun getDescription(): String = "Profile selected configuration"
+  override fun getDescription(): String = message("android.profiler.action.profile.description")
 
-  override fun getActionName(): String = "Profile"
+  override fun getActionName(): String = message("android.profiler.action.profile")
 
   override fun getId(): String = EXECUTOR_ID
 
-  override fun getStartActionText(): String = "Profile"
+  override fun getStartActionText(): String = message("android.profiler.action.profile")
 
   override fun getContextActionId(): String = "ProfileGroupRunClass"
 

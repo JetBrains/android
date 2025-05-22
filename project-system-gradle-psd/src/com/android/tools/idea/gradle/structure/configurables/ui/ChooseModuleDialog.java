@@ -15,19 +15,23 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.JBList;
+import java.awt.Component;
+import java.util.function.Consumer;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.function.Consumer;
-
-import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 public class ChooseModuleDialog extends DialogWrapper {
   @NotNull private final Consumer<PsModule> myOnOkTask;

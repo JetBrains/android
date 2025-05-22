@@ -38,12 +38,14 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.compiler.artifact.ApkSigningSettingsForm;
 import org.jetbrains.android.compiler.artifact.ChooseKeyDialog;
 import org.jetbrains.android.compiler.artifact.NewKeyStoreDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 public class ExportSignedPackageUtil {
   private static final Logger LOG = Logger.getInstance(ExportSignedPackageUtil.class);
@@ -52,6 +54,7 @@ public class ExportSignedPackageUtil {
   }
 
   @Nullable
+  @Unmodifiable
   private static List<String> loadExistingKeys(@NotNull ApkSigningSettingsForm form) {
     final String errorPrefix = "Cannot load key store: ";
     InputStream is = null;
@@ -133,7 +136,7 @@ public class ExportSignedPackageUtil {
           return;
         }
         final ChooseKeyDialog dialog =
-          new ChooseKeyDialog(project, form.getKeyStorePathField().getText().trim(), form.getKeyStorePasswordField().getPassword(), keys,
+          new ChooseKeyDialog(project, form.getKeyStorePathField().getText().trim(), form.getKeyStorePasswordField().getPassword(), new ArrayList<>(keys),
                               form.getKeyAliasField().getText().trim());
         dialog.show();
 

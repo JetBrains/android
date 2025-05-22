@@ -1,0 +1,26 @@
+### auto-generated section `build intellij.android.gradle.dsl.toml` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "gradle-dsl-toml_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "gradle-dsl-toml",
+  module_name = "intellij.android.gradle.dsl.toml",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//android/gradle-dsl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/util",
+    "//plugins/toml/core",
+  ],
+  runtime_deps = [":gradle-dsl-toml_resources"]
+)
+### auto-generated section `build intellij.android.gradle.dsl.toml` end

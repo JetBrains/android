@@ -139,8 +139,8 @@ sealed class PreviewMode {
 
     other as PreviewMode
     return backgroundColor == other.backgroundColor &&
-      layoutOption == other.layoutOption &&
-      selected == other.selected
+           layoutOption == other.layoutOption &&
+           selected == other.selected
   }
 
   override fun hashCode(): Int {
@@ -227,8 +227,8 @@ sealed class PreviewMode {
       // this updated element.
       val newSelected =
         (newElements subtract previousElements).singleOrNull()
-          // We couldn't find any best match. Default to the first key.
-          ?: newElements.firstOrNull()
+        // We couldn't find any best match. Default to the first key.
+        ?: newElements.firstOrNull()
 
       // TODO(b/292482974): Find the correct key when there are Multipreview changes
 

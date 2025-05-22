@@ -175,18 +175,18 @@ public class GoToBundleLocationTask {
   }
 
   @VisibleForTesting
-  static class OpenFolderNotificationListener extends NotificationListener.Adapter {
+  public static class OpenFolderNotificationListener extends NotificationListener.Adapter {
     @NotNull private final Project myProject;
     @NotNull private final Map<String, File> myBundlePathsPerModule;
     @NotNull private final FileOrDirOpener myLocationOpener;
 
-    OpenFolderNotificationListener(@NotNull Project project,
+    public OpenFolderNotificationListener(@NotNull Project project,
                                    @NotNull Map<String, File> myBuildsAndBundlePaths) {
       this(project, myBuildsAndBundlePaths, new FileOrDirOpener());
     }
 
     @VisibleForTesting
-    OpenFolderNotificationListener(@NotNull Project project,
+    public OpenFolderNotificationListener(@NotNull Project project,
                                    @NotNull Map<String, File> myBuildsAndBundlePaths,
                                    @NotNull FileOrDirOpener locationOpener) {
       myProject = project;
@@ -260,8 +260,8 @@ public class GoToBundleLocationTask {
   }
 
   @VisibleForTesting
-  static class OpenEventLogHyperlink extends NotificationHyperlink {
-    OpenEventLogHyperlink() {
+  public static class OpenEventLogHyperlink extends NotificationHyperlink {
+    public OpenEventLogHyperlink() {
       super("open.event.log", "Show app bundle path(s) in the '" + ActionCenter.getToolwindowName() + "' view");
     }
 

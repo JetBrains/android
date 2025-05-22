@@ -24,7 +24,7 @@ import static com.intellij.testFramework.UsefulTestCase.assertThrows;
 import static org.junit.Assert.assertThat;
 
 import com.android.annotations.NonNull;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.testutils.classloader.SingleClassLoader;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.TruncatingStringBuilder;

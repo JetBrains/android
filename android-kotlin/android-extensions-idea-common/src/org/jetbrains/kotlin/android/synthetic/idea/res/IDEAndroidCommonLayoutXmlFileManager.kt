@@ -9,9 +9,9 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.PsiTreeChangePreprocessor
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
+import org.jetbrains.kotlin.android.synthetic.AndroidConst.SYNTHETIC_PACKAGE_PATH_LENGTH
 import org.jetbrains.kotlin.android.synthetic.idea.AndroidModuleInfoProvider
 import org.jetbrains.kotlin.android.synthetic.idea.AndroidModuleInfoProvider.SourceProviderMirror
-import org.jetbrains.kotlin.android.synthetic.AndroidConst.SYNTHETIC_PACKAGE_PATH_LENGTH
 import org.jetbrains.kotlin.android.synthetic.idea.AndroidPsiTreeChangePreprocessor
 import org.jetbrains.kotlin.android.synthetic.idea.AndroidXmlVisitor
 import org.jetbrains.kotlin.android.synthetic.idea.androidExtensionsIsExperimental

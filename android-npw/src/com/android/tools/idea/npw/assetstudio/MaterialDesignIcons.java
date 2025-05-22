@@ -15,28 +15,30 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.SdkConstants;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.tools.idea.npw.assetstudio.BuiltInImages.getJarFilePath;
+import static com.android.tools.idea.npw.assetstudio.BuiltInImages.getResourcesNames;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
-import java.net.JarURLConnection;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import static com.android.SdkConstants.DOT_XML;
-import static com.android.tools.idea.npw.assetstudio.BuiltInImages.getJarFilePath;
-import static com.android.tools.idea.npw.assetstudio.BuiltInImages.getResourcesNames;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Methods for accessing library of material design icons.

@@ -41,7 +41,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
@@ -56,6 +55,7 @@ import com.intellij.openapi.util.text.StringUtil.formatDuration
 import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
 import com.intellij.util.PathUtil.toSystemIndependentName
 import com.intellij.util.ThreeState
+import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
 import org.gradle.tooling.LongRunningOperation
@@ -67,8 +67,7 @@ import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.GradleVersion
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.plugins.gradle.service.project.GradleOperationHelperExtension
-import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
+import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelperExtension
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
@@ -109,7 +108,8 @@ class GradleSyncStateImpl(project: Project) : GradleSyncState {
 }
 
 @VisibleForTesting
-val GRADLE_SYNC_TOPIC = Topic("Project sync with Gradle", GradleSyncListenerWithRoot::class.java)
+@Topic.AppLevel
+val GRADLE_SYNC_TOPIC = Topic("Project sync with Gradle", GradleSyncListenerWithRoot::class.java, Topic.BroadcastDirection.NONE)
 
 /**
  * A real implementation of [GradleSyncStateImpl] service which, unlike [GradleSyncStateImpl], can be accessed by various listeners in this
@@ -479,18 +479,18 @@ class GradleSyncStateHolder constructor(private val project: Project) {
       return project
     }
 
-    override fun onStart(id: ExternalSystemTaskId, workingDir: String) {
+    override fun onStart(projectPath: String, id: ExternalSystemTaskId) {
       if (!id.isGradleResolveProjectTask()) return
       val project = id.findProjectOrLog() ?: return
       val syncStateImpl = getInstance(project)
       syncStateImpl.state.set { copy(externalSystemTaskId = id) }
-      LOG.info("onStart($id, $workingDir)")
+      LOG.info("onStart($id, $projectPath)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
-      val disposable = syncStateUpdaterService.trackTask(id, workingDir) ?: return
+      val disposable = syncStateUpdaterService.trackTask(id, projectPath) ?: return
       val trigger =
-        project.getProjectSyncRequest(workingDir)?.trigger
+        project.getProjectSyncRequest(projectPath)?.trigger
       if (!GradleSyncStateHolder.getInstance(project)
-          .syncStarted(trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, rootProjectPath = workingDir)
+          .syncStarted(trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, rootProjectPath = projectPath)
       ) {
         return
       }
@@ -498,7 +498,7 @@ class GradleSyncStateHolder constructor(private val project: Project) {
     }
 
 
-    override fun onSuccess(id: ExternalSystemTaskId) {
+    override fun onSuccess(projectPath: String, id: ExternalSystemTaskId) {
       if (!id.isGradleResolveProjectTask()) return
       LOG.info("onSuccess($id)")
       val project = id.findProjectOrLog() ?: return
@@ -507,20 +507,15 @@ class GradleSyncStateHolder constructor(private val project: Project) {
       GradleSyncStateHolder.getInstance(project).setupStarted(rootProjectPath)
     }
 
-    override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
+    override fun onFailure(projectPath: String, id: ExternalSystemTaskId, exception: Exception) {
       if (!id.isGradleResolveProjectTask()) return
-      LOG.info("onFailure($id, $e)")
+      LOG.info("onFailure($id, $exception)")
       val project = id.findProjectOrLog() ?: return
       val rootProjectPath = stopTrackingTask(project, id) ?: return
-      GradleSyncStateHolder.getInstance(project).syncFailed(null, e, rootProjectPath)
+      GradleSyncStateHolder.getInstance(project).syncFailed(null, exception, rootProjectPath)
     }
 
-    override fun onEnd(id: ExternalSystemTaskId) = Unit
-    override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) = Unit
-    override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) = Unit
-    override fun beforeCancel(id: ExternalSystemTaskId) = Unit
-
-    override fun onCancel(id: ExternalSystemTaskId) {
+    override fun onCancel(projectPath: String, id: ExternalSystemTaskId) {
       if (!id.isGradleResolveProjectTask()) return
       LOG.info("onCancel($id)")
       val project = id.findProjectOrLog() ?: return
@@ -564,20 +559,16 @@ class GradleSyncStateHolder constructor(private val project: Project) {
     }
   }
 
-  class BuildPhaseListenerOperationHelperExtension : GradleOperationHelperExtension {
+  class BuildPhaseListenerExecutionHelperExtension : GradleExecutionHelperExtension {
 
-    override fun prepareForExecution(id: ExternalSystemTaskId,
-                                     operation: LongRunningOperation,
-                                     gradleExecutionSettings: GradleExecutionSettings,
-                                     buildEnvironment: BuildEnvironment?) {
+    override fun prepareForExecution(
+      id: ExternalSystemTaskId,
+      operation: LongRunningOperation,
+      settings: GradleExecutionSettings,
+      buildEnvironment: BuildEnvironment?,
+    ) {
+      if (id.type != ExternalSystemTaskType.RESOLVE_PROJECT) return
       val project = id.findProject() ?: return
-      val gradleVersion = buildEnvironment?.gradle?.gradleVersion ?: return
-
-      getInstance(project).recordGradleVersion(GradleVersion.version(gradleVersion))
-    }
-
-    override fun prepareForSync(operation: LongRunningOperation, resolverCtx: ProjectResolverContext) {
-      val project = resolverCtx.externalSystemTaskId.findProject() ?: return
 
       operation.addProgressListener(ProgressListener {
         if (project.isDisposed) return@ProgressListener

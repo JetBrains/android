@@ -16,9 +16,9 @@
 package com.android.tools.idea.lint.inspections;
 
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.quickFixes.MigrateDrawableToMipmapFix;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.detector.api.LintFix;

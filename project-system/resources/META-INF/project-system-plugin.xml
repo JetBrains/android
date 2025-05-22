@@ -1,0 +1,50 @@
+<!--
+  ~ Copyright (C) 2017 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.project.projectsystem"
+                    interface="com.android.tools.idea.projectsystem.AndroidProjectSystemProvider"/>
+    <extensionPoint qualifiedName="com.android.androidStartupActivity"
+                    interface="com.android.tools.idea.AndroidStartupActivity"
+                    dynamic="true"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.model.mergedManifestInfoToken"
+                    interface="com.android.tools.idea.model.MergedManifestInfoToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.memorysettings.memorySettingsToken"
+                    interface="com.android.tools.idea.memorysettings.MemorySettingsToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.ApplicationProjectContextProvider"
+                    interface="com.android.tools.idea.projectsystem.ApplicationProjectContextProvider"
+                    dynamic="true"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.pseudoLocalesToken"
+                    interface="com.android.tools.idea.projectsystem.PseudoLocalesToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.libraryDependenciesTroubleInfoCollectorToken"
+                    interface="com.android.tools.idea.projectsystem.LibraryDependenciesTroubleInfoCollectorToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.dynamicAppFeatureOnFeatureToken"
+                    interface="com.android.tools.idea.projectsystem.DynamicAppFeatureOnFeatureToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.findDependenciesWithResourcesToken"
+                    interface="com.android.tools.idea.projectsystem.FindDependenciesWithResourcesToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.projectsystem.androidIconProviderProjectToken"
+                    interface="com.android.tools.idea.projectsystem.AndroidIconProviderProjectToken"/>
+    <extensionPoint qualifiedName="org.jetbrains.android.facet.resourceFolderManagerToken"
+                    interface="org.jetbrains.android.facet.ResourceFolderManagerToken"/>
+  </extensionPoints>
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSyncModificationTracker"/>
+    <projectService
+        serviceInterface="com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider"
+        serviceImplementation="com.android.tools.idea.projectsystem.ProjectApplicationIdsProviderImpl"/>
+    <postStartupActivity implementation="org.jetbrains.android.AndroidStartupManager" order="last"/>
+  </extensions>
+</idea-plugin>

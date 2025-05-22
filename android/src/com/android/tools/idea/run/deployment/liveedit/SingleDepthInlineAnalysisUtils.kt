@@ -91,7 +91,7 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
    */
   fun fillInlineCache(inlineCache : InlineCache) : Boolean {
     if (canFillInlineCache()) {
-      inlineCache.classBytes.put(className, bytecode!!)
+      inlineCache.computeClassBytes(className) { bytecode!! }
       return true
     }
     return false

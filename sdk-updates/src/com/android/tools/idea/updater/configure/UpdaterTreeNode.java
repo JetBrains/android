@@ -18,21 +18,22 @@ package com.android.tools.idea.updater.configure;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
-import org.jetbrains.annotations.NotNull;
-
+import java.awt.BorderLayout;
+import java.awt.Component;
 import javax.accessibility.AccessibleAction;
 import javax.accessibility.AccessibleContext;
 import javax.accessibility.AccessibleRole;
 import javax.accessibility.AccessibleStateSet;
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeCellRenderer;
-import java.awt.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A tree node with a checkbox that can have three states.
  */
-abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Comparable<UpdaterTreeNode>, SdkUpdaterConfigPanel.MultiStateRow {
+public abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Comparable<UpdaterTreeNode>, SdkUpdaterConfigPanel.MultiStateRow {
   /**
    * @return The initial state of this node (representing the current state of the SDK).
    */

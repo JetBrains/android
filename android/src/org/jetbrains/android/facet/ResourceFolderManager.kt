@@ -52,7 +52,8 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
                                             Topic.BroadcastDirection.NONE)
 
     @JvmField
-    val TOPIC = Topic.create(ResourceFolderManager::class.qualifiedName!!, ResourceFolderListener::class.java,
+    @Topic.ProjectLevel
+    internal val TOPIC = Topic(ResourceFolderListener::class.java,
                              Topic.BroadcastDirection.NONE)
   }
 

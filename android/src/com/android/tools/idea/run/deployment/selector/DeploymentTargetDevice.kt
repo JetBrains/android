@@ -33,6 +33,7 @@ import java.text.Collator
 import javax.swing.Icon
 import kotlinx.datetime.Instant
 
+
 /**
  * An abstraction of a device (or device template) used by the deployment target selector.
  *
@@ -42,7 +43,7 @@ import kotlinx.datetime.Instant
  * whenever any of its inputs changes (e.g. changing the run configuration from a Wear app to a
  * mobile app affects the launch compatibility).
  */
-internal class DeploymentTargetDevice(
+class DeploymentTargetDevice(
   val androidDevice: DeviceProvisionerAndroidDevice,
   val connectionTime: Instant?,
   val snapshots: List<Snapshot>,
@@ -132,8 +133,8 @@ internal class DeploymentTargetDevice(
  * Given the full set of devices that are present, returns a unique name for this device by adding
  * its disambiguator if there is a different device with the same name.
  */
-internal fun DeploymentTargetDevice.disambiguatedName(
-  otherDevices: List<DeploymentTargetDevice> = emptyList()
+fun DeploymentTargetDevice.disambiguatedName(
+  otherDevices: List<DeploymentTargetDevice> = emptyList(),
 ): String =
   if (disambiguator != null && otherDevices.any { it.id != id && it.name == name }) {
     "$name [$disambiguator]"

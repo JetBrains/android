@@ -47,7 +47,6 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.ComponentStack
 import org.junit.rules.ExternalResource
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 
@@ -109,9 +108,9 @@ class MotionAttributeRule(
 
   fun enableFileOpenCaptures() {
     fileManager = Mockito.mock(FileEditorManagerEx::class.java)
-    whenever(fileManager!!.openEditor(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean()))
+    whenever(fileManager!!.openEditor(Mockito.any(), Mockito.anyBoolean()))
       .thenCallRealMethod()
-    whenever(fileManager!!.openFileEditor(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean()))
+    whenever(fileManager!!.openFileEditor(Mockito.any(), Mockito.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
     whenever(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     whenever(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
@@ -124,7 +123,7 @@ class MotionAttributeRule(
   fun checkEditor(fileName: String, lineNumber: Int, text: String) {
     val file = ArgumentCaptor.forClass(FileEditorNavigatable::class.java)
     Mockito.verify(fileManager!!, times(++matchCount))
-      .openFileEditor(file.capture(), ArgumentMatchers.eq(true))
+      .openFileEditor(file.capture(), Mockito.eq(true))
     val descriptor = file.value
     check(descriptor is OpenFileDescriptor) // Downcast needed to extract file offset.
     val line = findLineAtOffset(descriptor.file, descriptor.offset)

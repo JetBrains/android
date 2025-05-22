@@ -26,7 +26,6 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Truth
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.Assert.assertNotNull
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 

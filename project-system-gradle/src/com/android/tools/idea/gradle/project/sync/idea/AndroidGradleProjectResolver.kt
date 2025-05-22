@@ -483,6 +483,10 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       super.populateModuleDependencies(gradleModule, ideModule, ideProject)
       return
     }
+
+    // Call all the other resolvers to ensure that any dependencies that they need to provide are added.
+    nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject)
+
     if (myResolvedLibraryTable == null) {
       val ideLibraryTable = resolverCtx.getRootModel(IdeUnresolvedLibraryTableImpl::class.java)
         ?: throw IllegalStateException("IdeLibraryTableImpl is unavailable in resolverCtx when GradleAndroidModel's are present")
@@ -494,8 +498,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
     val libraryResolver = fromLibraryTables(myResolvedLibraryTable!!, null)
 
-    // Call all the other resolvers to ensure that any dependencies that they need to provide are added.
-    nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject)
     val additionalArtifacts = resolverCtx.getExtraProject(gradleModule, AdditionalClassifierArtifactsModel::class.java)
     // TODO: Log error messages from additionalArtifacts.
     val additionalArtifactsMap =

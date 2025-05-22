@@ -26,13 +26,13 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
-import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.util.Objects;
 
 /**
  * In AGP 7.0.0, some properties which previously had been set using a single operator with
@@ -102,13 +102,13 @@ public class SdkOrPreviewTransform extends PropertyTransform {
       }
       else if (value instanceof Integer) {
         operatorName = sdkSetter;
-        syntax = holder.getDslFile().getWriter() instanceof GroovyDslNameConverter
+        syntax = Objects.equals("gradle", holder.getDslFile().getFile().getExtension())
                  ? ExternalNameInfo.ExternalNameSyntax.METHOD
                  : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
       }
       else if (value instanceof String && ((String) value).startsWith("android-")) {
         operatorName = previewSetter;
-        syntax = holder.getDslFile().getWriter() instanceof GroovyDslNameConverter
+        syntax = Objects.equals("gradle", holder.getDslFile().getFile().getExtension())
                  ? ExternalNameInfo.ExternalNameSyntax.METHOD
                  : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
         value = ((String)value).substring("android-".length());

@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.interfac
 
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.ResizingConstraint;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchExportOptions;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchExportOptions;
 import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 

@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.sync.gradle.CaptureType
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementCheckpoint
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementPluginConfig
 import com.android.tools.idea.gradle.project.sync.memory.OUTPUT_DIRECTORY
-import com.android.tools.perflogger.Analyzer
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.EDivisiveAnalyzer
 import com.android.tools.perflogger.Metric

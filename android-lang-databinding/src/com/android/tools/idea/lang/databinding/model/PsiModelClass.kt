@@ -28,7 +28,6 @@ import com.intellij.psi.PsiType
 import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.MethodSignatureUtil
 import com.intellij.psi.util.TypeConversionUtil
-import java.util.ArrayList
 
 /**
  * PSI wrapper around class types that additionally expose information particularly useful in data binding expressions.

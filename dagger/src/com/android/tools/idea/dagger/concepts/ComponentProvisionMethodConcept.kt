@@ -36,8 +36,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
-import java.io.DataInput
-import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
@@ -49,6 +47,8 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import org.jetbrains.kotlin.psi.psiUtil.findPropertyByName
+import java.io.DataInput
+import java.io.DataOutput
 
 /**
  * Represents a Component's

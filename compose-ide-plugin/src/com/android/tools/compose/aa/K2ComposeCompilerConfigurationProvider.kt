@@ -39,7 +39,7 @@ class K2ComposeCompilerConfigurationProvider : KotlinFirCompilerPluginConfigurat
       */
       put(ComposeConfiguration.LIVE_LITERALS_ENABLED_KEY, false)
       put(ComposeConfiguration.LIVE_LITERALS_V2_ENABLED_KEY, false)
-      put(ComposeConfiguration.GENERATE_FUNCTION_KEY_META_CLASSES_KEY, true)
+      put(ComposeConfiguration.GENERATE_FUNCTION_KEY_META_ANNOTATION_KEY, true)
       put(ComposeConfiguration.SOURCE_INFORMATION_ENABLED_KEY, false)
       put(ComposeConfiguration.INTRINSIC_REMEMBER_OPTIMIZATION_ENABLED_KEY, false)
       put(ComposeConfiguration.DECOYS_ENABLED_KEY, false)

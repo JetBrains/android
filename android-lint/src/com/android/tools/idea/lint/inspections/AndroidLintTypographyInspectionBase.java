@@ -18,7 +18,7 @@ package com.android.tools.idea.lint.inspections;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.detector.api.Issue;
 
-abstract class AndroidLintTypographyInspectionBase extends AndroidLintInspectionBase {
+public abstract class AndroidLintTypographyInspectionBase extends AndroidLintInspectionBase {
   public AndroidLintTypographyInspectionBase(String displayName, Issue issue) {
     super(displayName, issue);
   }

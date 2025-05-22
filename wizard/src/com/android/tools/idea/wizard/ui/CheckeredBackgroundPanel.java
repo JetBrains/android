@@ -17,12 +17,14 @@ package com.android.tools.idea.wizard.ui;
 
 import com.android.tools.adtui.util.GraphicsUtil;
 import com.intellij.ui.Gray;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.util.Objects;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Objects;
 
 /**
  * A {@link JPanel} with a checkered background painted using

@@ -27,7 +27,6 @@ import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.ex.JavaSdkUtil
 import com.intellij.openapi.roots.ProjectRootManager
-import com.jetbrains.rd.util.firstOrNull
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
@@ -54,7 +53,7 @@ object JdkUtils {
       .groupBy { Jdks.getInstance().findVersion(Path(it)) }
       .mapValues { it.value.toSet() }
       .toSortedMap(compareByDescending { it?.ordinal })
-      .firstOrNull()
+      .entries.firstOrNull()
       ?.value ?: return null
 
     return maxVersionJdkPaths

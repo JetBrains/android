@@ -46,18 +46,18 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.registerOrReplaceServiceInstance
-import java.io.EOFException
-import java.time.Duration
-import java.time.Instant
-import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.concurrent.TimeUnit.SECONDS
-import kotlin.time.measureTimedValue
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.io.EOFException
+import java.time.Duration
+import java.time.Instant
+import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeUnit.SECONDS
+import kotlin.time.measureTimedValue
 
 /**
  * A Logcat message that's sent as the last message to a device so that we can wait for it before

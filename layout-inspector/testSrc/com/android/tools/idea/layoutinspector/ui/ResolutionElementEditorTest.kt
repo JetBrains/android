@@ -23,7 +23,7 @@ import com.android.resources.ResourceType
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
@@ -43,7 +43,7 @@ import com.android.tools.property.panel.api.TableSupport
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.ui.laf.IntelliJLaf
+import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.JBColor
@@ -301,7 +301,7 @@ class IntelliJLafRule : ExternalResource() {
     theme = MetalLookAndFeel.getCurrentTheme()
     // Clear out anything set explicitly by previous tests
     UIManager.getDefaults().clear()
-    UIManager.setLookAndFeel(IntelliJLaf())
+    UIManager.setLookAndFeel(DarculaLaf())
   }
 
   override fun after() {

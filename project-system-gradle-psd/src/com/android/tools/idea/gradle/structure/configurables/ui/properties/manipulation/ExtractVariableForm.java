@@ -18,9 +18,11 @@ package com.android.tools.idea.gradle.structure.configurables.ui.properties.mani
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.uiDesigner.core.GridConstraints;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class ExtractVariableForm {
   public JPanel myPanel;

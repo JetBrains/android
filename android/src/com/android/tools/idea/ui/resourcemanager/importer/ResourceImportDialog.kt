@@ -372,7 +372,7 @@ class ResourceImportDialog(
     return result
   }
 
-  override fun getValidationThreadToUse(): Alarm.ThreadToUse = Alarm.ThreadToUse.POOLED_THREAD
+  override fun getContinuousValidationThreadToUse(): Alarm.ThreadToUse = Alarm.ThreadToUse.POOLED_THREAD
 
   override fun dispose() {
     super.dispose()

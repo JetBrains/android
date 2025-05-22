@@ -20,8 +20,6 @@ import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
 import com.android.tools.profilers.RecordingOptionsView
 import com.android.tools.profilers.stacktrace.LoadingPanel
 import com.intellij.ui.JBSplitter
-import com.intellij.ui.components.JBPanel
-import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 

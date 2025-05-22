@@ -1068,6 +1068,6 @@ internal fun hasNewLineBetween(start : PsiElement, end : PsiElement) : Boolean {
 
 internal fun isWhiteSpaceOrNls(element: PsiElement?) = element?.node?.let { WHITESPACES.contains(it.elementType) } ?: false
 
-private fun KtExpression.isNullExpressionOrEmptyBlock(): Boolean {
-  return this.isNullExpression() || this is KtBlockExpression && this.statements.isEmpty()
-}
+private fun KtExpression?.isNullExpressionOrEmptyBlock(): Boolean =
+  this.isNullExpression()
+  || this is KtBlockExpression && this.statements.isEmpty()

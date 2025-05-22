@@ -19,7 +19,7 @@ import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames
 import com.android.mockito.kotlin.whenever
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
@@ -30,6 +30,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.analytics.crash.CrashReport
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
@@ -1157,7 +1158,7 @@ internal class DeviceViewTest {
   }
 
   private fun isRunningInBazelTest(): Boolean {
-    return System.getenv().containsKey("TEST_WORKSPACE")
+    return IdeInfo.getInstance().isAndroidStudio && System.getenv().containsKey("TEST_WORKSPACE")
   }
 }
 

@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
+import com.intellij.CommonBundle;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSetKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -352,7 +353,7 @@ public class BuildVariantView {
     void updateLoadingStatus(boolean loading) {
       myLoading = loading;
       setPaintBusy(myLoading);
-      String text = myLoading ? "Loading..." : "Nothing to Show";
+      String text = myLoading ? CommonBundle.getLoadingTreeNodeText() : "Nothing to Show";
       getEmptyText().setText(text);
     }
 

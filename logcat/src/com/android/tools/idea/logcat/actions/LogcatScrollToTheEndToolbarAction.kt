@@ -56,10 +56,9 @@ internal class LogcatScrollToTheEndToolbarAction(private val editor: EditorEx) :
       EditorUtil.scrollToTheEnd(editor)
     }
     else {
-      val lastLine = max(0.0, (editor.document.lineCount - 1).toDouble()).toInt()
+      val lastLine = max(0, editor.document.lineCount - 1)
       val currentPosition = editor.caretModel.logicalPosition
-      val position = LogicalPosition(
-        max(0.0, min(currentPosition.line.toDouble(), (lastLine - 1).toDouble())).toInt(), currentPosition.column)
+      val position = LogicalPosition(max(0, min(currentPosition.line, (lastLine - 1))), currentPosition.column)
       editor.caretModel.moveToLogicalPosition(position)
     }
   }

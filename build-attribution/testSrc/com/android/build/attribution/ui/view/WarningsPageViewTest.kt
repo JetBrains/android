@@ -37,7 +37,6 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.tree.TreePathUtil

@@ -36,12 +36,12 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.presentation.java.SymbolPresentationUtil
 import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
-import java.awt.event.MouseEvent
-import javax.swing.Icon
-import kotlin.system.measureTimeMillis
 import org.jetbrains.annotations.PropertyKey
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.lexer.KtTokens
+import java.awt.event.MouseEvent
+import javax.swing.Icon
+import kotlin.system.measureTimeMillis
 
 /**
  * Provides [RelatedItemLineMarkerInfo] for Dagger elements.

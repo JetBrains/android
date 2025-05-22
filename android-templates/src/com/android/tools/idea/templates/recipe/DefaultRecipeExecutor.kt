@@ -74,7 +74,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
+import com.intellij.util.lang.UrlClassLoader
 import java.io.File
+import java.net.URL
+import java.util.jar.JarFile
 import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
 
 private val LOG = Logger.getInstance(DefaultRecipeExecutor::class.java)
@@ -250,9 +253,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     referencesExecutor.addClasspathDependency(resolvedCoordinate, minRev)
 
     projectBuildModel?.let {
-        PluginsHelper.withModel(it)
-          .addClasspathDependency(resolvedCoordinate, listOf(), GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, resolvedCoordinate))
-      }
+      PluginsHelper.withModel(it)
+        .addClasspathDependency(resolvedCoordinate, listOf(), GroupNameDependencyMatcher(CLASSPATH_CONFIGURATION_NAME, resolvedCoordinate))
+    }
   }
 
   private fun maybeGetPluginsFromSettings(): PluginsBlockModel? {
@@ -381,12 +384,57 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
    * a directory, in which case the whole directory is copied recursively)
    */
   override fun copy(from: File, to: File) {
-    val sourceUrl = findResource(context.templateData.javaClass, from)
+    val contextClass: Class<Any> = context.templateData.javaClass
+
     val target = getTargetFile(to)
 
-    val sourceFile = findFileByURL(sourceUrl) ?: error("$from ($sourceUrl)")
-    sourceFile.refresh(false, false)
-    val destPath = if (sourceFile.isDirectory) target else target.parentFile
+    contextClass.classLoader
+      .getAndroidResources(from.toString())
+      .distinctBy { it.path }
+      .mapNotNull { fileUrl -> findFileByURL(fileUrl) }
+      .forEach { fileToCopy ->
+        val destPath = if (fileToCopy.isDirectory) target else target.parentFile
+        doCopyFile(fileToCopy, destPath, target)
+      }
+  }
+
+  /**
+   * Method that queries resource URL based on the [resourcePath]
+   */
+  fun ClassLoader.getAndroidResources(resourcePath: String): Sequence<URL> {
+    val result = getResources(resourcePath).asSequence()
+    return result + (this as? UrlClassLoader)?.getJarResources(resourcePath).orEmpty()
+  }
+
+  /**
+   * Solution to query directory resources URL from jars,
+   * where jar which have directory entries excluded.
+   */
+  fun UrlClassLoader.getJarResources(resourcePath: String): Sequence<URL> {
+    val normalizedResourcePath = resourcePath.removePrefix("/")
+
+    return this.urls.mapNotNull<URL, URL> { classLoaderItem: URL ->
+      if (classLoaderItem.protocol != "file") return@mapNotNull null
+
+      val filePath = File(classLoaderItem.path)
+      val isJarFile = filePath.isFile && filePath.extension == "jar"
+      if (!isJarFile) return@mapNotNull null
+
+      val jarEntriesSequence = JarFile(filePath).entries().asSequence()
+      if (jarEntriesSequence.any { it.name.startsWith(normalizedResourcePath) }) {
+        URL("jar:$classLoaderItem!/$normalizedResourcePath")
+      }
+      else {
+        null
+      }
+    }.asSequence()
+  }
+
+  private fun DefaultRecipeExecutor.doCopyFile(
+    sourceFile: VirtualFile,
+    destPath: File,
+    target: File,
+  ) {
     when {
       sourceFile.isDirectory -> copyDirectory(sourceFile, destPath)
       target.exists() ->

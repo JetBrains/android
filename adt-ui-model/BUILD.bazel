@@ -1,0 +1,46 @@
+### auto-generated section `build intellij.android.adt.ui.model` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "adt-ui-model",
+  module_name = "intellij.android.adt.ui.model",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:fastutil-min",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "//platform/platform-api:ide",
+    "//platform/util",
+    "//platform/util-rt",
+  ]
+)
+
+jvm_library(
+  name = "adt-ui-model_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [":adt-ui-model"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:guava",
+    "@lib//:fastutil-min",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//platform/platform-api:ide",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+  ]
+)
+
+jvm_test(
+  name = "adt-ui-model_test",
+  runtime_deps = [":adt-ui-model_test_lib"]
+)
+### auto-generated section `build intellij.android.adt.ui.model` end

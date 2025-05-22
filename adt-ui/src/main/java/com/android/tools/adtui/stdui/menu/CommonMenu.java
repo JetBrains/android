@@ -16,11 +16,25 @@
 package com.android.tools.adtui.stdui.menu;
 
 import com.android.tools.adtui.model.stdui.CommonAction;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.ComponentOrientation;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import javax.swing.Action;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.MenuElement;
+import javax.swing.SwingConstants;
 
 /**
  * Used for creating our own {@link CommonPopupMenu} for showing sub-menus. The base class implementation creates a {@link JPopupMenu} and
@@ -80,7 +94,7 @@ public class CommonMenu extends JMenu implements PropertyChangeListener {
     boolean isVisible = isPopupMenuVisible();
     if (b != isVisible && (isEnabled() || !b)) {
       ensurePopupMenuCreated();
-      if ((b == true) && isShowing()) {
+      if (b && isShowing()) {
         // Set location of myPopupMenu (pulldown or pullright)
         // STUDIO customization
         // Point p = getCustomMenuLocation();
@@ -299,8 +313,8 @@ public class CommonMenu extends JMenu implements PropertyChangeListener {
 
     ensurePopupMenuCreated();
     JMenuItem mi = new JMenuItem(a);
-    mi.setHorizontalTextPosition(JButton.TRAILING);
-    mi.setVerticalTextPosition(JButton.CENTER);
+    mi.setHorizontalTextPosition(SwingConstants.TRAILING);
+    mi.setVerticalTextPosition(SwingConstants.CENTER);
     myPopupMenu.insert(mi, pos);
     return mi;
   }

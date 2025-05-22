@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.ActionToolbarPosition;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -39,6 +40,7 @@ import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -157,7 +159,7 @@ class ExtractStyleDialog extends DialogWrapper {
     decorator.setEditAction(null);
     decorator.disableUpDownActions();
 
-    AnAction selectAll = new DumbAwareAction("Select All", null, PlatformIcons.SELECT_ALL_ICON) {
+    AnAction selectAll = new DumbAwareAction(AndroidBundle.messagePointer("action.AnActionButton.update.sites.text.select.all"), Presentation.NULL_STRING, PlatformIcons.SELECT_ALL_ICON) {
       @Override
       public @NotNull ActionUpdateThread getActionUpdateThread() {
         return ActionUpdateThread.BGT;
@@ -170,8 +172,7 @@ class ExtractStyleDialog extends DialogWrapper {
     };
     decorator.addExtraAction(selectAll);
 
-    AnAction
-      unselectAll = new DumbAwareAction("Unselect All", null, PlatformIcons.UNSELECT_ALL_ICON) {
+    AnAction unselectAll = new DumbAwareAction(AndroidBundle.messagePointer("action.AnActionButton.update.sites.text.deselect.all"), Presentation.NULL_STRING, PlatformIcons.UNSELECT_ALL_ICON) {
       @Override
       public @NotNull ActionUpdateThread getActionUpdateThread() {
         return ActionUpdateThread.BGT;

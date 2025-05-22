@@ -31,12 +31,12 @@ import com.google.common.hash.Hashing
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.thisLogger
+import org.jetbrains.kotlin.utils.ThreadSafe
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.Executor
-import org.jetbrains.kotlin.utils.ThreadSafe
 
 /** Cache of AAR resource repositories. */
 @ThreadSafe

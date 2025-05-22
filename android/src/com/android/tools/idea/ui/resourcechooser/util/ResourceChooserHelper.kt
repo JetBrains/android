@@ -29,6 +29,7 @@ import com.android.tools.adtui.MaterialColorPaletteProvider
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.colorpicker.ColorPickerBuilder
 import com.intellij.ui.colorpicker.MaterialGraphicalColorPipetteProvider
@@ -58,7 +59,7 @@ import javax.swing.JTable
  * @param file The context file with a Configuration, used for theme attributes
  */
 fun createResourcePickerDialog(
-  dialogTitle: String,
+  @NlsContexts.DialogTitle dialogTitle: String,
   currentValue: String?,
   facet: AndroidFacet,
   resourceTypes: Set<ResourceType>,

@@ -16,6 +16,7 @@
 package com.android.tools.adtui
 
 import com.android.annotations.concurrency.UiThread
+import com.intellij.util.ui.EDT
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Container
@@ -23,7 +24,6 @@ import java.awt.Dimension
 import java.awt.GridBagLayout
 import java.awt.Insets
 import java.awt.LayoutManager2
-import javax.swing.SwingUtilities
 import kotlin.math.roundToInt
 
 /**
@@ -251,6 +251,9 @@ class TabularLayout(colSizes: Array<out SizingRule>, initialRowSizes: Array<out 
   }
 
   override fun layoutContainer(parent: Container) {
+    // Ensure parent.getComponent access is synchronous
+    assert (EDT.isCurrentThreadEdt())
+
     val result = LayoutResult(parent)
     val colCalc = result.colCalculator
     val rowCalc = result.rowCalculator
@@ -434,6 +437,9 @@ class TabularLayout(colSizes: Array<out SizingRule>, initialRowSizes: Array<out 
     val rowCalculator: SizeCalculator
 
     init {
+      // Ensure parent.getComponent access is synchronous
+      assert (EDT.isCurrentThreadEdt())
+
       val components = mutableListOf<Component>()
 
       var numRows = 0

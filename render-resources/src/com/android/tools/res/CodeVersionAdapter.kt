@@ -15,30 +15,25 @@
  */
 package com.android.tools.res
 
+import com.intellij.ide.plugins.PluginManagerCore.getPlugin
+import com.intellij.openapi.extensions.PluginId
+
 /**
  * An adapter for accessing environment-dependent code version. For example, the version of the
  * plugin or library containing this class. See subclasses for descriptions of behavior in specific
  * environments.
  */
-abstract class CodeVersionAdapter {
-  protected abstract fun doGetCodeVersion(): String
+object CodeVersionAdapter {
 
-  companion object {
-    private var codeVersionAdapter: CodeVersionAdapter? = null
+  private const val ANDROID_PLUGIN_ID = "org.jetbrains.android"
 
-    /**
-     * Returns the version of library of plugin containing this class or null if the code is not a
-     * part of a plugin or a versioned library.
-     */
-    @JvmStatic
-    fun getCodeVersion(): String? {
-      return codeVersionAdapter?.doGetCodeVersion()
-    }
-
-    @JvmStatic
-    fun setInstance(instance: CodeVersionAdapter) {
-      check(codeVersionAdapter == null) { "Re-assignment of CodeVersionAdapter detected" }
-      codeVersionAdapter = instance
-    }
+  /**
+   * Returns the version of library of plugin containing this class or null if the code is not a
+   * part of a plugin or a versioned library.
+   */
+  @JvmStatic
+  fun getCodeVersion(): String? {
+    val descriptor = getPlugin(PluginId.getId(ANDROID_PLUGIN_ID))
+    return descriptor!!.version
   }
 }

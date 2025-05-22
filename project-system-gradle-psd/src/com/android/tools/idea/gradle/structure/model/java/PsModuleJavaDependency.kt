@@ -17,7 +17,9 @@ package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.PsDeclaredModuleDependency
+import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsResolvedModuleDependency
 import com.intellij.util.PlatformIcons
 import javax.swing.Icon
 

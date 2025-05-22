@@ -1,3 +1,4 @@
+// Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.exportSignedPackage;
 
 import com.android.ide.common.signing.KeystoreHelper;
@@ -6,13 +7,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,6 +18,15 @@ import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class NewKeyForm {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.exportSignedPackage.NewKeyForm");
@@ -118,7 +122,7 @@ public abstract class NewKeyForm {
     if (textField != null) {
       String value = textField.getText().trim();
       if (!value.isEmpty()) {
-        if (builder.length() > 0) {
+        if (!builder.isEmpty()) {
           builder.append(",");
         }
         builder.append(prefix);
@@ -172,16 +176,16 @@ public abstract class NewKeyForm {
     normalizeBuilder(outBuilder);
 
     if (createdStore) {
-      if (errorBuilder.length() > 0) {
+      if (!errorBuilder.isEmpty()) {
         String prefix = AndroidBundle.message("android.create.new.key.error.prefix");
         Messages.showErrorDialog(myContentPanel, prefix + '\n' + errorBuilder.toString());
       }
     }
     else {
-      if (errorBuilder.length() > 0) {
+      if (!errorBuilder.isEmpty()) {
         throw new CommitStepException(errorBuilder.toString());
       }
-      if (outBuilder.length() > 0) {
+      if (!outBuilder.isEmpty()) {
         throw new CommitStepException(outBuilder.toString());
       }
       throw new CommitStepException(AndroidBundle.message("android.cannot.create.new.key.error"));
@@ -244,7 +248,7 @@ public abstract class NewKeyForm {
   }
 
   private static void normalizeBuilder(StringBuilder builder) {
-    if (builder.length() > 0) {
+    if (!builder.isEmpty()) {
       builder.deleteCharAt(builder.length() - 1);
     }
   }

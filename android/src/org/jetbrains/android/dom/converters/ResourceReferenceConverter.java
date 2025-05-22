@@ -34,7 +34,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;

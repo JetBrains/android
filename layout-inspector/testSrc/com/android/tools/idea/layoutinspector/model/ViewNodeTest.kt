@@ -20,8 +20,9 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.UsefulTestCase
 import org.junit.Rule
 import org.junit.Test
@@ -34,10 +35,10 @@ private val LAYOUT_MAIN =
   ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 
 class ViewNodeTest {
-  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val projectRule = ProjectRule()
 
   val disposable
-    get() = disposableRule.disposable
+    get() = projectRule.disposable
 
   @Test
   fun testFlatten() {

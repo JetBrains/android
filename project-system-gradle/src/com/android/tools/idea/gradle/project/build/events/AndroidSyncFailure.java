@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.build.events;
 
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
+
 import com.intellij.build.events.Failure;
 import com.intellij.notification.Notification;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.pom.Navigatable;
+import java.util.List;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
 
 public final class AndroidSyncFailure {
   @Contract(pure = true)

@@ -27,7 +27,6 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.EdtRule;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;

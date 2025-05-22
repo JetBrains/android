@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.structure.configurables.android.buildvariants.AndroidModuleBuildVariantsConfigurable
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
+import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
 
 const val BUILD_VARIANTS_VIEW = "BuildVariantsView"
-const val BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME = "Build Variants"
+@Nls val buildVariantsPerspectiveDisplayName = AndroidGradlePsdBundle.message("android.build.variants.perspective.configurable.display.name")
 
 class BuildVariantsPerspectiveConfigurable(context: PsContext)
   : BasePerspectiveConfigurable(context, extraModules = listOf()), TrackedConfigurable {
@@ -39,7 +41,8 @@ class BuildVariantsPerspectiveConfigurable(context: PsContext)
       else -> ModuleUnsupportedConfigurable(context, this, module)
     }
 
-  override fun getDisplayName() = BUILD_VARIANTS_PERSPECTIVE_DISPLAY_NAME
+  @Nls
+  override fun getDisplayName() = buildVariantsPerspectiveDisplayName
 
   private fun createConfigurable(module: PsAndroidModule): AndroidModuleBuildVariantsConfigurable =
       AndroidModuleBuildVariantsConfigurable(context, this, module).apply { history = myHistory }

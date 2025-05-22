@@ -1,0 +1,53 @@
+### auto-generated section `build intellij.android.adt.swingp` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
+
+kt_javac_options(
+  name = "custom-javac-options",
+  x_ep_disable_all_checks = True,
+  warn = "off",
+  add_exports = [
+    "java.desktop/sun.java2d=ALL-UNNAMED",
+    "java.desktop/sun.awt.image=ALL-UNNAMED",
+  ]
+)
+
+jvm_library(
+  name = "adt-swingp",
+  module_name = "intellij.android.adt.swingp",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/main/java/**/*.kt", "src/main/java/**/*.java"], allow_empty = True),
+  javac_opts = ":custom-javac-options",
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:asm",
+    "@lib//:guava",
+    "@lib//:gson",
+    "@lib//:http-client",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+  ]
+)
+
+jvm_test(
+  name = "adt-swingp_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  javac_opts = ":custom-javac-options",
+  associates = [":adt-swingp"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:asm",
+    "@lib//:guava",
+    "@lib//:gson",
+    "@lib//:http-client",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+  ]
+)
+### auto-generated section `build intellij.android.adt.swingp` end

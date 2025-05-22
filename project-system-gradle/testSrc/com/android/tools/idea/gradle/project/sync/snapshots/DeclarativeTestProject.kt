@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
-import com.android.tools.idea.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor

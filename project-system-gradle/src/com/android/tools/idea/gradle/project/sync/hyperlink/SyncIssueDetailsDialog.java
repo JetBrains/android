@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
+
 import com.google.common.base.Joiner;
+import java.awt.Window;
+import java.util.List;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JTextPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
-
-import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
 
 public class SyncIssueDetailsDialog extends JDialog {
   private JPanel contentPane;

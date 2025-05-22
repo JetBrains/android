@@ -200,7 +200,7 @@ class SaveLogcatActionTest {
     assertThat(notificationRule.notifications).hasSize(1)
     val openInEditorAction =
       notificationRule.notifications.first().actions.find { it.templateText == "Open in Editor" }
-        ?: throw AssertionError("Expected action not found")
+      ?: throw AssertionError("Expected action not found")
 
     runInEdtAndWait { openInEditorAction.actionPerformed(event) }
 
@@ -223,7 +223,7 @@ class SaveLogcatActionTest {
     assertThat(notificationRule.notifications).hasSize(1)
     val openInLogcatAction =
       notificationRule.notifications.first().actions.find { it.templateText == "Open in Logcat" }
-        ?: throw AssertionError("Expected action not found")
+      ?: throw AssertionError("Expected action not found")
     val mockShowLogcatListener = mock<ShowLogcatListener>()
     project.messageBus.connect().subscribe(ShowLogcatListener.TOPIC, mockShowLogcatListener)
 

@@ -44,7 +44,7 @@ class WindowsCRuntimeChecker : ProjectActivity {
     val dllPath = Paths.get(System.getenv("SystemRoot"), "system32", "ucrtbase.dll")
     if (!dllPath.toFile().exists()) {
       val systemHealthMonitor = AndroidStudioSystemHealthMonitor.getInstance()
-      systemHealthMonitor.showNotification(
+      systemHealthMonitor?.showNotification(
         "windows.ucrt.warn.message", AndroidStudioSystemHealthMonitor.detailsAction(
           "https://support.microsoft.com/en-ca/help/2999226/update-for-universal-c-runtime-in-windows"
         )

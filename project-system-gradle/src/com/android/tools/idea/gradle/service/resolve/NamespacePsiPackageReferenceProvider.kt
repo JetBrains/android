@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.service.resolve
 
 import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
-import com.android.tools.idea.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeElement
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral

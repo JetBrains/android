@@ -26,7 +26,6 @@ import com.android.tools.idea.logcat.PROCESS_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Item
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Separator
-import com.android.tools.idea.logcat.filters.FilterTextField.FilterStatusChanged
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
@@ -61,14 +60,13 @@ import com.intellij.openapi.ui.popup.PopupChooserBuilder
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.EditorTextField
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.GotItTooltip
 import com.intellij.ui.GotItTooltip.Companion.BOTTOM_LEFT
-import com.intellij.ui.NewUI
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
-import com.intellij.util.Consumer
 import com.intellij.util.messages.Topic
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
@@ -292,7 +290,8 @@ internal class FilterTextField(
 
   fun trackFilterUpdates() = filterUpdateFlow.filterNotNull()
 
-  @TestOnly internal fun getEditorEx() = textField.editor as EditorEx
+  @TestOnly
+  internal fun getEditorEx() = textField.editor as EditorEx
 
   private fun updateButtons() {
     val hasFilter = text.isNotEmpty()
@@ -312,14 +311,11 @@ internal class FilterTextField(
       PopupChooserBuilder(list)
         .setMovable(false)
         .setRequestFocus(true)
-        .setItemChosenCallback(
-          Consumer {
-            (it as? Item)?.let { item ->
-              text = item.filter
-              isFavorite = item.isFavorite
-            }
-          }
-        )
+        .setItemChosenCallback { chosenItem ->
+          if (chosenItem !is Item) return@setItemChosenCallback
+          text = chosenItem.filter
+          isFavorite = chosenItem.isFavorite
+        }
         .setSelectedValue(Item(text, isFavorite, count = null, filterParser), true)
         .createPopup()
     Disposer.register(popup, popupDisposable)
@@ -519,6 +515,7 @@ internal class FilterTextField(
         favoriteIconBounds.contains(event.point) -> getFavoriteTooltip(item)
         deleteIconBounds.contains(event.point) ->
           LogcatBundle.message("logcat.filter.history.delete.tooltip", inactiveColor)
+
         else -> item.tooltip
       }
     }
@@ -545,7 +542,8 @@ internal class FilterTextField(
         item.isFavorite = false
         filterHistory.favorites.remove(item.filter)
         filterHistory.nonFavorites.add(item.filter)
-      } else {
+      }
+      else {
         item.isFavorite = true
         filterHistory.favorites.add(item.filter)
         filterHistory.nonFavorites.remove(item.filter)
@@ -601,6 +599,7 @@ internal class FilterTextField(
           when {
             favoriteIconBounds.contains(event.point) ->
               toggleFavoriteItem(index, favoriteIconBounds)
+
             deleteIconBounds.contains(event.point) -> deleteItem(index)
             else -> consume = false
           }
@@ -765,7 +764,7 @@ internal class FilterTextField(
       }
 
       private fun whiteIconForOldUI(icon: Icon): Icon =
-        if (NewUI.isEnabled()) icon else ColoredIconGenerator.generateWhiteIcon(icon)
+        if (ExperimentalUI.isNewUI()) icon else ColoredIconGenerator.generateWhiteIcon(icon)
 
       // Items have unique text, so we only need to check the "filter" field. We MUST ignore the
       // "count" field because we do not yet know

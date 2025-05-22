@@ -495,7 +495,7 @@ public class AndroidStudio extends Ide {
     switch (response.getResult()) {
       case OK -> {}
       case ERROR -> throw new IllegalStateException(String.format("Failed while waiting for component with these matchers: %s. %s",
-                                                    requestBuilder, formatErrorMessage(response.getErrorMessage())));
+                                                                  requestBuilder, formatErrorMessage(response.getErrorMessage())));
       default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
   }

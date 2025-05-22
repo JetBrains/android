@@ -255,9 +255,12 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
 
     if (modules.isEmpty()) {
       for (Module module : ModuleManager.getInstance(project).getModules()) {
-        if (scope.containsModule(module)) {
-          modules.add(module);
-        }
+        AnalysisScope currentScope = scope;
+        ReadAction.run(() -> {
+          if (currentScope.containsModule(module)) {
+            modules.add(module);
+          }
+        });
       }
 
       if (modules.isEmpty() && files != null) {

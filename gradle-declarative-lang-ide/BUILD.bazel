@@ -1,0 +1,76 @@
+### auto-generated section `build intellij.android.gradle.declarative.lang.ide` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "gradle-declarative-lang-ide_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "gradle-declarative-lang-ide",
+  module_name = "intellij.android.gradle.declarative.lang.ide",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "//platform/platform-impl:ide-impl",
+    "@lib//:jsoup",
+    "//java/java-impl:impl",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/extensions",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//android/gradle-declarative-lang",
+    "//platform/code-style-impl:codeStyle-impl",
+    "@lib//:commons-lang3",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+  ],
+  runtime_deps = [":gradle-declarative-lang-ide_resources"]
+)
+### auto-generated section `build intellij.android.gradle.declarative.lang.ide` end
+
+### auto-generated section `build intellij.android.gradle.declarative.lang.ide.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "gradle-declarative-lang-ide-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:truth",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "@lib//:jsoup",
+    "//android/android:core",
+    "//android/android:core-tests_test_lib",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//java/java-impl:impl",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/extensions",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//android/gradle-declarative-lang",
+    "//android/gradle-declarative-lang-ide",
+  ]
+)
+### auto-generated section `build intellij.android.gradle.declarative.lang.ide.tests` end

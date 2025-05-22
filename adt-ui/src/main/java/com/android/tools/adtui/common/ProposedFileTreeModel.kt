@@ -33,7 +33,6 @@ import javax.swing.event.TreeModelListener
 import javax.swing.tree.TreeModel
 import javax.swing.tree.TreePath
 import kotlin.io.path.name
-import kotlin.streams.toList
 
 /**
  * Default [Icon] that [ProposedFileTreeModel] marks non-directory [File]s

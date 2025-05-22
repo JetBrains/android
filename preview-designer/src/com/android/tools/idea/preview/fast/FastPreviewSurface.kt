@@ -102,9 +102,9 @@ class CommonFastPreviewSurface(
         )
     val previewFileBuildTargetReference =
       readAction { BuildTargetReference.from(previewFile) }
-        ?: return CompilationResult.RequestException(
-          IllegalStateException("Preview File does not have a valid module")
-        )
+      ?: return CompilationResult.RequestException(
+        IllegalStateException("Preview File does not have a valid module")
+      )
     val previewFileAndroidModule =
       previewFileBuildTargetReference.module.findAndroidModule()
         ?: return CompilationResult.RequestException(
@@ -120,9 +120,12 @@ class CommonFastPreviewSurface(
 
           // Keep the file if the file is from this module or from a module we depend on
           modifiedFileBuildTargetReference == previewFileBuildTargetReference ||
-            // TODO: solodkyy - This is wrong. Expose this operation via the BTR.
-            ModuleManager.getInstance(psiFilePointer.project)
-              .isModuleDependent(previewFileAndroidModule, modifiedFileBuildTargetReference.module)
+          // TODO: solodkyy - This is wrong. Expose this operation via the BTR.
+          ModuleManager.getInstance(psiFilePointer.project)
+            .isModuleDependent(
+              previewFileAndroidModule,
+              modifiedFileBuildTargetReference.module
+            )
         }
         .toSet()
 
@@ -136,7 +139,7 @@ class CommonFastPreviewSurface(
       previewStatusProvider(),
       fastPreviewCompilationLauncher,
     ) { outputAbsolutePath ->
-      ModuleClassLoaderOverlays.getInstance(previewFileBuildTargetReference)
+      ModuleClassLoaderOverlays.getInstance(previewFileAndroidModule)
         .pushOverlayPath(File(outputAbsolutePath).toPath())
       delegateRefresh()
     }

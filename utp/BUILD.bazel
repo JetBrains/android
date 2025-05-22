@@ -1,0 +1,52 @@
+### auto-generated section `build intellij.android.utp` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "utp_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "utp",
+  module_name = "intellij.android.utp",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:kotlin-stdlib",
+    "//plugins/gradle:gradle-common",
+    "//platform/external-system-api:externalSystem",
+    "//platform/util",
+    "//platform/util-ex",
+  ],
+  runtime_deps = [":utp_resources"]
+)
+
+jvm_library(
+  name = "utp_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [":utp"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:guava",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "//plugins/gradle:gradle-common",
+    "//platform/external-system-api:externalSystem",
+    "//platform/util",
+    "//platform/util-ex",
+  ],
+  runtime_deps = [":utp_resources"]
+)
+
+jvm_test(
+  name = "utp_test",
+  runtime_deps = [":utp_test_lib"]
+)
+### auto-generated section `build intellij.android.utp` end

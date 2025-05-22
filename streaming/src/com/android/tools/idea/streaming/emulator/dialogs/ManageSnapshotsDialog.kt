@@ -108,6 +108,7 @@ import javax.swing.AbstractAction
 import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.JTextField

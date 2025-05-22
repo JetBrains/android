@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.transport
 
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.test.testutils.TestUtils.getWorkspaceRoot
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test

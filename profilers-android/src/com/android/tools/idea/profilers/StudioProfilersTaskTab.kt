@@ -21,7 +21,6 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.TaskProfilersView
 import com.android.tools.profilers.sessions.SessionAspect
-import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener

@@ -21,6 +21,8 @@ import com.android.tools.apk.analyzer.dex.tree.DexClassNode;
 import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
 import com.android.tools.apk.analyzer.dex.tree.DexMethodNode;
 import com.android.tools.proguard.ProguardMap;
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.util.concurrent.FutureCallback;
@@ -41,13 +43,10 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.IOException;
 import java.nio.file.Path;
-
 import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
-import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 
 public class ShowDisassemblyAction extends AnAction implements DumbAware {
   @NotNull private final Tree myTree;

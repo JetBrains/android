@@ -29,21 +29,21 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.runInEdtAndGet
-import com.intellij.ui.NewUI
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons.LayoutEditor.Palette
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 import java.awt.Color
 import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.JTree
 import javax.swing.SwingUtilities
 import javax.swing.tree.TreeSelectionModel
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
 
 private const val TEST_ROW = 1
 private val LONG_TEXT_VALUE = "1234567890".repeat(1000)
@@ -416,7 +416,7 @@ class ViewTreeCellRendererTest {
     val faint = ColoredIconGenerator.generateDeEmphasizedIcon(Palette.TEXT_VIEW)
     assertThat(hasNonWhiteColors(white)).isFalse()
     IconLoader.activate()
-    val selectedWithFocus = if (NewUI.isEnabled()) normal else white
+    val selectedWithFocus = if (ExperimentalUI.isNewUI()) normal else white
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
     assertThat(
         getIcon(item, selected = false, hasFocus = false, enabled = true, deEmphasized = false)

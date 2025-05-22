@@ -1,0 +1,132 @@
+### auto-generated section `build intellij.android.core.jetbrains` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
+
+create_kotlinc_options(
+  name = "custom",
+  opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"]
+)
+
+kt_javac_options(
+  name = "custom-javac-options",
+  x_ep_disable_all_checks = True,
+  warn = "off",
+  add_exports = ["jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"]
+)
+
+java_library(
+  name = "core-jetbrains",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "core-jetbrains_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  javac_opts = ":custom-javac-options",
+  kotlinc_opts = ":custom",
+  associates = ["//android/android:core"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:asm",
+    "@lib//:guava",
+    "@lib//:jsoup",
+    "@lib//:junit4",
+    "@lib//:asm-tools",
+    "@lib//:vavr",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-test",
+    "@lib//:kxml2",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "@lib//:kotlinc-kotlin-compiler-common",
+    "@lib//:kotlinc-analysis-api",
+    "//android/project-system-gradle-psd:projectSystem-gradle-psd",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/adt-ui",
+    "//android/adt-ui:adt-ui_test_lib",
+    "//android/android-common:common",
+    "//android/android:core-tests_test_lib",
+    "//android/jps-model",
+    "//android/layoutlib-loader",
+    "//android/android-navigator:navigator",
+    "//android/project-system:projectSystem",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/project-system-gradle-models:projectSystem-gradle-models",
+    "//android/render-resources",
+    "//android/rendering",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//plugins/gradle:gradle-common",
+    "//java/compiler/impl:java-compiler-impl",
+    "//java/java-analysis-impl:analysis-impl",
+    "//java/java-analysis-api:analysis",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//platform/editor-ui-ex:editor-ex",
+    "//java/java-impl:impl",
+    "//java/java-impl-inspections:impl-inspections",
+    "//java/java-psi-api:psi",
+    "//java/java-psi-impl:psi-impl",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//platform/analysis-impl",
+    "//platform/code-style-api:codeStyle",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/core-ui",
+    "//platform/credential-store-impl:credentialStore-impl",
+    "//platform/credential-store-impl:credentialStore-impl_test_lib",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/external-system-api:externalSystem",
+    "//platform/platform-api:ide",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//jps/model-api:model",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/refactoring",
+    "//platform/remote-core",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/testFramework/common",
+    "//platform/usageView",
+    "//platform/usageView-impl",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util/jdom",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+    "//platform/util:util-ui",
+    "//spellchecker",
+    "//spellchecker:spellchecker_test_lib",
+    "//xml/xml-analysis-impl:analysis-impl",
+    "//xml/dom-openapi:dom",
+    "//xml/dom-impl",
+    "//xml/xml-parser:parser",
+    "//xml/impl",
+    "//xml/xml-psi-api:psi",
+    "//xml/xml-psi-impl:psi-impl",
+    "//xml/xml-structure-view-api:structureView",
+    "//plugins/kotlin/base/util:kotlin-base-util",
+    "//plugins/kotlin/base/util:kotlin-base-util_test_lib",
+    "//tools/intellij.tools.ide.metrics.benchmark:ide-metrics-benchmark",
+    "//tools/intellij.tools.ide.metrics.benchmark:ide-metrics-benchmark_test_lib",
+    "//android/android/editing/documentation:android-core-editing-documentation",
+    "//android/android/editing/documentation:android-core-editing-documentation_test_lib",
+  ]
+)
+
+jvm_test(
+  name = "core-jetbrains_test",
+  runtime_deps = [":core-jetbrains_test_lib"]
+)
+### auto-generated section `build intellij.android.core.jetbrains` end

@@ -36,7 +36,6 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.FileName
 import org.HdrHistogram.Recorder
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit

@@ -17,10 +17,10 @@ package com.android.tools.idea.testing
 
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline
 import org.junit.Rule
-import org.junit.runners.model.Statement
 import org.junit.Test
 import org.junit.rules.ExpectedException
 import org.junit.runner.Description
+import org.junit.runners.model.Statement
 
 class ThreadingCheckRuleTest {
   @get:Rule

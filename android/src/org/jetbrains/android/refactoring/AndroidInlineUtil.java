@@ -1,3 +1,4 @@
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.refactoring;
 
 import com.intellij.codeInsight.PsiEquivalenceUtil;
@@ -24,8 +25,8 @@ import org.jetbrains.android.dom.layout.Include;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.resources.Style;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.refactoring.errorreporter.ErrorReporter;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -160,7 +161,7 @@ class AndroidInlineUtil {
   }
 
   static void addReferences(@NotNull PsiElement element, @NotNull Collection<UsageInfo> result) {
-    for (PsiReference reference : ReferencesSearch.search(element)) {
+    for (PsiReference reference : ReferencesSearch.search(element).asIterable()) {
       result.add(new UsageInfo(reference.getElement()));
     }
   }

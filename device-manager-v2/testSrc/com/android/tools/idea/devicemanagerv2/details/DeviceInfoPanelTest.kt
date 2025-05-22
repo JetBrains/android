@@ -33,12 +33,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import icons.StudioIcons
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
 
 class DeviceInfoPanelTest {
 

@@ -16,7 +16,6 @@
 package com.android.tools.idea.room.migrations.ui;
 
 import com.intellij.ide.wizard.CommitStepException;
-import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;

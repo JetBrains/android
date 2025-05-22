@@ -23,6 +23,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import java.nio.file.Path
+import java.util.Locale
 
 class EmbeddedRenderTargetTest {
   private val fakeTarget = object : IAndroidTarget {
@@ -125,7 +126,7 @@ class EmbeddedRenderTargetTest {
     }
   }
 
-  private val isWindows = System.getProperty("os.name").toLowerCase().startsWith("win")
+  private val isWindows = System.getProperty("os.name").lowercase(Locale.getDefault()).startsWith("win")
 
   @Before
   fun setUp() {

@@ -17,12 +17,12 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
 import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.getTestStartTime
+import com.intellij.concurrency.ConcurrentCollectionFactory
 import com.intellij.execution.TestStateStorage
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
-import com.jetbrains.rd.util.concurrentMapOf
 import java.io.File
 import java.util.concurrent.ExecutorService
 
@@ -39,7 +39,7 @@ class ImportTestGroup(
     val testStartTime: Long,
   )
 
-  private val timestampMap: MutableMap<File, IntelliJStandardTestHistoryTimestamp> = concurrentMapOf()
+  private val timestampMap: MutableMap<File, IntelliJStandardTestHistoryTimestamp> = ConcurrentCollectionFactory.createConcurrentMap()
 
   override fun getChildren(e: AnActionEvent?): Array<AnAction> {
     val project = e?.project ?: return EMPTY_ARRAY

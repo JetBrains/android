@@ -38,7 +38,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.DetailsComponent;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -64,6 +63,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -233,7 +233,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   @Override
   public String getDisplayName() {
-    return "SDK Location";
+    return AndroidBundle.message("configurable.IdeSdksConfigurable.display.name");
   }
 
   @Override
@@ -299,8 +299,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   }
 
   @Override
-  @NotNull
-  public JComponent getPreferredFocusedComponent() {
+  public @Nullable JComponent getPreferredFocusedComponent() {
     Component toFocus = myComponentsById.get(mySelectedComponentId);
     return toFocus instanceof JComponent ? (JComponent)toFocus : mySdkLocationTextField.getTextField();
   }

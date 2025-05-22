@@ -59,7 +59,7 @@ class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
               layoutGroup.mainLayout.resource.name == element.resourceReference.name
             }
           lightBindingClasses.forEach {
-            ReferencesSearch.search(it, options.searchScope).all { reference ->
+            ReferencesSearch.search(it, options.searchScope).asIterable().all { reference ->
               processor.process(UsageInfo2UsageAdapter(UsageInfo(reference)))
             }
           }
@@ -90,7 +90,7 @@ class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
               }
 
           relevantFields.forEach {
-            ReferencesSearch.search(it, options.searchScope).all { reference ->
+            ReferencesSearch.search(it, options.searchScope).asIterable().all { reference ->
               processor.process(UsageInfo2UsageAdapter(UsageInfo(reference)))
             }
           }

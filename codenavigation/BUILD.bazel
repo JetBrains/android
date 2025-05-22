@@ -1,0 +1,77 @@
+### auto-generated section `build intellij.android.codenavigation` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "codenavigation",
+  module_name = "intellij.android.codenavigation",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:maven-resolver-provider",
+    "@lib//:protobuf",
+    "//android/analytics",
+    "//android/android:core",
+    "//android/native-symbolizer",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/indexing-api:indexing",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/lang-impl",
+    "//platform/lvcs-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-rt",
+  ]
+)
+
+jvm_library(
+  name = "codenavigation_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [":codenavigation"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:maven-resolver-provider",
+    "@lib//:protobuf",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:truth",
+    "//android/analytics",
+    "//android/analytics:analytics_test_lib",
+    "//android/android:core",
+    "//android/native-symbolizer",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/indexing-api:indexing",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/lang-impl",
+    "//platform/lvcs-impl",
+    "//platform/lvcs-impl:lvcs-impl_test_lib",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+  ]
+)
+
+jvm_test(
+  name = "codenavigation_test",
+  runtime_deps = [":codenavigation_test_lib"]
+)
+### auto-generated section `build intellij.android.codenavigation` end

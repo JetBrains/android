@@ -27,10 +27,10 @@ import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import java.net.InetSocketAddress
-import java.time.Duration
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
+import java.net.InetSocketAddress
+import java.time.Duration
 
 /** The production implementation of [AdbLibService] */
 internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposable {
@@ -41,7 +41,7 @@ internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposab
     AdbLibApplicationService.instance.registerProject(project)
   }
 
-  override val session =
+  override val session by lazy {
     if (oneSessionPerProject) {
       // Create per project session
       createProjectSession(project)
@@ -49,6 +49,7 @@ internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposab
       // re-use session from application service
       AdbLibApplicationService.instance.session
     }
+  }
 
   override fun dispose() {
     if (oneSessionPerProject) {

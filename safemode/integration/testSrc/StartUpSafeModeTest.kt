@@ -2,7 +2,7 @@ import com.android.tools.asdriver.tests.AndroidStudioInstallation
 import com.android.tools.asdriver.tests.Display
 import com.android.tools.asdriver.tests.TestFileSystem
 import com.google.common.truth.Truth.assertThat
-import org.apache.commons.lang.SystemUtils
+import org.apache.commons.lang3.SystemUtils
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -112,7 +112,6 @@ class StartUpSafeModeTest {
       "TestNG",
       "TextMate Bundles",
       "Toml",
-      "Turbo Complete",
       "Visual Studio Keymap",
       "WebP Support",
       "YAML"

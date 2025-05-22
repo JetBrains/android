@@ -24,7 +24,7 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.psi.PsiPolyVariantReference
-import com.intellij.psi.PsiPrimitiveType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.parentOfType
 
 class ProguardR8FieldsTest : ProguardR8TestCase() {
@@ -51,7 +51,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
       """.trimIndent())
     var fieldName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(fieldName.type).isNotNull()
-    assertThat(fieldName.type!!.matchesPsiType(PsiPrimitiveType.INT)).isTrue()
+    assertThat(fieldName.type!!.matchesPsiType(PsiTypes.intType())).isTrue()
 
     myFixture.moveCaret("my|String")
     fieldName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!

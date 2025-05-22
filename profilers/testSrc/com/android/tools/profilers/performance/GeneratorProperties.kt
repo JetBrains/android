@@ -17,8 +17,6 @@ package com.android.tools.profilers.performance
 
 import com.android.tools.profiler.proto.Common
 
-import java.util.Random
-
 class GeneratorProperties private constructor(private val myBuilder: Builder) {
   val session: Common.Session
     get() = myBuilder.session

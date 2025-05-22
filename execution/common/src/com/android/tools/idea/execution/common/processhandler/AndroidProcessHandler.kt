@@ -62,7 +62,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
   androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { textEmitter, listener ->
     AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, listener,
                                  finishAndroidProcessCallback)
-  }) : ProcessHandler() {
+  }) : ProcessHandler(), DeviceAwareProcessHandler {
 
   companion object {
     private var LOG = Logger.getInstance(AndroidProcessHandler::class.java)
@@ -135,7 +135,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
    * Checks if a given device is monitored by this handler. Returns true if it is monitored otherwise false.
    */
   @AnyThread
-  fun isAssociated(device: IDevice) = myMonitorManager.isAssociated(device)
+  override fun isAssociated(device: IDevice): Boolean = myMonitorManager.isAssociated(device)
 
   /**
    * Returns jdwp client of a target application running on a given device, or null if the device is not monitored by

@@ -206,7 +206,7 @@ public class StringMTag implements MTag {
       ret += "\n" + space + "   " + nameSpace + ":" + value.mAttribute + "=\"" + value.mValue
              + "\"";
     }
-    if (mChildren.size() == 0) {
+    if (mChildren.isEmpty()) {
       ret += (" />\n");
     }
     else {
@@ -215,7 +215,7 @@ public class StringMTag implements MTag {
     for (MTag child : mChildren) {
       ret += child.toFormalXmlString(space + "  ");
     }
-    if (mChildren.size() > 0) {
+    if (!mChildren.isEmpty()) {
       ret += space + "</" + name + ">\n";
     }
     return ret;

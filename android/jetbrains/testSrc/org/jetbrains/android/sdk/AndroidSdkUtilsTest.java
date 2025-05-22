@@ -32,7 +32,9 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.util.EnvironmentUtil;
 import java.io.File;
+import java.nio.file.Path;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -40,7 +42,6 @@ import org.mockito.Mockito;
  * Tests for {@link AndroidSdkUtils}.
  */
 public class AndroidSdkUtilsTest extends HeavyPlatformTestCase {
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -101,11 +102,22 @@ public class AndroidSdkUtilsTest extends HeavyPlatformTestCase {
   public void testGetAdbInPath() throws Exception {
     assertWithMessage("Precondition: project with no android facets")
       .that(ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)).isFalse();
-    try (MockedStatic<EnvironmentUtil> mockEnvironment = Mockito.mockStatic(EnvironmentUtil.class)) {
-      String separator = System.getProperty("path.separator");
-      File fakeAdb = createTempFile(FN_ADB, "");
-      when(EnvironmentUtil.getValue("PATH")).thenReturn("foo" + separator + fakeAdb.getParent() + separator + "bar");
-      assertThat(AndroidSdkUtils.findAdb(myProject).adbPath).isEqualTo(fakeAdb);
+    Path existingPath = AndroidSdkPathStore.getInstance().getAndroidSdkPath();
+    String adbPathProperty = System.getProperty(AndroidSdkUtils.ADB_PATH_PROPERTY);
+    try {
+      AndroidSdkPathStore.getInstance().setAndroidSdkPath(null);
+      System.clearProperty(AndroidSdkUtils.ADB_PATH_PROPERTY);
+      try (MockedStatic<EnvironmentUtil> mockEnvironment = Mockito.mockStatic(EnvironmentUtil.class)) {
+        String separator = System.getProperty("path.separator");
+        File fakeAdb = createTempFile(FN_ADB, "");
+        when(EnvironmentUtil.getValue("PATH")).thenReturn("foo" + separator + fakeAdb.getParent() + separator + "bar");
+        assertThat(AndroidSdkUtils.findAdb(myProject).adbPath).isEqualTo(fakeAdb);
+      }
+    } finally {
+      AndroidSdkPathStore.getInstance().setAndroidSdkPath(existingPath);
+      if (adbPathProperty != null) {
+        System.setProperty(AndroidSdkUtils.ADB_PATH_PROPERTY, adbPathProperty);
+      }
     }
   }
 }

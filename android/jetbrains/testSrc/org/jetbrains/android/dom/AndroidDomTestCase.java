@@ -32,6 +32,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.spellchecker.quickfixes.RenameTo;
 import com.intellij.spellchecker.quickfixes.SaveTo;
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -42,7 +43,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
@@ -308,7 +308,7 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
 
   protected final List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {
     List<HighlightInfo> infos = myFixture.doHighlighting();
-    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
+    CodeInsightTestFixtureImpl.waitForLazyQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
     List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {

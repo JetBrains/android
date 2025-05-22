@@ -81,10 +81,10 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.text.nullize
-import javax.swing.Icon
 import org.jetbrains.android.dom.AttributeProcessingUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
+import javax.swing.Icon
 
 /**
  * Find the [AndroidFacet] that matches the specified [packageName] among the facets in the project.

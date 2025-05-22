@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.gradle.config
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.sdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
+import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 
@@ -34,14 +36,24 @@ object GradleConfigManager {
     val configProperties = GradleConfigProperties(File(rootProjectPath))
     if (configProperties.javaHome != null) return
 
-    val jdkPathCandidatesSortedByPriority = listOfNotNull(
-      ProjectRootManager.getInstance(project).projectSdk?.homePath,
-      GradleDefaultJdkPathStore.jdkPath,
-      IdeSdks.getInstance().embeddedJdkPath.toString()
-    ).filter { it.isNotEmpty() && ExternalSystemJdkUtil.isValidJdk(it) }
+    val jdkPathCandidatesSortedByPriority = getJdkCandidates(project)
+      .filter { it.isNotEmpty() && ExternalSystemJdkUtil.isValidJdk(it) }
+
     jdkPathCandidatesSortedByPriority.firstOrNull()?.let { jdkPath ->
       configProperties.javaHome = File(jdkPath)
       configProperties.save()
     }
+  }
+
+  private fun getJdkCandidates(project: Project): List<@NonNls String> {
+    return buildList {
+      add(ProjectRootManager.getInstance(project).projectSdk?.homePath)
+      add(GradleDefaultJdkPathStore.jdkPath)
+      if (IdeInfo.getInstance().isAndroidStudio) {
+        add(IdeSdks.getInstance().embeddedJdkPath.toString())
+      } else {
+        IdeSdks.getInstance().jdkPath?.let { add(it.toString()) }
+      }
+    }.filterNotNull()
   }
 }

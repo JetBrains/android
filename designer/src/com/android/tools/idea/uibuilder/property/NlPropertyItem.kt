@@ -83,7 +83,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.dom.AndroidDomUtil
-import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * [PropertyItem] for Nele layouts, menus, preferences.
@@ -99,9 +98,7 @@ import org.jetbrains.annotations.VisibleForTesting
  * The [componentName] if present is the name of the View component that this property was defined
  * on. If it is not present the origin of the property is unknown.
  */
-open class NlPropertyItem
-@VisibleForTesting
-internal constructor(
+open class NlPropertyItem(
   override val namespace: String,
   override val name: String,
   open val type: NlPropertyType,

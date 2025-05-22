@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.intellij.build.events.BuildEvent
-import java.util.ArrayList
 import java.util.function.Consumer
 
 /**

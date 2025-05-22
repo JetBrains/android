@@ -22,7 +22,6 @@ import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
-import com.google.common.annotations.VisibleForTesting
 
 class SystemTraceTaskHandler(val sessionsManager: SessionsManager, private val isTraceboxEnabled: Boolean) : CpuTaskHandler(
   sessionsManager) {

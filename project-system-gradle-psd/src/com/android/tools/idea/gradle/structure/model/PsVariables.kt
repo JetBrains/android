@@ -17,7 +17,12 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.model.android.PsMutableCollectionBase
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.ValueAnnotation
+import com.android.tools.idea.gradle.structure.model.meta.annotateWith
 import com.google.common.annotations.VisibleForTesting
 
 open class PsVariables (

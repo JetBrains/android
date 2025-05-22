@@ -372,7 +372,8 @@ open class ResourceIdManagerBase internal constructor(
    * in a normal-size project (although there is no mechanism to check that).
    */
   private class IdProvider(private val packageByte: Byte) {
-    private val counters: ShortArray = ShortArray(ResourceType.values().size) { 0xffff.toShort() }
+    @OptIn(ExperimentalStdlibApi::class)
+    private val counters: ShortArray = ShortArray(ResourceType.entries.size) { 0xffff.toShort() }
 
     fun getNext(type: ResourceType): Int {
       return buildResourceId(packageByte, (type.ordinal + 1).toByte(), --counters[type.ordinal])

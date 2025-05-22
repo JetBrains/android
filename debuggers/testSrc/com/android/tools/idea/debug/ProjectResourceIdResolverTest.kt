@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.debug
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.intellij.util.xml.NanoXmlUtil
 import junit.framework.Assert
 import net.n3.nanoxml.IXMLBuilder

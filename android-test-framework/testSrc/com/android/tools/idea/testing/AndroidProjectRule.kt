@@ -17,7 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoThreadLocalsCleaner
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdks
@@ -26,7 +26,6 @@ import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.tests.AdtTestProjectDescriptor
 import com.android.tools.tests.AdtTestProjectDescriptors
 import com.android.tools.tests.KotlinAdtTestProjectDescriptor
-import com.android.utils.FileUtils
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetConfiguration
@@ -461,14 +460,6 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
     mockitoCleaner.setup()
 
     userHome = System.getProperty("user.home")
-    val testSpecificName =
-      UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName.substringAfterLast('$')
-    // Reset user home directory.
-    System.setProperty(
-      "user.home",
-      FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home"),
-    )
-
     // Disable antivirus checks on Windows.
     StudioFlags.ANTIVIRUS_METRICS_ENABLED.overrideForTest(false, flagsDisposable)
     StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.overrideForTest(false, flagsDisposable)
@@ -722,7 +713,6 @@ private fun createJavaCodeInsightTestFixtureAndModels(
       invokeAndWaitIfNeeded {
         // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and
         // cleaned after the test to behave
-        // properly.
         val basePath = File(javaCodeInsightTestFixture.tempDirPath)
         prepareProjectSourcesWith?.let { it(basePath) }
         if (projectModuleBuilders.isNotEmpty()) {
@@ -740,7 +730,7 @@ interface IntegrationTestEnvironmentRule : IntegrationTestEnvironment, TestRule 
 }
 
 class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) :
-  TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
+  TestRule by RuleChain.outerRule(EdtRule()).around(projectRule)!! {
   val project: Project
     get() = projectRule.project
 

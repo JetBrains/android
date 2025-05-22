@@ -1,0 +1,95 @@
+### auto-generated section `build intellij.android.lang-databinding` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "lang-databinding_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "lang-databinding",
+  module_name = "intellij.android.lang-databinding",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:guava",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:protobuf",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/project-system:projectSystem",
+    "//java/java-analysis-impl:analysis-impl",
+    "//java/java-frontback-impl:frontback-impl",
+    "//java/java-frontback-psi-api:frontback-psi",
+    "//java/java-impl:impl",
+    "//java/java-indexing-api:indexing",
+    "//java/java-psi-api:psi",
+    "//java/java-psi-impl:psi-impl",
+    "//java/jsp-base-openapi:jsp-base",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/diff-api:diff",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/indexing-api:indexing",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-rt",
+    "//platform/util:util-ui",
+    "//xml/dom-openapi:dom",
+    "//xml/xml-psi-api:psi",
+    "//xml/xml-psi-impl:psi-impl",
+  ],
+  runtime_deps = [":lang-databinding_resources"]
+)
+### auto-generated section `build intellij.android.lang-databinding` end
+
+### auto-generated section `build intellij.android.lang-databinding.tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_test")
+
+jvm_test(
+  name = "lang-databinding-tests_test",
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//android/databinding",
+    "//android/android-lang-databinding:lang-databinding",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/jps-model",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//java/java-psi-api:psi",
+    "//java/testFramework",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//xml/xml-psi-api:psi",
+  ]
+)
+### auto-generated section `build intellij.android.lang-databinding.tests` end

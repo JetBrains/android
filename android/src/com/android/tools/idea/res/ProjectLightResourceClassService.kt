@@ -155,7 +155,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
             //   It's easier to do by listening on `LibraryInfoListener.TOPIC` instead, which is
             //   emitted when LibraryInfoCache is partially invalidated, and contains a list of
             //   invalidated `LibraryInfo`s - just have to reverse `findIdeaLibrary` on them.
-            aarClassesCache.invalidateAll()
+            if (aarClassesCache.size() != 0L) aarClassesCache.invalidateAll()
             PsiManager.getInstance(project).dropPsiCaches()
           }
         }
