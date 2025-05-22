@@ -44,7 +44,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
-import java.awt.Dimension
 import java.awt.event.AWTEventListener
 import java.awt.event.MouseEvent
 import java.io.IOException
@@ -192,23 +191,6 @@ fun createZoomControlAutoHiddenListener(
       zoomControlComponent.isVisible = rect.contains(location)
     }
   }
-}
-
-/**
- * Find the scale value which can display all the [contentSize] on the screen. This function tries
- * to fit both width and height of [contentSize] into the current scroll pane of [DesignSurface].
- */
-@SurfaceScale
-fun DesignSurface<*>.getFitContentIntoWindowScale(contentSize: Dimension): Double {
-  val availableWidth = extentSize.width
-  val availableHeight = extentSize.height
-
-  @SurfaceScale
-  val scaleX: Double = if (size.width == 0) 1.0 else availableWidth.toDouble() / contentSize.width
-  @SurfaceScale
-  val scaleY: Double =
-    if (size.height == 0) 1.0 else availableHeight.toDouble() / contentSize.height
-  return minOf(scaleX, scaleY, zoomController.maxScale)
 }
 
 /** Helper function to set the visibilities of all [SceneView]s in the [DesignSurface]. */

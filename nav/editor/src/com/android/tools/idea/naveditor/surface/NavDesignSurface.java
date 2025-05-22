@@ -51,7 +51,6 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SurfaceInteractable;
 import com.android.tools.idea.common.surface.ZoomChange;
@@ -635,7 +634,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     @SwingCoordinate Point end = new Point(swingViewportSize.width / 2, swingViewportSize.height / 2);
     @SwingCoordinate LerpPoint lerpPoint = new LerpPoint(start, end, getScrollDurationMs());
 
-    double fitSelectionScale = DesignSurfaceHelper.getFitContentIntoWindowScale(this, selectionBounds.getSize());
+    double fitSelectionScale = getZoomController().getFitScale();
     fitSelectionScale = Math.min(fitSelectionScale, 1.0);
     LerpValue zoomLerp = new LerpDouble(view.getScale(), fitSelectionScale, getScrollDurationMs());
 
