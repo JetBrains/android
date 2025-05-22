@@ -17,19 +17,20 @@ package com.android.tools.idea.mlkit.notifications;
 
 import static com.android.tools.idea.mlkit.viewer.TfliteModelFileType.TFLITE_EXTENSION;
 
+import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.mlkit.MlUtils;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.DependencyType;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotificationProvider;
@@ -67,12 +68,10 @@ public class MissingDependenciesNotificationProvider implements EditorNotificati
       panel.setText("ML Model Binding dependencies not found.");
       panel.createActionLabel("Add Now", () -> {
         List<GradleCoordinate> depsToAdd = MlUtils.getMissingRequiredDependencies(module);
-        // TODO(b/149224613): switch to use DependencyManagementUtil#addDependencies.
-        AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
-        if (DependencyManagementUtil.userWantsToAdd(module.getProject(), depsToAdd, "")) {
-          for (GradleCoordinate dep : depsToAdd) {
-            moduleSystem.registerDependency(dep, DependencyType.IMPLEMENTATION);
-          }
+        String message = createAddDependencyMessage(depsToAdd);
+        if (Messages.OK == Messages.showOkCancelDialog(project, message, "Add Ml Model Binding Dependencies", Messages.getErrorIcon())) {
+          GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
+          manager.addDependencies(module, depsToAdd.stream().map(it -> Dependency.parse(it.toString())).toList());
           ProjectSystemUtil.getSyncManager(module.getProject()).requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
         }
       });
@@ -82,5 +81,15 @@ public class MissingDependenciesNotificationProvider implements EditorNotificati
       });
       return panel;
     };
+  }
+
+  private static @NotNull String createAddDependencyMessage(@NotNull List<GradleCoordinate> coordinates) {
+    String libraryNames = StringUtil.join(coordinates, ", ");
+    String these = StringUtil.pluralize("this", coordinates.size());
+    String libraries = StringUtil.pluralize("library", coordinates.size());
+    StringBuilder sb = new StringBuilder();
+    sb.append("This operation requires the ").append(libraries).append(" ").append(libraryNames).append(".\n\n");
+    sb.append("Would you like to add ").append(these).append(" now?");
+    return sb.toString();
   }
 }

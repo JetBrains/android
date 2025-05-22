@@ -46,7 +46,7 @@ class DeclarativeColorSettingsPage : ColorSettingsPage {
 
   override fun getDisplayName(): String = DeclarativeLanguage.getInstance().displayName
   override fun getHighlighter(): SyntaxHighlighter = DeclarativeHighlighter()
-  override fun getIcon(): Icon = DeclarativeFileType.INSTANCE.icon
+  override fun getIcon(): Icon? = DeclarativeFileType.INSTANCE.icon
   override fun getAdditionalHighlightingTagToDescriptorMap(): Map<String, TextAttributesKey> = tagToDescriptorMap
   override fun getAttributeDescriptors(): Array<AttributesDescriptor> = attributesDescriptors
   override fun getColorDescriptors(): Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY

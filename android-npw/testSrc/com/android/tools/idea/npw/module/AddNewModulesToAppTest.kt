@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.dynamicapp.DynamicFeatureModel
 import com.android.tools.idea.npw.java.NewLibraryModuleModel
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
@@ -38,22 +39,25 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
-@RunWith(Parameterized::class)
-class AddNewModulesToAppTest(
+/**
+ * This is deliberately un-parameterized to split Groovy vs KTS into different shards, since the
+ * overhead from Gradle sync with different types causes timeouts
+ */
+class GroovyAddNewModulesToAppTest : AddNewModulesToAppTest(false, false)
+
+class GroovyVersionCatalogAddNewModulesToAppTest : AddNewModulesToAppTest(false, true)
+
+class KtsAddNewModulesToAppTest : AddNewModulesToAppTest(true, false)
+
+class KtsVersionCatalogAddNewModulesToAppTest : AddNewModulesToAppTest(true, true)
+
+abstract class AddNewModulesToAppTest(
   private val useGradleKts: Boolean,
   private val useVersionCatalog: Boolean,
 ) {
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "useGradleKts={0}, useVersionCatalog = {1}")
-    fun data() =
-      listOf(arrayOf(false, false), arrayOf(false, true), arrayOf(true, false), arrayOf(true, true))
-  }
-
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   // Ignore project sync (to speed up test), if later we are going to perform a gradle build anyway.
   private val emptyProjectSyncInvoker =
@@ -63,9 +67,12 @@ class AddNewModulesToAppTest(
 
   private fun loadInitialProject() {
     if (useVersionCatalog) {
-      projectRule.load(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG)
+      projectRule.load(
+        TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG,
+        agpVersion = getAgpVersion(),
+      )
     } else {
-      projectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
+      projectRule.load(TestProjectPaths.SIMPLE_APPLICATION, agpVersion = getAgpVersion())
     }
   }
 

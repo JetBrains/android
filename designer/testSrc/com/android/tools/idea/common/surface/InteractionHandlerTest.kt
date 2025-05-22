@@ -81,6 +81,7 @@ class InteractionHandlerTest {
 
     val surface = Surface(rule.project, handlerProvider, actionManagerProvider)
     Disposer.register(rule.testRootDisposable, surface)
+    surface.activate()
     val toolbar = surface.actionManager.designSurfaceToolbar
 
     val otherComponent = JPanel()

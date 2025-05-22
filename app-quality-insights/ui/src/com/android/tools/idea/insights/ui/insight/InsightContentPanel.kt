@@ -95,7 +95,7 @@ class InsightContentPanel(
       }
       add(insightTextPane)
 
-      border = JBUI.Borders.empty(15)
+      border = JBUI.Borders.empty(8, 16, 8, 8)
     }
 
   private val insightScrollPanel =

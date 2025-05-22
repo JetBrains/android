@@ -107,7 +107,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion())
-    if(!isGradleDeclarative) assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
+    assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
@@ -367,8 +367,6 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAndroidBlockWithNoDimensions() {
-    // TODO fix for declarative as soon as got collection properties
-    isIrrelevantForDeclarative("no flavorDimensions in declarative do far")
     writeToBuildFile(TestFile.ANDROID_BLOCK_WITH_NO_DIMENSIONS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()

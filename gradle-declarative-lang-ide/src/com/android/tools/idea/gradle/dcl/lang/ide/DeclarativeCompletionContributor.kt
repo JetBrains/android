@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.BOOLEAN
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.ENUM
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY_BLOCK
-import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.FACTORY_VALUE
+import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.OBJECT_VALUE
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.INTEGER
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.LONG
 import com.android.tools.idea.gradle.dcl.lang.ide.ElementType.PROPERTY
@@ -371,8 +371,8 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     val element = file?.findElementAt(offset)
     context.commitDocument()
     when (suggestion.type) {
-      // it's only one value here - url = uri("|")
-      FACTORY_VALUE -> {
+      // object type property
+      OBJECT_VALUE -> {
         if (element?.skipWhitespaces()?.nextLeaf(true)?.text == "=") return@InsertHandler
         val rootFunctions = getRootFunctions(parent, schemas)
           .filter { (it.semantic as? PlainFunction)?.returnValue == (entry as? DataProperty)?.valueType }

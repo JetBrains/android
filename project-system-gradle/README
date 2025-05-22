@@ -4,5 +4,5 @@ or fight test timeouts.
 
 Group for the test is defined by package suffix, e.g.  `runsGradleBuild` or `runsGradleErrors`.
 
-All targets are listed in runsGradleTargets.txt and can be executed all-together using:
-bazel test --config=remote --nocache_test_results -- $(<project-system-gradle/runsGradleTargets.txt)
+All targets are listed in runsGradleTargets.txt and runsIndexingWithGradleTargets.txt and can be executed all-together using:
+bazel test --config=remote --nocache_test_results -- $(<project-system-gradle/runsGradleTargets.txt) $(<project-system-gradle/runsIndexingWithGradleTargets.txt)

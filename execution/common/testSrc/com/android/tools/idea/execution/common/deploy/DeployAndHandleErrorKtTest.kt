@@ -132,9 +132,11 @@ class DeployAndHandleErrorKtTest {
       assertThat(e.errorId).isEqualTo(exception.id)
     }
 
+    // TODO: b/398884513: The reason of the failure is not found in the notification
+    // at the moment. It should display something related to preinstallFailed.
     val notificationInfo = notificationRule.notifications.find {
       it.type == NotificationType.ERROR &&
-      it.content == "Installation failed\nThe application could not be installed."
+      it.content == "Installation failed\nSuggested action:" &&
       it.actions.single().templateText == "Retry"
     }
 

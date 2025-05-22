@@ -57,10 +57,8 @@ fun Configuration.updateScreenSize(
     screen.chin = device.defaultHardware.screen.chin
   }
 
+  val state = device.defaultState.deepCopy()
   // Change the orientation of the device depending on the shape of the canvas
-  val newState: State? =
-    if (xDimension > yDimension)
-      device.allStates.singleOrNull { it.orientation == ScreenOrientation.LANDSCAPE }
-    else device.allStates.singleOrNull { it.orientation == ScreenOrientation.PORTRAIT }
-  this.setEffectiveDevice(device, newState)
+  state.orientation = if (xDimension < yDimension) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
+  this.setEffectiveDevice(device, state)
 }

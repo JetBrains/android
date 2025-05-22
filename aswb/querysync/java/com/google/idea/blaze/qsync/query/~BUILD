@@ -1,20 +1,18 @@
+load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
+load("//tools/base/bazel:proto.bzl", "java_proto_library")
+
 package(default_visibility = [
     "//tools/adt/idea/aswb/querysync:__subpackages__",
     "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",
 ])
 
-proto_library(
-    name = "querysummary",
-    srcs = ["querysummary.proto"],
-)
-
 java_proto_library(
     name = "querysummary_java_proto",
+    srcs = ["querysummary.proto"],
     visibility = ["//tools/adt/idea/aswb/querysync:__subpackages__"],
-    deps = [":querysummary"],
 )
 
-java_library(
+aswb_library(
     name = "query",
     srcs = glob(["*.java"]),
     deps = [

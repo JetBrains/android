@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.importing
 
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.adtui.validation.Validator
+import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
@@ -27,7 +28,7 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.util.AndroidBundle.message
 import org.mockito.kotlin.mock
 
-class SourceToGradleModuleStepTest : AndroidGradleTestCase() {
+class SourceToGradleModuleStepTest : AndroidGradleTestCase(getAgpVersion()) {
   private lateinit var page: SourceToGradleModuleStep
 
   override fun setUp() {

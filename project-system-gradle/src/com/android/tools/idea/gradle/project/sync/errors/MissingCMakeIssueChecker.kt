@@ -212,7 +212,7 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
   protected open fun getSdkManager(): RepoManager {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val progressIndicator = StudioLoggerProgressIndicator(javaClass)
-    return sdkHandler.getSdkManager(progressIndicator)
+    return sdkHandler.getRepoManagerAndLoadSynchronously(progressIndicator)
   }
 
   private fun matchesCannotFindCmake(message: String): Boolean {

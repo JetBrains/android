@@ -23,10 +23,10 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8
 
-const val GRADLE_SNAPSHOT_VERSION = "8.13-20250127102731+0000"
+const val GRADLE_SNAPSHOT_VERSION = "8.13-20250221010946+0000"
 const val GRADLE_DECLARATIVE_SNAPSHOT_VERSION = "8.12-20241105002153+0000"
 // For available versions: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml
-const val KOTLIN_SNAPSHOT_VERSION = "2.1.20-Beta2-36"
+const val KOTLIN_SNAPSHOT_VERSION = "2.2.0-dev-5532"
 
 /**
  * An AGP Version definition to be used in AGP integration tests.
@@ -71,7 +71,7 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_35_JDK_8(agpVersion = "3.5.0", gradleVersion = "5.5", jdkVersion = JDK_1_8, kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_35(agpVersion = "3.5.0", gradleVersion = "5.5", jdkVersion = JDK_11, kotlinVersion = "1.4.32", modelVersion = ModelVersion.V1, compileSdk = "32"),
 
-  AGP_40(agpVersion = "4.0.0", gradleVersion = "6.7.1", jdkVersion = JDK_11, kotlinVersion = "1.7.20", modelVersion = ModelVersion.V1, compileSdk = "32"),
+  AGP_40(agpVersion = "4.0.0", gradleVersion = "6.1.1", jdkVersion = JDK_11, kotlinVersion = "1.5.21", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_41(agpVersion = "4.1.0", gradleVersion = "6.7.1", jdkVersion = JDK_11, kotlinVersion = "1.7.20", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_42(agpVersion = "4.2.0", gradleVersion = "6.7.1", jdkVersion = JDK_11, kotlinVersion = "1.7.20", modelVersion = ModelVersion.V1, compileSdk = "32"),
 
@@ -89,6 +89,13 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_80(agpVersion = "8.0.2", gradleVersion = "8.0", jdkVersion = JDK_17, modelVersion = ModelVersion.V2, compileSdk = "34"),
   AGP_81(agpVersion = "8.1.0", gradleVersion = "8.0", jdkVersion = JDK_17, modelVersion = ModelVersion.V2, compileSdk = "34"),
   AGP_82(agpVersion = "8.2.0", gradleVersion = "8.2", jdkVersion = JDK_17, modelVersion = ModelVersion.V2, compileSdk = "34"),
+  AGP_83(agpVersion = "8.3.1", gradleVersion = "8.4", jdkVersion = JDK_17, compileSdk = "34"),
+  AGP_84(agpVersion = "8.4.0", gradleVersion = "8.6", jdkVersion = JDK_17, compileSdk = "34"),
+  AGP_85(agpVersion = "8.5.0", gradleVersion = "8.7", jdkVersion = JDK_17, compileSdk = "34"),
+  AGP_86(agpVersion = "8.6.0", gradleVersion = "8.7", jdkVersion = JDK_17, compileSdk = "35"),
+  AGP_87(agpVersion = "8.7.0", gradleVersion = "8.9", jdkVersion = JDK_17, compileSdk = "35"),
+  AGP_88(agpVersion = "8.8.0", gradleVersion = "8.10.2", jdkVersion = JDK_17, compileSdk = "35"),
+
 
   AGP_LATEST_KOTLIN_SNAPSHOT(agpVersion = null, gradleVersion = null, kotlinVersion = KOTLIN_SNAPSHOT_VERSION, compileSdk = "34"),
   AGP_LATEST_GRADLE_SNAPSHOT(agpVersion = null, gradleVersion = GRADLE_SNAPSHOT_VERSION, compileSdk = "34"),
@@ -96,7 +103,12 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   // Must be last to represent the newest version.
   AGP_LATEST(null, gradleVersion = null, compileSdk = "34");
   override fun toString(): String {
-    return "Agp($agpVersion, g=$gradleVersion, k=$kotlinVersion, m=$modelVersion)"
+    return listOfNotNull(
+      (agpVersion ?: "current"),
+      gradleVersion?.let { "g=$it" },
+      kotlinVersion?.let { "k=$it" },
+      modelVersion.takeIf { it != ModelVersion.V2 }?.let { "m=$it" },
+    ).joinToString(", ", "Agp(", ")")
   }
   companion object {
     @JvmField
@@ -169,6 +181,13 @@ private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (
   AgpVersionSoftwareEnvironmentDescriptor.AGP_DECLARATIVE_GRADLE_SNAPSHOT,
   AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_GRADLE_SNAPSHOT,
   AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST_KOTLIN_SNAPSHOT -> "_"
+
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_88 -> "_Agp_8.8_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_87 -> "_Agp_8.7_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_86 -> "_Agp_8.6_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_85 -> "_Agp_8.5_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_84 -> "_Agp_8.4_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_83 -> "_Agp_8.3_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_82 -> "_Agp_8.2_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_81 -> "_Agp_8.1_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_80 -> "_Agp_8.0_"
@@ -186,6 +205,7 @@ private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (
   AgpVersionSoftwareEnvironmentDescriptor.AGP_72 -> "_Agp_7.2_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_73 -> "_Agp_7.3_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_74 -> "_Agp_7.4_"
+
 }
 
 private fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String {

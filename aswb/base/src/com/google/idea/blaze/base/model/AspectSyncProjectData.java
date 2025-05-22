@@ -142,9 +142,9 @@ public final class AspectSyncProjectData implements BlazeProjectData {
   }
 
   @Override
-  public ImmutableList<TargetInfo> targets() {
+  public ImmutableList<Label> targets() {
     return getTargetMap().targets().stream()
-        .map(TargetIdeInfo::toTargetInfo)
+        .map(it -> it.getKey().getLabel())
         .collect(ImmutableList.toImmutableList());
   }
 

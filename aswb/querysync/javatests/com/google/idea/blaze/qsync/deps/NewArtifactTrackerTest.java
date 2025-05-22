@@ -133,7 +133,7 @@ public class NewArtifactTrackerTest {
         .containsExactly("jar_digest", "anotherjar_digest");
     assertThat(artifactTracker.getStateSnapshot().depsMap().keySet())
         .containsExactly(Label.of("//test:test"), Label.of("//test:anothertest"));
-    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDeps();
+    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDepsForTesting();
     assertThat(builtDeps).hasSize(2);
     ImmutableMap<Label, JavaArtifactInfo> depsMap =
         builtDeps.stream()
@@ -189,7 +189,7 @@ public class NewArtifactTrackerTest {
         .containsExactly("jar_digest");
     assertThat(artifactTracker.getStateSnapshot().depsMap().keySet())
         .containsExactly(Label.of("//test:test"), Label.of("//test:anothertest"));
-    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDeps();
+    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDepsForTesting();
     assertThat(builtDeps).hasSize(2);
     ImmutableMap<Label, JavaArtifactInfo> depsMap =
         builtDeps.stream()
@@ -247,7 +247,7 @@ public class NewArtifactTrackerTest {
     assertThat(artifactTracker.getStateSnapshot().depsMap().keySet())
         .containsExactly(
             Label.of("//test:test"), Label.of("//test:testdep"), Label.of("//test:anothertest"));
-    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDeps();
+    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDepsForTesting();
     assertThat(builtDeps).hasSize(3);
     ImmutableMap<Label, JavaArtifactInfo> depsMap =
         builtDeps.stream()
@@ -378,7 +378,7 @@ public class NewArtifactTrackerTest {
     assertThat(cachedArtifactsCaptor.getValue().stream().map(OutputArtifact::getDigest))
         .containsExactly("jar_digest", "class1_digest", "class2_digest");
 
-    assertThat(getOnlyElement(artifactTracker.getBuiltDeps()).javaInfo().get().genSrcs())
+    assertThat(getOnlyElement(artifactTracker.getBuiltDepsForTesting()).javaInfo().get().genSrcs())
         .containsExactly(
             BuildArtifact.create(
                 "class1_digest", Path.of("out/src/Class1.java"), Label.of("//test:test")),
@@ -462,7 +462,7 @@ public class NewArtifactTrackerTest {
             .build(),
         new NoopContext());
 
-    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDeps();
+    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDepsForTesting();
     assertThat(
             getOnlyElement(getOnlyElement(builtDeps).javaInfo().orElseThrow().jars())
                 .getMetadata(Metadata1.class))
@@ -515,7 +515,7 @@ public class NewArtifactTrackerTest {
         new NoopContext());
     assertThat(artifactTracker.getStateSnapshot().depsMap().keySet())
         .containsExactly(Label.of("//test:test_proto"));
-    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDeps();
+    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDepsForTesting();
     assertThat(builtDeps).hasSize(1);
     ImmutableMap<Label, JavaArtifactInfo> depsMap =
         builtDeps.stream()
@@ -577,7 +577,7 @@ public class NewArtifactTrackerTest {
             .build(),
         new NoopContext());
     assertThat(artifactTracker.getStateSnapshot().depsMap().keySet()).containsExactly(Label.of("//test:test_proto"));
-    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDeps();
+    ImmutableCollection<TargetBuildInfo> builtDeps = artifactTracker.getBuiltDepsForTesting();
     assertThat(
       getOnlyElement(builtDeps).javaInfo().orElseThrow().jars()
     ).containsExactly(

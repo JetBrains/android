@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.qsync;
 
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
+import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.exception.BuildException;
 import java.util.Optional;
@@ -34,9 +35,9 @@ public class BazelVersionHandler {
     this.buildInvoker = buildInvoker;
   }
 
-  public Optional<String> getBazelVersion() throws BuildException {
+  public Optional<String> getBazelVersion(BlazeContext blazeContext) throws BuildException {
     try {
-      return buildSystem.getBazelVersionString(buildInvoker.getBlazeInfo());
+      return buildSystem.getBazelVersionString(buildInvoker.getBlazeInfo(blazeContext));
     } catch (SyncFailedException e) {
       throw new BuildException("Could not get bazel version", e);
     }

@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package blaze;
 
-import "tools/adt/idea/aswb/proto/common.proto";
+import "common.proto";
 
 // option java_api_version = 2;
 option java_package = "com.google.devtools.intellij.ideinfo";

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.sdklib.deviceprovisioner.DeviceProperties
@@ -23,7 +24,6 @@ import com.android.tools.adtui.ImageUtils.ALPHA_MASK
 import com.android.tools.adtui.ImageUtils.ellipticalClip
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.getUInt
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.debug

@@ -44,11 +44,10 @@ import com.android.tools.idea.avdmanager.skincombobox.Skin
 import java.nio.file.Path
 
 @Immutable
-internal data class VirtualDevice
-internal constructor(
+internal data class VirtualDevice(
   val name: String,
   val device: Device,
-  internal val skin: Skin,
+  val skin: Skin,
   /**
    * The value of the [skin] property after it is initialized by [ConfigurationPage] via
    * [ConfigureDevicePanelState]. [ConfigureDevicePanelState] uses this to reset [skin] to the
@@ -57,46 +56,44 @@ internal constructor(
    *
    * It's its own property for ease of testing, like [VirtualDevice.hasPlaystore], [isFoldable], etc
    */
-  internal val defaultSkin: Skin,
-  internal val frontCamera: AvdCamera,
-  internal val rearCamera: AvdCamera,
-  internal val speed: AvdNetworkSpeed,
-  internal val latency: AvdNetworkLatency,
-  internal val orientation: ScreenOrientation,
-  internal val defaultBoot: Boot,
-  internal val internalStorage: StorageCapacity?,
-  internal val expandedStorage: ExpandedStorage?,
-  internal val existingCustomExpandedStorage: Custom? = null,
-  internal val cpuCoreCount: Int,
-  internal val graphicsMode: GraphicsMode,
-  internal val ram: StorageCapacity?,
-  internal val defaultRam: StorageCapacity =
-    EmulatedProperties.defaultRamSize(device).toStorageCapacity(),
-  internal val vmHeapSize: StorageCapacity?,
-  internal val defaultVmHeapSize: StorageCapacity =
+  val defaultSkin: Skin,
+  val frontCamera: AvdCamera,
+  val rearCamera: AvdCamera,
+  val speed: AvdNetworkSpeed,
+  val latency: AvdNetworkLatency,
+  val orientation: ScreenOrientation,
+  val defaultBoot: Boot,
+  val internalStorage: StorageCapacity?,
+  val expandedStorage: ExpandedStorage?,
+  val existingCustomExpandedStorage: Custom? = null,
+  val cpuCoreCount: Int,
+  val graphicsMode: GraphicsMode,
+  val ram: StorageCapacity?,
+  val defaultRam: StorageCapacity = EmulatedProperties.defaultRamSize(device).toStorageCapacity(),
+  val vmHeapSize: StorageCapacity?,
+  val defaultVmHeapSize: StorageCapacity =
     EmulatedProperties.defaultVmHeapSize(device).toStorageCapacity(),
-  internal val preferredAbi: String?,
+  val preferredAbi: String?,
   private val hasPlaystore: Boolean = device.hasPlayStore(),
-  internal val isFoldable: Boolean = device.defaultHardware.screen.isFoldable,
-  internal val cameraLocations: Collection<CameraLocation> =
+  val isFoldable: Boolean = device.defaultHardware.screen.isFoldable,
+  val cameraLocations: Collection<CameraLocation> =
     device.defaultHardware.cameras.map(Camera::getLocation),
-  internal val formFactor: String = device.formFactor,
+  val formFactor: String = device.formFactor,
 ) {
-  internal val isValid =
+  val isValid =
     internalStorage != null && expandedStorage != null && ram != null && vmHeapSize != null
 
-  internal fun hasPlayStore(image: ISystemImage) =
+  fun hasPlayStore(image: ISystemImage) =
     hasPlaystore && image.getServices() == Services.GOOGLE_PLAY_STORE
 
   companion object {
-    internal val MIN_INTERNAL_STORAGE = StorageCapacity(2, StorageCapacity.Unit.GB)
+    val MIN_INTERNAL_STORAGE = StorageCapacity(2, StorageCapacity.Unit.GB)
 
-    internal val MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE =
-      StorageCapacity(100, StorageCapacity.Unit.MB)
+    val MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE = StorageCapacity(100, StorageCapacity.Unit.MB)
 
-    internal val MIN_CUSTOM_EXPANDED_STORAGE = StorageCapacity(10, StorageCapacity.Unit.MB)
-    internal val MIN_RAM = StorageCapacity(128, StorageCapacity.Unit.MB)
-    internal val MIN_VM_HEAP_SIZE = StorageCapacity(16, StorageCapacity.Unit.MB)
+    val MIN_CUSTOM_EXPANDED_STORAGE = StorageCapacity(10, StorageCapacity.Unit.MB)
+    val MIN_RAM = StorageCapacity(128, StorageCapacity.Unit.MB)
+    val MIN_VM_HEAP_SIZE = StorageCapacity(16, StorageCapacity.Unit.MB)
 
     fun withDefaults(device: Device): VirtualDevice =
       VirtualDevice(
@@ -189,15 +186,13 @@ internal fun Storage.toStorageCapacity(): StorageCapacity {
   return StorageCapacity(getSizeAsUnit(unit), StorageCapacity.Unit.valueOf(unit.displayValue))
 }
 
-internal data class Custom internal constructor(internal val value: StorageCapacity) :
-  ExpandedStorage() {
+internal data class Custom(val value: StorageCapacity) : ExpandedStorage() {
   internal fun withMaxUnit() = Custom(value.withMaxUnit())
 
   override fun toString() = value.toString()
 }
 
-internal data class ExistingImage internal constructor(private val value: Path) :
-  ExpandedStorage() {
+internal data class ExistingImage(private val value: Path) : ExpandedStorage() {
   override fun toString() = value.toString()
 }
 

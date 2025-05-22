@@ -74,6 +74,7 @@ public final class ResourceLoadingTask extends Task.Backgroundable {
   public void onSuccess() {
     assert myStringResourceTableModel != null;
     myPanel.getTable().setModel(myStringResourceTableModel);
+    myPanel.addUpdateListenerToNewStringResourceModel();
 
     myPanel.stopLoading();
   }

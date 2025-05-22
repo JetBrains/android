@@ -53,7 +53,7 @@ class ComposePreviewStatusIconActionTest {
 
   private val originStatus =
     ComposePreviewManager.Status(
-      hasErrorsAndNeedsBuild = false,
+      hasRenderErrors = false,
       hasSyntaxErrors = false,
       isOutOfDate = false,
       areResourcesOutOfDate = false,
@@ -114,7 +114,7 @@ class ComposePreviewStatusIconActionTest {
                 this.renderError = renderError
                 val status =
                   originStatus.copy(
-                    hasErrorsAndNeedsBuild = runtimeError,
+                    hasRenderErrors = runtimeError,
                     hasSyntaxErrors = syntaxError,
                     isOutOfDate = outOfDate,
                     isRefreshing = refreshing,

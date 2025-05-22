@@ -41,7 +41,6 @@ import static com.android.SdkConstants.WEB_VIEW;
 import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
@@ -91,6 +90,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -218,8 +218,8 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     Module module =  sceneView.getSceneManager().getModel().getModule();
     if (!DependencyManagementUtil.dependsOn(module, artifact)) {
       // If we don't already depend on constraint layout, try to add it.
-      List<GradleCoordinate> notAdded = DependencyManagementUtil
-        .addDependenciesWithUiConfirmation(module, Collections.singletonList(artifact.getCoordinate("+")), false);
+      Set<GoogleMavenArtifactId> notAdded = DependencyManagementUtil
+        .addDependenciesWithUiConfirmation(module, Set.of(artifact), false);
 
       if (!notAdded.isEmpty()) {
         String message = "Converting to ConstraintLayout requires that the '" + module.getName() + "' module\n"

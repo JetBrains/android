@@ -18,8 +18,8 @@ package com.android.tools.idea.preview.flow
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.createChildScope
-import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PsiTestPreviewElement
+import com.android.tools.idea.preview.find.PreviewElementProvider
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText

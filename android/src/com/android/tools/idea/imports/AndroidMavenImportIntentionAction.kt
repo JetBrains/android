@@ -24,6 +24,7 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.lint.detector.api.isKotlin
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
@@ -41,6 +42,7 @@ import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.PsiJavaCodeReferenceElement
 import com.intellij.psi.PsiJavaFile
@@ -55,12 +57,17 @@ import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.facet.implementedModules
+import org.jetbrains.kotlin.idea.base.facet.implementingModules
+import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
+import org.jetbrains.kotlin.idea.base.facet.platform.platform
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
 import org.jetbrains.kotlin.idea.structuralsearch.resolveExprType
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
@@ -120,6 +127,11 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     val moduleSystem = module.getModuleSystem()
     if (!moduleSystem.canRegisterDependency().isSupported()) return false
 
+    // TODO: b/398839232 for non-jvm modules, we currently don't support import suggestions
+    if (module.multiplatformNonJvm()) {
+      return false
+    }
+
     val registry =
       MavenClassRegistryManager.getInstance().tryGetMavenClassRegistry() ?: return false
 
@@ -156,6 +168,18 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       }
 
     return true
+  }
+
+  override fun generatePreview(
+    project: Project,
+    editor: Editor,
+    file: PsiFile,
+  ): IntentionPreviewInfo {
+    // b/396483011: Since this action uses write commands and does a Gradle sync, it doesn't work
+    // well with previews. Previews also don't make a ton of sense here, since the code being
+    // modified is not at the same location as the cursor. To handle this, we simply don't give a
+    // preview for this actoin.
+    return IntentionPreviewInfo.EMPTY
   }
 
   companion object {
@@ -366,7 +390,8 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       // just whether the library is included at all.
       val coordinate = getCoordinate(artifact) ?: return false
       val moduleSystem = module.getModuleSystem()
-      return moduleSystem.getRegisteredDependency(coordinate) != null
+      // We don't care if the module is explicitly registered: a transitive dependency is fine.
+      return moduleSystem.getResolvedDependency(coordinate) != null
     }
 
     /**
@@ -581,3 +606,8 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     }
   }
 }
+
+private fun Module.isCommon() = implementingModules.isNotEmpty() && implementedModules.isEmpty()
+
+private fun Module.multiplatformNonJvm() =
+  isMultiPlatformModule && (isCommon() || !platform.isJvm())

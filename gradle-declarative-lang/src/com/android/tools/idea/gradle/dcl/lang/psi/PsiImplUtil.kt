@@ -15,7 +15,17 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.psi
 
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.BOOLEAN
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.DOUBLE_LITERAL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.INTEGER_LITERAL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.LONG_LITERAL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.MULTILINE_STRING_LITERAL
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.NULL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.ONE_LINE_STRING_LITERAL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_EQ
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.OP_PLUS_EQ
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_INTEGER
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.UNSIGNED_LONG
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
@@ -80,22 +90,25 @@ class PsiImplUtil {
     fun getIdentifier(assignment: DeclarativeAssignment): DeclarativeIdentifier =
       assignment.assignableProperty.field
 
+    @JvmStatic
+    fun getAssignmentType(assignment: DeclarativeAssignment): AssignmentType {
+      val children = assignment.children
+      return if (children.find { it.elementType == OP_PLUS_EQ } != null)
+        AssignmentType.APPEND
+      else if (children.find { it.elementType == OP_EQ } != null)
+        AssignmentType.ASSIGNMENT
+      else {
+        throw IllegalStateException("Unknown assignment type: `${assignment.text}`")
+      }
+    }
 
     @JvmStatic
     fun getIdentifier(receiver: DeclarativeQualifiedReceiver): DeclarativeIdentifier =
        PsiTreeUtil.getChildOfType(receiver, DeclarativeIdentifier::class.java)!!
 
     @JvmStatic
-    fun getArgumentsList(factory: DeclarativeFactoryPropertyReceiver): DeclarativeArgumentsList? =
-      factory.propertySimpleFactory.argumentsList
-
-    @JvmStatic
     fun getIdentifier(receiver: DeclarativeReceiverPrefixedFactory): DeclarativeIdentifier =
       PsiTreeUtil.getChildOfType(receiver, DeclarativeIdentifier::class.java)!!
-
-    @JvmStatic
-    fun getIdentifier(receiver: DeclarativeFactoryPropertyReceiver): DeclarativeIdentifier =
-      receiver.propertySimpleFactory.identifier
 
     @JvmStatic
     fun getReference(property: DeclarativeAssignableProperty): PsiReference? = getReferences(property).firstOrNull()
@@ -103,6 +116,13 @@ class PsiImplUtil {
     @JvmStatic
     fun getReferences(property: DeclarativeAssignableProperty): Array<PsiReference> =
       ReferenceProvidersRegistry.getReferencesFromProviders(property)
+
+    @JvmStatic
+    fun getReference(literal: DeclarativeLiteral): PsiReference? = getReferences(literal).firstOrNull()
+
+    @JvmStatic
+    fun getReferences(literal: DeclarativeLiteral): Array<PsiReference> =
+      ReferenceProvidersRegistry.getReferencesFromProviders(literal)
 
     // Name should be nullable to agree with CompositePsiElement.getName() in PSI impl classes
     @JvmStatic
@@ -116,6 +136,16 @@ class PsiImplUtil {
     @JvmStatic
     fun getValue(assignment: DeclarativeAssignment): DeclarativeValue? {
       return assignment.children.firstNotNullOfOrNull { child -> (child as? DeclarativeValue).takeIf { it != null } }
+    }
+
+    @JvmStatic
+    fun getFirst(pair: DeclarativePair): DeclarativeSimpleLiteral {
+      return pair.simpleLiteral
+    }
+
+    @JvmStatic
+    fun getSecond(pair: DeclarativePair): DeclarativeValue {
+      return pair.children.filterIsInstance<DeclarativeValue>()[1]
     }
 
     @JvmStatic
@@ -163,6 +193,21 @@ class PsiImplUtil {
 
     @JvmStatic
     fun getValue(literal: DeclarativeLiteral): Any? = when {
+      literal.pair !=null -> literal.pair!!.second
+      literal.boolean != null -> literal.boolean?.text == "true"
+      literal.multilineStringLiteral != null -> literal.multilineStringLiteral?.text?.unTripleQuote()?.unescape()
+      literal.oneLineStringLiteral != null -> literal.oneLineStringLiteral?.text?.unquote()?.unescape()
+      literal.longLiteral != null -> literal.longLiteral?.text?.toIntegerOrNull()
+      literal.doubleLiteral != null -> literal.doubleLiteral?.text?.toDoubleOrNull()
+      literal.integerLiteral != null -> literal.integerLiteral?.text?.toIntegerOrNull()
+      literal.unsignedLong != null -> literal.unsignedLong?.text?.toIntegerOrNull()
+      literal.unsignedInteger != null -> literal.unsignedInteger?.text?.toIntegerOrNull()
+      literal.elementType == NULL -> null
+      else -> null
+    }
+
+    @JvmStatic
+    fun getValue(literal: DeclarativeSimpleLiteral): Any? = when {
       literal.boolean != null -> literal.boolean?.text == "true"
       literal.multilineStringLiteral != null -> literal.multilineStringLiteral?.text?.unTripleQuote()?.unescape()
       literal.oneLineStringLiteral != null -> literal.oneLineStringLiteral?.text?.unquote()?.unescape()

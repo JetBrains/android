@@ -14,8 +14,8 @@ iml_module(
         "@intellij//:org.jetbrains.kotlin[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
-        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

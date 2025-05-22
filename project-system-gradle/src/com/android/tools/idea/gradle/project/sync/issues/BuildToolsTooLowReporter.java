@@ -79,7 +79,7 @@ public class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReport
 
     if (sdkHandler != null) {
       ProgressIndicator progress = new StudioLoggerProgressIndicator(SdkBuildToolsTooLowIssueChecker.class);
-      RepositoryPackages packages = sdkHandler.getSdkManager(progress).getPackages();
+      RepositoryPackages packages = sdkHandler.getRepoManagerAndLoadSynchronously(progress).getPackages();
       LocalPackage buildTool = packages.getLocalPackages().get(getBuildToolsPath(parseRevision(minimumVersion)));
       buildToolInstalled = buildTool != null;
     }

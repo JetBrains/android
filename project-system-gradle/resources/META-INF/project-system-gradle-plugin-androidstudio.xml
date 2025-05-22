@@ -46,16 +46,16 @@
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.ProjectJdkUpdateService" />
     <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider"/>
     <feedbackDescriptionProvider implementation="com.android.tools.idea.feedback.GradleAndNdkFeedbackDescriptionProvider" />
-    <registryKey key="unknown.sdk"  defaultValue="false" description="Check for unknown SDKs and provide automatic fixes or smart suggestions"/>
-    <registryKey key="unknown.sdk.auto" defaultValue="false" description="Checks and resolves unknown SDKs automatically on start"/>
-    <registryKey key="unknown.sdk.modal.jps" defaultValue="false" description="Run unknown JDK test before JPS build is started"/>
-    <registryKey key="unknown.sdk.show.editor.actions" defaultValue="false" description="Show editor suggestions to fix missing SKDs"/>
+    <registryKey key="unknown.sdk"  defaultValue="false" description="Check for unknown SDKs and provide automatic fixes or smart suggestions" overrides="true"/>
+    <registryKey key="unknown.sdk.auto" defaultValue="false" description="Checks and resolves unknown SDKs automatically on start" overrides="true"/>
+    <registryKey key="unknown.sdk.modal.jps" defaultValue="false" description="Run unknown JDK test before JPS build is started" overrides="true"/>
+    <registryKey key="unknown.sdk.show.editor.actions" defaultValue="false" description="Show editor suggestions to fix missing SKDs" overrides="true"/>
     <!-- Disable Gradle auto-import by overriding the corresponding registry flag. -->
-    <registryKey key="external.system.auto.import.disabled" defaultValue="true" description="Disable build system auto-import"/>
+    <registryKey key="external.system.auto.import.disabled" defaultValue="true" description="Disable build system auto-import" overrides="true"/>
     <!-- Disable phased sync as we've found it to be slower and there is currently no benefit for Android Studio. Context: b/360851078 -->
-    <registryKey key="gradle.phased.sync.enabled" defaultValue="false" description="Enable the phased Gradle sync execution"/>
+    <registryKey key="gradle.phased.sync.enabled" defaultValue="false" description="Enable the phased Gradle sync execution" overrides="true"/>
     <!-- Disable project widget status as it does not work (has no benefit) as expected in Android Studio. Discuss with JB about its benefits: b/378463994 -->
-    <registryKey key="ide.widget.project.status" defaultValue="false" description="Enables the project status widget and disables editor project notifications"/>
+    <registryKey key="ide.widget.project.status" defaultValue="false" description="Enables the project status widget and disables editor project notifications" overrides="true"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>

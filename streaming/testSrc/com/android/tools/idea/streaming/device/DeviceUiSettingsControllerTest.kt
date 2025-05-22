@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.res.AppLanguageInfo
 import com.android.tools.idea.res.AppLanguageService
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.emulator.APPLICATION_ID1
 import com.android.tools.idea.streaming.emulator.APPLICATION_ID2

@@ -56,13 +56,13 @@ internal class SaveConfigurationDialog(
 ) {
 
   val saveLocation: String
-    get() = saveConfig.generalizeSaveLocation(saveLocationInternal.trim())
+    get() = saveConfigResolver.generalizeSaveLocation(saveLocationInternal.trim())
   val filenameTemplate: String
     get() = normalizeFilename(filenameTemplateInternal).replace(File.separatorChar, '/')
   var postSaveAction: PostSaveAction = postSaveAction
     private set
-  private val saveConfig = project.service<SaveConfiguration>()
-  private var saveLocationInternal: String = saveConfig.expandSaveLocation(saveLocation).replace('/', File.separatorChar)
+  private val saveConfigResolver = project.service<SaveConfigurationResolver>()
+  private var saveLocationInternal: String = saveConfigResolver.expandSaveLocation(saveLocation).replace('/', File.separatorChar)
   private var filenameTemplateInternal: String = filenameTemplate.replace('/', File.separatorChar)
   private lateinit var preview: JEditorPane
   private lateinit var saveLocationField: TextAccessor
@@ -135,7 +135,7 @@ internal class SaveConfigurationDialog(
   }
 
   private fun generatePreview(): String {
-    return saveConfig.expandFilenamePattern(
+    return saveConfigResolver.expandFilenamePattern(
         saveLocationField.text.trim(), normalizeFilename(filenameTemplateField.text), fileExtension, timestamp, sequentialNumber)
   }
 

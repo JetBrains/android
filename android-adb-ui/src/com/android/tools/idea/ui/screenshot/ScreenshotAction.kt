@@ -53,10 +53,10 @@ class ScreenshotAction : DumbAwareAction(
     val screenshotOptions = event.getData(SCREENSHOT_OPTIONS_KEY) ?: return
     val serialNumber = screenshotOptions.serialNumber
 
-    val screenshotSupplier = AdbScreenCapScreenshotSupplier(project, serialNumber, screenshotOptions)
-    var disposable: Disposable? = screenshotSupplier
+    val screenshotProvider = ShellCommandScreenshotProvider(project, serialNumber, screenshotOptions)
+    var disposable: Disposable? = screenshotProvider
 
-    object : ScreenshotTask(project, screenshotSupplier) {
+    object : ScreenshotTask(project, screenshotProvider) {
       var backingFile: VirtualFile? = null
 
       override fun run(indicator: ProgressIndicator) {
@@ -112,13 +112,13 @@ class ScreenshotAction : DumbAwareAction(
           val viewer = ScreenshotViewer(project,
                                         screenshot,
                                         backingFile,
-                                        screenshotSupplier,
+                                        screenshotProvider,
                                         screenshotPostprocessor,
                                         framingOptions,
                                         defaultFrame,
                                         screenshotOptions.screenshotViewerOptions)
           viewer.show()
-          Disposer.register(viewer.disposable, screenshotSupplier)
+          Disposer.register(viewer.disposable, screenshotProvider)
           disposable = null
         }
         catch (e: Exception) {

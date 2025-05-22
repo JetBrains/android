@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.RenderUtils
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.Companion.getInstance
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
+import com.android.tools.idea.uibuilder.model.viewInfo
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
@@ -94,6 +95,13 @@ abstract class SceneManager(
    * density to the standard density (160).
    */
   abstract val sceneScalingFactor: Float
+
+  /**
+   * Returns the actual android.view.View (or child class) object. This can be used to query the
+   * object properties that are not in the XML.
+   */
+  val viewObject: Any?
+    get() = scene.root?.nlComponent?.viewInfo?.viewObject
 
   override fun dispose() {
     deactivate(this)

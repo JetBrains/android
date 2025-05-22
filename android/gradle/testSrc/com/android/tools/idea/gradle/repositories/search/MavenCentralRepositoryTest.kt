@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.repositories.search
 
+import com.android.ide.common.gradle.Version
 import com.google.common.truth.Truth.assertThat
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
@@ -29,35 +30,35 @@ class MavenCentralRepositoryTest {
   fun testCreateUrlWithGroupId() {
     val request = SearchRequest(ArbitraryModulesSearchQuery("com.google.guava", "guava"), 20, 1)
     val url = MavenCentralRepository.createArbitraryModulesRequestUrl(request)
-    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g%3Acom.google.guava+AND+a%3Aguava", url)
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g%3Acom.google.guava+AND+a%3Aguava&core=gav", url)
   }
 
   @Test
   fun testCreateUrlWithoutGroupId() {
     val request = SearchRequest(ArbitraryModulesSearchQuery(null, "guava"), 20, 1)
     val url = MavenCentralRepository.createArbitraryModulesRequestUrl(request)
-    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=a%3Aguava", url)
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=a%3Aguava&core=gav", url)
   }
 
   @Test
   fun testCreateUrlWithoutArtifactId() {
     val request = SearchRequest(ArbitraryModulesSearchQuery("com.google.guava", ""), 20, 1)
     val url = MavenCentralRepository.createArbitraryModulesRequestUrl(request)
-    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g%3Acom.google.guava", url)
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g%3Acom.google.guava&core=gav", url)
   }
 
   @Test
   fun testCreateUrlWithWildcards() {
     val request = SearchRequest(ArbitraryModulesSearchQuery("com.google.*", "gu*va"), 20, 1)
     val url = MavenCentralRepository.createArbitraryModulesRequestUrl(request)
-    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g%3Acom.google.*+AND+a%3Agu*va", url)
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g%3Acom.google.*+AND+a%3Agu*va&core=gav", url)
   }
 
   @Test
   fun testCreateUrlWithId() {
     val request = SearchRequest(ArbitraryModulesSearchByModuleQuery("guava"), 20, 1)
     val url = MavenCentralRepository.createArbitraryModulesRequestUrl(request)
-    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=id%3Aguava", url)
+    assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=id%3Aguava&core=gav", url)
   }
 
   @Test
@@ -66,151 +67,134 @@ class MavenCentralRepositoryTest {
     @Language("XML")
     val response = """
       <response>
-           <lst name="responseHeader">
-               <int name="status">0</int>
-               <int name="QTime">0</int>
-               <lst name="params">
-                   <str name="spellcheck">true</str>
-                   <str name="fl">
-                       id,g,a,latestVersion,p,ec,repositoryId,text,timestamp,versionCount
-                   </str>
-                   <str name="sort">score desc,timestamp desc,g asc,a asc</str>
-                   <str name="indent">off</str>
-                   <str name="start">41</str>
-                   <str name="q">guice</str>
-                   <str name="qf">text^20 g^5 a^10</str>
-                   <str name="spellcheck.count">5</str>
-                   <str name="wt">xml</str>
-                   <str name="rows">5</str>
-                   <str name="version">2.2</str>
-                   <str name="defType">dismax</str>
-               </lst>
-           </lst>
-           <result name="response" numFound="409" start="41">
-               <doc>
-                   <str name="a">guice-bean</str>
-                   <arr name="ec">
-                       <str>.pom</str>
-                   </arr>
-                   <str name="g">org.sonatype.spice.inject</str>
-                   <str name="id">org.sonatype.spice.inject:guice-bean</str>
-                   <str name="latestVersion">1.3.4</str>
-                   <str name="p">pom</str>
-                   <str name="repositoryId">central</str>
-                   <arr name="text">
-                       <str>org.sonatype.spice.inject</str>
-                       <str>guice-bean</str>
-                       <str>.pom</str>
-                   </arr>
-                   <long name="timestamp">1283070402000</long>
-                   <int name="versionCount">10</int>
-               </doc>
-               <doc>
-                   <str name="a">guice-nexus</str>
-                   <arr name="ec">
-                       <str>.pom</str>
-                   </arr>
-                   <str name="g">org.sonatype.spice.inject</str>
-                   <str name="id">org.sonatype.spice.inject:guice-nexus</str>
-                   <str name="latestVersion">0.1.0</str>
-                   <str name="p">pom</str>
-                   <str name="repositoryId">central</str>
-                   <arr name="text">
-                       <str>org.sonatype.spice.inject</str>
-                       <str>guice-nexus</str>
-                       <str>.pom</str>
-                   </arr>
-                   <long name="timestamp">1267701468000</long>
-                   <int name="versionCount">1</int>
-               </doc>
-               <doc>
-                   <str name="a">jersey2-guice</str>
-                   <arr name="ec">
-                       <str>-sources.jar</str>
-                       <str>-javadoc.jar</str>
-                       <str>.jar</str>
-                       <str>.pom</str>
-                   </arr>
-                   <str name="g">be.fluid-it.com.squarespace.jersey2-guice</str>
-                   <str name="id">
-                       be.fluid-it.com.squarespace.jersey2-guice:jersey2-guice
-                   </str>
-                   <str name="latestVersion">0.10-fix</str>
-                   <str name="p">jar</str>
-                   <str name="repositoryId">central</str>
-                   <arr name="text">
-                       <str>be.fluid-it.com.squarespace.jersey2-guice</str>
-                       <str>jersey2-guice</str>
-                       <str>-sources.jar</str>
-                       <str>-javadoc.jar</str>
-                       <str>.jar</str>
-                       <str>.pom</str>
-                   </arr>
-                   <long name="timestamp">1446749364000</long>
-                   <int name="versionCount">1</int>
-               </doc>
-               <doc>
-                   <str name="a">stdlib-guice-hibernate</str>
-                   <arr name="ec">
-                       <str>-sources.jar</str>
-                       <str>-javadoc.jar</str>
-                       <str>.jar</str>
-                       <str>.pom</str>
-                   </arr>
-                   <str name="g">com.peterphi.std.guice</str>
-                   <str name="id">com.peterphi.std.guice:stdlib-guice-hibernate</str>
-                   <str name="latestVersion">8.5.1</str>
-                   <str name="p">jar</str>
-                   <str name="repositoryId">central</str>
-                   <arr name="text">
-                       <str>com.peterphi.std.guice</str>
-                       <str>stdlib-guice-hibernate</str>
-                       <str>-sources.jar</str>
-                       <str>-javadoc.jar</str>
-                       <str>.jar</str>
-                       <str>.pom</str>
-                   </arr>
-                   <long name="timestamp">1446645753000</long>
-                   <int name="versionCount">76</int>
-               </doc>
-               <doc>
-                   <str name="a">stdlib-guice-webapp</str>
-                   <arr name="ec">
-                       <str>-javadoc.jar</str>
-                       <str>-sources.jar</str>
-                       <str>.jar</str>
-                       <str>.pom</str>
-                   </arr>
-                   <str name="g">com.peterphi.std.guice</str>
-                   <str name="id">com.peterphi.std.guice:stdlib-guice-webapp</str>
-                   <str name="latestVersion">8.5.1</str>
-                   <str name="p">jar</str>
-                   <str name="repositoryId">central</str>
-                   <arr name="text">
-                       <str>com.peterphi.std.guice</str>
-                       <str>stdlib-guice-webapp</str>
-                       <str>-javadoc.jar</str>
-                       <str>-sources.jar</str>
-                       <str>.jar</str>
-                       <str>.pom</str>
-                   </arr>
-                   <long name="timestamp">1446645749000</long>
-                   <int name="versionCount">76</int>
-               </doc>
-           </result>
-           <lst name="spellcheck">
-               <lst name="suggestions"/>
-           </lst>
-        </response>"""
+        <lst name="responseHeader">
+          <int name="status">0</int>
+          <int name="QTime">2</int>
+          <lst name="params">
+            <str name="q">g:com.google.demo</str>
+            <str name="core">gav</str>
+            <str name="indent">off</str>
+            <str name="fl">id,g,a,v,p,ec,timestamp,tags</str>
+            <str name="start">0</str>
+            <str name="sort">score desc,timestamp desc,g asc,a asc,v desc</str>
+            <str name="rows">20</str>
+            <str name="wt">xml</str>
+            <str name="version">2.2</str>
+          </lst>
+        </lst>
+        <result name="response" numFound="6" start="0">
+          <doc>
+            <str name="a">abc</str>
+            <arr name="ec">
+              <str>-sources.jar</str>
+              <str>.pom</str>
+              <str>-javadoc.jar</str>
+              <str>-tests.jar</str>
+              <str>.jar</str>
+            </arr>
+            <str name="g">com.google.demo</str>
+            <str name="id">com.google.demo:abc:1.0.0</str>
+            <str name="p">jar</str>
+            <long name="timestamp">1740498658000</long>
+            <str name="v">1.0.0</str>
+          </doc>
+          <doc>
+            <str name="a">abc</str>
+            <arr name="ec">
+              <str>-sources.jar</str>
+              <str>.pom</str>
+              <str>-javadoc.jar</str>
+              <str>-tests.jar</str>
+              <str>.jar</str>
+            </arr>
+            <str name="g">com.google.demo</str>
+            <str name="id">com.google.demo:abc:1.0.1</str>
+            <str name="p">jar</str>
+            <long name="timestamp">1740498658000</long>
+            <str name="v">1.0.1</str>
+          </doc>
+          <doc>
+            <str name="a">abc</str>
+            <arr name="ec">
+              <str>-sources.jar</str>
+              <str>.pom</str>
+              <str>-javadoc.jar</str>
+              <str>-tests.jar</str>
+              <str>.jar</str>
+            </arr>
+            <str name="g">com.google.demo</str>
+            <str name="id">com.google.demo:abc:1.0.2</str>
+            <str name="p">jar</str>
+            <long name="timestamp">1740498658000</long>
+            <str name="v">1.0.2</str>
+          </doc>
+          <doc>
+            <str name="a">def</str>
+            <arr name="ec">
+              <str>-sources.jar</str>
+              <str>.pom</str>
+              <str>-javadoc.jar</str>
+              <str>-tests.jar</str>
+              <str>.jar</str>
+            </arr>
+            <str name="g">com.google.demo</str>
+            <str name="id">com.google.demo:def:1.0.0</str>
+            <str name="p">jar</str>
+            <long name="timestamp">1740498658000</long>
+            <str name="v">1.0.0</str>
+          </doc>
+          <doc>
+            <str name="a">def</str>
+            <arr name="ec">
+              <str>-sources.jar</str>
+              <str>.pom</str>
+              <str>-javadoc.jar</str>
+              <str>-tests.jar</str>
+              <str>.jar</str>
+            </arr>
+            <str name="g">com.google.demo</str>
+            <str name="id">com.google.demo:def:1.0.1</str>
+            <str name="p">jar</str>
+            <long name="timestamp">1740498658000</long>
+            <str name="v">1.0.1</str>
+          </doc>
+          <doc>
+            <str name="a">def</str>
+            <arr name="ec">
+              <str>-sources.jar</str>
+              <str>.pom</str>
+              <str>-javadoc.jar</str>
+              <str>-tests.jar</str>
+              <str>.jar</str>
+            </arr>
+            <str name="g">com.google.demo</str>
+            <str name="id">com.google.demo:def:1.0.2</str>
+            <str name="p">jar</str>
+            <long name="timestamp">1740498658000</long>
+            <str name="v">1.0.2</str>
+          </doc>
+        </result>
+      </response>
+    """.trimIndent()
     val responseReader = StringReader(response)
     val result = MavenCentralRepository.parseArbitraryModulesResponse(responseReader)
     val coordinates = result.artifactCoordinates
     assertThat(coordinates).containsExactly(
-      "org.sonatype.spice.inject:guice-bean:1.3.4",
-      "org.sonatype.spice.inject:guice-nexus:0.1.0",
-      "be.fluid-it.com.squarespace.jersey2-guice:jersey2-guice:0.10-fix",
-      "com.peterphi.std.guice:stdlib-guice-hibernate:8.5.1",
-      "com.peterphi.std.guice:stdlib-guice-webapp:8.5.1")
+      "com.google.demo:abc:1.0.0",
+      "com.google.demo:abc:1.0.1",
+      "com.google.demo:abc:1.0.2",
+      "com.google.demo:def:1.0.0",
+      "com.google.demo:def:1.0.1",
+      "com.google.demo:def:1.0.2"
+    )
+    assertThat(result.artifacts).isEqualTo(
+      listOf(
+        FoundArtifact(MavenCentralRepository.name, "com.google.demo", "abc",
+                      setOf(Version.parse("1.0.0"), Version.parse("1.0.1"), Version.parse("1.0.2"))),
+        FoundArtifact(MavenCentralRepository.name, "com.google.demo", "def",
+                      setOf(Version.parse("1.0.0"), Version.parse("1.0.1"), Version.parse("1.0.2")))
+      )
+    )
   }
 
   @Test

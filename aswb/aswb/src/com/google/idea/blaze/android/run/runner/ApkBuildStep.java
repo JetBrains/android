@@ -27,13 +27,5 @@ public interface ApkBuildStep {
    */
   void build(BlazeContext context, BlazeAndroidDeviceSelector.DeviceSession deviceSession);
 
-  /**
-   * Returns whether the IDE should deploy the artifacts of the build. This is true in most cases
-   * except for mobile-install where the build itself does the deploy.
-   */
-  default boolean needsIdeDeploy() {
-    return true;
-  }
-
   BlazeAndroidDeployInfo getDeployInfo() throws ApkProvisionException;
 }

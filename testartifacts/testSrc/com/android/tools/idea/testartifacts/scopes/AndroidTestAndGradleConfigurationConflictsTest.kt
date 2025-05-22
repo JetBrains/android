@@ -32,8 +32,8 @@ class AndroidTestAndGradleConfigurationConflictsTest : AndroidGradleTestCase() {
     loadSimpleApplication()
     assertThat(createAndroidGradleConfigurationFromDirectory(project, "app/src/test/java/google/simpleapplication")).isNotNull()
 
-    // Verify that that no configuration is created from the context of AndroidTest artifact.
-    // This follows the workflow on AS when trying create a AndroidTest configuration, where we first check if any existing configuration
+    // Verify that no configuration is created from the context of AndroidTest artifact.
+    // This follows the workflow on AS when trying to create a AndroidTest configuration, where we first check if any existing configuration
     // was created from the AndroidTest context, and return it.
     // The Gradle Configuration producer fails in detecting that the created unit test configuration isn't from the context of AndroidTest
     // because it doesn't check for the unique PSI location.

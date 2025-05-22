@@ -16,9 +16,12 @@
 package com.android.tools.idea.device.explorer.files;
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
@@ -37,7 +40,7 @@ import kotlinx.coroutines.withContext
  * (see [ModalityState.any]).
  */
 suspend fun <T> withWriteSafeContextWithCurrentModality(block: suspend CoroutineScope.() -> T): T =
-  withContext(uiThread(ModalityState.any())) {
+  withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
     withContext(uiThread, block)
   }
 

@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class NopComposePreviewManager : ComposePreviewManager {
   override fun status() =
     ComposePreviewManager.Status(
-      hasErrorsAndNeedsBuild = false,
+      hasRenderErrors = false,
       hasSyntaxErrors = false,
       isOutOfDate = false,
       areResourcesOutOfDate = false,
@@ -30,7 +30,6 @@ class NopComposePreviewManager : ComposePreviewManager {
       psiFilePointer = null,
     )
 
-  override var isInspectionTooltipEnabled: Boolean = false
   override var isFilterEnabled: Boolean = false
   override var isUiCheckFilterEnabled: Boolean = false
   private val _mode = MutableStateFlow<PreviewMode>(PreviewMode.Default())

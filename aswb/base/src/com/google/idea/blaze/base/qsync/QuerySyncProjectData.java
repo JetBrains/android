@@ -78,8 +78,7 @@ public class QuerySyncProjectData implements BlazeProjectData {
   @Override
   public ProjectTarget getBuildTarget(Label label) {
     return blazeProject
-        .map(QuerySyncProjectSnapshot::getTargetMap)
-        .map(map -> map.get(com.google.idea.blaze.common.Label.of(label.toString())))
+        .map(it -> it.graph().getProjectTarget(com.google.idea.blaze.common.Label.of(label.toString())))
         .orElse(null);
   }
 
@@ -98,10 +97,10 @@ public class QuerySyncProjectData implements BlazeProjectData {
   }
 
   @Override
-  public ImmutableList<TargetInfo> targets() {
+  public ImmutableList<Label> targets() {
     if (blazeProject.isPresent()) {
-      return blazeProject.get().getTargetMap().values().stream()
-          .map(TargetInfo::fromBuildTarget)
+      return blazeProject.get().getAllTargets().stream()
+          .map(com.google.idea.blaze.base.model.primitives.Label::create)
           .collect(ImmutableList.toImmutableList());
     }
     return ImmutableList.of();

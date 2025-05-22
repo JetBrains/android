@@ -69,8 +69,6 @@ import java.util.concurrent.TimeUnit
 import kotlin.coroutines.cancellation.CancellationException
 
 const val SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY = "system.image.live.unsupported"
-@com.google.common.annotations.VisibleForTesting const val MIN_API_29_GOOGLE_APIS_SYSIMG_REV = 12
-@com.google.common.annotations.VisibleForTesting const val MIN_API_29_AOSP_SYSIMG_REV = 8
 
 /**
  * An [InspectorClient] that talks to an app-inspection based inspector running on a target device.
@@ -104,7 +102,7 @@ class AppInspectionInspectorClient(
     parentDisposable,
   ) {
 
-  private var viewInspector: ViewLayoutInspectorClient? = null
+  var viewInspector: ViewLayoutInspectorClient? = null
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
 
   /** Compose inspector, may be null if user's app isn't using the compose library. */

@@ -79,7 +79,7 @@ public class ProjectQuerierImpl implements ProjectQuerier {
 
     RefreshOperation fullQuery =
         projectRefresher.startFullUpdate(
-            context, projectDef, vcsState, bazelVersionProvider.getBazelVersion());
+            context, projectDef, vcsState, bazelVersionProvider.getBazelVersion(context));
 
     QuerySpec querySpec = fullQuery.getQuerySpec().get();
     return fullQuery.createPostQuerySyncData(queryRunner.runQuery(querySpec, context));
@@ -130,7 +130,7 @@ public class ProjectQuerierImpl implements ProjectQuerier {
 
     Optional<String> bazelVersion = Optional.empty();
     try {
-      bazelVersion = bazelVersionProvider.getBazelVersion();
+      bazelVersion = bazelVersionProvider.getBazelVersion(context);
     } catch (BuildException e) {
       context.handleExceptionAsWarning("Could not get bazel version", e);
     }

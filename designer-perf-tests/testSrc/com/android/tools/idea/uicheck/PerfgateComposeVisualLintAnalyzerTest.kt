@@ -50,9 +50,17 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
   @Before
   override fun setUp() {
     super.setUp()
-    val visualLintInspections = arrayOf(BoundsAnalyzerInspection(), BottomNavAnalyzerInspection(), BottomAppBarAnalyzerInspection(),
-                                        TextFieldSizeAnalyzerInspection(), OverlapAnalyzerInspection(), LongTextAnalyzerInspection(),
-                                        ButtonSizeAnalyzerInspection(), WearMarginAnalyzerInspection())
+    val visualLintInspections =
+      arrayOf(
+        BoundsAnalyzerInspection(),
+        BottomNavAnalyzerInspection(),
+        BottomAppBarAnalyzerInspection(),
+        TextFieldSizeAnalyzerInspection(),
+        OverlapAnalyzerInspection(),
+        LongTextAnalyzerInspection(),
+        ButtonSizeAnalyzerInspection(),
+        WearMarginAnalyzerInspection(),
+      )
     projectRule.fixture.enableInspections(*visualLintInspections)
   }
 
@@ -83,20 +91,21 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
 
   private fun visualLintAnalyzerRun(analyzer: VisualLintAnalyzer) {
     val facet = projectRule.mainAndroidFacet(":app")
-    val uiCheckPreviewFile = facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
+    val uiCheckPreviewFile =
+      facet.virtualFile("src/main/java/google/simpleapplication/UiCheckPreview.kt")
     val resultToModelMap = mutableMapOf<RenderResult, NlModel>()
     UiCheckConfigurations.forEach { config ->
       val renderResult =
         renderPreviewElementForResult(
-          facet,
-          uiCheckPreviewFile,
-          SingleComposePreviewElementInstance.forTesting(
-            "google.simpleapplication.UiCheckPreviewKt.VisualLintErrorPreview",
-            configuration = config.configuration,
-            showDecorations = config.showDecorations
-          ),
-          customViewInfoParser = accessibilityBasedHierarchyParser
-        )
+            facet,
+            uiCheckPreviewFile,
+            SingleComposePreviewElementInstance.forTesting(
+              "google.simpleapplication.UiCheckPreviewKt.VisualLintErrorPreview",
+              configuration = config.configuration,
+              showDecorations = config.showDecorations,
+            ),
+            customViewInfoParser = accessibilityBasedHierarchyParser,
+          )
           .get()
       val file = renderResult.lightVirtualFile
       val nlModel =
@@ -104,16 +113,26 @@ class PerfgateComposeVisualLintAnalyzerTest : ComposeRenderTestBase() {
           projectRule.fixture.testRootDisposable,
           NlComponentRegistrar,
           AndroidBuildTargetReference.gradleOnly(facet),
-          file
+          file,
         )
       assert(renderResult.result != null)
       resultToModelMap[renderResult.result!!] = nlModel
     }
     uiCheckBenchmark.measureOperation(
-      measures = listOf(ElapsedTimeMeasurement(Metric("${analyzer.type}_run_time")),
-                        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("${analyzer.type}_memory_use"))),
-      samplesCount = NUMBER_OF_SAMPLES) {
-      resultToModelMap.forEach { (renderResult, nlModel) -> analyzer.findIssues(renderResult, nlModel.configuration) }
+      measures =
+        listOf(
+          ElapsedTimeMeasurement(Metric("${analyzer.type}_run_time")),
+          HeapSnapshotMemoryUseMeasurement(
+            "android:designTools",
+            null,
+            Metric("${analyzer.type}_memory_use"),
+          ),
+        ),
+      samplesCount = NUMBER_OF_SAMPLES,
+    ) {
+      resultToModelMap.forEach { (renderResult, nlModel) ->
+        analyzer.findIssues(renderResult, nlModel.configuration)
+      }
     }
   }
 }

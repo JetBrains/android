@@ -60,7 +60,7 @@ public class SourcesTableModelTest {
     myModel.setRefreshCallback(() -> {});
     SdkUpdaterConfigurable configurable = mock(SdkUpdaterConfigurable.class);
     Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");
-    RepoManager repoManager = new RepoManagerImpl();
+    RepoManager repoManager = new RepoManagerImpl(sdkRoot);
     AndroidSdkHandler sdkHandler = new AndroidSdkHandler(sdkRoot, sdkRoot.getRoot().resolve("android"), repoManager);
     LocalSourceProvider localSourceProvider = sdkHandler.getUserSourceProvider(new FakeProgressIndicator());
     localSourceProvider.getSources(null, new FakeProgressIndicator(), false);

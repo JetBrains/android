@@ -29,6 +29,7 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runners.Parameterized
 import org.mockito.Mockito.mock
+import com.google.common.truth.Truth.assertThat
 
 class TomlDslParserTest : LightPlatformTestCase() {
   companion object {
@@ -40,6 +41,11 @@ class TomlDslParserTest : LightPlatformTestCase() {
   override fun setUp() {
     DeclarativeIdeSupport.override(true)
     super.setUp()
+  }
+
+  override fun tearDown() {
+    DeclarativeIdeSupport.clearOverride()
+    super.tearDown()
   }
 
   @Test
@@ -91,9 +97,7 @@ class TomlDslParserTest : LightPlatformTestCase() {
   }
 
   fun _testSingleLibraryMultiLineLiteralStringInitialNewline() {
-    assumeTrue(
-      "Toml unescaper does not handle removal of initial newline: https://github.com/JetBrains/intellij-community/pull/1754/commits/11fcd6614b20c8f518acbebc6c34493963f2d6e4",
-      false)
+    assumeTrue("Toml unescaper does not handle removal of initial newline: https://github.com/JetBrains/intellij-community/pull/1754/commits/11fcd6614b20c8f518acbebc6c34493963f2d6e4", false)
     val toml = """
       [libraries]
       junit = '''
@@ -104,9 +108,7 @@ class TomlDslParserTest : LightPlatformTestCase() {
   }
 
   fun _testSingleLibraryMultiLineBasicStringInitialNewline() {
-    assumeTrue(
-      "Toml unescaper does not handle removal of initial newline: https://github.com/JetBrains/intellij-community/pull/1754/commits/11fcd6614b20c8f518acbebc6c34493963f2d6e4",
-      false)
+    assumeTrue("Toml unescaper does not handle removal of initial newline: https://github.com/JetBrains/intellij-community/pull/1754/commits/11fcd6614b20c8f518acbebc6c34493963f2d6e4", false)
     val tripleQuote = "\"\"\""
     val junitWithEscapes = "junit:junit:4.13"
       .mapIndexed { i, c -> if ((i % 2) == 1) c.toString() else String.format("\\u%04x", c.code) }
@@ -144,9 +146,7 @@ class TomlDslParserTest : LightPlatformTestCase() {
   }
 
   fun _testBasicStringEscapesKey() {
-    assumeTrue(
-      "Toml does not unescape names from quoted keys: https://github.com/JetBrains/intellij-community/pull/1754/commits/d97f0e1cc4fd6fede790f39ac3e9d3c4cef57ed4",
-      false)
+    assumeTrue("Toml does not unescape names from quoted keys: https://github.com/JetBrains/intellij-community/pull/1754/commits/d97f0e1cc4fd6fede790f39ac3e9d3c4cef57ed4", false)
     val toml = """
       [libraries]
       "\u006au\u006ei\u0074" = "junit:junit:4.13"
@@ -227,8 +227,7 @@ class TomlDslParserTest : LightPlatformTestCase() {
       [libraries.guava]
       module = "com.google.guava:guava"
     """.trimIndent()
-    val expected = mapOf(
-      "libraries" to mapOf("junit" to mapOf("module" to "junit:junit"), "guava" to mapOf("module" to "com.google.guava:guava")))
+    val expected = mapOf("libraries" to mapOf("junit" to mapOf("module" to "junit:junit"), "guava" to mapOf( "module" to "com.google.guava:guava")))
     doTest(toml, expected)
   }
 
@@ -328,8 +327,7 @@ class TomlDslParserTest : LightPlatformTestCase() {
       [bundles]
       groovy = ["groovy-core", "groovy-json", { name = "groovy-nio", version = "3.14" } ]
     """.trimIndent()
-    val expected = mapOf(
-      "bundles" to mapOf("groovy" to listOf("groovy-core", "groovy-json", mapOf("name" to "groovy-nio", "version" to "3.14"))))
+    val expected = mapOf("bundles" to mapOf("groovy" to listOf("groovy-core", "groovy-json", mapOf("name" to "groovy-nio", "version" to "3.14"))))
     doTest(toml, expected)
   }
 
@@ -353,7 +351,122 @@ class TomlDslParserTest : LightPlatformTestCase() {
     doTest(toml, expected)
   }
 
-  private fun doTest(text: String, expected: Map<String, Any>) {
+  @Test
+  fun testVersionReference() {
+    val toml = """
+      [versions]
+      aVersion = "1.0"
+      bVersion = "2.0"
+      [libraries]
+      aLib = { module = "example:example", version.ref = "aVersion" }
+      bLib = { module = "example:example", version = { ref = "aVersion" } }
+      [plugins]
+      aPlugin = { id = "plugin" version.ref = "bVersion" }
+      bPlugin = { id = "plugin" version = { ref= "bVersion" } }
+    """.trimIndent()
+    verifyVersionReferences(toml)
+  }
+
+  @Test
+  fun testVersionReferenceReverseOrder() {
+    val toml = """
+      [libraries]
+      aLib = { module = "example:example", version.ref = "aVersion" }
+      bLib = { module = "example:example", version = { ref = "aVersion" } }
+      [plugins]
+      aPlugin = { id = "plugin" version.ref = "bVersion" }
+      bPlugin = { id = "plugin" version = { ref= "bVersion" } }
+      [versions]
+      aVersion = "1.0"
+      bVersion = "2.0"
+    """.trimIndent()
+    verifyVersionReferences(toml)
+  }
+
+  private fun verifyVersionReferences(tomlContent: String) {
+    val libsTomlFile = VfsTestUtil.createFile(project.guessProjectDir()!!, "gradle/libs.versions.toml", tomlContent)
+    val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, mock())) {}
+    dslFile.parse()
+    verifyVersionReference(dslFile, "libraries", "aLib", "aVersion", "1.0")
+    verifyVersionReference(dslFile, "libraries", "bLib", "aVersion", "1.0")
+    verifyVersionReference(dslFile, "plugins", "aPlugin", "bVersion", "2.0")
+    verifyVersionReference(dslFile, "plugins", "bPlugin", "bVersion", "2.0")
+  }
+
+  private fun verifyVersionReference(dslFile: GradleDslFile, tableName: String, alias: String, versionAlias: String, versionText: String) {
+    // checking from reference side
+    val declaration = dslFile.getPropertyElement(tableName, GradleDslExpressionMap::class.java)?.getPropertyElement(alias)
+    assertThat(declaration).isInstanceOf(GradleDslExpressionMap::class.java)
+    val version = (declaration as GradleDslExpressionMap).getPropertyElement("version")
+    assertThat(version).isNotNull()
+    assertThat(version!!.dependencies).hasSize(1)
+    val injection = version.dependencies[0]
+    assertThat(injection.toBeInjected).isNotNull()
+    assertThat(injection.toBeInjected!!.name).isEqualTo(versionAlias)
+    assertThat(injection.toBeInjected).isInstanceOf(GradleDslLiteral::class.java)
+    assertThat((injection.toBeInjected as GradleDslLiteral).value).isEqualTo(versionText)
+
+    // checking from version declaration side
+    val versionDeclaration = dslFile.getPropertyElement("versions", GradleDslExpressionMap::class.java)?.getPropertyElement(versionAlias)
+    assertThat(versionDeclaration).isNotNull()
+    assertThat(versionDeclaration).isInstanceOf(GradleDslLiteral::class.java)
+    assertThat(injection.toBeInjected).isEqualTo(versionDeclaration)
+    assertThat(versionDeclaration!!.dependents).contains(injection)
+  }
+
+  @Test
+  fun testBundleReference() {
+    val toml = """
+      [libraries]
+      aLib = "example:example:aVersion"
+      bLib = "example:example:bVersion"
+      [bundles]
+      aBundle = ["aLib","bLib"]
+    """.trimIndent()
+    verifyBundleReferences(toml)
+  }
+
+  @Test
+  fun testBundleReferenceReverseOrder() {
+    val toml = """
+      [bundles]
+      aBundle = ["aLib","bLib"]
+      [libraries]
+      aLib = "example:example:aVersion"
+      bLib = "example:example:bVersion"
+    """.trimIndent()
+    verifyBundleReferences(toml)
+  }
+
+  private fun verifyBundleReferences(tomlContent: String) {
+    val libsTomlFile = VfsTestUtil.createFile(project.guessProjectDir()!!, "gradle/libs.versions.toml", tomlContent)
+    val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, mock())) {}
+    dslFile.parse()
+    verifyBundleReference(dslFile, "aBundle", "aLib", "example:example:aVersion")
+    verifyBundleReference(dslFile, "aBundle", "bLib", "example:example:bVersion")
+  }
+
+  private fun verifyBundleReference(dslFile: GradleDslFile, alias: String, libAlias: String, libValue:String) {
+    // checking from library reference side
+    val bundle = dslFile.getPropertyElement("bundles", GradleDslExpressionMap::class.java)?.getPropertyElement(alias)
+    assertThat(bundle).isInstanceOf(GradleDslExpressionList::class.java)
+    val reference = (bundle as GradleDslExpressionList).children.find { it.name == libAlias}
+    assertThat(reference).isNotNull()
+    assertThat(reference!!.dependencies).hasSize(1)
+    val injection = reference.dependencies[0]
+    assertThat(injection.toBeInjected).isNotNull()
+    assertThat(injection.toBeInjected!!.name).isEqualTo(libAlias)
+    assertThat((injection.toBeInjected as GradleDslLiteral).value).isEqualTo(libValue)
+
+    // checking from library declaration side
+    val libraryDeclaration = dslFile.getPropertyElement("libraries", GradleDslExpressionMap::class.java)?.getPropertyElement(libAlias)
+    assertThat(libraryDeclaration).isNotNull()
+    assertThat(libraryDeclaration).isInstanceOf(GradleDslLiteral::class.java)
+    assertThat(injection.toBeInjected).isEqualTo(libraryDeclaration)
+    assertThat(libraryDeclaration!!.dependents).contains(injection)
+  }
+
+  private fun doTest(text: String, expected: Map<String,Any>) {
     val libsTomlFile = VfsTestUtil.createFile(
       project.guessProjectDir()!!,
       "gradle/libs.versions.toml",
@@ -382,8 +495,7 @@ class TomlDslParserTest : LightPlatformTestCase() {
       }
       setter(key, value)
     }
-
-    val map = LinkedHashMap<String, Any>()
+    val map = LinkedHashMap<String,Any>()
     dslFile.properties.forEach { populate(it, dslFile.getElement(it)) { key, value -> map[key] = value } }
     return map
   }

@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Paint interface for draw commands
  * This interface also implies a constructor that takes a String
- * Which can expand the serialization of the of the command
+ * Which can expand the serialization of the command
  */
 public interface DrawCommand extends Comparable {
   int CONNECTION_LEVEL = 10 ;

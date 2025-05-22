@@ -84,8 +84,10 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
         ) {
           // Current version is too old, try to update
           val updatablePackage =
-            sdkHandler.getSdkManager(progressIndicator).packages.consolidatedPkgs[packagePath]
-              ?: return null
+            sdkHandler
+              .getRepoManagerAndLoadSynchronously(progressIndicator)
+              .packages
+              .consolidatedPkgs[packagePath] ?: return null
           if (updatablePackage.isUpdate) {
             SdkQuickfixUtils.createDialogForPackages(
                 null,
@@ -128,7 +130,7 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
       }
 
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-      val sdkManager = sdkHandler.getSdkManager(progressIndicator)
+      val sdkManager = sdkHandler.getRepoManager(progressIndicator)
       // TODO: async and progress
       sdkManager.loadSynchronously(
         RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
@@ -213,7 +215,7 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
   @Slow
   private fun downloadLatestVersion(): Boolean {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-    val sdkManager = sdkHandler.getSdkManager(progressIndicator)
+    val sdkManager = sdkHandler.getRepoManager(progressIndicator)
     // TODO: async and progress
     sdkManager.loadSynchronously(
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,

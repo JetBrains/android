@@ -34,6 +34,7 @@ import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
+import java.io.Serializable
 
 
 /**
@@ -56,7 +57,7 @@ internal sealed class BasicIncompleteGradleModule(
 }
 
 /** The information about the model consumer version required by AGP */
-data class ModelConsumerVersion(val major: Int, val minor: Int, val description: String) : Comparable<ModelConsumerVersion> {
+data class ModelConsumerVersion(val major: Int, val minor: Int, val description: String) : Comparable<ModelConsumerVersion>, Serializable {
   override fun compareTo(other: ModelConsumerVersion): Int {
     return if (this.major != other.major) this.major.compareTo(other.major) else this.minor.compareTo(other.minor)
   }

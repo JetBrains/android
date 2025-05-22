@@ -30,8 +30,7 @@ public class LanguageClasses {
   static final ImmutableBiMap<QuerySyncLanguage, LanguageClass>
       QUERY_SYNC_TO_BASE_LANGUAGE_CLASS_MAP =
           ImmutableBiMap.of(
-              QuerySyncLanguage.JAVA, LanguageClass.JAVA,
-              QuerySyncLanguage.KOTLIN, LanguageClass.KOTLIN,
+              QuerySyncLanguage.JVM, LanguageClass.JAVA,
               QuerySyncLanguage.CC, LanguageClass.C);
 
   private LanguageClasses() {}

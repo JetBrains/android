@@ -22,7 +22,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.asCollection
@@ -39,12 +38,10 @@ import com.android.tools.idea.preview.CommonPreviewRefreshType
 import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.DefaultRenderQualityPolicy
 import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
-import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewBuildListenersManager
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.PreviewElementModelAdapter
-import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.PreviewPreloadClasses.INTERACTIVE_CLASSES_TO_PRELOAD
 import com.android.tools.idea.preview.PreviewRefreshManager
@@ -59,6 +56,8 @@ import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
 import com.android.tools.idea.preview.fast.FastPreviewSurface
+import com.android.tools.idea.preview.find.MemoizedPreviewElementProvider
+import com.android.tools.idea.preview.find.PreviewElementProvider
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
@@ -78,6 +77,7 @@ import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
+import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.rendering.setupBuildListener
@@ -96,7 +96,9 @@ import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
@@ -115,6 +117,7 @@ import javax.swing.JComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -316,6 +319,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       isFastPreviewSupported = isFastPreviewAvailable(),
       ::invalidate,
       ::requestRefresh,
+      ::updateAnimationPanelVisibility,
     )
 
   @TestOnly
@@ -655,7 +659,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     refreshJob.invokeOnCompletion {
       LOG.debug("Completed")
       // Progress indicators must be disposed in the ui thread
-      launch(uiThread) { Disposer.dispose(refreshProgressIndicator) }
+      launch(Dispatchers.EDT) { Disposer.dispose(refreshProgressIndicator) }
       previewViewModel.refreshCompleted(it is CancellationException, System.nanoTime() - startTime)
     }
     return refreshJob
@@ -708,6 +712,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     } finally {
       // this should be run even if an onAfterRender throws an exception
       previewViewModel.afterPreviewsRefreshed()
+      updateAnimationPanelVisibility()
     }
   }
 
@@ -840,10 +845,11 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         stopInteractivePreview()
       }
       is PreviewMode.Focus -> {
-        withContext(uiThread) { previewView.focusMode = null }
+        withContext(Dispatchers.EDT) { previewView.focusMode = null }
       }
       is PreviewMode.AnimationInspection -> {
         stopAnimationInspector()
+        updateAnimationPanelVisibility()
       }
       else -> {}
     }
@@ -861,10 +867,11 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       is PreviewMode.Focus -> {
         invalidateAndRefresh()
         surface.repaint()
-        withContext(uiThread) { previewView.focusMode = FocusMode(surface) }
+        withContext(Dispatchers.EDT) { previewView.focusMode = FocusMode(surface) }
       }
       is PreviewMode.AnimationInspection -> {
         startAnimationInspector(mode.selected)
+        updateAnimationPanelVisibility()
       }
       else -> {}
     }
@@ -874,11 +881,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private suspend fun startAnimationInspector(element: PreviewElement<*>) {
     LOG.debug("Starting animation inspector mode on: $element")
     invalidateAndRefresh()
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       createAnimationInspector(element)?.also {
         Disposer.register(this@CommonPreviewRepresentation, it)
         currentAnimationPreview = it
-        previewView.bottomPanel = it.component
       }
     }
     ActivityTracker.getInstance().inc()
@@ -892,11 +898,10 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private suspend fun stopAnimationInspector() {
     LOG.debug("Stopping animation inspector mode")
     currentAnimationPreview?.let {
-      // The animation inspector should be disposed on the uiThread
-      withContext(uiThread) { Disposer.dispose(it) }
+      // The animation inspector should be disposed on the Dispatchers.EDT
+      withContext(Dispatchers.EDT) { Disposer.dispose(it) }
     }
     currentAnimationPreview = null
-    withContext(uiThread) { previewView.bottomPanel = null }
     invalidateAndRefresh()
   }
 
@@ -914,7 +919,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   }
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       surface.layoutManagerSwitcher?.currentLayoutOption?.value = mode.layoutOption
     }
   }
@@ -927,6 +932,30 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private fun isFastPreviewAvailable() =
     FastPreviewManager.getInstance(project).isAvailable &&
     !PreviewEssentialsModeManager.isEssentialsModeEnabled
+
+  /**
+   * Updates the visibility of the animation panel. The panel should be visible only when the
+   * current mode is [PreviewMode.AnimationInspection] and there are no errors or the project needs
+   * a build.
+   */
+  private fun updateAnimationPanelVisibility() {
+    runInEdt {
+      if (mode.value !is PreviewMode.AnimationInspection) {
+        previewView.bottomPanel = null
+        return@runInEdt
+      }
+
+      previewView.bottomPanel =
+        when {
+          project.needsBuild ||
+            previewViewModel.hasSyntaxErrors ||
+            previewViewModel.hasRenderErrors ||
+            previewViewModel.isOutOfDate -> null
+          mode.value is PreviewMode.AnimationInspection -> currentAnimationPreview?.component
+          else -> null
+        }
+    }
+  }
 
   /**
    * Returns the list of [PreviewFlowManager.filteredPreviewElementsFlow] that has been rendered.

@@ -90,10 +90,10 @@ internal fun SqliteInspectorProtocol.CellValue.toSqliteColumnValue(
   }
 }
 
-internal fun List<SqliteInspectorProtocol.Table>.toSqliteSchema(): SqliteSchema {
+fun List<SqliteInspectorProtocol.Table>.toSqliteSchema(): SqliteSchema {
   val tables = map { table ->
     val columns = table.columnsList.map { it.toSqliteColumn() }
-    val rowIdName = getRowIdName(columns)
+    val rowIdName = if (table.withoutRowid) null else getRowIdName(columns)
     SqliteTable(table.name, columns, rowIdName, table.isView)
   }
   return SqliteSchema(tables)

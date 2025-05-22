@@ -71,7 +71,7 @@ class AdbLibApplicationService : Disposable {
       )
     )
 
-  private val adbServerController =
+  internal val adbServerController =
     if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()) {
       AdbServerController.createServerController(host, adbServerConfiguration)
     } else {
@@ -82,7 +82,7 @@ class AdbLibApplicationService : Disposable {
    * The custom [AdbServerChannelProvider] that ensures `adb` is started before opening
    * [AdbChannel].
    */
-  private val channelProvider =
+  internal val channelProvider =
     adbServerController?.channelProvider
       ?: AndroidAdbServerChannelProvider(host, adbFileLocationTracker)
 

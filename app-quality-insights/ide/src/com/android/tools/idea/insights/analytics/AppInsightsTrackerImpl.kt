@@ -25,6 +25,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.EventDetails
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
+import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
 import com.intellij.openapi.project.Project
 
 class AppInsightsTrackerImpl(
@@ -220,6 +221,33 @@ class AppInsightsTrackerImpl(
               insight.codeContextTrackingDetails
                 .toCodeContextDetailsProto()
                 .apply { this.contextLimit = contextLimit.toLong() }
+                .build()
+          }
+          .build()
+    }
+  }
+
+  override fun logServiceDeprecated(
+    panel: AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel,
+    userNotified: Boolean?,
+    userClickedMoreInfo: Boolean?,
+    userClickedUpdate: Boolean?,
+  ) {
+    log("") {
+      type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.SERVICE_DEPRECATION
+      serviceDeprecationInfo =
+        AppQualityInsightsUsageEvent.ServiceDeprecationInfo.newBuilder()
+          .apply {
+            this.panel = panel
+            devServiceDeprecationInfo =
+              DevServiceDeprecationInfo.newBuilder()
+                .apply {
+                  deprecationStatus = DevServiceDeprecationInfo.DeprecationStatus.UNSUPPORTED
+                  deliveryType = DevServiceDeprecationInfo.DeliveryType.PANEL
+                  userNotified?.let { this.userNotified = it }
+                  userClickedMoreInfo?.let { moreInfoClicked = it }
+                  userClickedUpdate?.let { updateClicked = it }
+                }
                 .build()
           }
           .build()

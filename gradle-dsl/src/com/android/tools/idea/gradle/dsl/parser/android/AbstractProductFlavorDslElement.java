@@ -176,7 +176,7 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
     {"testFunctionalTest", property, TEST_FUNCTIONAL_TEST, VAR},
     {"testHandleProfiling", property, TEST_HANDLE_PROFILING, VAR},
     {"testInstrumentationRunner", property, TEST_INSTRUMENTATION_RUNNER, VAR},
-    {"testInstrumentationRunnerArguments", property, TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, VAR},
+    {"testInstrumentationRunnerArguments", property, TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, VAL},
     {"versionCode", property, VERSION_CODE, VAR},
     {"versionName", property, VERSION_NAME, VAR},
     {"wearAppUnbundled", property, WEAR_APP_UNBUNDLED, VAR}

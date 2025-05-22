@@ -33,8 +33,13 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.SwingHelper;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -51,7 +56,9 @@ import org.jetbrains.annotations.TestOnly;
  * panel.
  */
 public final class ValidatorPanel extends JPanel implements Disposable {
-  /** Used to set empty validation text. If completely empty, the height calculations are off. */
+  /**
+   * Used to set empty validation text. If completely empty, the height calculations are off.
+   */
   private static final String BLANK_HTML = "<html></html>";
 
   private final ListenerManager myListeners = new ListenerManager();
@@ -76,14 +83,15 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   /**
    * Initializes the validator panel.
    *
-   * @param parentDisposable the disposable parent
-   * @param innerPanel the panel that will be wrapped by the validator panel
+   * @param parentDisposable       the disposable parent
+   * @param innerPanel             the panel that will be wrapped by the validator panel
    * @param errorDetailDialogTitle the title for the error detail dialog
-   * @param errorDetailHeader the header label for the error detail dialog
+   * @param errorDetailHeader      the header label for the error detail dialog
    */
   public ValidatorPanel(@NotNull Disposable parentDisposable, @NotNull JComponent innerPanel,
                         @NotNull String errorDetailDialogTitle, @NotNull String errorDetailHeader) {
     super(new BorderLayout());
+    setupUI();
 
     add(myRootPanel);
     myRootPanel.add(innerPanel);
@@ -99,9 +107,12 @@ public final class ValidatorPanel extends JPanel implements Disposable {
           // Remove reference to the error detail dialog when it is closed.
           Disposer.register(myErrorDetailDialog.getDisposable(), () -> myErrorDetailDialog = null);
           // Close the error detail dialog when the ValidatorPanel is disposed.
-          Disposer.register(this, () -> { if (myErrorDetailDialog != null) myErrorDetailDialog.close(CANCEL_EXIT_CODE); });
+          Disposer.register(this, () -> {
+            if (myErrorDetailDialog != null) myErrorDetailDialog.close(CANCEL_EXIT_CODE);
+          });
           myErrorDetailDialog.show();
-        } else {
+        }
+        else {
           myErrorDetailDialog.setText(detailedMessage);
         }
       }
@@ -196,7 +207,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
 
   /**
    * Returns the current {@link Validator.Result}.
-   *
+   * <p>
    * Prefer using {@link #hasErrors()} if possible, as it is a simpler expression, but this value
    * is also exposed in case it is useful for more specific use-cases.
    */
@@ -242,6 +253,32 @@ public final class ValidatorPanel extends JPanel implements Disposable {
     myValidationResult.set(activeResult);
   }
 
+  private void setupUI() {
+    createUIComponents();
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new BorderLayout(0, 15));
+    mySouthPanel = new JPanel();
+    mySouthPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    mySouthPanel.setMinimumSize(new Dimension(154, 32));
+    mySouthPanel.setPreferredSize(new Dimension(154, 32));
+    myRootPanel.add(mySouthPanel, BorderLayout.SOUTH);
+    mySeverityIcon = new JBLabel();
+    mySeverityIcon.setFocusable(false);
+    mySeverityIcon.setIconTextGap(0);
+    mySouthPanel.add(mySeverityIcon, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_NONE, 1,
+                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myValidationText.setBackground(new Color(-855310));
+    myValidationText.setEditable(false);
+    myValidationText.setFocusable(false);
+    myValidationText.setMargin(new Insets(0, 0, 0, 0));
+    myValidationText.setText("");
+    mySouthPanel.add(myValidationText, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                           GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                           null, null, 0, false));
+  }
+
+  public JComponent getRootComponent() { return myRootPanel; }
+
   @NotNull
   private static String convertToHtml(String message) {
     return StringUtil.replace(escapeString(message), "\n", "<br>");
@@ -262,6 +299,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
     myValidationText = SwingHelper.createHtmlViewer(true, null, JBColor.WHITE, JBColor.BLACK);
     myValidationText.setOpaque(false);
     myValidationText.setFocusable(false);
-    myValidationText.addHyperlinkListener(event -> {});
+    myValidationText.addHyperlinkListener(event -> {
+    });
   }
 }

@@ -1,5 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
+load("//tools/base/bazel:proto.bzl", "java_proto_library")
+
 FILES = [
     "action_cache",
     "android_deploy_info",
@@ -19,67 +21,33 @@ FILES = [
     "execution_graph",
 ]
 
-[proto_library(
-    name = s + "_proto",
-    srcs = [s + ".proto"],
-) for s in FILES]
-
 [java_proto_library(
     name = s + "_java_proto",
-    deps = [":" + s + "_proto"],
+    srcs = [":" + s + ".proto"],
 ) for s in FILES]
-
-proto_library(
-    name = "analysis_v2_proto",
-    srcs = ["analysis_v2.proto"],
-    deps = [":build_proto"],
-)
 
 java_proto_library(
     name = "analysis_v2_java_proto",
-    deps = [":analysis_v2_proto"],
-)
-
-java_proto_library(
-    name = "any_java_proto",
-    deps = ["@com_google_protobuf//:any_proto"],
-)
-
-java_proto_library(
-    name = "wrappers_java_proto",
-    deps = ["@com_google_protobuf//:wrappers_proto"],
-)
-
-proto_library(
-    name = "failure_details_proto",
-    srcs = ["failure_details.proto"],
-    deps = ["@com_google_protobuf//:descriptor_proto"],
+    srcs = ["analysis_v2.proto"],
+    java_deps = [":build_java_proto"],
+    proto_deps = [":build_java_proto_srcs"],
 )
 
 java_proto_library(
     name = "failure_details_java_proto",
-    deps = [":failure_details_proto"],
-)
-
-proto_library(
-    name = "option_filters_proto",
-    srcs = ["option_filters.proto"],
+    srcs = ["failure_details.proto"],
 )
 
 java_proto_library(
     name = "option_filters_java_proto",
-    deps = [":option_filters_proto"],
-)
-
-proto_library(
-    name = "command_line_proto",
-    srcs = ["command_line.proto"],
-    deps = [":option_filters_proto"],
+    srcs = ["option_filters.proto"],
 )
 
 java_proto_library(
     name = "command_line_java_proto",
-    deps = [":command_line_proto"],
+    srcs = ["command_line.proto"],
+    java_deps = ["option_filters_java_proto"],
+    proto_deps = ["option_filters_java_proto_srcs"],
 )
 
 # Proto needed by singlejar and embedded into the java tools archive.
@@ -97,48 +65,14 @@ filegroup(
     visibility = ["//src/tools/singlejar:__pkg__"],
 )
 
-proto_library(
-    name = "cache_salt_proto",
+java_proto_library(
+    name = "cache_salt_java_proto",
     srcs = ["cache_salt.proto"],
 )
 
 java_proto_library(
-    name = "cache_salt_java_proto",
-    deps = [":cache_salt_proto"],
-)
-
-proto_library(
-    name = "remote_scrubbing_proto",
-    srcs = ["remote_scrubbing.proto"],
-)
-
-java_proto_library(
     name = "remote_scrubbing_java_proto",
-    deps = [":remote_scrubbing_proto"],
-)
-
-proto_library(
-    name = "spawn_proto",
-    srcs = ["spawn.proto"],
-    deps = [
-        "@com_google_protobuf//:duration_proto",
-    ],
-)
-
-java_proto_library(
-    name = "spawn_java_proto",
-    deps = [":spawn_proto"],
-)
-
-proto_library(
-    name = "xcode_proto",
-    srcs = ["xcode_config.proto"],
-    visibility = ["//visibility:public"],
-)
-
-java_proto_library(
-    name = "xcode_java_proto",
-    deps = [":xcode_proto"],
+    srcs = ["remote_scrubbing.proto"],
 )
 
 filegroup(

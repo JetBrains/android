@@ -82,6 +82,7 @@ class SdkComponentsStep(
 
   init {
     Disposer.register(this, form)
+    Disposer.register(this, controller)
 
     form.path.textField.document.addDocumentListener(
       object : DocumentAdapter() {

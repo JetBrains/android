@@ -31,6 +31,8 @@ import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import java.util.Collection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
@@ -65,12 +67,13 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
 
   /**
    * A dialog to create a variant resource folder. It doesn't allow to create an existing folder and shows the alert message.
+   *
    * @see #CreateResourceDirectoryDialog(Project, Module, ResourceFolderType, PsiDirectory, DataContext, ValidatorFactory, boolean)
    */
   public CreateResourceDirectoryDialog(@NotNull Project project, @Nullable Module module, @Nullable ResourceFolderType resType,
                                        @Nullable PsiDirectory resDirectory, @Nullable DataContext dataContext,
                                        @NotNull ValidatorFactory validatorFactory) {
-    this(project,module, resType, resDirectory, dataContext, validatorFactory, false);
+    this(project, module, resType, resDirectory, dataContext, validatorFactory, false);
   }
 
   /**
@@ -82,6 +85,7 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
                                        @Nullable PsiDirectory resDirectory, @Nullable DataContext dataContext,
                                        @NotNull ValidatorFactory validatorFactory, boolean forceDirectoryDoesNotExist) {
     super(project);
+    setupUI();
     myResDirectory = resDirectory;
     myDataContext = dataContext;
     myValidatorFactory = validatorFactory;
@@ -207,4 +211,61 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
   protected JComponent createCenterPanel() {
     return myContentPanel;
   }
+
+  private void setupUI() {
+    myContentPanel = new JPanel();
+    myContentPanel.setLayout(new GridLayoutManager(5, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myContentPanel.setPreferredSize(new Dimension(800, 400));
+    myResourceTypeComboBox = new JComboBox();
+    myContentPanel.add(myResourceTypeComboBox, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                                   GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                   null, null, null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Resource type:");
+    jBLabel1.setDisplayedMnemonic('R');
+    jBLabel1.setDisplayedMnemonicIndex(0);
+    myContentPanel.add(jBLabel1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                     0, false));
+    myDeviceConfiguratorWrapper = new JPanel();
+    myDeviceConfiguratorWrapper.setLayout(new BorderLayout(0, 0));
+    myContentPanel.add(myDeviceConfiguratorWrapper,
+                       new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0,
+                                           false));
+    final JLabel label1 = new JLabel();
+    label1.setText("Directory name:");
+    label1.setDisplayedMnemonic('D');
+    label1.setDisplayedMnemonicIndex(0);
+    myContentPanel.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                   GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                   false));
+    myDirectoryNameTextField = new JTextField();
+    myDirectoryNameTextField.setEnabled(true);
+    myContentPanel.add(myDirectoryNameTextField,
+                       new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                           GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                           new Dimension(150, -1), null, 0, false));
+    myErrorLabel = new JBLabel();
+    myContentPanel.add(myErrorLabel, new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                         null, 0, false));
+    mySourceSetLabel = new JBLabel();
+    mySourceSetLabel.setText("Source set:");
+    mySourceSetLabel.setDisplayedMnemonic('S');
+    mySourceSetLabel.setDisplayedMnemonicIndex(0);
+    myContentPanel.add(mySourceSetLabel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                             GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                             null, 0, false));
+    mySourceSetCombo = new JComboBox();
+    myContentPanel.add(mySourceSetCombo, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                             GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                             null, null, 0, false));
+    jBLabel1.setLabelFor(myResourceTypeComboBox);
+    label1.setLabelFor(myDirectoryNameTextField);
+    mySourceSetLabel.setLabelFor(myResourceTypeComboBox);
+  }
+
+  public JComponent getRootComponent() { return myContentPanel; }
 }

@@ -50,5 +50,6 @@
     <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="ASM" level="project" />
     <orderEntry type="library" scope="TEST" name="http-client" level="project" />
+    <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
   </component>
 </module>

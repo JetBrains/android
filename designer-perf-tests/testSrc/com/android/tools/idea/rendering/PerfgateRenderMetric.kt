@@ -39,7 +39,8 @@ class PerfgateRenderMetric {
 
   fun afterTest() {
     mElapsedTime = System.currentTimeMillis() - mStartTime
-    mMemoryUsage = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - mPrevUsedMem
+    mMemoryUsage =
+      Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - mPrevUsedMem
 
     mTimestamp = Instant.now().toEpochMilli()
   }

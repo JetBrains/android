@@ -81,13 +81,13 @@ class CommonFastPreviewSurface(
    * time.
    */
   private val fastPreviewCompilationLauncher: UniqueTaskCoroutineLauncher by
-  lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    UniqueTaskCoroutineLauncher(coroutineScope, "Compilation Launcher")
-  }
+    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+      UniqueTaskCoroutineLauncher(coroutineScope, "Compilation Launcher")
+    }
 
   override fun requestFastPreviewRefreshAsync(): Deferred<CompilationResult> =
     lifecycleManager.executeIfActive { async { requestFastPreviewRefreshSync() } }
-    ?: CompletableDeferred(CompilationResult.CompilationAborted())
+      ?: CompletableDeferred(CompilationResult.CompilationAborted())
 
   /**
    * Request a fast preview compilation, followed by preview refresh when the compilation is
@@ -97,18 +97,19 @@ class CommonFastPreviewSurface(
   suspend fun requestFastPreviewRefreshSync(): CompilationResult {
     val previewFile =
       readAction { psiFilePointer.element }
-      ?: return CompilationResult.RequestException(
-        IllegalStateException("Preview File is not valid")
-      )
+        ?: return CompilationResult.RequestException(
+          IllegalStateException("Preview File is not valid")
+        )
     val previewFileBuildTargetReference =
       readAction { BuildTargetReference.from(previewFile) }
       ?: return CompilationResult.RequestException(
         IllegalStateException("Preview File does not have a valid module")
       )
-    val previewFileAndroidModule = previewFileBuildTargetReference.module.findAndroidModule()
-                                   ?: return CompilationResult.RequestException(
-                                     IllegalStateException("Preview File does not have a valid Android module")
-                                   )
+    val previewFileAndroidModule =
+      previewFileBuildTargetReference.module.findAndroidModule()
+        ?: return CompilationResult.RequestException(
+          IllegalStateException("Preview File does not have a valid Android module")
+        )
     val outOfDateFiles =
       myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles
         .filterIsInstance<KtFile>()
@@ -123,7 +124,7 @@ class CommonFastPreviewSurface(
           ModuleManager.getInstance(psiFilePointer.project)
             .isModuleDependent(
               previewFileAndroidModule,
-              modifiedFileBuildTargetReference.module,
+              modifiedFileBuildTargetReference.module
             )
         }
         .toSet()

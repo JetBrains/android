@@ -1,0 +1,4 @@
+<resources>
+    <string name="watch_face_name">My Declarative WatchFace</string>
+    <string name="greeting">Hello, world!</string>
+</resources>

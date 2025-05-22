@@ -53,6 +53,7 @@ import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
@@ -73,7 +74,9 @@ import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.diagnostic.LogLevel
@@ -101,6 +104,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -318,6 +322,13 @@ class ComposePreviewRepresentationTest {
     ) {
       it.asCollection().size > 2
     }
+    fun PsiComposePreviewElementInstance.print(): String {
+      val configurationDeviceSpecText =
+        configuration.deviceSpec
+          .takeIf { str -> str.isNotBlank() && str != "Devices.DEFAULT" }
+          ?.let { "$it\n" } ?: ""
+      return "${methodFqn}\n$configurationDeviceSpecText${displaySettings}\n"
+    }
     assertEquals(
       """
           TestKt.Preview1
@@ -390,9 +401,7 @@ class ComposePreviewRepresentationTest {
       preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
         "\n"
       ) {
-        val configurationDeviceSpecText =
-          "${it.configuration.deviceSpec}\n".takeIf { str -> str.isNotBlank() } ?: ""
-        "${it.methodFqn}\n$configurationDeviceSpecText${it.displaySettings}\n"
+        it.print()
       },
     )
 
@@ -426,17 +435,17 @@ class ComposePreviewRepresentationTest {
     assertEquals(
       """
           TestKt.Preview1
-
+          PreviewDisplaySettings(name=Preview1, baseName=Preview1, parameterName=null, group=null, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
           TestKt.Preview2
-
+          PreviewDisplaySettings(name=Preview2 - preview2, baseName=Preview2, parameterName=preview2, group=groupA, showDecoration=false, showBackground=true, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=null)
 
         """
         .trimIndent(),
       preview.renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString(
         "\n"
       ) {
-        "${it.methodFqn}\n${it.configuration.deviceSpec}\n"
+        it.print()
       },
     )
 
@@ -501,7 +510,9 @@ class ComposePreviewRepresentationTest {
     // APIs from ProblemsViewToolWindowUtils, which use invokeLater when creating the components.
     // By setting the modality state to the problems view component, we'll make sure the runnable
     // below will execute only after the component is ready.
-    withContext(uiThread(ModalityState.stateForComponent(problemsView.component))) {
+    withContext(
+      Dispatchers.EDT + ModalityState.stateForComponent(problemsView.component).asContextElement()
+    ) {
       assertEquals(2, contentManager.contents.size)
       assertEquals(uiCheckElement.instanceId, contentManager.selectedContent?.tabName)
     }
@@ -560,7 +571,8 @@ class ComposePreviewRepresentationTest {
         }
       }
 
-      val overlayClassLoader = ModuleClassLoaderOverlays.getInstance(fixture.module)
+      val overlayClassLoader =
+        ModuleClassLoaderOverlays.getInstance(BuildTargetReference.gradleOnly(fixture.module))
       assertTrue(overlayClassLoader.state.paths.isEmpty())
       overlayClassLoader.pushOverlayPath(Path.of("/tmp/test"))
       assertFalse(overlayClassLoader.state.paths.isEmpty())
@@ -719,6 +731,65 @@ class ComposePreviewRepresentationTest {
       }
 
       waitForAllRefreshesToFinish(30.seconds)
+      withContext(uiThread) { FileEditorManagerEx.getInstanceEx(project).closeAllFiles() }
+    }
+  }
+
+  // Test for b/381975273
+  @Test
+  fun hideAndShowPreview() {
+    // Use the real FileEditorManager
+    project.putUserData(FileEditorManagerKeys.ALLOW_IN_LIGHT_PROJECT, true)
+    project.replaceService(
+      FileEditorManager::class.java,
+      FileEditorManagerImpl(project, project.coroutineScope),
+      projectRule.fixture.testRootDisposable,
+    )
+    HeadlessDataManager.fallbackToProductionDataManager(projectRule.fixture.testRootDisposable)
+
+    val testPsiFile = runWriteActionAndWait {
+      // Do not use addFileToProjectAndInvalidate(..) here. It generates/caches a document with null
+      // virtual file, which results in the inconsistency with the document for the PSI virtual file
+      // after updating PSI. See b/381432038 for further information.
+      fixture.addFileToProject(
+        "Test.kt",
+        // language=kotlin
+        """
+            import androidx.compose.ui.tooling.preview.Devices
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.runtime.Composable
+
+            @Composable
+            @Preview
+            @Preview(name = "preview2", apiLevel = 12, group = "groupA", showBackground = true)
+            fun Preview() {
+            }
+          """
+          .trimIndent(),
+      )
+    }
+    testPsiFile.putUserData(FileEditorProvider.KEY, SourceCodeEditorProvider())
+
+    val editor =
+      runBlocking(uiThread) {
+        val editor =
+          withContext(uiThread) {
+            val editors =
+              FileEditorManager.getInstance(project).openFile(testPsiFile.virtualFile, true, true)
+            (editors[0] as TextEditorWithMultiRepresentationPreview<*>)
+          }
+        delayUntilCondition(250) { editor.getPreviewManager<ComposePreviewManager>() != null }
+        editor
+      }
+
+    val mainSurface = runBlocking(uiThread) { editor.getDesignSurface() as NlDesignSurface }
+
+    runComposePreviewRepresentationTest(testPsiFile, mainSurface) {
+      delayUntilCondition(2000) { editor.preview.previewIsActive }
+
+      editor.preview.component.isVisible = false
+      delayUntilCondition(2000) { !editor.preview.previewIsActive }
+
       withContext(uiThread) { FileEditorManagerEx.getInstanceEx(project).closeAllFiles() }
     }
   }

@@ -59,10 +59,14 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.GuiUtils;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.NamedColorUtil;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -80,6 +84,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
@@ -147,6 +152,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
 
   public ConfirmGenerateImagesStep(@NotNull GenerateIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
     super(model, "Confirm Icon Path");
+    setupUI();
     Preconditions.checkArgument(!templates.isEmpty());
     myTemplates = templates;
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
@@ -302,6 +308,157 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     // the tree.
     myImagePreviewPanel.setVisible(true);
     myXmlPreviewPanel.setVisible(false);
+  }
+
+  private void setupUI() {
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new GridLayoutManager(2, 3, new Insets(0, 0, 0, 0), -1, -1));
+    mySplitPane = new JSplitPane();
+    mySplitPane.setContinuousLayout(true);
+    mySplitPane.setDividerLocation(500);
+    myRootPanel.add(mySplitPane, new GridConstraints(0, 0, 2, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                     null, null, 0, false));
+    myLeftPanel = new JPanel();
+    myLeftPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+    mySplitPane.setLeftComponent(myLeftPanel);
+    final JLabel label1 = new JLabel();
+    label1.setText("Source set:");
+    myLeftPanel.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                false));
+    final JLabel label2 = new JLabel();
+    label2.setText("Output directories:");
+    myLeftPanel.add(label2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_NORTHWEST, GridConstraints.FILL_NONE,
+                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                false));
+    myPathsComboBox = new JComboBox();
+    final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
+    myPathsComboBox.setModel(defaultComboBoxModel1);
+    myLeftPanel.add(myPathsComboBox, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                         GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                         null, 0, false));
+    final JBScrollPane jBScrollPane1 = new JBScrollPane();
+    myLeftPanel.add(jBScrollPane1, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null,
+                                                       null, null, 0, false));
+    myOutputPreviewTree = new Tree();
+    myOutputPreviewTree.setOpaque(false);
+    myOutputPreviewTree.setToolTipText("A preview rendering of the output tree");
+    jBScrollPane1.setViewportView(myOutputPreviewTree);
+    myRightPanel = new JPanel();
+    myRightPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    mySplitPane.setRightComponent(myRightPanel);
+    myDetailsPanel = new JPanel();
+    myDetailsPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myRightPanel.add(myDetailsPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                         null, null, 0, false));
+    myImagePreviewPanel = new JPanel();
+    myImagePreviewPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myDetailsPanel.add(myImagePreviewPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                null, null, null, 0, false));
+    myDetailsGridContainer = new JPanel();
+    myDetailsGridContainer.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myImagePreviewPanel.add(myDetailsGridContainer,
+                            new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                null, 0, false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myDetailsGridContainer.add(panel1, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myFileTypeTextField = new JTextField();
+    myFileTypeTextField.setEditable(false);
+    panel1.add(myFileTypeTextField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                        null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("File type:");
+    panel1.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myDensityRow = new JPanel();
+    myDensityRow.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myDetailsGridContainer.add(myDensityRow, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                 GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                 null, null, null, 0, true));
+    myDensityTextField = new JTextField();
+    myDensityTextField.setEditable(false);
+    myDensityRow.add(myDensityTextField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                             GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                             null, null, 0, false));
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setText("Density:");
+    myDensityRow.add(jBLabel2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    mySizeDetailsRow = new JPanel();
+    mySizeDetailsRow.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myDetailsGridContainer.add(mySizeDetailsRow, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                     GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                     null, null, null, 0, true));
+    mySizeDpTextField = new JTextField();
+    mySizeDpTextField.setEditable(false);
+    mySizeDetailsRow.add(mySizeDpTextField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                                GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                null, null, null, 0, false));
+    final JBLabel jBLabel3 = new JBLabel();
+    jBLabel3.setText("Size (dp):");
+    mySizeDetailsRow.add(jBLabel3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                       0, false));
+    mySizePxRow = new JPanel();
+    mySizePxRow.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myDetailsGridContainer.add(mySizePxRow, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    mySizePxTextField = new JTextField();
+    mySizePxTextField.setEditable(false);
+    mySizePxRow.add(mySizePxTextField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                           GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                           null, null, 0, false));
+    final JBLabel jBLabel4 = new JBLabel();
+    jBLabel4.setText("Size (px):");
+    mySizePxRow.add(jBLabel4, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                  GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                  false));
+    final JBScrollPane jBScrollPane2 = new JBScrollPane();
+    myImagePreviewPanel.add(jBScrollPane2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                               null, null, null, 0, false));
+    myPreviewFillPanel = new JPanel();
+    myPreviewFillPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    jBScrollPane2.setViewportView(myPreviewFillPanel);
+    myPreviewPanel = new CheckeredBackgroundPanel();
+    myPreviewFillPanel.add(myPreviewPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               null, null, null, 0, false));
+    myXmlPreviewPanel = new JPanel();
+    myXmlPreviewPanel.setLayout(new BorderLayout(0, 0));
+    myDetailsPanel.add(myXmlPreviewPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                              GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                              null, null, null, 0, false));
+    myXmlTextPane = new JTextPane();
+    myXmlTextPane.setText("<xml></xml>");
+    myXmlPreviewPanel.add(myXmlTextPane, BorderLayout.CENTER);
+    myDetailsHeaderPanel = new TitledSeparator();
+    myDetailsHeaderPanel.setText("Output file");
+    myRightPanel.add(myDetailsHeaderPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
   }
 
   @NotNull

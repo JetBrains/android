@@ -63,9 +63,12 @@ private constructor(
       }
     }
 
+    // We subscribe to EARLY_TOPIC and not TOPIC to ensure that our listeners execute and update the
+    // resources before
+    // any other ResourceFolderManager listener executes.
     facet.module.project.messageBus
       .connect(this)
-      .subscribe(ResourceFolderManager.TOPIC, resourceFolderListener)
+      .subscribe(ResourceFolderManager.EARLY_TOPIC, resourceFolderListener)
   }
 
   /**

@@ -19,7 +19,6 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.preview.modes.PreviewModeManager
-import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
@@ -72,7 +71,7 @@ object ComposeAnimationToolbarUpdater {
   ) {
     val previewElementInstance =
       layoutlibSceneManager.model.dataProvider?.previewElement() ?: return
-    val viewObj = layoutlibSceneManager.scene.root?.nlComponent?.viewInfo?.viewObject ?: return
+    val viewObj = layoutlibSceneManager.viewObject ?: return
     update(viewObj, previewManager, previewElementInstance, animationToolingUsageTrackerFactory)
   }
 }

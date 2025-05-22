@@ -26,6 +26,7 @@ import com.android.adblib.DeviceState
 import com.android.adblib.ServerStatus
 import com.android.adblib.deviceProperties
 import com.android.tools.idea.adblib.AdbLibService
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.util.LineSeparator
 import java.net.InetAddress
@@ -39,6 +40,8 @@ import kotlinx.coroutines.withTimeoutOrNull
 private const val ADB_FAILED_COMMAND_ERROR_CODE = 5
 
 class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrapper {
+
+  private val log = logger<AdbServiceWrapperAdbLibImpl>()
 
   override suspend fun executeCommand(args: List<String>, stdin: String): AdbCommandResult {
     return withContext(Dispatchers.IO) {
@@ -68,6 +71,12 @@ class AdbServiceWrapperAdbLibImpl(private val project: Project) : AdbServiceWrap
     val hostServices = AdbLibService.getSession(project).hostServices
     return try {
       val result = hostServices.mdnsServices()
+      result.errors.forEach { errorLine ->
+        log.error(
+          "'${errorLine.message}' error while parsing 'mdns services' output line: '${errorLine.rawLineText}'"
+        )
+      }
+
       // Recreate stdout from parsed result
       // See format of output at
       // https://cs.android.com/android/platform/superproject/+/fbe41e9a47a57f0d20887ace0fc4d0022afd2f5f:packages/modules/adb/client/commandline.cpp;l=1948

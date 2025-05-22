@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.declarative
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
@@ -183,12 +184,51 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
     doSettingsTest(file, expected)
   }
 
+  fun testListOfFunction() {
+    val file = """
+    androidApp {
+      adbOptions{
+        installOptions = listOf("ab", "cd")
+      }
+    }
+    """.trimIndent()
+    val expected = mapOf("androidApp" to mapOf("adbOptions" to mapOf("mInstallOptions" to listOf("ab", "cd"))))
+    doTest(file, expected)
+  }
+
+  fun testSetOfFunction() {
+    val file = """
+    androidApp {
+      dynamicFeatures = setOf(":f1", ":f2")
+    }
+    """.trimIndent()
+    val expected = mapOf("androidApp" to mapOf("mDynamicFeatures" to listOf(":f1", ":f2")))
+    doTest(file, expected)
+  }
+
   fun testAssignment(){
     val file = """
       rootProject.name = "someName"
     """.trimIndent()
     val expected = mapOf("rootProject.name" to "someName")
     doSettingsTest(file, expected)
+  }
+
+  fun testMap() {
+    val file = """
+      androidApp {
+        defaultConfig {
+           manifestPlaceholders += mapOf(
+               "activityLabel1" to "newName1",
+               "activityLabel2" to "newName2"
+           )
+        }
+      }
+    """.trimIndent()
+    val expected = mapOf("androidApp" to mapOf("defaultConfig" to mapOf("mManifestPlaceholders" to mapOf(
+      "activityLabel1" to "newName1", "activityLabel2" to "newName2"
+    ))))
+    doTest(file, expected)
   }
 
   private fun doSettingsTest(text: String, expected: Map<String, Any>) {
@@ -221,13 +261,16 @@ class DeclarativeDslParserTest : LightPlatformTestCase() {
           element.currentElements.forEach { list.add(populate(it)) }
           list
         }
-
+        is GradleDslExpressionList -> {
+          val list = LinkedList<Any>()
+          element.currentElements.forEach { list.add(populate(it)) }
+          list
+        }
         is GradlePropertiesDslElement -> {
           val newMap = LinkedHashMap<String, Any>()
           element.currentElements.forEach { newMap[it.name] = populate(element.getElement(it.name)) }
           newMap
         }
-
         is GradleDslMethodCall -> {
           val newList = LinkedList<Any>()
           element.arguments.forEach {

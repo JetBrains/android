@@ -88,8 +88,11 @@ class VisualizationActionManager(
           isOpaque = true
           background = Color.ORANGE
           isVisible = false
-          sceneView.surface.addIssueListener(issueListener)
-          Disposer.register(sceneView) { sceneView.surface.removeIssueListener(issueListener) }
+          val success =
+            Disposer.tryRegister(sceneView) { sceneView.surface.removeIssueListener(issueListener) }
+          if (success) {
+            sceneView.surface.addIssueListener(issueListener)
+          }
         }
 
         override fun isVisible(): Boolean {

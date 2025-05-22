@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.TestOnly;
 
 /** A local cache of project dependencies. */
 public interface ArtifactTracker<ContextT extends Context<?>> {
@@ -41,9 +42,26 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
 
     public static final State EMPTY = create(ImmutableMap.of(), ImmutableMap.of());
 
-    public abstract ImmutableMap<Label, TargetBuildInfo> depsMap();
+    protected abstract ImmutableMap<Label, TargetBuildInfo> depsMap();
 
     public abstract ImmutableMap<String, CcToolchain> ccToolchainMap();
+
+    public ImmutableCollection<TargetBuildInfo> targets() {
+      return depsMap().values();
+    }
+
+    /**
+     * DO NOT USE: Label is not the right key of a synced target. A target may have and be synced in multiple configurations.
+     */
+    @Deprecated
+    public Set<Label> deprecatedSyncedTargetKeys() {
+      return depsMap().keySet();
+    }
+
+    @TestOnly
+    public ImmutableMap<Label, TargetBuildInfo> depsMapForTesting() {
+      return depsMap();
+    }
 
     public static State create(
         ImmutableMap<Label, TargetBuildInfo> map,

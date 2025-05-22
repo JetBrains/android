@@ -48,7 +48,10 @@ public class ProjectProtos {
             NOOP_CONTEXT,
             ProjectDefinition.builder()
                 .setProjectIncludes(ImmutableSet.of(workspaceImportDirectory))
-                .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+                .setProjectExcludes(ImmutableSet.of())
+                .setSystemExcludes(ImmutableSet.of())
+                .setTestSources(ImmutableSet.of())
+                .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
                 .build(),
             newDirectExecutorService());
     return converter.createProject(BuildGraphs.forTestProject(project));

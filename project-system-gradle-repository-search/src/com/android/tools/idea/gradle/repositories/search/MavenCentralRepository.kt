@@ -70,26 +70,39 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
     Sample response:
 
     <response>
-    <result name="response" numFound="409" start="41">
+      <lst name="responseHeader">
+        <int name="status">0</int>
+        <int name="QTime">2</int>
+        <lst name="params">
+          <str name="q">g:com.google.demo</str>
+          <str name="core">gav</str>
+          <str name="indent">off</str>
+          <str name="fl">id,g,a,v,p,ec,timestamp,tags</str>
+          <str name="start">0</str>
+          <str name="sort">score desc,timestamp desc,g asc,a asc,v desc</str>
+          <str name="rows">20</str>
+          <str name="wt">xml</str>
+          <str name="version">2.2</str>
+        </lst>
+      </lst>
+      <result name="response" numFound="5" start="0">
         <doc>
-            <str name="a">guice-bean</str>
-            <arr name="ec">
-                <str>.pom</str>
-            </arr>
-            <str name="g">org.sonatype.spice.inject</str>
-            <str name="id">org.sonatype.spice.inject:guice-bean</str>
-            <str name="latestVersion">1.3.4</str>
-            <str name="p">pom</str>
-            <str name="repositoryId">central</str>
-            <arr name="text">
-                <str>org.sonatype.spice.inject</str>
-                <str>guice-bean</str>
-                <str>.pom</str>
-            </arr>
-            <long name="timestamp">1283070402000</long>
-            <int name="versionCount">10</int>
+          <str name="a">abc</str>
+          <arr name="ec">
+            <str>-sources.jar</str>
+            <str>.pom</str>
+            <str>-javadoc.jar</str>
+            <str>-tests.jar</str>
+            <str>.jar</str>
+          </arr>
+          <str name="g">com.google.demo</str>
+          <str name="id">com.google.demo:abc:1.0.0</str>
+          <str name="p">jar</str>
+          <long name="timestamp">1740498658000</long>
+          <str name="v">1.0.0</str>
         </doc>
-    </result>
+        …
+      </result>
     </response>
     */
 
@@ -100,12 +113,19 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
         ?.getChild("result")
         ?.getChildren("doc")
         ?.mapNotNull { docElement ->
-          val id = docElement.findStringAttribute("id")
-          val latestVersion = docElement.findStringAttribute("latestVersion")?.let { Version.parse(it) }
-          if (id.isNullOrEmpty() || latestVersion == null) return@mapNotNull null
-          id.split(':').takeIf { it.size == 2 }?.let { FoundArtifact(name, it[0], it[1], latestVersion) }
+          val group = docElement.findStringAttribute("g")
+          val artifact = docElement.findStringAttribute("a")
+          val version = docElement.findStringAttribute("v")?.let { Version.parse(it) }
+          if (group.isNullOrBlank() || artifact.isNullOrBlank() || version == null) {
+            return@mapNotNull null
+          }
+          FoundArtifact(name, group, artifact, version)
         }
-      ?: listOf()
+        ?.groupBy { "${it.groupId}:${it.name}" }
+        ?.map { (_, allVersions) ->
+          allVersions.first().copy(unsortedVersions = allVersions.flatMap { it.unsortedVersions }.toSet())
+        }
+      ?: emptyList()
 
     return SearchResult(result)
   }
@@ -132,7 +152,8 @@ object MavenCentralRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPO
     append("rows=${request.rowCount}&")
     append("start=${request.start}&")
     append("wt=xml&")
-    append("q=$query")
+    append("q=$query&")
+    append("core=gav")
   }
 
   @VisibleForTesting

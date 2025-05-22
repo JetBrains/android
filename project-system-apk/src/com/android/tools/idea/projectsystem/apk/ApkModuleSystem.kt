@@ -21,8 +21,6 @@ import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
-import com.android.tools.idea.projectsystem.CapabilityNotSupported
-import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.DependencyType
@@ -41,9 +39,6 @@ class ApkModuleSystem(override val module: Module): AndroidModuleSystem {
 
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
     delegate.getModuleTemplates(targetDirectory)
-
-  override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>): Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> =
-    delegate.analyzeDependencyCompatibility(dependenciesToAdd)
 
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
     delegate.getRegisteredDependency(coordinate)
@@ -70,8 +65,6 @@ class ApkModuleSystem(override val module: Module): AndroidModuleSystem {
 
   override fun getPackageName(): String? =
     delegate.getPackageName()
-
-  override fun canRegisterDependency(type: DependencyType): CapabilityStatus = CapabilityNotSupported()
 
   override fun getManifestOverrides(): ManifestOverrides = ManifestOverrides()
 

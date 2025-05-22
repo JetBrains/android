@@ -30,6 +30,8 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.utils.yieldIfNotNull
+import org.jetbrains.plugins.gradle.service.resolve.getVersionCatalogFiles
+import java.util.Comparator
 
 private const val BUILD_ORDER_BASE = 1_000_000
 private const val MODULE_ORDER_BASE = 2_000_000
@@ -155,11 +157,10 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
         )
       }
 
-      projectRootFolder.findChild("gradle")?.takeIf { it.isDirectory }?.let { gradle ->
-        gradle.children.filter { !it.isDirectory && it.name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML) }.forEach {
-          yield(it.describe("Version Catalog", BUILD_WIDE_ORDER_BASE))
-        }
+      ModuleManager.getInstance(project).modules.map { getVersionCatalogFiles(it) }.flatMap { it.entries }.toSet().forEach {
+        yield(it.value.describe("Version Catalog \"${it.key}\"", BUILD_WIDE_ORDER_BASE))
       }
+
       yieldIfNotNull(
         projectRootFolder.findChild(SdkConstants.FN_LOCAL_PROPERTIES)
           ?.describe("SDK Location", BUILD_WIDE_ORDER_BASE)

@@ -154,14 +154,14 @@ class ScreenshotViewerTest {
   @Test
   fun testRecapture() {
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, DISPLAY_INFO_PHONE)
-    val screenshotSupplier = TestScreenshotSupplier(screenshotImage, testRootDisposable)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator(), screenshotSupplier)
+    val screenshotProvider = TestScreenshotProvider(screenshotImage, testRootDisposable)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator(), screenshotProvider)
     val ui = FakeUi(viewer.rootPane)
 
     val recaptureButton = ui.getComponent<JButton> { it.text == "Recapture" }
     ui.clickOn(recaptureButton)
-    assertThat(screenshotSupplier.captured).isTrue()
-    Disposer.dispose(screenshotSupplier)
+    assertThat(screenshotProvider.captured).isTrue()
+    Disposer.dispose(screenshotProvider)
     assertThat(recaptureButton.isEnabled).isFalse()
   }
 
@@ -466,11 +466,11 @@ class ScreenshotViewerTest {
 
   private fun createScreenshotViewer(screenshotImage: ScreenshotImage,
                                      screenshotDecorator: ScreenshotDecorator,
-                                     screenshotSupplier: ScreenshotSupplier = TestScreenshotSupplier(screenshotImage, testRootDisposable),
+                                     screenshotProvider: ScreenshotProvider = TestScreenshotProvider(screenshotImage, testRootDisposable),
                                      framingOptions: List<FramingOption> = listOf(testFrame)): ScreenshotViewer {
     val backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
     val screenshotFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(backingFile)!!
-    val viewer = ScreenshotViewer(projectRule.project, screenshotImage, screenshotFile, screenshotSupplier, screenshotDecorator,
+    val viewer = ScreenshotViewer(projectRule.project, screenshotImage, screenshotFile, screenshotProvider, screenshotDecorator,
                                   framingOptions, 0, EnumSet.of(ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION))
     viewer.show()
     return viewer
@@ -508,7 +508,7 @@ class ScreenshotViewerTest {
   private fun UsageTrackerRule.screenshotEvents(): List<DeviceScreenshotEvent> =
     usages.filter { it.studioEvent.kind == DEVICE_SCREENSHOT_EVENT }.map { it.studioEvent.deviceScreenshotEvent }
 
-  private class TestScreenshotSupplier(private val screenshotImage: ScreenshotImage, parentDisposable: Disposable) : ScreenshotSupplier {
+  private class TestScreenshotProvider(private val screenshotImage: ScreenshotImage, parentDisposable: Disposable) : ScreenshotProvider {
     var captured = false
 
     init {

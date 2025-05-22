@@ -30,10 +30,10 @@ import com.android.flags.FlagOverrides;
 import com.android.flags.Flags;
 import com.android.flags.IntFlag;
 import com.android.flags.LongFlag;
-import com.android.flags.MendelFlag;
 import com.android.flags.StringFlag;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.MendelOverrides;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
@@ -114,12 +114,12 @@ public final class StudioFlags {
     false);
 
   public static final Flag<Boolean> NPW_ACCEPT_ALL_LICENSES = new BooleanFlag(
-    NPW,"first.run.accept.sdk.license", "Auto Accepts SDK license",
+    NPW, "first.run.accept.sdk.license", "Auto Accepts SDK license",
     "Auto Accepts SDK license for testing",
     false);
 
   public static final Flag<String> NPW_CUSTOM_LOCAL_APP_DATA = new StringFlag(
-    NPW,"first.run.local.app.data", "Set custom local app data",
+    NPW, "first.run.local.app.data", "Set custom local app data",
     "Sets custom location for sdk install directory",
     "");
 
@@ -383,7 +383,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> FORCE_MONOCHROME_ADAPTIVE_ICON = new BooleanFlag(
     NELE, "force.monochrome.adaptive.icon", "Display monochrome preview of adaptive icon when none provided",
     "When enabled, the adaptive icon preview will automatically create a monochrome version if none is provided.",
-    enabledUpTo(CANARY));
+    true);
 
   public static final Flag<Boolean> USE_BYTECODE_R_CLASS_PARSING = new BooleanFlag(
     NELE, "use.bytecode.r.class.loading", "Uses bytecode R class parsing instead of reflection",
@@ -407,9 +407,10 @@ public final class StudioFlags {
     false);
 
   public static final Flag<Boolean> GENERATE_BASELINE_PROFILE_GUTTER_ICON = new BooleanFlag(
-    RUNDEBUG, "android.bundle.build.enabled", "Enable the Build Bundle action",
-    "If enabled, the \"Build Bundle(s)\" menu item is enabled. " +
-    "Changing the value of this flag requires restarting Android Studio.",
+    RUNDEBUG,
+    "baselineprofile.guttericon.enabled",
+    "Enables generating baseline profiles from gutter icon",
+    "When opening a UI test with applied BaselineProfileRule, an option to generate baseline profiles is shown in the gutter popup.",
     true);
 
   public static final Flag<Boolean> DELTA_INSTALL = new BooleanFlag(
@@ -418,6 +419,13 @@ public final class StudioFlags {
     "Delta install",
     "Upon installing, if application is already on device, only send parts of the apks which have changed (the delta).",
     true);
+
+  public static final Flag<Integer> DELTA_INSTALL_CUSTOM_MAX_PATCH_SIZE = new IntFlag(
+    RUNDEBUG,
+    "deltainstall.custom.max.patch.size",
+    "Delta install Max Patch Size",
+    "The upper limit of number of bytes a delta install patch set can be before bailing out to a full install.",
+    -1); // Negative to use the PatchSetGenerator's default value of 40MB.
 
   public static final Flag<Boolean> INSTALL_WITH_ADBLIB = new BooleanFlag(
     RUNDEBUG,
@@ -596,7 +604,7 @@ public final class StudioFlags {
     "Enable Android Studio usage stats for IDevice methods",
     "Track IDevice method calls and success rates. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    false);
+    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> ADBLIB_ONE_SESSION_PER_PROJECT = new BooleanFlag(
     RUNDEBUG,
@@ -873,14 +881,13 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = new BooleanFlag(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
-    "This option is only respected when running " +
-    "Android Studio internally.", false);
+    "This option is only respected when running Android Studio internally.", false);
 
   public static final Flag<Boolean> RECOMMEND_AGP_PATCH_RELEASES = new BooleanFlag(
     GRADLE_IDE, "recommend.patch.releases", "Recommend upgrading to the latest patch release of AGP",
     "While stable versions of Android Studio support importing projects of newer patch releases of the same major-minor series " +
     "unless this is enabled, the upgrade assistant will not recommend those updates.",
-    false);
+    true);
 
   public static final Flag<Boolean> SUPPORT_FUTURE_AGP_VERSIONS = new BooleanFlag(
     GRADLE_IDE, "support.future.agp.versions", "Support opening projects that use future AGPs",
@@ -931,9 +938,16 @@ public final class StudioFlags {
     "Suggest migrating current project JDK configuration to .gradle/config.properties where gradleJvm uses the " +
     "#GRADLE_LOCAL_JAVA_HOME macro and the java.home stores the JDK path to trigger Gradle sync.", true);
 
+  public static final Flag<Boolean> RESTORE_INVALID_GRADLE_JDK_CONFIGURATION = new BooleanFlag(
+    GRADLE_IDE, "restore.invalid.gradle.jdk.configuration", "Restore invalid Gradle JDK configuration",
+    "Restore project from invalid Gradle JDK configuration during opening.", true);
+
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = new BooleanFlag(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
 
+  public static final Flag<Boolean> SHOW_GRADLE_AUTO_SYNC_SETTING_UI = new BooleanFlag(
+    GRADLE_IDE, "gradle.sync.control.enabled", "Allow disabling of Auto Sync", "Allow opting-out from Gradle Auto Syncing.",
+    enabledUpTo(CANARY));
   /**
    * Don't read this directly, use AgpVersions.agpVersionStudioFlagOverride which handles the 'stable' alias
    */
@@ -1100,6 +1114,11 @@ public final class StudioFlags {
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.xr.inspection", "Enable or disable support for XR inspection",
     "When this flag is enabled, xr inspection is enabled.",
     enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ON_DEVICE_RENDERING = new BooleanFlag(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.on.device.rendering", "Always use on-device rendering",
+    "Force using on-device rendering, even when the device is not XR. Used for development only.",
+    false);
   //endregion
 
   //region Embedded Emulator
@@ -1160,6 +1179,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "wrap.toolbar", "Enable Toolbar Wrapping",
     "Wraps the toolbar when all buttons don't fit into the available width",
     true);
+  public static final Flag<Boolean> RUNNING_DEVICES_CONTEXT_MENU = new BooleanFlag(
+    EMBEDDED_EMULATOR, "context.menu", "Enable Context Menu",
+    "Enables context menu in the Running Devices tool window",
+    false);
   //endregion
 
   //region Device Mirroring
@@ -1343,6 +1366,12 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> ENABLE_BACKUP_TESTING = new BooleanFlag(
+    TESTING, "backup.testing", "Run backup and restore tests",
+    "If enabled, backup and restore tests can be run from Studio and test results will be displayed in the test matrix",
+    false
+  );
+
   public static final Flag<Integer> ANDROID_PLATFORM_TO_AUTOCREATE = new IntFlag(
     TESTING,
     "android.platform.to.autocreate",
@@ -1416,6 +1445,13 @@ public final class StudioFlags {
     "Add preview image to AI request for code generation",
     "If enabled, adds current preview image to an AI request for code generation.",
     true);
+
+  public static final Flag<Boolean> FIND_PREVIEWS_FROM_PREVIEW_SOURCESET = new BooleanFlag(
+    PREVIEW_COMMON, "find.previews.from.sourceset",
+    "Find previews from a file and also from preview-sourceset",
+    "If enabled, the process to find previews for a file will also search in its associated files from the preview-sourceset",
+    false
+  );
   //endregion
 
   //region Compose
@@ -1505,13 +1541,6 @@ public final class StudioFlags {
     "Enable resizing for Compose Preview",
     "If enabled, the user can resize the Compose Preview",
     enabledUpTo(DEV)
-  );
-
-  public static final Flag<Boolean> COMPOSE_VIEW_INSPECTOR = new BooleanFlag(
-    COMPOSE, "view.inspector",
-    "Show the switch of view inspection tool in Compose",
-    "If enabled, the user can toggle the mouse inspection tool in the dropdown menu of Compose Preview. The tools is disabled by default",
-    false
   );
 
   public static final Flag<Boolean> COMPOSE_VIEW_FILTER = new BooleanFlag(
@@ -1637,6 +1666,16 @@ public final class StudioFlags {
   );
   // endregion
 
+  // region Wear Declarative Watch Face
+  private static final FlagGroup WEAR_DECLARATIVE_WATCH_FACE = new FlagGroup(FLAGS, "wear.dwf", "Declarative Watch Face");
+
+  public static final Flag<Boolean> WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION = new BooleanFlag(
+    WEAR_DECLARATIVE_WATCH_FACE, "run.configuration.enabled", "Enable run configuration for Declarative Watch Faces",
+    "If enabled, the Declarative Watch Face run configuration type will be available. Changing the value of this flag requires restarting Android Studio.",
+    enabledUpTo(DEV)
+  );
+  // endregion
+
   // region App Inspection
   private static final FlagGroup APP_INSPECTION = new FlagGroup(FLAGS, "appinspection", "App Inspection");
   public static final Flag<Boolean> ENABLE_APP_INSPECTION_TOOL_WINDOW = new BooleanFlag(
@@ -1742,8 +1781,8 @@ public final class StudioFlags {
   public static final Flag<Boolean> XR_DEVICE_SUPPORT_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "xr.device.support.enabled",
-      "XR Device Support Enabled",
-      "Enable the support of XR device in the device manager",
+    "XR Device Support Enabled",
+    "Enable the support of XR device in the device manager",
     enabledUpTo(CANARY));
   // endregion
 
@@ -1929,7 +1968,7 @@ public final class StudioFlags {
                     "Improvements to the Create App Links functionalities.", false);
   public static final Flag<Boolean> IMPACT_TRACKING =
     new BooleanFlag(APP_LINKS_ASSISTANT, "app.links.assistant.impact.tracking", "App Links Assistant impact tracking",
-                "Impact tracking for the App Links Assistant", false);
+                    "Impact tracking for the App Links Assistant", false);
   public static final Flag<Boolean> DOMAIN_ISSUES_INSPECTION =
     new BooleanFlag(APP_LINKS_ASSISTANT, "app.links.assistant.domain.issues.inspection", "App Links Assistant domain issues inspection",
                     "Domain issues inspection that opens relevant App Links Assistant content", false);
@@ -1941,11 +1980,18 @@ public final class StudioFlags {
 
   // region TargetSDKVersion Upgrade Assistant
   private static final FlagGroup TSDKVUA = new FlagGroup(FLAGS, "tsdkvua", "Android SDK Upgrade Assistant");
-  public static final Flag<Boolean> TSDKVUA_FILTERS_ONSTART = new BooleanFlag(TSDKVUA, "filters.onstart", "Run filters on assistant startup", "Run filters on assistant startup", true);
-  public static final Flag<Boolean> TSDKVUA_FILTERS_ONSTART_RESET = new BooleanFlag(TSDKVUA, "filters.onstart.reset", "Reset the results cache before running filters on startup", "Reset the results cache before running filters on startup", true);
-  public static final Flag<Boolean> TSDKVUA_FILTERS_WIP = new BooleanFlag(TSDKVUA, "filters.wip", "Enable WIP relevance filters", "Enable WIP relevance filters", false);
-  public static final Flag<Boolean> TSDKVUA_API_35 = new BooleanFlag(TSDKVUA, "api35", "Enable support for API 35", "Enable support for API 35", true);
-  public static final Flag<Boolean> TSDKVUA_OMG_76167 = new BooleanFlag(TSDKVUA, "omg76167", "Do NOT mitigate omg/76167", "Mitigating omg/76167 requires hiding part of API 35's 'secured background activity launches' step", false);
+  public static final Flag<Boolean> TSDKVUA_FILTERS_ONSTART =
+    new BooleanFlag(TSDKVUA, "filters.onstart", "Run filters on assistant startup", "Run filters on assistant startup", true);
+  public static final Flag<Boolean> TSDKVUA_FILTERS_ONSTART_RESET =
+    new BooleanFlag(TSDKVUA, "filters.onstart.reset", "Reset the results cache before running filters on startup",
+                    "Reset the results cache before running filters on startup", true);
+  public static final Flag<Boolean> TSDKVUA_FILTERS_WIP =
+    new BooleanFlag(TSDKVUA, "filters.wip", "Enable WIP relevance filters", "Enable WIP relevance filters", false);
+  public static final Flag<Boolean> TSDKVUA_API_35 =
+    new BooleanFlag(TSDKVUA, "api35", "Enable support for API 35", "Enable support for API 35", true);
+  public static final Flag<Boolean> TSDKVUA_OMG_76167 = new BooleanFlag(TSDKVUA, "omg76167", "Do NOT mitigate omg/76167",
+                                                                        "Mitigating omg/76167 requires hiding part of API 35's 'secured background activity launches' step",
+                                                                        false);
   // endregion TargetSDKVersion Upgrade Assistant
 
   // region PROCESS_NAME_MONITOR
@@ -2016,14 +2062,27 @@ public final class StudioFlags {
                     "When enabled, the type of the last user action is included in inline code completion requests.",
                     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_SHORTCUT_HINT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "inline.code.completion.shortcut.hint.enabled",
+                    "Enable the inline completion shortcut key hint.",
+                    "When enabled, a custom inlay displaying 'TAB to complete' or similar text will be shown alongside inline completions.",
+                    false);
+
+  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_DEFERRED_MULTILINE_SUGGESTIONS_ENABLED =
+    new BooleanFlag(STUDIOBOT, "inline.code.completion.deferred.multiline.suggestions.enabled",
+                    "Enable deferred multiline suggestions.",
+                    "When enabled, any part of a multi-line suggestion hidden behind the autosuggest popup will be removed, and " +
+                    "offered later to the user if they accept the first line of the completion.",
+                    false);
+
   public static final Flag<Boolean> STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED =
-    new MendelFlag(STUDIOBOT, "compiler.error.context.enabled", 97695187,
-                "Enable sending context with compiler error queries.",
-                "When enabled, compiler queries will attach context (e.g. error location, full trace), from the project.",
+    new BooleanFlag(STUDIOBOT, "compiler.error.context.enabled",
+                    "Enable sending context with compiler error queries.",
+                    "When enabled, compiler queries will attach context (e.g. error location, full trace), from the project.",
                     enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_PROJECT_FACTS_CONTEXT_ENABLED =
-    new MendelFlag(STUDIOBOT, "project.facts.context.enabled", 97715007,
+    new BooleanFlag(STUDIOBOT, "project.facts.context.enabled",
                     "Enable sending project facts with chat queries.",
                     "When enabled, chat queries will attach summarized facts about the project.",
                     enabledUpTo(DEV));
@@ -2058,6 +2117,12 @@ public final class StudioFlags {
                     "When enabled, allows the user to navigate forward and back in the transform history in the diff view.",
                     false);
 
+  public static final Flag<Boolean> STUDIOBOT_TRANSFORM_MULTIFILE_ENABLED =
+    new BooleanFlag(STUDIOBOT, "editor.ai.transform.multifile.enabled",
+                    "Enable the transform to be able to output multiple files.",
+                    "When enabled, returns all files modified by models.",
+                    enabledUpTo(DEV));
+
   public static final Flag<Boolean> COMPOSE_PREVIEW_COMPONENT_POP_UP = new BooleanFlag(
     COMPOSE, "preview.popup", "Enable the opening pop up when holding the option key while clicking a preview",
     "If enabled, when holding the option key while clicking a preview on a preview it will open pop up with all components under click",
@@ -2080,13 +2145,19 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "chat.use.compose.for.ui",
                     "Use the Compose for Desktop/Jewel-based UI for the Chat toolwindow.",
                     "When enabled, the Chat toolwindow will use the Jewel-based UI, implemented in Compose for Desktop.",
+                    true);
+
+  public static final Flag<Boolean> STUDIOBOT_USE_AIDA_SIMPLIFIED_ONBOARDING =
+    new BooleanFlag(STUDIOBOT, "chat.use.aida.simplified.onboarding",
+                    "Use the simplified AIDA onboarding flow.",
+                    "When enabled, the AIDA model onboarding will use the new simplified flow. Only applied if the Compose Chat toolwindow is enabled.",
                     enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_CONTEXT_ATTACHMENT_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.enable.context.attachment",
                     "Enable @file attachment and the context drawer.",
                     "When enabled, @file can be used to attach text files as context. Also enables the context drawer for context management.",
-                    enabledUpTo(DEV));
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_DEPENDENCY_SUGGESTION_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.suggest.dependencies.on.insert",
@@ -2101,16 +2172,16 @@ public final class StudioFlags {
                     false);
 
   public static final Flag<Boolean> STUDIOBOT_CURRENT_FILE_CONTEXT =
-    new MendelFlag(STUDIOBOT, "current.file.context", 97694800,
-                   "Use the current file as context",
-                   "Attach the current file's path, contents, and selection with chat queries.",
-                   enabledUpTo(DEV));
+    new BooleanFlag(STUDIOBOT, "current.file.context",
+                    "Use the current file as context",
+                    "Attach the current file's path, contents, and selection with chat queries.",
+                    enabledUpTo(CANARY));
 
-  public static final Flag<Boolean> STUDIOBOT_OPEN_FILES_CONTEXT =
+  public static final Flag<Boolean> STUDIOBOT_RECENT_FILES_CONTEXT =
     new BooleanFlag(STUDIOBOT, "open.files.context",
-                    "Use the currently open files as context",
-                    "Attach the currently open files' paths and contents with chat queries.",
-                    false);
+                    "Use the most recently opened files as context",
+                    "Attach the most recently opened files' (but not including the currently open one's) paths and contents with chat queries.",
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_ASK_GEMINI_INCLUDE_BUILD_FILES_IN_CONTEXT =
     new BooleanFlag(STUDIOBOT, "askgemini.include.build.files.in.context",
@@ -2122,7 +2193,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "prompt.library",
                     "Enable Prompt Library",
                     "When enabled, add prompt library settings screen.",
-                    enabledUpTo(CANARY));
+                    true);
 
   public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
@@ -2171,7 +2242,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "attachments",
                     "Enable action to add attachments",
                     "When enabled, enables the actions to manage attachments",
-                    false);
+                    enabledUpTo(CANARY));
 
   // rate limits are controlled by server flags
   public static final Flag<Integer> STUDIOBOT_COMPLETIONS_PER_HOUR =
@@ -2270,7 +2341,7 @@ public final class StudioFlags {
       "enable",
       "Enable Backup/Restore feature",
       "Enable Backup/Restore feature",
-      true);
+      enabledUpTo(CANARY));
 
   public static final Flag<Integer> BACKUP_GMSCORE_MIN_VERSION =
     new IntFlag(
@@ -2278,7 +2349,7 @@ public final class StudioFlags {
       "gmscore.min.version",
       "Minimum version of the GmsCore Backup module that is supported",
       "Minimum version of the GmsCore Backup module that is supported",
-      250231000);
+      250632000);
 
   public static final Flag<Boolean> BACKUP_ACTION_IN_RUNNING_DEVICES =
     new BooleanFlag(

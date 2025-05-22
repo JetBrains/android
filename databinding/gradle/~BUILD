@@ -9,8 +9,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
-        "//tools/adt/idea/databinding:intellij.android.databinding[module]",
-        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
-        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
+        "//tools/adt/idea/databinding:intellij.android.databinding",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
     ],
 )

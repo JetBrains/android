@@ -33,6 +33,7 @@ import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -46,10 +47,18 @@ import org.junit.Test
 @RunsInEdt
 class EditorUtilsTest {
   private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
   @get:Rule
-  val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), logcatEditorRule, EdtRule())
+  val rule =
+    RuleChain(
+      projectRule,
+      WaitForIndexRule(projectRule),
+      logcatEditorRule,
+      disposableRule,
+      EdtRule(),
+    )
 
   private val editors = mutableListOf<Editor>()
 
@@ -184,6 +193,8 @@ class EditorUtilsTest {
   }
 
   private fun createLogcatEditor(): EditorEx {
-    return createLogcatEditor(projectRule.project).also { editors.add(it) }
+    return createLogcatEditor(projectRule.project, disposableRule.disposable).also {
+      editors.add(it)
+    }
   }
 }

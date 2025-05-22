@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
@@ -24,6 +25,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import java.io.File
 import java.nio.file.Files
 
@@ -34,7 +36,7 @@ sealed class JdkTestProject(
   override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
   override val autoMigratePackageAttribute: Boolean = true,
   override val setup: () -> () -> Unit = { {} },
-  override val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
+  override val patch: AgpVersionSoftwareEnvironment.(projectRoot: File) -> Unit = {},
   override val expectedSyncIssues: Set<Int> = emptySet(),
   override val verifyOpened: ((Project) -> Unit)? = null,
   override val switchVariant: TemplateBasedTestProject.VariantSelection? = null,
@@ -53,7 +55,8 @@ sealed class JdkTestProject(
     ideaGradleJdk: String? = null,
     ideaProjectJdk: String? = null,
     gradleLocalJavaHome: String? = null,
-    gradlePropertiesJavaHome: String? = null
+    gradlePropertiesJavaHome: String? = null,
+    gradleDaemonJvmCriteria: GradleDaemonJvmCriteria? = null,
   ) : JdkTestProject(
     agpVersion = agpVersion,
     template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
@@ -73,6 +76,9 @@ sealed class JdkTestProject(
       }
       gradlePropertiesJavaHome?.let {
         ProjectJdkUtils.setProjectGradlePropertiesJavaHome(projectRoot, it)
+      }
+      gradleDaemonJvmCriteria?.let {
+        ProjectJdkUtils.setProjectGradleDaemonJvmCriteria(projectRoot, it)
       }
     }
   )

@@ -17,26 +17,26 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.compose.preview.util.getDeepestViewInfos
+import com.android.tools.idea.compose.preview.util.getSmallestViewInfos
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 
 fun zoomTargetProvider(sceneView: SceneView, x: Int, y: Int, logger: Logger): Rectangle {
-  val deepestViewInfos = sceneView.getDeepestViewInfos(x, y, logger)
-  if (deepestViewInfos.isNullOrEmpty()) {
+  val smallestViewInfos = sceneView.getSmallestViewInfos(x, y, logger)
+  if (smallestViewInfos.isNullOrEmpty()) {
     // This is expected for example when the Preview contains showSystemUi=true
     // and the "systemUi" is where the right-click happens.
     logger.info("Could not find the view to zoom to, zooming to the whole Preview.")
     return Rectangle(Point(0, 0), sceneView.scaledContentSize)
   }
-  if (deepestViewInfos!!.size > 1) {
+  if (smallestViewInfos!!.size > 1) {
     logger.warn(
-      "Expected 1 view to zoom to, but found ${deepestViewInfos.size}, choosing the last one."
+      "Expected 1 view to zoom to, but found ${smallestViewInfos.size}, choosing the last one."
     )
   }
-  return findZoomTarget(deepestViewInfos.last(), sceneView)
+  return findZoomTarget(smallestViewInfos.last(), sceneView)
 }
 
 fun findZoomTarget(deepestViewInfo: ComposeViewInfo, sceneView: SceneView): Rectangle =

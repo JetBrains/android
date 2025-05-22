@@ -18,9 +18,9 @@ package com.android.tools.idea.glance.preview
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.FilePreviewElementFinder
-import com.android.tools.idea.preview.FilePreviewElementProvider
 import com.android.tools.idea.preview.actions.CommonPreviewToolbar
+import com.android.tools.idea.preview.find.FilePreviewElementFinder
+import com.android.tools.idea.preview.find.FilePreviewElementProvider
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -65,7 +65,8 @@ class AppWidgetPreviewRepresentationProvider(
     val virtualFile = psiFile.virtualFile
     if (!virtualFile.isKotlinFileType()) return false
     // App Widget previews are only supported in Android modules.
-    if (ModuleUtilCore.findModuleForFile(virtualFile, project)?.isAndroidModule() != true) return false
+    if (ModuleUtilCore.findModuleForFile(virtualFile, project)?.isAndroidModule() != true)
+      return false
 
     return StudioFlags.GLANCE_APP_WIDGET_PREVIEW.get() &&
       filePreviewElementFinder.hasPreviewElements(project, virtualFile)

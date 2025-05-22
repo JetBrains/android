@@ -25,14 +25,18 @@ import javax.swing.plaf.basic.BasicListUI
  * By default, row heights are fixed and the ones provided by the custom list renderer are not taken
  * into account.
  */
-class DynamicRendererList<T> private constructor(model: ListModel<T>) : JBList<T>(model) {
+class DynamicRendererList<T> private constructor(model: ListModel<T>, private val listUi: DynamicRendererListUi) : JBList<T>(model) {
+  init {
+    setUI(listUi)
+  }
 
   override fun repaint(tm: Long, x: Int, y: Int, width: Int, height: Int) {
-    DynamicRendererListUi.triggerUpdate()
+    @Suppress("UNNECESSARY_SAFE_CALL") // listUi is null until object finishes constructing
+    listUi?.triggerUpdate()
     super.repaint(tm, x, y, width, height)
   }
 
-  private object DynamicRendererListUi : BasicListUI() {
+  private class DynamicRendererListUi : BasicListUI() {
     fun triggerUpdate() {
       if (list == null) return
       updateLayoutState()
@@ -41,9 +45,7 @@ class DynamicRendererList<T> private constructor(model: ListModel<T>) : JBList<T
 
   companion object {
     fun <T> createDynamicRendererList(model: ListModel<T>): JBList<T> {
-      val list = DynamicRendererList(model)
-      list.setUI(DynamicRendererListUi)
-      return list
+      return DynamicRendererList(model, DynamicRendererListUi())
     }
   }
 }

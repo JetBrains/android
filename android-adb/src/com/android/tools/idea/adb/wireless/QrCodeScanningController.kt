@@ -17,13 +17,15 @@ package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.Disposer
 import java.time.Duration
 import java.util.concurrent.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.delay
 import kotlinx.coroutines.withContext
@@ -68,7 +70,7 @@ class QrCodeScanningController(
   private fun startPairingDevice(mdnsService: MdnsService, password: String) {
     state = State.Pairing
     view.showQrCodePairingInProgress(mdnsService)
-    scope.launch(uiThread(ModalityState.any())) {
+    scope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) {
       try {
         val pairingResult = service.pairMdnsService(mdnsService, password)
         view.showQrCodePairingWaitForDevice(pairingResult)
@@ -95,7 +97,7 @@ class QrCodeScanningController(
       while (state == State.Polling) {
         try {
           val services = service.scanMdnsServices()
-          withContext(uiThread(ModalityState.any())) {
+          withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
             view.model.pairingCodeServices =
               services.filter { it.serviceType == ServiceType.PairingCode }
             view.model.qrCodeServices = services.filter { it.serviceType == ServiceType.QrCode }
@@ -126,7 +128,9 @@ class QrCodeScanningController(
       when (state) {
         State.PairingError,
         State.PairingSuccess -> {
-          scope.launch(uiThread(ModalityState.any())) { startPairingProcess() }
+          scope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) {
+            startPairingProcess()
+          }
         }
         else -> {
           // Ignore

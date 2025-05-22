@@ -17,6 +17,11 @@ package com.android.tools.idea.adb.wireless;
 
 import com.android.annotations.concurrency.UiThread;
 import com.intellij.openapi.Disposable;
+import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import java.awt.Dimension;
+import java.awt.Insets;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +37,7 @@ public class WiFiPairingContentPanel {
   @NotNull private WiFiPairingContentTabbedPaneContainer myPairingCodePanel;
 
   public WiFiPairingContentPanel(@NotNull Disposable parentDisposable) {
+    setupUI();
     myPairingCodePanel.setParentDisposable(parentDisposable);
     myQrCodePanel.setParentDisposable(parentDisposable);
   }
@@ -48,5 +54,20 @@ public class WiFiPairingContentPanel {
   public void setPairingCodeComponent(@NotNull JComponent component) {
     myPairingCodePanel.setContent(component);
     myPairingCodePanel.setAsyncProcessText("Available Wi-Fi devices");
+  }
+
+  private void setupUI() {
+    myRootContainer = new JPanel();
+    myRootContainer.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), 0, 0));
+    final JBTabbedPane jBTabbedPane1 = new JBTabbedPane();
+    jBTabbedPane1.setTabComponentInsets(new Insets(0, 0, 0, 0));
+    myRootContainer.add(jBTabbedPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           null, new Dimension(200, 200), null, 0, false));
+    myQrCodePanel = new WiFiPairingContentTabbedPaneContainer();
+    jBTabbedPane1.addTab("Pair using QR code", myQrCodePanel.getRootComponent());
+    myPairingCodePanel = new WiFiPairingContentTabbedPaneContainer();
+    jBTabbedPane1.addTab("Pair using pairing code", myPairingCodePanel.getRootComponent());
   }
 }

@@ -42,7 +42,8 @@ import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.BlazeInvocationContext;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStats;
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
@@ -54,6 +55,7 @@ import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.util.VersionChecker;
 import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler;
 import com.google.idea.blaze.common.Context;
+import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
@@ -177,7 +179,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   private static final ImmutableMultimap<QuerySyncLanguage, OutputGroup> OUTPUT_GROUPS_BY_LANGUAGE =
       ImmutableMultimap.<QuerySyncLanguage, OutputGroup>builder()
           .putAll(
-              QuerySyncLanguage.JAVA,
+              QuerySyncLanguage.JVM,
               OutputGroup.JARS,
               OutputGroup.AARS,
               OutputGroup.GENSRCS,
@@ -203,21 +205,22 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       prepareInvocationFiles(
           context, buildDependenciesBazelInvocationInfo.invocationWorkspaceFiles());
 
-      BuildInvoker invoker = buildSystem.getDefaultInvoker(project, context);
-      try (BuildResultHelper buildResultHelper = invoker.createBuildResultHelper()) {
-        Optional<BuildDepsStats.Builder> buildDepsStatsBuilder =
-            BuildDepsStatsScope.fromContext(context);
-        buildDepsStatsBuilder.ifPresent(stats -> stats.setBlazeBinaryType(invoker.getType()));
-        BlazeCommand.Builder builder =
-            BlazeCommand.builder(invoker, BlazeCommandName.BUILD)
-                .addBlazeFlags(buildDependenciesBazelInvocationInfo.argsAndFlags())
-                .addBlazeFlags(buildResultHelper.getBuildFlags());
-        buildDepsStatsBuilder.ifPresent(
-            stats -> stats.setBuildFlags(builder.build().toArgumentList()));
-        Instant buildTime = Instant.now();
-        BlazeBuildOutputs outputs =
-            invoker.getCommandRunner().run(project, builder, buildResultHelper, context);
+      BuildInvoker invoker = buildSystem.getDefaultInvoker(project);
 
+      Optional<BuildDepsStats.Builder> buildDepsStatsBuilder =
+          BuildDepsStatsScope.fromContext(context);
+      buildDepsStatsBuilder.ifPresent(stats -> stats.setBlazeBinaryType(invoker.getType()));
+      BlazeCommand.Builder builder =
+          BlazeCommand.builder(invoker, BlazeCommandName.BUILD)
+              .addBlazeFlags(buildDependenciesBazelInvocationInfo.argsAndFlags());
+
+      buildDepsStatsBuilder.ifPresent(
+          stats -> stats.setBuildFlags(builder.build().toArgumentList()));
+      Instant buildTime = Instant.now();
+      try (BuildEventStreamProvider streamProvider = invoker.invoke(builder, context)) {
+        BlazeBuildOutputs outputs =
+            BlazeBuildOutputs.fromParsedBepOutput(
+                BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
         BazelExitCodeException.throwIfFailed(
             builder,
             outputs.buildResult(),
@@ -322,6 +325,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
         Path.of(INVOCATION_FILES_DIR + "/build_dependencies_deps.bzl"),
         MoreFiles.asByteSource(getBundledAspectDepsFilePath()));
     files.put(
+        Path.of(INVOCATION_FILES_DIR + "/build_dependencies_android_deps.bzl"),
+        MoreFiles.asByteSource(getBundledAspectAndroidDepsFilePath()));
+    files.put(
         Path.of(INVOCATION_FILES_DIR + "/" + aspectFileName),
         getByteSourceFromString(getBuildDependenciesParametersFileContent(parameters)));
     Optional<String> targetPatternFileWorkspaceRelativeFile;
@@ -344,6 +350,10 @@ public class BazelDependencyBuilder implements DependencyBuilder {
 
   protected Path getBundledAspectDepsFilePath() {
     return getBundledAspectPath("build_dependencies_deps.bzl");
+  }
+
+  protected Path getBundledAspectAndroidDepsFilePath() {
+    return getBundledAspectPath("build_dependencies_android_deps.bzl");
   }
 
   private ByteSource getByteSourceFromString(String content) {
@@ -569,7 +579,8 @@ public class BazelDependencyBuilder implements DependencyBuilder {
         readArtifactInfoProtoFile(CcCompilationInfo.newBuilder(), file).build());
   }
 
-  protected <B extends Message.Builder> B readArtifactInfoProtoFile(B builder, ByteSource file)
+  @VisibleForTesting
+  public static <B extends Message.Builder> B readArtifactInfoProtoFile(B builder, ByteSource file)
       throws BuildException {
     try (InputStream inputStream = file.openStream()) {
       TextFormat.Parser parser = TextFormat.Parser.newBuilder().build();

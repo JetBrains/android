@@ -57,21 +57,20 @@ internal fun StorageCapacityField(
   }
 }
 
-internal class StorageCapacityFieldState
-internal constructor(
+internal class StorageCapacityFieldState(
   value: StorageCapacity,
   minValue: StorageCapacity = StorageCapacity.MIN,
-  internal val units: ImmutableCollection<StorageCapacity.Unit> =
+  val units: ImmutableCollection<StorageCapacity.Unit> =
     enumValues<StorageCapacity.Unit>().asIterable().toImmutableList(),
 ) {
-  internal val value = TextFieldState(value.value.toString())
-  internal var minValue by mutableStateOf(minValue)
-  internal var selectedUnit by mutableStateOf(value.unit)
-  internal val storageCapacity = snapshotFlow { result().storageCapacity }
+  val value = TextFieldState(value.value.toString())
+  var minValue by mutableStateOf(minValue)
+  var selectedUnit by mutableStateOf(value.unit)
+  val storageCapacity = snapshotFlow { result().storageCapacity }
 
-  internal fun valid() = result() as Valid
+  fun valid() = result() as Valid
 
-  internal fun result() =
+  fun result() =
     if (value.text.isEmpty()) {
       Empty
     } else {
@@ -87,17 +86,16 @@ internal constructor(
       }
     }
 
-  internal class Valid internal constructor(override val storageCapacity: StorageCapacity) :
-    Result()
+  class Valid(override val storageCapacity: StorageCapacity) : Result()
 
-  internal object Empty : Result()
+  object Empty : Result()
 
-  internal object LessThanMin : Result()
+  object LessThanMin : Result()
 
-  internal object Overflow : Result()
+  object Overflow : Result()
 
-  internal sealed class Result {
-    internal open val storageCapacity: StorageCapacity? = null
+  sealed class Result {
+    open val storageCapacity: StorageCapacity? = null
   }
 }
 

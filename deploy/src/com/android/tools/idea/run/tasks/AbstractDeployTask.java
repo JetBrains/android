@@ -37,6 +37,7 @@ import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.UIService;
 import com.android.tools.deployer.model.App;
 import com.android.tools.deployer.model.BaselineProfile;
+import com.android.tools.deployer.model.component.ApkParserException;
 import com.android.tools.deployer.tasks.Canceller;
 import com.android.tools.idea.adblib.AdbLibService;
 import com.android.tools.idea.flags.StudioFlags;
@@ -155,7 +156,8 @@ public abstract class AbstractDeployTask {
       .setAllowAssumeVerified(myAllowAssumeVerified)
       .setUseStructuralRedefinition(StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get())
       .setUseVariableReinitialization(StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get())
-      .setFastRestartOnSwapFail(getFastRerunOnSwapFailure()).enableCoroutineDebugger(StudioFlags.COROUTINE_DEBUGGER_ENABLE.get()).build();
+      .setFastRestartOnSwapFail(getFastRerunOnSwapFailure()).enableCoroutineDebugger(StudioFlags.COROUTINE_DEBUGGER_ENABLE.get())
+      .setMaxDeltaInstallPatchSize(StudioFlags.DELTA_INSTALL_CUSTOM_MAX_PATCH_SIZE.get()).build();
     Deployer deployer =
       new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(), installer, uiService,
                    metrics, logger, option);
@@ -260,10 +262,15 @@ public abstract class AbstractDeployTask {
     return myPackages;
   }
 
-  public static App getAppToInstall(@NotNull ApkInfo apkInfo) {
+  public static App getAppToInstall(@NotNull ApkInfo apkInfo) throws DeployerException {
     List<Path> paths = apkInfo.getFiles().stream().map(ApkFileUnit::getApkPath).collect(Collectors.toList());
     List<BaselineProfile> baselineProfiles = convertBaseLinesProfiles(apkInfo.getBaselineProfiles());
-    return App.fromPaths(apkInfo.getApplicationId(),paths, baselineProfiles);
+    try {
+      return App.fromPaths(apkInfo.getApplicationId(), paths, baselineProfiles);
+    }
+    catch (ApkParserException e) {
+      throw DeployerException.parseFailed(e.getMessage());
+    }
   }
 
   private static List<BaselineProfile> convertBaseLinesProfiles(List<BaselineProfileDetails> profiles) {

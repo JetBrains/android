@@ -79,6 +79,7 @@ class InsightTextPane(private val project: Project) : JTextPane(), CopyProvider 
       )
     val popupMenu = actionManager.createActionPopupMenu("InsightTextPaneContextMenu", group)
     componentPopupMenu = popupMenu.component
+    border = JBUI.Borders.empty()
   }
 
   override fun setText(text: String) {

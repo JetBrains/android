@@ -16,6 +16,7 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.AndroidVersionUtils;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.intellij.util.ui.ColumnInfo;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +45,7 @@ class ApiLevelColumnInfo extends ColumnInfo<UpdaterTreeNode, String> {
     }
 
     if (version != null) {
-      return version.getApiStringWithExtension();
+      return AndroidVersionUtils.getDisplayApiString(version);
     }
     else {
       return "Unknown";

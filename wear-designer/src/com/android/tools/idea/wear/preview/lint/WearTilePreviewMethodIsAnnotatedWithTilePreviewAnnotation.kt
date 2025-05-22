@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
-import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
+import com.android.tools.idea.preview.find.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.quickfixes.ReplacePreviewAnnotationFix
 import com.android.tools.idea.wear.preview.TILE_PREVIEW_ANNOTATION_FQ_NAME
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message

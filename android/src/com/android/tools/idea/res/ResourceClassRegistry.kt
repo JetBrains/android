@@ -23,6 +23,7 @@ import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.components.serviceIfCreated
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.TimeoutCachedValue
@@ -143,5 +144,13 @@ class ResourceClassRegistry @TestOnly constructor(private val packageTimeout: Du
   companion object {
     /** Lazily instantiates a registry with the target project. */
     @JvmStatic fun get(project: Project): ResourceClassRegistry = project.service()
+
+    /**
+     * Get an instance of [ResourceClassRegistry] if it already exists. Use this method if you want
+     * to, for example, simply clean the cache, and you do not want to initialize a new instance if
+     * it doesn't exist.
+     */
+    @JvmStatic
+    fun getInstanceIfCreated(project: Project): ResourceClassRegistry? = project.serviceIfCreated()
   }
 }

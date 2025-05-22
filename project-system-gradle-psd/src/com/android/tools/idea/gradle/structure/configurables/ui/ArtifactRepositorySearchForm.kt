@@ -16,14 +16,11 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
+import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Version
-import com.android.ide.common.repository.GradleCoordinate
+import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.repositories.search.ArbitraryModulesSearchByModuleQuery
 import com.android.tools.idea.gradle.repositories.search.ArbitraryModulesSearchQuery
-import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
-import com.android.tools.idea.gradle.repositories.search.FoundArtifact
-import com.android.tools.idea.gradle.repositories.search.SearchRequest
-import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.helpers.parseGradleVersion
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
@@ -35,7 +32,9 @@ import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
 import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
 import com.android.tools.idea.gradle.structure.model.meta.annotated
-import com.google.common.annotations.VisibleForTesting
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
+import com.android.tools.idea.gradle.repositories.search.FoundArtifact
+import com.android.tools.idea.gradle.repositories.search.SearchRequest
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
@@ -154,14 +153,14 @@ class ArtifactRepositorySearchForm(
     clearResults()
 
     val searchQuery = getQuery().also { currentSearchQuery = it }
-    val request = SearchRequest(searchQuery.toSearchQuery(), 50, 0)
+    val request = SearchRequest(searchQuery.toSearchQuery(), 200, 0)
 
     repositorySearch.search(request).continueOnEdt { results ->
       val foundArtifacts = results.artifacts.sorted().takeUnless { it.isEmpty() } ?: let {
         when {
-          searchQuery.gradleCoordinates != null -> listOf(
-            FoundArtifact("(none)", searchQuery.gradleCoordinates.groupId.orEmpty(), searchQuery.gradleCoordinates.artifactId.orEmpty(),
-                          searchQuery.gradleCoordinates.lowerBoundVersion!!))
+          searchQuery.component != null -> listOf(
+            FoundArtifact("(none)", searchQuery.component.group, searchQuery.component.name,
+                          searchQuery.component.version))
           else -> listOf()
         }
       }
@@ -250,16 +249,15 @@ fun prepareArtifactVersionChoices(
   }
 
   val missingVersion = searchQuery
-    .gradleCoordinates
+    .component
     ?.takeIf {
-      it.artifactId == artifact.name &&
-      it.groupId == artifact.groupId &&
-      !artifact.versions.contains(it.lowerBoundVersion)
+      it.name == artifact.name &&
+      it.group == artifact.groupId &&
+      !artifact.versions.contains(it.version)
     }
 
   val versions =
-    listOfNotNull(missingVersion?.let { ParsedValue.Set.Parsed(it.lowerBoundVersion!!, DslText.Literal)
-      .annotateWithError(AndroidGradlePsdBundle.message("android.error.required")) }) +
+    listOfNotNull(missingVersion?.let { ParsedValue.Set.Parsed(it.version, DslText.Literal).annotateWithError("not found") }) +
     artifact.versions.map { ParsedValue.Set.Parsed(it, DslText.Literal).annotated() }
 
   val suitableVariables =
@@ -312,7 +310,7 @@ data class ArtifactSearchQuery(
   val groupId: String? = null,
   val artifactName: String? = null,
   val version: String? = null,
-  val gradleCoordinates: GradleCoordinate? = null,
+  val component: Component? = null,
   val id: String? = null
   )
 
@@ -329,7 +327,7 @@ fun String.parseArtifactSearchQuery(): ArtifactSearchQuery {
         groupId = split[0],
         artifactName = split[1],
         version = split[2],
-        gradleCoordinates = GradleCoordinate.parseCoordinateString(this))
+        component = Component.tryParse(this))
     else -> throw RuntimeException()
   }
 }

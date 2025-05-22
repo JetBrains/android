@@ -16,12 +16,14 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.flags.ifEnabled
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
-import com.android.tools.idea.actions.ColorBlindModeAction
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.actions.ComposeFilterShowHistoryAction
 import com.android.tools.idea.compose.preview.actions.ComposeFilterTextAction
@@ -32,6 +34,7 @@ import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopUiCheckPreviewAction
 import com.android.tools.idea.compose.preview.actions.UiCheckDropDownAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInUiCheck
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.GroupSwitchAction
@@ -42,8 +45,8 @@ import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
+import com.android.tools.idea.preview.find.FilePreviewElementFinder
 import com.android.tools.idea.preview.modes.FOCUS_MODE_LAYOUT_OPTION
-import com.android.tools.idea.preview.modes.PREVIEW_LAYOUT_OPTIONS
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -54,6 +57,8 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.util.isAndroidModule
 import com.android.tools.idea.util.isCommonWithAndroidModule
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -71,11 +76,15 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.patterns.PlatformPatterns.psiFile
 import com.intellij.psi.PsiFile
+import com.intellij.psi.search.GlobalSearchScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 
 /** [ToolbarActionGroups] that includes the actions that can be applied to Compose Previews. */
@@ -100,29 +109,9 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
             },
           )
           .visibleOnlyInDefaultPreview(),
-        ComposeViewControlAction(
-            layoutOptions = PREVIEW_LAYOUT_OPTIONS,
-            isSurfaceLayoutActionEnabled = {
-              !isPreviewRefreshing(
-                it.dataContext
-              ) && // If Essentials Mode is enabled, it should not be possible to switch layout.
-                !PreviewEssentialsModeManager.isEssentialsModeEnabled
-            },
-            additionalActionProvider = ColorBlindModeAction(),
-          )
-          .visibleOnlyInStaticPreview(),
+        ComposeViewControlAction().visibleOnlyInStaticPreview(),
         Separator.getInstance().visibleOnlyInUiCheck(),
         UiCheckDropDownAction().visibleOnlyInUiCheck(),
-        ComposeViewControlAction(
-            layoutOptions = emptyList(),
-            isSurfaceLayoutActionEnabled = {
-              !isPreviewRefreshing(
-                it.dataContext
-              ) && // If Essentials Mode is enabled, it should not be possible to switch layout.
-                !PreviewEssentialsModeManager.isEssentialsModeEnabled
-            },
-          )
-          .visibleOnlyInUiCheck(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
       )
     ) {
@@ -154,8 +143,10 @@ class ComposeAdapterLightVirtualFile(name: String, content: String, originFile: 
 
 /** A [PreviewRepresentationProvider] coupled with [ComposePreviewRepresentation]. */
 class ComposePreviewRepresentationProvider(
-  private val filePreviewElementProvider: () -> ComposeFilePreviewElementFinder =
-    ::defaultFilePreviewElementFinder
+  private val filePreviewElementProvider: () -> FilePreviewElementFinder<PsiComposePreviewElement> =
+    {
+      AnnotationFilePreviewElementFinder
+    }
 ) : PreviewRepresentationProvider {
 
   private object ComposeEditorFileType :
@@ -173,12 +164,42 @@ class ComposePreviewRepresentationProvider(
    * Checks if the input [psiFile] contains compose previews and therefore can be provided with the
    * `PreviewRepresentation` of them.
    */
-  override suspend fun accept(project: Project, psiFile: PsiFile): Boolean =
-    psiFile.virtualFile.isKotlinFileType() &&
+  override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
+    project.coroutineScope.launch { logFileIfComposable(project, psiFile) }
+    return psiFile.virtualFile.isKotlinFileType() &&
       (readAction {
         (psiFile.getModuleSystem()?.usesCompose == true ||
           isCompatibleComposableClassAvailable(psiFile)) && !psiFile.isInLibrary()
       })
+  }
+
+  private suspend fun logFileIfComposable(project: Project, psiFile: PsiFile) {
+    // We need to be in smart mode to be able to access the index for the annotations.
+    if (DumbService.getInstance(project).isDumb) return
+
+    val foundComposableAnnotations = readAction {
+      KotlinAnnotationsIndex[
+        COMPOSABLE_ANNOTATION_NAME,
+        project,
+        GlobalSearchScope.fileScope(psiFile),
+      ]
+    }
+
+    withContext(Dispatchers.Default) {
+      // If the file has methods annotated with @Composable methods, log it as a Compose file.
+      if (foundComposableAnnotations.isNotEmpty()) {
+        val studioEvent =
+          AndroidStudioEvent.newBuilder()
+            .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
+            .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
+            .setLayoutEditorEvent(
+              LayoutEditorEvent.newBuilder()
+                .setType(LayoutEditorEvent.LayoutEditorEventType.COMPOSE_FILE_OPEN)
+            )
+        UsageTracker.log(studioEvent)
+      }
+    }
+  }
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {

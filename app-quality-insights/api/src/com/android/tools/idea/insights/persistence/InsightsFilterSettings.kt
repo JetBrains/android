@@ -118,8 +118,12 @@ data class DeviceSetting(
   fun toDevice() = Device(manufacturer, model, displayName, DeviceType(deviceType))
 }
 
-data class OperatingSystemSetting(var displayVersion: String = "", var displayName: String = "") {
-  fun toOperatingSystemInfo() = OperatingSystemInfo(displayVersion, displayName)
+data class OperatingSystemSetting(
+  var displayVersion: String = "",
+  var displayName: String = "",
+  var filterName: String = "",
+) {
+  fun toOperatingSystemInfo() = OperatingSystemInfo(displayVersion, displayName, filterName)
 }
 
 data class VersionSetting(
@@ -150,7 +154,8 @@ internal fun Connection.toSetting() =
 
 internal fun Device.toSetting() = DeviceSetting(manufacturer, model, displayName, deviceType.name)
 
-internal fun OperatingSystemInfo.toSetting() = OperatingSystemSetting(displayVersion, displayName)
+internal fun OperatingSystemInfo.toSetting() =
+  OperatingSystemSetting(displayVersion, displayName, filterName)
 
 internal fun Version.toSetting() =
   VersionSetting(buildVersion, displayVersion, displayName, tracks.map { it.name })

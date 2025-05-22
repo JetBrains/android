@@ -177,7 +177,7 @@ public class AndroidDslElement extends GradleDslBlockElement {
     {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR, VersionConstraint.agpBefore("8.0.0")},
     {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
     {"dynamicFeatures", property, DYNAMIC_FEATURES, VAR},
-    {"flavorDimensions", property, FLAVOR_DIMENSIONS, VAR},
+    {"flavorDimensions", property, FLAVOR_DIMENSIONS, VAL},
     {"generatePureSplits", property, GENERATE_PURE_SPLITS, VAR},
     {"namespace", property, NAMESPACE, VAR},
     {"ndkVersion", property, NDK_VERSION, VAR},

@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.HighlightProjectTestDef
 import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTestDef
 import com.android.tools.idea.navigator.SourceProvidersTestDef
 import com.android.tools.idea.projectsystem.gradle.GradleModuleHierarchyProviderTest
+import com.android.tools.idea.projectsystem.gradle.GradleTaskManagerTest
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
@@ -60,6 +61,7 @@ abstract class SyncedProjectTest(
       GradleModuleHierarchyProviderTest.tests +
       GradleProjectSystemIntegrationTest.tests +
       HighlightProjectTestDef.tests +
+      GradleTaskManagerTest.tests +
       selfChecks()
       ).groupBy { it.testProject }
   }
@@ -305,7 +307,7 @@ abstract class SyncedProjectTest(
 }
 
 @Ignore
-@Suppress("UnconstructableJUnitTestCase")
+@Suppress("JUnitMalformedDeclaration")
 private class AllTestsForSelfChecks : SyncedProjectTest(selfTest = true, AGP_CURRENT)
 
 /**

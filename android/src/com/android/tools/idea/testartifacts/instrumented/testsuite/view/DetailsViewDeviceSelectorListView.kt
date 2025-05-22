@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
+import com.android.sdklib.displayApiString
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getRoundedDuration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
@@ -181,18 +182,18 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
         } ?: ""
         if (StringUtil.isNotEmpty(testDurationText)) {
           myDeviceLabel.text = String.format(Locale.US,
-                                             "<html>%s<br><font color='#%s'>API %d - %s</font></html>",
+                                             "<html>%s<br><font color='#%s'>API %s - %s</font></html>",
                                              value.getName().htmlEscape(),
                                              ColorUtil.toHex(SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor),
-                                             value.version.apiLevel,
+                                             value.version.displayApiString,
                                              testDurationText.htmlEscape())
         }
         else {
           myDeviceLabel.text = String.format(Locale.US,
-                                             "<html>%s<br><font color='#%s'>API %d</font></html>",
+                                             "<html>%s<br><font color='#%s'>API %s</font></html>",
                                              value.getName().htmlEscape(),
                                              ColorUtil.toHex(SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor),
-                                             value.version.apiLevel)
+                                             value.version.displayApiString)
         }
         myDeviceLabel.icon = getIconForDeviceType(value.deviceType)
       }

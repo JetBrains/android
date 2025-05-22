@@ -133,7 +133,7 @@ class SdkSourceFinderForApiLevelTest {
     )
 
     val packages = AndroidSdks.getInstance().tryToChooseSdkHandler()
-      .getSdkManager(StudioLoggerProgressIndicator(this::class.java))
+      .getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
       .packages
     val localPackages = packages.localPackages.values
 
@@ -149,7 +149,7 @@ class SdkSourceFinderForApiLevelTest {
   private fun restoreLocalTargetSdkPackages() {
     if (originalLocalPackages != null) {
       val packages = AndroidSdks.getInstance().tryToChooseSdkHandler()
-        .getSdkManager(StudioLoggerProgressIndicator(this::class.java))
+        .getRepoManagerAndLoadSynchronously(StudioLoggerProgressIndicator(this::class.java))
         .packages
       packages.setLocalPkgInfos(originalLocalPackages!!)
 

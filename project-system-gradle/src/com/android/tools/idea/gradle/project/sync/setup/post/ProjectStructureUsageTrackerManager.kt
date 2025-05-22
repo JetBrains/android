@@ -131,6 +131,7 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
           IdeAndroidProjectType.PROJECT_TYPE_ATOM -> Unit
           IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> Unit
           IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> Unit
+          IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY -> Unit
         }
       }
     }

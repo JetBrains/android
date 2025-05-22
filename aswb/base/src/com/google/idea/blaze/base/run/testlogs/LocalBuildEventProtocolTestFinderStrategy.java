@@ -15,10 +15,14 @@
  */
 package com.google.idea.blaze.base.run.testlogs;
 
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
 import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
-import java.util.Optional;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
+import com.intellij.openapi.diagnostic.Logger;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 /**
  * A strategy for locating results from a single 'blaze test' invocation (e.g. output XML files).
@@ -27,21 +31,28 @@ import java.util.Optional;
  */
 public final class LocalBuildEventProtocolTestFinderStrategy
     implements BlazeTestResultFinderStrategy {
-  private final BuildResultHelper buildResultHelper;
+  private static final Logger LOG = Logger.getInstance(LocalBuildEventProtocolTestFinderStrategy.class);
+  private final File outputFile;
 
-  public LocalBuildEventProtocolTestFinderStrategy(BuildResultHelper buildResultHelper) {
-    this.buildResultHelper = buildResultHelper;
+  public LocalBuildEventProtocolTestFinderStrategy(File outputFile) {
+    this.outputFile = outputFile;
   }
 
   @Override
   public BlazeTestResults findTestResults() throws GetArtifactsException {
-    try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
+    try (final var bepStream =
+        BuildEventStreamProvider.fromInputStream(
+            new BufferedInputStream(new FileInputStream(outputFile)))) {
       return BuildResultParser.getTestResults(bepStream);
+    } catch (FileNotFoundException e) {
+      throw new GetArtifactsException(e);
     }
   }
 
   @Override
   public void deleteTemporaryOutputFiles() {
-    buildResultHelper.deleteTemporaryOutputFiles();
+    if (!outputFile.delete()) {
+      LOG.warn("Could not delete BEP output file: " + outputFile);
+    }
   }
 }

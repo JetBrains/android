@@ -91,7 +91,7 @@ class AnnotationFileComposePreviewElementFinderTest {
         }
 
         @Composable
-        @Preview(name = "preview3", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true, device = Devices.NEXUS_7)
+        @Preview(name = "preview3", widthDp = 1, heightDp = 2, fontScale = 0.2f, showSystemUi = true, device = Devices.NEXUS_7)
         fun Preview3() {
         }
 
@@ -250,7 +250,7 @@ class AnnotationFileComposePreviewElementFinderTest {
           TextRange.create(it.previewBody!!.psiRange!!),
         )
         assertEquals(
-          "@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true, device = Devices.NEXUS_7)",
+          "@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showSystemUi = true, device = Devices.NEXUS_7)",
           it.previewElementDefinition?.element?.text,
         )
       }

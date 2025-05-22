@@ -1069,7 +1069,6 @@ public class AndroidJavaDocRenderer {
             if (renderTask == null) {
               return CompletableFuture.completedFuture(null);
             }
-            renderTask.getLayoutlibCallback().setLogger(logger);
 
             // Find intrinsic size.
             int width = 100;

@@ -30,6 +30,9 @@ import com.intellij.psi.util.childrenOfType
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlTable
+import com.android.tools.idea.gradle.dsl.model.getGradleVersionCatalogFiles
+import com.intellij.util.containers.addAllIfNotNull
+import java.io.File
 
 internal fun getElementLineAndColumn(element: PsiElement): Pair<Int, Int>? {
   val document = element.containingFile.viewProvider.document ?: return null
@@ -38,8 +41,32 @@ internal fun getElementLineAndColumn(element: PsiElement): Pair<Int, Int>? {
   return lineNumber to columnNumber
 }
 
-internal fun Project.findCatalogFile(catalog: String): VirtualFile? =
-  VfsUtil.findFile(Projects.getBaseDirPath(this).toPath(), true)?.findChild("gradle")?.findChild("$catalog.versions.toml")
+internal fun Project.findCatalogFile(catalog: String): VirtualFile? {
+  val map = getGradleVersionCatalogFiles(this)
+  return map[catalog]?.let { VfsUtil.findFile(File(it).toPath(), true) } ?: findCatalog(catalog)
+}
+
+internal fun Project.findAllCatalogFiles(): List<VirtualFile> {
+  val map = getGradleVersionCatalogFiles(this)
+  val result = mutableListOf<VirtualFile>()
+  // add libs first
+  result.addAllIfNotNull(map["libs"]?.let { VfsUtil.findFile(File(it).toPath(), true) })
+  map.forEach { entry ->
+    if (entry.key != "libs")
+      result.addAllIfNotNull(VfsUtil.findFile(File(entry.value).toPath(), true))
+  }
+  return if (result.isEmpty()) {
+    defaultCatalog()?.let { listOf(it) } ?: listOf()
+  }
+  else result
+}
+private fun Project.findCatalog(prefix: String):VirtualFile? =
+  VfsUtil.findFile(Projects.getBaseDirPath(this).toPath(), true)
+    ?.findChild("gradle")
+    ?.findChild("$prefix.versions.toml")
+
+private fun Project.defaultCatalog():VirtualFile? =
+  findCatalog("libs")
 
 internal fun TomlInlineTable.findKeyValue(key: String, value: String):Boolean =
   entries.any { it.key.text == key && it.value?.text == "\"$value\"" }

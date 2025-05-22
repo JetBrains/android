@@ -140,10 +140,10 @@ private class ColorSettingAction(
   private val renderSettingsProvider: () -> RenderSettings,
 ) : CheckboxAction(actionName, null, null) {
   override fun isSelected(event: AnActionEvent): Boolean =
-    renderSettingsProvider().highlightColor == color
+    renderSettingsProvider().recompositionColor == color
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    renderSettingsProvider().highlightColor = color
+    renderSettingsProvider().recompositionColor = color
     LayoutInspector.get(event)?.currentClient?.stats?.recompositionHighlightColor = color
   }
 

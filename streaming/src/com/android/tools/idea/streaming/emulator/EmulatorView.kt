@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
@@ -49,8 +50,8 @@ import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.BUTTON_MASK
 import com.android.tools.idea.streaming.core.DeviceId
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.RUNNING_DEVICES_NOTIFICATION_GROUP
 import com.android.tools.idea.streaming.core.isSameAspectRatio
 import com.android.tools.idea.streaming.core.scaledDown
@@ -61,6 +62,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
 import com.android.tools.idea.streaming.emulator.xr.XrInputMode
+import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.notification.Notification
@@ -69,6 +71,7 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
@@ -116,6 +119,7 @@ import com.intellij.openapi.wm.impl.IdeGlassPaneEx
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.Alarm
 import com.intellij.util.SofterReference
+import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
@@ -135,6 +139,9 @@ import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.InputEvent
+import java.awt.event.InputEvent.BUTTON1_DOWN_MASK
+import java.awt.event.InputEvent.BUTTON2_DOWN_MASK
+import java.awt.event.InputEvent.BUTTON3_DOWN_MASK
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
@@ -157,8 +164,6 @@ import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
-import java.awt.event.MouseEvent.BUTTON2
-import java.awt.event.MouseEvent.BUTTON3
 import java.awt.event.MouseWheelEvent
 import java.awt.geom.AffineTransform
 import java.awt.geom.Area
@@ -197,7 +202,8 @@ class EmulatorView(
   displayId: Int,
   private val displaySize: Dimension?,
   deviceFrameVisible: Boolean,
-) : AbstractDisplayView(project, displayId), ConnectionStateListener, EmulatorSettingsListener, EmulatorLogListener {
+) : AbstractDisplayView(project, displayId, "StreamingContextMenuVirtualDevice"),
+    ConnectionStateListener, EmulatorSettingsListener, EmulatorLogListener {
 
   override var displayOrientationQuadrants: Int
     get() = screenshotShape.orientation
@@ -208,7 +214,6 @@ class EmulatorView(
     }
   override val apiLevel: Int
     get() = emulatorConfig.api
-
   private var lastScreenshot: Screenshot? = null
   private var deviceScaleFactor: Double = 1.0
   private val displayTransform = AffineTransform()
@@ -222,7 +227,8 @@ class EmulatorView(
     get() = screenshotShape.displayMode ?: emulatorConfig.displayModes.firstOrNull()
   override val deviceDisplaySize: Dimension
     get() = screenshotShape.activeDisplayRegion?.size ?: displaySize ?: emulatorConfig.displaySize
-  override val deviceId: DeviceId = DeviceId.ofEmulator(emulator.emulatorId)
+  private val emulatorId = emulator.emulatorId
+  override val deviceId: DeviceId = DeviceId.ofEmulator(emulatorId)
 
   @get:VisibleForTesting
   var frameTimestampMillis = 0L
@@ -267,6 +273,7 @@ class EmulatorView(
       }
     }
 
+  @Volatile private var isDisposed = false
   private val isConnected
     get() = emulator.connectionState == ConnectionState.CONNECTED
   private val emulatorConfig
@@ -458,13 +465,18 @@ class EmulatorView(
     messageBusConnection.subscribe(EmulatorSettingsListener.TOPIC, this)
 
     if (displayId != PRIMARY_DISPLAY_ID && displaySize != null) {
-      // Three bytes per pixel plus some overhead.
-      emulator.connectGrpcOrIncreaseMaxInboundMessageSize(displaySize.width * displaySize.height * 3 + 100)
+      getAppExecutorService().submit {
+        if (!isDisposed) {
+          // Three bytes per pixel plus some overhead.
+          emulator.connectGrpcOrIncreaseMaxInboundMessageSize(displaySize.width * displaySize.height * 3 + 100)
+        }
+      }
     }
     updateConnectionState()
   }
 
   override fun dispose() {
+    isDisposed = true
     cancelNotificationFeed()
     cancelScreenshotFeed()
     emulator.removeConnectionStateListener(this)
@@ -763,15 +775,6 @@ class EmulatorView(
     emulator.rotateVirtualSceneCamera(cameraRotation)
   }
 
-  private fun getButtonBit(button: Int): Int {
-    return when(button) {
-      BUTTON1 -> ANDROID_BUTTON1_BIT
-      BUTTON2 -> ANDROID_BUTTON2_BIT
-      BUTTON3 -> ANDROID_BUTTON3_BIT
-      else -> 0
-    }
-  }
-
   internal fun displayModeChanged(displayModeId: DisplayModeValue) {
     val displayMode = emulatorConfig.displayModes.firstOrNull { it.displayModeId == displayModeId } ?: return
     requestScreenshotFeed(displayMode.displaySize, displayOrientationQuadrants)
@@ -835,6 +838,27 @@ class EmulatorView(
       return null
     }
     return skin.findSkinButtonContaining(x - displayRect.x, y - displayRect.y)?.keyName
+  }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[EMULATOR_VIEW_KEY] = this
+    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = getScreenRecorderParameters()
+  }
+
+  private fun getScreenRecorderParameters(): ScreenRecorderAction.Parameters? {
+    return if (emulator.connectionState == ConnectionState.CONNECTED) {
+      ScreenRecorderAction.Parameters(
+        emulatorId.avdName,
+        deviceSerialNumber,
+        emulatorConfig.api,
+        emulatorId.avdId,
+        displayId,
+        ::deviceDisplaySize,
+        emulator)
+    }
+    else {
+      null
+    }
   }
 
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
@@ -1070,20 +1094,25 @@ class EmulatorView(
 
   private inner class MyMouseListener : MouseAdapter() {
 
-    /** A bit set indicating the current pressed buttons. */
-    private var buttons = 0
+    private var currentButtons = 0
 
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
-      buttons = buttons or getButtonBit(event.button)
       mouseCoordinates = event.point
       if (xrInputController?.mousePressed(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
-      if (isInsideDisplay(event)) {
-        lastTouchCoordinates = Point(event.x, event.y)
+      val insideDisplay = isInsideDisplay(event)
+      if (handlePopup(event, insideDisplay)) {
+        return
+      }
+      if (insideDisplay) {
+        if (event.button == BUTTON1) {
+          lastTouchCoordinates = Point(event.x, event.y)
+        }
         updateMultiTouchMode(event)
-        sendMouseEvent(event.x, event.y, buttons)
+        currentButtons = event.modifiersEx and BUTTON_MASK
+        sendMouseEvent(event.x, event.y, currentButtons)
       }
       else if (event.button == BUTTON1 && highlightedSkinButtonKey != null) {
         pressedSkinButtonKey = highlightedSkinButtonKey
@@ -1091,17 +1120,21 @@ class EmulatorView(
     }
 
     override fun mouseReleased(event: MouseEvent) {
-      buttons = buttons and getButtonBit(event.button).inv()
       mouseCoordinates = event.point
       if (xrInputController?.mouseReleased(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
+      val insideDisplay = isInsideDisplay(event)
+      if (handlePopup(event, insideDisplay)) {
+        return
+      }
       if (event.button == BUTTON1) {
         lastTouchCoordinates = null
-        updateMultiTouchMode(event)
-        pressedSkinButtonKey = null
       }
-      sendMouseEvent(event.x, event.y, buttons)
+      updateMultiTouchMode(event)
+      pressedSkinButtonKey = null
+      currentButtons = event.modifiersEx and BUTTON_MASK
+      sendMouseEvent(event.x, event.y, currentButtons)
     }
 
     override fun mouseEntered(event: MouseEvent) {
@@ -1117,9 +1150,10 @@ class EmulatorView(
       if (xrInputController?.mouseExited(event, deviceDisplaySize, deviceScaleFactor) == true) {
         return
       }
-      if (lastTouchCoordinates != null) {
+      if ((currentButtons and BUTTON_MASK) != 0) {
         // Moving over the edge of the display view will terminate the ongoing dragging.
-        sendMouseEvent(event.x, event.y, 0)
+        sendMouseEvent(event.x, event.y, currentButtons)
+        currentButtons = currentButtons and BUTTON_MASK.inv()
       }
       lastTouchCoordinates = null
       updateMultiTouchMode(event)
@@ -1131,8 +1165,8 @@ class EmulatorView(
         return
       }
       updateMultiTouchMode(event)
-      if (!virtualSceneCameraOperating && lastTouchCoordinates != null) {
-        sendMouseEvent(event.x, event.y, buttons, drag = true)
+      if (!virtualSceneCameraOperating && (currentButtons and BUTTON_MASK) != 0) {
+        sendMouseEvent(event.x, event.y, currentButtons, drag = true)
       }
     }
 
@@ -1142,8 +1176,8 @@ class EmulatorView(
         return
       }
       updateMultiTouchMode(event)
-      if (!virtualSceneCameraOperating && !multiTouchMode) {
-        sendMouseEvent(event.x, event.y, 0)
+      if (!virtualSceneCameraOperating && !multiTouchMode && (currentButtons and BUTTON_MASK) == 0) {
+        sendMouseEvent(event.x, event.y, currentButtons)
       }
     }
 
@@ -1246,7 +1280,7 @@ class EmulatorView(
           .setDisplay(displayId)
           .setX(displayX)
           .setY(displayY)
-          .setButtons(buttons)
+          .setButtons(buttonsToAndroid(buttons))
         when (xrInputController?.inputMode) {
           XrInputMode.HAND -> inputEvent.setXrHandEvent(mouseEvent)
           XrInputMode.EYE -> inputEvent.setXrEyeEvent(mouseEvent)
@@ -1266,7 +1300,13 @@ class EmulatorView(
     }
 
     private fun isInsideDisplay(event: MouseEvent) =
-      displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
+        displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
+
+    private fun buttonsToAndroid(buttons: Int): Int {
+      return (if (buttons and BUTTON1_DOWN_MASK != 0) ANDROID_BUTTON_PRIMARY else 0) or
+             (if (buttons and BUTTON2_DOWN_MASK != 0) ANDROID_BUTTON_TERTIARY else 0) or
+             (if (buttons and BUTTON3_DOWN_MASK != 0) ANDROID_BUTTON_SECONDARY else 0)
+    }
   }
 
   private inner class ScreenshotReceiver(
@@ -1615,11 +1655,10 @@ private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_
                                            32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
 private const val CACHED_IMAGE_LIVE_TIME_MILLIS = 2000
 
-// Android (and the emulator gRPC) button bits corresponding to the AWT button definitions.
-// The middle and the right buttons are ordered differently in Android compared to AWT.
-private const val ANDROID_BUTTON1_BIT = 1 shl 0 // Left
-private const val ANDROID_BUTTON2_BIT = 1 shl 2 // Middle
-private const val ANDROID_BUTTON3_BIT = 1 shl 1 // Right
+// Android (and the emulator gRPC) button definitions. Ordering is different from AWT.
+private const val ANDROID_BUTTON_PRIMARY = 1 shl 0 // Left
+private const val ANDROID_BUTTON_SECONDARY = 1 shl 1 // Right
+private const val ANDROID_BUTTON_TERTIARY = 1 shl 2 // Middle
 
 private const val CTRL_SHIFT_DOWN_MASK = CTRL_DOWN_MASK or SHIFT_DOWN_MASK
 

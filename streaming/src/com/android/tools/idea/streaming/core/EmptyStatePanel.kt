@@ -109,7 +109,7 @@ internal class EmptyStatePanel(
       asyncActivityCount?.incrementAndGet() // Keep track of asynchronous activities for tests.
       try {
         val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-        val sdkManager = sdkHandler.getSdkManager(progress)
+        val sdkManager = sdkHandler.getRepoManagerAndLoadSynchronously(progress)
         val listener = RepoLoadedListener { packages -> localPackagesUpdated(packages) }
         try {
           Disposer.register(this@EmptyStatePanel) { sdkManager.removeLocalChangeListener(listener) }

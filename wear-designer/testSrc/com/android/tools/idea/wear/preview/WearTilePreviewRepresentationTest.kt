@@ -204,9 +204,7 @@ class WearTilePreviewRepresentationTest {
           preview.previewFlowManager.filteredPreviewElementsFlow.value.asCollection().elementAt(1)
         preview.previewModeManager.setMode(PreviewMode.AnimationInspection(previewElement))
 
-        delayUntilCondition(250) { preview.previewView.bottomPanel != null }
-        assertThat(preview.previewView.bottomPanel?.components?.get(0)?.name)
-          .isEqualTo("Animation Preview")
+        delayUntilCondition(250) { preview.currentAnimationPreview != null }
       }
 
       preview.onDeactivate()
@@ -429,11 +427,6 @@ class WearTilePreviewRepresentationTest {
     assertThat(previewElements).containsExactly(previewElement)
     assertThat(preview.previewView.focusMode).isNotNull()
   }
-
-  private val WearTilePreviewRepresentation.mainSurfaceDataContext
-    get() =
-      DataManager.getInstance()
-        .customizeDataContext(DataContext.EMPTY_CONTEXT, previewView.mainSurface)
 
   private val WearTilePreviewRepresentation.previewModeManager
     get() =

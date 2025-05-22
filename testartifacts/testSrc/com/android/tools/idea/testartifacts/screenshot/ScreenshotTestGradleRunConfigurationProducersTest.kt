@@ -218,6 +218,13 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     assertEquals(1, runConfiguration.settings.taskNames.size)
     assertEquals(":app:validateDebugScreenshotTest", runConfiguration.settings.taskNames[0])
     assertThat(contextConfiguration.configurationProducer).isInstanceOf(ScreenshotTestAllInDirectoryGradleConfigurationProducer::class.java)
+
+    // Compare generated run-config against unrelated context. It should return false.
+    // This should not cause NPE.
+    assertThat(contextConfiguration.configurationProducer.isConfigurationFromContext(
+      runConfiguration,
+      TestConfigurationTesting.createContext(project, getPsiElement(project, "nonAndroidModule", true))))
+      .isFalse()
   }
 
   @Test
@@ -245,6 +252,15 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
       it.configuration.name.contains("Screenshot")
     }  as ConfigurationFromContextImpl?
     Assert.assertNull(contextConfiguration)
+  }
+
+  @Test
+  fun runConfigProducerShouldNotCrashForNonAndroidModule() {
+    val project = projectRule.project
+    val psiFile = getPsiElement(project, "nonAndroidModule", true)
+
+    // This should not cause NPE.
+    TestConfigurationTesting.createContext(project, psiFile).configuration
   }
 
   private fun createGradleConfigurationFromPsiElement(project: Project, psiElement: PsiElement) : GradleRunConfiguration? {

@@ -9,9 +9,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
-        "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer[module]",
-        "//tools/adt/idea/project-system-apk:intellij.android.projectSystem.apk[module]",
-        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
-        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer",
+        "//tools/adt/idea/project-system-apk:intellij.android.projectSystem.apk",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "//tools/adt/idea/android:intellij.android.core",
     ],
 )

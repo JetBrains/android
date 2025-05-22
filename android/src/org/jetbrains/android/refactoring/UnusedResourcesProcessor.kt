@@ -257,41 +257,31 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
 
   private fun computeUnusedMap(): Map<Issue, Map<File, List<LintProblemData>>> {
     val map: MutableMap<Issue, Map<File, List<LintProblemData>>> = mutableMapOf()
-    val issues =
+    val enabledIssues =
       if (includeIds) setOf(UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS)
       else setOf(UnusedResourceDetector.ISSUE)
 
     val scope = AnalysisScope(myProject)
 
-    val unusedWasEnabled = UnusedResourceDetector.ISSUE.isEnabledByDefault()
-    val unusedIdsWasEnabled = UnusedResourceDetector.ISSUE_IDS.isEnabledByDefault()
-    UnusedResourceDetector.ISSUE.setEnabledByDefault(true)
-    UnusedResourceDetector.ISSUE_IDS.setEnabledByDefault(includeIds)
+    val lintResult = LintBatchResult(myProject, map, scope, enabledIssues, null)
+    val client = get().createBatchClient(lintResult)
+    // Note: We pass in *all* modules in the project here, not just those in the scope of the
+    // resource refactoring. If you for example are running the unused resource refactoring on a
+    // library module, we want to only remove unused resources from the specific library
+    // module, but we still have to have lint analyze all modules such that it doesn't consider
+    // resources in the library as unused when they could be referenced from other modules.
+    // So, we'll analyze all modules with lint, and then in the UnusedResourceProcessor
+    // we'll filter the matches down to only those in the target modules when we're done.
+    val modules = ModuleManager.getInstance(myProject).modules.toList()
+    val request =
+      LintIdeRequest(client, myProject, null, modules, false).apply { setScope(Scope.ALL) }
 
-    try {
-      val lintResult = LintBatchResult(myProject, map, scope, issues)
-      val client = get().createBatchClient(lintResult)
-      // Note: We pass in *all* modules in the project here, not just those in the scope of the
-      // resource refactoring. If you for example are running the unused resource refactoring on a
-      // library module, we want to only remove unused resources from the specific library
-      // module, but we still have to have lint analyze all modules such that it doesn't consider
-      // resources in the library as unused when they could be referenced from other modules.
-      // So, we'll analyze all modules with lint, and then in the UnusedResourceProcessor
-      // we'll filter the matches down to only those in the target modules when we're done.
-      val modules = ModuleManager.getInstance(myProject).modules.toList()
-      val request =
-        LintIdeRequest(client, myProject, null, modules, false).apply { setScope(Scope.ALL) }
-
-      // Make sure we don't remove resources that are still referenced from
-      // tests (though these should probably be in a test resource source
-      // set instead.)
-      val lint =
-        client.createDriver(request, get().getIssueRegistry()).apply { checkTestSources = true }
-      lint.analyze()
-    } finally {
-      UnusedResourceDetector.ISSUE.setEnabledByDefault(unusedWasEnabled)
-      UnusedResourceDetector.ISSUE_IDS.setEnabledByDefault(unusedIdsWasEnabled)
-    }
+    // Make sure we don't remove resources that are still referenced from
+    // tests (though these should probably be in a test resource source
+    // set instead.)
+    val lint =
+      client.createDriver(request, get().getIssueRegistry()).apply { checkTestSources = true }
+    lint.analyze()
 
     // Make sure lint didn't put extra issues into the map
     val allowedIssues = setOf(UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS)

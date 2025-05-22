@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.filters;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS;
 
-import com.android.tools.idea.gemini.GeminiPluginApi;
-import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
@@ -26,6 +24,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ExecutionConsole;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTask;
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemResolveProjectTask;
@@ -69,16 +68,11 @@ public class AndroidGradleExecutionConsoleManager extends GradleExecutionConsole
   public AnAction[] getCustomContextActions(@NotNull Project project,
                                             @NotNull ExternalSystemTask task,
                                             @Nullable ExecutionEnvironment env) {
-    // adds a Gemini popup menu item to the sync tree view
+    // adds additional actions group to popup menu item to the sync tree view
     AnAction[] contextActions = super.getCustomContextActions(project, task, env);
-    //TODO this needs to be removed or moved to ai module
-    GeminiPluginApi geminiPluginApi = GeminiPluginApi.Companion.getInstance();
-    if (!geminiPluginApi.isAvailable()) {
-      return contextActions;
-    }
     AnAction[] extendedActions = new AnAction[contextActions.length + 1];
     System.arraycopy(contextActions, 0, extendedActions, 0, contextActions.length);
-    extendedActions[contextActions.length] = new ExplainSyncOrBuildOutput();
+    extendedActions[contextActions.length] = ActionManager.getInstance().getAction("Android.BuildTree.AdditionalActions");
     return extendedActions;
   }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.ImageUtils.scale
 import com.android.tools.adtui.actions.ZoomType
@@ -24,8 +25,9 @@ import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.BUTTON_MASK
 import com.android.tools.idea.streaming.core.DeviceId
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
+import com.android.tools.idea.streaming.core.buttonToMask
 import com.android.tools.idea.streaming.core.constrainInside
 import com.android.tools.idea.streaming.core.contains
 import com.android.tools.idea.streaming.core.createShowLogHyperlinkListener
@@ -34,9 +36,13 @@ import com.android.tools.idea.streaming.core.location
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
+import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
+import com.android.tools.idea.ui.screenshot.ScreenshotAction
+import com.android.tools.idea.ui.screenshot.ScreenshotOptions
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
@@ -135,7 +141,7 @@ internal class DeviceView(
   override val project: Project,
   displayId: Int,
   private val initialDisplayOrientation: Int,
-) : AbstractDisplayView(project, displayId), DeviceMirroringSettingsListener {
+) : AbstractDisplayView(project, displayId, "StreamingContextMenuPhysicalDevice"), DeviceMirroringSettingsListener {
 
   val isConnected: Boolean
     get() = connectionState == ConnectionState.CONNECTED
@@ -168,14 +174,21 @@ internal class DeviceView(
 
   internal val deviceController: DeviceController?
     get() = deviceClient.deviceController
+  private val deviceConfig
+    get() = deviceClient.deviceConfig
 
   override val deviceDisplaySize = Dimension()
 
   private var clipboardSynchronizer: DeviceClipboardSynchronizer? = null
   private val connectionStateListeners = mutableListOf<ConnectionStateListener>()
-  private val agentTerminationListener = object: AgentTerminationListener {
-    override fun agentTerminated(exitCode: Int) { disconnected(initialDisplayOrientation, AgentTerminatedException(exitCode)) }
-    override fun deviceDisconnected() { disconnected(initialDisplayOrientation) }
+  private val agentTerminationListener = object : AgentTerminationListener {
+    override fun agentTerminated(exitCode: Int) {
+      disconnected(initialDisplayOrientation, AgentTerminatedException(exitCode))
+    }
+
+    override fun deviceDisconnected() {
+      disconnected(initialDisplayOrientation)
+    }
   }
   private val frameListener = MyFrameListener()
   private val displayTransform = AffineTransform()
@@ -194,13 +207,18 @@ internal class DeviceView(
         }
       }
     }
+
   /** Last coordinates of the mouse pointer while the first button is pressed, null when the first button is released. */
   private var lastTouchCoordinates: Point? = null
+
   /** Whether the last observed mouse event was in display. */
   private var wasInsideDisplay = false
   private var mouseHovering = false // Last mouse event was move without pressed buttons.
   private val repaintAlarm: Alarm = Alarm(this)
   private var highQualityRenderingRequested = false
+  private val screenshotOrientationProvider: () -> ScreenshotAction.ScreenshotRotation
+    get() = { ScreenshotAction.ScreenshotRotation(displayOrientationQuadrants, displayOrientationCorrectionQuadrants) }
+
 
   init {
     Disposer.register(disposableParent, this)
@@ -272,8 +290,9 @@ internal class DeviceView(
         }
       }
     }
-    catch (_: CancellationException) {
+    catch (e: CancellationException) {
       // The view has been closed.
+      throw e
     }
     catch (e: Throwable) {
       disconnected(initialDisplayOrientation, e)
@@ -336,11 +355,13 @@ internal class DeviceView(
   private fun getConnectionErrorMessage(exception: Throwable?): String {
     return when ((exception as? AgentTerminatedException)?.exitCode) {
       AGENT_WEAK_VIDEO_ENCODER ->
-          "The device may not have sufficient computing power for encoding display contents. See ${getShowLogHyperlink()} for details."
+        "The device may not have sufficient computing power for encoding display contents. See ${getShowLogHyperlink()} for details."
+
       AGENT_REPEATED_VIDEO_ENCODER_ERRORS ->
-          "Repeated video encoder errors during initialization of the device agent. See ${getShowLogHyperlink()} for details."
+        "Repeated video encoder errors during initialization of the device agent. See ${getShowLogHyperlink()} for details."
+
       else ->
-          (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See ${getShowLogHyperlink()} for details."
+        (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See ${getShowLogHyperlink()} for details."
     }
   }
 
@@ -350,8 +371,9 @@ internal class DeviceView(
     }
     return when ((exception as? AgentTerminatedException)?.exitCode) {
       AGENT_WEAK_VIDEO_ENCODER ->
-          "Repeated video encoder errors. The device may not have sufficient computing power for encoding display contents." +
-          " See ${getShowLogHyperlink()} for details."
+        "Repeated video encoder errors. The device may not have sufficient computing power for encoding display contents." +
+        " See ${getShowLogHyperlink()} for details."
+
       AGENT_REPEATED_VIDEO_ENCODER_ERRORS -> "Repeated video encoder errors. See ${getShowLogHyperlink()} for details."
       else -> "Lost connection to the device. See ${getShowLogHyperlink()} for details."
     }
@@ -365,7 +387,7 @@ internal class DeviceView(
   }
 
   override fun canZoom(): Boolean =
-      connectionState == ConnectionState.CONNECTED
+    connectionState == ConnectionState.CONNECTED
 
   override fun onScreenScaleChanged() {
     if (isConnected && physicalWidth > 0 && physicalHeight > 0) {
@@ -374,10 +396,10 @@ internal class DeviceView(
   }
 
   override fun computeActualSize(): Dimension =
-      computeActualSize(displayOrientationQuadrants)
+    computeActualSize(displayOrientationQuadrants)
 
   private fun computeActualSize(rotationQuadrants: Int): Dimension =
-      deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
+    deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
 
   override fun paintComponent(graphics: Graphics) {
     super.paintComponent(graphics)
@@ -499,23 +521,22 @@ internal class DeviceView(
       return
     }
     val buttonState =
-        (if (modifiers and BUTTON1_DOWN_MASK != 0) MotionEventMessage.BUTTON_PRIMARY else 0) or
+        (if (modifiers and BUTTON1_DOWN_MASK != 0 && isHardwareInputEnabled()) MotionEventMessage.BUTTON_PRIMARY else 0) or
         (if (modifiers and BUTTON2_DOWN_MASK != 0) MotionEventMessage.BUTTON_TERTIARY else 0) or
         (if (modifiers and BUTTON3_DOWN_MASK != 0) MotionEventMessage.BUTTON_SECONDARY else 0)
     val androidActionButton = when (button) {
-      MouseEvent.BUTTON1 -> MotionEventMessage.BUTTON_PRIMARY
+      MouseEvent.BUTTON1 -> if (isHardwareInputEnabled()) MotionEventMessage.BUTTON_PRIMARY else 0
       MouseEvent.BUTTON2 -> MotionEventMessage.BUTTON_TERTIARY
       MouseEvent.BUTTON3 -> MotionEventMessage.BUTTON_SECONDARY
       else -> 0
     }
     val message = when {
+      multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(point), action, 0, 0, displayId)
       action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
           MotionEventMessage(originalAndMirroredPointer(point), action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), 0, 0,
-                             displayId)
-      isHardwareInputEnabled() && (action == MotionEventMessage.ACTION_DOWN || action == MotionEventMessage.ACTION_UP) ->
+                              displayId)
+      action == MotionEventMessage.ACTION_DOWN || action == MotionEventMessage.ACTION_UP || action == MotionEventMessage.ACTION_MOVE ->
           MotionEventMessage(originalPointer(point, axisValues), action, buttonState, androidActionButton, displayId)
-      isHardwareInputEnabled() -> MotionEventMessage(originalPointer(point, axisValues), action, buttonState, 0, displayId)
-      multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(point), action, 0, 0, displayId)
       else -> MotionEventMessage(originalPointer(point, axisValues), action, 0, 0, displayId)
     }
     deviceController?.sendControlMessage(message)
@@ -531,7 +552,7 @@ internal class DeviceView(
   }
 
   private fun isInsideDisplay(event: MouseEvent) =
-      displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
+    displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
 
   /**
    * Adds a [listener] to receive callbacks when the state of the agent's connection changes.
@@ -548,6 +569,23 @@ internal class DeviceView(
   fun removeConnectionStateListener(listener: ConnectionStateListener) {
     connectionStateListeners.remove(listener)
   }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] = if (isConnected) createScreenshotOptions() else null
+    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = deviceController?.let {
+      ScreenRecorderAction.Parameters(
+        deviceClient.deviceName,
+        deviceSerialNumber,
+        deviceConfig.featureLevel,
+        null,
+        displayId,
+        ::deviceDisplaySize,
+        it)
+    }
+  }
+
+  private fun createScreenshotOptions() =
+      ScreenshotOptions(deviceSerialNumber, deviceConfig.deviceModel, deviceConfig.deviceType, displayId, screenshotOrientationProvider)
 
   enum class ConnectionState { INITIAL, CONNECTING, CONNECTED, DISCONNECTED }
 
@@ -730,21 +768,38 @@ internal class DeviceView(
 
   private inner class MyMouseListener : MouseAdapter() {
 
+    private var currentModifiers: Int = 0
+
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
-      if (!isInsideDisplay(event)) return
-      terminateHovering(event)
-      if (event.button != MouseEvent.BUTTON1 && !isHardwareInputEnabled()) return
-      lastTouchCoordinates = event.location
-      updateMultiTouchMode(event)
-      sendMotionEvent(event.location, MotionEventMessage.ACTION_DOWN, event.modifiersEx, button = event.button)
+      val insideDisplay = isInsideDisplay(event)
+      if (handlePopup(event, insideDisplay)) {
+        return
+      }
+      if (insideDisplay && (currentModifiers and buttonToMask(event.button)) == 0) {
+        terminateHovering(event)
+        if (event.button == MouseEvent.BUTTON1) {
+          lastTouchCoordinates = event.location
+        }
+        updateMultiTouchMode(event)
+        currentModifiers = event.modifiersEx
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_DOWN, currentModifiers, button = event.button)
+      }
     }
 
     override fun mouseReleased(event: MouseEvent) {
-      if (event.button != MouseEvent.BUTTON1 && !isHardwareInputEnabled()) return
-      lastTouchCoordinates = null
-      updateMultiTouchMode(event)
-      sendMotionEvent(event.location, MotionEventMessage.ACTION_UP, event.modifiersEx, button = event.button)
+      val insideDisplay = isInsideDisplay(event)
+      if (handlePopup(event, insideDisplay)) {
+        return
+      }
+      if (insideDisplay && (currentModifiers and buttonToMask(event.button)) != 0) {
+        if (event.button == MouseEvent.BUTTON1) {
+          lastTouchCoordinates = null
+        }
+        updateMultiTouchMode(event)
+        currentModifiers = event.modifiersEx
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_UP, currentModifiers, button = event.button)
+      }
     }
 
     override fun mouseEntered(event: MouseEvent) {
@@ -752,9 +807,10 @@ internal class DeviceView(
     }
 
     override fun mouseExited(event: MouseEvent) {
-      if ((event.modifiersEx and (BUTTON1_DOWN_MASK or BUTTON2_DOWN_MASK or BUTTON3_DOWN_MASK)) != 0 && lastTouchCoordinates != null) {
+      if ((currentModifiers and BUTTON_MASK) != 0) {
         // Moving over the edge of the display view will terminate the ongoing dragging.
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE, event.modifiersEx)
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE, event.adjustedModifiers)
+        currentModifiers = currentModifiers and BUTTON_MASK.inv()
       }
       lastTouchCoordinates = null
       updateMultiTouchMode(event)
@@ -762,15 +818,18 @@ internal class DeviceView(
 
     override fun mouseDragged(event: MouseEvent) {
       updateMultiTouchMode(event)
-      if ((event.modifiersEx and (BUTTON1_DOWN_MASK or BUTTON2_DOWN_MASK or BUTTON3_DOWN_MASK)) != 0 && lastTouchCoordinates != null) {
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE, event.modifiersEx)
+      if ((currentModifiers and BUTTON_MASK) != 0) {
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE, event.adjustedModifiers)
+        if (!isInsideDisplay(event)) {
+          currentModifiers = currentModifiers and BUTTON_MASK.inv()
+        }
       }
     }
 
     override fun mouseMoved(event: MouseEvent) {
       updateMultiTouchMode(event)
-      if (!multiTouchMode) {
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_MOVE, event.modifiersEx)
+      if (!multiTouchMode && (currentModifiers and BUTTON_MASK) == 0) {
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_MOVE, event.adjustedModifiers)
         mouseHovering = true
       }
     }
@@ -795,7 +854,7 @@ internal class DeviceView(
         val scrollAmount = remainingRotation.coerceAtMost(1.0) * direction
         val axisValues = Int2FloatOpenHashMap(1)
         axisValues.put(axis, scrollAmount.toFloat())
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_SCROLL, event.modifiersEx, axisValues = axisValues)
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_SCROLL, event.adjustedModifiers, axisValues = axisValues)
         remainingRotation -= 1
       }
     }
@@ -809,6 +868,9 @@ internal class DeviceView(
         mouseHovering = false
       }
     }
+
+    private val MouseEvent.adjustedModifiers: Int
+      get() = modifiersEx and BUTTON_MASK.inv() or currentModifiers and BUTTON_MASK
 
     /** Converts true to 1 and false to -1. */
     private fun Boolean.toSign(): Int = if (this) 1 else -1

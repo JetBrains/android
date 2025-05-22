@@ -16,6 +16,7 @@
 package com.android.tools.adtui.validation
 
 import com.intellij.icons.AllIcons
+import com.intellij.ui.AnimatedIcon
 import java.util.function.Function
 import javax.swing.Icon
 
@@ -35,7 +36,8 @@ interface Validator<T> {
     OK(null),
     INFO(AllIcons.General.BalloonInformation),
     WARNING(AllIcons.General.BalloonWarning),
-    ERROR(AllIcons.General.BalloonError)
+    ERROR(AllIcons.General.BalloonError),
+    LOADING(AnimatedIcon.Default.INSTANCE),
   }
 
   /**

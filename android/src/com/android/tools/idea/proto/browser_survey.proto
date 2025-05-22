@@ -1,0 +1,17 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+// Defines a survey that can be launched from a notification balloon and
+// displayed in the system browser.
+message BrowserSurvey {
+  // Name of the survey, used for joining with results
+  optional string name = 1;
+  // Title of the survey, displayed in the notification balloon
+  optional string title = 2;
+  // Description of the survey, displayed in the notification balloon
+  optional string description = 3;
+  // Url to invoked by the notification balloon
+  optional string url = 4;
+}

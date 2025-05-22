@@ -32,13 +32,8 @@ public class QuerySyncHighlightingFilter implements HighlightInfoFilter {
     if (psiFile == null) {
       return true;
     }
-    VirtualFile virtualFile = psiFile.getVirtualFile();
-    if (virtualFile == null) {
-      return true;
-    }
-
     if (Blaze.getProjectType(psiFile.getProject()) == ProjectType.QUERY_SYNC) {
-      return QuerySyncManager.getInstance(psiFile.getProject()).isReadyForAnalysis(virtualFile);
+      return QuerySyncManager.getInstance(psiFile.getProject()).isReadyForAnalysis(psiFile);
     } else {
       return true;
     }

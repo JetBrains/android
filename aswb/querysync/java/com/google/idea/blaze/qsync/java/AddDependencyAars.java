@@ -76,7 +76,7 @@ public class AddDependencyAars implements ProjectProtoUpdateOperation {
   public void update(ProjectProtoUpdate update, ArtifactTracker.State artifactState)
       throws BuildException {
     ArtifactDirectoryBuilder aarDir = null;
-    for (TargetBuildInfo target : artifactState.depsMap().values()) {
+    for (TargetBuildInfo target : artifactState.targets()) {
       for (BuildArtifact aar : getDependencyAars(target)) {
         if (aarDir == null) {
           aarDir = update.artifactDirectory(ArtifactDirectories.DEFAULT);

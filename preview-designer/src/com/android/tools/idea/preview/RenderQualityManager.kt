@@ -46,10 +46,6 @@ interface RenderQualityManager {
 
   fun needsQualityChange(surface: NlDesignSurface) =
     surface.sceneManagers.any { needsQualityChange(it) }
-
-  fun pause()
-
-  fun resume()
 }
 
 /**
@@ -86,7 +82,6 @@ class DefaultRenderQualityManager(
   private val onQualityChangeMightBeNeeded: () -> Unit,
 ) : RenderQualityManager {
   private val scope = AndroidCoroutineScope(mySurface)
-  private var isPaused = false
 
   private val uiDataLock = ReentrantLock()
   @GuardedBy("uiDataLock") private var sceneViewRectangles: Map<SceneView, Rectangle?> = emptyMap()
@@ -118,7 +113,6 @@ class DefaultRenderQualityManager(
   }
 
   override fun getTargetQuality(sceneManager: LayoutlibSceneManager): Float {
-    if (isPaused) return getDefaultPreviewQuality()
     uiDataLock.withLock {
       if (
         // Update rectangles if any UI related dimensions changed or a sceneView instance changed
@@ -136,24 +130,15 @@ class DefaultRenderQualityManager(
   }
 
   override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean =
-    !isPaused &&
-      sceneManager.let {
-        // Refreshes are skipped in any of the following scenarios:
-        // - Last render failed and not due to a cancellation exception
-        // - The current target quality is substantially different to the one used in the last
-        //   successful render or the last render was cancelled.
-        it.renderResult.isCancellationException() ||
-          (!it.renderResult.isErrorResult() &&
-            abs(it.lastRenderQuality - getTargetQuality(it)) > myPolicy.acceptedErrorMargin)
-      }
-
-  override fun pause() {
-    isPaused = true
-  }
-
-  override fun resume() {
-    isPaused = false
-  }
+    sceneManager.let {
+      // Refreshes are skipped in any of the following scenarios:
+      // - Last render failed and not due to a cancellation exception
+      // - The current target quality is substantially different to the one used in the last
+      //   successful render or the last render was cancelled.
+      it.renderResult.isCancellationException() ||
+        (!it.renderResult.isErrorResult() &&
+          abs(it.lastRenderQuality - getTargetQuality(it)) > myPolicy.acceptedErrorMargin)
+    }
 
   @TestOnly
   internal fun sceneViewRectanglesContainsForTest(sceneView: SceneView) =
@@ -172,8 +157,4 @@ class SimpleRenderQualityManager(private val qualityProvider: () -> Float) : Ren
   override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean {
     return false
   }
-
-  override fun pause() = Unit
-
-  override fun resume() = Unit
 }

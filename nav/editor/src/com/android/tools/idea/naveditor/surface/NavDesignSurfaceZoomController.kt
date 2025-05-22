@@ -35,13 +35,13 @@ import com.android.tools.idea.naveditor.scene.NavSceneManager
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.abs
-import kotlin.math.min
 
 /**
  * [ZoomController] for [NavDesignSurface]
  *
- * @param surfaceSize The size of [NavDesignSurface].
- * @param viewPort The [DesignSurfaceViewport] of [NavDesignSurface] where the zoom is applied.
+ * @param surfaceSizeProvider Provides the size of [NavDesignSurface].
+ * @param viewPortProvider Provides the [DesignSurfaceViewport] of [NavDesignSurface] where the zoom
+ *   is applied.
  * @param sceneManager [SceneManager] for the navigation editor.
  * @param sceneViewDimensionProvider Provides the Dimension of a [SceneView] of [NavDesignSurface].
  * @param analyticsManager Manager to track analytics in [DesignSurface]s
@@ -50,8 +50,8 @@ import kotlin.math.min
  *   such value is used to find the focused scene within the surface.
  */
 class NavDesignSurfaceZoomController(
-  private val surfaceSize: Dimension,
-  private val viewPort: DesignSurfaceViewport,
+  private val surfaceSizeProvider: () -> Dimension,
+  private val viewPortProvider: () -> DesignSurfaceViewport,
   private val sceneManager: () -> NavSceneManager?,
   private val sceneViewDimensionProvider: (SceneView) -> Dimension,
   analyticsManager: DesignerAnalyticsManager?,
@@ -65,6 +65,9 @@ class NavDesignSurfaceZoomController(
   override val maxScale: Double
     get() = if (isEmpty()) 1.0 else 3.0
 
+  private val viewPort: DesignSurfaceViewport
+    get() = viewPortProvider()
+
   private var zoomListener: ZoomListener? = null
 
   override fun getFitScale(): Double {
@@ -76,8 +79,7 @@ class NavDesignSurfaceZoomController(
       contentSize.setSize(0, 0)
     }
 
-    val scale: Double = getFitContentIntoWindowScale(contentSize)
-    return min(scale, 1.0)
+    return getFitContentIntoWindowScale(contentSize)
   }
 
   override fun canZoomToFit(): Boolean {
@@ -97,8 +99,19 @@ class NavDesignSurfaceZoomController(
   }
 
   private fun getFitContentIntoWindowScale(contentSize: Dimension): Double {
+    val surfaceSize = surfaceSizeProvider()
     val availableWidth = viewPort.extentSize.width
     val availableHeight = viewPort.extentSize.height
+
+    // If we have nothing to show we keep the zoom-to-actual scale as ideal zoom-to-fit scale.
+    if (contentSize == Dimension(0, 0)) {
+      return 1.0
+    }
+
+    // If we have no available space we keep the zoom-to-actual scale as ideal zoom-to-fit scale.
+    if (availableHeight == 0 && availableWidth == 0) {
+      return 1.0
+    }
 
     val scaleX: Double =
       if (surfaceSize.width == 0) {

@@ -31,9 +31,11 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -58,6 +60,20 @@ public class SupportedModuleCheckerTest extends HeavyPlatformTestCase {
     verify(androidNotification, never()).showBalloon(any(), any(), any());
   }
 
+  public void testCheckForSupportedModulesWithGradleProject() {
+    Project project = getProject();
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(new GradleProjectSystem(project));
+    AndroidNotification androidNotification = mock(AndroidNotification.class);
+    new IdeComponents(project).replaceProjectService(AndroidNotification.class, androidNotification);
+
+    Module supportedModule = doCreateRealModuleIn("gradleModule", myProject, StdModuleTypes.JAVA);
+    ExternalSystemModulePropertyManager.getInstance(supportedModule).setExternalId(GRADLE_SYSTEM_ID);
+
+    myModuleChecker.checkForSupportedModules(project);
+
+    verify(androidNotification, never()).showBalloon(any(), any(), any());
+  }
+
   public void testCheckForSupportedModulesWithNonGradleModules() {
     Project project = getProject();
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(new GradleProjectSystem(project));
@@ -65,8 +81,8 @@ public class SupportedModuleCheckerTest extends HeavyPlatformTestCase {
     new IdeComponents(project).replaceProjectService(AndroidNotification.class, androidNotification);
 
     // These will be the "unsupported" modules, since they are not marked as "Gradle" modules.
-    doCreateRealModuleIn("lib1", myProject, StdModuleTypes.JAVA);
-    doCreateRealModuleIn("lib2", myProject, StdModuleTypes.JAVA);
+    Module lib1 = doCreateRealModuleIn("lib1", myProject, StdModuleTypes.JAVA);
+    Module lib2 = doCreateRealModuleIn("lib2", myProject, StdModuleTypes.JAVA);
 
     Module supportedModule = doCreateRealModuleIn("gradleModule", myProject, StdModuleTypes.JAVA);
     ExternalSystemModulePropertyManager.getInstance(supportedModule).setExternalId(GRADLE_SYSTEM_ID);
@@ -77,12 +93,27 @@ public class SupportedModuleCheckerTest extends HeavyPlatformTestCase {
     assertThat(androidNotification.displayedText).contains("lib1");
     assertThat(androidNotification.displayedText).contains("lib2");
     assertEquals(ERROR, androidNotification.displayedType);
+    assertThat(androidNotification.hyperlink).isNotNull();
+    assertThat(androidNotification.hyperlink).isInstanceOf(SupportedModuleChecker.UnsupportedModulesQuickFix.class);
+
+    ModuleManager.getInstance(project).disposeModule(lib2);
+    assertThat(ModuleManager.getInstance(project).findModuleByName("lib1")).isNotNull();
+    assertThat(ModuleManager.getInstance(project).findModuleByName("lib2")).isNull();
+    assertThat(((SupportedModuleChecker.UnsupportedModulesQuickFix)androidNotification.hyperlink).getUnsupportedModules().toList())
+      .hasSize(1);
+
+    HyperlinkEvent mockHyperlinkEvent = mock(HyperlinkEvent.class);
+    androidNotification.hyperlink.executeIfClicked(project, mockHyperlinkEvent);
+
+    assertThat(ModuleManager.getInstance(project).findModuleByName("lib1")).isNull();
+    assertThat(ModuleManager.getInstance(project).findModuleByName("lib2")).isNull();
   }
 
   private static class AndroidNotificationStub extends AndroidNotification {
     private String displayedTitle;
     private String displayedText;
     private NotificationType displayedType;
+    private NotificationHyperlink hyperlink;
 
     AndroidNotificationStub(@NotNull Project project) {
       super(project);
@@ -96,6 +127,7 @@ public class SupportedModuleCheckerTest extends HeavyPlatformTestCase {
       displayedTitle = title;
       displayedText = text;
       displayedType = type;
+      hyperlink = hyperlinks[0];
     }
   }
 }

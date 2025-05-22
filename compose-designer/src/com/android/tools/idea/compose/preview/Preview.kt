@@ -69,11 +69,11 @@ import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
-import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
 import com.android.tools.idea.preview.fast.FastPreviewSurface
+import com.android.tools.idea.preview.find.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
 import com.android.tools.idea.preview.focus.FocusMode
@@ -541,7 +541,6 @@ class ComposePreviewRepresentation(
     log.debug("Starting UI check.")
     val startTime = System.currentTimeMillis()
     surface.resetColorBlindMode()
-    qualityManager.pause()
     uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance, isWearPreview)
     withContext(uiThread) {
       emptyUiCheckPanel.apply {
@@ -580,7 +579,6 @@ class ComposePreviewRepresentation(
   }
 
   private suspend fun onUiCheckPreviewStop() {
-    qualityManager.resume()
     postIssueUpdateListenerForUiCheck.deactivate()
     uiCheckFilterFlow.value.basePreviewInstance?.let { uiCheckPanelCleanup(it.instanceId) }
     (surface.visualLintIssueProvider as? ComposeVisualLintIssueProvider)?.onUiCheckStop()
@@ -628,8 +626,6 @@ class ComposePreviewRepresentation(
       invalidate()
       requestRefresh()
     }
-
-  override var isInspectionTooltipEnabled: Boolean = false
 
   override var isFilterEnabled: Boolean = false
 
@@ -701,13 +697,12 @@ class ComposePreviewRepresentation(
   @VisibleForTesting
   val staticPreviewInteractionHandler =
     ComposeNavigationInteractionHandler(
-        composeWorkBench.mainSurface,
         NavigatingInteractionHandler(
           composeWorkBench.mainSurface,
           navigationHandler,
           isSelectionEnabled = true,
           isPopUpEnabled = { StudioFlags.COMPOSE_PREVIEW_COMPONENT_POP_UP.get() },
-        ),
+        )
       )
       .also { delegateInteractionHandler.delegate = it }
 
@@ -1010,7 +1005,7 @@ class ComposePreviewRepresentation(
     // preview is out of date.
     val newStatus =
       ComposePreviewManager.Status(
-        hasErrorsAndNeedsBuild = !isRefreshing && hasErrorsAndNeedsBuild(),
+        hasRenderErrors = !isRefreshing && hasErrorsAndNeedsBuild(),
         hasSyntaxErrors = !isRefreshing && hasSyntaxErrors(),
         isOutOfDate =
           !isRefreshing &&

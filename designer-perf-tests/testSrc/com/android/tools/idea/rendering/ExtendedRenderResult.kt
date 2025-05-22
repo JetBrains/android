@@ -19,41 +19,43 @@ import com.android.tools.rendering.ExecuteCallbacksResult
 import com.android.tools.rendering.InteractionEventResult
 import com.android.tools.rendering.RenderResult
 
-/**
- * Render result for perfgate tests to carry additional metrics.
- */
-open class ExtendedRenderResult protected constructor(
-  renderResult: RenderResult,
-  val extendedStats: ExtendedStats) : RenderResult(renderResult) {
+/** Render result for perfgate tests to carry additional metrics. */
+open class ExtendedRenderResult
+protected constructor(renderResult: RenderResult, val extendedStats: ExtendedStats) :
+  RenderResult(renderResult) {
 
   companion object {
     fun create(
       renderResult: RenderResult,
       firstExecuteCallbacksResult: ExecuteCallbacksResult,
       firstInteractionEventResult: InteractionEventResult,
-      postInteractionEventResult: ExecuteCallbacksResult) =
+      postInteractionEventResult: ExecuteCallbacksResult,
+    ) =
       ExtendedRenderResult(
         renderResult,
         ExtendedStats(
           firstExecuteCallbacksResult.durationMs,
           firstInteractionEventResult.durationMs,
-          postInteractionEventResult.durationMs))
+          postInteractionEventResult.durationMs,
+        ),
+      )
   }
 }
 
 /**
- * [firstExecuteCallbacksDurationMs] the duration in milliseconds of the very first call to execute android platform callbacks (Handler and
- * Choreographer). We expect it to take significant time because of class loading that happens the first time this code path is executed.
- * [firstInteractionEventDurationMs] the duration in milliseconds of the very first call to triggering touch event against the android View and
- * Compose on touch infrastructure. We expect it to take significant time because of class loading that happens the first time this code
- * path is executed.
- * [postInteractionEventDurationMs] the duration in milliseconds of the first call to execute android platform callbacks right after the first
- * touch event is fully propagated. We expect it to take significant time because touch event might add some new callbacks that are executed
- * the very first time and that might load classes.
+ * [firstExecuteCallbacksDurationMs] the duration in milliseconds of the very first call to execute
+ * android platform callbacks (Handler and Choreographer). We expect it to take significant time
+ * because of class loading that happens the first time this code path is executed.
+ * [firstInteractionEventDurationMs] the duration in milliseconds of the very first call to
+ * triggering touch event against the android View and Compose on touch infrastructure. We expect it
+ * to take significant time because of class loading that happens the first time this code path is
+ * executed. [postInteractionEventDurationMs] the duration in milliseconds of the first call to
+ * execute android platform callbacks right after the first touch event is fully propagated. We
+ * expect it to take significant time because touch event might add some new callbacks that are
+ * executed the very first time and that might load classes.
  */
 data class ExtendedStats(
   val firstExecuteCallbacksDurationMs: Long,
   val firstInteractionEventDurationMs: Long,
-  val postInteractionEventDurationMs: Long
+  val postInteractionEventDurationMs: Long,
 )
-

@@ -74,7 +74,7 @@ public abstract class ProjectDefinition {
   public abstract ImmutableSet<Path> systemExcludes();
 
   public static Builder builder() {
-    return EMPTY.toBuilder();
+    return new AutoValue_ProjectDefinition.Builder();
   }
 
   public abstract Builder toBuilder();

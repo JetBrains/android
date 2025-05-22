@@ -276,7 +276,7 @@ class RenderLogicTest {
     treeSettings.showRecompositions = true
     inspectorModel.maxHighlight = 17f
     composeNode.recompositions.highlightCount = 17f
-    renderSettings.highlightColor = HIGHLIGHT_COLOR_ORANGE
+    renderSettings.recompositionColor = HIGHLIGHT_COLOR_ORANGE
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
   }
@@ -296,7 +296,7 @@ class RenderLogicTest {
     treeSettings.showRecompositions = true
     inspectorModel.maxHighlight = 17f
     composeNode.recompositions.highlightCount = 7f
-    renderSettings.highlightColor = HIGHLIGHT_COLOR_ORANGE
+    renderSettings.recompositionColor = HIGHLIGHT_COLOR_ORANGE
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
   }

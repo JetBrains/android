@@ -138,7 +138,7 @@ public class JavaBinaryContextProvider implements BinaryContextProvider {
 
     ImmutableSet<ProjectTarget> binaryTargets =
         targetOwners.stream()
-            .map(label -> buildGraphData.targetMap().get(label))
+            .map(buildGraphData::getProjectTarget)
             .filter(Objects::nonNull)
             .filter(t -> t.kind().equals("java_binary"))
             .collect(toImmutableSet());

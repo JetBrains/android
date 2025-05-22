@@ -27,6 +27,7 @@ import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.module.ModuleDependencies
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
@@ -48,8 +49,8 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
     TYPE_ATOM,
     TYPE_INSTANTAPP,
     TYPE_FEATURE,
-    TYPE_DYNAMIC_FEATURE
-
+    TYPE_DYNAMIC_FEATURE,
+    TYPE_FUSED_LIBRARY
   }
 
   val type: Type
@@ -84,29 +85,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * In cases where the source provider returns multiple paths, we always take the first match.
    */
   fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate>
-
-  /**
-   * Analyzes the compatibility of the [dependenciesToAdd] with the existing artifacts in the project.
-   *
-   * The version component of each of the coordinates in [dependenciesToAdd] are disregarded.
-   * The result is a triplet consisting of:
-   * <ul>
-   *   <li>A list of coordinates including a valid version found in the repository</li>
-   *   <li>A list of coordinates that were missing from the repository</li>
-   *   <li>A warning string describing the compatibility issues that could not be resolved if any</li>
-   * </ul>
-   *
-   * An incompatibility warning is either a compatibility with problem among the already existing artifacts,
-   * or a compatibility problem with one of the [dependenciesToAdd]. In the latter case the coordinates in
-   * the found coordinates are simply the latest version of the libraries, which may or may not cause build
-   * errors if they are added to the project.
-   * <p>
-   * An empty warning value and an empty missing list of coordinates indicates a successful result.
-   * <p>
-   * **Note**: This function may cause the parsing of build files and as such should not be called from the UI thread.
-   */
-  fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
-    : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String>
 
   /**
    * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate] as registered with the
@@ -150,8 +128,12 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getResolvedDependency(id: GoogleMavenArtifactId, scope: DependencyScopeType): GradleCoordinate? =
     getResolvedDependency(id.getCoordinate("+"), scope)
 
+  fun getRegisteringModuleSystem(): RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>? =
+    this as? RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>
+
   /** Whether this module system supports adding dependencies of the given type via [registerDependency] */
-  fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION): CapabilityStatus
+  fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION) =
+    if (getRegisteringModuleSystem() == null) CapabilityNotSupported() else CapabilitySupported()
 
   /**
    * Register a requested dependency of the given type with the build system.  Note that the requested dependency
@@ -382,19 +364,19 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    */
   fun isValidForAndroidRunConfiguration() = when(type) {
     Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE -> true
-    Type.TYPE_ATOM, Type.TYPE_FEATURE, Type.TYPE_INSTANTAPP -> false // Legacy not-supported module types.
-    Type.TYPE_NON_ANDROID -> false
-    Type.TYPE_LIBRARY, Type.TYPE_TEST -> false // Valid for AndroidTestRunConfiguration instead.
+
+    Type.TYPE_ATOM, Type.TYPE_FEATURE, Type.TYPE_INSTANTAPP, // Legacy not-supported module types.
+    Type.TYPE_LIBRARY, Type.TYPE_FUSED_LIBRARY, Type.TYPE_TEST, Type.TYPE_NON_ANDROID -> false
   }
 
   /**
    * Is this module suitable for use in an [AndroidTestRunConfiguration] editor?
    */
-  fun isValidForAndroidTestRunConfiguration() = when(type) {
-    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE, Type.TYPE_LIBRARY -> false
+  fun isValidForAndroidTestRunConfiguration() = when (type) {
     Type.TYPE_TEST -> true
-    Type.TYPE_ATOM, Type.TYPE_FEATURE, Type.TYPE_INSTANTAPP -> false // Legacy not-supported module types.
-    Type.TYPE_NON_ANDROID -> false
+
+    Type.TYPE_ATOM, Type.TYPE_FEATURE, Type.TYPE_INSTANTAPP, // Legacy not-supported module types.
+    Type.TYPE_APP, Type.TYPE_DYNAMIC_FEATURE, Type.TYPE_LIBRARY, Type.TYPE_FUSED_LIBRARY, Type.TYPE_NON_ANDROID,  -> false
   }
 }
 
@@ -465,3 +447,48 @@ fun AndroidFacet.getProductionAndroidModule(): Module = module.getModuleSystem()
  * Returns the type of Android project this module represents.
  */
 fun Module.androidProjectType(): AndroidModuleSystem.Type = getModuleSystem().type
+
+/** An identifier for querying a [RegisteringModuleSystem] about the existence or otherwise of a dependency. */
+interface RegisteredDependencyQueryId
+/**
+ * An identifier for a registered dependency, either currently existent or whose registration might be
+ * requested of a [RegisteringModuleSystem].
+ */
+interface RegisteredDependencyId
+
+/**
+ * Contains methods for interacting with "registered" (explicitly declared) dependencies in an [AndroidModuleSystem].
+ *
+ * Not all [AndroidModuleSystem]s can introspect or (particularly) modify the project's definition to include new dependencies.  Those
+ * that can will return a [RegisteringModuleSystem] (usually themselves) from [AndroidModuleSystem.getRegisteringModuleSystem], giving
+ * access to these methods.  The common entry points for the functionality involve getting ids from a well-known [GoogleMavenArtifactId],
+ * but a particular [RegisteringModuleSystem] implementation might provide other entry points (for example, [String] notation applicable
+ * to that particular [AndroidModuleSystem].
+ *
+ * This interface must not be implemented by anything other than an [AndroidModuleSystem].  (If all [AndroidModuleSystem] implementations
+ * also implement this interface, it can be folded in and removed.)
+ */
+interface RegisteringModuleSystem<T: RegisteredDependencyQueryId, U: RegisteredDependencyId> {
+  /** return an id suitable for querying for a corresponding existing registered dependency. */
+  fun getRegisteredDependencyQueryId(id: GoogleMavenArtifactId): T?
+  /** return an id suitable for registering the corresponding dependency with the project. */
+  fun getRegisteredDependencyId(id: GoogleMavenArtifactId): U?
+  /** query for the dependency corresponding to [id] in this module; returns null if unregistered. */
+  fun getRegisteredDependency(id: GoogleMavenArtifactId): U? = getRegisteredDependencyQueryId(id)?.let { getRegisteredDependency(it) }
+  /** query for the dependency corresponding to [id] in this module; returns null if unregistered. */
+  fun getRegisteredDependency(id: T): U?
+  /** register the [dependency] as a dependency of type [type] in this module. */
+  fun registerDependency(dependency: U, type: DependencyType)
+  /**
+   * For a list (really a set) of [dependencies], compute (for this module in its current state) whether registering those dependencies
+   * would cause any incompatibilities (for example by introducing versions of libraries with known incompatibilities between
+   * themselves or with existing dependencies in the project.  Return (as a data class) the list of compatible dependencies, the list
+   * of incompatible dependencies, and a [String] warning suitable for displaying to the user.
+   */
+  fun analyzeDependencyCompatibility(dependencies: List<U>): ListenableFuture<RegisteredDependencyCompatibilityResult<U>>
+}
+data class RegisteredDependencyCompatibilityResult<U: RegisteredDependencyId>(
+  val compatible: List<U>,
+  val incompatible: List<U>,
+  val warning: String
+)

@@ -12,7 +12,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/base/sdk-common/gradle:studio.android.sdktools.sdk-common.gradle[module]",
+        "//tools/base/sdk-common/gradle:studio.android.sdktools.sdk-common.gradle",
     ],
 )
 
@@ -27,6 +27,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
     ],
 )

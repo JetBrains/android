@@ -32,6 +32,7 @@ import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
+import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.ide.DataManager
@@ -77,6 +78,7 @@ private constructor(
   val foregroundProcessDetection: ForegroundProcessDetection?,
   val inspectorClientSettings: InspectorClientSettings,
   val treeSettings: TreeSettings,
+  val renderSettings: RenderSettings,
   val isSnapshot: Boolean,
   val launcher: InspectorClientLauncher?,
   private val currentClientProvider: () -> InspectorClient,
@@ -98,10 +100,11 @@ private constructor(
     layoutInspectorModel: InspectorModel,
     notificationModel: NotificationModel,
     treeSettings: TreeSettings,
+    renderSettings: RenderSettings = InspectorRenderSettings(),
     executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
     renderModel: RenderModel =
       RenderModel(layoutInspectorModel, notificationModel, treeSettings) { launcher.activeClient },
-    renderLogic: RenderLogic = RenderLogic(renderModel, InspectorRenderSettings()),
+    renderLogic: RenderLogic = RenderLogic(renderModel, renderSettings),
   ) : this(
     layoutInspectorModel,
     notificationModel,
@@ -111,6 +114,7 @@ private constructor(
     foregroundProcessDetection,
     inspectorClientSettings,
     treeSettings,
+    renderSettings,
     false,
     launcher,
     { launcher.activeClient },
@@ -132,10 +136,11 @@ private constructor(
     layoutInspectorModel: InspectorModel,
     notificationModel: NotificationModel,
     treeSettings: TreeSettings,
+    renderSettings: RenderSettings = EditorRenderSettings(),
     executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
     renderModel: RenderModel =
       RenderModel(layoutInspectorModel, notificationModel, treeSettings) { client },
-    renderLogic: RenderLogic = RenderLogic(renderModel, EditorRenderSettings()),
+    renderLogic: RenderLogic = RenderLogic(renderModel, renderSettings),
   ) : this(
     inspectorModel = layoutInspectorModel,
     notificationModel = notificationModel,
@@ -145,6 +150,7 @@ private constructor(
     foregroundProcessDetection = null,
     inspectorClientSettings = layoutInspectorClientSettings,
     treeSettings = treeSettings,
+    renderSettings = renderSettings,
     isSnapshot = true,
     launcher = null,
     currentClientProvider = { client },

@@ -17,9 +17,16 @@ package com.android.tools.idea.adb;
 
 import com.intellij.openapi.options.ConfigurableUi;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
+import java.awt.Dimension;
+import java.awt.Insets;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -40,6 +47,10 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   private HyperlinkLabel myAdbServerLifecycleLabel;
   private JComboBox myAdbServerBurstMode;
   private HyperlinkLabel myAdbServerBurstModeLabel;
+
+  public AdbConfigurableUi() {
+    setupUI();
+  }
 
   @Override
   public boolean isModified(@NotNull AdbOptionsService settings) {
@@ -143,5 +154,87 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
 
   AdbServerBurstMode getAdbServerBurstMode() {
     return AdbServerBurstMode.fromDisplayText(myAdbServerBurstMode.getSelectedItem().toString());
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(6, 6, new Insets(0, 0, 0, 0), -1, -1));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(0, 5, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                             GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+    final Spacer spacer2 = new Spacer();
+    myPanel.add(spacer2, new GridConstraints(5, 0, 1, 5, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(3, 5, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.add(panel1, new GridConstraints(4, 0, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null,
+                                            1, false));
+    myAutomaticallyStartAndManageServerRadioButton.setText("Automatically start and manage server");
+    panel1.add(myAutomaticallyStartAndManageServerRadioButton,
+               new GridConstraints(0, 0, 1, 5, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myUseExistingManuallyManagedServerRadioButton.setEnabled(true);
+    myUseExistingManuallyManagedServerRadioButton.setText("Use existing manually managed server");
+    panel1.add(myUseExistingManuallyManagedServerRadioButton,
+               new GridConstraints(1, 0, 1, 3, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myExistingAdbServerPortLabel.setText(" Existing ADB server port:");
+    panel1.add(myExistingAdbServerPortLabel,
+               new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 2, false));
+    myExistingAdbServerPortSpinner.setMax(65535);
+    myExistingAdbServerPortSpinner.setMin(5038);
+    myExistingAdbServerPortSpinner.setNumber(5038);
+    myExistingAdbServerPortSpinner.setOpaque(false);
+    panel1.add(myExistingAdbServerPortSpinner, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                                   GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                   null, null, null, 0, false));
+    myAdbServerLifecycleLabel = new HyperlinkLabel();
+    myAdbServerLifecycleLabel.setAlignmentX(0.0f);
+    myAdbServerLifecycleLabel.setFocusable(true);
+    myAdbServerLifecycleLabel.setInheritsPopupMenu(true);
+    myAdbServerLifecycleLabel.setText("");
+    myPanel.add(myAdbServerLifecycleLabel,
+                new GridConstraints(3, 0, 1, 4, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myAdbServerUsbBackendLabel = new HyperlinkLabel();
+    myAdbServerUsbBackendLabel.setAlignmentX(0.5f);
+    myAdbServerUsbBackendLabel.setText("");
+    myAdbServerUsbBackendLabel.setToolTipText("");
+    myPanel.add(myAdbServerUsbBackendLabel,
+                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
+    myAdbServerUsbBackend.setModel(defaultComboBoxModel1);
+    myPanel.add(myAdbServerUsbBackend, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                           GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                           null, 0, false));
+    myPanel.add(myAdbServerMdnsBackend, new GridConstraints(1, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                            GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                            new Dimension(83, 38), null, 0, false));
+    myAdbServerMdnsBackendLabel = new HyperlinkLabel();
+    myAdbServerMdnsBackendLabel.setAlignmentX(0.5f);
+    myAdbServerMdnsBackendLabel.setText("");
+    myPanel.add(myAdbServerMdnsBackendLabel,
+                new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(4, 38), null, 0, false));
+    myPanel.add(myAdbServerBurstMode, new GridConstraints(2, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                          new Dimension(83, 38), null, 0, false));
+    myAdbServerBurstModeLabel = new HyperlinkLabel();
+    myAdbServerBurstModeLabel.setAlignmentX(0.5f);
+    myAdbServerBurstModeLabel.setText("");
+    myPanel.add(myAdbServerBurstModeLabel,
+                new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(4, 38), null, 0, false));
+    ButtonGroup buttonGroup;
+    buttonGroup = new ButtonGroup();
+    buttonGroup.add(myAutomaticallyStartAndManageServerRadioButton);
+    buttonGroup.add(myUseExistingManuallyManagedServerRadioButton);
   }
 }

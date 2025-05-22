@@ -23,7 +23,7 @@ open class TestComposePreviewManager : ComposePreviewManager {
 
   var currentStatus =
     ComposePreviewManager.Status(
-      hasErrorsAndNeedsBuild = false,
+      hasRenderErrors = false,
       hasSyntaxErrors = false,
       isOutOfDate = false,
       areResourcesOutOfDate = false,
@@ -34,8 +34,6 @@ open class TestComposePreviewManager : ComposePreviewManager {
   override fun status(): ComposePreviewManager.Status = currentStatus
 
   override fun invalidate() {}
-
-  override var isInspectionTooltipEnabled: Boolean = false
 
   override var isFilterEnabled: Boolean = false
 

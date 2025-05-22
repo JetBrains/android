@@ -9,7 +9,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/base/common:studio.android.sdktools.common",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
     ],

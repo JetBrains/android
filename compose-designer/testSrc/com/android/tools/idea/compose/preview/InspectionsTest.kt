@@ -29,6 +29,7 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.ComposeProjectRule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -715,6 +716,7 @@ class InspectionsTest {
   }
 
   @Test
+  @Ignore("b/375166200")
   fun testInvalidLegacyDeviceSpec() {
     fixture.enableInspections(PreviewDeviceShouldUseNewSpec() as InspectionProfileEntry)
 

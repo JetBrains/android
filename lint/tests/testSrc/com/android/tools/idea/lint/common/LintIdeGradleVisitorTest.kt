@@ -17,7 +17,6 @@ package com.android.tools.idea.lint.common
 
 import com.android.tools.lint.client.api.Configuration
 import com.android.tools.lint.client.api.LintDriver
-import com.android.tools.lint.detector.api.Context
 import com.android.tools.lint.detector.api.Detector
 import com.android.tools.lint.detector.api.GradleContext
 import com.android.tools.lint.detector.api.GradleScanner
@@ -270,6 +269,20 @@ class LintIdeGradleVisitorTest : JavaCodeInsightFixtureAdtTestCase() {
     )
   }
 
+  fun testMethodCallReceiver() {
+    check(
+      """
+      tasks.withType(Test.class) {
+        enabled = false
+      }
+      """,
+      """
+      checkDslPropertyAssignment(property="enabled", value="false", parent="withType", parentParent="tasks")
+      checkMethodCall(statement="withType", parent="tasks", unnamedArguments="Test.class, { enabled = false }")
+      """,
+    )
+  }
+
   // Test infrastructure below
 
   private fun check(@Language("groovy") gradleSource: String, expected: String) {
@@ -313,7 +326,7 @@ class LoggingGradleDetector : Detector(), GradleScanner {
     sb.append('\n')
   }
 
-  override fun visitBuildScript(context: Context) {
+  override fun visitBuildScript(context: GradleContext) {
     log("visitBuildScript", "file" to context.file.name)
   }
 

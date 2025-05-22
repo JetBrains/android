@@ -22,7 +22,7 @@ import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.naveditor.editor.AddDestinationMenuToken;
 import com.intellij.openapi.module.Module;
-import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 /** Blaze implementation of project system tokens for the navigation editor: Add Destination Menu */
@@ -42,9 +42,7 @@ public class BazelAddDestinationMenuToken
     final var unused =
         addDependenciesWithUiConfirmation(
             module,
-            List.of(
-                GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT.getCoordinate(
-                    "+")),
+            Set.of(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT),
             true,
             false);
   }

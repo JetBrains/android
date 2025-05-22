@@ -49,6 +49,13 @@ class AndroidWatchFaceConfigurationType :
   }
 }
 
+/**
+ * Represents a run configuration for
+ * [Watch Face Services](https://developer.android.com/training/wearables/watch-faces/service?hl=en)
+ * [which are now deprecated](https://support.google.com/wearos/thread/284572445).
+ *
+ * @see [AndroidDeclarativeWatchFaceConfiguration]
+ */
 class AndroidWatchFaceConfiguration(project: Project, factory: ConfigurationFactory) : AndroidWearConfiguration(project, factory) {
   override val componentLaunchOptions = WatchFaceLaunchOptions()
 
@@ -64,4 +71,3 @@ class AndroidWatchFaceConfiguration(project: Project, factory: ConfigurationFact
     deployer
   )
 }
-

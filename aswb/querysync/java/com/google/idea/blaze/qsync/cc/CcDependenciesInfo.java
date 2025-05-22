@@ -37,9 +37,9 @@ public abstract class CcDependenciesInfo {
 
   public static CcDependenciesInfo create(ArtifactTracker.State artifactState) {
     return create(
-        artifactState.depsMap().entrySet().stream()
-            .filter(e -> e.getValue().ccInfo().isPresent())
-            .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().ccInfo().get()))
+        artifactState.targets().stream()
+            .filter(e -> e.ccInfo().isPresent())
+            .map(e -> new SimpleEntry<>(e.label(), e.ccInfo().get()))
             .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)),
         artifactState.ccToolchainMap());
   }

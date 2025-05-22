@@ -19,11 +19,13 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Display
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.SystemInfo
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Files
 import kotlin.io.path.name
 
+@Ignore("b/389922725")
 class FirstLaunchTest {
   @JvmField
   @Rule

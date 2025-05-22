@@ -297,24 +297,24 @@ class GlancePreviewViewModelTest {
   }
 
   @Test
-  fun testHasErrorsAndNeedsBuild() {
-    Assert.assertFalse(viewModel.hasErrorsAndNeedsBuild)
+  fun testHasRenderErrors() {
+    Assert.assertFalse(viewModel.hasRenderErrors)
 
     viewModel.setHasPreviews(true)
 
-    Assert.assertTrue(viewModel.hasErrorsAndNeedsBuild)
+    Assert.assertTrue(viewModel.hasRenderErrors)
 
     viewModel.afterPreviewsRefreshed()
 
-    Assert.assertFalse(viewModel.hasErrorsAndNeedsBuild)
+    Assert.assertFalse(viewModel.hasRenderErrors)
 
     hasRenderErrors.has = true
 
-    Assert.assertTrue(viewModel.hasErrorsAndNeedsBuild)
+    Assert.assertTrue(viewModel.hasRenderErrors)
 
     viewModel.setHasPreviews(false)
 
-    Assert.assertFalse(viewModel.hasErrorsAndNeedsBuild)
+    Assert.assertFalse(viewModel.hasRenderErrors)
   }
 
   @Test

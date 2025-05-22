@@ -50,6 +50,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.nio.file.Paths
 import javax.swing.JPanel
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -271,7 +272,7 @@ class NavDesignSurfaceZoomControlsTest {
           surface.pannable.scrollPosition.x != 0 && surface.pannable.scrollPosition.y != 0
         }
         val output = fakeUi.render()
-        ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomInitial"), output, 0.1, 1)
+        ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomFit"), output, 0.1, 1)
       }
 
       val zoomActionsToolbar =
@@ -289,7 +290,7 @@ class NavDesignSurfaceZoomControlsTest {
           zoomInAction.actionPerformed(event)
           UIUtil.invokeAndWaitIfNeeded { fakeUi.layoutAndDispatchEvents() }
         }
-        Assert.assertEquals(1.5, surface.zoomController.scale, 0.01)
+        Assert.assertEquals(3.0, surface.zoomController.scale, 0.01)
         ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomIn"), fakeUi.render(), 0.1, 1)
       }
     }
@@ -354,7 +355,7 @@ class NavDesignSurfaceZoomControlsTest {
           surface.pannable.scrollPosition.x != 0 && surface.pannable.scrollPosition.y != 0
         }
         val output = fakeUi.render()
-        ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomInitial"), output, 0.1, 1)
+        ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomFit"), output, 0.1, 1)
       }
 
       val zoomActionsToolbar =
@@ -373,7 +374,7 @@ class NavDesignSurfaceZoomControlsTest {
           zoomOutAction.actionPerformed(event)
           UIUtil.invokeAndWaitIfNeeded { fakeUi.layoutAndDispatchEvents() }
         }
-        Assert.assertEquals(0.67, surface.zoomController.scale, 0.01)
+        Assert.assertEquals(1.1, surface.zoomController.scale, 0.01)
         ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomOut"), fakeUi.render(), 0.1, 1)
       }
     }
@@ -440,18 +441,26 @@ class NavDesignSurfaceZoomControlsTest {
           surface.pannable.scrollPosition.x != 0 && surface.pannable.scrollPosition.y != 0
         }
         val output = fakeUi.render()
-        ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomInitial"), output, 0.1, 1)
+        ImageDiffUtil.assertImageSimilar(getGoldenImagePath("zoomFit"), output, 0.1, 1)
       }
 
       val zoomActionsToolbar =
         fakeUi.findComponent<ActionToolbarImpl> { it.place.contains(zoomActionPlace) }!!
 
       val zoomToFitAction = zoomActionsToolbar.actions.filterIsInstance<ZoomToFitAction>().single()
+      val zoomInAction = zoomActionsToolbar.actions.filterIsInstance<ZoomInAction>().single()
 
       val event =
         TestActionEvent.createTestEvent(
           DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, surface)
         )
+
+      // Perform zoom in action twice and make sure surface is not zoom to fit
+      zoomInAction.actionPerformed(event)
+      zoomInAction.actionPerformed(event)
+      assertTrue(surface.zoomController.canZoomToFit())
+
+      // Perform zoom to fit action
       zoomToFitAction.actionPerformed(event)
       val zoomToFitScale = surface.zoomController.scale
 

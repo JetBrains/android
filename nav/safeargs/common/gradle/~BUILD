@@ -10,9 +10,9 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/nav/safeargs/common:intellij.android.nav.safeargs.common[module]",
-        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
-        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
-        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/nav/safeargs/common:intellij.android.nav.safeargs.common",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
+        "//tools/adt/idea/android:intellij.android.core",
     ],
 )

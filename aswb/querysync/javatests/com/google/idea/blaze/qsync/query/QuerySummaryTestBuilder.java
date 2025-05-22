@@ -70,7 +70,7 @@ public class QuerySummaryTestBuilder {
             .collect(toCollection(HashSet::new));
     sourceFiles.addAll(includes.keySet());
 
-    QuerySummary.Builder builder = QuerySummary.newBuilder();
+    QuerySummaryImpl.Builder builder = QuerySummaryImpl.newBuilder();
     builder.putAllRules(
       packages.stream()
         .filter(l -> !buildFilesWithErrors.contains(l.siblingWithName("BUILD")))

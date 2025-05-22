@@ -78,7 +78,7 @@ class PreviewBuildListenersManager(
             // modification happens. But invalidation should not be done when this listener is
             // called during setup, as a consequence of an old build (see startedListening)
             if (buildListenerSetupFinished) {
-              ModuleClassLoaderOverlays.getInstance(module).invalidateOverlayPaths()
+              ModuleClassLoaderOverlays.getInstance(buildTargetReference).invalidateOverlayPaths()
             }
             // If Fast Preview is enabled, prefetch the daemon for the current configuration.
             // This should not happen when essentials mode is enabled.

@@ -39,11 +39,3 @@ open class CapabilityNotSupported(@Nls val message: String = "The build system f
                                   @Nls(capitalization = Nls.Capitalization.Title) val title: String = "Unsupported Capability") : CapabilityStatus() {
   override fun isSupported(): Boolean = false
 }
-
-/**
- * Indicates that the capability is not supported by the current version of the build system,
- * but would be available if it were upgraded to a newer version.
- */
-class CapabilityUpgradeRequired(@Nls message: String = "You must upgrade your build system to support this feature",
-                                @Nls(capitalization = Nls.Capitalization.Title) title: String = "Upgrade needed")
-  : CapabilityNotSupported(message, title)

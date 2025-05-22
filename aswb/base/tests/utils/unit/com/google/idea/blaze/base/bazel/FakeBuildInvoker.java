@@ -25,8 +25,10 @@ import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
+import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
+import com.google.idea.blaze.exception.BuildException;
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -40,7 +42,6 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     return new AutoValue_FakeBuildInvoker.Builder()
         .type(BuildBinaryType.NONE)
         .binaryPath("")
-        .supportsParallelism(false)
         .buildResultHelperSupplier(() -> null)
         .commandRunner(new FakeBlazeCommandRunner())
         .buildSystem(FakeBuildSystem.builder(BuildSystemName.Blaze).build());
@@ -53,29 +54,24 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   public abstract String getBinaryPath();
 
   @Override
-  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder) {
+  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     return fakeBuildEventStreamProvider();
   }
 
   @Override
-  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder) {
+  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException {
     return InputStream.nullInputStream();
   }
 
   @Override
-  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder) {
+  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     return InputStream.nullInputStream();
   }
 
   @Override
   @Nullable
-  public abstract BlazeInfo getBlazeInfo();
-
-  public abstract boolean getSupportsParallelism();
-
-  @Override
-  public boolean supportsParallelism() {
-    return getSupportsParallelism();
+  public BlazeInfo getBlazeInfo(BlazeContext blazeContext) {
+    return null;
   }
 
   @Override
@@ -85,7 +81,7 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     return getBuildResultHelperSupplier().get();
   }
 
-  abstract Supplier<BuildResultHelper> getBuildResultHelperSupplier();
+  protected abstract Supplier<BuildResultHelper> getBuildResultHelperSupplier();
 
   @Override
   public abstract FakeBlazeCommandRunner getCommandRunner();
@@ -150,10 +146,6 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     public abstract Builder type(BuildBinaryType type);
 
     public abstract Builder binaryPath(String binaryPath);
-
-    public abstract Builder blazeInfo(BlazeInfo blazeInfo);
-
-    public abstract Builder supportsParallelism(boolean parallel);
 
     public abstract Builder buildResultHelperSupplier(Supplier<BuildResultHelper> supplier);
 

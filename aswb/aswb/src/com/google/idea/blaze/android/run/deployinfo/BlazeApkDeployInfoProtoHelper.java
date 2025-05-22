@@ -23,12 +23,9 @@ import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoO
 import com.google.devtools.build.lib.rules.android.deployinfo.AndroidDeployInfoOuterClass.Artifact;
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest;
 import com.google.idea.blaze.android.manifest.ParsedManifestService;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
-import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
-import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -37,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,25 +46,17 @@ public class BlazeApkDeployInfoProtoHelper {
   public AndroidDeployInfo readDeployInfoProtoForTarget(
       Label target,
       String outputGroup,
-      BuildResultHelper buildResultHelper,
+      BlazeBuildOutputs outputs,
       Predicate<String> pathFilter)
-      throws GetDeployInfoException {
+      throws GetDeployInfoException, GetArtifactsException {
     ImmutableList<OutputArtifact> outputArtifacts;
     ImmutableList<OutputArtifact> targetOutputArtifacts;
-
-    BlazeBuildOutputs bazelOutputs;
-    try (final var bepStream = buildResultHelper.getBepStream(Optional.empty())) {
-      final var bepOutput = BuildResultParser.getBuildOutput(bepStream, Interners.STRING);
-      bazelOutputs = BlazeBuildOutputs.fromParsedBepOutput(bepOutput);
-      targetOutputArtifacts =
-          bazelOutputs.getOutputGroupTargetArtifacts(outputGroup, target.toString());
-      outputArtifacts =
-          targetOutputArtifacts.stream()
-              .filter(it -> pathFilter.test(it.getBazelOutRelativePath()))
-              .collect(toImmutableList());
-    } catch (GetArtifactsException e) {
-      throw new GetDeployInfoException(e.getMessage());
-    }
+    targetOutputArtifacts =
+        outputs.getOutputGroupTargetArtifacts(outputGroup, target.toString());
+    outputArtifacts =
+        targetOutputArtifacts.stream()
+            .filter(it -> pathFilter.test(it.getBazelOutRelativePath()))
+            .collect(toImmutableList());
 
     if (outputArtifacts.isEmpty()) {
       Logger log = Logger.getInstance(BlazeApkDeployInfoProtoHelper.class.getName());

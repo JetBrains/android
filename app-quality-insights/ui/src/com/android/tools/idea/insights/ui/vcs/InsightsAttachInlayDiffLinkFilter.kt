@@ -152,12 +152,11 @@ class InsightsAttachInlayDiffLinkFilter(
     private fun PresentationFactory.createInlayPresentation(editor: Editor): InlayPresentation {
       val commaInlay =
         InsightsTextInlayPresentation(
-            text = ", ",
-            textAttributesKey = CodeInsightColors.HYPERLINK_ATTRIBUTES,
-            isUnderline = false,
-            editor,
-          )
-          .withLineCentered(editor)
+          text = ", ",
+          textAttributesKey = CodeInsightColors.HYPERLINK_ATTRIBUTES,
+          isUnderline = false,
+          editor,
+        )
 
       val showDiffTooltip =
         HelpTooltip().apply {
@@ -173,7 +172,6 @@ class InsightsAttachInlayDiffLinkFilter(
             isUnderline = true,
             editor,
           )
-          .withLineCentered(editor)
           .withOnClick(this) { _, _ ->
             val project = editor.project ?: return@withOnClick
             goToDiff(diffContextData, project)
@@ -221,7 +219,7 @@ class InsightsTextInlayPresentation(
     get() = getOrCreateMetrics().getStringWidth(text)
 
   override val height: Int
-    get() = getOrCreateMetrics().fontHeight
+    get() = editor.lineHeight
 
   private val colorsScheme
     get() = editor.colorsScheme
@@ -255,7 +253,14 @@ class InsightsTextInlayPresentation(
     // We assume this will be a better approximation to a real line height for a given font
     val fontHeight = ceil(font.createGlyphVector(context, "H").visualBounds.height).toInt()
 
-    return InlayTextMetrics(editor, fontHeight, fontHeight, metrics, fontType, UISettings.getInstance().ideScale)
+    return InlayTextMetrics(
+      editor,
+      fontHeight,
+      fontHeight,
+      metrics,
+      fontType,
+      UISettings.getInstance().ideScale,
+    )
   }
 
   private fun getCurrentContext(editorComponent: JComponent): FontRenderContext {
@@ -279,7 +284,7 @@ class InsightsTextInlayPresentation(
         AntialiasingType.getKeyForCurrentScope(false),
       )
       g.color = colorsScheme.getAttributes(textAttributesKey).foregroundColor
-      g.drawString(text, 0, metrics.fontBaseline)
+      g.drawString(text, 0, (editor.lineHeight + metrics.fontBaseline).div(2))
     } finally {
       g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, savedHint)
     }

@@ -15,8 +15,8 @@ iml_module(
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/as-driver:as-driver.utils[test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
     ],
 )
 

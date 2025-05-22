@@ -205,6 +205,7 @@ class ComposePreviewRepresentationProviderTest {
     val mockPsiFile = mock<PsiFile>()
     whenever(mockProjectRootManager.fileIndex).thenReturn(mockProjectFileIndex)
     whenever(mockPsiFile.virtualFile).thenReturn(LightVirtualFile())
+    whenever(mockPsiFile.project).thenReturn(project)
     whenever(mockProjectFileIndex.isInLibrary(any())).thenReturn(true)
 
     assertFalse(previewProvider.accept(project, mockPsiFile))

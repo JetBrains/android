@@ -145,7 +145,7 @@ public class BuildLanguageSpecProviderImpl implements BuildLanguageSpecProvider 
 
   private ListenableFuture<BuildLanguageSpec> fetchBuildLanguageSpec(BlazeContext context) {
     BuildInvoker invoker =
-        Blaze.getBuildSystemProvider(project).getBuildSystem().getDefaultInvoker(project, context);
+        Blaze.getBuildSystemProvider(project).getBuildSystem().getDefaultInvoker(project);
     ListenableFuture<byte[]> future =
         BlazeInfoRunner.getInstance()
             .runBlazeInfoGetBytes(
@@ -168,7 +168,7 @@ public class BuildLanguageSpecProviderImpl implements BuildLanguageSpecProvider 
 
   private ListenableFuture<String> fetchBlazeRelease(BlazeContext context) {
     BuildInvoker invoker =
-        Blaze.getBuildSystemProvider(project).getBuildSystem().getDefaultInvoker(project, context);
+        Blaze.getBuildSystemProvider(project).getBuildSystem().getDefaultInvoker(project);
     ListenableFuture<byte[]> future =
         BlazeInfoRunner.getInstance()
             .runBlazeInfoGetBytes(project, invoker, context, ImmutableList.of(), BlazeInfo.RELEASE);

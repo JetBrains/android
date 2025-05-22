@@ -369,7 +369,9 @@ private class LintIdeFixPerformerFix(
   incident: Incident,
   val fix: LintFix,
   private val name: String = fix.getDisplayName() ?: "Fix",
-  private val familyName: String = fix.getFamilyName() ?: "LintIdeFix",
+  // LintFix's family name is optional (nullable), but IntelliJ's is not, and is typically just
+  // the quick-fix name, or a less specific version of it (if provided by the LintFix).
+  private val familyName: String = fix.getFamilyName() ?: name,
   private val valueOverride: ((PendingEditFile, PendingEdit) -> String?)? = null,
 ) : ModCommandAction {
 

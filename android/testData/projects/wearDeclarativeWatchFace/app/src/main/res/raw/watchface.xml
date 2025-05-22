@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<WatchFace width="450" height="450">
+  <Metadata key="CLOCK_TYPE" value="DIGITAL"/>
+  <Metadata key="PREVIEW_TIME" value="10:08:32"/>
+  <Scene backgroundColor="#ff000000">
+    <DigitalClock x="0" y="0" width="450" height="450">
+      <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="175" width="450" height="100" alpha="255">
+        <Variant mode="AMBIENT" target="alpha" value="0"/>
+        <Font family="SYNC_TO_DEVICE" size="128" weight="NORMAL" slant="NORMAL" color="#ffffffff"/>
+      </TimeText>
+      <TimeText format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER" x="0" y="175" width="450" height="100" alpha="0">
+        <Variant mode="AMBIENT" target="alpha" value="255"/>
+        <Font family="SYNC_TO_DEVICE" size="128" weight="THIN" slant="NORMAL" color="#ffffffff"/>
+      </TimeText>
+    </DigitalClock>
+    <Group x="0" y="0" width="450" height="450" name="hello_world">
+      <PartText x="0" y="285" width="450" height="50">
+        <Variant mode="AMBIENT" target="alpha" value="0"/>
+        <Text align="CENTER">
+          <Font family="SYNC_TO_DEVICE" size="36" color="#ffffffff">
+            <Template>%s<Parameter expression="greeting" /></Template>
+          </Font>
+        </Text>
+      </PartText>
+    </Group>
+  </Scene>
+</WatchFace>

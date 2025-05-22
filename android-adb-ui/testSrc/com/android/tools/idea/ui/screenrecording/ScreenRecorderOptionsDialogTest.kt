@@ -132,7 +132,7 @@ class ScreenRecorderOptionsDialogTest {
       assertThat(resolutionPercentField.selectedItem).isEqualTo(100)
       assertThat(showTapsField.isSelected).isEqualTo(false)
       assertThat(extractTextFromHtml(recordingLengthField.text)).isEqualTo("The length of the recording can be up to 30 minutes.")
-      assertThat(configureSaveButton.text).isEqualTo("Configure Saving")
+      assertThat(configureSaveButton.text).isEqualTo("Configure")
       bitRateField.text = "2"
       resolutionPercentField.selectedItem = 25
       showTapsField.isSelected = true

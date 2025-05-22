@@ -20,8 +20,8 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.idea.ui.extractTextFromHtml
-import com.android.tools.idea.ui.save.SaveConfiguration.Companion.DEFAULT_SAVE_LOCATION
-import com.android.tools.idea.ui.save.SaveConfiguration.Companion.PROJECT_DIR_MACRO
+import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.DEFAULT_SAVE_LOCATION
+import com.android.tools.idea.ui.save.SaveConfigurationResolver.Companion.PROJECT_DIR_MACRO
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir

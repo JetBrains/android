@@ -39,7 +39,7 @@ internal class LiveEditCompilerForK1(
     var inputFiles = listOf(file)
 
     runWithCompileLock {
-      ReadActionPrebuildChecks(project, file)
+      readActionPrebuildChecks(project, file)
 
       // This is a three-step process:
       // 1) Compute binding context based on any previous cached analysis results.

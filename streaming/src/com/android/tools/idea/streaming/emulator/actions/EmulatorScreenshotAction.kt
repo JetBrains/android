@@ -27,7 +27,7 @@ import com.android.tools.idea.streaming.emulator.FutureStreamObserver
 import com.android.tools.idea.ui.screenshot.FramingOption
 import com.android.tools.idea.ui.screenshot.ScreenshotDecorator
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
-import com.android.tools.idea.ui.screenshot.ScreenshotSupplier
+import com.android.tools.idea.ui.screenshot.ScreenshotProvider
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.google.common.base.Throwables
 import com.google.common.util.concurrent.UncheckedExecutionException
@@ -89,10 +89,10 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
         val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
         processedImage.writeImage("PNG", file)
         val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?: throw IOException("Unable to save screenshot")
-        val screenshotSupplier = EmulatorScreenshotSupplier(emulatorController)
+        val screenshotProvider = EmulatorScreenshotProvider(emulatorController)
 
         ApplicationManager.getApplication().invokeLater {
-          val viewer = ScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotDecorator, framingOptions, 0,
+          val viewer = ScreenshotViewer(project, screenshotImage, backingFile, screenshotProvider, screenshotDecorator, framingOptions, 0,
                                         EnumSet.noneOf(ScreenshotViewer.Option::class.java))
           viewer.show()
         }
@@ -103,7 +103,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     }
   }
 
-  private class EmulatorScreenshotSupplier(val emulatorController: EmulatorController) : ScreenshotSupplier {
+  private class EmulatorScreenshotProvider(val emulatorController: EmulatorController) : ScreenshotProvider {
 
     init {
       Disposer.register(emulatorController, this)

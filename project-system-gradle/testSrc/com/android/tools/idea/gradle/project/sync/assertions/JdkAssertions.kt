@@ -123,12 +123,22 @@ class AssertOnFailure(
   fun assertException(expectedException: KClass<out Exception>) {
     expect.that(exception).isInstanceOf(expectedException::class.java)
   }
+
+  fun assertException(expectedException: KClass<out Exception>, expectedMessage: String) {
+    expect.that(exception.message).startsWith(expectedMessage)
+    assertException(expectedException)
+  }
 }
 
 class AssertSyncEvents(
   private val exceptionSyncMessages: List<String>,
   private val expect: Expect
 ) {
+  fun assertExceptionMessage(expectedException: String) {
+    val currentException = exceptionSyncMessages.joinToString("\n")
+    expect.that(currentException).isEqualTo(expectedException)
+  }
+
   fun assertInvalidGradleJdkMessage(expectedInvalidGradleJdk: InvalidGradleJdkCause) {
     val currentException = exceptionSyncMessages.joinToString("\n")
     val expectedException = """

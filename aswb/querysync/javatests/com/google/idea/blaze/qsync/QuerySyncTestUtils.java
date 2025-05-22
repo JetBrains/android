@@ -27,6 +27,7 @@ import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.java.PackageReader;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
+import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
 import com.google.idea.blaze.qsync.testdata.TestData;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,7 +58,7 @@ public class QuerySyncTestUtils {
       Optional.of(new VcsState("workspaceId", "1", ImmutableSet.of(), Optional.empty()));
 
   public static QuerySummary getQuerySummary(TestData genQueryName) throws IOException {
-    return QuerySummary.create(QuerySpec.QueryStrategy.PLAIN, genQueryName.getQueryOutputPath().toFile());
+    return QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, genQueryName.getQueryOutputPath().toFile());
   }
 
   private static final ImmutableSet<String> JAVA_ROOT_DIRS = ImmutableSet.of("java", "javatests");

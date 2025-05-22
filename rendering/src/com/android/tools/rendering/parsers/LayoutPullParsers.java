@@ -259,7 +259,7 @@ public class LayoutPullParsers {
       return MenuLayoutParserFactory.createInNavigationView(file, task.getContext().getModule().getDependencies());
     }
 
-    return MenuLayoutParserFactory.create(file, task.getLayoutlibCallback());
+    return MenuLayoutParserFactory.create(file, task::setMenuResource);
   }
 
   @Nullable

@@ -17,6 +17,8 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
 
+import com.android.annotations.concurrency.Slow;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.common.WrappedFlowLayout;
@@ -38,6 +40,7 @@ import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
@@ -59,6 +62,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.ui.LoadingDecorator;
+import com.intellij.openapi.util.CheckedDisposable;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -66,14 +70,19 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.GuiUtils;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.TitledSeparator;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.NonOpaquePanel;
-import com.intellij.util.concurrency.ThreadingAssertions;
+import com.intellij.util.ModalityUiUtil;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.AnimatedIcon;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -84,14 +93,19 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.border.TitledBorder;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -151,6 +165,9 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   @NotNull private final IconGenerationProcessor myIconGenerationProcessor = new IconGenerationProcessor();
   @NotNull private final StringProperty myPreviewRenderingError = new StringValueProperty();
   @NotNull private final IdeResourceNameValidator myNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE);
+  @NotNull private final CheckedDisposable myDisposable = Disposer.newCheckedDisposable();
+  @NotNull private final OptionalValueProperty<Boolean> myIconExists = new OptionalValueProperty<>();
+  @Nullable private Future<?> myCheckingExistingIconFilesFuture;
 
   /**
    * Create a panel which can generate Android icons. The supported types passed in will be
@@ -161,6 +178,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
                                  @NotNull AndroidModulePaths defaultPaths, @NotNull File resFolder,
                                  @NotNull AndroidIconType... supportedTypes) {
     super(new BorderLayout());
+    setupUI();
     FileDocumentManager.getInstance().saveAllDocuments();
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), panel -> new LoadingDecorator(panel, this, -1) {
       @Override
@@ -271,6 +289,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
 
     Disposer.register(disposableParent, this);
     Disposer.register(this, myValidatorPanel);
+    Disposer.register(this, myDisposable);
     add(myValidatorPanel);
   }
 
@@ -296,11 +315,13 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     myListeners.listenAndFire(myShowSafeZoneProperty, selected -> updatePreview.run());
     myListeners.listenAndFire(myPreviewDensityProperty, value -> updatePreview.run());
 
+    myListeners.listenAndFire(myOutputName, name -> checkForExistingIconFiles());
+
     // Show interactive preview components only if creating adaptive icons.
     Expression<Boolean> isAdaptiveIconOutput = Expression.create(() -> isAdaptiveIconType(myOutputIconType.get()), myOutputIconType);
     myBindings.bind(new VisibleProperty(myShowSafeZone), isAdaptiveIconOutput);
     Expression<Boolean> isLauncherIconOutput =
-        Expression.create(() -> myOutputIconType.get() == AndroidIconType.LAUNCHER, myOutputIconType);
+      Expression.create(() -> myOutputIconType.get() == AndroidIconType.LAUNCHER, myOutputIconType);
     myBindings.bind(new VisibleProperty(myShowGrid), isLauncherIconOutput);
     myBindings.bind(new VisibleProperty(myPreviewResolutionComboBox), isLauncherIconOutput);
   }
@@ -329,6 +350,91 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     myOutputPreviewPanel.repaint();
   }
 
+  private void setupUI() {
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    mySplitPane = new JSplitPane();
+    mySplitPane.setContinuousLayout(true);
+    mySplitPane.setDividerSize(10);
+    mySplitPane.setEnabled(true);
+    myRootPanel.add(mySplitPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                     new Dimension(200, 200), null, 0, false));
+    mySplitPane.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), null, TitledBorder.DEFAULT_JUSTIFICATION,
+                                                           TitledBorder.DEFAULT_POSITION, null, null));
+    myIconTypePanel = new JPanel();
+    myIconTypePanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    mySplitPane.setLeftComponent(myIconTypePanel);
+    myOutputIconTypePanel = new JPanel();
+    myOutputIconTypePanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myIconTypePanel.add(myOutputIconTypePanel,
+                        new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL, 1,
+                                            GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Icon type:");
+    myOutputIconTypePanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                            new Dimension(80, -1), null, null, 0, false));
+    myIconTypeCombo = new JComboBox();
+    myOutputIconTypePanel.add(myIconTypeCombo, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                                   GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                   null, null, null, 0, false));
+    myConfigureIconPanels = new JPanel();
+    myConfigureIconPanels.setLayout(new CardLayout(0, 0));
+    myIconTypePanel.add(myConfigureIconPanels, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                   GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                   GridConstraints.SIZEPOLICY_CAN_GROW, new Dimension(350, -1), null, null,
+                                                                   0, false));
+    myPreviewPanel = new JPanel();
+    myPreviewPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 2, 0, 0), -1, -1));
+    mySplitPane.setRightComponent(myPreviewPanel);
+    myPreviewTitlePanel = new JPanel();
+    myPreviewTitlePanel.setLayout(new GridLayoutManager(1, 4, new Insets(0, 0, 0, 0), -1, -1));
+    myPreviewPanel.add(myPreviewTitlePanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_SOUTH, GridConstraints.FILL_HORIZONTAL,
+                                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myOutputPreviewLabel = new TitledSeparator();
+    myOutputPreviewLabel.setText("Preview");
+    myPreviewTitlePanel.add(myOutputPreviewLabel,
+                            new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myShowGrid = new JCheckBox();
+    myShowGrid.setText("Show grid");
+    myPreviewTitlePanel.add(myShowGrid, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                            null, 0, false));
+    myShowSafeZone = new JCheckBox();
+    myShowSafeZone.setText("Show safe zone");
+    myPreviewTitlePanel.add(myShowSafeZone, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                                null, null, 0, false));
+    myPreviewResolutionComboBox = new JComboBox();
+    myPreviewTitlePanel.add(myPreviewResolutionComboBox,
+                            new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                false));
+    myPreviewContentsPanel = new JPanel();
+    myPreviewContentsPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), 0, 0));
+    myPreviewPanel.add(myPreviewContentsPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                   GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                   GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myOutputPreviewScrollPane = new JBScrollPane();
+    myOutputPreviewScrollPane.setHorizontalScrollBarPolicy(30);
+    myPreviewContentsPanel.add(myOutputPreviewScrollPane,
+                               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                   null, 0, false));
+    myOutputPreviewPanel = new CheckeredBackgroundPanel();
+    myOutputPreviewScrollPane.setViewportView(myOutputPreviewPanel);
+    jBLabel1.setLabelFor(myIconTypeCombo);
+  }
+
   private static boolean isAdaptiveIconType(@NotNull AndroidIconType iconType) {
     return iconType == AndroidIconType.LAUNCHER || iconType == AndroidIconType.TV_CHANNEL;
   }
@@ -350,15 +456,18 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
       if (trimmedName.isEmpty()) {
         return new Validator.Result(Validator.Severity.ERROR, "Icon name must be set");
       }
-      else if (iconExists()) {
+      else if (!myIconExists.isPresent().get()) {
+        return new Validator.Result(Validator.Severity.LOADING, "Checking for existing icons...");
+      }
+      else if (myIconExists.getValueOr(false)) {
         return new Validator.Result(Validator.Severity.WARNING, "An icon with the same name already exists and will be overwritten.");
       }
       else {
         return Validator.Result.OK;
       }
-    });
+    }, myIconExists);
     myValidatorPanel.registerValidator(
-        myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name.trim())));
+      myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name.trim())));
 
     myValidatorPanel.registerValidator(myPreviewRenderingError, errorMessage -> {
       if (!errorMessage.isEmpty()) {
@@ -397,15 +506,59 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   }
 
   /**
+   * A boolean property which will be true when there are no serious validation issues
+   */
+  @NotNull
+  public ObservableBool canProceed() {
+    return hasErrors().not().and(myIconExists.isPresent());
+  }
+
+  /**
    * A boolean property which will be true if validation logic catches any problems with any of the
    * current icon settings, particularly the output name / path. You should probably not generate
    * icons if there are any errors.
    */
   @NotNull
-  public ObservableBool hasErrors() {
+  private ObservableBool hasErrors() {
     return myValidatorPanel.hasErrors();
   }
 
+  private void checkForExistingIconFiles() {
+    myIconExists.set(Optional.empty());
+
+    // Cancel any existing checks
+    if (myCheckingExistingIconFilesFuture != null && !myCheckingExistingIconFilesFuture.isDone()) {
+      myCheckingExistingIconFilesFuture.cancel(true);
+    }
+
+    String currentOutputName = myOutputName.get();
+    if (currentOutputName.isEmpty()) {
+      return;
+    }
+
+    myCheckingExistingIconFilesFuture = ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      boolean iconExists = iconExists();
+
+      ModalityUiUtil.invokeLaterIfNeeded(
+        ModalityState.any(),
+        () -> {
+          if (this.myDisposable.isDisposed()) {
+            return;
+          }
+
+          if (!currentOutputName.equals(myOutputName.get())) {
+            // The name has been updated in the meantime, so drop this result
+            return;
+          }
+
+          myIconExists.set(Optional.of(iconExists));
+        }
+      );
+    });
+  }
+
+  @Slow
+  @WorkerThread
   private boolean iconExists() {
     Map<File, GeneratedIcon> pathImageMap = getIconGenerator().generateIconPlaceholders(myPaths, myResFolder);
     for (File path : pathImageMap.keySet()) {
@@ -432,7 +585,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
    * only the most recently added will be handled, whenever the worker finishes.
    */
   private void enqueueGenerateNotificationIcons() {
-    ThreadingAssertions.assertEventDispatchThread();
+    ApplicationManager.getApplication().assertIsDispatchThread();
 
     AndroidIconType iconType = myOutputIconType.get();
     IconGenerator iconGenerator = getActiveIconView().getIconGenerator();
@@ -481,7 +634,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   public PersistentState getState() {
     PersistentState state = new PersistentState();
     state.set(OUTPUT_ICON_TYPE_PROPERTY, myOutputIconType.get(), AndroidIconType.LAUNCHER);
-    for (Map.Entry<AndroidIconType, ConfigureIconView> entry: myConfigureIconViews.entrySet()) {
+    for (Map.Entry<AndroidIconType, ConfigureIconView> entry : myConfigureIconViews.entrySet()) {
       state.setChild(toLowerCamelCase(entry.getKey()), entry.getValue().getState());
     }
     return state;
@@ -492,12 +645,12 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     myOutputIconType.set(state.get(OUTPUT_ICON_TYPE_PROPERTY, AndroidIconType.LAUNCHER));
     // Load persistent state of individual panels after dust settles.
     ApplicationManager.getApplication().invokeLater(
-        () -> {
-          for (Map.Entry<AndroidIconType, ConfigureIconView> entry: myConfigureIconViews.entrySet()) {
-            PersistentStateUtil.load(entry.getValue(), state.getChild(toLowerCamelCase(entry.getKey())));
-          }
-        },
-        ModalityState.any());
+      () -> {
+        for (Map.Entry<AndroidIconType, ConfigureIconView> entry : myConfigureIconViews.entrySet()) {
+          PersistentStateUtil.load(entry.getValue(), state.getChild(toLowerCamelCase(entry.getKey())));
+        }
+      },
+      ModalityState.any());
   }
 
   private static class LauncherLegacyIconsPreviewPanel extends PreviewIconsPanel {

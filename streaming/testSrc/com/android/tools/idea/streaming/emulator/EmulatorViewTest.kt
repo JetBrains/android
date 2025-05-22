@@ -170,7 +170,7 @@ class EmulatorViewTest {
   }
 
   @Test
-  fun testEmulatorView() {
+  fun testResizingRotationAndMouseInput() {
     view = emulatorViewRule.newEmulatorView()
     fakeUi = FakeUi(createScrollPane(view), 2.0)
 
@@ -298,6 +298,23 @@ class EmulatorViewTest {
     call = getStreamScreenshotCallAndWaitForFrame()
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 500 height: 400")
     assertAppearance("EmulatorView4")
+  }
+
+  @Test
+  fun testRightClick() {
+    view = emulatorViewRule.newEmulatorView()
+    fakeUi = FakeUi(createScrollPane(view), 2.0)
+    fakeUi.root.size = Dimension(200, 300)
+    fakeUi.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame()
+    fakeUi.render()
+
+    view.rightClicksAreSentToDevice = true
+    fakeUi.mouse.press(40, 30, button = FakeMouse.Button.RIGHT)
+    val inputEventCall = fakeEmulator.getNextGrpcCall(2.seconds)
+    assertThat(shortDebugString(inputEventCall.request)).isEqualTo("mouse_event { x: 83 y: 257 buttons: 2 }")
+    fakeUi.mouse.release()
+    assertThat(shortDebugString(inputEventCall.request)).isEqualTo("mouse_event { x: 83 y: 257 }")
   }
 
   @Test
@@ -638,6 +655,7 @@ class EmulatorViewTest {
     getStreamScreenshotCallAndWaitForFrame()
     fakeUi.render()
 
+    view.rightClicksAreSentToDevice = true
     val params = listOf(Pair(FakeMouse.Button.RIGHT, "buttons: 2"), Pair(FakeMouse.Button.MIDDLE, "buttons: 4"))
     var call: GrpcCallRecord? = null
     for ((button, expected) in params) {
@@ -664,6 +682,7 @@ class EmulatorViewTest {
     fakeUi.layoutAndDispatchEvents()
     getStreamScreenshotCallAndWaitForFrame()
     fakeUi.render()
+
 
     fakeUi.mouse.press(135, 190, FakeMouse.Button.RIGHT)
 

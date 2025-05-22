@@ -54,6 +54,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.PostprocessReformattingAspect;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;

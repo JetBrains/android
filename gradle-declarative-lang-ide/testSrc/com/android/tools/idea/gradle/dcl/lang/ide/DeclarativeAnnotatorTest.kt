@@ -114,6 +114,20 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
   }
 
   @Test
+  fun checkInvalidUnicodeString() {
+    // Annotator should skip highlighting of this element
+    // as strings are parsed/highlighted by highlighting lexer
+    val file = addDeclarativeBuildFile("""
+      androidApp {
+        namespace = "org.gradle.experim\uental.android.app"
+      }
+    """)
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
   @Ignore("New schema does not have NDO")
   fun stopCheckingWithUnknownNamedDomainObjects() {
     val file = addDeclarativeBuildFile("""
@@ -207,12 +221,24 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
   }
 
   @Test
+  fun checkFactoryBlockNegative() {
+    val file = addDeclarativeBuildFile("""
+    androidApp {
+      buildTypes {
+        ${"buildTypes" highlightedAs HighlightSeverity.ERROR}("new"){ }
+      }
+    }
+    """)
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
   fun checkCorrectSettingsSyntax(){
     val file = fixture.addFileToProject("settings.gradle.dcl",
-                                        """
-      rootProject {
-         name = "nowinandroid"
-      }
+    """
+      rootProject.name = "nowinandroid"
 
       enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
       include(":app")
@@ -321,6 +347,34 @@ class DeclarativeAnnotatorTest: UsefulTestCase() {
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun layoutPositiveTest() {
+    val file = addDeclarativeBuildFile("""
+       androidApp {
+        bundle {
+          deviceTargetingConfig = layout.projectDirectory.file("myfile")
+        }
+      }
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun layoutNegativeTest() {
+    val file = addDeclarativeBuildFile("""
+       androidApp {
+        bundle {
+          deviceTargetingConfig = ${"Layout" highlightedAs HighlightSeverity.ERROR }.${"projectDirectory" highlightedAs HighlightSeverity.ERROR }.${"file" highlightedAs HighlightSeverity.ERROR }("myfile")
+          deviceTargetingConfig = layout.${"ProjectDirectory" highlightedAs HighlightSeverity.ERROR }.${"file" highlightedAs HighlightSeverity.ERROR }("myfile")
+          deviceTargetingConfig = layout.projectDirectory.${"File" highlightedAs HighlightSeverity.ERROR }("myfile")
+        }
+      }
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
     fixture.checkHighlighting()
   }
 

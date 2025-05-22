@@ -361,7 +361,7 @@ class DeviceFileExplorerControllerImpl(
     }
 
     private fun findDeviceFileEntryNodeFromPath(root: DeviceFileEntryNode, entryFullPath: String): DeviceFileEntryNode? {
-      val pathComponents = AdbPathUtil.getSegments(entryFullPath)
+      var pathComponents = AdbPathUtil.getSegments(entryFullPath)
 
       /* AdbPathUtil.getSegments removes the root "/" segment by default. We handle that edge case
       by checking if the result is empty. To reuse empty meaning the root node with /data/data,
@@ -369,8 +369,7 @@ class DeviceFileExplorerControllerImpl(
       package filter is being used.
       */
       if (pathComponents.size >= 2 && shouldUsePackageFilter()) {
-        pathComponents.removeFirst()
-        pathComponents.removeFirst()
+        pathComponents = pathComponents.drop(2)
       }
 
       if (pathComponents.isEmpty()) {

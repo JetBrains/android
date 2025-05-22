@@ -36,21 +36,16 @@ import com.google.idea.blaze.android.run.deployinfo.BlazeApkDeployInfoProtoHelpe
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
 import com.google.idea.blaze.android.run.runner.BlazeAndroidDeviceSelector;
 import com.google.idea.blaze.android.run.runner.ExecRootUtil;
-import com.google.idea.blaze.base.async.process.ExternalTask;
-import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
-import com.google.idea.blaze.base.async.process.PrintOutputLineProcessor;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.command.BlazeFlags;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper.GetArtifactsException;
-import com.google.idea.blaze.base.console.BlazeConsoleLineProcessorProvider;
+import com.google.idea.blaze.base.command.buildresult.BuildResultParser;
+import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.filecache.FileCaches;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.Label;
-import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.scope.output.StatusOutput;
@@ -59,12 +54,15 @@ import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.SaveUtil;
+import com.google.idea.blaze.common.Interners;
+import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.execution.ExecutionException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import javax.annotation.Nullable;
@@ -72,8 +70,6 @@ import org.jetbrains.annotations.TestOnly;
 
 /** Builds and installs the APK using mobile-install. */
 public class MobileInstallBuildStep implements ApkBuildStep {
-  private static final BoolExperiment passAdbArgWithSerialToMi =
-      new BoolExperiment("aswb.mi.adb.arg.device.serial", false);
 
   private static final Logger log = Logger.getInstance(MobileInstallBuildStep.class);
   private final Project project;
@@ -154,123 +150,65 @@ public class MobileInstallBuildStep implements ApkBuildStep {
     BuildInvoker invoker =
         Blaze.getBuildSystemProvider(project)
             .getBuildSystem()
-            .getBuildInvoker(project, context, BlazeCommandName.MOBILE_INSTALL);
+            .getBuildInvoker(project, BlazeCommandName.MOBILE_INSTALL);
     BlazeCommand.Builder command = BlazeCommand.builder(invoker, BlazeCommandName.MOBILE_INSTALL);
 
-    if (passAdbArgWithSerialToMi.getValue()) {
-      // Redundant, but we need this to get around bug in bazel.
-      // https://github.com/bazelbuild/bazel/issues/4922
-      command.addBlazeFlags(
-          BlazeFlags.ADB_ARG + "-s ", BlazeFlags.ADB_ARG + device.getSerialNumber());
-    }
-
-    if (!StudioDeployerExperiment.isEnabled()) {
-      MobileInstallAdbLocationProvider.getAdbLocationForMobileInstall(project)
-          .ifPresent((location) -> command.addBlazeFlags(BlazeFlags.ADB, location));
-    }
-
-    WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
     BuildSystemName buildSystemName = Blaze.getBuildSystemName(project);
     String deployInfoSuffix = getDeployInfoSuffix(buildSystemName);
-    try (BuildResultHelper buildResultHelper = invoker.createBuildResultHelper();
-        AdbTunnelConfigurator tunnelConfig = getTunnelConfigurator(context)) {
+    try (AdbTunnelConfigurator tunnelConfig = getTunnelConfigurator(context)) {
       tunnelConfig.setupConnection(context);
 
-      if (!StudioDeployerExperiment.isEnabled()) {
-        String deviceFlag = device.getSerialNumber();
-        if (tunnelConfig.isActive()) {
-          deviceFlag += ":tcp:" + tunnelConfig.getAdbServerPort();
-        } else {
-          InetSocketAddress adbAddr = AndroidDebugBridge.getSocketAddress();
-          if (adbAddr == null) {
-            IssueOutput.warn(
-                    "Can't get ADB server port, please ensure ADB server is running. Will fallback"
-                        + " to the default adb server.")
-                .submit(context);
-          } else {
-            command.addBlazeFlags(
-                BlazeFlags.ADB_ARG + "-P ", BlazeFlags.ADB_ARG + adbAddr.getPort());
-          }
-        }
-        command.addBlazeFlags(BlazeFlags.DEVICE, deviceFlag);
-      }
-
-      command
-          .addTargets(label)
-          .addBlazeFlags(blazeFlags)
-          .addBlazeFlags(buildResultHelper.getBuildFlags())
-          .addExeFlags(exeFlags);
+      command.addTargets(label);
+      command.addBlazeFlags(blazeFlags);
+      command.addExeFlags(exeFlags);
 
       if (buildSystemName == BuildSystemName.Blaze) {
         // MI launches apps by default. Defer app launch to BlazeAndroidLaunchTasksProvider.
         command.addExeFlags("--nolaunch_app");
       }
-
-      if (StudioDeployerExperiment.isEnabled()) {
-        command.addExeFlags("--nodeploy");
-      }
+      command.addExeFlags("--nodeploy");
 
       SaveUtil.saveAllFiles();
       context.output(new StatusOutput("Invoking mobile-install..."));
-      ExternalTask task =
-          ExternalTask.builder(workspaceRoot)
-              .addBlazeCommand(command.build())
-              .context(context)
-              .stdout(LineProcessingOutputStream.of(new PrintOutputLineProcessor(context)))
-              .stderr(
-                  LineProcessingOutputStream.of(
-                      BlazeConsoleLineProcessorProvider.getAllStderrLineProcessors(context)))
-              .build();
-
       Stopwatch s = Stopwatch.createStarted();
-      int exitCode = task.run();
-      logBuildTime(
-          launchId, StudioDeployerExperiment.isEnabled(), s.elapsed(), exitCode, ImmutableMap.of());
+      try (BuildEventStreamProvider streamProvider = invoker.invoke(command, context)) {
+        Duration buildDuration = s.elapsed();
+        BlazeBuildOutputs outputs = BlazeBuildOutputs.fromParsedBepOutput(BuildResultParser.getBuildOutput(streamProvider, Interners.STRING));
+        int exitCode = outputs.buildResult().exitCode;
+        logBuildTime(launchId, buildDuration, exitCode, ImmutableMap.of());
+        if (exitCode != 0) {
+          IssueOutput.error("Blaze build failed. See Blaze Console for details.").submit(context);
+          return;
+        }
 
-      if (exitCode != 0) {
-        IssueOutput.error("Blaze build failed. See Blaze Console for details.").submit(context);
-        return;
+        ListenableFuture<Void> unusedFuture =
+          FileCaches.refresh(project, context, BlazeBuildOutputs.noOutputs(BuildResult.fromExitCode(exitCode)));
+
+        context.output(new StatusOutput("Reading deployment information..."));
+        String executionRoot = ExecRootUtil.getExecutionRoot(invoker, context);
+        if (executionRoot == null) {
+          IssueOutput.error("Could not locate execroot!").submit(context);
+          return;
+        }
+
+        AndroidDeployInfo deployInfoProto =
+            deployInfoHelper.readDeployInfoProtoForTarget(
+                label,
+                "mobile_install_INTERNAL_",
+                outputs,
+                fileName -> fileName.endsWith(deployInfoSuffix));
+        deployInfo =
+            deployInfoHelper.extractDeployInfoAndInvalidateManifests(
+                project, new File(executionRoot), deployInfoProto);
+
+        context.output(new StatusOutput("mobile-install build completed, deploying split apks..."));
+      } catch (BuildException e) {
+        IssueOutput.error("Could not invoke mobile-install: " + e.getMessage()).submit(context);
       }
-
-      ListenableFuture<Void> unusedFuture =
-          FileCaches.refresh(
-              project, context, BlazeBuildOutputs.noOutputs(BuildResult.fromExitCode(exitCode)));
-
-      context.output(new StatusOutput("Reading deployment information..."));
-      String executionRoot = ExecRootUtil.getExecutionRoot(invoker, context);
-      if (executionRoot == null) {
-        IssueOutput.error("Could not locate execroot!").submit(context);
-        return;
-      }
-
-      AndroidDeployInfo deployInfoProto =
-          deployInfoHelper.readDeployInfoProtoForTarget(
-              label,
-              "mobile_install_INTERNAL_",
-              buildResultHelper,
-              fileName -> fileName.endsWith(deployInfoSuffix));
-      deployInfo =
-          deployInfoHelper.extractDeployInfoAndInvalidateManifests(
-              project, new File(executionRoot), deployInfoProto);
-
-      String msg;
-      if (StudioDeployerExperiment.isEnabled()) {
-        msg = "mobile-install build completed, deploying split apks...";
-      } else {
-        msg = "Done.";
-      }
-      context.output(new StatusOutput(msg));
-    } catch (GetArtifactsException e) {
-      IssueOutput.error("Could not read BEP output: " + e.getMessage()).submit(context);
     } catch (GetDeployInfoException e) {
       IssueOutput.error("Could not read apk deploy info from build: " + e.getMessage())
           .submit(context);
     }
-  }
-
-  @Override
-  public boolean needsIdeDeploy() {
-    return StudioDeployerExperiment.isEnabled();
   }
 
   @Override

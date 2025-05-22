@@ -17,13 +17,16 @@ package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.structure.model.getModuleByGradlePath
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
-import kotlinx.coroutines.flow.onSubscription
 import java.nio.file.Files
+import kotlin.test.fail
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -31,8 +34,6 @@ import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.fail
-import kotlin.time.Duration.Companion.seconds
 
 internal class NotificationManagerTest {
   @get:Rule
@@ -64,8 +65,8 @@ internal class NotificationManagerTest {
 
   @Test
   fun `flow is updated on every modification`() = runBlocking {
-    val app = projectRule.project.getModuleByGradlePath(":app") ?: fail("Could not find app")
-    val lib = projectRule.project.getModuleByGradlePath(":lib") ?: fail("Could not find lib")
+    val app = BuildTargetReference.gradleOnly(projectRule.project.getModuleByGradlePath(":app") ?: fail("Could not find app"))
+    val lib = BuildTargetReference.gradleOnly(projectRule.project.getModuleByGradlePath(":lib") ?: fail("Could not find lib"))
 
     // Copy the classes into a temp directory to use as overlay
     val tempOverlayPath = Files.createTempDirectory("overlayTest")
@@ -75,7 +76,8 @@ internal class NotificationManagerTest {
       ModuleClassLoaderOverlays.NotificationManager.getInstance(projectRule.project)
         .modificationFlow
         .onSubscription {
-          // Only do the modifications once we know the subscription has started to avoid flaky tests.
+          // Only do the modifications once we know the subscription has started to avoid flaky
+          // tests.
           launch {
             ModuleClassLoaderOverlays.getInstance(app).pushOverlayPath(tempOverlayPath)
             ModuleClassLoaderOverlays.getInstance(lib).pushOverlayPath(tempOverlayPath)
@@ -85,7 +87,13 @@ internal class NotificationManagerTest {
         .collect {}
     }
 
-    assertEquals(1, ModuleClassLoaderOverlays.getInstance(app).modificationTracker.modificationCount)
-    assertEquals(1, ModuleClassLoaderOverlays.getInstance(lib).modificationTracker.modificationCount)
+    assertEquals(
+      1,
+      ModuleClassLoaderOverlays.getInstance(app).modificationTracker.modificationCount,
+    )
+    assertEquals(
+      1,
+      ModuleClassLoaderOverlays.getInstance(lib).modificationTracker.modificationCount,
+    )
   }
 }

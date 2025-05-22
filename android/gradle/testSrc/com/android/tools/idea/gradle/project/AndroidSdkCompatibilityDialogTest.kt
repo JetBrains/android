@@ -27,7 +27,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -47,7 +46,6 @@ class AndroidSdkCompatibilityDialogTest {
     return findModelessDialog { it is AndroidSdkCompatibilityDialog } as AndroidSdkCompatibilityDialog?
   }
 
-  @Ignore("b/391880461")
   @Test
   fun `test dialog content with same channel recommendation`() {
     val recommendation = StudioVersionRecommendation.newBuilder().apply {
@@ -76,7 +74,7 @@ class AndroidSdkCompatibilityDialogTest {
       assertThat(mainContent).contains("You can upgrade to Android Studio Canary X or higher to have better IDE support for this project")
       val affectedModules = messageComponents.find { c -> c.name == "affected-modules" }!!.normalizedText
       assertThat(affectedModules).contains(".myapp")
-      assertThat(affectedModules).contains("(compileSdk=1000)")
+      assertThat(affectedModules).contains("(compileSdk=1000.0)")
 
       val buttons = ui.findAllComponents(JButton::class.java)
       assertThat(buttons).hasSize(3)
@@ -88,7 +86,6 @@ class AndroidSdkCompatibilityDialogTest {
     assertThat(dialog.exitCode).isEqualTo(DialogWrapper.CLOSE_EXIT_CODE)
   }
 
-  @Ignore("b/391880461")
   @Test
   fun `test dialog content with different channel recommendation`() {
     val recommendation = StudioVersionRecommendation.newBuilder().apply {
@@ -129,7 +126,7 @@ class AndroidSdkCompatibilityDialogTest {
       val affectedModules = messageComponents.find { c -> c.name == "affected-modules" }!!.normalizedText
       assertThat(affectedModules).contains(".myapp1")
       assertThat(affectedModules).contains(".mylib1")
-      assertThat(affectedModules).contains("(compileSdk=1000)")
+      assertThat(affectedModules).contains("(compileSdk=1000.0)")
       assertThat(affectedModules).contains("(and 1 more)")
 
       val buttons = ui.findAllComponents(JButton::class.java)

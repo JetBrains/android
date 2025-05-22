@@ -69,7 +69,7 @@ class TableAction(private val type: ActionType, private val table: ActionTable):
 
   private fun goto(column: Int, target: JTable, extend: Boolean) {
     when {
-      (column >= target.columnCount && target !== table.rightTable) -> goto(0, table.rightTable, extend)
+      (column >= target.columnCount) -> if (target == table.leftTable) goto(0, table.rightTable, extend)
       (column < 0 && target !== table.leftTable) -> goto(table.leftTable.columnCount - 1, table.leftTable, extend)
       target === table.currentTable -> target.changeSelection(target.selectionModel.leadSelectionIndex, column, false, extend)
       else -> {

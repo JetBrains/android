@@ -16,10 +16,12 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.diagnostic.logger
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @UiThread
@@ -45,7 +47,7 @@ class PairingCodePairingController(
       LOG.info("Starting pairing code pairing process with mDNS service ${view.model.service}")
       view.showPairingInProgress()
 
-      scope.launch(uiThread(ModalityState.any())) {
+      scope.launch(Dispatchers.EDT + ModalityState.any().asContextElement()) {
         try {
           val pairingResult =
             pairingService.pairMdnsService(view.model.service, view.model.pairingCode)

@@ -36,35 +36,32 @@ import org.junit.runner.RunWith;
 public class VerifyNpwPhoneAndTabletNavigationTemplatesTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(20, TimeUnit.MINUTES);
 
-  private List<String> expectedTemplates = List.of("Bottom Navigation Views Activity", "Navigation Drawer Views Activity");
+  private List<String> expectedTemplates = List.of("Navigation UI Activity");
 
   FormFactor selectMobileTab = FormFactor.MOBILE;
 
-
-
   @Test
-  public void  testBottomNavigationViewsActivityTemplate() {
+  public void  testNavigationUIActivityTemplate() {
     boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(0));
     assertThat(buildProjectStatus).isTrue();
     guiTest.ideFrame().getProjectView().assertFilesExist(
       "gradle/libs.versions.toml"
     );
-    validateViewBindingInGradleFile();
+    validateGradleFile();
+    validateTomlForMaterial3AdaptiveLibraries();
   }
 
-  @Test
-  public void  testNavigationDrawerViewsActivityTemplate() {
-    boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(1));
-    assertThat(buildProjectStatus).isTrue();
-    guiTest.ideFrame().getProjectView().assertFilesExist(
-      "gradle/libs.versions.toml"
-    );
-    validateViewBindingInGradleFile();
-  }
-
-  private void validateViewBindingInGradleFile() {
+  private void validateGradleFile() {
     String buildGradleContents = guiTest.getProjectFileText("app/build.gradle.kts");
-    assertThat((buildGradleContents).contains("viewBinding = true")).isTrue();
+    assertThat((buildGradleContents).contains("compose = true")).isTrue();
+    assertThat((buildGradleContents).contains("adaptive.navigation.suite")).isTrue();
+  }
+
+  private void validateTomlForMaterial3AdaptiveLibraries() {
+    String buildGradleContents = guiTest.getProjectFileText("gradle/libs.versions.toml");
+    assertThat((buildGradleContents).contains("androidx-ui = { group = \"androidx.compose.ui\", name = \"ui\" }")).isTrue();
+    assertThat((buildGradleContents).contains("androidx-material3 = { group = \"androidx.compose.material3\", name = \"material3\" }")).isTrue();
+    assertThat((buildGradleContents).contains("androidx-material3-adaptive-navigation-suite = { group = \"androidx.compose.material3\", name = \"material3-adaptive-navigation-suite\" }")).isTrue();
   }
 
 }

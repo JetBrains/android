@@ -177,26 +177,30 @@ class StringResourceDataTest {
   @Test
   fun editingDoNotTranslate() {
     val stringsFile = requireNotNull(resourceDirectory.findFileByRelativePath("values/strings.xml"))
+    val resource1 = data.getStringResource(newStringResourceKey("key1"))
+    val resource5 = data.getStringResource(newStringResourceKey("key5"))
 
-    assertThat(data.getStringResource(newStringResourceKey("key1")).isTranslatable).isTrue()
+    assertThat(resource1.isTranslatable).isTrue()
+    assertThat(resource1.getTagText(null)).isEqualTo("<string name=\"key1\">Key 1 default</string>")
     var tag = getNthXmlTag(stringsFile, 0)
     assertThat(tag.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key1")
     assertThat(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE)).isNull()
+    resource1.changeTranslatable(false)
 
-    data.setTranslatable(newStringResourceKey("key1"), false)
-
-    assertThat(data.getStringResource(newStringResourceKey("key1")).isTranslatable).isFalse()
+    assertThat(resource1.isTranslatable).isFalse()
+    assertThat(resource1.getTagText(null)).isEqualTo("<string name=\"key1\" translatable=\"false\">Key 1 default</string>")
     tag = getNthXmlTag(stringsFile, 0)
     assertThat(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE)).isEqualTo(SdkConstants.VALUE_FALSE)
 
-    assertThat(data.getStringResource(newStringResourceKey("key5")).isTranslatable).isFalse()
+    assertThat(resource5.isTranslatable).isFalse()
+    assertThat(resource5.getTagText(null)).isEqualTo("<string name=\"key5\" translatable=\"false\">Key 5 default</string>")
     tag = getNthXmlTag(stringsFile, 3)
     assertThat(tag.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key5")
     assertThat(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE)).isEqualTo(SdkConstants.VALUE_FALSE)
+    resource5.changeTranslatable(true)
 
-    data.setTranslatable(newStringResourceKey("key5"), true)
-
-    assertThat(data.getStringResource(newStringResourceKey("key5")).isTranslatable).isTrue()
+    assertThat(resource5.isTranslatable).isTrue()
+    assertThat(resource5.getTagText(null)).isEqualTo("<string name=\"key5\">Key 5 default</string>")
     tag = getNthXmlTag(stringsFile, 3)
     assertThat(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE)).isNull()
   }

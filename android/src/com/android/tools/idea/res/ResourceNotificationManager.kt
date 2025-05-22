@@ -175,15 +175,6 @@ class ResourceNotificationManager private constructor(private val project: Proje
       )
       .ensureListening()
 
-    val isAndroidFacet = AndroidModel.isRequired(facet)
-    if (isAndroidFacet) {
-      // Ensure that project resources have been initialized first, since
-      // we want all repos to add their own variant listeners before ours (such that
-      // when the variant changes, the project resources get notified and updated
-      // before our own update listener attempts to re-render).
-      StudioResourceRepositoryManager.getProjectResources(facet)
-    }
-
     moduleToObserverMap.addListener(module, listener) {
       ModuleEventObserver(facet, modificationCount::incrementAndGet, ::notice)
     }
@@ -198,7 +189,7 @@ class ResourceNotificationManager private constructor(private val project: Proje
       }
     }
 
-    if (isAndroidFacet) {
+    if (AndroidModel.isRequired(facet)) {
       ResourceFolderManager.getInstance(facet) // Make sure ResourceFolderManager is initialized.
     }
 

@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -39,6 +41,8 @@ public class GradleExperimentalSettings implements PersistentStateComponent<Grad
   public boolean DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true;
 
   public boolean SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = false;
+
+  public AutoSyncBehavior AUTO_SYNC_BEHAVIOR = AutoSyncBehavior.Default;
 
   @NotNull
   public static GradleExperimentalSettings getInstance() {

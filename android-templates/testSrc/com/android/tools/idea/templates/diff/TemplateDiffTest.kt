@@ -130,6 +130,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
   @After
   fun tearDown() {
     StudioFlags.AGP_VERSION_TO_USE.clearOverride()
+    StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.clearOverride()
   }
 
   enum class TestMode {
@@ -340,11 +341,13 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
   @Test
   fun testNewNavigationDrawerActivity() {
+    StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.override(false)
     checkCreateTemplate("Navigation Drawer Views Activity")
   }
 
   @Test
   fun testNewNavigationDrawerActivityWithKotlin() {
+    StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.override(false)
     checkCreateTemplate("Navigation Drawer Views Activity", withKotlin())
   }
 
@@ -436,11 +439,13 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
   @Test
   fun testBottomNavigationActivity() {
+    StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.override(false)
     checkCreateTemplate("Bottom Navigation Views Activity")
   }
 
   @Test
   fun testBottomNavigationActivityWithKotlin() {
+    StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.override(false)
     checkCreateTemplate("Bottom Navigation Views Activity", withKotlin())
   }
 

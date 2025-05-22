@@ -19,8 +19,10 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.help.AndroidWebHelpProvider.Companion.HELP_PREFIX
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.android.tools.idea.ui.save.SaveConfigurationDialog
+import com.android.tools.idea.ui.save.SaveConfigurationResolver
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.MAX_RECORDING_DURATION_MINUTES
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.MAX_RECORDING_DURATION_MINUTES_LEGACY
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.dsl.builder.AlignX
@@ -39,21 +41,25 @@ import javax.swing.JEditorPane
 internal class ScreenRecorderOptionsDialog(
   private val options: ScreenRecorderPersistentOptions,
   private val project: Project,
-  private val isEmulator: Boolean,
+  private val canUseEmulatorRecording: Boolean,
   private val apiLevel: Int,
 ) : DialogWrapper(project, true) {
 
   private lateinit var recordingLengthField: JEditorPane
+  private val saveConfigResolver = project.service<SaveConfigurationResolver>()
+  private val saveLocation: String
+    get() = saveConfigResolver.expandSaveLocation (options.saveLocation)
+  private lateinit var saveLocationText: JEditorPane
 
   init {
-    title = "Screen Recorder Options"
+    title = message("screenrecord.options.title")
     init()
   }
 
   override fun createCenterPanel(): JComponent {
     return panel {
       row {
-        text(getMaxRecordingLengthText(isEmulator && options.useEmulatorRecording))
+        text(getMaxRecordingLengthText(canUseEmulatorRecording && options.useEmulatorRecording))
           .applyToComponent { recordingLengthField = this }
       }
       row(message("screenrecord.options.bit.rate")) {
@@ -73,7 +79,7 @@ internal class ScreenRecorderOptionsDialog(
           .bindSelected(options::showTaps)
       }.contextHelp(message("screenrecord.options.show.taps.tooltip"))
 
-      if (isEmulator) {
+      if (canUseEmulatorRecording) {
         row {
           checkBox(message("screenrecord.options.use.emulator.recording"))
             .bindSelected(options::useEmulatorRecording)
@@ -83,7 +89,11 @@ internal class ScreenRecorderOptionsDialog(
 
       if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
         row {
+          text(message("screenrecord.options.save.directory"))
+          text(saveLocation)
+            .applyToComponent { saveLocationText = this }
           button(message("configure.save.button.text")) { configureSave() }
+            .align(AlignX.RIGHT)
         }
       }
     }
@@ -108,13 +118,16 @@ internal class ScreenRecorderOptionsDialog(
         options.saveLocation,
         options.filenameTemplate,
         options.postSaveAction,
-        if (isEmulator && options.useEmulatorRecording) "webm" else "mp4",
+        if (canUseEmulatorRecording && options.useEmulatorRecording) "webm" else "mp4",
         Instant.now(),
         options.recordingCount + 1)
     if (dialog.createWrapper(null, rootPane).showAndGet()) {
       options.filenameTemplate = dialog.filenameTemplate
       options.saveLocation = dialog.saveLocation
       options.postSaveAction = dialog.postSaveAction
+
+      saveLocationText.text = saveLocation
+      pack()
     }
   }
 

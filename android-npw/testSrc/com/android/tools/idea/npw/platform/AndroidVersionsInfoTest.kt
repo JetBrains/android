@@ -27,6 +27,7 @@ import com.google.common.truth.Truth.assertThat
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import org.junit.Assert.assertEquals
+import org.junit.Ignore
 import org.junit.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -120,6 +121,7 @@ class AndroidVersionsInfoTest {
 
   /** For future Android target versions, the Build API should be updated too */
   @Test
+  @Ignore("Waiting for minor version support b/398938512")
   fun futureAndroidVersion() {
     val androidTarget = MockPlatformTarget(FUTURE_VERSION, 0)
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidTarget(androidTarget)

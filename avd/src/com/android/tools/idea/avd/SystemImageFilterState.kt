@@ -21,40 +21,19 @@ import androidx.compose.runtime.setValue
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 
-internal class SystemImageFilterState
-internal constructor(
+internal class SystemImageFilterState(
   selectedApi: AndroidVersionSelection,
   selectedServices: Services?,
   showSdkExtensionSystemImages: Boolean = false,
   showUnsupportedSystemImages: Boolean = false,
 ) {
-  internal var selectedApi by mutableStateOf(selectedApi)
-    private set
+  var selectedApi by mutableStateOf(selectedApi)
 
-  internal var selectedServices by mutableStateOf(selectedServices)
-    private set
+  var selectedServices by mutableStateOf(selectedServices)
 
-  internal var showSdkExtensionSystemImages by mutableStateOf(showSdkExtensionSystemImages)
-    private set
+  var showSdkExtensionSystemImages by mutableStateOf(showSdkExtensionSystemImages)
 
-  internal var showUnsupportedSystemImages by mutableStateOf(showUnsupportedSystemImages)
-    private set
-
-  internal fun setSelectedApi(selectedApi: AndroidVersionSelection) {
-    this.selectedApi = selectedApi
-  }
-
-  internal fun setSelectedServices(selectedServices: Services?) {
-    this.selectedServices = selectedServices
-  }
-
-  internal fun setShowSdkExtensionSystemImages(showSdkExtensionSystemImages: Boolean) {
-    this.showSdkExtensionSystemImages = showSdkExtensionSystemImages
-  }
-
-  internal fun setShowUnsupportedSystemImages(showUnsupportedSystemImages: Boolean) {
-    this.showUnsupportedSystemImages = showUnsupportedSystemImages
-  }
+  var showUnsupportedSystemImages by mutableStateOf(showUnsupportedSystemImages)
 
   fun filter(
     images: Iterable<ISystemImage>,

@@ -105,7 +105,7 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
       {"applicationIdSuffix", property, APPLICATION_ID_SUFFIX, VAR},
       {"buildConfigField", exactly(3), BUILD_CONFIG_FIELD, AUGMENT_LIST},
       {"consumerProguardFiles", property, CONSUMER_PROGUARD_FILES, VAR},
-      {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAR},
+      {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAL},
       {"matchingFallbacks", property, MATCHING_FALLBACKS, VAR},
       {"multiDexEnabled", property, MULTI_DEX_ENABLED, VAR},
       {"multiDexKeepFile", property, MULTI_DEX_KEEP_FILE, VAR},

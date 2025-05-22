@@ -133,7 +133,7 @@ public class StringResourceTableModel extends AbstractTableModel {
 
       case UNTRANSLATABLE_COLUMN:
         Boolean doNotTranslate = (Boolean)value;
-        if (myData.setTranslatable(getKey(row), !doNotTranslate)) {
+        if (getStringResourceAt(row).changeTranslatable(!doNotTranslate)) {
           fireTableCellUpdated(row, column);
         }
         break;

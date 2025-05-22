@@ -19,8 +19,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.command.undo.UndoManager
-import com.intellij.openapi.util.Computable
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.ui.UIUtil
 import java.nio.file.Files
 import java.nio.file.Path
@@ -47,16 +47,13 @@ class CreateSampleDataDirectoryTest {
     assertTrue(Files.exists(Path.of(projectRule.project.basePath!!, "sampledata")))
 
     // Verify that the action created an Undo command
-    val name =
-      UIUtil.invokeAndWaitIfNeeded(
-        Computable {
-          UIUtil.dispatchAllInvocationEvents()
-          UndoManager.getInstance(projectRule.project)
-            .getUndoActionNameAndDescription(null)
-            .first
-            .replace("_", "") // Remove keyboard accelerators
-        }
-      )
+    val name = runInEdtAndGet {
+      UIUtil.dispatchAllInvocationEvents()
+      UndoManager.getInstance(projectRule.project)
+        .getUndoActionNameAndDescription(null)
+        .first
+        .replace("_", "") // Remove keyboard accelerators
+    }
     assertEquals("Undo Sample Data Directory", name)
   }
 }

@@ -39,7 +39,7 @@ public class MobileInstallApplicationDeployer implements ApplicationDeployer {
       @NotNull ApkInfo apkInfo,
       @NotNull DeployOptions deployOptions,
       boolean hasMakeBeforeRun,
-      ProgressIndicator indicator) {
+      ProgressIndicator indicator) throws DeployerException {
     App app = getAppToInstall(apkInfo);
     return new Deployer.Result(false, false, false, app);
   }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -45,7 +46,7 @@ interface LightGradleSyncTestProject : TestProjectDefinition {
   override fun prepareTestProject(
     integrationTestEnvironment: IntegrationTestEnvironment,
     name: String,
-    agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
+    agpVersion: AgpVersionSoftwareEnvironment,
     ndkVersion: String?
   ): PreparedTestProject {
     val preparedProject = templateProject.prepareTestProject(integrationTestEnvironment, name, agpVersion, ndkVersion)

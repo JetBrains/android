@@ -365,9 +365,9 @@ class RenderErrorTest {
       // The selected sceneViewPanel shouldn't have render errors.
       assertFalse(sceneViewPanelWithoutErrors.sceneView.hasRenderErrors())
       delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
-        !composePreviewRepresentation.status().hasErrorsAndNeedsBuild
+        !composePreviewRepresentation.status().hasRenderErrors
       }
-      assertFalse(composePreviewRepresentation.status().hasErrorsAndNeedsBuild)
+      assertFalse(composePreviewRepresentation.status().hasRenderErrors)
     }
 
   private fun countVisibleActions(

@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.progress;
 
-import com.android.repository.api.ProgressRunner;
 import com.google.common.annotations.VisibleForTesting;
+import com.android.repository.api.ProgressRunner;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.EmptyProgressIndicator;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.util.ui.UIUtil;
-import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * {@link ProgressRunner} implementation that uses Studio's {@link ProgressManager} mechanism for showing progress and running tasks.
@@ -57,7 +54,7 @@ public class StudioProgressRunner implements ProgressRunner {
 
   @VisibleForTesting
   public void runAsyncWithProgress(@NotNull final ProgressRunnable r, boolean overrideTestMode) {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
         Task.Backgroundable task = new Task.Backgroundable(myProject, myProgressTitle, myCancellable, new PerformInBackgroundOption() {
@@ -93,12 +90,12 @@ public class StudioProgressRunner implements ProgressRunner {
           ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, new EmptyProgressIndicator());
         }
       }
-    });
+    }, ModalityState.any());
   }
 
   @Override
   public void runSyncWithProgress(@NotNull final ProgressRunnable progressRunnable) {
-    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+    ApplicationManager.getApplication().invokeAndWait(() -> {
       Task task = new Task.Modal(myProject, myProgressTitle, myCancellable) {
         @Override
         public void run(@NotNull ProgressIndicator indicator) {
@@ -106,7 +103,7 @@ public class StudioProgressRunner implements ProgressRunner {
         }
       };
       ProgressManager.getInstance().run(task);
-    });
+    }, ModalityState.any());
   }
 
   private void doRunSync(@NotNull ProgressIndicator indicator, @NotNull ProgressRunnable progressRunnable) {

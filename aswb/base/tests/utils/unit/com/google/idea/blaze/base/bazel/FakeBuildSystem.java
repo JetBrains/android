@@ -20,7 +20,6 @@ import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
-import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.project.Project;
 import java.util.Optional;
@@ -50,22 +49,9 @@ public abstract class FakeBuildSystem implements BuildSystem {
   abstract BuildInvoker getBuildInvoker();
 
   @Override
-  public BuildInvoker getBuildInvoker(Project project, BlazeContext context) {
+  public BuildInvoker getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements) {
     return getBuildInvoker();
   }
-
-  @Override
-  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, Set<BuildInvoker.Capability> requirements) {
-    return getBuildInvoker();
-  }
-
-  abstract Optional<BuildInvoker> getParallelBuildInvoker();
-
-  @Override
-  public Optional<BuildInvoker> getParallelBuildInvoker(Project project, BlazeContext context) {
-    return getParallelBuildInvoker();
-  }
-
   @Override
   public SyncStrategy getSyncStrategy(Project project) {
     return getSyncStrategy();
@@ -101,10 +87,8 @@ public abstract class FakeBuildSystem implements BuildSystem {
 
     public abstract Builder setBuildInvoker(BuildInvoker value);
 
-    public abstract Builder setParallelBuildInvoker(Optional<BuildInvoker> value);
+    public abstract Builder setSyncStrategy(SyncStrategy value);
 
     public abstract Builder setBazelVersionString(Optional<String> value);
-
-    public abstract Builder setSyncStrategy(SyncStrategy value);
   }
 }

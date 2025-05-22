@@ -39,6 +39,7 @@ public final class AndroidBlazeRules implements Kind.Provider {
     ANDROID_TEST("android_test", LanguageClass.ANDROID, RuleType.TEST),
     ANDROID_ROBOLECTRIC_TEST("android_robolectric_test", LanguageClass.ANDROID, RuleType.TEST),
     ANDROID_LOCAL_TEST("android_local_test", LanguageClass.ANDROID, RuleType.TEST),
+    WRAPPED_ANDROID_LOCAL_TEST("_wrapped_android_local_test", LanguageClass.ANDROID, RuleType.TEST),
     KT_ANDROID_LOCAL_TEST("kt_android_local_test", LanguageClass.ANDROID, RuleType.TEST),
     ANDROID_INSTRUMENTATION_TEST(
         "android_instrumentation_test", LanguageClass.ANDROID, RuleType.TEST),

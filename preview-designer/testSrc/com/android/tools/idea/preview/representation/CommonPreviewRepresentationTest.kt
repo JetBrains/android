@@ -35,7 +35,6 @@ import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewElementModelAdapter
-import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PsiTestPreviewElement
@@ -46,6 +45,7 @@ import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
 import com.android.tools.idea.preview.animation.AnimationManager
 import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.preview.fast.FastPreviewSurface
+import com.android.tools.idea.preview.find.PreviewElementProvider
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.groups.PreviewGroupManager
@@ -722,6 +722,40 @@ class CommonPreviewRepresentationTest {
 
       restoredPreviewRepresentation.onDeactivateImmediately()
     }
+
+  @Test
+  fun `test animation preview is hidden if there is build error in the file`() = runBlocking {
+    val animationPreview =
+      mock<AnimationPreview<AnimationManager>>().also {
+        whenever(it.component).thenReturn(TooltipLayeredPane(JPanel()))
+      }
+    val previewElement =
+      PsiTestPreviewElement(displayName = "test element", groupName = "test group")
+    val previewElementProvider = TestPreviewElementProvider(sequenceOf(previewElement))
+    val previewRepresentation =
+      createPreviewRepresentation(previewElementProvider, animationPreview)
+    previewRepresentation.compileAndWaitForRefresh()
+
+    // start animation inspection
+    previewRepresentation.setMode(PreviewMode.AnimationInspection(selected = mock()))
+    delayUntilCondition(delayPerIterationMs = 200) {
+      previewRepresentation.previewView.bottomPanel != null
+    }
+    // Simulate out of date and failed build
+    whenever(previewViewModelMock.isOutOfDate).thenReturn(true)
+    buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.FAILED)
+    delayUntilCondition(delayPerIterationMs = 200) {
+      previewRepresentation.previewView.bottomPanel == null
+    }
+
+    // build is successful, panel is shown again
+    whenever(previewViewModelMock.isOutOfDate).thenReturn(false)
+    buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    delayUntilCondition(delayPerIterationMs = 200) {
+      previewRepresentation.previewView.bottomPanel != null
+    }
+    previewRepresentation.onDeactivateImmediately()
+  }
 
   private suspend fun blockRefreshManager(): TestPreviewRefreshRequest {
     // block the refresh manager with a high priority refresh that won't finish

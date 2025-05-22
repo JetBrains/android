@@ -27,14 +27,15 @@ import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection.Companion.getDefaultAvdManagerConnection
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
@@ -410,7 +411,7 @@ class WearPairingManager(
         addDisconnectedPairedDeviceIfMissing(phoneWearPair.wear, deviceTable)
       }
 
-      withContext(uiThread(ModalityState.any())) {
+      withContext(Dispatchers.EDT + ModalityState.any().asContextElement()) {
         // Broadcast data to listeners
         val (wears, phones) =
           deviceTable.values.sortedBy { it.displayName }.partition { it.isWearDevice }

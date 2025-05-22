@@ -18,7 +18,6 @@ package com.google.idea.blaze.base.qsync;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Joiner;
@@ -27,7 +26,6 @@ import com.google.common.truth.Expect;
 import com.google.idea.blaze.base.bazel.BazelExitCodeException;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
-import com.google.idea.blaze.base.command.BlazeCommandRunner;
 import com.google.idea.blaze.base.qsync.CandidatePackageFinder.CandidatePackage;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.intellij.openapi.project.Project;
@@ -35,7 +33,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -58,12 +55,6 @@ public class CandidatePackageFinderTest {
 
   @Mock Project ideProject;
   @Mock BuildInvoker buildInvoker;
-  @Mock BlazeCommandRunner commandRunner;
-
-  @Before
-  public void configureBuildInvoker() {
-    when(buildInvoker.getCommandRunner()).thenReturn(commandRunner);
-  }
 
   private static InputStream streamOfLines(String... lines) {
     return new ByteArrayInputStream(Joiner.on("\n").join(lines).getBytes(UTF_8));
@@ -76,7 +67,7 @@ public class CandidatePackageFinderTest {
             ideProject, buildInvoker, tempDir.getRoot().toPath(), BlazeContext.create());
 
     tempDir.newFolder("package", "path");
-    when(commandRunner.runQuery(same(ideProject), commandCaptor.capture(), any(), any()))
+    when(buildInvoker.invokeQuery(commandCaptor.capture(), any()))
         .thenReturn(streamOfLines("//package/path/a", "//package/path/b", "//package/path"));
 
     ImmutableList<CandidatePackage> unused =
@@ -94,7 +85,7 @@ public class CandidatePackageFinderTest {
 
     Files.write(tempDir.newFolder("package", "path").toPath().resolve("BUILD"), new byte[] {});
 
-    when(commandRunner.runQuery(same(ideProject), commandCaptor.capture(), any(), any()))
+    when(buildInvoker.invokeQuery(commandCaptor.capture(), any()))
         .thenReturn(streamOfLines("//package/path/a", "//package/path/b", "//package/path"));
 
     ImmutableList<CandidatePackage> unused =
@@ -112,7 +103,7 @@ public class CandidatePackageFinderTest {
 
     tempDir.newFolder("package", "path");
 
-    when(commandRunner.runQuery(same(ideProject), any(), any(), any()))
+    when(buildInvoker.invokeQuery(any(), any()))
         .thenReturn(streamOfLines("//package/path/a", "//package/path/b", "//package/path"));
 
     ImmutableList<CandidatePackage> candidates =
@@ -130,7 +121,7 @@ public class CandidatePackageFinderTest {
 
     tempDir.newFolder("package", "path", "subpath");
 
-    when(commandRunner.runQuery(same(ideProject), commandCaptor.capture(), any(), any()))
+    when(buildInvoker.invokeQuery(commandCaptor.capture(), any()))
         .thenReturn(streamOfLines("//package/path/subpath"))
         .thenReturn(streamOfLines("//package/path", "//package/path/subpath"));
 
@@ -160,7 +151,7 @@ public class CandidatePackageFinderTest {
 
     tempDir.newFolder("package", "path", "subpath");
 
-    when(commandRunner.runQuery(same(ideProject), any(), any(), any()))
+    when(buildInvoker.invokeQuery(any(), any()))
         .thenThrow(new BazelExitCodeException("query failed", 7 /* command failure */))
         .thenReturn(streamOfLines("//package/path", "//package/path/a"));
 

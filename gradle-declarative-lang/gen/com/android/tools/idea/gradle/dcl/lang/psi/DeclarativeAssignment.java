@@ -30,6 +30,9 @@ public interface DeclarativeAssignment extends DeclarativeEntry, DeclarativeIden
   DeclarativeLiteral getLiteral();
 
   @Nullable
+  DeclarativePair getPair();
+
+  @Nullable
   DeclarativeProperty getProperty();
 
   @Nullable
@@ -37,5 +40,8 @@ public interface DeclarativeAssignment extends DeclarativeEntry, DeclarativeIden
 
   @NotNull
   DeclarativeIdentifier getIdentifier();
+
+  @NotNull
+  AssignmentType getAssignmentType();
 
 }

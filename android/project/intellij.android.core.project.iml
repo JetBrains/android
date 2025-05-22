@@ -36,5 +36,6 @@
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.psi" scope="TEST" />
   </component>
 </module>

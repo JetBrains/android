@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.run
 
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_ATOM
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_FEATURE
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
@@ -95,17 +97,15 @@ class GradleApplicationIdProvider private constructor(
     // For this reason, this method should return test package name for Android library project.
     val projectType = androidModel.androidProject.projectType
     val applicationId = when (projectType) {
-      PROJECT_TYPE_LIBRARY -> testPackageName
-      PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> testPackageName
+      PROJECT_TYPE_LIBRARY, PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> testPackageName
       PROJECT_TYPE_TEST ->
         getTestProjectTargetApplicationIdProvider(
           variant ?: throw ApkProvisionException("Cannot resolve test only project target")
         )?.packageName
-
       PROJECT_TYPE_INSTANTAPP -> getBaseFeatureApplicationIdProvider(InstantApps::findBaseFeature).packageName
       PROJECT_TYPE_DYNAMIC_FEATURE -> getBaseFeatureApplicationIdProvider { DynamicAppUtils.getBaseFeature(it.module.getHolderModule()) }.packageName
       PROJECT_TYPE_APP -> basicVariant.applicationId.nullize()
-      PROJECT_TYPE_ATOM -> null
+      PROJECT_TYPE_ATOM, PROJECT_TYPE_FUSED_LIBRARY -> null
       PROJECT_TYPE_FEATURE -> if (androidModel.androidProject.isBaseSplit) androidModel.selectedVariant.mainArtifact.applicationId.nullize()
       else getBaseFeatureApplicationIdProvider(InstantApps::findBaseFeature).packageName
     }

@@ -19,6 +19,9 @@ import com.android.tools.idea.gradle.dcl.lang.ide.color.DeclarativeColor
 import com.android.tools.idea.gradle.dcl.lang.lexer.DeclarativeHighlightingLexer
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder
 import com.google.common.truth.Truth
+import com.intellij.psi.StringEscapesTokenTypes.INVALID_CHARACTER_ESCAPE_TOKEN
+import com.intellij.psi.StringEscapesTokenTypes.INVALID_UNICODE_ESCAPE_TOKEN
+import com.intellij.psi.StringEscapesTokenTypes.VALID_STRING_ESCAPE_TOKEN
 import com.intellij.psi.tree.IElementType
 import org.junit.Assert
 import org.junit.Test
@@ -44,6 +47,9 @@ class DeclarativeHighlighterTest {
     checkMapping(DeclarativeElementTypeHolder.LINE_COMMENT, DeclarativeColor.COMMENT)
     checkMapping(DeclarativeElementTypeHolder.NULL, DeclarativeColor.NULL)
     checkMapping(DeclarativeElementTypeHolder.BOOLEAN, DeclarativeColor.BOOLEAN)
+    checkMapping(INVALID_CHARACTER_ESCAPE_TOKEN, DeclarativeColor.INVALID_STRING_ESCAPE)
+    checkMapping(INVALID_UNICODE_ESCAPE_TOKEN, DeclarativeColor.INVALID_STRING_ESCAPE)
+    checkMapping(VALID_STRING_ESCAPE_TOKEN, DeclarativeColor.VALID_STRING_ESCAPE)
   }
 
   private fun checkMapping(tokenType: IElementType, color: DeclarativeColor) {

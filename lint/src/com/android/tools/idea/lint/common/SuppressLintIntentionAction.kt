@@ -38,7 +38,7 @@ class SuppressLintIntentionAction(
   private val id: String,
   element: PsiElement,
   private val issue: Issue? = null,
-) : ModCommandAction, PriorityAction {
+) : ModCommandAction {
   private val label = SuppressLintQuickFix.displayName(element, id)
 
   constructor(issue: Issue, element: PsiElement) : this(issue.id, element)
@@ -70,9 +70,7 @@ class SuppressLintIntentionAction(
         type === TomlFileType ||
         type === DeclarativeFileType.INSTANCE
     )
-      Presentation.of(label).withIcon(AllIcons.Actions.Cancel)
+      Presentation.of(label).withIcon(AllIcons.Actions.Cancel).withPriority(PriorityAction.Priority.LOW)
     else null
   }
-
-  override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.LOW
 }

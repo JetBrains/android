@@ -34,7 +34,7 @@ internal object DeviceSkinResolver {
    *   deviceSkin as is if it's already absolute, the empty path, _no_skin, or if both sdk and
    *   deviceArtResources are null.
    */
-  internal fun resolve(
+  fun resolve(
     deviceSkin: Path,
     imageSkins: Iterable<Path>,
     sdk: Path?,

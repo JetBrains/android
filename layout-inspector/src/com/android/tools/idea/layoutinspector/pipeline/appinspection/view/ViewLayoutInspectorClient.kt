@@ -180,6 +180,8 @@ class ViewLayoutInspectorClient(
   private val recentLayouts =
     ConcurrentHashMap<Long, LayoutEvent>() // Map of root IDs to their layout
 
+  val onDeviceRendering = OnDeviceRenderingClient(messenger)
+
   init {
     scope.launch {
       // Layout events are very expensive to process, so we may get a bunch of intermediate layouts
@@ -224,7 +226,12 @@ class ViewLayoutInspectorClient(
             Event.SpecializedCase.PROPERTIES_EVENT -> handlePropertiesEvent(event.propertiesEvent)
             Event.SpecializedCase.PROGRESS_EVENT -> handleProgressEvent(event.progressEvent)
             Event.SpecializedCase.FOLD_EVENT -> handleFoldEvent(event.foldEvent)
-            else -> error { "Unhandled event case: ${event.specializedCase}" }
+            else -> {
+              val handled = onDeviceRendering.handleEvent(event)
+              if (!handled) {
+                error { "Unhandled event case: ${event.specializedCase}" }
+              }
+            }
           }
         }
     }
@@ -456,7 +463,7 @@ class ViewLayoutInspectorClient(
  * Convenience method for wrapping a specific view-inspector command inside a parent app inspection
  * command.
  */
-private suspend fun AppInspectorMessenger.sendCommand(
+internal suspend fun AppInspectorMessenger.sendCommand(
   initCommand: Command.Builder.() -> Unit
 ): Response {
   val command = Command.newBuilder()

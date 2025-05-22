@@ -85,6 +85,8 @@ public class OpenExistingProjectTest {
       .openTheMostRecentProject(guiTest);
 
     GuiTests.waitForProjectIndexingToFinish(ideFrame.getProject());
+    ideFrame.waitUntilProgressBarNotDisplayed();
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(360));
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     EditorFixture editorFixture = ideFrame.getEditor();
@@ -99,7 +101,7 @@ public class OpenExistingProjectTest {
     assertThat(errors).hasSize(0);
 
     //Rebuilding the project.x
-    BuildStatus rebuildStatus = ideFrame.invokeRebuildProject(Wait.seconds(300));
+    BuildStatus rebuildStatus = ideFrame.invokeRebuildProject(Wait.seconds(420));
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     assertThat(rebuildStatus.isBuildSuccessful()).isTrue();

@@ -22,6 +22,9 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.test.testutils.TestUtils;
 import com.android.tools.asdriver.tests.base.IdeInstallation;
+import com.android.tools.asdriver.tests.metric.IndexingMetrics;
+import com.android.tools.asdriver.tests.metric.StudioEvents;
+import com.android.tools.asdriver.tests.metric.Telemetry;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
@@ -48,8 +51,9 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
   // File for storing memory usage statistics. The file is written by calling the `CollectMemoryUsageStatisticsInternalAction` action.
   // After migrating to gRPC API should be removed as a part of b/256132435.
   private final LogFile memoryReportFile;
-  private final Path studioEventsDir;
-  private final Path telemetryJsonFile;
+  private final StudioEvents studioEvents;
+  private final Telemetry telemetry;
+  private final IndexingMetrics indexingMetrics;
 
   private boolean forceSafeMode = false;
 
@@ -115,14 +119,18 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
       this.addVmOption("-Ddisable.android.first.run=true");
     }
 
-    studioEventsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "studio_events");
+    Path studioEventsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "studio_events");
+    studioEvents = new StudioEvents(studioEventsDir);
     this.addVmOption(String.format("-Dstudio.event.dump.dir=%s%n", studioEventsDir));
 
     memoryReportFile = new LogFile(logsDir.resolve("memory_usage_report.log"));
     Files.createFile(memoryReportFile.getPath());
 
-    telemetryJsonFile = logsDir.resolve("opentelemetry.json");
+    Path telemetryJsonFile = logsDir.resolve("opentelemetry.json");
+    telemetry = new Telemetry(telemetryJsonFile);
     this.addVmOption(String.format("-Didea.diagnostic.opentelemetry.file=%s%n", telemetryJsonFile));
+
+    indexingMetrics = new IndexingMetrics(logsDir.resolve("indexing-diagnostic"));
 
     setConsentGranted(true);
     bundlePlugin(TestUtils.getBinPath("tools/adt/idea/as-driver/asdriver.plugin-studio-sdk.zip"));
@@ -261,6 +269,20 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
 
 
   /**
+   * Changes the settings not to show balloon notifications.
+   */
+  public void disableBalloonNotifications() throws IOException {
+    Path filetypePaths = configDir.resolve("options/notifications.xml");
+    Files.createDirectories(filetypePaths.getParent());
+    String filetypeContents =
+      """
+      <application>
+        <component name="NotificationConfiguration" showBalloons="false"/>
+      </application>""";
+    Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
+  }
+
+  /**
    * Accept the legal notice about showing decompiler .class files in editor.
    */
   public void acceptLegalDecompilerNotice() throws IOException {
@@ -397,12 +419,16 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
     return configDir;
   }
 
-  public Path getTelemetryJsonFile() {
-    return telemetryJsonFile;
+  public Telemetry getTelemetry() {
+    return telemetry;
   }
 
-  public Path getStudioEventsDir() {
-    return studioEventsDir;
+  public StudioEvents getStudioEvents() {
+    return studioEvents;
+  }
+
+  public IndexingMetrics getIndexingMetrics() {
+    return indexingMetrics;
   }
 
   public Path getAndroidStudioProjectsDir() {

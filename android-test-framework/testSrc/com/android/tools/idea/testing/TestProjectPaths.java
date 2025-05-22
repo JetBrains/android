@@ -105,6 +105,8 @@ public final class TestProjectPaths {
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
   public static final String SIMPLE_APPLICATION_PLUGINS_DSL = "projects/simpleApplicationPluginsDsl";
   public static final String SIMPLE_APPLICATION_VERSION_CATALOG = "projects/simpleApplicationVersionCatalog";
+  public static final String SINGLE_MODULE_VERSION_CATALOG = "projects/singleModuleVersionCatalog";
+  public static final String SINGLE_MODULE_APPLICATION = "projects/singleModuleApplication";
   public static final String SIMPLE_APPLICATION_DECLARATIVE = "projects/simpleDeclarativeApp";
   public static final String EMPTY_APPLICATION_DECLARATIVE = "projects/emptyDeclarativeApp";
   public static final String MINIMAL_CATALOG_APPLICATION = "projects/minimalCatalogProject";
@@ -127,6 +129,7 @@ public final class TestProjectPaths {
   public static final String TEST_ARTIFACTS_VERSION_CATALOG_NESTED_PROJECTS = "projects/testArtifacts/versionCatalogNestedProjects";
   public static final String TEST_SIMILAR_DEPENDENCIES_IN_VERSION_CATALOG = "projects/testArtifacts/versionCatalogSimilarDependencies";
   public static final String TEST_LINT_DUPLICATE_ACTIVITY = "projects/testArtifacts/lintDuplicateActivity";
+  public static final String TEST_LINT_DSL_ERRORS = "projects/testArtifacts/lintDslErrors";
   public static final String TEST_FIXTURES = "projects/testFixtures";
   public static final String TEST_ONLY_MODULE = "projects/testOnlyModule";
   public static final String TEST_RESOURCES = "projects/testResources";
@@ -140,4 +143,5 @@ public final class TestProjectPaths {
   public static final String WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT = "projects/withErrors/simpleApplicationMissingExport";
   public static final String WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS = "projects/withErrors/simpleApplicationMultipleErrors";
   public static final String WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE = "projects/wearWithTileComplicationAndWatchFace";
+  public static final String WEAR_DECLARATIVE_WATCHFACE = "projects/wearDeclarativeWatchFace";
 }

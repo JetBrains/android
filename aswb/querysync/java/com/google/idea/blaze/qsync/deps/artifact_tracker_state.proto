@@ -16,8 +16,8 @@ syntax = "proto3";
 
 package ij.qsync.deps;
 
-import "tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project/project.proto";
-import "tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project/snapshot.proto";
+import "project.proto";
+import "snapshot.proto";
 
 // option java_api_version = 2;
 option java_package = "com.google.idea.blaze.qsync.java";

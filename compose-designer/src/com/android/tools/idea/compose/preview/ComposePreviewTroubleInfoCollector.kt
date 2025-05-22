@@ -27,7 +27,7 @@ private fun findAllComposePreviewManagers(project: Project): Collection<ComposeP
 
 private fun collectComposePreviewManagerInfo(project: Project): String =
   findAllComposePreviewManagers(project).joinToString("\n") {
-    "ComposePreviewManager: status=${it.status()} mode=${it.mode}"
+    "ComposePreviewManager: status=${it.status()} mode=${it.mode.value}"
   }
 
 /** [TroubleInfoCollector] to collect information related to Compose Preview. */

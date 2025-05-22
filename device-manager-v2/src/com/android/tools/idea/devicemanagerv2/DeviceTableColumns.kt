@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceError
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.displayApiString
 import com.android.tools.adtui.categorytable.Attribute
 import com.android.tools.adtui.categorytable.Attribute.Companion.stringAttribute
 import com.android.tools.adtui.categorytable.ColorableAnimatedSpinnerIcon
@@ -56,7 +57,7 @@ internal object DeviceTableColumns {
     LabelColumn<DeviceRowData>(
       DeviceManagerBundle.message("column.title.api"),
       Column.SizeConstraint(min = 20, max = 65),
-      stringAttribute { it.androidVersion?.apiStringWithExtension ?: "" },
+      stringAttribute { it.androidVersion?.displayApiString ?: "" },
     )
 
   object HandleType :

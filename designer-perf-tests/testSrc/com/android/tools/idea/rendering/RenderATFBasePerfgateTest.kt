@@ -16,9 +16,9 @@
 package com.android.tools.idea.rendering
 
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.rendering.RenderResult
-import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestCase
@@ -44,8 +44,7 @@ class RenderATFBasePerfgateTest : AndroidTestCase() {
   override fun tearDown() {
     try {
       RenderTestUtil.afterRenderTestCase()
-    }
-    finally {
+    } finally {
       StudioFrameworkResourceRepositoryManager.getInstance().clearCache()
       super.tearDown()
     }
@@ -53,19 +52,18 @@ class RenderATFBasePerfgateTest : AndroidTestCase() {
 
   @Throws(Exception::class)
   fun testATFBaseRender() {
-    val computable = ThrowableComputable<PerfgateRenderMetric, Exception> {
-      var metric: PerfgateRenderMetric? = null
-      RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration, true) {
-        metric = getRenderMetric(it, {_ -> }, ::checkATFSimpleLayoutResult)
+    val computable =
+      ThrowableComputable<PerfgateRenderMetric, Exception> {
+        var metric: PerfgateRenderMetric? = null
+        RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration, true) {
+          metric = getRenderMetric(it, { _ -> }, ::checkATFSimpleLayoutResult)
+        }
+        metric!!
       }
-      metric!!
-    }
     computeAndRecordMetric("render_time_atf_base", "render_memory_atf_base", computable)
   }
 
-  /**
-   * Asserts that the given result matches the [.SIMPLE_LAYOUT] structure
-   */
+  /** Asserts that the given result matches the [.SIMPLE_LAYOUT] structure */
   private fun checkATFSimpleLayoutResult(result: RenderResult) {
     checkSimpleLayoutResult(result)
     verifyValidatorResult(result)

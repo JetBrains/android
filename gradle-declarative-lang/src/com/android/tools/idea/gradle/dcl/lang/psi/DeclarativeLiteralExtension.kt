@@ -31,6 +31,14 @@ sealed class DeclarativeLiteralKind(val node: ASTNode) {
     override val value: kotlin.Boolean = node.text == "true"
   }
 
+  class Pair(node: ASTNode) : DeclarativeLiteralKind(node) {
+    override val value: Any?
+      get() {
+        val child = node.firstChildNode ?: return null
+        return fromAstNode(child) ?: error("Unknown literal: $child (`${node.text}`)")
+      }
+  }
+
   class String(node: ASTNode) : DeclarativeLiteralKind(node) {
     override val value: kotlin.String = node.text.trim('\"').unescape() ?: ""
   }
@@ -64,6 +72,7 @@ sealed class DeclarativeLiteralKind(val node: ASTNode) {
   companion object {
     fun fromAstNode(node: ASTNode): DeclarativeLiteralKind? {
       return when (node.elementType) {
+        DeclarativeElementTypeHolder.PAIR -> Pair(node)
         DeclarativeElementTypeHolder.BOOLEAN -> Boolean(node)
         DeclarativeElementTypeHolder.ONE_LINE_STRING_LITERAL -> String(node)
         DeclarativeElementTypeHolder.MULTILINE_STRING_LITERAL -> MultilineString(node)
@@ -72,6 +81,7 @@ sealed class DeclarativeLiteralKind(val node: ASTNode) {
         DeclarativeElementTypeHolder.INTEGER_LITERAL -> Int(node)
         DeclarativeElementTypeHolder.UNSIGNED_LONG -> ULong(node)
         DeclarativeElementTypeHolder.UNSIGNED_INTEGER -> UInt(node)
+
         else -> null
       }
     }

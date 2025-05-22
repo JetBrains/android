@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.model.y
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
@@ -50,6 +51,17 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
+/**
+ * Returns a string with the form "file line:column" for the given [RangeMarker]. This is easier to
+ * maintain in tests that using the absolute offset.
+ */
+private fun OpenFileDescriptor.toFileLineAndColumn(): String {
+  val line = rangeMarker.document.getLineNumber(this.offset)
+  val column = this.offset - rangeMarker.document.getLineStartOffset(line)
+
+  return "${file.name} $line:$column"
+}
 
 class AccessibilityModelUpdaterTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
@@ -151,8 +163,8 @@ class AccessibilityModelUpdaterTest {
     assertEquals(139, textViewComponent.w)
     assertEquals(147, textViewComponent.y)
     val textViewNavigatable = textViewComponent.navigatable as OpenFileDescriptor
-    assertEquals(1158, textViewNavigatable.offset)
-    assertEquals("MainActivity.kt", textViewNavigatable.file.name)
+    textViewNavigatable.rangeMarker.document.getLineNumber(textViewNavigatable.offset)
+    assertEquals("MainActivity.kt 49:12", textViewNavigatable.toFileLineAndColumn())
 
     children = children[1].children
     assertEquals(2, children.size)
@@ -163,8 +175,7 @@ class AccessibilityModelUpdaterTest {
     assertEquals(219, buttonTextViewComponent.w)
     assertEquals(252, buttonTextViewComponent.y)
     val buttonTextViewNavigatable = buttonTextViewComponent.navigatable as OpenFileDescriptor
-    assertEquals(1225, buttonTextViewNavigatable.offset)
-    assertEquals("MainActivity.kt", buttonTextViewNavigatable.file.name)
+    assertEquals("MainActivity.kt 51:16", buttonTextViewNavigatable.toFileLineAndColumn())
 
     val buttonComponent = children[1]
     assertEquals(0, buttonComponent.childCount)
@@ -172,7 +183,6 @@ class AccessibilityModelUpdaterTest {
     assertEquals(303, buttonComponent.w)
     assertEquals(226, buttonComponent.y)
     val buttonNavigatable = buttonComponent.navigatable as OpenFileDescriptor
-    assertEquals(1225, buttonNavigatable.offset)
-    assertEquals("MainActivity.kt", buttonNavigatable.file.name)
+    assertEquals("MainActivity.kt 51:16", buttonNavigatable.toFileLineAndColumn())
   }
 }

@@ -29,19 +29,26 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.tree.TreeUtil;
 import java.awt.CardLayout;
+import java.awt.Insets;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeListener;
 import org.jetbrains.annotations.NotNull;
@@ -99,6 +106,7 @@ public class ToolComponentsPanel {
 
   @VisibleForTesting
   ToolComponentsPanel(@NotNull PropertiesComponent propertiesComponent) {
+    setupUI();
     myToolsDetailsCheckbox.setSelected(propertiesComponent.getBoolean(TOOLS_DETAILS_CHECKBOX_SELECTED, false));
     myToolsDetailsCheckbox.addActionListener(e -> {
       propertiesComponent.setValue(TOOLS_DETAILS_CHECKBOX_SELECTED, myToolsDetailsCheckbox.isSelected());
@@ -185,6 +193,68 @@ public class ToolComponentsPanel {
     }
     updateToolsItems();
   }
+
+  private void setupUI() {
+    createUIComponents();
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText(
+      "<html>Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check \"show package details\" to display available versions of an SDK Tool.</html>");
+    myRootPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                  GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myToolsPanel = new JPanel();
+    myToolsPanel.setLayout(new CardLayout(0, 0));
+    myRootPanel.add(myToolsPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null,
+                                                      null, null, 0, false));
+    final JBScrollPane jBScrollPane1 = new JBScrollPane();
+    myToolsPanel.add(jBScrollPane1, "summary");
+    jBScrollPane1.setViewportView(myToolsSummaryTable);
+    final JBScrollPane jBScrollPane2 = new JBScrollPane();
+    myToolsPanel.add(jBScrollPane2, "details");
+    jBScrollPane2.setViewportView(myToolsDetailTable);
+    final JPanel panel1 = new JPanel();
+    panel1.setLayout(new GridLayoutManager(1, 4, new Insets(0, 0, 0, 0), -1, -1));
+    myRootPanel.add(panel1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_SOUTH, GridConstraints.FILL_HORIZONTAL,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                null, 0, false));
+    myToolsDetailsCheckbox = new JCheckBox();
+    myToolsDetailsCheckbox.setText("Show Package Details");
+    panel1.add(myToolsDetailsCheckbox,
+               new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myToolsLoadingPanel = new JPanel();
+    myToolsLoadingPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    panel1.add(myToolsLoadingPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                        null, null, 0, false));
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setText("Looking for updates...");
+    myToolsLoadingPanel.add(jBLabel2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                          null, 0, false));
+    myToolsLoadingPanel.add(myToolsLoadingIcon, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
+                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                    GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                    GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+    myHideObsoletePackagesCheckbox = new JCheckBox();
+    myHideObsoletePackagesCheckbox.setSelected(true);
+    myHideObsoletePackagesCheckbox.setText("Hide Obsolete Packages");
+    panel1.add(myHideObsoletePackagesCheckbox,
+               new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    panel1.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                            GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+  }
+
+  public JComponent getRootComponent() { return myRootPanel; }
 
   private static boolean shouldAlwaysHide(@NotNull String path) {
     if (isChromeOSAndIsNotHWAccelerated() && CHROME_OS_INCOMPATIBLE_PATHS.contains(path)) {

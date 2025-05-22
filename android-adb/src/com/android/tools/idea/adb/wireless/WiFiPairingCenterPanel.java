@@ -19,10 +19,16 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.utils.HtmlBuilder;
 import com.intellij.ui.border.CustomLineBorder;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Insets;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
@@ -47,6 +53,7 @@ public class WiFiPairingCenterPanel {
   @NotNull private JPanel myErrorTextPanel;
 
   public WiFiPairingCenterPanel(HyperlinkListener hyperlinkListener) {
+    setupUI();
     myContentPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myErrorTextPanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myErrorText.setFont(AdtUiUtils.EMPTY_TOOL_WINDOW_FONT);
@@ -94,5 +101,78 @@ public class WiFiPairingCenterPanel {
 
   private void createUIComponents() {
     myErrorText = EditorPaneUtils.createHtmlEditorPane();
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myRoot = new JPanel();
+    myRoot.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), 0, 0));
+    myScrollPane = new JBScrollPane();
+    myRoot.add(myScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                 null, 0, false));
+    myContentPanel = new JPanel();
+    myContentPanel.setLayout(new BorderLayout(0, 0));
+    myScrollPane.setViewportView(myContentPanel);
+    myErrorContainerPanel = new JPanel();
+    myErrorContainerPanel.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), 0, 0));
+    myRoot.add(myErrorContainerPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                          null, null, null, 0, false));
+    myErrorTopPanel = new JPanel();
+    myErrorTopPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myErrorContainerPanel.add(myErrorTopPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                   GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                   null, null, null, 0, false));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setHorizontalAlignment(0);
+    jBLabel1.setHorizontalTextPosition(0);
+    jBLabel1.setText("");
+    myErrorTopPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_WANT_GROW, null, null,
+                                                      null, 0, false));
+    myErrorTextPanel = new JPanel();
+    myErrorTextPanel.setLayout(new GridLayoutManager(3, 3, new Insets(0, 0, 0, 0), -1, -1));
+    myErrorContainerPanel.add(myErrorTextPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                    GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                    GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+    myErrorText.setName("errorText");
+    myErrorText.setText("");
+    myErrorTextPanel.add(myErrorText, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                          null, null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myErrorTextPanel.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                                      GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    final Spacer spacer2 = new Spacer();
+    myErrorTextPanel.add(spacer2, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                                      GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    final Spacer spacer3 = new Spacer();
+    myErrorTextPanel.add(spacer3, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, 1,
+                                                      new Dimension(50, 0), null, null, 0, false));
+    final Spacer spacer4 = new Spacer();
+    myErrorTextPanel.add(spacer4, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, 1,
+                                                      new Dimension(50, 0), null, null, 0, false));
+    myErrorBottomPanel = new JPanel();
+    myErrorBottomPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myErrorContainerPanel.add(myErrorBottomPanel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                      GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                                      null, null, null, 0, false));
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setHorizontalAlignment(0);
+    jBLabel2.setHorizontalTextPosition(0);
+    jBLabel2.setText("");
+    myErrorBottomPanel.add(jBLabel2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_WANT_GROW, null, null,
+                                                         null, 0, false));
   }
 }

@@ -88,7 +88,12 @@ _generate_test_suite = rule(
 def intellij_unit_test_suite(
         name,
         srcs,
+        deps,
         test_package_root,
+        runtime_deps = [],
+        args = [],
+        friends = [],
+        target_compatible_with = None,
         class_rules = [],
         size = "medium",
         tags = [],
@@ -131,14 +136,30 @@ def intellij_unit_test_suite(
         class_rules = class_rules,
         tags = tags,
     )
+    kotlin_library(
+        name = name + ".testlib",
+        jvm_target = "17",
+        srcs = srcs + [suite_class_name],
+        deps = deps,
+        lint_enabled = False,
+        target_compatible_with = target_compatible_with,
+        testonly = 1,
+        friends = friends,
+        #        stdlib = "//tools/adt/idea/aswb/testing:lib",
+    )
+
+    # NOTE: Do not replace with `kotlin_test` as it orders classpath in a way
+    #       that puts test dependencies first. Integration tests need plugin
+    #       `'jars` coming first.
     native.java_test(
         name = name,
         size = size,
-        srcs = srcs + [suite_class_name],
         data = data,
+        tags = tags,
+        args = args,
         jvm_flags = jvm_flags,
         test_class = suite_class,
-        tags = tags,
+        runtime_deps = runtime_deps + [name + ".testlib"],
         **kwargs
     )
 
@@ -309,6 +330,7 @@ def intellij_integration_test_suite(
         jvm_flags = jvm_flags,
         test_class = suite_class,
         runtime_deps = runtime_deps + [name + ".testlib"],
+        target_compatible_with = target_compatible_with,
         **kwargs
     )
 

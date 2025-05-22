@@ -30,14 +30,14 @@ import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
-import com.android.tools.idea.layoutinspector.model.SelectionOrigin
-import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
-import com.android.tools.idea.layoutinspector.runningdevices.ui.LayoutInspectorRenderer
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.RootPanelRenderer
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
@@ -52,16 +52,17 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
+import java.awt.Rectangle
+import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
+import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.util.concurrent.TimeUnit
-import javax.swing.JComponent
-import javax.swing.JPanel
-import kotlin.time.Duration.Companion.seconds
 
 class LayoutInspectorManagerTest {
 
@@ -135,7 +136,8 @@ class LayoutInspectorManagerTest {
         foregroundProcessDetection = fakeForegroundProcessDetection,
         inspectorClientSettings = InspectorClientSettings(displayViewRule.project),
         launcher = launcher,
-        layoutInspectorModel = model(displayViewRule.disposable) {},
+        layoutInspectorModel =
+          model(displayViewRule.disposable) { view(ROOT, Rectangle(0, 0, 100, 100)) {} },
         notificationModel = notificationModel,
         treeSettings = FakeTreeSettings(),
       )
@@ -367,27 +369,6 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testViewIsRefreshedOnSelectionChange() = withEmbeddedLayoutInspector {
-    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
-    var refreshCount = 0
-
-    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
-
-    val layoutInspectorRenderer =
-      tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
-    layoutInspectorRenderer.addListener { refreshCount += 1 }
-
-    layoutInspector.inspectorModel.setSelection(ViewNode("node1"), SelectionOrigin.COMPONENT_TREE)
-    assertThat(refreshCount).isEqualTo(1)
-
-    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
-
-    layoutInspector.inspectorModel.setSelection(ViewNode("node2"), SelectionOrigin.COMPONENT_TREE)
-    assertThat(refreshCount).isEqualTo(1)
-  }
-
-  @Test
-  @RunsInEdt
   fun testDeepInspectIsDisabledOnProcessChange() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
@@ -599,7 +580,12 @@ class LayoutInspectorManagerTest {
 }
 
 private fun verifyUiInjected(tabInfo: TabInfo) {
-  verifyUiInjected(UiConfig.HORIZONTAL, tabInfo.content, tabInfo.container, tabInfo.displayView)
+  verifyUiInjected<RootPanelRenderer>(
+    UiConfig.HORIZONTAL,
+    tabInfo.content,
+    tabInfo.container,
+    tabInfo.displayView,
+  )
 }
 
 private fun verifyUiRemoved(tabInfo: TabInfo) {

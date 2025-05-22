@@ -35,6 +35,7 @@ import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.MouseDraggedEvent;
 import com.android.tools.idea.common.surface.MousePressedEvent;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.configurations.AdditionalDeviceService;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.surface.DeviceSizeList;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -77,11 +78,6 @@ public class CanvasResizeInteraction implements Interaction {
    */
   // TODO: Make it possible to resize to arbitrary large sizes without running out of memory
   private static final int MAX_ANDROID_SIZE = 1500;
-  /**
-   * Specific subset of the phones/tablets to show when resizing; for tv and wear, this list
-   * is not used; instead, all devices matching the tag (android-wear, android-tv) are used. @see nexus.xml
-   */
-  private static final String[] DEVICES_TO_SHOW = {"Nexus 5", "Nexus 7", "Nexus 9", "Nexus 10", "pixel_2", "pixel_3", "pixel_3_xl"};
 
   @NotNull private final NlDesignSurface myDesignSurface;
   @NotNull private final ScreenView myScreenView;
@@ -150,10 +146,8 @@ public class CanvasResizeInteraction implements Interaction {
       devicesToShow = Collections.singletonList(configSettings.getDeviceById("tv_1080p"));
     }
     else {
-      devicesToShow = Lists.newArrayListWithExpectedSize(DEVICES_TO_SHOW.length);
-      for (String id : DEVICES_TO_SHOW) {
-        devicesToShow.add(configSettings.getDeviceById(id));
-      }
+      // Reference devices as phone, foldable, tablet, desktop
+      devicesToShow = AdditionalDeviceService.getInstance().getWindowSizeDevices();
       addSmallScreen = true;
     }
 
@@ -282,7 +276,9 @@ public class CanvasResizeInteraction implements Interaction {
     else {
       if (myLastSnappedDevice != null) {
         Device deviceToSnap = myLastSnappedDevice.getDevice();
-        State deviceState = deviceToSnap.getState(androidX < androidY ? "Portrait" : "Landscape");
+        ScreenOrientation deviceOrientation = androidX < androidY ? ScreenOrientation.PORTRAIT : ScreenOrientation.LANDSCAPE;
+        State deviceState = deviceToSnap.getDefaultState().deepCopy();
+        deviceState.setOrientation(deviceOrientation);
         myConfiguration.setEffectiveDevice(deviceToSnap, deviceState);
       }
       else {

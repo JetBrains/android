@@ -132,6 +132,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
         }
       }
     };
+    Disposer.register(parent, myController);
 
     setComponent(myForm.getContents());
   }

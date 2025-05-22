@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleDescriptionProvider
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider
@@ -27,7 +28,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 
-class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
+class ChooseModuleTypeStepTest : AndroidGradleTestCase(getAgpVersion()) {
 
   fun testSortSingleModuleEntries() {
     assertThat(sort(message("android.wizard.module.new.mobile")))

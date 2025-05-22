@@ -65,7 +65,7 @@ public class BuildDependenciesForProjectAction extends BlazeProjectAction {
       return;
     }
 
-    int externalDeps = snapshot.graph().projectDeps().size();
+    int externalDeps = snapshot.graph().getExternalDependencyCount();
     logger.warn("Total external deps: " + externalDeps);
     if (externalDeps > EXTERNAL_DEPS_WARNING_THRESHOLD) {
       if (!new WarningDialog(project).showAndGet()) {

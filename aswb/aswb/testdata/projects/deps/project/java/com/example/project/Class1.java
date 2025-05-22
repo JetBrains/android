@@ -23,9 +23,9 @@ import com.example.external.gensrcjar.ExternalJavaSourceInGenSrcjar;
 public class Class1 {
 
   public String getString() {
-    return ExternalJavaSource.STRING
+    final var s = new ExternalJavaSource();
+    return s.copy(ExternalJavaSource.STRING)
         + ExternalJavaInSrcJar.STRING
         + ExternalJavaSourceInGenSrcjar.STRING;
   }
-
 }

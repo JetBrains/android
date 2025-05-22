@@ -22,7 +22,6 @@ import com.google.idea.blaze.base.async.executor.BlazeExecutor;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.project.Project;
@@ -46,11 +45,7 @@ class BlazeInfoRunnerImpl extends BlazeInfoRunner {
               if (key != null) {
                 builder.addBlazeFlags(key);
               }
-              try (BuildResultHelper buildResultHelper = invoker.createBuildResultHelper();
-                  InputStream blazeInfoStream =
-                      invoker
-                          .getCommandRunner()
-                          .runBlazeInfo(project, builder, buildResultHelper, context)) {
+              try (InputStream blazeInfoStream = invoker.invokeInfo(builder, context)) {
                 return blazeInfoStream.readAllBytes();
               }
             });

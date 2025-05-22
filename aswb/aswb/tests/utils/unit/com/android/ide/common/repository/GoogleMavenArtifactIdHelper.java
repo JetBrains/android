@@ -25,7 +25,7 @@ public final class GoogleMavenArtifactIdHelper {
       GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+");
 
   public static Label getLabelForGoogleMavenArtifactId(GradleCoordinate coordinate) {
-    switch (GoogleMavenArtifactId.forCoordinate(coordinate)) {
+    switch (GoogleMavenArtifactId.find(coordinate.getGroupId(), coordinate.getArtifactId())) {
       case RECYCLERVIEW_V7:
         return Label.create("//third_party/recyclerview:recyclerview");
       case CONSTRAINT_LAYOUT:

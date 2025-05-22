@@ -38,6 +38,7 @@ import com.android.tools.idea.projectsystem.ScopeType;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil;
+import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.StudioResourceIdManager;
@@ -194,6 +195,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
       new File(Objects.requireNonNull(getProject().getBasePath())),
       new AndroidModuleModelBuilder(":", "debug", createAndroidProjectBuilderForDefaultTestProjectStructure()));
     final var mainModule = getMainModule(gradleModule(getProject(), ":"));
+    final var mainBuildReference = BuildTargetReference.gradleOnly(mainModule);
     // Create regular project path
     Path srcDir = Files.createDirectories(Files.createTempDirectory("testProject").resolve("src"));
     Path packageDir = Files.createDirectories(srcDir.resolve("com/google/example"));
@@ -203,7 +205,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     Path overlayDir1 = Files.createDirectories(Files.createTempDirectory("overlay"));
     Path overlayDir2 = Files.createDirectories(Files.createTempDirectory("overlay"));
     Files.createDirectories(overlayDir1.resolve("com/google/example"));
-    ModuleClassLoaderOverlays.getInstance(mainModule).pushOverlayPath(overlayDir1);
+    ModuleClassLoaderOverlays.getInstance(mainBuildReference).pushOverlayPath(overlayDir1);
 
     ApplicationManager.getApplication().runWriteAction(
       (Computable<SourceFolder>)() -> PsiTestUtil.addSourceRoot(mainModule,
@@ -221,7 +223,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     assertTrue(loader.isUserCodeUpToDate());
     // New overlay will make the code out-of-date
-    ModuleClassLoaderOverlays.getInstance(mainModule).pushOverlayPath(overlayDir2);
+    ModuleClassLoaderOverlays.getInstance(mainBuildReference).pushOverlayPath(overlayDir2);
     assertFalse(loader.isUserCodeUpToDate());
     StudioModuleClassLoaderManager.get().release(loaderReference);
   }
@@ -233,7 +235,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     Path overlayTestDir = Files.createDirectories(Files.createTempDirectory("overlayTest"));
     assertTrue(loader.isUserCodeUpToDate());
     // New overlay will make the code out-of-date, even if the class loader hasn't been used to load any class
-    ModuleClassLoaderOverlays.getInstance(myModule).pushOverlayPath(overlayTestDir);
+    ModuleClassLoaderOverlays.getInstance(BuildTargetReference.gradleOnly(myModule)).pushOverlayPath(overlayTestDir);
     assertFalse(loader.isUserCodeUpToDate());
     StudioModuleClassLoaderManager.get().release(loaderReference);
   }

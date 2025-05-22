@@ -14,10 +14,10 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:asm-tools",
-        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
-        "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module]",
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",
+        "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader",
         "//tools/adt/idea/.idea/libraries:layoutlib",
-        "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
+        "//tools/base/environment-services:studio.intellij.android.environment-services",
     ],
 )
 
@@ -33,7 +33,7 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[test]",
         "//tools/adt/idea/.idea/libraries:layoutlib[test]",
     ],
 )

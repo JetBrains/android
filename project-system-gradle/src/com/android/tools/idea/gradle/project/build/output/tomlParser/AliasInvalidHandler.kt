@@ -26,7 +26,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 
 class AliasInvalidHandler : TomlErrorHandler {
-  private val PROBLEM_ALIAS_PATTERN: Regex = "  - Alias definition '([^ ]+)' is invalid".toRegex()
+  private val PROBLEM_ALIAS_PATTERN: Regex = "\\s+- Alias definition '([^ ]+)' is invalid".toRegex()
 
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
     if (reader.readLine()?.endsWith(BUILD_ISSUE_TOML_START) == true) {
@@ -38,7 +38,7 @@ class AliasInvalidHandler : TomlErrorHandler {
         val (alias) = match.destructured
         return extractAliasInformation(
           alias, description, reader
-        )?.let { listOf(it) } ?: listOf()
+        ).let { listOf(it) }
       }
     }
     return listOf()
@@ -47,18 +47,17 @@ class AliasInvalidHandler : TomlErrorHandler {
   private fun extractAliasInformation(alias: String,
                                       description: StringBuilder,
                                       reader: BuildOutputInstantReader
-  ): BuildIssueEvent? {
+  ): BuildIssueEvent {
 
     description.append(readUntilLine(reader, BUILD_ISSUE_TOML_STOP_LINE))
 
     val buildIssue = object : TomlErrorMessageAwareIssue(description.toString()) {
       override fun getNavigatable(project: Project): Navigatable? {
-        //now it looks only in default catalog
-        //TODO look through all available catalogs
-        val file = project.findCatalogFile("libs") ?: return null
-        return runReadAction {
-          findFirstElement(project, file, "*/$alias")
+        for (file in project.findAllCatalogFiles()) {
+          val descriptor = runReadAction { findFirstElement(project, file, "*/$alias") }
+          if (descriptor.offset >= 0) return descriptor
         }
+        return null
       }
     }
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)

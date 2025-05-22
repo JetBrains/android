@@ -21,14 +21,15 @@ import static com.google.idea.blaze.qsync.QuerySyncTestUtils.getQuerySummary;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.qsync.BlazeQueryParser;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
+import com.google.idea.blaze.qsync.project.BuildGraphDataImpl;
 import java.io.IOException;
 
-/** Utility code for creating a simple {@link BuildGraphData} instance for a test project. */
+/** Utility code for creating a simple {@link BuildGraphDataImpl} instance for a test project. */
 public class BuildGraphs {
 
   private BuildGraphs() {}
 
-  public static BuildGraphData forTestProject(TestData project) throws IOException {
-    return new BlazeQueryParser(getQuerySummary(project), NOOP_CONTEXT, ImmutableSet.of()).parse();
+  public static BuildGraphDataImpl forTestProject(TestData project) throws IOException {
+    return new BlazeQueryParser(getQuerySummary(project), NOOP_CONTEXT, ImmutableSet.of()).parseForTesting();
   }
 }

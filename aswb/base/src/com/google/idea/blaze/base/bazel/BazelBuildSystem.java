@@ -20,19 +20,13 @@ import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.projectview.ProjectViewManager;
-import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.projectview.section.sections.BazelBinarySection;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
 import com.google.idea.blaze.base.run.ExecutorType;
-import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 class BazelBuildSystem implements BuildSystem {
 
@@ -42,42 +36,23 @@ class BazelBuildSystem implements BuildSystem {
   }
 
   @Override
-  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, Set<BuildInvoker.Capability> requirements) {
-    return getBuildInvoker(project, context);
+  public BuildInvoker getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements) {
+    return new LocalInvoker(project, this, BuildBinaryType.BAZEL);
   }
 
   @Override
-  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, ExecutorType executorType, Kind targetKind) {
-    return getBuildInvoker(project, context);
+  public BuildInvoker getBuildInvoker(Project project, ExecutorType executorType, Kind targetKind) {
+    return getBuildInvoker(project);
   }
 
   @Override
-  public BuildInvoker getBuildInvoker(Project project, BlazeContext context, BlazeCommandName command) {
-    return getBuildInvoker(project, context);
-  }
-
-  @Override
-  public BuildInvoker getBuildInvoker(Project project, BlazeContext context) {
-    return new LocalInvoker(project, context, this, BuildBinaryType.BAZEL);
-  }
-
-  @Override
-  public Optional<BuildInvoker> getParallelBuildInvoker(Project project, BlazeContext context) {
-    return Optional.empty();
+  public BuildInvoker getBuildInvoker(Project project, BlazeCommandName command) {
+    return getBuildInvoker(project);
   }
 
   @Override
   public SyncStrategy getSyncStrategy(Project project) {
     return SyncStrategy.SERIAL;
-  }
-
-  @Nullable
-  static File getProjectSpecificBazelBinary(Project project) {
-    ProjectViewSet projectView = ProjectViewManager.getInstance(project).getProjectViewSet();
-    if (projectView == null) {
-      return null;
-    }
-    return projectView.getScalarValue(BazelBinarySection.KEY).orElse(null);
   }
 
   @Override

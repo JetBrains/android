@@ -324,7 +324,7 @@ class DeviceViewPanel(val layoutInspector: LayoutInspector, disposableParent: Di
       if (oldWindow == null && newWindow != null) {
         // TODO(b/265150325) move to a more generic place
         layoutInspector.currentClient.stats.recompositionHighlightColor =
-          renderSettings.highlightColor
+          renderSettings.recompositionColor
 
         if (shouldZoomToFit && !model.isXr) {
           // Zoom to fit each time a new window shows up immediately after a process change

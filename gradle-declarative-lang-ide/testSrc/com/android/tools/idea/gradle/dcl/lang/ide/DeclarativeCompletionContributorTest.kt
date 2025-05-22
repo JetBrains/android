@@ -139,7 +139,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildFeatures", "buildOutputs", "buildTypes", "compileOptions",
+        "buildFeatures", "buildOutputs", "buildTypes", "bundle", "compileOptions",
         "compileSdk", "defaultConfig", "dependenciesDcl", "lint", "namespace",
         "productFlavors", "signingConfigs", "sourceSets"
       )

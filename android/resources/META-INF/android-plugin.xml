@@ -87,9 +87,13 @@
     </group>
 
     <action internal="true"
-            text="Validate Plugin Configuration"
-            id="Android.ValidatePluginConfiguration"
-            class="com.android.tools.idea.actions.ValidatePluginConfigurationAction"/>
+            text="Validate Essential Plugins"
+            id="Android.ValidateEssentialPlugins"
+            class="com.android.tools.idea.actions.ValidateEssentialPluginsAction"/>
+    <action internal="true"
+            text="Disable All Plugins"
+            id="Android.DisableAllPlugins"
+            class="com.android.tools.idea.actions.DisableAllPluginsAction"/>
 
     <group id="Internal.Android" text="Android" popup="true" internal="true">
       <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.actions.GetAdbAction" />
@@ -340,7 +344,9 @@
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidTileConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType"/>
+    <configurationType implementation="com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfigurationType"/>
     <programRunner implementation="com.android.tools.idea.run.DefaultStudioProgramRunner" order="first" id="DefaultStudioProgramRunner"/>
+    <programRunner implementation="com.android.tools.idea.run.AndroidDeclarativeWatchFaceProgramRunner" order="after DefaultStudioProgramRunner" />
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
     <facetType implementation="com.android.tools.idea.facet.AndroidArtifactFacetType"/>
 
@@ -735,8 +741,6 @@
                     interface="com.android.tools.idea.ui.resourcemanager.importer.CreateDefaultResDirectoryToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.run.configuration.editors.androidWearConfigurationEditorToken"
                     interface="com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditorToken"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.screenshottest.screenshotTestResultListenerToken"
-                    interface="com.android.tools.idea.testartifacts.screenshottest.ScreenshotTestResultListenerToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.res.resourceClassToken"
                     interface="com.android.tools.idea.res.ResourceClassToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.manifest.manifestClassToken"

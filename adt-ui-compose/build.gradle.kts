@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
@@ -60,6 +63,9 @@ dependencies {
   }
 
   api("androidx.lifecycle:lifecycle-runtime:2.8.5")
+  testApi(compose.desktop.uiTestJUnit4)
+  testApi("org.jetbrains.jewel:jewel-int-ui-standalone-243:0.27.0")
+  testApi("org.jetbrains.jewel:jewel-markdown-int-ui-standalone-styling-243:0.27.0")
 }
 
 sourceSets {
@@ -67,4 +73,35 @@ sourceSets {
     resources { srcDirs("src/resources") }
     kotlin { srcDirs("src") }
   }
+  test {
+    resources { srcDirs("testResources") }
+    kotlin { srcDirs("testSrc") }
+  }
+}
+
+tasks {
+  withType<KotlinCompile> {
+    compilerOptions {
+      jvmTarget.set(JvmTarget.JVM_17)
+      apiVersion.set(KotlinVersion.KOTLIN_1_9)
+      languageVersion.set(KotlinVersion.KOTLIN_1_9)
+    }
+  }
+}
+
+configurations {
+  val test by creating {
+    // Copy from testImplementation
+    extendsFrom(configurations.testImplementation.get())
+  }
+}
+
+tasks.register<Jar>("testJar") {
+  archiveClassifier.set("tests")
+  from(sourceSets.test.get().output)
+}
+
+artifacts {
+  // Used by other modules' tests
+  add("test", tasks.named<Jar>("testJar"))
 }

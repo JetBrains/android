@@ -36,18 +36,21 @@ import com.android.tools.idea.util.findAndroidModule
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.search.EverythingGlobalScope
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.SlowOperations
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,6 +59,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.asJava.KotlinAsJavaSupport
 import org.jetbrains.kotlin.fileClasses.isJvmMultifileClassFile
@@ -63,6 +67,8 @@ import org.jetbrains.kotlin.idea.util.projectStructure.module
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.analysisContext
+import org.jetbrains.uast.UFile
+import org.jetbrains.uast.toUElement
 import kotlin.collections.plus
 
 /**
@@ -137,25 +143,64 @@ interface RenderingBuildStatusManager {
      *   .class files that indicate that has been built before.
      */
     fun create(parentDisposable: Disposable, psiFile: PsiFile): RenderingBuildStatusManager =
-      RenderingBuildStatusManagerImpl(parentDisposable, psiFile)
+      RenderingBuildStatusManagerImpl(parentDisposable, psiFile, ::defaultClassFinderFactory)
+
+    /**
+     * Creates a new [RenderingBuildStatusManager].
+     *
+     * @param parentDisposable [Disposable] to track for disposing this manager.
+     * @param psiFile the file in the editor to track changes and the build status. If the project
+     *   has not been built since it was open, this file is used to find if there are any existing
+     *   .class files that indicate that has been built before.
+     * @param classFinderFactory factory method that provides the class finder lookup method that allows to determine if a class exists.
+     */
+    @TestOnly
+    fun createForTest(parentDisposable: Disposable,
+                      psiFile: PsiFile,
+                      classFinderFactory: (BuildTargetReference) -> suspend ((String) -> Boolean) = ::defaultClassFinderFactory): RenderingBuildStatusManagerForTests =
+      RenderingBuildStatusManagerImpl(parentDisposable, psiFile, classFinderFactory)
   }
 }
 
-interface RenderingBuildStatusManagerForTests {
+interface RenderingBuildStatusManagerForTests : RenderingBuildStatusManager {
   /** Returns the internal [ResourceChangeListener] to be used by tests. */
   @TestOnly fun getResourcesListenerForTest(): ResourceChangeListener
 }
 
-private class RenderingBuildStatusManagerImpl(parentDisposable: Disposable, psiFile: PsiFile) :
+/**
+ * Returns true if the given [fqcn] exists in the [ModuleClassLoaderOverlays] for the given [buildTargetReference].
+ */
+private fun doesOverlayContainClass(buildTargetReference: BuildTargetReference, fqcn: String): Boolean =
+  ModuleClassLoaderOverlays.getInstanceIfCreated(buildTargetReference)?.containsClass(fqcn) == true
+
+/**
+ * The default implementation for the class finder lookup. The returned function will be able to lookup if a class exists for a given
+ * FQCN.
+ *
+ * The given [buildTargetReference] is used as context for the classpath resolution. It will typically belong to the editor file
+ * context.
+ */
+private fun defaultClassFinderFactory(buildTargetReference: BuildTargetReference): suspend ((String) -> Boolean) {
+  val buildSystemFilePreviewServices =
+    buildTargetReference.getBuildSystemFilePreviewServices()
+  val classFileFinder by lazy {
+    buildSystemFilePreviewServices.getRenderingServices(buildTargetReference).classFileFinder
+  }
+  return { fqcn: String ->
+    readAction { (classFileFinder?.findClassFile(fqcn) != null || doesOverlayContainClass(buildTargetReference, fqcn)) }
+  }
+}
+
+private class RenderingBuildStatusManagerImpl(
+  parentDisposable: Disposable,
+  psiFile: PsiFile,
+  private val classFinderFactory: (BuildTargetReference) -> suspend ((String) -> Boolean)) :
   RenderingBuildStatusManager, RenderingBuildStatusManagerForTests {
   private val editorFilePtr: SmartPsiElementPointer<PsiFile> = runReadAction {
     SmartPointerManager.getInstance(psiFile.project).createSmartPsiElementPointer(psiFile)
   }
 
   private val scope = AndroidCoroutineScope(parentDisposable)
-
-  private val editorFile: PsiFile?
-    get() = runReadAction { editorFilePtr.element }
 
   private val project: Project = psiFile.project
   private val buildTargetReference =
@@ -310,15 +355,17 @@ private class RenderingBuildStatusManagerImpl(parentDisposable: Disposable, psiF
     project.runWhenSmartAndSynced(
       parentDisposable,
       {
-        if (projectBuildStatusFlow.value === ProjectBuildStatus.NotReady) {
-          // Check in the background the state of the build (hasBeenBuiltSuccessfully is a slow
-          // method).
-          val newState =
-            if (editorHasExistingClassFile()) ProjectBuildStatus.Built
-            else ProjectBuildStatus.NeedsBuild
-          // Only update the status if we are still in NotReady.
+        scope.launch {
           if (projectBuildStatusFlow.value === ProjectBuildStatus.NotReady) {
-            projectBuildStatusFlow.value = newState
+            // Check in the background the state of the build (hasBeenBuiltSuccessfully is a slow
+            // method).
+            val newState =
+              if (editorHasExistingClassFile()) ProjectBuildStatus.Built
+              else ProjectBuildStatus.NeedsBuild
+            // Only update the status if we are still in NotReady.
+            if (projectBuildStatusFlow.value === ProjectBuildStatus.NotReady) {
+              projectBuildStatusFlow.value = newState
+            }
           }
         }
       },
@@ -327,46 +374,20 @@ private class RenderingBuildStatusManagerImpl(parentDisposable: Disposable, psiF
 
   override fun getResourcesListenerForTest(): ResourceChangeListener = resourceChangeListener
 
-  fun editorHasExistingClassFile(): Boolean {
-    val psiFile = editorFile ?: return false
-    return SlowOperations.knownIssue("IDEA-359567").use {
-      runReadAction {
-        val classesFqNames = psiFile.findClassesFqNames()
-        if (classesFqNames.isEmpty()) {
-          false
-        } else {
-          val module = ModuleUtil.findModuleForFile(psiFile) ?: return@runReadAction false
-          val moduleSystem = module.getModuleSystem()
-          val androidModule = module.findAndroidModule()
-          val androidModuleSystem = androidModule?.getModuleSystem()
-          classesFqNames.any {
-            moduleSystem.moduleClassFileFinder.findClassFile(it) != null ||
-            androidModuleSystem?.moduleClassFileFinder?.findClassFile(it) != null
-          }
-        }
+  private suspend fun editorHasExistingClassFile(): Boolean {
+    val editorFile: PsiFile = runReadAction { editorFilePtr.element } ?: return false
+
+    val fqNames = readAction {
+      val uFile = editorFile.toUElement(UFile::class.java)
+      val classes = when {
+        uFile != null -> uFile.classes.map { c -> c.javaPsi }
+        editorFile is PsiClassOwner -> editorFile.classes.asList()
+        else -> listOfNotNull(PsiTreeUtil.findChildOfType(editorFile, PsiClass::class.java))
       }
+      classes.mapNotNull { it.qualifiedName }
     }
-  }
-}
 
-private fun PsiFile.findClassesFqNames(): List<String> {
-  return when (this) {
-    is KtFile -> kotlinClassDeclarations()
-    is PsiClassOwner -> classes.mapNotNull { it.qualifiedName }
-    else -> listOf()
-  }
-}
-
-private fun KtFile.kotlinClassDeclarations(): List<String> =
-  declarations.filterIsInstance<KtClassOrObject>().mapNotNull { ktClass -> ktClass.fqName?.asString() } + fetchTopLevelClasses(this)
-
-private fun fetchTopLevelClasses(file: KtFile): List<String> = buildList {
-  if (!file.isJvmMultifileClassFile && !file.hasTopLevelCallables()) return@buildList
-
-  val kotlinAsJavaSupport = KotlinAsJavaSupport.getInstance(file.project)
-  if (file.analysisContext == null) {
-    kotlinAsJavaSupport.getLightFacade(file)?.qualifiedName?.let(this::add)
-  } else {
-    kotlinAsJavaSupport.createFacadeForSyntheticFile(file).qualifiedName?.let(this::add)
+    val classFileFinder = classFinderFactory(buildTargetReference)
+    return fqNames.any { classFileFinder(it) }
   }
 }

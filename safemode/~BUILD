@@ -10,8 +10,8 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/android-common:intellij.android.common[module]",
-        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/adt/idea/artwork:intellij.android.artwork",
     ],
 )
 
@@ -61,8 +61,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
-        "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/adt/idea/as-driver:as-driver.utils[test]",
+        "//tools/base/common:studio.android.sdktools.common[test]",
         "@intellij//:intellij-sdk[test]",
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:truth[test]",

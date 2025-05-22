@@ -60,6 +60,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -71,6 +72,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * The artifact tracker performs the following tasks:
@@ -120,7 +122,8 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
     loadState();
   }
 
-  public ImmutableCollection<TargetBuildInfo> getBuiltDeps() {
+  @TestOnly
+  public ImmutableCollection<TargetBuildInfo> getBuiltDepsForTesting() {
     synchronized (stateLock) {
       return ImmutableList.copyOf(builtDeps.values());
     }
@@ -255,7 +258,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
     if (!failures.isEmpty()) {
       BuildException e =
           new BuildException(
-              String.format("Failed to extract metadata from %d artifacts", failures.size()));
+              String.format(Locale.ROOT, "Failed to extract metadata from %d artifacts", failures.size()));
       failures.forEach(e::addSuppressed);
       throw e;
     }

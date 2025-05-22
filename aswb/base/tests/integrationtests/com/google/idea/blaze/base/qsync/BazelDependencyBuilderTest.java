@@ -69,6 +69,12 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
         .toPath()
         .resolve("tools/adt/idea/aswb/aspect/build_dependencies_deps.bzl")
         .toString());
+    System.setProperty(
+      "qsync.aspect.build_dependencies_android_deps.bzl.file",
+      getRunfilesWorkspaceRoot()
+        .toPath()
+        .resolve("tools/adt/idea/aswb/aspect/build_dependencies_android_deps.bzl")
+        .toString());
     ServiceContainerUtil.registerComponentInstance(ApplicationManager.getApplication(), ExperimentService.class, experimentService,
                                                    getTestRootDisposable());
   }
@@ -78,7 +84,13 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
     final var dependencyBuilder =
       new BazelDependencyBuilder(getProject(),
                                  new BazelBuildSystemProvider().getBuildSystem(),
-                                 ProjectDefinition.builder().build(),
+                                 ProjectDefinition.builder()
+                                   .setProjectIncludes(ImmutableSet.of())
+                                   .setProjectExcludes(ImmutableSet.of())
+                                   .setSystemExcludes(ImmutableSet.of())
+                                   .setTestSources(ImmutableSet.of())
+                                   .setLanguageClasses(ImmutableSet.of())
+                                   .build(),
                                  new WorkspaceRoot(temporaryFolder.getRoot()),
                                  Optional.empty(),
                                  new MockArtifactCache(temporaryFolder.newFolder().toPath()),
@@ -130,7 +142,13 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
     final var dependencyBuilder =
       new BazelDependencyBuilder(getProject(),
                                  new BazelBuildSystemProvider().getBuildSystem(),
-                                 ProjectDefinition.builder().build(),
+                                 ProjectDefinition.builder()
+                                   .setProjectIncludes(ImmutableSet.of())
+                                   .setProjectExcludes(ImmutableSet.of())
+                                   .setSystemExcludes(ImmutableSet.of())
+                                   .setTestSources(ImmutableSet.of())
+                                   .setLanguageClasses(ImmutableSet.of())
+                                   .build(),
                                  new WorkspaceRoot(temporaryFolder.getRoot()),
                                  Optional.empty(),
                                  new MockArtifactCache(temporaryFolder.newFolder().toPath()),
@@ -141,7 +159,7 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
     final var invocationInfo = dependencyBuilder.getInvocationInfo(
       BlazeContext.create(),
       ImmutableSet.of(Label.of("//target1:target1"), Label.of("//target2:target2")),
-      ImmutableSet.of(QuerySyncLanguage.JAVA, QuerySyncLanguage.CC)
+      ImmutableSet.of(QuerySyncLanguage.JVM, QuerySyncLanguage.CC)
     );
     ImmutableMap<Path, ByteSource> invocationFiles =
       invocationInfo.invocationWorkspaceFiles();

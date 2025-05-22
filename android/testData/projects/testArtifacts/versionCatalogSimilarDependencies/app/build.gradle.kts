@@ -49,5 +49,7 @@ android {
 
 dependencies {
     implementation("com.android.support:appcompat-v7:28.0.0")
+    implementation(libs.androidx.datastore.core.android)
+    implementation("androidx.datastore:datastore-core-android:1.1.0-alpha04")
     testImplementation(libs.junit)
 }

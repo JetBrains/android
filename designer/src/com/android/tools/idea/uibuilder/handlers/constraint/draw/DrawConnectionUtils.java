@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
+import com.intellij.util.ui.JBFont;
+
 import static com.intellij.util.ui.JBUI.scale;
 
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -50,10 +52,10 @@ public class DrawConnectionUtils {
   private static Polygon sRightArrow;
   private static Polygon sBottomArrow;
 
-  static Font sFont = new Font("Helvetica", Font.PLAIN, scale(12));
-  static Font sFontReference = new Font("Helvetica", Font.ITALIC | Font.BOLD, scale(12));
+  static Font sFont = JBFont.create(new Font("Helvetica",Font.PLAIN, 12));
+  static Font sFontReference = JBFont.create(new Font("Helvetica", Font.ITALIC | Font.BOLD, 12));
 
-  private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, scale(8));
+  private static final Font sSmallFont = JBFont.create(new Font("Helvetica", Font.PLAIN, 8));
 
   public static Stroke
     sSpreadDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,

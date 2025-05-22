@@ -25,6 +25,7 @@ import com.android.tools.idea.streaming.core.location
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -424,7 +425,11 @@ class DeviceAdapterTest {
     frameRendered(frameNumber++, displayRectangle, 0, bufferedImage)
   }
 
-  inner class TestDisplayView(project: Project, override val deviceDisplaySize: Dimension) : AbstractDisplayView(project, 0) {
+  private inner class TestDisplayView(
+    project: Project,
+    override val deviceDisplaySize: Dimension
+  ) : AbstractDisplayView(project, 0, "StreamingContextMenuVirtualDevice") {
+
     init {
       displayRectangle = Rectangle(deviceDisplaySize)
       val mouseListener =
@@ -475,6 +480,8 @@ class DeviceAdapterTest {
     override fun computeActualSize() = deviceDisplaySize
 
     override fun dispose() {}
+
+    override fun uiDataSnapshot(sink: DataSink) {}
 
     fun notifyFrame(frame: BufferedImage) {
       notifyFrameListeners(Rectangle(), frame)

@@ -20,34 +20,21 @@ package com.android.tools.idea.gradle.dcl.lang.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.ContributedReferenceHost;
+import com.intellij.psi.PsiReference;
 
-public interface DeclarativeLiteral extends DeclarativeValue {
-
-  @Nullable
-  PsiElement getBoolean();
-
-  @Nullable
-  PsiElement getDoubleLiteral();
+public interface DeclarativeLiteral extends DeclarativeSimpleLiteral, ContributedReferenceHost {
 
   @Nullable
-  PsiElement getIntegerLiteral();
-
-  @Nullable
-  PsiElement getLongLiteral();
-
-  @Nullable
-  PsiElement getMultilineStringLiteral();
-
-  @Nullable
-  PsiElement getOneLineStringLiteral();
-
-  @Nullable
-  PsiElement getUnsignedInteger();
-
-  @Nullable
-  PsiElement getUnsignedLong();
+  DeclarativePair getPair();
 
   @Nullable
   Object getValue();
+
+  @Nullable
+  PsiReference getReference();
+
+  @NotNull
+  PsiReference[] getReferences();
 
 }

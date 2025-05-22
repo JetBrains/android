@@ -15,18 +15,12 @@
  */
 package com.android.tools.idea.updater;
 
-import com.android.SdkConstants;
-import com.android.repository.Revision;
 import com.android.repository.api.Downloader;
-import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.SettingsController;
 import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.AndroidVersionUtils;
-import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
@@ -47,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -98,7 +91,7 @@ public class SdkComponentSource implements ExternalComponentSource {
   @VisibleForTesting
   @NotNull
   RepoManager getRepoManager() {
-    return AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(LOGGER);
+    return AndroidSdks.getInstance().tryToChooseSdkHandler().getRepoManager(LOGGER);
   }
 
   /**

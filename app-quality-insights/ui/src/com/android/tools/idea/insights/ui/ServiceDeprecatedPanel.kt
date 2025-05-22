@@ -16,6 +16,8 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ui.HyperlinkLabel
@@ -24,6 +26,7 @@ import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.CurrentTheme.Banner
+import fleet.util.takeTillFirst
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics
@@ -33,8 +36,15 @@ import java.awt.GridBagLayout
 import java.awt.RenderingHints
 import javax.swing.JPanel
 import javax.swing.JTextArea
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class ServiceDeprecatedPanel(
+  scope: CoroutineScope,
+  activeTabFlow: Flow<Boolean>,
+  private val tracker: AppInsightsTracker,
   private val deprecationData: DevServicesDeprecationData,
   private val updateCallback: () -> Unit = {},
 ) : JPanel(GridBagLayout()) {
@@ -52,6 +62,11 @@ class ServiceDeprecatedPanel(
     gbc.apply { gridx = 0 }
     add(createSpacer(), gbc)
     add(createSpacer(), gbc.apply { gridx = 2 })
+
+    scope.launch {
+      activeTabFlow.takeTillFirst { it }.collect()
+      logEvent(userNotified = true)
+    }
   }
 
   private fun createSpacer() =
@@ -109,12 +124,17 @@ class ServiceDeprecatedPanel(
           JPanel(HorizontalLayout(8)).apply {
             isOpaque = false
             if (deprecationData.showUpdateAction) {
-              val updateLabel = createHyperlinkLabel("Update Android Studio") { updateCallback() }
+              val updateLabel =
+                createHyperlinkLabel("Update Android Studio") {
+                  logEvent(userClickedUpdate = true)
+                  updateCallback()
+                }
               add(updateLabel)
             }
             if (deprecationData.moreInfoUrl.isNotEmpty()) {
               val moreInfoLabel =
                 createHyperlinkLabel("More info") {
+                  logEvent(userClickedMoreInfo = true)
                   BrowserUtil.browse(deprecationData.moreInfoUrl)
                 }
               add(moreInfoLabel)
@@ -149,4 +169,16 @@ class ServiceDeprecatedPanel(
       addHyperlinkListener { action() }
       isOpaque = false
     }
+
+  private fun logEvent(
+    userNotified: Boolean? = null,
+    userClickedMoreInfo: Boolean? = null,
+    userClickedUpdate: Boolean? = null,
+  ) =
+    tracker.logServiceDeprecated(
+      AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel.TAB_PANEL,
+      userNotified,
+      userClickedMoreInfo,
+      userClickedUpdate,
+    )
 }

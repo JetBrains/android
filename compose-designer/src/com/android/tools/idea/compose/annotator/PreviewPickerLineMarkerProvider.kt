@@ -23,7 +23,7 @@ import com.android.tools.idea.compose.pickers.preview.tracking.PreviewPickerTrac
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.preview.toSmartPsiPointer
+import com.android.tools.idea.preview.find.toSmartPsiPointer
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
@@ -94,12 +94,10 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
   }
 
   /**
-   * Creates a [LineMarkerInfo] that when clicked/selected, opens the Properties panel for the
-   *
-   * @Preview annotation, this [LineMarkerInfo] should be available for the entire annotation entry,
-   *   including parameters. I.e: Invoking the [LineMarkerInfo] from a parameter should also show
-   *   the
-   * @Preview picker option.
+   * Creates a [LineMarkerInfo] that when clicked/selected, opens the Properties panel for
+   * the @Preview annotation, this [LineMarkerInfo] should be available for the entire annotation
+   * entry, including parameters. I.e: Invoking the [LineMarkerInfo] from a parameter should also
+   * show the @Preview picker option.
    */
   private fun createInfo(
     element: PsiElement,

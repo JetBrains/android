@@ -54,29 +54,29 @@ class RenderSettingsTest {
     // Default values:
     assertThat(settings1.drawBorders).isTrue()
     assertThat(settings1.drawLabel).isTrue()
-    assertThat(settings1.highlightColor).isEqualTo(HIGHLIGHT_DEFAULT_COLOR)
+    assertThat(settings1.recompositionColor).isEqualTo(HIGHLIGHT_DEFAULT_COLOR)
 
     settings1.drawBorders = true
     settings1.drawLabel = false
-    settings1.highlightColor = HIGHLIGHT_COLOR_RED
+    settings1.recompositionColor = HIGHLIGHT_COLOR_RED
 
     assertThat(settings1.drawBorders).isTrue()
     assertThat(settings1.drawLabel).isFalse()
-    assertThat(settings1.highlightColor).isEqualTo(HIGHLIGHT_COLOR_RED)
+    assertThat(settings1.recompositionColor).isEqualTo(HIGHLIGHT_COLOR_RED)
 
     val settings2 = InspectorRenderSettings()
     assertThat(settings2.drawBorders).isTrue()
     assertThat(settings2.drawLabel).isFalse()
-    assertThat(settings2.highlightColor).isEqualTo(HIGHLIGHT_COLOR_RED)
+    assertThat(settings2.recompositionColor).isEqualTo(HIGHLIGHT_COLOR_RED)
 
     settings2.drawBorders = false
     settings2.drawLabel = true
-    settings2.highlightColor = HIGHLIGHT_COLOR_PURPLE
+    settings2.recompositionColor = HIGHLIGHT_COLOR_PURPLE
 
     // settings1 gets the new values
     assertThat(settings1.drawBorders).isFalse()
     assertThat(settings1.drawLabel).isTrue()
-    assertThat(settings1.highlightColor).isEqualTo(HIGHLIGHT_COLOR_PURPLE)
+    assertThat(settings1.recompositionColor).isEqualTo(HIGHLIGHT_COLOR_PURPLE)
   }
 
   @Test
@@ -99,5 +99,20 @@ class RenderSettingsTest {
     // settings1 keeps its original values
     assertThat(settings1.drawBorders).isFalse()
     assertThat(settings1.drawLabel).isFalse()
+  }
+
+  @Test
+  fun testStateUpdates() {
+    val settings = InspectorRenderSettings()
+    var observedState: RenderSettings.State = settings.toState()
+    settings.modificationListeners.add { observedState = it }
+
+    assertThat(observedState.drawBorders).isTrue()
+    settings.drawBorders = false
+    assertThat(observedState.drawBorders).isFalse()
+
+    assertThat(observedState.drawLabel).isTrue()
+    settings.drawLabel = false
+    assertThat(observedState.drawLabel).isFalse()
   }
 }

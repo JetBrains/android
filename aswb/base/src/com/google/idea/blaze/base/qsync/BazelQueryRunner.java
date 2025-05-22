@@ -16,12 +16,11 @@
 package com.google.idea.blaze.base.qsync;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.BlazeCommandRunner;
-import com.google.idea.blaze.base.command.buildresult.BuildResultHelper;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStats;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -29,6 +28,7 @@ import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
+import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -64,26 +64,19 @@ public class BazelQueryRunner implements QueryRunner {
     Stopwatch timer = Stopwatch.createStarted();
     BuildInvoker invoker;
     if (PREFER_REMOTE_QUERIES.getValue()) {
-      // TODO(b/374906681) The "parallel" here is not really what we want: really we want to run the
-      // query remotely if that's supported. But we know that the parallel invoker is also a remote
-      // one so we use that for now. Once legacy sync code is deleted, cleaning all this up will
-      // become much easier.
       invoker =
           buildSystem
-              .getParallelBuildInvoker(project, context)
-              .orElse(buildSystem.getDefaultInvoker(project, context));
+              .getBuildInvoker(project, ImmutableSet.of(BuildInvoker.Capability.SUPPORTS_API));
     } else {
-      invoker = buildSystem.getDefaultInvoker(project, context);
+      invoker = buildSystem.getDefaultInvoker(project);
     }
     Optional<SyncQueryStats.Builder> syncQueryStatsBuilder =
         SyncQueryStatsScope.fromContext(context);
     syncQueryStatsBuilder.ifPresent(stats -> stats.setBlazeBinaryType(invoker.getType()));
 
-    BlazeCommandRunner commandRunner = invoker.getCommandRunner();
     logger.info(
         String.format(
-            "Running `%.250s` using invoker %s, runner %s",
-            query, invoker.getClass().getSimpleName(), commandRunner.getClass().getSimpleName()));
+            "Running `%.250s` using invoker %s", query, invoker.getClass().getSimpleName()));
 
     BlazeCommand.Builder commandBuilder = BlazeCommand.builder(invoker, BlazeCommandName.QUERY);
     commandBuilder.addBlazeFlags(query.getQueryFlags());
@@ -93,7 +86,9 @@ public class BazelQueryRunner implements QueryRunner {
       context.output(PrintOutput.output("Project is empty, not running a query"));
       return QuerySummary.EMPTY;
     }
-    if (commandRunner.getMaxCommandLineLength().map(max -> queryExp.length() > max).orElse(false)) {
+    // TODO b/374906681 - The 130000 figure comes from the command runner. Move it to the invoker
+    // instead of hardcoding.
+    if (queryExp.length() > 130000) {
       // Query is too long, write it to a file.
       Path tmpFile =
           Files.createTempFile(
@@ -109,10 +104,8 @@ public class BazelQueryRunner implements QueryRunner {
 
     syncQueryStatsBuilder.ifPresent(
         stats -> stats.setQueryFlags(commandBuilder.build().toArgumentList()));
-    try (BuildResultHelper buildResultHelper = invoker.createBuildResultHelper();
-        InputStream in =
-            commandRunner.runQuery(project, commandBuilder, buildResultHelper, context)) {
-      QuerySummary querySummary = readFrom(query.queryStrategy(), in, context);
+    try (InputStream queryStream = invoker.invokeQuery(commandBuilder, context)) {
+      QuerySummary querySummary = readFrom(query.queryStrategy(), queryStream, context);
       int packagesWithErrorsCount = querySummary.getPackagesWithErrorsCount();
       context.output(
           PrintOutput.output("Total query time ms: " + timer.elapsed(TimeUnit.MILLISECONDS)));
@@ -137,7 +130,7 @@ public class BazelQueryRunner implements QueryRunner {
     logger.info(String.format("Summarising query from %s", in));
     Instant start = Instant.now();
     try {
-      QuerySummary summary = QuerySummary.create(queryStrategy, in);
+      QuerySummary summary = QuerySummaryImpl.create(queryStrategy, in);
       logger.info(
           String.format(
               "Summarised query in %ds", Duration.between(start, Instant.now()).toSeconds()));

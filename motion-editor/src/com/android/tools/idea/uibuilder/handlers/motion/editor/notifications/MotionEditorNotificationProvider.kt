@@ -32,7 +32,7 @@ private class DeprecationNotification() : EditorNotificationPanel(Status.Warning
   init {
     text = "Motion Editor will be deprecated in the next release, please update your usage accordingly."
     createActionLabel("Learn More", Runnable {
-      BrowserUtil.browse("https://developer.android.com/studio/preview/features#motion-editor-deprecation")
+      BrowserUtil.browse("https://developer.android.com/studio/releases#motion-editor-deprecation")
     })
   }
 }

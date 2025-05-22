@@ -41,13 +41,14 @@ public interface DeclarativeElementTypeHolder {
   IElementType FACTORY_RECEIVER = new DeclarativeElementType("FACTORY_RECEIVER");
   IElementType IDENTIFIER = new DeclarativeElementType("IDENTIFIER");
   IElementType LITERAL = new DeclarativeElementType("LITERAL");
+  IElementType PAIR = new DeclarativeElementType("PAIR");
   IElementType PROPERTY = new DeclarativeElementType("PROPERTY");
   IElementType PROPERTY_RECEIVER = new DeclarativeElementType("PROPERTY_RECEIVER");
-  IElementType PROPERTY_SIMPLE_FACTORY = new DeclarativeElementType("PROPERTY_SIMPLE_FACTORY");
   IElementType QUALIFIED = new DeclarativeElementType("QUALIFIED");
   IElementType QUALIFIED_RECEIVER = new DeclarativeElementType("QUALIFIED_RECEIVER");
   IElementType RECEIVER_PREFIXED_FACTORY = new DeclarativeElementType("RECEIVER_PREFIXED_FACTORY");
   IElementType SIMPLE_FACTORY = new DeclarativeElementType("SIMPLE_FACTORY");
+  IElementType SIMPLE_LITERAL = new DeclarativeElementType("SIMPLE_LITERAL");
 
   IElementType BLOCK_COMMENT = new DeclarativeTokenType("BLOCK_COMMENT");
   IElementType BOOLEAN = new DeclarativeTokenType("boolean");
@@ -63,8 +64,10 @@ public interface DeclarativeElementTypeHolder {
   IElementType OP_EQ = new DeclarativeTokenType("=");
   IElementType OP_LBRACE = new DeclarativeTokenType("{");
   IElementType OP_LPAREN = new DeclarativeTokenType("(");
+  IElementType OP_PLUS_EQ = new DeclarativeTokenType("+=");
   IElementType OP_RBRACE = new DeclarativeTokenType("}");
   IElementType OP_RPAREN = new DeclarativeTokenType(")");
+  IElementType OP_TO = new DeclarativeTokenType("to");
   IElementType SEMI = new DeclarativeTokenType(";");
   IElementType TOKEN = new DeclarativeTokenType("token");
   IElementType UNSIGNED_INTEGER = new DeclarativeTokenType("unsigned_integer");
@@ -111,8 +114,8 @@ public interface DeclarativeElementTypeHolder {
       else if (type == LITERAL) {
         return new DeclarativeLiteralImpl(type);
       }
-      else if (type == PROPERTY_SIMPLE_FACTORY) {
-        return new DeclarativePropertySimpleFactoryImpl(type);
+      else if (type == PAIR) {
+        return new DeclarativePairImpl(type);
       }
       else if (type == QUALIFIED) {
         return new DeclarativeQualifiedImpl(type);
@@ -125,6 +128,9 @@ public interface DeclarativeElementTypeHolder {
       }
       else if (type == SIMPLE_FACTORY) {
         return new DeclarativeSimpleFactoryImpl(type);
+      }
+      else if (type == SIMPLE_LITERAL) {
+        return new DeclarativeSimpleLiteralImpl(type);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

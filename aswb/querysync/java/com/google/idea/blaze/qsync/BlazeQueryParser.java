@@ -16,10 +16,10 @@
 package com.google.idea.blaze.qsync;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static com.google.idea.blaze.common.Label.toLabelList;
 import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 
+import com.android.annotations.TestOnly;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -29,11 +29,10 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.RuleKinds;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
-import com.google.idea.blaze.qsync.project.BuildGraphData.Location;
+import com.google.idea.blaze.qsync.project.BuildGraphDataImpl;
 import com.google.idea.blaze.qsync.project.ProjectTarget;
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
-import com.google.idea.blaze.qsync.query.Query;
 import com.google.idea.blaze.qsync.query.QueryData;
 import com.google.idea.blaze.qsync.query.QuerySummary;
 import java.util.HashSet;
@@ -43,33 +42,33 @@ import java.util.Set;
 
 /**
  * A class that parses the proto output from a `blaze query --output=streamed_proto` invocation, and
- * yields a {@link BuildGraphData} instance derived from it. Instances of this class are single use.
+ * yields a {@link BuildGraphDataImpl} instance derived from it. Instances of this class are single use.
  */
 public class BlazeQueryParser {
 
   // Rules that will need to be built, whether or not the target is included in the
   // project.
   public static final ImmutableSet<String> ALWAYS_BUILD_RULE_KINDS =
-      ImmutableSet.of(
-          "java_proto_library",
-          "java_lite_proto_library",
-          "java_mutable_proto_library",
-          // Underlying rule for kt_jvm_lite_proto_library and kt_jvm_proto_library
-          "kt_proto_library_helper",
-          "_java_grpc_library",
-          "_java_lite_grpc_library",
-          "kt_grpc_library_helper",
-          "java_stubby_library",
-          "kt_stubby_library_helper",
-          "aar_import",
-          "java_import");
+    ImmutableSet.of(
+      "_java_grpc_library",
+      "_java_lite_grpc_library",
+      "aar_import",
+      "af_internal_soyinfo_generator",
+      "java_import",
+      "java_lite_proto_library",
+      "java_mutable_proto_library",
+      "java_proto_library",
+      "java_stubby_library",
+      "kt_grpc_library_helper",
+      "kt_proto_library_helper", // Underlying rule for kt_jvm_lite_proto_library and kt_jvm_proto_library
+      "kt_stubby_library_helper");
 
   private final Context<?> context;
   private final SetView<String> alwaysBuildRuleKinds;
 
   private final QuerySummary query;
 
-  private final BuildGraphData.Builder graphBuilder = BuildGraphData.builder();
+  private final BuildGraphDataImpl.Storage.Builder graphBuilder = BuildGraphDataImpl.builder();
 
   private final Set<Label> projectDeps = Sets.newHashSet();
   // All the project targets the aspect needs to build
@@ -130,6 +129,15 @@ public class BlazeQueryParser {
   }
 
   public BuildGraphData parse() {
+    return parseCore();
+  }
+
+  @TestOnly
+  public BuildGraphDataImpl parseForTesting() {
+    return parseCore();
+  }
+
+  private BuildGraphDataImpl parseCore() {
     context.output(PrintOutput.log("Analyzing project structure..."));
 
     long now = System.nanoTime();
@@ -190,13 +198,10 @@ public class BlazeQueryParser {
     long elapsedMs = (System.nanoTime() - now) / 1000000L;
     context.output(PrintOutput.log("%-10d Targets (%d ms):", nTargets, elapsedMs));
 
-    BuildGraphData graph = graphBuilder.projectDeps(projectDeps).build();
+    BuildGraphDataImpl graph = graphBuilder.projectDeps(projectDeps).build();
 
-    context.output(PrintOutput.log("%-10d Source files", graph.sourceFileLabels().size()));
-    context.output(PrintOutput.log("%-10d Java sources", graph.javaSources().size()));
-    context.output(PrintOutput.log("%-10d Packages", graph.packages().size()));
+    graph.outputStats(context);
     context.output(PrintOutput.log("%-10d Dependencies", javaDeps.size()));
-    context.output(PrintOutput.log("%-10d External dependencies", graph.projectDeps().size()));
 
     return graph;
   }
@@ -212,8 +217,8 @@ public class BlazeQueryParser {
 
   private void visitJavaRule(
       Label label, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
-    graphBuilder.allTargetsBuilder().add(label);
-    targetBuilder.languagesBuilder().add(QuerySyncLanguage.JAVA);
+    graphBuilder.allTargetLabelsBuilder().add(label);
+    targetBuilder.languagesBuilder().add(QuerySyncLanguage.JVM);
     targetBuilder
         .sourceLabelsBuilder()
         .putAll(SourceType.REGULAR, expandFileGroupValues(rule.sources()))
@@ -240,7 +245,7 @@ public class BlazeQueryParser {
   }
 
   private void visitCcRule(Label label, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
-    graphBuilder.allTargetsBuilder().add(label);
+    graphBuilder.allTargetLabelsBuilder().add(label);
     targetBuilder.languagesBuilder().add(QuerySyncLanguage.CC);
     targetBuilder.coptsBuilder().addAll(rule.copts());
     targetBuilder

@@ -9,7 +9,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk",
-        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
-        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
+        "//tools/adt/idea/android:intellij.android.core",
     ],
 )

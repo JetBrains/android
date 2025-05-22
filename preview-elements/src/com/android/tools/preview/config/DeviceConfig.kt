@@ -86,6 +86,14 @@ private val specPatchTable =
   )
 
 /**
+ * If the given string is a legacy device spec, try to match it to a post 1.8 spec. If this is not
+ * possible, return the string as is.
+ */
+fun String.asNewDeviceSpec(): String {
+  return specPatchTable[this] ?: this
+}
+
+/**
  * Defines some hardware parameters of a Device. Can be encoded using [deviceSpec] and decoded using
  * [DeviceConfig.toDeviceConfigOrNull].
  *
@@ -150,6 +158,15 @@ open class DeviceConfig(
           return referenceString
         }
     }
+    if (
+      parentDeviceId != null &&
+        orientation == getDeviceDefaultOrientation() &&
+        navigation == DEFAULT_NAVIGATION
+    ) {
+      // If the spec value has a parent but none of orientation and navigation are different from
+      // default value, return id:<device-id>
+      return "$DEVICE_BY_ID_PREFIX$parentDeviceId"
+    }
     val builder = StringBuilder(DEVICE_BY_SPEC_PREFIX)
     if (parentDeviceId != null) {
       // When there's a backing Device ID, only print the parameters that are not inherent to a
@@ -196,10 +213,7 @@ open class DeviceConfig(
    * match the implicit orientation from the width and height.
    */
   private fun StringBuilder.addOrientationIfNeeded() {
-    if (
-      height > width && orientation == Orientation.landscape ||
-        width > height && orientation == Orientation.portrait
-    ) {
+    if (orientation != getDeviceDefaultOrientation()) {
       appendSeparator()
       appendParamValue(PARAMETER_ORIENTATION, orientation.name)
     }
@@ -226,6 +240,14 @@ open class DeviceConfig(
       navigation,
       parentDeviceId,
     )
+  }
+
+  private fun getDeviceDefaultOrientation(): Orientation {
+    return if (width > height) {
+      Orientation.landscape
+    } else {
+      Orientation.portrait
+    }
   }
 
   companion object {
@@ -255,7 +277,7 @@ open class DeviceConfig(
       availableDevices: Collection<Device>,
     ): DeviceConfig? {
       if (serialized == null || !serialized.startsWith(DEVICE_BY_SPEC_PREFIX)) return null
-      val patchedSerialized = specPatchTable[serialized] ?: serialized
+      val patchedSerialized = serialized.asNewDeviceSpec()
       val configString = patchedSerialized.substringAfter(DEVICE_BY_SPEC_PREFIX)
       // Find if the given spec belongs to a reference device and if it does, use that as device id.
       val referenceDeviceId = referenceDeviceIds[patchedSerialized]

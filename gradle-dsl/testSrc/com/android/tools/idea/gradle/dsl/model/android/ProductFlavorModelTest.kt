@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
+import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport
+import com.android.tools.idea.gradle.dcl.lang.ide.DeclarativeIdeSupport
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
@@ -30,7 +32,9 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.annotations.SystemDependent
+import org.junit.After
 import org.junit.Assume.assumeTrue
+import org.junit.Before
 import org.junit.Test
 import java.io.File
 import java.io.IOException
@@ -45,6 +49,20 @@ import java.io.IOException
  * [ProductFlavorsElementTest].
  */
 class ProductFlavorModelTest : GradleFileModelTestCase() {
+
+  @Before
+  override fun before() {
+    DeclarativeIdeSupport.override(true)
+    DeclarativeStudioSupport.override(true)
+    super.before()
+  }
+
+  @After
+  fun onAfter() {
+    DeclarativeIdeSupport.clearOverride()
+    DeclarativeStudioSupport.clearOverride()
+  }
+
   @Test
   fun testDefaultConfigBlockWithApplicationStatements() {
     writeToBuildFile(TestFile.DEFAULT_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS)
@@ -1747,6 +1765,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyMapElements400() {
+    isIrrelevantForDeclarative("No method call alternatives for properties in declarative")
     writeToBuildFile(TestFile.ADD_AND_APPLY_MAP_ELEMENTS)
 
     val buildModel = gradleBuildModel
@@ -2294,7 +2313,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEnsureSdkVersionUsesApplicationSyntax400() {
-    assumeTrue("KotlinScript prefers assignment even when setters are more general", !isKotlinScript) // TODO(b/143196166)
+    assumeTrue("KotlinScript/Declarative prefers assignment even when setters are more general", isGroovy) // TODO(b/143196166)
     val text = ""
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
@@ -2311,7 +2330,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEnsureSdkVersionUsesApplicationSyntax() {
-    assumeTrue("KotlinScript prefers assignment even when setters are more general", !isKotlinScript) // TODO(b/143196166)
+    assumeTrue("KotlinScript/Declarative prefers assignment even when setters are more general", isGroovy) // TODO(b/143196166)
     val text = ""
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
@@ -2369,6 +2388,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testWriteMatchingFallbacks() {
+    // TODO fix test for declarative
+    isIrrelevantForDeclarative("Need to use gradleDeclarativeBuildModel for declarative")
     val text = ""
     writeToBuildFile(text)
     val buildModel = gradleBuildModel

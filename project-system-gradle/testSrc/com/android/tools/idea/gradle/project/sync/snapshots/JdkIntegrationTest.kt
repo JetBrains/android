@@ -30,6 +30,7 @@ import com.google.common.truth.Expect
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.openapi.util.RecursionManager
 import org.junit.rules.TemporaryFolder
@@ -77,11 +78,14 @@ class JdkIntegrationTest(
     disposable: Disposable,
     tempDir: File
   ) {
-    JdkTableUtils.removeAllJavaSdkFromJdkTable()
+    ApplicationManager.getApplication().invokeAndWait {
+      JdkTableUtils.removeAllJavaSdkFromJdkTable()
+    }
     testEnvironment.run {
       userHomeGradlePropertiesJdkPath?.let {
         ProjectJdkUtils.setUserHomeGradlePropertiesJdk(it, disposable)
       }
+      StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION.override(studioFlags.restoreInvalidGradleJdkConfiguration)
       StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME.override(studioFlags.migrateToGradleLocalJavaHome)
       JdkTableUtils.populateJdkTableWith(jdkTable, tempDir)
       EnvironmentUtils.overrideEnvironmentVariables(environmentVariables, disposable)
@@ -101,7 +105,8 @@ class JdkIntegrationTest(
   )
 
   data class StudioFeatureFlags(
-    val migrateToGradleLocalJavaHome: Boolean = false
+    val migrateToGradleLocalJavaHome: Boolean = false,
+    val restoreInvalidGradleJdkConfiguration: Boolean = false
   )
 
   class ProjectRunnable(

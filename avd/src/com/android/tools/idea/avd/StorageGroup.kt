@@ -309,28 +309,26 @@ private fun chooseFile(parent: Component, project: Project?): Path? {
   return path
 }
 
-internal class StorageGroupState
-internal constructor(
+internal class StorageGroupState(
   private val device: VirtualDevice,
   fileSystem: FileSystem = FileSystems.getDefault(),
 ) {
-  internal val internalStorage =
+  val internalStorage =
     StorageCapacityFieldState(
       requireNotNull(device.internalStorage),
       VirtualDevice.MIN_INTERNAL_STORAGE,
     )
 
-  internal var selectedRadioButton by
+  var selectedRadioButton by
     mutableStateOf(ExpandedStorageRadioButton.valueOf(requireNotNull(device.expandedStorage)))
 
-  internal val custom =
+  val custom =
     StorageCapacityFieldState(
       customValue(device),
       VirtualDevice.MIN_CUSTOM_EXPANDED_STORAGE_FOR_PLAY_STORE,
     )
 
-  internal val existingImage =
-    TextFieldState(requireNotNull(device.expandedStorage).toTextFieldValue())
+  val existingImage = TextFieldState(requireNotNull(device.expandedStorage).toTextFieldValue())
 
   val expandedStorageFlow = snapshotFlow {
     when (selectedRadioButton) {
@@ -346,7 +344,7 @@ internal constructor(
     }
   }
 
-  internal fun isCustomChangedWarningVisible(isValid: Boolean) =
+  fun isCustomChangedWarningVisible(isValid: Boolean) =
     when {
       selectedRadioButton != ExpandedStorageRadioButton.CUSTOM -> false
       !isValid -> false
@@ -355,7 +353,7 @@ internal constructor(
         device.existingCustomExpandedStorage != Custom(custom.valid().storageCapacity).withMaxUnit()
     }
 
-  private companion object {
+  companion object {
     private fun customValue(device: VirtualDevice) =
       if (device.expandedStorage is Custom) {
         device.expandedStorage.value
@@ -378,8 +376,8 @@ internal enum class ExpandedStorageRadioButton {
     override fun toString() = "None"
   };
 
-  internal companion object {
-    internal fun valueOf(storage: ExpandedStorage) =
+  companion object {
+    fun valueOf(storage: ExpandedStorage) =
       when (storage) {
         is Custom -> CUSTOM
         is ExistingImage -> EXISTING_IMAGE

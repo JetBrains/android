@@ -34,7 +34,7 @@ import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlTable
 
 class ReferenceIssueHandler : TomlErrorHandler {
-  private val PROBLEM_REFERENCE_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), version reference '([^']+)' doesn't exist.".toRegex()
+  private val PROBLEM_REFERENCE_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), version reference '([^']+)' doesn't exist.".toRegex()
   private val REASON_REFERENCE_PATTERN: Regex = "\\s+Reason: Dependency '([^']+)' references version '([^']+)' which doesn't exist.".toRegex()
   private val REASON_PLUGIN_REFERENCE_PATTERN: Regex = "\\s+Reason: Plugin '([^']+)' references version '([^']+)' which doesn't exist.".toRegex()
   override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {

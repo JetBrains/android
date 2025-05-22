@@ -31,8 +31,9 @@ import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolde
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.QUALIFIED_RECEIVER
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.RECEIVER_PREFIXED_FACTORY
-import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PROPERTY_SIMPLE_FACTORY
 import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_FACTORY
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.SIMPLE_LITERAL
+import com.android.tools.idea.gradle.dcl.lang.parser.DeclarativeElementTypeHolder.PAIR
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeArgumentsListImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeAssignableBareImpl
@@ -46,11 +47,12 @@ import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeEmbeddedFactor
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeIdentifierImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeLiteralImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeFactoryPropertyReceiverImpl
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativePairImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeQualifiedImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeQualifiedReceiverImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeReceiverPrefixedFactoryImpl
 import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeSimpleFactoryImpl
-import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativePropertySimpleFactoryImpl
+import com.android.tools.idea.gradle.dcl.lang.psi.impl.DeclarativeSimpleLiteralImpl
 import com.intellij.lang.ASTFactory
 import com.intellij.psi.impl.source.tree.CompositeElement
 import com.intellij.psi.tree.IElementType
@@ -69,13 +71,13 @@ class DeclarativeASTFactory : ASTFactory() {
     SIMPLE_FACTORY -> DeclarativeSimpleFactoryImpl(type)
     QUALIFIED_RECEIVER -> DeclarativeQualifiedReceiverImpl(type)
     RECEIVER_PREFIXED_FACTORY -> DeclarativeReceiverPrefixedFactoryImpl(type)
-    PROPERTY_SIMPLE_FACTORY -> DeclarativePropertySimpleFactoryImpl(type)
     EMBEDDED_FACTORY -> DeclarativeEmbeddedFactoryImpl(type)
     IDENTIFIER -> DeclarativeIdentifierImpl(type)
+    PAIR -> DeclarativePairImpl(type)
     LITERAL -> DeclarativeLiteralImpl(type)
     QUALIFIED -> DeclarativeQualifiedImpl(type)
     ARGUMENT -> DeclarativeArgumentImpl(type)
-
+    SIMPLE_LITERAL -> DeclarativeSimpleLiteralImpl(type)
     else -> error("Unknown Declarative element type: `$type`")
   }
 }

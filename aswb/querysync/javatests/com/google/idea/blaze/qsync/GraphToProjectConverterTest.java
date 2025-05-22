@@ -123,7 +123,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(roots)
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableMap<Path, String> prefixes =
@@ -196,7 +196,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
@@ -215,7 +215,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
@@ -236,7 +236,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
@@ -257,7 +257,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/app"), Path.of("java/com/lib")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
@@ -281,7 +281,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
@@ -306,7 +306,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
@@ -327,7 +327,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
@@ -348,7 +348,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
@@ -374,7 +374,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(Path.of("third_party")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
@@ -399,7 +399,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(Path.of("java/com/test")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableMap<Path, ImmutableMap<Path, String>> rootSources =
@@ -454,7 +454,7 @@ public class GraphToProjectConverterTest {
   public void testCalculateAndroidSourcePackages_rootWithEmptyPrefix() {
     GraphToProjectConverter converter =
         GraphToProjectConverters.builder()
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableList<Path> androidSourceFiles =
@@ -472,7 +472,7 @@ public class GraphToProjectConverterTest {
   public void testCalculateAndroidSourcePackages_emptyRootWithPrefix() {
     GraphToProjectConverter converter =
         GraphToProjectConverters.builder()
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableList<Path> androidSourceFiles =
@@ -543,7 +543,7 @@ public class GraphToProjectConverterTest {
     GraphToProjectConverter converter =
         GraphToProjectConverters.builder()
             .setProjectIncludes(ImmutableSet.of(workspaceImportDirectory))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     BuildGraphData buildGraphData =
@@ -587,7 +587,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(TestData.ROOT.resolve("nodeps")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .setTestSources(
                 ImmutableSet.of("tools/adt/idea/aswb/querysync/javatests/*"))
             .build();
@@ -618,7 +618,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(TestData.ROOT.resolve("protoonly")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ProjectProto.Project project =
@@ -651,7 +651,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(Path.of("myproject")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableMultimap<Path, Path> additionalProtoSourceFolders =
@@ -670,7 +670,7 @@ public class GraphToProjectConverterTest {
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(Path.of("myproject")))
             .setProjectExcludes(ImmutableSet.of(Path.of("myproject/excluded")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     ImmutableMultimap<Path, Path> additionalProtoSourceFolders =
@@ -693,7 +693,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(TestData.ROOT.resolve("nestedproto")))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
     BuildGraphData buildGraphData = BuildGraphs.forTestProject(TestData.NESTED_PROTO_QUERY);
 
@@ -726,7 +726,7 @@ public class GraphToProjectConverterTest {
         GraphToProjectConverters.builder()
             .setPackageReader(sourcePackages::get)
             .setProjectIncludes(ImmutableSet.of(TestData.ROOT))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
     BuildGraphData buildGraphData =
         BuildGraphs.forTestProject(TestData.JAVA_LIBRARY_PROTO_DEP_QUERY);
@@ -759,7 +759,7 @@ public class GraphToProjectConverterTest {
     GraphToProjectConverter converter =
         GraphToProjectConverters.builder()
             .setProjectIncludes(ImmutableSet.of(workspaceImportDirectory))
-            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JAVA))
+            .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
             .build();
 
     BuildGraphData buildGraphData =
@@ -770,7 +770,7 @@ public class GraphToProjectConverterTest {
             .parse();
     ProjectProto.Project project = converter.createProject(buildGraphData);
 
-    assertThat(project.getActiveLanguagesList()).contains(LanguageClass.LANGUAGE_CLASS_JAVA);
+    assertThat(project.getActiveLanguagesList()).contains(LanguageClass.LANGUAGE_CLASS_JVM);
   }
 
   @Test

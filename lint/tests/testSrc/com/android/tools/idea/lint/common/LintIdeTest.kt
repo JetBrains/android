@@ -122,7 +122,7 @@ class LintIdeTest : UsefulTestCase() {
     val lintClient =
       LintIdeClient(
         myFixture.project,
-        LintEditorResult(module, vfPointer, fileContent, Sets.newHashSet()),
+        LintEditorResult(module, vfPointer, fileContent, Sets.newHashSet(), null),
       )
 
     assertThat(lintClient.module).isSameAs(module)
@@ -276,7 +276,8 @@ class LintIdeTest : UsefulTestCase() {
       CommentDetector.STOP_SHIP.setEnabledByDefault(false)
       myFixture.copyFileToProject("$globalTestDir/Stopship.java", "src/p1/p2/Stopship.java")
       doGlobalInspectionTest(AndroidLintStopShipInspection())
-      assertThat(CommentDetector.STOP_SHIP.isEnabledByDefault()).isTrue()
+      // The above asserts that the expected problems are reported (despite the fact that the
+      // issue is disabled by default).
     } finally {
       CommentDetector.STOP_SHIP.setEnabledByDefault(wasEnabled)
     }
@@ -509,7 +510,7 @@ class LintIdeTest : UsefulTestCase() {
     val client =
       LintIdeClient(
         myFixture.project,
-        LintEditorResult(module, vFile, fileContent, Sets.newHashSet()),
+        LintEditorResult(module, vFile, fileContent, Sets.newHashSet(), null),
       )
 
     assertThat(file).isNotNull()

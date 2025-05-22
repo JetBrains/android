@@ -337,6 +337,7 @@
       <module fileurl="file://$PROJECT_DIR$/old-agp-tests/intellij.android.old-agp-tests.iml" filepath="$PROJECT_DIR$/old-agp-tests/intellij.android.old-agp-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-plugin/intellij.android.plugin.iml" filepath="$PROJECT_DIR$/android-plugin/intellij.android.plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-plugin/descriptor/intellij.android.plugin.descriptor.iml" filepath="$PROJECT_DIR$/android-plugin/descriptor/intellij.android.plugin.descriptor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/platform-performance-testing/intellij.android.platform-performance-testing.iml" filepath="$PROJECT_DIR$/platform-performance-testing/intellij.android.platform-performance-testing.iml" />
       <module fileurl="file://$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.iml" filepath="$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.iml" />
       <module fileurl="file://$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.tests.iml" filepath="$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/preview-elements/intellij.android.preview-elements.iml" filepath="$PROJECT_DIR$/preview-elements/intellij.android.preview-elements.iml" />
@@ -374,6 +375,8 @@
       <module fileurl="file://$PROJECT_DIR$/safemode/intellij.android.safemode.iml" filepath="$PROJECT_DIR$/safemode/intellij.android.safemode.iml" />
       <module fileurl="file://$PROJECT_DIR$/safemode/intellij.android.safemode.integration.tests.iml" filepath="$PROJECT_DIR$/safemode/intellij.android.safemode.integration.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/screenshot-testing/intellij.android.screenshot-test.iml" filepath="$PROJECT_DIR$/screenshot-testing/intellij.android.screenshot-test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/screenshot-testing/intellij.android.screenshot-test.tests.iml" filepath="$PROJECT_DIR$/screenshot-testing/intellij.android.screenshot-test.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/screenshot-testing/gradle/intellij.android.screenshot-test.gradle.iml" filepath="$PROJECT_DIR$/screenshot-testing/gradle/intellij.android.screenshot-test.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.iml" filepath="$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.iml" />
       <module fileurl="file://$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.tests.iml" filepath="$PROJECT_DIR$/sdk-updates/intellij.android.sdkUpdates.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/server-flags/intellij.android.server-flags.iml" filepath="$PROJECT_DIR$/server-flags/intellij.android.server-flags.iml" />

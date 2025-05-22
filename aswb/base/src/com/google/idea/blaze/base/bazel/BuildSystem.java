@@ -83,7 +83,7 @@ public interface BuildSystem {
     /**
      * Runs a blaze command, parses the build results into a {@link BlazeBuildOutputs} object.
      */
-    BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder) throws BuildException;
+    BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException;
 
     /**
      * Runs a blaze query command.
@@ -91,7 +91,7 @@ public interface BuildSystem {
      * @return {@link InputStream} from the stdout of the blaze invocation and null if the query fails
      */
     @MustBeClosed
-    InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder) throws BuildException;
+    InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException;
 
     /**
      * Runs a blaze info command.
@@ -99,7 +99,7 @@ public interface BuildSystem {
      * @return {@link InputStream} from the stdout of the blaze invocation and null if blaze info fails
      */
     @MustBeClosed
-    InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder) throws BuildException;
+    InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException;
 
     /**
      * Returns the type of this build interface. Used for logging purposes.
@@ -114,12 +114,7 @@ public interface BuildSystem {
      */
     String getBinaryPath();
 
-    /**
-     * Indicates if multiple invocations can be made at once.
-     */
-    boolean supportsParallelism();
-
-    BlazeInfo getBlazeInfo() throws SyncFailedException;
+    BlazeInfo getBlazeInfo(BlazeContext blazeContext) throws SyncFailedException;
 
     /**
      * Create a {@link BuildResultHelper} instance. This instance must be closed when it is finished
@@ -132,13 +127,6 @@ public interface BuildSystem {
      * Returns a {@link BlazeCommandRunner} to be used to invoke the build.
      */
     BlazeCommandRunner getCommandRunner();
-
-    /**
-     * Indicates whether the invoker supports user .blazerc from home directories.
-     */
-    default boolean supportsHomeBlazerc() {
-      return true;
-    }
 
     /**
      * Returns the BuildSystem object.
@@ -154,18 +142,20 @@ public interface BuildSystem {
   /**
    * Get a Blaze invoker with desired capabilities.
    */
-  BuildInvoker getBuildInvoker(Project project, BlazeContext context, Set<BuildInvoker.Capability> requirements);
+  BuildInvoker getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements);
 
   /**
    * Get a Blaze invoker.
    */
-  BuildInvoker getBuildInvoker(Project project, BlazeContext context);
+  default BuildInvoker getBuildInvoker(Project project) {
+    return getBuildInvoker(project, ImmutableSet.of());
+  }
 
   /**
    * Get a Blaze invoker specific to executor type and run config.
    */
   default BuildInvoker getBuildInvoker(
-    Project project, BlazeContext context, ExecutorType executorType, Kind targetKind) {
+    Project project, ExecutorType executorType, Kind targetKind) {
     throw new UnsupportedOperationException(
       String.format(
         "The getBuildInvoker method specific to executor type and target kind is not"
@@ -177,19 +167,12 @@ public interface BuildSystem {
    * Get a Blaze invoker specific to the blaze command.
    */
   default BuildInvoker getBuildInvoker(
-    Project project, BlazeContext context, BlazeCommandName command) {
+    Project project, BlazeCommandName command) {
     throw new UnsupportedOperationException(
       String.format(
         "The getBuildInvoker method specific to a blaze command is not implemented in %s",
         this.getClass().getSimpleName()));
   }
-
-  /**
-   * Get a Blaze invoker that supports multiple calls in parallel, if this build system supports it.
-   *
-   * @return An invoker, or {@code Optional.EMPTY} if parallelism is not supported.
-   */
-  Optional<BuildInvoker> getParallelBuildInvoker(Project project, BlazeContext context);
 
   /**
    * Return the strategy for remote syncs to be used with this build system.
@@ -211,14 +194,12 @@ public interface BuildSystem {
    * Returns the parallel invoker if the sync strategy is PARALLEL and the system supports it;
    * otherwise returns the standard invoker.
    */
-  default BuildInvoker getDefaultInvoker(Project project, BlazeContext context) {
+  default BuildInvoker getDefaultInvoker(Project project) {
     if (Blaze.getProjectType(project) != ProjectType.QUERY_SYNC
         && getSyncStrategy(project) == SyncStrategy.PARALLEL) {
-      return getParallelBuildInvoker(project, context).orElse(getBuildInvoker(project, context));
+      return getBuildInvoker(project, ImmutableSet.of(BuildInvoker.Capability.SUPPORTS_PARALLELISM));
     }
-    else {
-      return getBuildInvoker(project, context);
-    }
+    return getBuildInvoker(project);
   }
 
   /**

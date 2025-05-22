@@ -32,7 +32,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapVertica
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.runningdevices.actions.VerticalSplitAction
-import com.android.tools.idea.layoutinspector.runningdevices.ui.LayoutInspectorRenderer
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.RootPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
@@ -122,13 +122,12 @@ fun Container.allChildren(): List<Component> {
   return children
 }
 
-private fun WorkBench<LayoutInspector>.getTreePanel() =
-  allChildren().filterIsInstance<RootPanel>().first()
+fun WorkBench<LayoutInspector>.getTreePanel() = allChildren().filterIsInstance<RootPanel>().first()
 
-private fun WorkBench<LayoutInspector>.getAttributesPanel() =
+fun WorkBench<LayoutInspector>.getAttributesPanel() =
   allChildren().first { it.name == PROPERTIES_COMPONENT_NAME }
 
-fun verifyUiInjected(
+inline fun <reified T : LayoutInspectorRenderer> verifyUiInjected(
   uiConfig: UiConfig,
   content: Component,
   container: Container,
@@ -247,7 +246,7 @@ fun verifyUiInjected(
   val inspectorBanner = container.allChildren().filterIsInstance<InspectorBanner>().first()
   assertThat(inspectorBanner).isNotNull()
 
-  assertThat(displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(1)
+  assertThat(displayView.allChildren().filterIsInstance<T>()).hasSize(1)
 }
 
 fun verifyUiRemoved(content: Component, container: Container, displayView: AbstractDisplayView) {
@@ -269,7 +268,7 @@ fun verifyUiRemoved(content: Component, container: Container, displayView: Abstr
   assertThat(displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(0)
 }
 
-private fun verifyToolbar(container: Container, shouldContainProcessPicker: Boolean) {
+fun verifyToolbar(container: Container, shouldContainProcessPicker: Boolean) {
   val toolbars =
     container.allChildren().filterIsInstance<ActionToolbar>().filter {
       it.component.name == "LayoutInspector.MainToolbar"
@@ -304,7 +303,7 @@ private fun verifyToolbar(container: Container, shouldContainProcessPicker: Bool
     .hasSize(1)
 }
 
-private fun verifyWorkbench(workbench: WorkBench<LayoutInspector>) {
+fun verifyWorkbench(workbench: WorkBench<LayoutInspector>) {
   // Assert the other gear actions from the side panels are not visible
   assertThat(
       workbench

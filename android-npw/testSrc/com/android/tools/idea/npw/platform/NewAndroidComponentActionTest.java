@@ -44,6 +44,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -183,7 +184,7 @@ public final class NewAndroidComponentActionTest {
     action.update(myActionEvent);
     assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
 
-    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> action.actionPerformed(myActionEvent));
+    ApplicationManager.getApplication().invokeAndWait(() -> action.actionPerformed(myActionEvent));
     ModelWizard modelWizard = modelWizardReference.get();
     assertNotNull(modelWizard);
 

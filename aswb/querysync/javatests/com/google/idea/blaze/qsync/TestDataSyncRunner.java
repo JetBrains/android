@@ -52,6 +52,10 @@ public class TestDataSyncRunner {
     ProjectDefinition projectDefinition =
         ProjectDefinition.builder()
         .setProjectIncludes(ImmutableSet.copyOf(testProject.getRelativeSourcePaths()))
+          .setProjectExcludes(ImmutableSet.of())
+          .setSystemExcludes(ImmutableSet.of())
+          .setTestSources(ImmutableSet.of())
+          .setLanguageClasses(ImmutableSet.of())
         .build();
     QuerySummary querySummary = getQuerySummary(testProject);
     PostQuerySyncData pqsd =

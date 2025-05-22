@@ -48,7 +48,7 @@ open class CommonPreviewViewModel(
   private val previewRefreshManager: PreviewRefreshManager,
   private val project: Project,
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
-  private val hasRenderErrors: () -> Boolean,
+  private val hasErrorRenderResult: () -> Boolean,
   private val previewRefreshNotificationFactory: (durationString: String) -> Notification,
 ) : PreviewViewModel, PreviewViewModelStatus {
   private val hasRendered = AtomicBoolean(false)
@@ -172,8 +172,8 @@ open class CommonPreviewViewModel(
         DumbService.isDumb(project) ||
         renderingBuildStatusManager.isBuilding
 
-  override val hasErrorsAndNeedsBuild: Boolean
-    get() = hasPreviews.get() && (!hasRendered.get() || hasRenderErrors())
+  override val hasRenderErrors: Boolean
+    get() = hasPreviews.get() && (!hasRendered.get() || hasErrorRenderResult())
 
   override val hasSyntaxErrors: Boolean
     get() = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)

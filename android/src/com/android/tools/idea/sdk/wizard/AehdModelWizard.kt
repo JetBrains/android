@@ -80,7 +80,7 @@ class AehdModelWizard(
       // Ensure the SDK handler is loaded
       val progressIndicator = StudioLoggerProgressIndicator(javaClass)
       sdkHandler
-        .getSdkManager(progressIndicator)
+        .getRepoManager(progressIndicator)
         .loadSynchronously(
           RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progressIndicator, StudioDownloader(), StudioSettingsController.getInstance())
       myAehdSdkComponentTreeNode.updateState(sdkHandler)

@@ -109,8 +109,8 @@ class CatalogPluginsInserter(private val projectModel: ProjectBuildModel) : Comm
     val insertProjectPlugins = shouldInsertProjectPlugins() && !projectPlugins.hasPlugin(matcher)
     // Insert plugins for module in case
     // - buildModel is a separate module
-    // - buildModel is a single module project
-    val moduleInsertion = shouldInsertModulePlugins(projectPlugins, buildModel)
+    // - buildModel is single module project
+    val moduleInsertion = shouldInsertModulePlugins(projectPlugins, buildModel) || isSingleModuleProject()
     return getOrAddPluginToCatalog(pluginId, version, matcher) { alias, changedFiles ->
       val reference = ReferenceTo(getCatalogModel().plugins().findProperty(alias))
       if (insertProjectPlugins) {

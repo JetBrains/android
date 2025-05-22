@@ -45,6 +45,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -134,7 +135,7 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
         update.artifactDirectory(ArtifactDirectories.JAVA_GEN_TESTSRC);
     ArrayListMultimap<Path, ArtifactWithOrigin> srcsByJavaPath = ArrayListMultimap.create();
     List<BuildArtifact> missingPackageArtifacts = Lists.newArrayList();
-    for (TargetBuildInfo target : artifactState.depsMap().values()) {
+    for (TargetBuildInfo target : artifactState.targets()) {
       for (BuildArtifact genSrc : getSourceFileArtifacts(target)) {
 
         String javaPackage =
@@ -230,9 +231,9 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
         ImmutableList.of(ChronoUnit.DAYS, ChronoUnit.HOURS, ChronoUnit.MINUTES)) {
       long durationInUnits = p.getSeconds() / unit.getDuration().getSeconds();
       if (durationInUnits > 0) {
-        return String.format("%d %s", durationInUnits, unit);
+        return String.format(Locale.ROOT, "%d %s", durationInUnits, unit);
       }
     }
-    return String.format("%d seconds", p.getSeconds());
+    return String.format(Locale.ROOT, "%d seconds", p.getSeconds());
   }
 }

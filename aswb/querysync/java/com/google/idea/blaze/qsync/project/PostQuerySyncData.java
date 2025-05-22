@@ -17,11 +17,11 @@ package com.google.idea.blaze.qsync.project;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.query.Query;
 import com.google.idea.blaze.qsync.query.QuerySummary;
+import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
 import java.util.Optional;
 
 /**
@@ -34,7 +34,6 @@ import java.util.Optional;
 @AutoValue
 public abstract class PostQuerySyncData {
 
-  @VisibleForTesting
   public static final PostQuerySyncData EMPTY =
       builder()
           .setProjectDefinition(ProjectDefinition.EMPTY)
@@ -59,7 +58,6 @@ public abstract class PostQuerySyncData {
     return new AutoValue_PostQuerySyncData.Builder();
   }
 
-  @VisibleForTesting
   public abstract Builder toBuilder();
 
   /** Builder for {@link PostQuerySyncData}. */
@@ -76,7 +74,7 @@ public abstract class PostQuerySyncData {
 
     @CanIgnoreReturnValue
     public Builder setQuerySummary(Query.Summary value) {
-      return setQuerySummary(QuerySummary.create(value));
+      return setQuerySummary(QuerySummaryImpl.create(value));
     }
 
     public abstract PostQuerySyncData build();

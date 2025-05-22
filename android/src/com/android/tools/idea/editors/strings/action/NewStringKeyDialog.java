@@ -26,6 +26,10 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +58,7 @@ public class NewStringKeyDialog extends DialogWrapper {
     super(facet.getModule().getProject(), false);
 
     myFacet = facet;
+    setupUI();
     myResourceNameValidator = IdeResourceNameValidator.forResourceName(ResourceType.STRING);
     myKeys = keys;
 
@@ -133,5 +138,47 @@ public class NewStringKeyDialog extends DialogWrapper {
 
   public String getDefaultValue() {
     return myDefaultValue;
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
+    final JBLabel jBLabel1 = new JBLabel();
+    jBLabel1.setText("Key:");
+    myPanel.add(jBLabel1,
+                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myPanel.add(spacer1, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                             GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    final JBLabel jBLabel2 = new JBLabel();
+    jBLabel2.setText("Default Value:");
+    myPanel.add(jBLabel2,
+                new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    final JBLabel jBLabel3 = new JBLabel();
+    jBLabel3.setText("Resource Folder:");
+    jBLabel3.setDisplayedMnemonic('F');
+    jBLabel3.setDisplayedMnemonicIndex(9);
+    myPanel.add(jBLabel3,
+                new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myPanel.add(myResourceFolderComboBox, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                              GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED,
+                                                              new Dimension(250, -1), null, null, 0, false));
+    myKeyField = new EditorTextField();
+    myKeyField.setName("keyTextField");
+    myPanel.add(myKeyField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                null, 0, false));
+    myDefaultValueField = new EditorTextField();
+    myDefaultValueField.setName("defaultValueTextField");
+    myPanel.add(myDefaultValueField, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                         null, null, 0, false));
+    jBLabel3.setLabelFor(myResourceFolderComboBox);
   }
 }

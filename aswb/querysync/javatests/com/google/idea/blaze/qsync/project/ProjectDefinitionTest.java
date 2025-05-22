@@ -32,6 +32,10 @@ public class ProjectDefinitionTest {
     ProjectDefinition projectDefinition =
         ProjectDefinition.builder()
             .setProjectIncludes(ImmutableSet.of(Path.of("contentroot1"), Path.of("contentroot2")))
+            .setProjectExcludes(ImmutableSet.of())
+            .setSystemExcludes(ImmutableSet.of())
+            .setTestSources(ImmutableSet.of())
+            .setLanguageClasses(ImmutableSet.of())
             .build();
     assertThat(projectDefinition.getIncludingContentRoot(Path.of("contentroot1/some/path")))
         .hasValue(Path.of("contentroot1"));
@@ -44,6 +48,10 @@ public class ProjectDefinitionTest {
     ProjectDefinition projectDefinition =
         ProjectDefinition.builder()
             .setProjectIncludes(ImmutableSet.of(Path.of("contentroot1"), Path.of("contentroot2")))
+            .setProjectExcludes(ImmutableSet.of())
+            .setSystemExcludes(ImmutableSet.of())
+            .setTestSources(ImmutableSet.of())
+            .setLanguageClasses(ImmutableSet.of())
             .build();
     assertThat(projectDefinition.getIncludingContentRoot(Path.of("anotherRoot/some/path")))
         .isEmpty();
@@ -55,6 +63,9 @@ public class ProjectDefinitionTest {
         ProjectDefinition.builder()
         .setProjectIncludes(ImmutableSet.of(Path.of("contentroot1"), Path.of("contentroot2")))
         .setProjectExcludes(ImmutableSet.of(Path.of("contentroot1/excluded")))
+        .setSystemExcludes(ImmutableSet.of())
+        .setTestSources(ImmutableSet.of())
+        .setLanguageClasses(ImmutableSet.of())
         .build();
     assertThat(projectDefinition.getIncludingContentRoot(Path.of("contentroot1/excluded/path")))
         .isEmpty();

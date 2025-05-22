@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.addProfileableToTargetManifest
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.getUniqueBuildTypeName
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -34,7 +35,8 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 
 class MacrobenchmarkModuleTest {
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @Test
   fun uniqueBuildType_noBuildTypes() {
@@ -62,7 +64,7 @@ class MacrobenchmarkModuleTest {
 
   @Test
   fun checkProfileableAddedToTargetModule() {
-    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE, agpVersion = getAgpVersion())
 
     val mockExecutor = mock<RecipeExecutor>()
     val targetModule = projectRule.getModule("app")

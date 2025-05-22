@@ -125,8 +125,7 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
 // point.
 private fun isJson(text: String): Boolean {
   return try {
-    GSON.fromJson(text, JsonObject::class.java)
-    true
+    GSON.fromJson(text, JsonObject::class.java) != null
   } catch (e: Exception) {
     false
   }

@@ -22,13 +22,4 @@ import com.google.idea.blaze.common.Label;
  * A data structure that describes what targets should be requested to be built and what targets
  * (including transitive ones) are expected to be built as a result.
  */
-public class RequestedTargets {
-  public final ImmutableSet<Label> buildTargets;
-  public final ImmutableSet<Label> expectedDependencyTargets;
-
-  public RequestedTargets(
-      ImmutableSet<Label> targetsToRequestBuild, ImmutableSet<Label> expectedToBeBuiltTargets) {
-    this.buildTargets = targetsToRequestBuild;
-    this.expectedDependencyTargets = expectedToBeBuiltTargets;
-  }
-}
+public record RequestedTargets(ImmutableSet<Label> buildTargets, ImmutableSet<Label> expectedDependencyTargets) {}

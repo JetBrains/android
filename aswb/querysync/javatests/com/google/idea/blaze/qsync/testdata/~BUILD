@@ -129,10 +129,15 @@ genquery(
 
 genquery(
     name = "buildincludes_query",
-    expression = "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/buildincludes:*",
+    expression = "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/buildincludes:* + " +
+                 "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/buildincludes/sub:* + " +
+                 "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/buildincludes/sub/includes:*",
     opts = ["--output=streamed_proto"],
     scope =
-        scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/buildincludes:mylib"),
+        scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/buildincludes:mylib_top") +
+        scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/buildincludes:mylib_top2") +
+        scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/buildincludes/sub:mylib_sub") +
+        scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/buildincludes/sub/includes:mylib"),
 )
 
 genquery(

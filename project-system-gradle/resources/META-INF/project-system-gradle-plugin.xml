@@ -186,6 +186,10 @@
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestClassGradleConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestAllInPackageGradleConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestAllInDirectoryGradleConfigurationProducer"/>
+    <psi.referenceContributor language="Groovy" implementation="com.android.tools.idea.gradle.service.resolve.GroovyNamespacePsiPackageReferenceContributor"/>
+    <psi.referenceContributor language="kotlin" implementation="com.android.tools.idea.gradle.service.resolve.KotlinNamespacePsiPackageReferenceContributor"/>
+    <psi.referenceContributor language="Declarative" implementation="com.android.tools.idea.gradle.service.resolve.DeclarativeNamespacePsiPackageReferenceContributor"/>
+    <useScopeEnlarger implementation="com.android.tools.idea.gradle.service.resolve.PsiPackageGradleUseScopeEnlarger"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.gradleJava">
     <kotlinMultiplatformProducersProvider implementation="com.android.tools.idea.testartifacts.instrumented.kmp.KotlinMultiplatformAndroidTestConfigurationProducer"/>
@@ -228,9 +232,6 @@
         implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestConfigurationProducerGradleToken"/>
     <androidRunConfigurationToken implementation="com.android.tools.idea.testartifacts.instrumented.AndroidRunConfigurationGradleToken"/>
   </extensions>
-  <extensions defaultExtensionNs="com.android.tools.idea.testartifacts.screenshot">
-    <screenshotTestRunConfigurationToken implementation="com.android.tools.idea.testartifacts.screenshot.ScreenshotTestRunConfigurationGradleToken"/>
-  </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.ui.resourcemanager.importer">
     <createDefaultResDirectoryToken implementation="com.android.tools.idea.ui.resourcemanager.importer.CreateDefaultResDirectoryGradleToken"/>
   </extensions>
@@ -267,6 +268,8 @@
     <listener class="com.android.tools.idea.gradle.project.sync.listeners.InitializeGradleLocalJavaHomeListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
     <listener class="com.android.tools.idea.gradle.project.sync.listeners.SdkIndexIssuesSyncListener"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
+    <listener class="com.android.tools.idea.gradle.project.sync.listeners.SpawnMultipleDaemonsWarningListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
   </projectListeners>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
@@ -308,6 +311,12 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.build.errors.DeprecatedJavaLanguageLevelIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.build.errors.XmlErrorIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.UnknownMultiplatformTestSourceSetChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.issues.toolchain.GradleInvalidDaemonJvmCriteriaIssueReporter" order="first"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.issues.toolchain.GradleToolchainDownloadedMismatchCriteriaIssueReporter" order="first"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.issues.toolchain.GradleToolchainDownloadingErrorIssueReporter" order="first"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.issues.toolchain.GradleToolchainInstalledNotFoundMatchingCriteriaIssueReporter" order="first"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.issues.toolchain.GradleUndefinedDaemonJvmCriteriaIssueReporter" order="first"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.issues.toolchain.GradleUndefinedToolchainRepositoriesIssueReporter" order="first"/>
     <gradleJvmResolver implementation="com.android.tools.idea.gradle.resolvers.GradleJvmEnvironmentStudioJdkResolver" order="first" />
     <importCustomizer implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleImportCustomizer"/>
     <settingsControlProvider implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettingsControlProvider"/>
@@ -380,6 +389,8 @@
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedAppBundleOrApkAction">
       <add-to-group group-id="BuildMenu" anchor="last"/>
     </action>
+
+    <group id="Android.BuildTree.AdditionalActions" searchable="false"/>
 
     <action internal="true" id="Android.DumpProject"
             class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectAction">

@@ -63,6 +63,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
@@ -384,8 +385,10 @@ public abstract class IconGenerator implements Disposable {
       try {
         icons.add(future.get());
       }
-      catch (InterruptedException | ExecutionException e) {
-        Disposer.dispose(taskCanceler);
+      catch (InterruptedException | ExecutionException | CancellationException e) {
+        // Setting `processUnregistered` here to false means the Disposer will
+        // not be called again if it has already been disposed
+        Disposer.dispose(taskCanceler, /* processUnregistered = */ false);
       }
     }
 

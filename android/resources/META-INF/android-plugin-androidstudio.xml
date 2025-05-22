@@ -41,11 +41,12 @@
     <applicationService serviceImplementation="com.intellij.openapi.application.IdeUrlTrackingParametersProvider"
                         overrides="true"/>
 
+    <!-- Disable JetBrains feedback surveys (b/402895189). Tested by AndroidStudioJetBrainsSurveysTest. -->
+    <registryKey overrides="true" key="platform.feedback" defaultValue="false" description="Enables JetBrains feedback surveys"/>
+
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
 
     <codeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidStudioCodeStyleSettingsProvider" order="last"/>
-
-    <statusBarWidgetFactory id="SendFeedbackPanel" implementation="com.android.tools.idea.stats.SendFeedbackWidgetFactory"/>
 
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.AndroidStudioErrorReportSubmitter"/>
     <applicationInitializedListener id="Startup.StartLowMemoryReporter"

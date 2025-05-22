@@ -23,7 +23,7 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerOutput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditOutputBuilder
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
-import com.android.tools.idea.run.deployment.liveedit.ReadActionPrebuildChecks
+import com.android.tools.idea.run.deployment.liveedit.readActionPrebuildChecks
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.run.deployment.liveedit.checkPsiErrorElement
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
@@ -67,7 +67,7 @@ internal class LiveEditCompilerForK2(
   ) {
     runWithCompileLock {
       LOGGER.info("Using Live Edit K2 CodeGen")
-      ReadActionPrebuildChecks(project, file)
+      readActionPrebuildChecks(project, file)
       val result = backendCodeGenForK2(file, module, applicationLiveEditServices.getKotlinCompilerConfiguration(file))
       val compilerOutput = result.output.map { OutputFileForKtCompiledFile(it) }
 

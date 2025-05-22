@@ -178,7 +178,7 @@ public final class SdkQuickfixUtils {
       return null;
     }
 
-    RepoManager mgr = sdkHandler.getSdkManager(REPO_LOGGER);
+    RepoManager mgr = sdkHandler.getRepoManager(REPO_LOGGER);
 
     if (mgr.getLocalPath() == null) {
       showSdkMissingDialog();
@@ -247,7 +247,7 @@ public final class SdkQuickfixUtils {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(mgr.getLocalPath()), () -> installRequests));
     InstallSelectedPackagesStep installStep =
-      new InstallSelectedPackagesStep(resolvedPackages, resolvedUninstalls, sdkHandler, backgroundable);
+      new InstallSelectedPackagesStep(resolvedPackages, resolvedUninstalls, () -> sdkHandler, backgroundable);
     wizardBuilder.addStep(installStep);
     ModelWizard wizard = wizardBuilder.build();
 
@@ -309,7 +309,7 @@ public final class SdkQuickfixUtils {
       ApplicationManager.getApplication().assertReadAccessNotAllowed();
     }
 
-    RepoManager mgr = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(REPO_LOGGER);
+    RepoManager mgr = AndroidSdks.getInstance().tryToChooseSdkHandler().getRepoManager(REPO_LOGGER);
     mgr.loadSynchronously(
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
       null,

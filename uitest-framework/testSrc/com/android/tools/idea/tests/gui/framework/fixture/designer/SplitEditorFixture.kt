@@ -32,7 +32,7 @@ import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.testFramework.runInEdtAndGet
 import icons.StudioIcons
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
@@ -42,7 +42,6 @@ import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Pause
 import org.fest.swing.timing.Wait
-import javax.swing.Icon
 import javax.swing.JComponent
 
 /**
@@ -51,10 +50,23 @@ import javax.swing.JComponent
 class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEditor>) :
   ComponentFixture<SplitEditorFixture, JComponent>(SplitEditorFixture::class.java, robot, editor.component) {
 
-  fun setCodeMode() = ActionButtonFixture.findByIcon(AllIcons.General.LayoutEditorOnly, robot()).click()
-  fun setSplitMode() = ActionButtonFixture.findByIcon(AllIcons.General.LayoutEditorPreview, robot()).click()
-  fun setDesignMode() = ActionButtonFixture.findByIcon(AllIcons.General.LayoutPreviewOnly, robot()).click()
+  fun setCodeMode() {
+    if (runInEdtAndGet { !editor.isTextMode() }) {
+      ActionButtonFixture.findByIcon(AllIcons.General.LayoutEditorOnly, robot()).click()
+    }
+  }
 
+  fun setSplitMode() {
+    if (runInEdtAndGet { !editor.isSplitMode() }) {
+      ActionButtonFixture.findByIcon(AllIcons.General.LayoutEditorPreview, robot()).click()
+    }
+  }
+
+  fun setDesignMode() {
+    if (runInEdtAndGet { !editor.isDesignMode() }) {
+      ActionButtonFixture.findByIcon(AllIcons.General.LayoutPreviewOnly, robot()).click()
+    }
+  }
 
   fun setRepresentation(name: String) {
     val representationSelector = ActionButtonFixture.findByIcon(StudioIcons.LayoutEditor.Palette.LIST_VIEW, robot, target())

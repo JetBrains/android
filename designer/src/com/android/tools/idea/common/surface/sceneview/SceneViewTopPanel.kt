@@ -66,11 +66,14 @@ class SceneViewTopPanel(
       statusIcon.isVisible = true
     }
     add(labelPanel, BorderLayout.CENTER)
-    val toolbarActionGroup = DefaultActionGroup(toolbarActions)
     val toolbar =
-      createToolbar(listOf(ShowActionGroupInPopupAction(toolbarActionGroup)))?.also {
-        add(it, BorderLayout.LINE_END)
-      }
+      toolbarActions
+        .takeIf { it.isNotEmpty() }
+        ?.let {
+          createToolbar(listOf(ShowActionGroupInPopupAction(DefaultActionGroup(it))))?.also {
+            add(it, BorderLayout.LINE_END)
+          }
+        }
     // The space of name label is sacrificed when there is no enough width to display the toolbar.
     // When it happens, the label will be trimmed and show the ellipsis at its tail.
     // User can still hover it to see the full label in the tooltips.
@@ -129,11 +132,11 @@ class SceneViewTopPanel(
       val popup =
         JBPopupFactory.getInstance()
           .createActionGroupPopup(
-            null,
-            actionGroup,
-            e.dataContext,
-            JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
-            false,
+            /* title = */ null,
+            /* actionGroup = */ actionGroup,
+            /* dataContext = */ e.dataContext,
+            /* selectionAidMethod = */ JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
+            /* showDisabledActions = */ true,
           )
       e.inputEvent?.component?.let { component ->
         val location = component.locationOnScreen

@@ -38,7 +38,7 @@ class AndroidGradleKtsSpellcheckingStrategyTest : AndroidTestCase() {
       //language=kotlin
       """
         dependencies {
-          implementation("com.example:xyzzy:1.0")
+          implementation("com.example:xyzy:1.0")
         }
       """.trimIndent()).virtualFile
     myFixture.configureFromExistingVirtualFile(virtualFile)
@@ -53,12 +53,12 @@ class AndroidGradleKtsSpellcheckingStrategyTest : AndroidTestCase() {
       //language=kotlin
       """
         dependencies {
-          print("com.example:xyzzy:1.0")
+          print("com.example:xyzy:1.0")
         }
       """.trimIndent()).virtualFile
     myFixture.configureFromExistingVirtualFile(virtualFile)
     val typos = myFixture.doHighlighting(SpellCheckerSeveritiesProvider.TYPO)
     Truth.assertThat(typos).hasSize(1)
-    Truth.assertThat(typos[0].description).isEqualTo("Typo: In word 'xyzzy'")
+    Truth.assertThat(typos[0].description).isEqualTo("Typo: In word 'xyzy'")
   }
 }

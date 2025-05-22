@@ -18,8 +18,13 @@ package com.android.tools.res.ids
 /**
  * [ResourceIdManager] implementation with fixed final ids. Convenient for testing.
  *
- * @param useRBytecodeParsing When true, the R classes belonging to this Module will be loaded using bytecode parsing and not reflection.
+ * @param useRBytecodeParsing When true, the R classes belonging to this Module will be loaded using
+ *   bytecode parsing and not reflection.
+ * @param frameworkResourceIdsProvider [FrameworkResourceIdsProvider] used to obtain the framework R class ids.
  */
-open class StubbedResourceIdManager(useRBytecodeParsing: Boolean) : ResourceIdManagerBase(
-  ResourceIdManagerModelModule.noNamespacingApp(useRBytecodeParsing)
-)
+open class StubbedResourceIdManager internal constructor(
+  useRBytecodeParsing: Boolean,
+  frameworkResourceIdsProvider: FrameworkResourceIdsProvider
+) : ResourceIdManagerBase(ResourceIdManagerModelModule.noNamespacingApp(useRBytecodeParsing), false, frameworkResourceIdsProvider) {
+  constructor(useRBytecodeParsing: Boolean): this(useRBytecodeParsing, FrameworkResourceIdsProvider.getInstance())
+}

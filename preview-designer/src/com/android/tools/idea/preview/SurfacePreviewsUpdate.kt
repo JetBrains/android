@@ -164,8 +164,9 @@ suspend fun <T : PreviewElement<*>> NlDesignSurface.refreshExistingPreviewElemen
 }
 
 /**
- * Syncs the [NlDesignSurface] with the [PreviewElement]s from the given [PreviewElementProvider].
- * It returns all the [PreviewElement] processed by this method.
+ * Syncs the [NlDesignSurface] with the given [previewElements].
+ *
+ * Returns all the [PreviewElement]s processed by this method.
  *
  * @param reinflate if true all the [PreviewElement]s will be forcefully reinflated.
  * @param previewElements the [PreviewElement]s to render.

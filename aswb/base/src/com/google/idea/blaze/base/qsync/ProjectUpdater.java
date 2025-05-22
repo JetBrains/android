@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.qsync;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.idea.blaze.qsync.deps.ProjectProtoUpdateOperation.JAVA_DEPS_LIB_NAME;
 import static java.util.Arrays.stream;
 
 import com.google.common.collect.ImmutableList;
@@ -44,6 +45,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.ModuleTypeManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.RootsChangeRescanningInfo;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LibraryOrderEntry;
@@ -51,8 +53,10 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.SourceFolder;
+import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.Library.ModifiableModel;
+import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.openapi.vfs.VfsUtil;
 import java.io.File;
 import java.nio.file.Path;
@@ -64,19 +68,23 @@ import org.jetbrains.jps.model.java.JavaSourceRootProperties;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.java.JpsJavaExtensionService;
 
-/** An object that monitors the build graph and applies the changes to the project structure. */
+/**
+ * An object that monitors the build graph and applies the changes to the project structure.
+ */
 public class ProjectUpdater implements QuerySyncProjectListener {
 
-  /** Entry point for instantiating {@link ProjectUpdater}. */
+  /**
+   * Entry point for instantiating {@link ProjectUpdater}.
+   */
   public static class Provider implements QuerySyncProjectListenerProvider {
     @Override
     public QuerySyncProjectListener createListener(QuerySyncProject querySyncProject) {
       return new ProjectUpdater(
-          querySyncProject.getIdeProject(),
-          querySyncProject.getImportSettings(),
-          querySyncProject.getProjectViewSet(),
-          querySyncProject.getWorkspaceRoot(),
-          querySyncProject.getProjectPathResolver());
+        querySyncProject.getIdeProject(),
+        querySyncProject.getImportSettings(),
+        querySyncProject.getProjectViewSet(),
+        querySyncProject.getWorkspaceRoot(),
+        querySyncProject.getProjectPathResolver());
     }
   }
 
@@ -87,11 +95,11 @@ public class ProjectUpdater implements QuerySyncProjectListener {
   private final ProjectPath.Resolver projectPathResolver;
 
   public ProjectUpdater(
-      Project project,
-      BlazeImportSettings importSettings,
-      ProjectViewSet projectViewSet,
-      WorkspaceRoot workspaceRoot,
-      ProjectPath.Resolver projectPathResolver) {
+    Project project,
+    BlazeImportSettings importSettings,
+    ProjectViewSet projectViewSet,
+    WorkspaceRoot workspaceRoot,
+    ProjectPath.Resolver projectPathResolver) {
     this.project = project;
     this.importSettings = importSettings;
     this.projectViewSet = projectViewSet;
@@ -117,113 +125,130 @@ public class ProjectUpdater implements QuerySyncProjectListener {
   private void updateProjectModel(ProjectProto.Project spec, Context<?> context) {
     File imlDirectory = new File(BlazeDataStorage.getProjectDataDir(importSettings), "modules");
     Transactions.submitWriteActionTransactionAndWait(
-        () -> {
-          IdeModifiableModelsProvider models =
-              ProjectDataManager.getInstance().createModifiableModelsProvider(project);
+      () -> {
+        IdeModifiableModelsProvider models =
+          ProjectDataManager.getInstance().createModifiableModelsProvider(project);
 
-          for (BlazeQuerySyncPlugin syncPlugin : BlazeQuerySyncPlugin.EP_NAME.getExtensions()) {
-            syncPlugin.updateProjectSettingsForQuerySync(project, context, projectViewSet);
-          }
-          int removedLibCount = removeUnusedLibraries(models, spec.getLibraryList());
-          if (removedLibCount > 0) {
-            context.output(PrintOutput.output("Removed " + removedLibCount + " libs"));
-          }
-          ImmutableMap.Builder<String, Library> libMapBuilder = ImmutableMap.builder();
+        for (BlazeQuerySyncPlugin syncPlugin : BlazeQuerySyncPlugin.EP_NAME.getExtensions()) {
+          syncPlugin.updateProjectSettingsForQuerySync(project, context, projectViewSet);
+        }
+        int removedLibCount = removeUnusedLibraries(models, spec.getLibraryList());
+        if (removedLibCount > 0) {
+          context.output(PrintOutput.output("Removed " + removedLibCount + " libs"));
+        }
+        ImmutableMap.Builder<String, Library> libMapBuilder = ImmutableMap.builder();
+        if (!QuerySync.enableBazelAdditionalLibraryRootsProvider()) {
           for (ProjectProto.Library libSpec : spec.getLibraryList()) {
             Library library = getOrCreateLibrary(models, libSpec);
             libMapBuilder.put(libSpec.getName(), library);
           }
-          ImmutableMap<String, Library> libMap = libMapBuilder.buildOrThrow();
+        }
+        else {
+          libMapBuilder.put(JAVA_DEPS_LIB_NAME,
+                            getOrCreateLibrary(models, ProjectProto.Library.newBuilder().setName(JAVA_DEPS_LIB_NAME).build()));
+        }
+        ImmutableMap<String, Library> libMap = libMapBuilder.buildOrThrow();
 
-          for (ProjectProto.Module moduleSpec : spec.getModulesList()) {
-            Module module =
-                models.newModule(
-                    imlDirectory.toPath().resolve(moduleSpec.getName() + ".iml").toString(),
-                    mapModuleType(moduleSpec.getType()).getId());
+        for (ProjectProto.Module moduleSpec : spec.getModulesList()) {
+          Module module =
+            models.newModule(
+              imlDirectory.toPath().resolve(moduleSpec.getName() + ".iml").toString(),
+              mapModuleType(moduleSpec.getType()).getId());
 
-            ModifiableRootModel roots = models.getModifiableRootModel(module);
-            ImmutableList<OrderEntry> existingLibraryOrderEntries =
-                stream(roots.getOrderEntries())
-                    .filter(it -> it instanceof LibraryOrderEntry)
-                    .collect(toImmutableList());
-            for (OrderEntry entry : existingLibraryOrderEntries) {
-              roots.removeOrderEntry(entry);
+          ModifiableRootModel roots = models.getModifiableRootModel(module);
+          ImmutableList<OrderEntry> existingLibraryOrderEntries =
+            stream(roots.getOrderEntries())
+              .filter(it -> it instanceof LibraryOrderEntry)
+              .collect(toImmutableList());
+          for (OrderEntry entry : existingLibraryOrderEntries) {
+            roots.removeOrderEntry(entry);
+          }
+          // TODO: should this be encapsulated in ProjectProto.Module?
+          roots.inheritSdk();
+
+          // TODO instead of removing all content entries and re-adding, we should calculate the
+          //  diff.
+          for (ContentEntry entry : roots.getContentEntries()) {
+            roots.removeContentEntry(entry);
+          }
+          for (ProjectProto.ContentEntry ceSpec : moduleSpec.getContentEntriesList()) {
+            ProjectPath projectPath = ProjectPath.create(ceSpec.getRoot());
+
+            ContentEntry contentEntry =
+              roots.addContentEntry(
+                UrlUtil.pathToUrl(projectPathResolver.resolve(projectPath).toString()));
+            for (ProjectProto.SourceFolder sfSpec : ceSpec.getSourcesList()) {
+              ProjectPath sourceFolderProjectPath = ProjectPath.create(sfSpec.getProjectPath());
+
+              JavaSourceRootProperties properties =
+                JpsJavaExtensionService.getInstance()
+                  .createSourceRootProperties(
+                    sfSpec.getPackagePrefix(), sfSpec.getIsGenerated());
+              JavaSourceRootType rootType =
+                sfSpec.getIsTest() ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE;
+              String url =
+                UrlUtil.pathToUrl(
+                  projectPathResolver.resolve(sourceFolderProjectPath).toString(),
+                  sourceFolderProjectPath.innerJarPath());
+              SourceFolder unused = contentEntry.addSourceFolder(url, rootType, properties);
             }
-            // TODO: should this be encapsulated in ProjectProto.Module?
-            roots.inheritSdk();
-
-            // TODO instead of removing all content entries and re-adding, we should calculate the
-            //  diff.
-            for (ContentEntry entry : roots.getContentEntries()) {
-              roots.removeContentEntry(entry);
+            for (String exclude : ceSpec.getExcludesList()) {
+              contentEntry.addExcludeFolder(
+                UrlUtil.pathToIdeaDirectoryUrl(workspaceRoot.absolutePathFor(exclude)));
             }
-            for (ProjectProto.ContentEntry ceSpec : moduleSpec.getContentEntriesList()) {
-              ProjectPath projectPath = ProjectPath.create(ceSpec.getRoot());
+          }
 
-              ContentEntry contentEntry =
-                  roots.addContentEntry(
-                      UrlUtil.pathToUrl(projectPathResolver.resolve(projectPath).toString()));
-              for (ProjectProto.SourceFolder sfSpec : ceSpec.getSourcesList()) {
-                ProjectPath sourceFolderProjectPath = ProjectPath.create(sfSpec.getProjectPath());
-
-                JavaSourceRootProperties properties =
-                    JpsJavaExtensionService.getInstance()
-                        .createSourceRootProperties(
-                            sfSpec.getPackagePrefix(), sfSpec.getIsGenerated());
-                JavaSourceRootType rootType =
-                    sfSpec.getIsTest() ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE;
-                String url =
-                    UrlUtil.pathToUrl(
-                        projectPathResolver.resolve(sourceFolderProjectPath).toString(),
-                        sourceFolderProjectPath.innerJarPath());
-                SourceFolder unused = contentEntry.addSourceFolder(url, rootType, properties);
-              }
-              for (String exclude : ceSpec.getExcludesList()) {
-                contentEntry.addExcludeFolder(
-                    UrlUtil.pathToIdeaDirectoryUrl(workspaceRoot.absolutePathFor(exclude)));
-              }
-            }
-
+          if (!QuerySync.enableBazelAdditionalLibraryRootsProvider()) {
             for (String lib : moduleSpec.getLibraryNameList()) {
               Library library = libMap.get(lib);
               if (library == null) {
                 throw new IllegalStateException(
-                    "Module refers to library " + lib + " not present in the project spec");
+                  "Module refers to library " + lib + " not present in the project spec");
               }
-              LibraryOrderEntry entry = roots.addLibraryEntry(library);
-              // TODO should this stuff be specified by the Module proto too?
-              entry.setScope(DependencyScope.COMPILE);
-              entry.setExported(false);
+              addLibraryEntry(roots, library);
             }
-
-            WorkspaceLanguageSettings workspaceLanguageSettings =
-                LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
-
-            for (BlazeQuerySyncPlugin syncPlugin : BlazeQuerySyncPlugin.EP_NAME.getExtensions()) {
-              // TODO update ProjectProto.Module and updateProjectStructure() to allow a more
-              // suitable
-              //   data type to be passed in here instead of androidResourceDirectories and
-              //   androidSourcePackages
-              syncPlugin.updateProjectStructureForQuerySync(
-                  project,
-                  context,
-                  models,
-                  workspaceRoot,
-                  module,
-                  ImmutableSet.copyOf(moduleSpec.getAndroidResourceDirectoriesList()),
-                  ImmutableSet.<String>builder()
-                      .addAll(moduleSpec.getAndroidSourcePackagesList())
-                      .addAll(moduleSpec.getAndroidCustomPackagesList())
-                      .build(),
-                  workspaceLanguageSettings);
-            }
-            models.commit();
+          } else {
+            addLibraryEntry(roots, libMap.get(JAVA_DEPS_LIB_NAME));
           }
-        });
+
+          WorkspaceLanguageSettings workspaceLanguageSettings =
+            LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
+
+          for (BlazeQuerySyncPlugin syncPlugin : BlazeQuerySyncPlugin.EP_NAME.getExtensions()) {
+            // TODO update ProjectProto.Module and updateProjectStructure() to allow a more
+            // suitable
+            //   data type to be passed in here instead of androidResourceDirectories and
+            //   androidSourcePackages
+            syncPlugin.updateProjectStructureForQuerySync(
+              project,
+              context,
+              models,
+              workspaceRoot,
+              module,
+              ImmutableSet.copyOf(moduleSpec.getAndroidResourceDirectoriesList()),
+              ImmutableSet.<String>builder()
+                .addAll(moduleSpec.getAndroidSourcePackagesList())
+                .addAll(moduleSpec.getAndroidCustomPackagesList())
+                .build(),
+              workspaceLanguageSettings);
+          }
+          models.commit();
+          if (QuerySync.enableBazelAdditionalLibraryRootsProvider()) {
+            ProjectRootManagerEx.getInstanceEx(project).makeRootsChange(
+              EmptyRunnable.getInstance(), RootsChangeRescanningInfo.RESCAN_DEPENDENCIES_IF_NEEDED);
+          }
+        }
+      });
+  }
+
+  private void addLibraryEntry(ModifiableRootModel roots, Library library) {
+    LibraryOrderEntry entry = roots.addLibraryEntry(library);
+    entry.setScope(DependencyScope.COMPILE);
+    entry.setExported(false);
   }
 
   private Library getOrCreateLibrary(
-      IdeModifiableModelsProvider models, ProjectProto.Library libSpec) {
+    IdeModifiableModelsProvider models, ProjectProto.Library libSpec) {
     // TODO this needs more work, it's a bit messy.
     Library library = models.getLibraryByName(libSpec.getName());
     if (library == null) {
@@ -231,11 +256,11 @@ public class ProjectUpdater implements QuerySyncProjectListener {
     }
     Path projectBase = Paths.get(project.getBasePath());
     ImmutableMap<String, ProjectProto.JarDirectory> dirs =
-        libSpec.getClassesJarList().stream()
-            .collect(
-                ImmutableMap.toImmutableMap(
-                    d -> UrlUtil.pathToIdeaUrl(projectBase.resolve(d.getPath())),
-                    Function.identity()));
+      libSpec.getClassesJarList().stream()
+        .collect(
+          ImmutableMap.toImmutableMap(
+            d -> UrlUtil.pathToIdeaUrl(projectBase.resolve(d.getPath())),
+            Function.identity()));
 
     // make sure the library contains only jar directory urls we want
     ModifiableModel modifiableModel = models.getModifiableLibraryModel(library);
@@ -244,7 +269,8 @@ public class ProjectUpdater implements QuerySyncProjectListener {
     for (String url : modifiableModel.getUrls(OrderRootType.CLASSES)) {
       if (modifiableModel.isJarDirectory(url) && dirs.containsKey(url)) {
         foundJarDirectories.add(url);
-      } else {
+      }
+      else {
         modifiableModel.removeRoot(url, OrderRootType.CLASSES);
       }
     }
@@ -254,18 +280,19 @@ public class ProjectUpdater implements QuerySyncProjectListener {
     }
 
     ImmutableSet<String> srcJars =
-        libSpec.getSourcesList().stream()
-            .filter(LibrarySource::hasSrcjar)
-            .map(LibrarySource::getSrcjar)
-            .map(ProjectPath::create)
-            .map(
-                p -> UrlUtil.pathToUrl(projectPathResolver.resolve(p).toString(), p.innerJarPath()))
-            .collect(ImmutableSet.toImmutableSet());
+      libSpec.getSourcesList().stream()
+        .filter(LibrarySource::hasSrcjar)
+        .map(LibrarySource::getSrcjar)
+        .map(ProjectPath::create)
+        .map(
+          p -> UrlUtil.pathToUrl(projectPathResolver.resolve(p).toString(), p.innerJarPath()))
+        .collect(ImmutableSet.toImmutableSet());
     Set<String> foundSrcJars = Sets.newHashSet();
     for (String url : modifiableModel.getUrls(OrderRootType.SOURCES)) {
       if (srcJars.contains(url)) {
         foundSrcJars.add(url);
-      } else {
+      }
+      else {
         final String file = VfsUtil.urlToPath(url);
         if (workspaceRoot.isInWorkspace(new File(file)) || Path.of(file).startsWith(projectBase)) {
           modifiableModel.removeRoot(url, OrderRootType.SOURCES);
@@ -284,9 +311,9 @@ public class ProjectUpdater implements QuerySyncProjectListener {
    * project.
    */
   private int removeUnusedLibraries(
-      IdeModifiableModelsProvider models, List<ProjectProto.Library> libraries) {
-    ImmutableSet<String> librariesToKeep =
-        libraries.stream().map(ProjectProto.Library::getName).collect(toImmutableSet());
+    IdeModifiableModelsProvider models, List<ProjectProto.Library> libraries) {
+    ImmutableSet<String> librariesToKeep = QuerySync.enableBazelAdditionalLibraryRootsProvider() ? ImmutableSet.of(JAVA_DEPS_LIB_NAME) :
+                                           libraries.stream().map(ProjectProto.Library::getName).collect(toImmutableSet());
     int removedLibCount = 0;
     for (Library library : models.getAllLibraries()) {
       if (!librariesToKeep.contains(library.getName())) {

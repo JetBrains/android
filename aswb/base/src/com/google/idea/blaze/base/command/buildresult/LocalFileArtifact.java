@@ -19,8 +19,14 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.io.FileOperationProvider;
+import com.google.idea.blaze.base.run.RuntimeArtifactCache;
+import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.artifact.BlazeArtifact;
+import com.google.idea.blaze.common.artifact.OutputArtifact;
+import com.intellij.openapi.project.Project;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 
 /** A file artifact available on the local file system. */
@@ -32,11 +38,23 @@ public interface LocalFileArtifact extends BlazeArtifact {
    * <p>Some callers will only ever accept local outputs (e.g. when debugging, and making use of
    * runfiles directories).
    */
-  static ImmutableList<File> getLocalFiles(Collection<? extends BlazeArtifact> artifacts) {
+  static ImmutableList<File> getLocalFiles(Label target, Collection<? extends OutputArtifact> artifacts, BlazeContext context,
+                                           Project project) {
+    var runtimeArtifactCache = RuntimeArtifactCache.getInstance(project);
+    return runtimeArtifactCache.fetchArtifacts(target, artifacts.stream().toList(), context).stream().map(Path::toFile).collect(toImmutableList());
+  }
+
+  /**
+   * Filters out non-local artifacts for legacy sync as it supports BlazeArtifact.
+   *
+   * <p>Some callers will only ever accept local outputs (e.g. when debugging, and making use of
+   * runfiles directories).
+   */
+  static ImmutableList<File> getLocalFilesForLegacySync(Collection<? extends BlazeArtifact> artifacts) {
     return artifacts.stream()
-        .filter(a -> a instanceof LocalFileArtifact)
-        .map(a -> ((LocalFileArtifact) a).getFile())
-        .collect(toImmutableList());
+      .filter(a -> a instanceof LocalFileArtifact)
+      .map(a -> ((LocalFileArtifact) a).getFile())
+      .collect(toImmutableList());
   }
 
   File getFile();

@@ -94,7 +94,7 @@ class WatchFaceLaunchOptions : WearSurfaceLaunchOptions {
   }
 }
 
-private fun getStopWatchFaceCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
+internal fun getStopWatchFaceCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
   val receiver = CommandResultReceiver()
   device.executeShellCommand(UNSET_WATCH_FACE, console, receiver, indicator = null)
   if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {

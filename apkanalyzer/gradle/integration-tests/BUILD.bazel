@@ -34,18 +34,18 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "@intellij//:intellij-sdk[test]",
-        "//tools/adt/idea/apkanalyzer/gradle:intellij.android.apkanalyzer.gradle[module, test]",
-        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
-        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
-        "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer[module, test]",
+        "//tools/adt/idea/apkanalyzer/gradle:intellij.android.apkanalyzer.gradle[test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[test]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[test]",
+        "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer[test]",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/.idea/libraries:truth-java8-extension[test]",
-        "//tools/base/common:studio.android.sdktools.common[module, test]",
-        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/base/common:studio.android.sdktools.common[test]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
     ],
 )
 

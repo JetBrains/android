@@ -25,12 +25,12 @@ import com.android.tools.idea.testing.buildMainSourceProviderStub
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.module.Module
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 class SourceSetItemTest {
 
@@ -38,18 +38,26 @@ class SourceSetItemTest {
   private lateinit var module: Module
 
   @get:Rule
-  val rule = AndroidProjectRule.withAndroidModels(
-    JavaModuleModelBuilder.rootModuleBuilder,
-    AndroidModuleModelBuilder(":app", "debug",
-                              AndroidProjectBuilder(mainSourceProvider = {
-                                buildMainSourceProviderStub()
-                                  .appendDirectories(
-                                    resDirectories = listOf(
-                                      moduleBasePath.resolve("myResDir"),
-                                      moduleBasePath.resolve("foo/bar/deep/resources/android/res")
-                                    )
-                                  )
-                              })))
+  val rule =
+    AndroidProjectRule.withAndroidModels(
+      JavaModuleModelBuilder.rootModuleBuilder,
+      AndroidModuleModelBuilder(
+        ":app",
+        "debug",
+        AndroidProjectBuilder(
+          mainSourceProvider = {
+            buildMainSourceProviderStub()
+              .appendDirectories(
+                resDirectories =
+                  listOf(
+                    moduleBasePath.resolve("myResDir"),
+                    moduleBasePath.resolve("foo/bar/deep/resources/android/res"),
+                  )
+              )
+          }
+        ),
+      ),
+    )
 
   @Before
   fun setup() {
@@ -66,9 +74,18 @@ class SourceSetItemTest {
     val resDirUrl2 = resDirectoryUrls[1]
     val resDirUrl3 = resDirectoryUrls[2]
 
-    assertEquals("src/main/res", SourceSetItem.create(sourceProvider, module, resDirUrl1)?.displayableResDir)
-    assertEquals("myResDir", SourceSetItem.create(sourceProvider, module, resDirUrl2)?.displayableResDir)
-    assertEquals("...bar/deep/resources/android/res", SourceSetItem.create(sourceProvider, module, resDirUrl3)?.displayableResDir)
+    assertEquals(
+      "src/main/res",
+      SourceSetItem.create(sourceProvider, module, resDirUrl1)?.displayableResDir,
+    )
+    assertEquals(
+      "myResDir",
+      SourceSetItem.create(sourceProvider, module, resDirUrl2)?.displayableResDir,
+    )
+    assertEquals(
+      "...bar/deep/resources/android/res",
+      SourceSetItem.create(sourceProvider, module, resDirUrl3)?.displayableResDir,
+    )
   }
 
   @Test

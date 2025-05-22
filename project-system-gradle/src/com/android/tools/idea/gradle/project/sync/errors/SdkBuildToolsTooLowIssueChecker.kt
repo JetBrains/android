@@ -90,7 +90,7 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseAndroidSdk()?.sdkHandler
     if (sdkHandler != null) {
       val progress = StudioLoggerProgressIndicator(SdkBuildToolsTooLowIssueChecker::class.java)
-      val packages = sdkHandler.getSdkManager(progress).packages
+      val packages = sdkHandler.getRepoManagerAndLoadSynchronously(progress).packages
       val buildTool = packages.localPackages[DetailsTypes.getBuildToolsPath(Revision.parseRevision(minVersion))]
       if (buildTool == null) {
         val linkMessage = "Install Build Tools $minVersion " +

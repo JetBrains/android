@@ -63,16 +63,15 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 
 /** A local Blaze/Bazel invoker that issues commands via CLI. */
-public class LocalInvoker extends AbstractBuildInvoker1 {
+public class LocalInvoker extends AbstractBuildInvoker {
   private static Logger logger = Logger.getInstance(LocalInvoker.class);
   private final BuildBinaryType buildBinaryType;
 
   public LocalInvoker(
       Project project,
-      BlazeContext blazeContext,
       BuildSystem buildSystem,
       BuildBinaryType binaryType) {
-    super(project, blazeContext, buildSystem, binaryPath(binaryType, project));
+    super(project, buildSystem, binaryPath(binaryType, project));
     this.buildBinaryType = binaryType;
   }
 
@@ -87,22 +86,12 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
   }
 
   @Override
-  public boolean supportsHomeBlazerc() {
-    return true;
-  }
-
-  @Override
-  public boolean supportsParallelism() {
-    return false;
-  }
-
-  @Override
   public ImmutableSet<Capability> getCapabilities() {
     return ImmutableSet.of(Capability.IS_LOCAL, Capability.SUPPORTS_CLI);
   }
 
   @Override
-  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder)
+  public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext)
       throws BuildException {
     try {
       performGuardCheck(project, blazeContext);
@@ -113,6 +102,10 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
     BuildResult buildResult =
         issueBuild(
             blazeCommandBuilder, WorkspaceRoot.fromProject(project), blazeContext, outputFile);
+    if (!buildResult.equals(BuildResult.SUCCESS)) {
+      blazeContext.setHasError();
+      IssueOutput.error("Blaze build failed. See Blaze Console for details.").submit(blazeContext);
+    }
     if (blazeCommandBuilder.build().getName().equals(BlazeCommandName.BUILD)) {
       BuildDepsStatsScope.fromContext(blazeContext)
           .ifPresent(stats -> stats.setBazelExitCode(buildResult.exitCode));
@@ -121,7 +114,7 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
   }
 
   @Override
-  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder) {
+  public InputStream invokeQuery(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     try {
       performGuardCheck(project, blazeContext);
     } catch (ExecutionDeniedException e) {
@@ -174,7 +167,7 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
 
   @Override
   @Nullable
-  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder) {
+  public InputStream invokeInfo(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     try {
       performGuardCheck(project, blazeContext);
     } catch (ExecutionDeniedException e) {
@@ -224,6 +217,7 @@ public class LocalInvoker extends AbstractBuildInvoker1 {
         ExternalTask.builder(workspaceRoot)
             .addBlazeCommand(blazeCommandBuilder.build())
             .context(context)
+            .stdout(LineProcessingOutputStream.of(new PrintOutputLineProcessor(context)))
             .stderr(
                 LineProcessingOutputStream.of(
                     BlazeConsoleLineProcessorProvider.getAllStderrLineProcessors(context)))

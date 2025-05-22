@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.displayApiString
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
@@ -66,7 +67,7 @@ class DeviceAndApiLevelFilterComboBoxAction : ComboBoxAction(), DumbAware {
 
     val apiLevelGroup = DefaultActionGroup("API level", true)
     apiLevelGroup.addAll(myAvailableApiLevels.map { version ->
-      createFilterAction("API ${version.apiStringWithExtension}", null) { it.version.apiStringWithExtension == version.apiStringWithExtension }
+      createFilterAction("API ${version.displayApiString}", null) { it.version.apiStringWithExtension == version.apiStringWithExtension }
     })
     actionGroup.add(apiLevelGroup)
     actionGroup.addSeparator()

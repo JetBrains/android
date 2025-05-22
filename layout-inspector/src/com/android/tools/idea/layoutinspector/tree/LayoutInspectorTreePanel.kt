@@ -49,6 +49,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.Gray
@@ -545,6 +546,23 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     // Make an explicit update of the toolbar now (the tree expand actions may have been
     // enabled/disabled)
     invokeLater { toolWindowCallback?.updateActions() }
+
+    invokeLater {
+      if (
+        componentTreeSelectionModel.currentSelection.isEmpty() &&
+          inspectorModel?.selection?.treeNode != null
+      ) {
+        // The selection in the tree panel has gone out of sync with the inspector model, put them
+        // back in sync. This can happen for example if the tree panel is recreated while the
+        // inspector model already has a selection. When the new instance of the tree panel is
+        // created, the listeners are added back. If the selection listener is executed before the
+        // modification listener, restoring the selection in the tree will fail, because at that
+        // point
+        // the tree is still empty.
+        componentTreeSelectionModel.currentSelection =
+          listOfNotNull(inspectorModel?.selection?.treeNode)
+      }
+    }
   }
 
   /**
@@ -629,7 +647,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   @Suppress("UNUSED_PARAMETER")
   private fun selectionChanged(oldView: ViewNode?, newView: ViewNode?, origin: SelectionOrigin) {
-    componentTreeSelectionModel.currentSelection = listOfNotNull(newView?.treeNode)
+    invokeAndWaitIfNeeded {
+      // TreeTableSelectionModelImpl requires updating the state from the ui thread.
+      componentTreeSelectionModel.currentSelection = listOfNotNull(newView?.treeNode)
+    }
   }
 
   @Suppress("UNUSED_PARAMETER")

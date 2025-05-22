@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.AdbSession
 import com.android.adblib.DeviceSelector
 import com.android.adblib.shellAsText
@@ -23,7 +24,6 @@ import com.android.prefs.AndroidLocationsException
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.idea.adblib.AdbLibApplicationService
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
@@ -33,6 +33,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -40,11 +41,13 @@ import com.intellij.openapi.ui.Messages
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.Dimension
 import java.nio.file.Path
 import java.time.Duration
+import java.util.function.Supplier
 
 /**
  * A [DumbAwareAction] that records the screen.
@@ -78,10 +81,12 @@ class ScreenRecorderAction : DumbAwareAction(
   override fun actionPerformed(event: AnActionEvent) {
     val params = event.getData(SCREEN_RECORDER_PARAMETERS_KEY) ?: return
     val project = event.project ?: return
-    val isEmulator = params.serialNumber.isEmulator()
-    val dialog = ScreenRecorderOptionsDialog(ScreenRecorderPersistentOptions.getInstance(), project, isEmulator, params.featureLevel)
+    // TODO: Remove the second condition when b/398033354 is fixed.
+    val canUseEmulatorRecording = params.serialNumber.isEmulator() && params.displayId == PRIMARY_DISPLAY_ID
+    val options = ScreenRecorderPersistentOptions.getInstance()
+    val dialog = ScreenRecorderOptionsDialog(options, project, canUseEmulatorRecording, params.featureLevel)
     if (dialog.showAndGet()) {
-      startRecordingAsync(params, isEmulator && ScreenRecorderPersistentOptions.getInstance().useEmulatorRecording, project)
+      startRecordingAsync(options, params, canUseEmulatorRecording && options.useEmulatorRecording, project)
     }
   }
 
@@ -91,7 +96,12 @@ class ScreenRecorderAction : DumbAwareAction(
   }
 
   @UiThread
-  private fun startRecordingAsync(params: Parameters, useEmulatorRecording: Boolean, project: Project) {
+  private fun startRecordingAsync(
+      options: ScreenRecorderPersistentOptions,
+      params: Parameters,
+      useEmulatorRecording: Boolean,
+      project: Project,
+  ) {
     val adbSession: AdbSession = AdbLibApplicationService.instance.session
     val manager: AvdManager? = getVirtualDeviceManager()
     val serialNumber = params.serialNumber
@@ -105,11 +115,11 @@ class ScreenRecorderAction : DumbAwareAction(
     val exceptionHandler = coroutineExceptionHandler(project, coroutineScope)
     coroutineScope.launch(exceptionHandler) {
       val showTouchEnabled = isShowTouchEnabled(adbSession, serialNumber)
-      val size = getDeviceScreenSize(adbSession, serialNumber)
+      val size = params.displaySizeSupplier?.get() ?: getDeviceScreenSize(adbSession, serialNumber)
       val timeLimitSec = if (emulatorRecordingFile != null || params.featureLevel >= 34) MAX_RECORDING_DURATION_MINUTES * 60 else 0
-      val options: ScreenRecorderOptions = ScreenRecorderPersistentOptions.getInstance().toScreenRecorderOptions(size, timeLimitSec)
-      if (options.showTouches != showTouchEnabled) {
-        setShowTouch(adbSession, serialNumber, options.showTouches)
+      val recorderOptions = options.toScreenRecorderOptions(params.displayId, size, timeLimitSec)
+      if (recorderOptions.showTouches != showTouchEnabled) {
+        setShowTouch(adbSession, serialNumber, recorderOptions.showTouches)
       }
       try {
         val recodingProvider = when (emulatorRecordingFile) {
@@ -117,14 +127,14 @@ class ScreenRecorderAction : DumbAwareAction(
             disposableParent,
             serialNumber,
             REMOTE_PATH.format(System.currentTimeMillis()),
-            options,
+            recorderOptions,
             adbSession)
 
           else -> EmulatorConsoleRecordingProvider(
             disposableParent,
             serialNumber,
             emulatorRecordingFile,
-            options,
+            recorderOptions,
             adbSession)
         }
         val timeLimit = if (timeLimitSec > 0) timeLimitSec else MAX_RECORDING_DURATION_MINUTES_LEGACY * 60
@@ -132,10 +142,10 @@ class ScreenRecorderAction : DumbAwareAction(
         recorder.recordScreen(timeLimit)
       }
       finally {
-        if (options.showTouches != showTouchEnabled) {
+        if (recorderOptions.showTouches != showTouchEnabled) {
           setShowTouch(adbSession, serialNumber, showTouchEnabled)
         }
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           recordingInProgress.remove(serialNumber)
           ActivityTracker.getInstance().inc()
         }
@@ -199,7 +209,7 @@ class ScreenRecorderAction : DumbAwareAction(
 
   private fun coroutineExceptionHandler(project: Project, coroutineScope: CoroutineScope) = CoroutineExceptionHandler { _, throwable ->
     logger.warn("Failed to record screen", throwable)
-    coroutineScope.launch(uiThread) {
+    coroutineScope.launch(Dispatchers.EDT) {
       Messages.showErrorDialog(
         project,
         AndroidAdbUiBundle.message("screenrecord.error.exception", throwable.toString()),
@@ -232,6 +242,8 @@ class ScreenRecorderAction : DumbAwareAction(
     val serialNumber: String,
     val featureLevel: Int,
     val avdId: String?,
+    val displayId: Int,
+    val displaySizeSupplier: Supplier<Dimension>?,  // Supplier of the display size in pixels, if available.
     val recordingLifetimeDisposable: Disposable,
   )
 }

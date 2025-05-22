@@ -19,8 +19,11 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.ui.awt.RelativePoint;
+import java.awt.Point;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +42,6 @@ public class SearchableDropDownAction extends DropDownAction {
   protected void showPopupMenu(@NotNull AnActionEvent eve, @NotNull ActionButton button) {
     JBPopup popup = JBPopupFactory.getInstance()
       .createActionGroupPopup(null, this, eve.getDataContext(), JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, false);
-    popup.showInBestPositionFor(eve.getDataContext());
+    popup.showUnderneathOf(button);
   }
 }

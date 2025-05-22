@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames
 import com.android.mockito.kotlin.whenever
 import com.android.testutils.ImageDiffUtil
@@ -36,7 +37,6 @@ import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.AbstractDisplayView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
@@ -343,6 +343,22 @@ internal class DeviceViewTest {
     fakeUi.mouse.release()
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(235, 1008, 0)), MotionEventMessage.ACTION_UP, 0, 0, 0))
+  }
+
+  @Test
+  fun testRightClick() {
+    createDeviceView(200, 300, 2.0)
+    waitForFrame()
+    assertThat(view.displayRectangle).isEqualTo(Rectangle(61, 0, 277, 600))
+    assertThat(view.displayOrientationQuadrants).isEqualTo(0)
+
+    view.rightClicksAreSentToDevice = true
+    fakeUi.mouse.press(40, 30, button = FakeMouse.Button.RIGHT)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(76, 235, 0)), MotionEventMessage.ACTION_DOWN, 2, 2, 0))
+    fakeUi.mouse.release()
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(76, 235, 0)), MotionEventMessage.ACTION_UP, 0, 2, 0))
   }
 
   @Test

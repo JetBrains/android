@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.pickers.preview.property
 
+import com.android.tools.idea.compose.pickers.preview.enumsupport.Device
 import com.android.tools.preview.config.Cutout
 import com.android.tools.preview.config.DeviceConfig
 import com.android.tools.preview.config.DimUnit
@@ -267,6 +268,48 @@ internal class DeviceConfigTest {
     assertEquals(
       "spec:width=123.5dp,height=567.9dp",
       DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec(),
+    )
+  }
+
+  @Test
+  fun testFallbackToIdIfParentNotUsed() {
+    var config = DeviceConfig(deviceId = null, parentDeviceId = Device.NEXUS_7.display)
+
+    // If parentDevice is defined but navigation and orientation are default, fallback to deviceId
+    assertEquals(Device.NEXUS_7.resolvedValue, config.deviceSpec())
+
+    // If parentDevice is defined but orientation is not default, keep parentDeviceId and show
+    // orientation.
+    config =
+      DeviceConfig(
+        deviceId = null,
+        parentDeviceId = Device.NEXUS_7.display,
+        orientation = Orientation.landscape,
+      )
+    assertEquals("spec:parent=${Device.NEXUS_7.display},orientation=landscape", config.deviceSpec())
+
+    // If parentDevice is defined but navigation is not default, keep parentDeviceId and show
+    // orientation.
+    config =
+      DeviceConfig(
+        deviceId = null,
+        parentDeviceId = Device.NEXUS_7.display,
+        navigation = Navigation.buttons,
+      )
+    assertEquals("spec:parent=${Device.NEXUS_7.display},navigation=buttons", config.deviceSpec())
+
+    // If parentDevice is defined but both navigation and orientation aren't default, keep
+    // parentDeviceId and show orientation and navigation.
+    config =
+      DeviceConfig(
+        deviceId = null,
+        parentDeviceId = Device.NEXUS_7.display,
+        navigation = Navigation.buttons,
+        orientation = Orientation.landscape,
+      )
+    assertEquals(
+      "spec:parent=${Device.NEXUS_7.display},orientation=landscape,navigation=buttons",
+      config.deviceSpec(),
     )
   }
 

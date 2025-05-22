@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.RemoteSystemImage
+import com.android.sdklib.displayApiString
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.adddevicedialog.SortOrder
@@ -96,7 +97,7 @@ internal fun DevicePanel(
         .collect {
           configureDevicePanelState.setDeviceName(it)
           nameError = deviceNameValidator.validate(it)
-          configureDevicePanelState.setIsDeviceNameValid(nameError == null)
+          configureDevicePanelState.isDeviceNameValid = nameError == null
         }
     }
 
@@ -126,23 +127,22 @@ internal fun DevicePanel(
       ApiFilter(
         androidVersions,
         systemImageFilterState.selectedApi,
-        systemImageFilterState::setSelectedApi,
+        systemImageFilterState::selectedApi::set,
         Modifier.padding(bottom = Padding.MEDIUM_LARGE),
       )
 
       ServicesDropdown(
         systemImageFilterState.selectedServices,
         servicesCollection,
-        systemImageFilterState::setSelectedServices,
+        systemImageFilterState::selectedServices::set,
         Modifier.padding(bottom = Padding.MEDIUM_LARGE),
       )
     }
 
     val baseExtensionLevels = remember(imageState.images) { BaseExtensionLevels(imageState.images) }
     val filteredSystemImages = systemImageFilterState.filter(imageState.images, baseExtensionLevels)
-    configureDevicePanelState.setIsSystemImageTableSelectionValid(
+    configureDevicePanelState.isSystemImageTableSelectionValid =
       configureDevicePanelState.systemImageTableSelectionState.selection in filteredSystemImages
-    )
 
     Box(Modifier.weight(1f).padding(bottom = Padding.SMALL)) {
       if (filteredSystemImages.isEmpty()) {
@@ -174,14 +174,14 @@ internal fun DevicePanel(
 
     ShowSdkExtensionSystemImagesCheckbox(
       systemImageFilterState.showSdkExtensionSystemImages,
-      systemImageFilterState::setShowSdkExtensionSystemImages,
+      systemImageFilterState::showSdkExtensionSystemImages::set,
       Modifier.padding(bottom = Padding.SMALL),
     )
 
     CheckboxRow(
       "Show unsupported system images",
       systemImageFilterState.showUnsupportedSystemImages,
-      systemImageFilterState::setShowUnsupportedSystemImages,
+      systemImageFilterState::showUnsupportedSystemImages::set,
     )
   }
 }
@@ -280,7 +280,7 @@ private fun SystemImageTable(
       TableTextColumn(
         "API",
         TableColumnWidth.Fixed(125.dp),
-        { it.androidVersion.apiStringWithExtension },
+        { it.androidVersion.displayApiString },
         Comparator.comparing(ISystemImage::getAndroidVersion),
       ),
     )

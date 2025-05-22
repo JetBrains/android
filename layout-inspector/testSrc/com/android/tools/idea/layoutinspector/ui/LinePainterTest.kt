@@ -66,6 +66,7 @@ class LinePainterTest {
         model,
         mock(),
         treeSettings,
+        FakeRenderSettings(),
         MoreExecutors.directExecutor(),
       )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)

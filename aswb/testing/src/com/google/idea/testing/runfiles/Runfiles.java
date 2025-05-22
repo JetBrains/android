@@ -15,6 +15,7 @@
  */
 package com.google.idea.testing.runfiles;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 /** A utlility class that knows how to locate Bazel's runfiles root directory. */
@@ -30,6 +31,12 @@ public class Runfiles {
   /** Returns the runtime location of data dependencies. */
   public static Path runfilesPath() {
     return runfilesPath("");
+  }
+
+  /** Returns the runtime location of a data dependency in an external workspace. */
+  public static Path runfilesPath(String workspace, String path) throws IOException {
+    String combinedPath = workspace + "/" + path;
+    return Path.of(com.google.devtools.build.runfiles.Runfiles.preload().withSourceRepository("").rlocation(combinedPath));
   }
 
   private static String getUserValue(String name) {

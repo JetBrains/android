@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.screenrecording
 
 import com.android.tools.idea.ui.save.PostSaveAction
-import com.android.tools.idea.ui.save.SaveConfiguration
+import com.android.tools.idea.ui.save.SaveConfigurationResolver
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
@@ -38,7 +38,7 @@ internal class ScreenRecorderPersistentOptions : PersistentStateComponent<Screen
   var resolutionPercent: Int = DEFAULT_RESOLUTION_PERCENT
   var showTaps: Boolean = false
   var useEmulatorRecording: Boolean = true
-  var saveLocation: String = SaveConfiguration.DEFAULT_SAVE_LOCATION
+  var saveLocation: String = SaveConfigurationResolver.DEFAULT_SAVE_LOCATION
   var filenameTemplate: String = "Screen_recording_%Y%M%D_%H%m%S"
   var postSaveAction: PostSaveAction = PostSaveAction.OPEN
   var recordingCount: Int = 0
@@ -54,7 +54,7 @@ internal class ScreenRecorderPersistentOptions : PersistentStateComponent<Screen
     XmlSerializerUtil.copyBean(state, this)
   }
 
-  fun toScreenRecorderOptions(size: Dimension?, timeLimitSec: Int): ScreenRecorderOptions {
+  fun toScreenRecorderOptions(displayId: Int, size: Dimension?, timeLimitSec: Int): ScreenRecorderOptions {
     val width: Int
     val height: Int
     if (size != null && resolutionPercent != 100) {
@@ -67,7 +67,7 @@ internal class ScreenRecorderPersistentOptions : PersistentStateComponent<Screen
       height = 0
     }
 
-    return ScreenRecorderOptions(width, height, bitRateMbps, showTaps, timeLimitSec)
+    return ScreenRecorderOptions(displayId, width, height, bitRateMbps, showTaps, timeLimitSec)
   }
 }
 

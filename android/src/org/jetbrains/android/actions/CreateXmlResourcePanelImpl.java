@@ -43,9 +43,14 @@ import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
@@ -118,6 +123,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
                                     @Nullable VirtualFile contextFile,
                                     @NotNull final Function<Module, IdeResourceNameValidator> nameValidatorFactory) {
     myResourceType = resourceType;
+    setupUI();
     setChangeNameVisible(false);
     setChangeValueVisible(false);
     setChangeFileNameVisible(chooseFilename);
@@ -492,5 +498,84 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     Collections.sort(fileNames);
     myFileNameCombo.setModel(new DefaultComboBoxModel(fileNames.toArray()));
     myFileNameCombo.getEditor().setItem(oldItem);
+  }
+
+  private void setupUI() {
+    createUIComponents();
+    myPanel = new JPanel();
+    myPanel.setLayout(new GridLayoutManager(7, 2, new Insets(0, 0, 5, 0), -1, -1));
+    myNameLabel = new JBLabel();
+    myNameLabel.setText("Resource name:");
+    myNameLabel.setDisplayedMnemonic('N');
+    myNameLabel.setDisplayedMnemonicIndex(9);
+    myPanel.add(myNameLabel,
+                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myNameField = new JTextField();
+    myPanel.add(myNameField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                 GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                 new Dimension(150, -1), null, 0, false));
+    myModuleCombo = new ModulesComboBox();
+    myPanel.add(myModuleCombo, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                   GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
+                                                   0, false));
+    myModuleLabel = new JBLabel();
+    myModuleLabel.setText("Module:");
+    myModuleLabel.setDisplayedMnemonic('M');
+    myModuleLabel.setDisplayedMnemonicIndex(0);
+    myPanel.add(myModuleLabel,
+                new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myFileNameLabel = new JBLabel();
+    myFileNameLabel.setText("File name:");
+    myFileNameLabel.setDisplayedMnemonic('F');
+    myFileNameLabel.setDisplayedMnemonicIndex(0);
+    myPanel.add(myFileNameLabel,
+                new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myDirectoriesPanel = new JPanel();
+    myDirectoriesPanel.setLayout(new BorderLayout(0, 0));
+    myPanel.add(myDirectoriesPanel, new GridConstraints(6, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                        null, null, 0, false));
+    myDirectoriesLabel = new JBLabel();
+    myDirectoriesLabel.setText("Create the resource in directories:");
+    myDirectoriesLabel.setDisplayedMnemonic('C');
+    myDirectoriesLabel.setDisplayedMnemonicIndex(0);
+    myPanel.add(myDirectoriesLabel,
+                new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myValueLabel = new JBLabel();
+    myValueLabel.setText("Resource value:");
+    myValueLabel.setDisplayedMnemonic('V');
+    myValueLabel.setDisplayedMnemonicIndex(9);
+    myPanel.add(myValueLabel,
+                new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myFileNameCombo = new JComboBox();
+    myFileNameCombo.setEditable(true);
+    myPanel.add(myFileNameCombo, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                     GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                     null, 0, false));
+    mySourceSetLabel = new JBLabel();
+    mySourceSetLabel.setText("Source set:");
+    mySourceSetLabel.setDisplayedMnemonic('S');
+    mySourceSetLabel.setDisplayedMnemonicIndex(0);
+    myPanel.add(mySourceSetLabel,
+                new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    mySourceSetCombo = new JComboBox();
+    myPanel.add(mySourceSetCombo, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                      GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                      null, 0, false));
+    myValueFieldContainer.setEnabled(true);
+    myPanel.add(myValueFieldContainer, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                           GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                           new Dimension(150, -1), null, 0, false));
+    myNameLabel.setLabelFor(myNameField);
+    myModuleLabel.setLabelFor(myModuleCombo);
+    myFileNameLabel.setLabelFor(myFileNameCombo);
+    mySourceSetLabel.setLabelFor(myModuleCombo);
   }
 }

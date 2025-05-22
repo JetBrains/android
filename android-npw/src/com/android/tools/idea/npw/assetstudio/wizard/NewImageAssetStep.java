@@ -56,7 +56,7 @@ public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel>
   @NotNull
   @Override
   protected ObservableBool canGoForward() {
-    return myGenerateImageAssetPanel.hasErrors().not();
+    return myGenerateImageAssetPanel.canProceed();
   }
 
   @Override

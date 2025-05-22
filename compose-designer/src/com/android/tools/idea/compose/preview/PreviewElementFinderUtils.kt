@@ -24,25 +24,24 @@ import com.android.tools.compose.MULTIPLATFORM_PREVIEW_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeImpl
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeInfo
-import com.android.tools.idea.preview.AnnotationPreviewNameHelper
-import com.android.tools.idea.preview.UastAnnotatedMethod
-import com.android.tools.idea.preview.UastAnnotationAttributesProvider
-import com.android.tools.idea.preview.annotations.NodeInfo
-import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
-import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
-import com.android.tools.idea.preview.annotations.getContainingUMethodAnnotatedWith
-import com.android.tools.idea.preview.annotations.getUAnnotations
-import com.android.tools.idea.preview.annotations.isAnnotatedWith
-import com.android.tools.idea.preview.directPreviewChildrenCount
-import com.android.tools.idea.preview.findPreviewDefaultValues
-import com.android.tools.idea.preview.qualifiedName
-import com.android.tools.idea.preview.toSmartPsiPointer
+import com.android.tools.idea.preview.find.AnnotationPreviewNameHelper
+import com.android.tools.idea.preview.find.NodeInfo
+import com.android.tools.idea.preview.find.UAnnotationSubtreeInfo
+import com.android.tools.idea.preview.find.UastAnnotatedMethod
+import com.android.tools.idea.preview.find.UastAnnotationAttributesProvider
+import com.android.tools.idea.preview.find.directPreviewChildrenCount
+import com.android.tools.idea.preview.find.findAllAnnotationsInGraph
+import com.android.tools.idea.preview.find.findPreviewDefaultValues
+import com.android.tools.idea.preview.find.getContainingUMethodAnnotatedWith
+import com.android.tools.idea.preview.find.getUAnnotations
+import com.android.tools.idea.preview.find.isAnnotatedWith
+import com.android.tools.idea.preview.find.qualifiedName
+import com.android.tools.idea.preview.find.toSmartPsiPointer
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.PreviewNode
 import com.android.tools.preview.previewAnnotationToPreviewElement
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.readAction
-import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
@@ -137,7 +136,7 @@ private suspend fun getPreviewNodes(
   includeAllNodes: Boolean,
   rootSearchElement: UElement,
 ): Flow<PreviewNode> {
-  if (readAction {!composableMethod.isComposable()}) return emptyFlow()
+  if (readAction { !composableMethod.isComposable() }) return emptyFlow()
   val composableFqn = readAction { composableMethod.qualifiedName }
   val multiPreviewNodesByFqn = mutableMapOf<String, MultiPreviewNode>()
 
@@ -226,7 +225,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
     }
   // TODO(b/339615825): avoid running the whole previewAnnotationToPreviewElement method under the
   // read lock
-  return smartReadAction(project = composableMethod.project) {
+  return readAction {
     previewAnnotationToPreviewElement(
       attributesProvider,
       annotatedMethod,

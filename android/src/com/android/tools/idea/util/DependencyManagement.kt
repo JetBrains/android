@@ -17,28 +17,30 @@
 
 package com.android.tools.idea.util
 
-import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.support.AndroidxName
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.RegisteredDependencyCompatibilityResult
+import com.android.tools.idea.projectsystem.RegisteredDependencyId
+import com.android.tools.idea.projectsystem.RegisteringModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.utils.associateByNotNull
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.Messages.OK
+import com.intellij.openapi.ui.Messages.getErrorIcon
+import com.intellij.openapi.ui.Messages.showOkCancelDialog
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.util.concurrency.ThreadingAssertions
-
-typealias DependencyAnalysis = Triple<List<GradleCoordinate>, List<GradleCoordinate>, String>
 
 /**
  * Returns true iff the dependency with [artifactId] is transitively available to this module.
@@ -69,14 +71,6 @@ fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
  */
 fun Module.dependsOnAndroidx(): Boolean = getModuleSystem().useAndroidX
 
-/**
- * Returns whether this module depends on the old support library artifacts (com.android.support).
- */
-fun Module.dependsOnOldSupportLib(): Boolean =
-  GoogleMavenArtifactId.values()
-    .filter { it.mavenGroupId.startsWith(SdkConstants.SUPPORT_LIB_GROUP_ID) }
-    .any { dependsOn(it) }
-
 fun Module?.mapAndroidxName(name: AndroidxName): String {
   val dependsOnAndroidx = this?.dependsOnAndroidx() ?: return name.defaultName()
   return if (dependsOnAndroidx) name.newName() else name.oldName()
@@ -86,8 +80,8 @@ fun Module.dependsOnAppCompat(): Boolean =
   this.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7) || this.dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)
 
 /**
- * Add maven projects as dependencies for this module. The maven group and artifact IDs are taken from given [GradleCoordinate]s and the
- * coordinates' version information are disregarded. This method will show a dialog prompting the user for confirmation if
+ * Add Google maven projects as dependencies for this module. The maven group and artifact IDs are taken from given
+ * [GoogleMavenArtifactId]s. This method will show a dialog prompting the user for confirmation if
  * [promptUserBeforeAdding] is set to true and return with no-op if user chooses to not add the dependencies. If any of the dependencies
  * are added successfully and [requestSync] is set to true, this method will request a sync to make sure the artifacts are resolved.
  * In this case, the sync will happen asynchronously and this method will not wait for it to finish before returning.
@@ -100,7 +94,7 @@ fun Module.dependsOnAppCompat(): Boolean =
  * method will show the appropriate messages with details on the errors.
  *
  * If compatibility issues are detected such that no dependencies can be added, this method will show a warning message dialog with an
- * explanation of the issue returned from [AndroidModuleSystem.analyzeDependencyCompatibility].
+ * explanation of the issue returned from [RegisteringModuleSystem.analyzeDependencyCompatibility].
  *
  * If there were errors adding any of the dependencies, this method will show an error message dialog with the dependencies that couldn't
  * be added as well as the reasons why they couldn't be added. A sync will still be performed as long as there were some dependencies added
@@ -112,59 +106,64 @@ fun Module.dependsOnAppCompat(): Boolean =
  */
 @JvmOverloads
 @UiThread
-fun Module.addDependenciesWithUiConfirmation(coordinates: List<GradleCoordinate>,
+fun Module.addDependenciesWithUiConfirmation(artifacts: Set<GoogleMavenArtifactId>,
                                              promptUserBeforeAdding: Boolean,
                                              requestSync: Boolean = true,
                                              dependencyType: DependencyType = DependencyType.IMPLEMENTATION)
-  : List<GradleCoordinate> {
-  ThreadingAssertions.assertEventDispatchThread()
-  if (coordinates.isEmpty()) {
-    return listOf()
+  : Set<GoogleMavenArtifactId> {
+  ApplicationManager.getApplication().assertIsDispatchThread()
+  if (artifacts.isEmpty()) {
+    return setOf()
   }
 
-  val moduleSystem = getModuleSystem()
-  val distinctCoordinates = coordinates.distinctBy { Pair(it.groupId, it.artifactId) }
-  val (compatibleDependencies, incompatibleDependencies, warning) = ProgressManager.getInstance().runProcessWithProgressSynchronously<DependencyAnalysis, Exception>(
-    { moduleSystem.analyzeDependencyCompatibility(distinctCoordinates) },
-    "Analyzing Dependency Compatibility",
-    false,
-    moduleSystem.module.project)
+  val moduleSystem = getModuleSystem().getRegisteringModuleSystem() ?: return artifacts
+  val unnamed = artifacts.filter { moduleSystem.getRegisteredDependencyId(it) == null }
+  val dependencyMap = artifacts.associateByNotNull { moduleSystem.getRegisteredDependencyId(it) }
+  val dependencies = dependencyMap.keys.toList()
+
+  val (compatibleDependencies, incompatibleDependencies, warning) = ProgressManager.getInstance()
+    .runProcessWithProgressSynchronously<RegisteredDependencyCompatibilityResult<RegisteredDependencyId>,Exception>(
+      { moduleSystem.analyzeDependencyCompatibility(dependencies).get() },
+      "Analyzing Dependency Compatibility",
+      false,
+      project)
 
   // If [promptUserBeforeAdding] is false then we need to inform the user of any compatibility errors in a separate message window.
   if (promptUserBeforeAdding) {
-    if (!userWantsToAdd(project, distinctCoordinates, warning)) {
-      return distinctCoordinates
+    if (!userWantsToAdd(project, artifacts, warning)) {
+      return artifacts
     }
   }
   else if (incompatibleDependencies.isNotEmpty()) {
     Messages.showErrorDialog(warning, "Compatibility Issues Detected")
     if (compatibleDependencies.isEmpty()) {
-      return incompatibleDependencies
+      return (unnamed + incompatibleDependencies.mapNotNull { dependencyMap[it] }).toSet()
     }
   }
 
-  val coordinatesToExceptions = ProgressManager.getInstance().runProcessWithProgressSynchronously<List<Pair<GradleCoordinate, DependencyManagementException>>, Exception>(
-    {
-      val coordinatesToExceptions: ArrayList<Pair<GradleCoordinate, DependencyManagementException>> = ArrayList()
-      for (coordinate in compatibleDependencies) {
-        try {
-          moduleSystem.registerDependency(coordinate, dependencyType)
+  val idsToExceptions = ProgressManager.getInstance()
+    .runProcessWithProgressSynchronously<List<Pair<RegisteredDependencyId, DependencyManagementException>>, Exception>(
+      {
+        val idsToExceptions: ArrayList<Pair<RegisteredDependencyId, DependencyManagementException>> = ArrayList()
+        for (coordinate in compatibleDependencies) {
+          try {
+            moduleSystem.registerDependency(coordinate, dependencyType)
+          }
+          catch (e: DependencyManagementException) {
+            idsToExceptions.add(Pair(coordinate, e))
+          }
         }
-        catch (e: DependencyManagementException) {
-          coordinatesToExceptions.add(Pair(coordinate, e))
-        }
-      }
-      coordinatesToExceptions
-    },
-    "Adding Dependencies",
-    false,
-    moduleSystem.module.project)
+        idsToExceptions
+      },
+      "Adding Dependencies",
+      false,
+      project)
 
-  val shouldSync = coordinatesToExceptions.size < compatibleDependencies.size && requestSync
-  if (coordinatesToExceptions.isNotEmpty()) {
+  val shouldSync = idsToExceptions.size < compatibleDependencies.size && requestSync
+  if (idsToExceptions.isNotEmpty()) {
     var errorMessage = "The following dependencies could not be added:\n"
-    for (coordinateToException in coordinatesToExceptions) {
-      errorMessage += "${coordinateToException.first} Reason: ${coordinateToException.second.message}\n"
+    for (idToException in idsToExceptions) {
+      errorMessage += "${idToException.first} Reason: ${idToException.second.message}\n"
     }
     if (shouldSync) {
       errorMessage += "\nA sync will be still be performed to resolve the dependencies that were added successfully."
@@ -175,16 +174,15 @@ fun Module.addDependenciesWithUiConfirmation(coordinates: List<GradleCoordinate>
     project.getSyncManager().requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
   }
 
-  return incompatibleDependencies + coordinatesToExceptions.map { it.first }
+  return (unnamed + (incompatibleDependencies + idsToExceptions.map { it.first }).mapNotNull { dependencyMap[it] }).toSet()
 }
 
-fun userWantsToAdd(project: Project, coordinates: List<GradleCoordinate>, warning: String = ""): Boolean {
-  return Messages.OK == Messages.showOkCancelDialog(
-    project, createAddDependencyMessage(coordinates, warning), "Add Project Dependency", Messages.getErrorIcon())
+fun userWantsToAdd(project: Project, ids: Set<GoogleMavenArtifactId>, warning: String = ""): Boolean {
+  return OK == showOkCancelDialog(project, createAddDependencyMessage(ids, warning), "Add Project Dependency", getErrorIcon())
 }
 
 @VisibleForTesting
-fun createAddDependencyMessage(coordinates: List<GradleCoordinate>, warning: String = ""): String {
+fun createAddDependencyMessage(coordinates: Set<GoogleMavenArtifactId>, warning: String = ""): String {
   val libraryNames = coordinates.joinToString(", ") { it.toString() }
   val these = StringUtil.pluralize("this", coordinates.size)
   val libraries = StringUtil.pluralize("library", coordinates.size)

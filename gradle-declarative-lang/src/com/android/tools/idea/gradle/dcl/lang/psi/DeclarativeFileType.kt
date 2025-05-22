@@ -17,14 +17,13 @@ package com.android.tools.idea.gradle.dcl.lang.psi
 
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeLanguage
 import com.intellij.openapi.fileTypes.LanguageFileType
-import icons.GradleIcons
 import javax.swing.Icon
 
 class DeclarativeFileType private constructor() : LanguageFileType(DeclarativeLanguage.INSTANCE) {
   override fun getName(): String = "Gradle Declarative Configuration Language"
   override fun getDescription(): String = "Gradle Declarative Build DSL"
   override fun getDefaultExtension(): String = "dcl"
-  override fun getIcon(): Icon = GradleIcons.GradleFile
+  override fun getIcon(): Icon? = DeclarativeIconProviderService.instance.fileIcon
 
   companion object {
     @JvmStatic

@@ -103,19 +103,25 @@ internal class PreviewPickerTrackerTest {
           isGeneric = false,
           tagId = SystemImageTags.DESKTOP_TAG.id,
         )
+        registerNameModificationWithDevice(
+          isCustom = false,
+          isGeneric = false,
+          tagId = SystemImageTags.XR_TAG.id,
+        )
       }
 
     val registeredActions = tracker.lastActionsLogged.toList()
-    assertEquals(7, registeredActions.size)
+    assertEquals(8, registeredActions.size)
 
     val registeredDeviceTypes = registeredActions.map { it.previewModification.closestDeviceType }
     assertEquals(DeviceType.CUSTOM, registeredDeviceTypes[0])
     assertEquals(DeviceType.TV, registeredDeviceTypes[1])
-    assertEquals(DeviceType.UNKNOWN_DEVICE_TYPE, registeredDeviceTypes[2])
+    assertEquals(DeviceType.AUTOMOTIVE, registeredDeviceTypes[2])
     assertEquals(DeviceType.WEAR, registeredDeviceTypes[3])
     assertEquals(DeviceType.PHONE, registeredDeviceTypes[4])
     assertEquals(DeviceType.GENERIC, registeredDeviceTypes[5])
     assertEquals(DeviceType.DESKTOP, registeredDeviceTypes[6])
+    assertEquals(DeviceType.XR, registeredDeviceTypes[7])
   }
 
   @Test

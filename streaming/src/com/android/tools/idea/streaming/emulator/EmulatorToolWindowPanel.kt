@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.AnyThread
 import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurations
@@ -29,7 +30,6 @@ import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.LayoutNode
 import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.NUMBER_OF_DISPLAYS_KEY
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
 import com.android.tools.idea.streaming.core.SplitNode
@@ -46,7 +46,6 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.streaming.emulator.actions.findManageSnapshotDialog
 import com.android.tools.idea.streaming.emulator.actions.showExtendedControls
 import com.android.tools.idea.streaming.emulator.actions.showManageSnapshotsDialog
-import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ActivityTracker
@@ -149,7 +148,10 @@ internal class EmulatorToolWindowPanel(
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
       displayConfigurator.refreshDisplayConfiguration()
+
+      showContextMenuAdvertisementIfNecessary(contentDisposable!!)
     }
+
     ActivityTracker.getInstance().inc()
   }
 
@@ -268,16 +270,6 @@ internal class EmulatorToolWindowPanel(
     sink[EMULATOR_CONTROLLER_KEY] = emulator
     sink[EMULATOR_VIEW_KEY] = primaryDisplayView
     sink[NUMBER_OF_DISPLAYS_KEY] = displayPanels.size
-    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = getScreenRecorderParameters()
-  }
-
-  private fun getScreenRecorderParameters(): ScreenRecorderAction.Parameters? {
-    return if (emulator.connectionState == ConnectionState.CONNECTED) {
-      ScreenRecorderAction.Parameters(emulatorId.avdName, id.serialNumber, emulator.emulatorConfig.api, emulatorId.avdId, emulator)
-    }
-    else {
-      null
-    }
   }
 
   private inner class DisplayConfigurator(private val project: Project) : DisplayConfigurationListener {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import com.android.tools.idea.npw.NewProjectWizardTestUtils;
 import com.google.common.collect.ImmutableList;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -35,6 +36,10 @@ public class LauncherLegacyIconGeneratorTest extends AndroidTestCase {
     List<String> expectedFolders = ImmutableList.of("mipmap-xxxhdpi", "mipmap-xxhdpi", "mipmap-xhdpi", "mipmap-hdpi", "mipmap-mdpi");
     IconGeneratorTestUtil.checkGraphic(generator, sourceType, "android_in_circle", paddingPercent, expectedFolders,
                                        paddingPercent >= 0 ? "launcher" : "launcher_cropped");
+  }
+
+  public LauncherLegacyIconGeneratorTest() {
+    super(NewProjectWizardTestUtils.getAndroidVersion());
   }
 
   public void testPngPadded() throws Exception {

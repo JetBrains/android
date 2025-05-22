@@ -116,7 +116,7 @@ class AndroidPlatformSdkComponentTreeNode(
       if (handler != null) {
         val packages =
           handler
-            .getSdkManager(
+            .getRepoManagerAndLoadSynchronously(
               StudioLoggerProgressIndicator(AndroidPlatformSdkComponentTreeNode::class.java)
             )
             .packages

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import org.junit.Rule
 import org.junit.Test
@@ -22,21 +23,16 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class AddBaselineProfilesModuleKtTest(
-  private val useGmdParam: Boolean,
-) {
+class AddBaselineProfilesModuleKtTest(private val useGmdParam: Boolean) {
 
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "useGmdParam={0}")
-    fun data(): List<Array<Any>> = listOf(
-      arrayOf(true),
-      arrayOf(false),
-    )
+    fun data(): List<Array<Any>> = listOf(arrayOf(true), arrayOf(false))
   }
 
   @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @Test
   fun addNewBaselineProfilesModuleTest() {

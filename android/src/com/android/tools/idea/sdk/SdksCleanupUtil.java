@@ -82,7 +82,7 @@ public class SdksCleanupUtil {
     if (target == null) {
       AndroidSdkHandler sdkHandler = sdkData.getSdkHandler();
       StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(SdksCleanupUtil.class);
-      sdkHandler.getSdkManager(logger).loadSynchronously(0, logger, null, null);
+      sdkHandler.getRepoManager(logger).loadSynchronously(0, logger, null, null);
       target = sdkHandler.getAndroidTargetManager(logger).getTargetFromHashString(additionalData.getBuildTargetHashString(), logger);
     }
     return target;

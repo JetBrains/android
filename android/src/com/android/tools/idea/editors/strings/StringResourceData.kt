@@ -53,19 +53,6 @@ class StringResourceData private constructor(
     keyToResourceMap[newKey] = StringResource(newKey, this)
   }
 
-  fun setTranslatable(key: StringResourceKey, translatable: Boolean): Boolean {
-    val stringResource = getStringResource(key)
-    val item = stringResource.defaultValueAsResourceItem ?: return false
-
-    stringResource.isTranslatable = translatable
-
-    return stringResourceWriter.setAttribute(
-      project = project,
-      attribute = SdkConstants.ATTR_TRANSLATABLE,
-      value = if (translatable) null else SdkConstants.VALUE_FALSE,
-      item = item)
-  }
-
   fun validateKey(key: StringResourceKey): String? {
     require(keyToResourceMap.containsKey(key)) { "Key $key does not exist." }
 

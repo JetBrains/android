@@ -52,6 +52,7 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
+    create_token_set_(LITERAL, SIMPLE_LITERAL),
     create_token_set_(ASSIGNABLE_BARE, ASSIGNABLE_PROPERTY, ASSIGNABLE_QUALIFIED),
     create_token_set_(BARE, PROPERTY, QUALIFIED),
     create_token_set_(BARE_RECEIVER, PROPERTY_RECEIVER, QUALIFIED_RECEIVER),
@@ -59,13 +60,13 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   };
 
   /* ********************************************************** */
-  // (identifier OP_EQ)? rvalue
+  // (identifier OP_EQ)? expression
   public static boolean argument(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "argument")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, ARGUMENT, "<argument>");
     r = argument_0(b, l + 1);
-    r = r && rvalue(b, l + 1);
+    r = r && expression(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -132,18 +133,44 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // lvalue OP_EQ rvalue
+  // lvalue (OP_EQ | OP_PLUS_EQ) expression
   public static boolean assignment(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "assignment")) return false;
     if (!nextTokenIs(b, TOKEN)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, ASSIGNMENT, null);
     r = lvalue(b, l + 1);
-    r = r && consumeToken(b, OP_EQ);
+    r = r && assignment_1(b, l + 1);
     p = r; // pin = 2
-    r = r && rvalue(b, l + 1);
+    r = r && expression(b, l + 1);
     exit_section_(b, l, m, r, p, null);
     return r || p;
+  }
+
+  // OP_EQ | OP_PLUS_EQ
+  private static boolean assignment_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "assignment_1")) return false;
+    boolean r;
+    r = consumeToken(b, OP_EQ);
+    if (!r) r = consumeToken(b, OP_PLUS_EQ);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean | null
+  static boolean atomic_literal(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "atomic_literal")) return false;
+    boolean r;
+    r = consumeToken(b, MULTILINE_STRING_LITERAL);
+    if (!r) r = consumeToken(b, ONE_LINE_STRING_LITERAL);
+    if (!r) r = consumeToken(b, DOUBLE_LITERAL);
+    if (!r) r = consumeToken(b, INTEGER_LITERAL);
+    if (!r) r = consumeToken(b, LONG_LITERAL);
+    if (!r) r = consumeToken(b, UNSIGNED_LONG);
+    if (!r) r = consumeToken(b, UNSIGNED_INTEGER);
+    if (!r) r = consumeToken(b, BOOLEAN);
+    if (!r) r = consumeToken(b, NULL);
+    return r;
   }
 
   /* ********************************************************** */
@@ -269,6 +296,12 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // pair
+  static boolean compound_literal(PsiBuilder b, int l) {
+    return pair(b, l + 1);
+  }
+
+  /* ********************************************************** */
   // private_factory
   public static boolean embedded_factory(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "embedded_factory")) return false;
@@ -368,6 +401,18 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // factory | pair | property | literal
+  static boolean expression(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "expression")) return false;
+    boolean r;
+    r = factory(b, l + 1);
+    if (!r) r = pair(b, l + 1);
+    if (!r) r = property(b, l + 1, -1);
+    if (!r) r = literal(b, l + 1);
+    return r;
+  }
+
+  /* ********************************************************** */
   // factory_receiver | factory_property_receiver
   static boolean factory(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "factory")) return false;
@@ -379,7 +424,7 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // property_receiver OP_DOT property_simple_factory
+  // property_receiver OP_DOT private_factory
   public static boolean factory_property_receiver(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "factory_property_receiver")) return false;
     if (!nextTokenIs(b, TOKEN)) return false;
@@ -387,7 +432,7 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b);
     r = property_receiver(b, l + 1, -1);
     r = r && consumeToken(b, OP_DOT);
-    r = r && property_simple_factory(b, l + 1);
+    r = r && private_factory(b, l + 1);
     exit_section_(b, m, FACTORY_PROPERTY_RECEIVER, r);
     return r;
   }
@@ -405,20 +450,13 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // multiline_string_literal | one_line_string_literal | double_literal | integer_literal | long_literal | unsigned_long | unsigned_integer | boolean | null
+  // atomic_literal | compound_literal
   public static boolean literal(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "literal")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, LITERAL, "<literal>");
-    r = consumeToken(b, MULTILINE_STRING_LITERAL);
-    if (!r) r = consumeToken(b, ONE_LINE_STRING_LITERAL);
-    if (!r) r = consumeToken(b, DOUBLE_LITERAL);
-    if (!r) r = consumeToken(b, INTEGER_LITERAL);
-    if (!r) r = consumeToken(b, LONG_LITERAL);
-    if (!r) r = consumeToken(b, UNSIGNED_LONG);
-    if (!r) r = consumeToken(b, UNSIGNED_INTEGER);
-    if (!r) r = consumeToken(b, BOOLEAN);
-    if (!r) r = consumeToken(b, NULL);
+    r = atomic_literal(b, l + 1);
+    if (!r) r = compound_literal(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -498,6 +536,19 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // simple_literal OP_TO expression
+  public static boolean pair(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "pair")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, PAIR, "<pair>");
+    r = simple_literal(b, l + 1);
+    r = r && consumeToken(b, OP_TO);
+    r = r && expression(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
   // identifier OP_LPAREN argumentsList OP_RPAREN
   static boolean private_factory(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "private_factory")) return false;
@@ -514,25 +565,13 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // private_factory
-  public static boolean property_simple_factory(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "property_simple_factory")) return false;
-    if (!nextTokenIs(b, TOKEN)) return false;
+  // atomic_literal
+  public static boolean simple_literal(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "simple_literal")) return false;
     boolean r;
-    Marker m = enter_section_(b);
-    r = private_factory(b, l + 1);
-    exit_section_(b, m, PROPERTY_SIMPLE_FACTORY, r);
-    return r;
-  }
-
-  /* ********************************************************** */
-  // factory | property | literal
-  static boolean rvalue(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "rvalue")) return false;
-    boolean r;
-    r = factory(b, l + 1);
-    if (!r) r = property(b, l + 1, -1);
-    if (!r) r = literal(b, l + 1);
+    Marker m = enter_section_(b, l, _NONE_, SIMPLE_LITERAL, "<simple literal>");
+    r = atomic_literal(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 

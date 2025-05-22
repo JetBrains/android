@@ -28,6 +28,7 @@ import com.android.tools.idea.compose.pickers.common.property.BooleanPsiCallPara
 import com.android.tools.idea.compose.pickers.common.property.ClassPsiCallParameter
 import com.android.tools.idea.compose.pickers.common.property.ColorPsiCallParameter
 import com.android.tools.idea.compose.pickers.common.property.FloatPsiCallParameter
+import com.android.tools.idea.compose.pickers.preview.enumsupport.Device
 import com.android.tools.idea.compose.pickers.preview.enumsupport.PreviewPickerValuesProvider
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiMode
 import com.android.tools.idea.compose.pickers.preview.enumsupport.Wallpaper
@@ -36,7 +37,7 @@ import com.android.tools.idea.compose.pickers.preview.property.DeviceParameterPr
 import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
 import com.android.tools.idea.compose.pickers.preview.utils.getArgumentForParameter
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.preview.findPreviewDefaultValues
+import com.android.tools.idea.preview.find.findPreviewDefaultValues
 import com.android.tools.idea.preview.util.AvailableDevicesKey
 import com.android.tools.idea.preview.util.getSdkDevices
 import com.android.tools.preview.UNDEFINED_API_LEVEL
@@ -69,7 +70,6 @@ import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns.isBuiltIn
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
@@ -171,11 +171,15 @@ private constructor(
             PARAMETER_BACKGROUND_COLOR ->
               null // We ignore background color, as the default value is set by Studio
             PARAMETER_UI_MODE ->
-              UiMode.values().firstOrNull { it.resolvedValue == entry.value }?.display ?: "Unknown"
-            PARAMETER_DEVICE -> entry.value ?: "Default"
-            PARAMETER_LOCALE -> entry.value ?: "Default (en-US)"
+              UiMode.entries.firstOrNull { it.resolvedValue == entry.value }?.display
+                ?: UiMode.UNDEFINED.display
+            PARAMETER_DEVICE ->
+              Device.entries.firstOrNull { it.resolvedValue == entry.value }?.display
+                ?: Device.DEFAULT.display
+            PARAMETER_LOCALE -> entry.value?.takeIf { it.isNotEmpty() } ?: "Default (en-US)"
             PARAMETER_WALLPAPER ->
-              Wallpaper.values().firstOrNull { it.resolvedValue == entry.value }?.display ?: "None"
+              Wallpaper.entries.firstOrNull { it.resolvedValue == entry.value }?.display
+                ?: Wallpaper.NONE.display
             PARAMETER_FONT_SCALE -> entry.value?.removeSuffix("f")
             else -> entry.value
           }

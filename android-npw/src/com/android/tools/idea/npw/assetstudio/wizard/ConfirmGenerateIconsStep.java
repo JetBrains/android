@@ -38,9 +38,13 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.NamedColorUtil;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Arrays;
@@ -53,6 +57,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.android.actions.widgets.SourceSetCellRenderer;
@@ -65,7 +70,9 @@ import org.jetbrains.annotations.Nullable;
  * are about to be created.
  */
 public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIconsModel> {
-  /** Limit the size of icons in the preview tree so that the tree doesn't look unnatural. */
+  /**
+   * Limit the size of icons in the preview tree so that the tree doesn't look unnatural.
+   */
   private static final int MAX_ICON_HEIGHT = 24;
 
   private final List<NamedModuleTemplate> myTemplates;
@@ -83,6 +90,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
 
   public ConfirmGenerateIconsStep(@NotNull GenerateIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
     super(model, "Confirm Icon Path");
+    setupUI();
     Preconditions.checkArgument(!templates.isEmpty());
     myTemplates = templates;
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
@@ -184,7 +192,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
       // one fits in our maximum allowed space.
       ProportionalImageScaler imageScaler = ProportionalImageScaler.forImages(pathToUnscaledImage.values());
 
-      for (Map.Entry<File, BufferedImage> entry: pathToUnscaledImage.entrySet()) {
+      for (Map.Entry<File, BufferedImage> entry : pathToUnscaledImage.entrySet()) {
         Image image = imageScaler.scale(entry.getValue(), MAX_ICON_HEIGHT);
         pathToIcon.put(entry.getKey(), new ImageIcon(image));
       }
@@ -215,5 +223,35 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
   @Nullable
   private NamedModuleTemplate findTemplateByName(@NotNull String name) {
     return myTemplates.stream().filter(template -> name.equals(template.getName())).findFirst().orElse(null);
+  }
+
+  private void setupUI() {
+    myRootPanel = new JPanel();
+    myRootPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+    final JLabel label1 = new JLabel();
+    label1.setText("Source set:");
+    myRootPanel.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                false));
+    final JLabel label2 = new JLabel();
+    label2.setText("Output directories:");
+    myRootPanel.add(label2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_NORTHWEST, GridConstraints.FILL_NONE,
+                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
+                                                false));
+    myPathsComboBox = new JComboBox();
+    final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
+    myPathsComboBox.setModel(defaultComboBoxModel1);
+    myRootPanel.add(myPathsComboBox, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                         GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                                                         null, 0, false));
+    final JBScrollPane jBScrollPane1 = new JBScrollPane();
+    myRootPanel.add(jBScrollPane1, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null,
+                                                       null, null, 0, false));
+    myOutputPreviewTree = new Tree();
+    myOutputPreviewTree.setOpaque(false);
+    myOutputPreviewTree.setToolTipText("A preview rendering of the output tree");
+    jBScrollPane1.setViewportView(myOutputPreviewTree);
   }
 }

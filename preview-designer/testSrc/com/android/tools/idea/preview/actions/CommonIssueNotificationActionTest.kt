@@ -45,7 +45,7 @@ import org.junit.Test
 
 private data class TestPreviewViewModelStatus(
   override var isRefreshing: Boolean = false,
-  override var hasErrorsAndNeedsBuild: Boolean = false,
+  override var hasRenderErrors: Boolean = false,
   override var hasSyntaxErrors: Boolean = false,
   override var isOutOfDate: Boolean = false,
   override val areResourcesOutOfDate: Boolean = false,
@@ -77,7 +77,7 @@ class CommonIssueNotificationActionTest {
       assertEquals("The preview is up to date", event.presentation.description)
     }
 
-    viewModelStatus = TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true)
+    viewModelStatus = TestPreviewViewModelStatus(hasRenderErrors = true)
     TestActionEvent.createTestEvent(dataContext).let { event ->
       action.update(event)
       assertEquals("Render Issues", event.presentation.text)
@@ -121,7 +121,7 @@ class CommonIssueNotificationActionTest {
       assertEquals("The preview is updating...", event.presentation.description)
     }
 
-    viewModelStatus = TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true)
+    viewModelStatus = TestPreviewViewModelStatus(hasRenderErrors = true)
     TestActionEvent.createTestEvent(dataContext).let { event ->
       action.update(event)
       val statusInfo = getStatusInfo(projectRule.project, dataContext)!!
@@ -139,11 +139,7 @@ class CommonIssueNotificationActionTest {
   fun `check state priorities`() {
     val action = CommonIssueNotificationAction(::noPopupFactor)
     viewModelStatus =
-      TestPreviewViewModelStatus(
-        hasSyntaxErrors = true,
-        hasErrorsAndNeedsBuild = true,
-        isOutOfDate = true,
-      )
+      TestPreviewViewModelStatus(hasSyntaxErrors = true, hasRenderErrors = true, isOutOfDate = true)
     TestActionEvent.createTestEvent(dataContext).let { event ->
       action.update(event)
       // Syntax errors take precedence over out of date when Fast Preview is Enabled
@@ -169,7 +165,7 @@ class CommonIssueNotificationActionTest {
     viewModelStatus =
       TestPreviewViewModelStatus(
         hasSyntaxErrors = true,
-        hasErrorsAndNeedsBuild = true,
+        hasRenderErrors = true,
         isOutOfDate = true,
         isRefreshing = true,
       )
@@ -182,7 +178,7 @@ class CommonIssueNotificationActionTest {
     viewModelStatus =
       TestPreviewViewModelStatus(
         hasSyntaxErrors = true,
-        hasErrorsAndNeedsBuild = true,
+        hasRenderErrors = true,
         isOutOfDate = true,
         isRefreshing = true,
       )
@@ -192,7 +188,7 @@ class CommonIssueNotificationActionTest {
       assertEquals("The preview is updating...", event.presentation.description)
     }
 
-    viewModelStatus = TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true, isOutOfDate = true)
+    viewModelStatus = TestPreviewViewModelStatus(hasRenderErrors = true, isOutOfDate = true)
     try {
       FastPreviewManager.getInstance(projectRule.project).disable(ManualDisabledReason)
       TestActionEvent.createTestEvent(dataContext).let { event ->
@@ -205,8 +201,7 @@ class CommonIssueNotificationActionTest {
       FastPreviewManager.getInstance(projectRule.project).enable()
     }
 
-    viewModelStatus =
-      TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true, hasSyntaxErrors = true)
+    viewModelStatus = TestPreviewViewModelStatus(hasRenderErrors = true, hasSyntaxErrors = true)
     TestActionEvent.createTestEvent(dataContext).let { event ->
       action.update(event)
       assertEquals(
@@ -324,7 +319,7 @@ class CommonIssueNotificationActionTest {
 
     // Verify render issues status
     run {
-      viewModelStatus = TestPreviewViewModelStatus(hasErrorsAndNeedsBuild = true)
+      viewModelStatus = TestPreviewViewModelStatus(hasRenderErrors = true)
       val popup = defaultCreateInformationPopup(projectRule.project, dataContext)!!
       assertEquals(
         "Some problems were found while rendering the preview",

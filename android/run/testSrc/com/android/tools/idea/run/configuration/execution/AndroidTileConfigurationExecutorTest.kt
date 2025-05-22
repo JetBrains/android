@@ -38,7 +38,6 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import org.junit.Ignore
 import org.junit.Test
@@ -258,7 +257,6 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
   }
 
   @Test
-  @Ignore("b/391146421")
   fun testDebug() {
     // Use DefaultRunExecutor, equivalent of pressing debug button.
     val env = getExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance())
@@ -317,7 +315,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     assertThat(runContentDescriptor.processHandler).isInstanceOf(AndroidRemoteDebugProcessHandler::class.java)
 
     // Stop configuration.
-    runInEdt { runContentDescriptor.processHandler!!.destroyProcess() }
+    runContentDescriptor.processHandler!!.destroyProcess()
     if (!processTerminatedLatch.await(10, TimeUnit.SECONDS)) {
       fail("process is not terminated")
     }

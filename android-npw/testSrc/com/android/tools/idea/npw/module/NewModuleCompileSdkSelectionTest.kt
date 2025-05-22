@@ -34,8 +34,11 @@ import org.junit.Rule
 import org.junit.Test
 
 class NewModuleCompileSdkSelectionTest {
+  private val agpVersionToTest =
+    AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withCompileSdk("33")
 
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = agpVersionToTest)
 
   private val emptyProjectSyncInvoker =
     object : ProjectSyncInvoker {
@@ -46,7 +49,7 @@ class NewModuleCompileSdkSelectionTest {
   fun `new module has compile SDK of highest of existing modules`() {
     projectRule.load(
       projectPath = TestProjectPaths.SIMPLE_APPLICATION,
-      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.withCompileSdk("33"),
+      agpVersion = agpVersionToTest,
     )
     generateTestLibraryModuleFiles()
     assertThat(libraryBuildGradleKts).contains("compileSdk = 33")

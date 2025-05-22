@@ -44,7 +44,6 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -156,16 +155,20 @@ class FastPreviewManagerGradleTest {
           }
         }
 
-      val stringResourceCallPatter =
+      val k1StringResourceCallPattern =
         Regex(
-          if (!KotlinPluginModeProvider.isK2Mode()) {
-            "LDC (\\d+)\n\\s+ALOAD (\\d+)\n\\s+(?:ICONST_0|BIPUSH (\\d+))\n\\s+INVOKESTATIC androidx/compose/ui/res/StringResources_androidKt\\.stringResource"
-          } else {
-            "GETSTATIC google/simpleapplication/R.string\\.greeting : I\n\\s+ALOAD (\\d+)\n\\s+(?:ICONST_0|BIPUSH (\\d+))\n\\s+INVOKESTATIC androidx/compose/ui/res/StringResources_androidKt\\.stringResource"
-          },
+          "LDC (\\d+)\n\\s+ALOAD (\\d+)\n\\s+(?:ICONST_0|BIPUSH (\\d+))\n\\s+INVOKESTATIC androidx/compose/ui/res/StringResources_androidKt\\.stringResource",
           RegexOption.MULTILINE,
         )
-      val matches = stringResourceCallPatter.findAll(decompiledOutput)
+      val k2StringResourceCallPattern =
+        Regex(
+          "GETSTATIC google/simpleapplication/R.string\\.greeting : I\n\\s+ALOAD (\\d+)\n\\s+(?:ICONST_0|BIPUSH (\\d+))\n\\s+INVOKESTATIC androidx/compose/ui/res/StringResources_androidKt\\.stringResource",
+          RegexOption.MULTILINE,
+        )
+      val matches =
+        sequenceOf(k1StringResourceCallPattern, k2StringResourceCallPattern).flatMap {
+          it.findAll(decompiledOutput)
+        }
       assertTrue("Expected stringResource calls not found", matches.count() != 0)
 
       // K2 does not generate `LDC (\\d+)`, so we cannot check IDs for the light R class.
@@ -206,13 +209,14 @@ class FastPreviewManagerGradleTest {
       appFacet.virtualFile("src/main/java/google/simpleapplication/MainActivity.kt")
     val initialState = renderPreviewElement(appFacet, mainActivityFile, previewElement).get()!!
 
-    val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
+      val buildTargetReference = BuildTargetReference.from(psiMainFile)!!
       val (result, outputPath) =
-        fastPreviewManager.compileRequest(psiMainFile, BuildTargetReference.from(psiMainFile)!!)
+        fastPreviewManager.compileRequest(psiMainFile, buildTargetReference)
       assertTrue("Compilation must pass, failed with $result", result == CompilationResult.Success)
-      ModuleClassLoaderOverlays.getInstance(module).pushOverlayPath(File(outputPath).toPath())
+      ModuleClassLoaderOverlays.getInstance(buildTargetReference)
+        .pushOverlayPath(File(outputPath).toPath())
     }
     val finalState = renderPreviewElement(appFacet, mainActivityFile, previewElement).get()!!
     assertTrue(

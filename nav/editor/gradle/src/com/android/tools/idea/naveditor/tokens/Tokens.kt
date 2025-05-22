@@ -40,10 +40,7 @@ class GradleAddDestinationMenuToken : AddDestinationMenuToken<GradleProjectSyste
     }
 
     module.addDependenciesWithUiConfirmation(
-      coordinates =
-        listOf(
-          GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT.getCoordinate("+")
-        ),
+      artifacts = setOf(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT),
       promptUserBeforeAdding = true,
       requestSync = false,
     )
@@ -54,7 +51,7 @@ class GradleNavDesignSurfaceToken : NavDesignSurfaceToken<GradleProjectSystem>, 
   override fun modifyProject(projectSystem: GradleProjectSystem, model: NlModel): Boolean {
     val didAdd = AtomicBoolean(false)
     val module = model.module
-    val coordinates = NavDesignSurface.getDependencies(module).map { it.getCoordinate("+") }
+    val artifacts = NavDesignSurface.getDependencies(module).toSet()
     ApplicationManager.getApplication()
       .invokeAndWait(
         {
@@ -62,7 +59,7 @@ class GradleNavDesignSurfaceToken : NavDesignSurfaceToken<GradleProjectSystem>, 
             didAdd.set(
               module
                 .addDependenciesWithUiConfirmation(
-                  coordinates,
+                  artifacts,
                   promptUserBeforeAdding = true,
                   requestSync = false,
                 )

@@ -45,7 +45,7 @@ class SdkComponentInstaller {
   ): List<RemotePackage> {
     // TODO: Prompt about connection in handoff case?
     val progress = StudioLoggerProgressIndicator(javaClass)
-    val sdkManager = sdkHandler.getSdkManager(progress)
+    val sdkManager = sdkHandler.getRepoManagerAndLoadSynchronously(progress)
     val requests = components.flatMap { it.packagesToInstall }
     return SdkQuickfixUtils.resolve(requests, sdkManager.packages).map { it.remote!! }
   }
@@ -103,7 +103,7 @@ class SdkComponentInstaller {
     progress: ProgressIndicator,
   ) {
     val throttledProgress = ThrottledProgressWrapper(progress)
-    val sdkManager = sdkHandler.getSdkManager(throttledProgress)
+    val sdkManager = sdkHandler.getRepoManagerAndLoadSynchronously(throttledProgress)
     var progressMax = 0.0
     val progressIncrement = 0.9 / (packages.size * 2.0)
     val factory = BasicInstallerFactory()
@@ -135,7 +135,7 @@ class SdkComponentInstaller {
     packageNames: Collection<String>,
     progress: ProgressIndicator,
   ) {
-    val sdkManager = sdkHandler.getSdkManager(progress)
+    val sdkManager = sdkHandler.getRepoManagerAndLoadSynchronously(progress)
     val localPackages = sdkManager.packages.localPackages
     val packagesToUninstall = mutableListOf<LocalPackage>()
     for (packageName in packageNames) {

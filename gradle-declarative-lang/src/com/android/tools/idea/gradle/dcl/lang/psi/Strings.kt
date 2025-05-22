@@ -66,12 +66,12 @@ private fun String.unescapeSequenceAt(pos: Int): Pair<Char, Int>? {
   }
 }
 
-fun String.unescape(): String? {
+fun String.unescape(): String {
   val sb = StringBuilder()
   var i = 0
   while (i < length) {
     when (val char = this[i++]) {
-      '\\' -> unescapeSequenceAt(i)?.let { p -> sb.append(p.first).also { i = p.second } } ?: return null
+      '\\' -> unescapeSequenceAt(i)?.let { p -> sb.append(p.first).also { i = p.second } } ?: return this
       else -> sb.append(char)
     }
   }

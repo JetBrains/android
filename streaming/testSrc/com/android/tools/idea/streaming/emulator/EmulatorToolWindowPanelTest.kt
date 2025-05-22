@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.ThemingStyle
@@ -36,7 +37,6 @@ import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
@@ -45,6 +45,7 @@ import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_S
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.streaming.emulator.actions.EmulatorFoldingAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorShowVirtualSensorsAction
+import com.android.tools.idea.streaming.emulator.actions.FloatingXrToolbarState
 import com.android.tools.idea.streaming.emulator.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.emulator.xr.EmulatorXrInputController
 import com.android.tools.idea.streaming.emulator.xr.XrInputMode
@@ -53,6 +54,7 @@ import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.mockStatic
+import com.android.tools.idea.testing.override
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
@@ -369,6 +371,8 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testXrToolbarActions() {
+    // Move XR buttons to the Running Devices toolbar because clicking on an animated toolbar is problematic in a test environment.
+    service<FloatingXrToolbarState>()::floatingXrToolbarEnabled.override(false, testRootDisposable)
     val panel = createWindowPanelForXr()
     val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable)
 
@@ -399,6 +403,7 @@ class EmulatorToolWindowPanelTest {
 
     // Check XR-specific actions.
     assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
+    assertThat(ui.findComponent<ActionButton> { it.action.templateText == "Toggle Passthrough" }).isNotNull()
 
     val xrInputController = EmulatorXrInputController.getInstance(project, emulatorView.emulator)
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
@@ -421,6 +426,18 @@ class EmulatorToolWindowPanelTest {
     val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
     assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
     assertThat(shortDebugString(streamInputCall.request)).isEqualTo("xr_command { }")
+
+    assertThat(xrInputController.passthroughCoefficient).isEqualTo(0f)
+    val togglePassthroughButton = ui.getComponent<ActionButton> { it.action.templateText == "Toggle Passthrough" }
+    assertThat(togglePassthroughButton.isSelected).isFalse()
+    ui.mouseClickOn(togglePassthroughButton)
+    val call = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setXrOptions")
+    assertThat(shortDebugString(call.request)).isEqualTo("passthrough_coefficient: 1.0")
+    waitForCondition(200.seconds) { xrInputController.passthroughCoefficient != 0f }
+    assertThat(xrInputController.passthroughCoefficient).isEqualTo(1f)
+    ui.updateToolbarsIfNecessary()
+    assertThat(togglePassthroughButton.isSelected).isTrue()
 
     val toggleAction = ToggleFloatingXrToolbarAction()
     toggleAction.actionPerformed(createTestEvent(emulatorView, project, ActionPlaces.TOOLWINDOW_POPUP))
@@ -583,14 +600,14 @@ class EmulatorToolWindowPanelTest {
     ui.mouse.press(100, 100)
     ui.mouse.dragTo(500, 100)
     val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_rotation_event { y: -2.2642112 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_rotation_event { y: 2.2642112 }")
     ui.mouse.dragTo(500, 500)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_rotation_event { x: 2.2642112 y: -0.0 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_rotation_event { x: -2.2642112 }")
     ui.mouse.dragTo(500, 10) // Exit the EmulatorView component.
     ui.mouse.dragTo(300, 35) // Enter the EmulatorView component in a different location.
     ui.mouse.dragTo(100, 435)
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-        .isEqualTo("xr_head_rotation_event { x: 2.2642112 y: 1.1321056 }")
+        .isEqualTo("xr_head_rotation_event { x: -2.2642112 y: -1.1321056 }")
   }
 
   @Test
@@ -618,14 +635,14 @@ class EmulatorToolWindowPanelTest {
     ui.mouse.press(100, 100)
     ui.mouse.dragTo(500, 100)
     val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_x: 3.6036036 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_x: -3.6036036 }")
     ui.mouse.dragTo(500, 500)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_y: 3.6036036 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_y: -3.6036036 }")
     ui.mouse.dragTo(500, 10) // Exit the EmulatorView component.
     ui.mouse.dragTo(300, 35) // Enter the EmulatorView component in a different location.
     ui.mouse.dragTo(100, 435)
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds)))
-        .isEqualTo("xr_head_movement_event { delta_x: -1.8018018 delta_y: 3.6036036 }")
+        .isEqualTo("xr_head_movement_event { delta_x: 1.8018018 delta_y: -3.6036036 }")
     ui.mouse.release()
 
     // Moving forward and backward by rotating the mouse wheel.
@@ -638,7 +655,7 @@ class EmulatorToolWindowPanelTest {
     xrInputController.inputMode = XrInputMode.LOCATION_IN_SPACE_Z
     ui.mouse.press(100, 100)
     ui.mouse.dragTo(500, 500)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_z: 3.6036036 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_z: -3.6036036 }")
     ui.mouse.release()
   }
 
@@ -1123,7 +1140,7 @@ class EmulatorToolWindowPanelTest {
 
   private fun FakeUi.mouseClickOn(component: Component) {
     val location: Point = getPosition(component)
-    mouse.click(location.x, location.y)
+    mouse.click(location.x + component.width / 2, location.y + component.height / 2)
     // Allow events to propagate.
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }

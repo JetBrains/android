@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.pickers.common.inspector
 
+import com.android.annotations.TestOnly
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonTextField
@@ -55,6 +56,8 @@ internal class PsiPropertyDropDown(
     comboBox.actionOnKeyNavigation = false
     add(comboBox, BorderLayout.CENTER)
   }
+
+  @TestOnly fun getSelectedItemForTest() = comboBox.selectedItem as EnumValue
 }
 
 private class WrappedComboBox(

@@ -10,8 +10,8 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/observable:intellij.android.observable[module]",
-        "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
-        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/observable:intellij.android.observable",
+        "//tools/adt/idea/observable-ui:intellij.android.observable.ui",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
     ],
 )

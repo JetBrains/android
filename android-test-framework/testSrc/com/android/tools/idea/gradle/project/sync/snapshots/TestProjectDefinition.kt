@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
@@ -44,7 +45,7 @@ interface TestProjectDefinition {
   fun prepareTestProject(
     integrationTestEnvironment: IntegrationTestEnvironment,
     name: String,
-    agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
+    agpVersion: AgpVersionSoftwareEnvironment,
     ndkVersion: String?
   ): PreparedTestProject
 
@@ -55,7 +56,7 @@ interface TestProjectDefinition {
     fun IntegrationTestEnvironment.prepareTestProject(
       testProject: TestProjectDefinition,
       name: String = "project",
-      agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.selected,
+      agpVersion: AgpVersionSoftwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.selected,
       ndkVersion: String? = SdkConstants.NDK_DEFAULT_VERSION
     ): PreparedTestProject {
       return testProject.prepareTestProject(this, name, agpVersion, ndkVersion)

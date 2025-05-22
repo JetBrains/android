@@ -38,8 +38,8 @@ class DeclarativeGradleModelProvider : ProjectImportModelProvider {
 
   override fun populateModels(
     controller: BuildController,
-    buildModels: Collection<out GradleBuild>,
-    consumer: ProjectImportModelProvider.GradleModelConsumer,
+    buildModels: Collection<GradleBuild>,
+    consumer: ProjectImportModelProvider.GradleModelConsumer
   ) {
     for (buildModel in buildModels) {
       try {

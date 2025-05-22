@@ -15,8 +15,6 @@
  */
 package com.google.idea.blaze.qsync.query;
 
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -94,11 +92,6 @@ public class PackageSet {
       path = path.getParent();
     }
     return Optional.empty();
-  }
-
-  public PackageSet getSubpackages(Path root) {
-    return new PackageSet(
-        packages.stream().filter(p -> p.startsWith(root)).collect(toImmutableSet()));
   }
 
   /** Builder for {@link PackageSet}. */

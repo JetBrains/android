@@ -22,6 +22,7 @@ import static com.android.testutils.ImageDiffUtil.assertImageSimilar;
 import static com.android.tools.adtui.imagediff.ImageDiffTestUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
 
 import com.android.io.Images;
+import com.android.tools.idea.npw.NewProjectWizardTestUtils;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.google.common.base.Joiner;
@@ -52,6 +53,10 @@ import org.jetbrains.annotations.Nullable;
 
 abstract class AdaptiveIconGeneratorTest extends AndroidTestCase {
   private final List<String> myWarnings = new ArrayList<>();
+
+  protected AdaptiveIconGeneratorTest() {
+    super(NewProjectWizardTestUtils.getAndroidVersion());
+  }
 
   protected final AndroidModulePaths myProjectPaths = new AndroidModulePaths() {
     @Override

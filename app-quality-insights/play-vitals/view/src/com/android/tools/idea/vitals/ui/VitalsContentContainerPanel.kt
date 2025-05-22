@@ -110,6 +110,7 @@ class VitalsContentContainerPanel(
               this@VitalsContentContainerPanel,
               VitalsInsightPermissionDeniedHandler(),
               tabVisibilityFlow,
+              tracker,
             )
           )
         }

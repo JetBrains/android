@@ -22,10 +22,15 @@ import com.android.tools.idea.logcat.util.FilterHint.AppName
 import com.android.tools.idea.logcat.util.FilterHint.Level
 import com.android.tools.idea.logcat.util.FilterHint.Tag
 import com.intellij.execution.impl.ConsoleViewUtil
+import com.intellij.ide.ui.UISettingsListener
 import com.intellij.ide.ui.UISettingsUtils
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
+import com.intellij.openapi.editor.colors.EditorColorsListener
+import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.editor.impl.EditorFactoryImpl
@@ -36,7 +41,7 @@ import com.intellij.openapi.project.Project
  *
  * This code is based on [com.intellij.execution.impl.ConsoleViewImpl]
  */
-fun createLogcatEditor(project: Project): EditorEx {
+fun createLogcatEditor(project: Project, disposable: Disposable): EditorEx {
   val editorFactory = EditorFactory.getInstance()
   val document = (editorFactory as EditorFactoryImpl).createDocument(true)
   (document as DocumentImpl).setAcceptSlashR(true)
@@ -55,10 +60,20 @@ fun createLogcatEditor(project: Project): EditorEx {
   editorSettings.isCaretRowShown = false
   editorSettings.isShowingSpecialChars = false
   editor.gutterComponentEx.isPaintBackground = false
-  editor.colorsScheme =
-    ConsoleViewUtil.updateConsoleColorScheme(editor.colorsScheme).apply {
-      setEditorFontSize(UISettingsUtils.getInstance().scaledConsoleFontSize)
-    }
+
+  val updateFontSize = {
+    val fontSize = UISettingsUtils.getInstance().scaledConsoleFontSize
+    editor.setFontSize(fontSize)
+    editor.colorsScheme =
+      ConsoleViewUtil.updateConsoleColorScheme(editor.colorsScheme).apply {
+        setEditorFontSize(fontSize)
+      }
+  }
+  updateFontSize()
+  val uiSettingsListener = UISettingsListener { updateFontSize() }
+  val bus = ApplicationManager.getApplication().messageBus.connect(disposable)
+  bus.subscribe(UISettingsListener.TOPIC, uiSettingsListener)
+  bus.subscribe(EditorColorsManager.TOPIC, EditorColorsListener { updateFontSize() })
 
   return editor
 }

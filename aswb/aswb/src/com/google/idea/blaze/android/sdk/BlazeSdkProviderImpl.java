@@ -45,7 +45,7 @@ public class BlazeSdkProviderImpl implements BlazeSdkProvider {
     // If so, trigger the construction of an SDK
     ProgressIndicator progress =
         new StudioLoggerProgressIndicator(BlazeSdkProviderImpl.class);
-    androidSdks.tryToChooseSdkHandler().getSdkManager(progress).reloadLocalIfNeeded(progress);
+    androidSdks.tryToChooseSdkHandler().getRepoManager(progress).reloadLocalIfNeeded(progress);
 
     return UIUtil.invokeAndWaitIfNeeded(
         () -> androidSdks.tryToCreate(IdeSdks.getInstance().getAndroidSdkPath(), targetHash));

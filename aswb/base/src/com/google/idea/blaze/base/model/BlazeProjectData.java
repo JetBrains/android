@@ -17,7 +17,6 @@ package com.google.idea.blaze.base.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
-import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.ideinfo.TargetMap;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
@@ -36,7 +35,7 @@ public interface BlazeProjectData {
 
   WorkspaceLanguageSettings getWorkspaceLanguageSettings();
 
-  ImmutableList<TargetInfo> targets();
+  ImmutableList<Label> targets();
 
   // TODO: Many of the following methods are aspect-sync specific, and should probably not appear in
   //  this interface.

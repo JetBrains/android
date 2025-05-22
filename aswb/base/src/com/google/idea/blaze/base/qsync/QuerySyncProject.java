@@ -30,18 +30,13 @@ import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
-import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.projectview.section.Glob;
-import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection;
 import com.google.idea.blaze.base.qsync.artifacts.ProjectArtifactStore;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.sync.SyncListener;
 import com.google.idea.blaze.base.sync.SyncMode;
 import com.google.idea.blaze.base.sync.SyncResult;
-import com.google.idea.blaze.base.sync.projectview.ImportRoots;
-import com.google.idea.blaze.base.sync.projectview.LanguageSupport;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.base.targetmaps.SourceToTargetMap;
@@ -113,10 +108,8 @@ public class QuerySyncProject {
   // TODO(mathewi) only one of these two should strictly be necessary:
   private final WorkspacePathResolver workspacePathResolver;
   private final ProjectPath.Resolver projectPathResolver;
-  private final WorkspaceLanguageSettings workspaceLanguageSettings;
   private final QuerySyncSourceToTargetMap sourceToTargetMap;
 
-  private final ProjectViewManager projectViewManager;
   private final BuildSystem buildSystem;
   private final ProjectProtoTransform.Registry projectProtoTransforms;
 
@@ -144,7 +137,6 @@ public class QuerySyncProject {
       ProjectPath.Resolver projectPathResolver,
       WorkspaceLanguageSettings workspaceLanguageSettings,
       QuerySyncSourceToTargetMap sourceToTargetMap,
-      ProjectViewManager projectViewManager,
       BuildSystem buildSystem,
       ProjectProtoTransform.Registry projectProtoTransforms) {
     this.project = project;
@@ -166,9 +158,7 @@ public class QuerySyncProject {
     this.projectViewSet = projectViewSet;
     this.workspacePathResolver = workspacePathResolver;
     this.projectPathResolver = projectPathResolver;
-    this.workspaceLanguageSettings = workspaceLanguageSettings;
     this.sourceToTargetMap = sourceToTargetMap;
-    this.projectViewManager = projectViewManager;
     this.buildSystem = buildSystem;
     this.projectProtoTransforms = projectProtoTransforms;
     projectData = new QuerySyncProjectData(workspacePathResolver, workspaceLanguageSettings);
@@ -212,10 +202,6 @@ public class QuerySyncProject {
 
   public ProjectArtifactStore getArtifactStore() {
     return artifactStore;
-  }
-
-  public WorkspaceLanguageSettings getWorkspaceLanguageSettings() {
-    return workspaceLanguageSettings;
   }
 
   public ArtifactTracker<?> getArtifactTracker() {
@@ -268,13 +254,7 @@ public class QuerySyncProject {
             lastQuery.isEmpty()
                 ? projectQuerier.fullQuery(projectDefinition, context)
                 : projectQuerier.update(projectDefinition, lastQuery.get(), context);
-        QuerySyncProjectSnapshot newSnapshot =
-            snapshotBuilder.createBlazeProjectSnapshot(
-                context,
-                postQuerySyncData,
-                artifactTracker.getStateSnapshot(),
-                projectProtoTransforms.getComposedTransform());
-        onNewSnapshot(context, newSnapshot);
+        updateProjectSnapshot(context, postQuerySyncData);
 
         // TODO: Revisit SyncListeners once we switch fully to qsync
         for (SyncListener syncListener : SyncListener.EP_NAME.getExtensions()) {
@@ -349,13 +329,7 @@ public class QuerySyncProject {
     } catch (IOException e) {
       throw new BuildException("Failed to clear dependency info", e);
     }
-    QuerySyncProjectSnapshot newSnapshot =
-        snapshotBuilder.createBlazeProjectSnapshot(
-            context,
-            snapshotHolder.getCurrent().orElseThrow().queryData(),
-            artifactTracker.getStateSnapshot(),
-            projectProtoTransforms.getComposedTransform());
-    onNewSnapshot(context, newSnapshot);
+    updateProjectSnapshot(context, snapshotHolder.getCurrent().orElseThrow().queryData());
   }
 
   public void resetQuerySyncState(BlazeContext context) throws BuildException {
@@ -377,15 +351,20 @@ public class QuerySyncProject {
     try (BlazeContext context = BlazeContext.create(parentContext)) {
       context.push(new BuildDepsStatsScope());
       if (getDependencyTracker().buildDependenciesForTargets(context, request)) {
-        QuerySyncProjectSnapshot newSnapshot =
-            snapshotBuilder.createBlazeProjectSnapshot(
-                context,
-                snapshotHolder.getCurrent().orElseThrow().queryData(),
-                artifactTracker.getStateSnapshot(),
-                projectProtoTransforms.getComposedTransform());
-        onNewSnapshot(context, newSnapshot);
+        updateProjectSnapshot(context, snapshotHolder.getCurrent().orElseThrow().queryData());
       }
     }
+  }
+
+  private void updateProjectSnapshot(BlazeContext context, PostQuerySyncData queryData)
+    throws BuildException {
+    QuerySyncProjectSnapshot newSnapshot =
+      snapshotBuilder.createBlazeProjectSnapshot(
+        context,
+        queryData,
+        artifactTracker.getStateSnapshot(),
+        projectProtoTransforms.getComposedTransform());
+    onNewSnapshot(context, newSnapshot);
   }
 
   public void buildRenderJar(BlazeContext parentContext, List<Path> wps)
@@ -449,9 +428,8 @@ public class QuerySyncProject {
     }
   }
 
-  public boolean isReadyForAnalysis(VirtualFile virtualFile) {
-    Path p = virtualFile.getFileSystem().getNioPath(virtualFile);
-    if (p == null || !p.startsWith(workspaceRoot.path())) {
+  public boolean isReadyForAnalysis(Path path) {
+    if (path == null || !path.startsWith(workspaceRoot.path())) {
       // Not in the workspace.
       // p == null can occur if the file is a zip entry.
       return true;
@@ -460,41 +438,9 @@ public class QuerySyncProject {
     Set<Label> pendingTargets =
         snapshotHolder
             .getCurrent()
-            .map(s -> s.getPendingTargets(workspaceRoot.relativize(virtualFile)))
+            .map(s -> s.getPendingTargets(workspaceRoot.relativize(path)))
             .orElse(ImmutableSet.of());
     return pendingTargets.isEmpty();
-  }
-
-  /**
-   * Reloads the project view and checks it against the stored {@link ProjectDefinition}.
-   *
-   * @return true if the stored {@link ProjectDefinition} matches that derived from the {@link
-   *     ProjectViewSet}
-   */
-  public boolean isDefinitionCurrent(BlazeContext context) throws BuildException {
-    ProjectViewSet projectViewSet =
-        projectViewManager.reloadProjectView(context, workspacePathResolver);
-    ImportRoots importRoots =
-        ImportRoots.builder(workspaceRoot, importSettings.getBuildSystem())
-            .add(projectViewSet)
-            .build();
-    WorkspaceLanguageSettings workspaceLanguageSettings =
-        LanguageSupport.createWorkspaceLanguageSettings(projectViewSet);
-    ImmutableSet<String> testSourceGlobs =
-        projectViewSet.listItems(TestSourceSection.KEY).stream()
-            .map(Glob::toString)
-            .collect(ImmutableSet.toImmutableSet());
-    ProjectDefinition projectDefinition =
-        ProjectDefinition.builder()
-            .setProjectIncludes(importRoots.rootPaths())
-            .setProjectExcludes(importRoots.excludePaths())
-            .setLanguageClasses(
-                LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()))
-            .setTestSources(testSourceGlobs)
-            .setSystemExcludes(importRoots.systemExcludes())
-            .build();
-
-    return this.projectDefinition.equals(projectDefinition);
   }
 
   public Optional<PostQuerySyncData> readSnapshotFromDisk(BlazeContext context) throws IOException {
@@ -569,15 +515,6 @@ public class QuerySyncProject {
     return snapshotPath.map(path -> !path.resolve(workspaceRelative).toFile().exists());
   }
 
-  /** Returns all external dependencies of a given label */
-  public ImmutableSet<Label> externalDependenciesFor(Label label) {
-    return snapshotHolder
-        .getCurrent()
-        .map(QuerySyncProjectSnapshot::graph)
-        .map(graph -> graph.getTransitiveExternalDependencies(label))
-        .orElse(ImmutableSet.of());
-  }
-
   private void writeToDisk(QuerySyncProjectSnapshot snapshot) throws IOException {
     try (AtomicFileWriter writer = AtomicFileWriter.create(snapshotFilePath)) {
       try (OutputStream zip = new GZIPOutputStream(writer.getOutputStream())) {
@@ -628,5 +565,14 @@ public class QuerySyncProject {
         .putAll(artifactStore.getBugreportFiles())
         .putAll(buildArtifactCache.getBugreportFiles())
         .build();
+  }
+
+  // TODO: b/397649793 - Remove this method when fixed.
+  public boolean dependsOnAnyOf_DO_NOT_USE_BROKEN(Label target, ImmutableSet<Label> deps) {
+    return snapshotHolder
+      .getCurrent()
+      .map(QuerySyncProjectSnapshot::graph)
+      .map(graph -> graph.dependsOnAnyOf_DO_NOT_USE_BROKEN(target, deps))
+      .orElse(false);
   }
 }

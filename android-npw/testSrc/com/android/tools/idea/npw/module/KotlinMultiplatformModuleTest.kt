@@ -17,10 +17,11 @@ package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.module.recipes.kotlinMultiplatformLibrary.generateMultiplatformModule
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.wizard.template.ApiTemplateData
@@ -44,18 +45,15 @@ import org.mockito.kotlin.whenever
 
 class KotlinMultiplatformModuleTest {
 
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @get:Rule var tmpFolderRule = TemporaryFolder()
 
   @Test
   fun generateMultiplatformTemplateWithGradleKts() {
 
-    val rootDir =
-      runTemplateGeneration(
-        useKts = true,
-        projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-      )
+    val rootDir = runTemplateGeneration(useKts = true, projectRuleAgpVersion = getAgpVersion())
 
     val buildGradleContent = rootDir.resolve("build.gradle.kts").readText()
     assertThat(buildGradleContent).isEqualTo(EXPECTED_BUILD_GRADLE_FILE)
@@ -93,11 +91,14 @@ class KotlinMultiplatformModuleTest {
 
   private fun runTemplateGeneration(
     useKts: Boolean,
-    projectRuleAgpVersion: AgpVersionSoftwareEnvironmentDescriptor,
+    projectRuleAgpVersion: AgpVersionSoftwareEnvironment,
   ): File {
     val name = "shared"
     val buildApi =
-      ApiVersion(StudioFlags.NPW_COMPILE_SDK_VERSION.get(), StudioFlags.NPW_COMPILE_SDK_VERSION.get().toString())
+      ApiVersion(
+        StudioFlags.NPW_COMPILE_SDK_VERSION.get(),
+        StudioFlags.NPW_COMPILE_SDK_VERSION.get().toString(),
+      )
     val targetApi = buildApi
     val minApi = ApiVersion(34, "34")
     val kotlinVersion = "1.9.20"
@@ -197,9 +198,9 @@ plugins {
 
     kotlin {
 
-// Target declarations - add or remove as needed below. These define
-// which platforms this KMP module supports.
-// See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
+  // Target declarations - add or remove as needed below. These define
+  // which platforms this KMP module supports.
+  // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
 androidLibrary {
   namespace = "com.kmplib.packagename"
   compileSdk = ${StudioFlags.NPW_COMPILE_SDK_VERSION.get()}
@@ -215,13 +216,13 @@ androidLibrary {
   }
 }
 
-// For iOS targets, this is also where you should
-// configure native binary output. For more information, see:
-// https://kotlinlang.org/docs/multiplatform-build-native-binaries.html#build-xcframeworks
+  // For iOS targets, this is also where you should
+  // configure native binary output. For more information, see:
+  // https://kotlinlang.org/docs/multiplatform-build-native-binaries.html#build-xcframeworks
 
-// A step-by-step guide on how to include this library in an XCode
-// project can be found here:
-// https://developer.android.com/kotlin/multiplatform/migrate
+  // A step-by-step guide on how to include this library in an XCode
+  // project can be found here:
+  // https://developer.android.com/kotlin/multiplatform/migrate
 val xcfName = "sharedKit"
 
 iosX64 {
@@ -242,11 +243,11 @@ iosSimulatorArm64 {
   }
 }
 
-// Source set declarations.
-// Declaring a target automatically creates a source set with the same name. By default, the
-// Kotlin Gradle Plugin creates additional source sets that depend on each other, since it is
-// common to share sources between related targets.
-// See: https://kotlinlang.org/docs/multiplatform-hierarchy.html
+  // Source set declarations.
+  // Declaring a target automatically creates a source set with the same name. By default, the
+  // Kotlin Gradle Plugin creates additional source sets that depend on each other, since it is
+  // common to share sources between related targets.
+  // See: https://kotlinlang.org/docs/multiplatform-hierarchy.html
 sourceSets {
   commonMain {
     dependencies {

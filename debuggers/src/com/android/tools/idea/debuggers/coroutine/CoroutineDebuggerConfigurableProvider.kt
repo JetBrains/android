@@ -23,6 +23,7 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.xdebugger.settings.DebuggerConfigurableProvider
 import com.intellij.xdebugger.settings.DebuggerSettingsCategory
 import java.awt.BorderLayout
+import java.util.function.Supplier
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -43,7 +44,7 @@ class CoroutineDebuggerConfigurableProvider : DebuggerConfigurableProvider() {
     }
 
     return listOf(
-      SimpleConfigurable.create(ID, DISPLAY_NAME, CoroutineDebuggerConfigurableUi::class.java) { CoroutineDebuggerSettings }
+      SimpleConfigurable.create(ID, DISPLAY_NAME, CoroutineDebuggerConfigurableUi::class.java, Supplier { CoroutineDebuggerSettings })
     )
   }
 }

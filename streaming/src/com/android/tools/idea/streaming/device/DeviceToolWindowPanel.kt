@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
@@ -27,7 +28,6 @@ import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.LayoutNode
 import com.android.tools.idea.streaming.core.LeafNode
-import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
 import com.android.tools.idea.streaming.core.SplitNode
@@ -39,9 +39,6 @@ import com.android.tools.idea.streaming.core.installFileDropHandler
 import com.android.tools.idea.streaming.core.sizeWithoutInsets
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListener
-import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
-import com.android.tools.idea.ui.screenshot.ScreenshotAction
-import com.android.tools.idea.ui.screenshot.ScreenshotOptions
 import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ActivityTracker
@@ -107,8 +104,6 @@ internal class DeviceToolWindowPanel(
   private var contentDisposable: Disposable? = null
   override var primaryDisplayView: DeviceView? = null
     private set
-  private val deviceConfig
-    get() = deviceClient.deviceConfig
   private val displayPanels = Int2ObjectRBTreeMap<DeviceDisplayPanel>()
 
   private val deviceStateListener = object : DeviceController.DeviceStateListener {
@@ -173,6 +168,8 @@ internal class DeviceToolWindowPanel(
               displayConfigurator.initialize()
               addDeviceStateListener(deviceStateListener)
             }
+
+            showContextMenuAdvertisementIfNecessary(disposable)
           }
           ConnectionState.DISCONNECTED -> {
             deviceClient.deviceController?.apply {
@@ -219,19 +216,7 @@ internal class DeviceToolWindowPanel(
     sink[DEVICE_CLIENT_KEY] = deviceClient
     sink[DEVICE_CONTROLLER_KEY] = deviceClient.deviceController
     sink[DEVICE_HANDLE_KEY] = deviceHandle
-    sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] = primaryDisplayView?.let {
-      if (it.isConnected) createScreenshotOptions(it) else null
-    }
-    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = deviceClient.deviceController?.let {
-      ScreenRecorderAction.Parameters(deviceClient.deviceName, deviceSerialNumber, deviceConfig.featureLevel, null, it)
-    }
   }
-
-  private fun createScreenshotOptions(deviceView: DeviceView) =
-      ScreenshotOptions(deviceSerialNumber, deviceConfig.deviceModel, deviceView.screenshotOrientationProvider)
-
-  private val DeviceView.screenshotOrientationProvider: () -> ScreenshotAction.ScreenshotRotation
-    get() = { ScreenshotAction.ScreenshotRotation(displayOrientationQuadrants, displayOrientationCorrectionQuadrants) }
 
   private inner class DisplayConfigurator : DeviceController.DisplayListener {
 

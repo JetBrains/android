@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.android.tools.idea.execution.common.debug.impl.java
+
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.internal.FakeAdbTestRule
@@ -31,23 +32,22 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [AndroidJavaDebugger] code.
- */
+/** Tests for [AndroidJavaDebugger] code. */
 class AndroidJavaDebuggerFallbackTest {
 
   @get:Rule(order = 0)
-  val projectRule = AndroidProjectRule.withAndroidModels(
-    AndroidModuleModelBuilder(
-      ":",
-      "debug",
-      AndroidProjectBuilder(
-        applicationIdFor = { "com.example.different.application.id.than.fake.process" }
-      ))
-  )
+  val projectRule =
+    AndroidProjectRule.withAndroidModels(
+      AndroidModuleModelBuilder(
+        ":",
+        "debug",
+        AndroidProjectBuilder(
+          applicationIdFor = { "com.example.different.application.id.than.fake.process" }
+        ),
+      )
+    )
 
-  @get:Rule(order = 1)
-  val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
+  @get:Rule(order = 1) val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
 
   @get:Rule(order = 2)
   val debuggerThreadCleanupRule = DebuggerThreadCleanupRule { fakeAdbRule.server }
@@ -69,10 +69,15 @@ class AndroidJavaDebuggerFallbackTest {
 
   @Test
   fun testNoMatchingApplicationId() = runTest {
-    val session = DebugSessionStarter.attachDebuggerToClientAndShowTab(projectRule.project, client, AndroidJavaDebugger(), AndroidDebuggerState())
+    val session =
+      DebugSessionStarter.attachDebuggerToClientAndShowTab(
+        projectRule.project,
+        client,
+        AndroidJavaDebugger(),
+        AndroidDebuggerState(),
+      )
     assertThat(session).isNotNull()
     assertThat(client.clientData.pid).isAtLeast(0)
     assertThat(session.sessionName).isEqualTo("Java Only (${client.clientData.pid})")
   }
-
 }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.ndk
 
+import com.android.tools.idea.ndk.PageAlignConfig.Type.SO_UNALIGNED_IN_APK
+import com.android.tools.idea.ndk.PageAlignConfig.Type.SO_UNALIGNED_LOAD_SEGMENTS
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.PageAlign16kb
 import com.google.common.annotations.VisibleForTesting
@@ -25,11 +27,10 @@ import java.io.File
  * Configuration of 16 KB page alignment handling.
  */
 object PageAlignConfig {
-  // TODO(382091362) these warning messages follow the form we used to report Play Store rejection of APKs that didn't have 64-bit
-  // implementations of SO files. It should still be reviewed before it's considered finalized.
-  private const val SO_UNALIGNED_IN_APK = "The following native libraries are not aligned at 16 KB boundary inside [APK]:"
-  private const val SO_UNALIGNED_LOAD_SEGMENTS = "The following native libraries have segments that are not aligned at 16 KB boundary inside [APK]:"
-  private const val MESSAGE_POSTSCRIPT = "Beginning [DATE] the Google Play Store requires that all apps must be 16 KB compatible. For more information, visit [URL]."
+  enum class Type {
+    SO_UNALIGNED_IN_APK,
+    SO_UNALIGNED_LOAD_SEGMENTS
+  }
 
   @VisibleForTesting
   val PROTO_TEMPLATE = PageAlign16kb.newBuilder().build()!!
@@ -59,17 +60,23 @@ object PageAlignConfig {
   /**
    * Create a warning message given a list of SO files that have alignment problems.
    */
-  fun createMessage(apkFile: File, soFiles: List<String>, prefix: String): String {
+  fun createMessage(apkFile: File, soFiles: List<String>, type: Type): String {
     if (soFiles.isEmpty()) error("Don't call create*Message() functions with empty SO-file list")
     val flag = readServerFlag() ?: error("Check isPageAlignMessageEnabled() before calling create*Message() functions")
     val date = flag.playStoreDeadlineDate
     val url = "<a href=\"https://${flag.messageUrl}\">${flag.messageUrl}</a>"
     val shortApk = StringUtil.shortenPathWithEllipsis(apkFile.path, 80)
+
+    val prefix = when(type) {
+      SO_UNALIGNED_IN_APK -> flag.soUnalignedInApkMessage
+      SO_UNALIGNED_LOAD_SEGMENTS -> flag.unalignedLoadSegmentsMessage
+    }
+    val postscript = flag.messagePostscript
     return """
     |$prefix <ul>
     |  ${soFiles.sorted().joinToString(separator = "</li><li>", prefix = "<li>")}
     | </ul>
-    |$MESSAGE_POSTSCRIPT
+    |$postscript
     """.trimMargin()
       .replace("[APK]", shortApk)
       .replace("[DATE]", date)

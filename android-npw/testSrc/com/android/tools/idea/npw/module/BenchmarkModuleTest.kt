@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MACROBENCHMARK
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MICROBENCHMARK
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleModel
@@ -32,29 +33,30 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 class BenchmarkModuleTest(private val useGradleKts: Boolean) {
   companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "useGradleKts={0}")
-    fun data() = listOf(false, true)
+    @JvmStatic @Parameterized.Parameters(name = "useGradleKts={0}") fun data() = listOf(false, true)
   }
 
   @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @Test
   fun addNewMicrobenchmarkModule() {
-    projectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
+    projectRule.load(TestProjectPaths.SIMPLE_APPLICATION, agpVersion = getAgpVersion())
 
     val project = projectRule.project
-    val model = NewBenchmarkModuleModel(
-      project = project,
-      moduleParent = ":",
-      projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
-    ).apply {
-      androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(21) // SimpleApplication app minSdkVersion
-      packageName.set("template.test.pkg")
-      benchmarkModuleType.set(MICROBENCHMARK)
-      useGradleKts.set(this@BenchmarkModuleTest.useGradleKts)
-    }
+    val model =
+      NewBenchmarkModuleModel(
+          project = project,
+          moduleParent = ":",
+          projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+        )
+        .apply {
+          // SimpleApplication app minSdkVersion
+          androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(21)
+          packageName.set("template.test.pkg")
+          benchmarkModuleType.set(MICROBENCHMARK)
+          useGradleKts.set(this@BenchmarkModuleTest.useGradleKts)
+        }
 
     model.handleFinished() // Generate module files
 
@@ -66,19 +68,22 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
 
   @Test
   fun addNewMacrobenchmarkModule() {
-    projectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
+    projectRule.load(TestProjectPaths.SIMPLE_APPLICATION, agpVersion = getAgpVersion())
 
     val project = projectRule.project
-    val model = NewBenchmarkModuleModel(
-      project = project,
-      moduleParent = ":",
-      projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
-    ).apply {
-      androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(23) // Lowest supported min sdk for macrobenchmark
-      benchmarkModuleType.set(MACROBENCHMARK)
-      targetModule.value = project.findAppModule()
-      useGradleKts.set(this@BenchmarkModuleTest.useGradleKts)
-    }
+    val model =
+      NewBenchmarkModuleModel(
+          project = project,
+          moduleParent = ":",
+          projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+        )
+        .apply {
+          // Lowest supported min sdk for macrobenchmark
+          androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(23)
+          benchmarkModuleType.set(MACROBENCHMARK)
+          targetModule.value = project.findAppModule()
+          useGradleKts.set(this@BenchmarkModuleTest.useGradleKts)
+        }
 
     model.handleFinished() // Generate module files
 

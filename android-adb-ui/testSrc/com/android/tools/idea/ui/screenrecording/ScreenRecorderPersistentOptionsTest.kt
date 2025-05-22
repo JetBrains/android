@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.awt.Dimension
@@ -28,7 +29,7 @@ internal class ScreenRecorderPersistentOptionsTest {
   @Test
   fun toScreenRecorderOptions_defaultValues() {
     val persistentOptions = ScreenRecorderPersistentOptions()
-    val options = persistentOptions.toScreenRecorderOptions(size = null, timeLimitSec = 300)
+    val options = persistentOptions.toScreenRecorderOptions(PRIMARY_DISPLAY_ID, size = null, timeLimitSec = 300)
 
     assertThat(options.bitrateMbps).isEqualTo(4)
     assertThat(options.showTouches).isFalse()
@@ -42,21 +43,24 @@ internal class ScreenRecorderPersistentOptionsTest {
 
   @Test
   fun toScreenRecorderOptions_setBitrate() {
-    val options = ScreenRecorderPersistentOptions().apply { bitRateMbps = 10 }.toScreenRecorderOptions(size = null, timeLimitSec = 0)
+    val options = ScreenRecorderPersistentOptions().apply { bitRateMbps = 10 }
+        .toScreenRecorderOptions(PRIMARY_DISPLAY_ID, size = null, timeLimitSec = 0)
 
     assertThat(options.bitrateMbps).isEqualTo(10)
   }
 
   @Test
   fun toScreenRecorderOptions_setBShowTaps() {
-    val options = ScreenRecorderPersistentOptions().apply { showTaps = true }.toScreenRecorderOptions(size = null, timeLimitSec = 0)
+    val options = ScreenRecorderPersistentOptions().apply { showTaps = true }
+        .toScreenRecorderOptions(PRIMARY_DISPLAY_ID, size = null, timeLimitSec = 0)
 
     assertThat(options.showTouches).isTrue()
   }
 
   @Test
   fun toScreenRecorderOptions_withSize_defaultResolution() {
-    val options = ScreenRecorderPersistentOptions().toScreenRecorderOptions(Dimension(1000, 2000), timeLimitSec = 0)
+    val options = ScreenRecorderPersistentOptions()
+        .toScreenRecorderOptions(PRIMARY_DISPLAY_ID, Dimension(1000, 2000), timeLimitSec = 0)
 
     // Don't specify size if 100%, just record at native resolution.
     assertThat(options.height).isEqualTo(0)
@@ -66,7 +70,7 @@ internal class ScreenRecorderPersistentOptionsTest {
   @Test
   fun toScreenRecorderOptions_withSize_roundsTo16() {
     val options = ScreenRecorderPersistentOptions().apply { resolutionPercent = 25 }
-        .toScreenRecorderOptions(Dimension(1000, 2000), timeLimitSec = 0)
+        .toScreenRecorderOptions(PRIMARY_DISPLAY_ID, Dimension(1000, 2000), timeLimitSec = 0)
 
     assertThat(options.width).isEqualTo(256)
     assertThat(options.height).isEqualTo(496)

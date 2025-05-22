@@ -19,9 +19,11 @@ import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.repository.AgpVersion
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
@@ -38,8 +40,6 @@ import com.android.tools.idea.util.DynamicAppUtils
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidModuleSystem.Type
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
-import com.android.tools.idea.projectsystem.CapabilityStatus
-import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.CommonTestType
@@ -50,6 +50,10 @@ import com.android.tools.idea.projectsystem.MergedManifestContributors
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
+import com.android.tools.idea.projectsystem.RegisteredDependencyCompatibilityResult
+import com.android.tools.idea.projectsystem.RegisteredDependencyId
+import com.android.tools.idea.projectsystem.RegisteredDependencyQueryId
+import com.android.tools.idea.projectsystem.RegisteringModuleSystem
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
@@ -69,6 +73,8 @@ import com.android.tools.idea.stats.recordTestLibraries
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.module.ModuleDependencies
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -113,11 +119,19 @@ private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
     .toMap() as Map<K, V>
 }
 
+data class GradleRegisteredDependencyQueryId(val module: ExternalModule): RegisteredDependencyQueryId {
+  override fun toString(): String = module.toString()
+}
+data class GradleRegisteredDependencyId(val dependency: Dependency): RegisteredDependencyId {
+  override fun toString(): String = dependency.toString()
+}
+
 class GradleModuleSystem(
   override val module: Module,
   private val projectBuildModelHandler: ProjectBuildModelHandler,
   private val moduleHierarchyProvider: ModuleHierarchyProvider,
 ) : AndroidModuleSystem,
+    RegisteringModuleSystem<GradleRegisteredDependencyQueryId, GradleRegisteredDependencyId>,
     SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module.getHolderModule()) {
 
   override val type: Type
@@ -130,6 +144,7 @@ class GradleModuleSystem(
       IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> Type.TYPE_LIBRARY
       IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> Type.TYPE_LIBRARY
       IdeAndroidProjectType.PROJECT_TYPE_TEST -> Type.TYPE_TEST
+      IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY -> Type.TYPE_FUSED_LIBRARY
       null -> Type.TYPE_NON_ANDROID
     }
 
@@ -170,6 +185,15 @@ class GradleModuleSystem(
       ?.find { it.first.matches(coordinate) }
       ?.second?.toPath()
   }
+
+  override fun getRegisteredDependencyQueryId(id: GoogleMavenArtifactId): GradleRegisteredDependencyQueryId? =
+    GradleRegisteredDependencyQueryId(id.getModule())
+
+  override fun getRegisteredDependencyId(id: GoogleMavenArtifactId): GradleRegisteredDependencyId? =
+    GradleRegisteredDependencyId(id.getDependency("+"))
+
+  override fun getRegisteredDependency(id: GradleRegisteredDependencyQueryId): GradleRegisteredDependencyId? =
+    getRegisteredDependency(id.module)?.let{ GradleRegisteredDependencyId(it) }
 
   // TODO: b/129297171
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
@@ -303,14 +327,17 @@ class GradleModuleSystem(
     return impl(module, scope)
   }
 
-  override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
-    return CapabilitySupported()
+  override fun registerDependency(dependency: GradleRegisteredDependencyId, type: DependencyType) {
+    registerDependencies(listOf(dependency.dependency), type)
   }
 
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
-    val manager = GradleDependencyManager.getInstance(module.project)
     val dependencies = Collections.singletonList(coordinate.toDependency())
+    registerDependencies(dependencies, type)
+  }
 
+  private fun registerDependencies(dependencies: List<Dependency>, type: DependencyType) {
+    val manager = GradleDependencyManager.getInstance(module.project)
     when (type) {
       DependencyType.ANNOTATION_PROCESSOR -> {
         // addDependenciesWithoutSync doesn't support this: more direct implementation
@@ -343,12 +370,42 @@ class GradleModuleSystem(
   }
 
   /**
-   * See the documentation on [AndroidModuleSystem.analyzeDependencyCompatibility]
+   * Analyzes the compatibility of the [dependenciesToAdd] with the existing artifacts in the project.
+   *
+   * The version component of each of the coordinates in [dependenciesToAdd] are disregarded.
+   * The result is a triplet consisting of:
+   * <ul>
+   *   <li>A list of coordinates including a valid version found in the repository</li>
+   *   <li>A list of coordinates that were missing from the repository</li>
+   *   <li>A warning string describing the compatibility issues that could not be resolved if any</li>
+   * </ul>
+   *
+   * An incompatibility warning is either a compatibility with problem among the already existing artifacts,
+   * or a compatibility problem with one of the [dependenciesToAdd]. In the latter case the coordinates in
+   * the found coordinates are simply the latest version of the libraries, which may or may not cause build
+   * errors if they are added to the project.
+   * <p>
+   * An empty warning value and an empty missing list of coordinates indicates a successful result.
+   * <p>
+   * **Note**: This function may cause the parsing of build files and as such should not be called from the UI thread.
    */
-  override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
+  fun analyzeCoordinateCompatibility(dependenciesToAdd: List<GradleCoordinate>)
     : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> =
     //TODO(b/369433182): Change the API to return a ListenableFuture instead of calling get with a timeout here...
-    dependencyCompatibility.analyzeDependencyCompatibility(dependenciesToAdd).get(60, TimeUnit.SECONDS)
+    dependencyCompatibility.analyzeCoordinateCompatibility(dependenciesToAdd).get(60, TimeUnit.SECONDS)
+
+  override fun analyzeDependencyCompatibility(
+    dependencies: List<GradleRegisteredDependencyId>
+  ): ListenableFuture<RegisteredDependencyCompatibilityResult<GradleRegisteredDependencyId>> {
+    return dependencyCompatibility.analyzeDependencyCompatibility(dependencies.map { it.dependency })
+      .transform(MoreExecutors.directExecutor()) { result ->
+        RegisteredDependencyCompatibilityResult(
+          compatible = result.first.map { GradleRegisteredDependencyId(it.dependency()) },
+          incompatible = result.second.map { GradleRegisteredDependencyId(it) },
+          warning = result.third
+        )
+      }
+  }
 
   override fun getManifestOverrides(): ManifestOverrides {
     val facet = AndroidFacet.getInstance(module)
@@ -360,14 +417,15 @@ class GradleModuleSystem(
       ManifestSystemProperty.Document.PACKAGE to
         (
           when (androidModel.androidProject.projectType) {
-            IdeAndroidProjectType.PROJECT_TYPE_APP -> androidModel.applicationId
-            IdeAndroidProjectType.PROJECT_TYPE_ATOM -> androidModel.applicationId
-            IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> androidModel.applicationId
-            IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> androidModel.applicationId
-            IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> androidModel.applicationId
+            IdeAndroidProjectType.PROJECT_TYPE_APP,
+            IdeAndroidProjectType.PROJECT_TYPE_ATOM,
+            IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP,
+            IdeAndroidProjectType.PROJECT_TYPE_FEATURE,
+            IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE,
             IdeAndroidProjectType.PROJECT_TYPE_TEST -> androidModel.applicationId
-            IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> getPackageName()
-            IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> getPackageName()
+            IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
+            IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY,
+            IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM-> getPackageName()
           }
         )
     )

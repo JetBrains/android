@@ -63,13 +63,13 @@ public class ProjectStatsLogger implements QuerySyncProjectListener {
                           .map(WorkspacePath::asPath)
                           .collect(toImmutableSet()))
                   .setProjectTargetCount(instance.graph().allTargets().size())
-                  .setExternalDependencyCount(instance.graph().projectDeps().size());
+                  .setExternalDependencyCount(instance.graph().getExternalDependencyCount());
               scope
                   .getDependenciesInfoStatsBuilder()
-                  .setTargetMapSize(instance.graph().targetMap().size())
+                  .setTargetMapSize(instance.graph().getTargetMapSizeForStatsOnly())
                   .setLibraryCount(instance.project().getLibraryCount())
                   .setJarCount(
-                      instance.artifactState().depsMap().values().stream()
+                      instance.artifactState().targets().stream()
                           .map(TargetBuildInfo::javaInfo)
                           .flatMap(Optional::stream)
                           .map(JavaArtifactInfo::jars)

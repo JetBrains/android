@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * Utilities to manipulate paths of Android Device file system entries.
@@ -103,6 +104,7 @@ public class AdbPathUtil {
   }
 
   @NotNull
+  @Unmodifiable
   public static List<String> getSegments(@NotNull String path) {
     // Special case for root
     if (StringUtil.isEmpty(path) || FILE_SEPARATOR.equals(path)) {

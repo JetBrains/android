@@ -17,8 +17,8 @@ package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
 import com.android.tools.configurations.Configuration
-import com.android.tools.rendering.RenderResult
 import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager.Companion.getInstance
+import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import junit.framework.TestCase
@@ -26,12 +26,9 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Assert
 
-/**
- * Asserts that the given result matches the [.SIMPLE_LAYOUT] structure
- */
+/** Asserts that the given result matches the [.SIMPLE_LAYOUT] structure */
 fun checkSimpleLayoutResult(result: RenderResult) {
-  TestCase.assertEquals(Result.Status.SUCCESS,
-                        result.renderResult.status)
+  TestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
   val views = result.rootViews[0].children
   TestCase.assertEquals(3, views.size)
   var previousCoordinates: String? = ""
@@ -39,15 +36,16 @@ fun checkSimpleLayoutResult(result: RenderResult) {
     val view = views[i]
     TestCase.assertEquals("android.widget.LinearLayout", view.className)
     // Check the coordinates are different for each box
-    val currentCoordinates = String.format("%dx%d - %dx%d", view.top, view.left, view.bottom,
-                                           view.right)
+    val currentCoordinates =
+      String.format("%dx%d - %dx%d", view.top, view.left, view.bottom, view.right)
     Assert.assertNotEquals(previousCoordinates, currentCoordinates)
     previousCoordinates = currentCoordinates
   }
 }
 
 @Language("XML")
-val SIMPLE_LAYOUT = """
+val SIMPLE_LAYOUT =
+  """
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_height="match_parent"
   android:layout_width="match_parent"
@@ -83,8 +81,7 @@ class PerfgateBaseRenderTest : AndroidTestCase() {
   override fun tearDown() {
     try {
       RenderTestUtil.afterRenderTestCase()
-    }
-    finally {
+    } finally {
       getInstance().clearCache()
       super.tearDown()
     }
@@ -92,27 +89,27 @@ class PerfgateBaseRenderTest : AndroidTestCase() {
 
   @Throws(Exception::class)
   fun testBaseInflate() {
-    val computable = ThrowableComputable<PerfgateRenderMetric, Exception> {
-      var metric: PerfgateRenderMetric? = null
-      RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration) {
-        metric = getInflateMetric(it) { result: RenderResult ->
-          checkSimpleLayoutResult(result)
+    val computable =
+      ThrowableComputable<PerfgateRenderMetric, Exception> {
+        var metric: PerfgateRenderMetric? = null
+        RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration) {
+          metric = getInflateMetric(it) { result: RenderResult -> checkSimpleLayoutResult(result) }
         }
+        metric!!
       }
-      metric!!
-    }
     computeAndRecordMetric("inflate_time_base", "inflate_memory_base", computable)
   }
 
   @Throws(Exception::class)
   fun testBaseRender() {
-    val computable = ThrowableComputable<PerfgateRenderMetric, Exception> {
-      var metric: PerfgateRenderMetric? = null
-      RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration) {
-        metric = getRenderMetric(it, ::checkSimpleLayoutResult)
+    val computable =
+      ThrowableComputable<PerfgateRenderMetric, Exception> {
+        var metric: PerfgateRenderMetric? = null
+        RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration) {
+          metric = getRenderMetric(it, ::checkSimpleLayoutResult)
+        }
+        metric!!
       }
-      metric!!
-    }
     computeAndRecordMetric("render_time_base", "render_memory_base", computable)
   }
 }

@@ -11,8 +11,8 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
-        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements",
     ],
 )
 
@@ -29,8 +29,8 @@ iml_module(
         "@intellij//:com.intellij.java",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/wear-preview-elements:intellij.android.wear-preview-elements[module, test]",
-        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
+        "//tools/adt/idea/wear-preview-elements:intellij.android.wear-preview-elements[test]",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[test]",
     ],
 )
 

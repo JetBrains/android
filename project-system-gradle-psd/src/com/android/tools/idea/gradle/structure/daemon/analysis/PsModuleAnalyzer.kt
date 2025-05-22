@@ -59,6 +59,7 @@ fun analyzeDependencyScope(dependency: PsDeclaredDependency): Sequence<PsIssue> 
       PsModuleType.ANDROID_DYNAMIC_FEATURE -> true
       PsModuleType.ANDROID_TEST -> false
       PsModuleType.JAVA -> true
+      PsModuleType.ANDROID_FUSED_LIBRARY -> false
     }
   }
 

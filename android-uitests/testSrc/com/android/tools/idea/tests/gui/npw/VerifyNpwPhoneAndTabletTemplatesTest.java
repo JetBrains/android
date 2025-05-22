@@ -47,8 +47,7 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private List<String> expectedTemplates = List.of("No Activity", "Empty Activity", "Gemini API Starter", "Navigation UI Activity", "Basic Views Activity",
-                                                   "Bottom Navigation Views Activity", "Empty Views Activity", "Navigation Drawer Views Activity",
-                                                   "Responsive Views Activity", "Game Activity (C++)", "Native C++");
+                                                   "Empty Views Activity", "Responsive Views Activity", "Game Activity (C++)", "Native C++");
 
   private String defaultActivity = "Empty Activity";
   FormFactor selectMobileTab = FormFactor.MOBILE;

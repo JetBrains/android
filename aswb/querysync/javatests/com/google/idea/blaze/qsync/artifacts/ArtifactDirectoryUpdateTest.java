@@ -34,7 +34,9 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.junit.Before;
@@ -479,6 +481,38 @@ public class ArtifactDirectoryUpdateTest {
         .containsExactly("workspacefile updated");
   }
 
+  private static ImmutableList<Path> paths(String... paths) {
+    final var dot = Path.of(".");
+    return Stream.of(paths).map(Path::of).map(dot::resolve).collect(ImmutableList.toImmutableList());
+  }
+
+  @Test
+  public void computeFilesToDelete_filesDeleted() {
+    List<Path> toDelete = ArtifactDirectoryUpdate.computeFilesToDelete(
+      paths("a", "b", "c").stream(),
+      paths("a", "b").stream());
+    assertThat(toDelete).isEqualTo(
+      paths("c"));
+  }
+
+  @Test
+  public void computeFilesToDelete_filesDeleted_parentsRemain() {
+    List<Path> toDelete = ArtifactDirectoryUpdate.computeFilesToDelete(
+      paths("a", "a/b", "a/c", "a/d", "a/e", "e").stream(),
+      paths("a/b", "a/d", "e").stream());
+    assertThat(toDelete).isEqualTo(
+      paths("a/c", "a/e"));
+  }
+
+  @Test
+  public void computeFilesToDelete_filesDeleted_childrenRemain() {
+    List<Path> toDelete = ArtifactDirectoryUpdate.computeFilesToDelete(
+      paths("a", "a/b", "a/c", "d", "d/e", "d/e/f", "d/g", "d/g/h").stream(),
+      paths("a", "d/e", "i").stream());
+    assertThat(toDelete).isEqualTo(
+      paths("d/g", "d/g/h"));
+  }
+
   private ImmutableList<Path> readContents() throws IOException {
     ImmutableList.Builder<Path> contents = ImmutableList.builder();
     Files.walkFileTree(
@@ -514,5 +548,4 @@ public class ArtifactDirectoryUpdateTest {
       }
     }
   }
-
 }

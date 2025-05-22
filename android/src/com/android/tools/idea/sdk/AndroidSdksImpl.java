@@ -183,7 +183,7 @@ public class AndroidSdksImpl implements AndroidSdks {
   public Sdk tryToCreate(@NotNull File sdkPath, @NotNull String targetHashString) {
     AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
     if (sdkData != null) {
-      sdkData.getSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(AndroidSdks.class)).markInvalid();
+      sdkData.getSdkHandler().getRepoManager(new StudioLoggerProgressIndicator(AndroidSdks.class)).markInvalid();
       IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
       if (target != null) {
         return create(target, sdkData.getLocationFile(), true /* add roots */);

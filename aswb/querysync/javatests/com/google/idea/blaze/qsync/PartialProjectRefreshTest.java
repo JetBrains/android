@@ -25,6 +25,7 @@ import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.query.Query;
 import com.google.idea.blaze.qsync.query.QueryData;
 import com.google.idea.blaze.qsync.query.QuerySummary;
+import com.google.idea.blaze.qsync.query.QuerySummaryImpl;
 import java.nio.file.Path;
 import java.util.Optional;
 import org.junit.Test;
@@ -37,7 +38,7 @@ public class PartialProjectRefreshTest {
   @Test
   public void testApplyDelta_replacePackage() {
     QuerySummary base =
-      QuerySummary.newBuilder()
+      QuerySummaryImpl.newBuilder()
         .putRules(
           QueryData.Rule.builderForTests()
             .label(Label.of("//my/build/package1:rule"))
@@ -65,7 +66,7 @@ public class PartialProjectRefreshTest {
       PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build();
 
     QuerySummary delta =
-      QuerySummary.newBuilder()
+      QuerySummaryImpl.newBuilder()
         .putRules(
           QueryData.Rule.builderForTests()
             .label(Label.of("//my/build/package1:newrule"))
@@ -101,7 +102,7 @@ public class PartialProjectRefreshTest {
   @Test
   public void testApplyDelta_deletePackage() {
     QuerySummary base =
-      QuerySummary.newBuilder()
+      QuerySummaryImpl.newBuilder()
         .putRules(
           QueryData.Rule.builderForTests()
             .label(Label.of("//my/build/package1:rule"))
@@ -137,7 +138,7 @@ public class PartialProjectRefreshTest {
         ImmutableSet.of(),
         /* deletedPackages= */ ImmutableSet.of(Path.of("my/build/package1")));
     Truth8.assertThat(queryStrategy.getQuerySpec()).isEmpty();
-    QuerySummary applied = queryStrategy.applyDelta(QuerySummary.EMPTY);
+    QuerySummary applied = queryStrategy.applyDelta(QuerySummaryImpl.EMPTY);
     assertThat(applied.getRulesMap().keySet())
       .containsExactly(Label.of("//my/build/package2:rule"));
     assertThat(applied.getSourceFilesMap().keySet())
@@ -148,7 +149,7 @@ public class PartialProjectRefreshTest {
   @Test
   public void testDelta_addPackage() {
     QuerySummary base =
-      QuerySummary.newBuilder()
+      QuerySummaryImpl.newBuilder()
         .putRules(
           QueryData.Rule.builderForTests()
             .label(Label.of("//my/build/package1:rule"))
@@ -163,7 +164,7 @@ public class PartialProjectRefreshTest {
     PostQuerySyncData baseProject =
       PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build();
     QuerySummary delta =
-      QuerySummary.newBuilder()
+      QuerySummaryImpl.newBuilder()
         .putRules(
           QueryData.Rule.builderForTests()
             .label(Label.of("//my/build/package2:rule"))
@@ -199,12 +200,12 @@ public class PartialProjectRefreshTest {
   @Test
   public void testDelta_packagesWithErrors() {
     QuerySummary base =
-      QuerySummary.create(
+      QuerySummaryImpl.create(
         Query.Summary.newBuilder().addPackagesWithErrors("//my/build/package:BUILD").build());
     PostQuerySyncData baseProject =
       PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build();
     QuerySummary delta =
-      QuerySummary.create(
+      QuerySummaryImpl.create(
         Query.Summary.newBuilder().addPackagesWithErrors("//my/build/package:BUILD").build());
 
     PartialProjectRefresh queryStrategy =

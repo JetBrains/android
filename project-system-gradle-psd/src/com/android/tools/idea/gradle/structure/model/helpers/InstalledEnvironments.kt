@@ -35,7 +35,7 @@ fun installedEnvironments(): InstalledEnvironments {
   val sdkHandler = AndroidSdks.getInstance().tryToChooseAndroidSdk()?.sdkHandler
   return if (sdkHandler != null) {
     val logger = StudioLoggerProgressIndicator(PsProductFlavor::class.java)
-    installedEnvironments(sdkHandler.getSdkManager(logger), sdkHandler.getAndroidTargetManager(logger).getTargets(logger))
+    installedEnvironments(sdkHandler.getRepoManagerAndLoadSynchronously(logger), sdkHandler.getAndroidTargetManager(logger).getTargets(logger))
   }
   else {
     InstalledEnvironments(androidSdks = listOf(), compiledApis = listOf(), buildTools = listOf(), ndks = listOf())

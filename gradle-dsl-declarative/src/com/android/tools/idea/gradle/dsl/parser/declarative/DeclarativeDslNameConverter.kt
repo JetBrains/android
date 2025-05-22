@@ -16,16 +16,22 @@
 package com.android.tools.idea.gradle.dsl.parser.declarative
 
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativePair
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
-import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.*
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
-import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET
-import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_MAP
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.GRADLE_PROPERTY
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR
 import com.intellij.psi.PsiElement
 
@@ -34,10 +40,11 @@ interface DeclarativeDslNameConverter : GradleDslNameConverter {
   override fun getKind() = GradleDslNameConverter.Kind.DECLARATIVE
 
   override fun psiToName(element: PsiElement): String {
-    val text = if (element is DeclarativeLiteral)
-      element.value.toString()
-    else
-      element.text
+    val text = when (element) {
+      is DeclarativeLiteral -> element.value.toString()
+      is DeclarativePair -> element.first.toString()
+      else -> element.text
+    }
     return GradleNameElement.escape(text)
   }
 
@@ -61,6 +68,10 @@ interface DeclarativeDslNameConverter : GradleDslNameConverter {
         when (e.modelEffectDescription.semantics) {
           SET -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD)
           VAR, GRADLE_PROPERTY -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, ASSIGNMENT)
+          VAL -> when (e.modelEffectDescription.property.type) {
+            MUTABLE_SET, MUTABLE_LIST, MUTABLE_MAP -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, AUGMENTED_ASSIGNMENT)
+            else -> Unit
+          }
           else -> Unit
         }
       }

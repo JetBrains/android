@@ -40,6 +40,8 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_80
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_81
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_82
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_83
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_84
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Expect
@@ -181,6 +183,13 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                 base -> project/app/build/intermediates/extracted_apks/debug/extractApksFromBundleForDebug/base-mdpi.apk
               RequiredInstallationOptions: []
             """,
+        *(arrayOf(AGP_83, AGP_84)  eachTo """
+              ApplicationId: one.name.defaultConfig.debug
+              Files:
+                base -> project/app/build/intermediates/extracted_apks/debug/extractApksFromBundleForDebug/base-master.apk
+                base -> project/app/build/intermediates/extracted_apks/debug/extractApksFromBundleForDebug/base-mdpi.apk
+              RequiredInstallationOptions: []
+            """),
         *(arrayOf(AGP_41, AGP_42, AGP_70, AGP_71, AGP_72, AGP_73, AGP_80, AGP_81, AGP_82)  eachTo """
               ApplicationId: one.name.defaultConfig.debug
               Files:
@@ -467,6 +476,19 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
              """,
+        *(arrayOf(AGP_83, AGP_84) eachTo """
+              ApplicationId: google.simpleapplication
+              Files:
+                base -> project/app/build/intermediates/extracted_apks/debug/extractApksFromBundleForDebug/base-master.apk
+                base -> project/app/build/intermediates/extracted_apks/debug/extractApksFromBundleForDebug/base-mdpi.apk
+              RequiredInstallationOptions: []
+
+              ApplicationId: com.example.feature1.test
+              Files:
+                 -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
+              RequiredInstallationOptions: []
+            """
+         ),
         *(arrayOf(AGP_42, AGP_70, AGP_71, AGP_72, AGP_73, AGP_74, AGP_80, AGP_81, AGP_82) eachTo """
               ApplicationId: google.simpleapplication
               Files:

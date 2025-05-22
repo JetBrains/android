@@ -35,15 +35,16 @@ import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import java.util.concurrent.CountDownLatch
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.CountDownLatch
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 private fun RenderingBuildStatusManager.awaitReady(timeout: Duration = 5.seconds) = runBlocking {
   statusFlow.awaitStatus("ProjectStatus is not Ready after $timeout", timeout) {
@@ -204,5 +205,29 @@ class RenderingBuildStatusManagerTest {
     } finally {
       FastPreviewConfiguration.getInstance().resetDefault()
     }
+  }
+
+  @Test
+  fun testClassFinderIsConsideredForBuildStatus(): Unit = runBlocking {
+    val psiFile = projectRule.fixture.addFileToProject(
+      "src/a/Test.kt",
+      //language=KOTLIN
+      """
+        package com.test
+
+        fun a() {}
+      """)
+    val lookups = mutableSetOf<String>()
+    val statusManager =
+      RenderingBuildStatusManager.createForTest(projectRule.fixture.testRootDisposable, psiFile) { _ ->
+        { fqcn ->
+          lookups.add(fqcn)
+          true
+        }
+      }
+
+    // Because the class finder will be able to find the class, we should never go into NeedsBuild
+    statusManager.awaitReady()
+    assertThat(lookups).containsExactly("com.test.TestKt")
   }
 }

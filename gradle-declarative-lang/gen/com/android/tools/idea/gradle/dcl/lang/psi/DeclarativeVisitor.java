@@ -90,6 +90,11 @@ public class DeclarativeVisitor extends PsiElementVisitor {
   }
 
   public void visitLiteral(@NotNull DeclarativeLiteral o) {
+    visitSimpleLiteral(o);
+    // visitContributedReferenceHost(o);
+  }
+
+  public void visitPair(@NotNull DeclarativePair o) {
     visitValue(o);
   }
 
@@ -103,12 +108,6 @@ public class DeclarativeVisitor extends PsiElementVisitor {
   public void visitPropertyReceiver(@NotNull DeclarativePropertyReceiver o) {
     visitReceiverPrefixed(o);
     // visitValueFieldOwner(o);
-  }
-
-  public void visitPropertySimpleFactory(@NotNull DeclarativePropertySimpleFactory o) {
-    visitEntry(o);
-    // visitIdentifierOwner(o);
-    // visitAbstractFactory(o);
   }
 
   public void visitQualified(@NotNull DeclarativeQualified o) {
@@ -125,6 +124,10 @@ public class DeclarativeVisitor extends PsiElementVisitor {
 
   public void visitSimpleFactory(@NotNull DeclarativeSimpleFactory o) {
     visitFactoryReceiver(o);
+  }
+
+  public void visitSimpleLiteral(@NotNull DeclarativeSimpleLiteral o) {
+    visitValue(o);
   }
 
   public void visitAbstractFactory(@NotNull DeclarativeAbstractFactory o) {

@@ -41,7 +41,7 @@ class AdditionalDeviceService: DumbAware {
 
   companion object {
     @JvmStatic
-    fun getInstance(): AdditionalDeviceService? {
+    fun getInstance(): AdditionalDeviceService {
       return ApplicationManager.getApplication().getService(AdditionalDeviceService::class.java)
     }
   }

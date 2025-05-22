@@ -19,6 +19,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.flavorsConfigurationsBuildGradle
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.getTargetModelProductFlavors
@@ -43,7 +44,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 class BaselineProfilesMacrobenchmarkCommonTest {
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   @Test
   fun createModuleTest() {
@@ -151,7 +153,7 @@ class BaselineProfilesMacrobenchmarkCommonTest {
 
   @Test
   fun getTargetModelProductFlavors_fromIdeModel() {
-    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE, agpVersion = getAgpVersion())
 
     val flavorMock1 = mock<IdeProductFlavorImpl>()
     whenever(flavorMock1.name).thenReturn("flavor1")
@@ -176,7 +178,7 @@ class BaselineProfilesMacrobenchmarkCommonTest {
 
   @Test
   fun getTargetModelProductFlavors_fromIdeModel_twoDimensions() {
-    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE, agpVersion = getAgpVersion())
 
     val flavorMock1 = mock<IdeProductFlavorImpl>()
     whenever(flavorMock1.name).thenReturn("flavor1")

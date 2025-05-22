@@ -114,8 +114,8 @@ import com.intellij.util.PsiNavigateUtil;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
@@ -875,7 +875,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       Logger.getInstance(StudioHtmlLinkManager.class).warn("Invalid coordinate " + coordinateStr);
       return;
     }
-    if (DependencyManagementUtil.addDependenciesWithUiConfirmation(module, Collections.singletonList(id.getCoordinate("+")), false,
+    if (DependencyManagementUtil.addDependenciesWithUiConfirmation(module, Set.of(id), false,
                                                                    false, dependencyType)
       .isEmpty()) {
       return;

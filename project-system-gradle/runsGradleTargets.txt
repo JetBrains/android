@@ -1,11 +1,12 @@
 //tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle
-//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_dependencies
-//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_VersionCatalogAndDeclarative
 //tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_build
+//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_dependencies
 //tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_errors
 //tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_open_project
-//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_sync_integration
-//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_snapshots
-//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_variants
 //tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_projectsystem
+//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_rendering
 //tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_signing
+//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_snapshots
+//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_sync_integration
+//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_variants
+//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests_tests__runs_gradle_VersionCatalogAndDeclarative

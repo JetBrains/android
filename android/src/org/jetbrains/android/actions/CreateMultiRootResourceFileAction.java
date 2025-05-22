@@ -23,6 +23,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -102,6 +105,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
 
     protected MyDialog(@NotNull AndroidFacet facet, @Nullable InputValidator validator) {
       super(facet.getModule().getProject());
+      setupUI();
       myValidator = validator;
       setTitle(AndroidBundle.message("new.typed.resource.dialog.title", resourcePresentableName));
       final List<String> tagNames = getSortedAllowedTagNames(facet);
@@ -117,7 +121,7 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
         public void textChanged(@NotNull DocumentEvent event) {
           final String text = myFileNameField.getText().trim();
           if (myValidator instanceof InputValidatorEx) {
-            setErrorText(((InputValidatorEx) myValidator).getErrorText(text));
+            setErrorText(((InputValidatorEx)myValidator).getErrorText(text));
           }
         }
       });
@@ -150,6 +154,39 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
           myValidator.checkInput(fileName) && myValidator.canClose(fileName)) {
         super.doOKAction();
       }
+    }
+
+    private void setupUI() {
+      myPanel = new JPanel();
+      myPanel.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
+      final JBLabel jBLabel1 = new JBLabel();
+      jBLabel1.setText("File name:");
+      jBLabel1.setDisplayedMnemonic('F');
+      jBLabel1.setDisplayedMnemonicIndex(0);
+      myPanel.add(jBLabel1,
+                  new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                      GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+      final Spacer spacer1 = new Spacer();
+      myPanel.add(spacer1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                               GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+      myFileNameField = new JTextField();
+      myPanel.add(myFileNameField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
+                                                       GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                       new Dimension(150, -1), null, 0, false));
+      myRootElementLabel = new JBLabel();
+      myRootElementLabel.setText("Root element:");
+      myRootElementLabel.setDisplayedMnemonic('R');
+      myRootElementLabel.setDisplayedMnemonicIndex(0);
+      myPanel.add(myRootElementLabel,
+                  new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                      GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+      myRootElementFieldWrapper = new JPanel();
+      myRootElementFieldWrapper.setLayout(new BorderLayout(0, 0));
+      myPanel.add(myRootElementFieldWrapper, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                                 GridConstraints.SIZEPOLICY_CAN_SHRINK |
+                                                                 GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                                 GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+      jBLabel1.setLabelFor(myFileNameField);
     }
   }
 }

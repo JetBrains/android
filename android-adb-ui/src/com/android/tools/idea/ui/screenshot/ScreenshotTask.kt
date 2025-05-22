@@ -26,7 +26,7 @@ import com.intellij.util.ExceptionUtil
  */
 open class ScreenshotTask(
   project: Project,
-  private val screenshotSupplier: ScreenshotSupplier,
+  private val screenshotProvider: ScreenshotProvider,
 ) : Task.Modal(project, AndroidAdbUiBundle.message("screenshot.action.title"), true) {
 
   var screenshot: ScreenshotImage? = null
@@ -38,7 +38,7 @@ open class ScreenshotTask(
     indicator.isIndeterminate = true
     indicator.text = AndroidAdbUiBundle.message("screenshot.task.step.obtain")
     try {
-      screenshot = screenshotSupplier.captureScreenshot()
+      screenshot = screenshotProvider.captureScreenshot()
     }
     catch (e: Exception) {
       error = ExceptionUtil.getMessage(e) ?: AndroidAdbUiBundle.message("screenshot.error.generic", e.javaClass.name)

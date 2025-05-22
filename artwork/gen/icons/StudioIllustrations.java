@@ -35,6 +35,7 @@ public final class StudioIllustrations {
     /** 171x97 */ public static final @NotNull Icon DISCONNECT_PROFILER = load("studio/illustrations/common/disconnect-profiler.svg", 952824289, 2);
     /** 16x16 */ public static final @NotNull Icon FIREBASE_ICON = load("studio/illustrations/common/firebase-icon.svg", 244029978, 2);
     /** 117x32 */ public static final @NotNull Icon FIREBASE_LOGO = load("studio/illustrations/common/firebase-logo.svg", 344105384, 2);
+    /** 16x16 */ public static final @NotNull Icon GOOGLE_LOGO = load("studio/illustrations/common/google-logo.svg", 1134159471, 0);
     /** 16x16 */ public static final @NotNull Icon PLAY_CONSOLE_ICON = load("studio/illustrations/common/play-console-icon.svg", 1669777446, 2);
     /** 300x97 */ public static final @NotNull Icon PLAY_CONSOLE = load("studio/illustrations/common/play-console.svg", -454896844, 2);
     /** 16x16 */ public static final @NotNull Icon PLAY_STORE = load("studio/illustrations/common/play-store.svg", -831547871, 2);

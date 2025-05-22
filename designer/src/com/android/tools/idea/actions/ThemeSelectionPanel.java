@@ -39,8 +39,12 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import icons.StudioIcons;
+import java.awt.Insets;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -114,6 +118,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myExcludedThemes = excludedThemes;
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
+    setupUI();
     StyleResourceValue[] baseThemes = themeResolver.requiredBaseThemes();
     Function1<ConfiguredThemeEditorStyle, Boolean> filter = ThemeUtils.createFilter(themeResolver, myExcludedThemes, baseThemes);
     myFrameworkThemes = baseThemes.length == 0
@@ -350,7 +355,30 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     return themes;
   }
 
-  /** Collect all distinct themes from the module's manifest (i.e. application and activity themes) */
+  private void setupUI() {
+    createUIComponents();
+    myContentPanel = new JPanel();
+    myContentPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myCategoryTree = new Tree();
+    myContentPanel.add(myCategoryTree, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           null, null, null, 0, false));
+    final JBScrollPane jBScrollPane1 = new JBScrollPane();
+    myContentPanel.add(jBScrollPane1, new GridConstraints(0, 1, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                          null, null, 0, false));
+    myThemeList = new JBList();
+    jBScrollPane1.setViewportView(myThemeList);
+    myContentPanel.add(myFilter, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, 1, null,
+                                                     null, null, 0, false));
+  }
+
+  /**
+   * Collect all distinct themes from the module's manifest (i.e. application and activity themes)
+   */
   @NotNull
   private static Stream<String> collectThemesFromManifest(@NotNull ConfigurationModelModule module) {
     String appTheme = module.getThemeInfoProvider().getAppThemeName();
@@ -638,6 +666,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   public interface ThemeChangedListener {
     /**
      * Called when the theme has changed
+     *
      * @param name qualified name of the new theme
      */
     void themeChanged(@NotNull String name);

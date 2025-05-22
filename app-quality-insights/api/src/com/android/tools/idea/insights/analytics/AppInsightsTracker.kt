@@ -91,6 +91,13 @@ interface AppInsightsTracker {
     contextLimit: Int,
   )
 
+  fun logServiceDeprecated(
+    panel: AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel,
+    userNotified: Boolean? = null,
+    userClickedMoreInfo: Boolean? = null,
+    userClickedUpdate: Boolean? = null,
+  )
+
   enum class ProductType {
     CRASHLYTICS,
     PLAY_VITALS;

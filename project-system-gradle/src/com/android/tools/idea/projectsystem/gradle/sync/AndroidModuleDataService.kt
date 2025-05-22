@@ -324,6 +324,7 @@ private fun configureFacet(androidFacet: AndroidFacet, module: Module, gradleAnd
     IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> AndroidProjectTypes.PROJECT_TYPE_LIBRARY
     IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> AndroidProjectTypes.PROJECT_TYPE_LIBRARY
     IdeAndroidProjectType.PROJECT_TYPE_TEST -> AndroidProjectTypes.PROJECT_TYPE_TEST
+    IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY -> AndroidProjectTypes.PROJECT_TYPE_FUSED_LIBRARY
   }
 
   val modulePath = gradleAndroidModel.rootDirPath
@@ -331,7 +332,6 @@ private fun configureFacet(androidFacet: AndroidFacet, module: Module, gradleAnd
   androidFacet.properties.MANIFEST_FILE_RELATIVE_PATH = relativePath(modulePath, sourceProvider.manifestFile)
   androidFacet.properties.RES_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.resDirectories.firstOrNull())
   androidFacet.properties.ASSETS_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.assetsDirectories.firstOrNull())
-
   AndroidModel.set(androidFacet, gradleAndroidModel)
   syncSelectedVariant(androidFacet, gradleAndroidModel.selectedVariant)
 }

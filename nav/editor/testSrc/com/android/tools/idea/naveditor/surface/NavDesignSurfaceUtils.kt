@@ -36,12 +36,12 @@ fun createNavDesignSurfaceZoomController(
 ): NavDesignSurfaceZoomController {
   return NavDesignSurfaceZoomController(
     navSelectionModel = null,
-    viewPort = navDesignSurface.viewport,
+    viewPortProvider = { navDesignSurface.viewport },
     sceneManager = { navDesignSurface.model?.let { navDesignSurface.getSceneManager(it) } },
     sceneViewDimensionProvider = dimension,
     analyticsManager = createDesignerAnalyticsManagerFake(trackZoom),
     scenesOwner = navDesignSurface,
-    surfaceSize = navDesignSurface.size,
+    surfaceSizeProvider = { navDesignSurface.size },
   )
 }
 

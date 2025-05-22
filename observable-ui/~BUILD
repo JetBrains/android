@@ -12,11 +12,11 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
-        "//tools/adt/idea/observable:intellij.android.observable[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
+        "//tools/adt/idea/observable:intellij.android.observable",
         "//tools/adt/idea/.idea/libraries:junit4[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[test]",
     ],
 )

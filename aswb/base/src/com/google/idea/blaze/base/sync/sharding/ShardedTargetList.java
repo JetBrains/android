@@ -98,7 +98,8 @@ public class ShardedTargetList {
     if (shardedTargets.size() == 1) {
       return invocation.apply(shardedTargets.get(0));
     }
-    if (binary.supportsParallelism() && invokeParallel) {
+    if (binary.getCapabilities().contains(BuildInvoker.Capability.SUPPORTS_PARALLELISM)
+        && invokeParallel) {
       return runInParallel(project, context, invocation);
     }
     int progress = 0;

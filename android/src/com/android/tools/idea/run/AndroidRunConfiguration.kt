@@ -74,6 +74,7 @@ import org.jdom.Element
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.NonNls
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.stream.Collectors
 import javax.swing.Icon
 
@@ -176,7 +177,8 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
   }
 
   @Throws(ExecutionException::class)
-  override fun getExecutor(env: ExecutionEnvironment, facet: AndroidFacet, deployFutures: DeviceFutures): AndroidConfigurationExecutor {
+  @VisibleForTesting
+  public override fun getExecutor(env: ExecutionEnvironment, facet: AndroidFacet, deployFutures: DeviceFutures): AndroidConfigurationExecutor {
     val applicationIdProvider = applicationIdProvider ?: throw RuntimeException("Cannot get ApplicationIdProvider")
     val apkProvider = apkProvider ?: throw RuntimeException("Cannot get ApkProvider")
     return AndroidRunConfigurationExecutor(
