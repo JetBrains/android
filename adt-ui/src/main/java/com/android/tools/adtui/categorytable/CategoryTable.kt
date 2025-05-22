@@ -509,7 +509,8 @@ class CategoryTable<T : Any>(
     throw UnsupportedOperationException("Not needed in scroll panes")
 
   override fun getMaximumSize(): Dimension =
-    throw UnsupportedOperationException("Not needed in scroll panes")
+    Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
+    //throw UnsupportedOperationException("Not needed in scroll panes")
 
   /**
    * Rather than implementing the whole LayoutManager interface, we perform the layout in doLayout.
