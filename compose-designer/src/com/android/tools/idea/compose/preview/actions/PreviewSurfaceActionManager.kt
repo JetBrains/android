@@ -88,6 +88,8 @@ internal class PreviewSurfaceActionManager(
     actionGroup.add(JumpToDefinitionAction(mousePosition.x, mousePosition.y, navigationHandler))
     // View in Focus mode
     actionGroup.add(ViewInFocusModeAction(mousePosition.x, mousePosition.y))
+    // Toggle Resize Panel (only in focus mode)
+    actionGroup.add(ToggleResizePanelVisibilityAction().visibleOnlyInFocus())
     // Add toolbar actions in the context-menu as a redundant entry point
     getSceneViewContextToolbarActions().takeIf { it.isNotEmpty() }?.forEach { actionGroup.add(it) }
     // Add action to transform UI with AI
@@ -106,9 +108,7 @@ internal class PreviewSurfaceActionManager(
   override fun getSceneViewContextToolbarActions(): List<AnAction> =
     listOf(Separator()) +
       listOfNotNull(
-          ToggleResizePanelVisibilityAction().visibleOnlyInFocus(),
           SavePreviewInNewSizeAction().visibleOnlyInFocus(),
-          RevertToOriginalSizeAction().visibleOnlyInFocus(),
           EnableUiCheckAction(),
           AnimationInspectorAction(
             defaultModeDescription = message("action.animation.inspector.description")
