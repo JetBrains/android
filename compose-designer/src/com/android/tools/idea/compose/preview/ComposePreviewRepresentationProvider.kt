@@ -69,6 +69,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.ModuleUtilCore
@@ -177,7 +178,7 @@ class ComposePreviewRepresentationProvider(
     // We need to be in smart mode to be able to access the index for the annotations.
     if (DumbService.getInstance(project).isDumb) return
 
-    val foundComposableAnnotations = readAction {
+    val foundComposableAnnotations = smartReadAction(project) {
       KotlinAnnotationsIndex[
         COMPOSABLE_ANNOTATION_NAME,
         project,
