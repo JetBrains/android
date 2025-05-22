@@ -158,8 +158,6 @@ DependenciesInfo = provider(
         "cc_compilation_info": "a structure containing info required to compile cc sources",
         "cc_headers": "a depset of generated headers required to compile cc sources",
         "cc_toolchain_info": "struct containing cc toolchain info, with keys file (the output file) and id (unique ID for the toolchain info, referred to from elsewhere)",
-        "test_mode_own_files": "a structure describing Java artifacts required when the target is requested within the project scope",
-        "test_mode_cc_src_deps": "a list of sources (e.g. headers) required to compile cc sources in integratrion tests",
     },
 )
 
@@ -175,9 +173,7 @@ def create_dependencies_info(
         cc_info_files = depset(),
         cc_compilation_info = None,
         cc_headers = depset(),
-        cc_toolchain_info = None,
-        test_mode_own_files = None,
-        test_mode_cc_src_deps = depset()):
+        cc_toolchain_info = None):
     """A helper function to create a DependenciesInfo provider instance."""
     return DependenciesInfo(
         label = label,
@@ -192,8 +188,6 @@ def create_dependencies_info(
         cc_compilation_info = cc_compilation_info,
         cc_headers = cc_headers,
         cc_toolchain_info = cc_toolchain_info,
-        test_mode_own_files = test_mode_own_files,
-        test_mode_cc_src_deps = test_mode_cc_src_deps,
     )
 
 def create_java_dependencies_info(
@@ -203,8 +197,7 @@ def create_java_dependencies_info(
         target_to_artifacts,
         aars,
         gensrcs,
-        expand_sources,
-        test_mode_own_files):
+        expand_sources):
     """A helper function to create a DependenciesInfo provider instance."""
     return struct(
         info_file = info_file,
@@ -214,31 +207,26 @@ def create_java_dependencies_info(
         aars = aars,
         gensrcs = gensrcs,
         expand_sources = expand_sources,
-        test_mode_own_files = test_mode_own_files,
     )
 
 def create_cc_dependencies_info(
         cc_info_files = depset(),
         cc_compilation_info = None,
         cc_headers = depset(),
-        cc_toolchain_info = None,
-        test_mode_cc_src_deps = depset()):
+        cc_toolchain_info = None):
     """A helper function to create a DependenciesInfo provider instance."""
     return struct(
         cc_info_files = cc_info_files,
         cc_compilation_info = cc_compilation_info,
         cc_headers = cc_headers,
         cc_toolchain_info = cc_toolchain_info,
-        test_mode_cc_src_deps = test_mode_cc_src_deps,
     )
 
 def create_cc_toolchain_info(
-        cc_toolchain_info = None,
-        test_mode_cc_src_deps = depset()):
+        cc_toolchain_info = None):
     """A helper function to create a DependenciesInfo provider instance."""
     return struct(
         cc_toolchain_info = cc_toolchain_info,
-        test_mode_cc_src_deps = test_mode_cc_src_deps,
     )
 
 def merge_dependencies_info(
@@ -267,15 +255,6 @@ def merge_dependencies_info(
     if not java_dep_info and not cc_dep_info and not cc_toolchain_dep_info:
         return create_dependencies_info(label = target.label)
 
-    if cc_dep_info and cc_toolchain_dep_info:
-        test_mode_cc_src_deps = depset(transitive = [cc_dep_info.test_mode_cc_src_deps, cc_toolchain_dep_info.test_mode_cc_src_deps])
-    elif cc_dep_info:
-        test_mode_cc_src_deps = cc_dep_info.test_mode_cc_src_deps
-    elif cc_toolchain_dep_info:
-        test_mode_cc_src_deps = cc_toolchain_dep_info.test_mode_cc_src_deps
-    else:
-        test_mode_cc_src_deps = None
-
     merged = create_dependencies_info(
         label = target.label,
         java_info_file = java_dep_info.info_file if java_dep_info else None,
@@ -289,8 +268,6 @@ def merge_dependencies_info(
         cc_compilation_info = cc_dep_info.cc_compilation_info if cc_dep_info else None,
         cc_headers = cc_dep_info.cc_headers if cc_dep_info else None,
         cc_toolchain_info = cc_toolchain_dep_info.cc_toolchain_info if cc_toolchain_dep_info else None,
-        test_mode_own_files = java_dep_info.test_mode_own_files if java_dep_info else None,
-        test_mode_cc_src_deps = test_mode_cc_src_deps,
     )
     return merged
 
@@ -367,8 +344,6 @@ def package_dependencies(parameters):
         required_aspect_providers = [[DependenciesInfo]],
     )
 
-package_dependencies_for_tests = package_dependencies(struct(experiment_multi_info_file = False))
-
 def declares_android_resources(target, ctx):
     """
     Returns true if the target has resource files and an android provider.
@@ -431,22 +406,6 @@ def _collect_dependencies_impl(target, ctx, params):
         target,
         ctx,
         params,
-        test_mode = False,
-    )
-
-def _collect_all_dependencies_for_tests_impl(target, ctx):
-    return _collect_dependencies_core_impl(
-        target,
-        ctx,
-        struct(
-            include = None,
-            exclude = None,
-            always_build_rules = ALWAYS_BUILD_RULES,
-            generate_aidl_classes = None,
-            use_generated_srcjars = True,
-            experiment_multi_info_file = False,
-        ),
-        test_mode = True,
     )
 
 def collect_dependencies_for_test(target, ctx, include = []):
@@ -461,7 +420,6 @@ def collect_dependencies_for_test(target, ctx, include = []):
             use_generated_srcjars = True,
             experiment_multi_info_file = False,
         ),
-        test_mode = False,
     )
 
 def _package_prefix_match(package, prefix):
@@ -756,26 +714,17 @@ def _get_cc_toolchain_dependency_info(rule):
         return cc_toolchain_target[DependenciesInfo]
     return None
 
-def _collect_own_and_dependency_cc_info(target, rule, test_mode):
+def _collect_own_and_dependency_cc_info(target, rule):
     dependency_info = _get_cc_toolchain_dependency_info(rule)
     compilation_context = target[CcInfo].compilation_context
     cc_toolchain_info = None
-    test_mode_cc_src_deps = depset()
     if dependency_info:
         cc_toolchain_info = dependency_info.cc_toolchain_info
-        if test_mode:
-            test_mode_cc_src_deps = dependency_info.test_mode_cc_src_deps
 
     gen_headers = depset()
     compilation_info = None
     if compilation_context:
         gen_headers = depset([f for f in compilation_context.headers.to_list() if not f.is_source])
-
-        if test_mode:
-            test_mode_cc_src_deps = depset(
-                [f for f in compilation_context.headers.to_list() if f.is_source],
-                transitive = [test_mode_cc_src_deps],
-            )
 
         compilation_info = struct(
             transitive_defines = compilation_context.defines.to_list(),
@@ -794,15 +743,13 @@ def _collect_own_and_dependency_cc_info(target, rule, test_mode):
     return struct(
         compilation_info = compilation_info,
         gen_headers = gen_headers,
-        test_mode_cc_src_deps = test_mode_cc_src_deps,
         cc_toolchain_info = cc_toolchain_info,
     )
 
 def _collect_dependencies_core_impl(
         target,
         ctx,
-        params,
-        test_mode):
+        params):
     if hasattr(ctx.rule.attr, "tags"):
         if "no-ide" in ctx.rule.attr.tags:
             return create_dependencies_info(label = target.label)
@@ -811,11 +758,10 @@ def _collect_dependencies_core_impl(
         target,
         ctx,
         params,
-        test_mode,
     )
     cc_dep_info = None
     if CcInfo in target:
-        cc_dep_info = _collect_cc_dependencies_core_impl(target, ctx, test_mode, params.experiment_multi_info_file)
+        cc_dep_info = _collect_cc_dependencies_core_impl(target, ctx, params.experiment_multi_info_file)
     cc_toolchain_dep_info = None
     if cc_common.CcToolchainInfo in target:
         cc_toolchain_dep_info = _collect_cc_toolchain_info(target, ctx)
@@ -824,9 +770,8 @@ def _collect_dependencies_core_impl(
 def _collect_java_dependencies_core_impl(
         target,
         ctx,
-        params,
-        test_mode):
-    target_is_within_project_scope = _target_within_project_scope(target.label, params.include, params.exclude) and not test_mode
+        params):
+    target_is_within_project_scope = _target_within_project_scope(target.label, params.include, params.exclude)
     dependency_infos = _get_followed_java_dependency_infos(target.label, ctx.rule)
 
     own_and_dependencies = _collect_own_and_dependency_java_artifacts(
@@ -848,23 +793,6 @@ def _collect_java_dependencies_core_impl(
     aars = own_and_dependencies.aars
     gensrcs = own_and_dependencies.gensrcs
 
-    test_mode_own_files = None
-    if test_mode:
-        within_scope_own_files = _collect_own_java_artifacts(
-            target,
-            ctx,
-            params.always_build_rules,
-            params.generate_aidl_classes,
-            params.use_generated_srcjars,
-            target_is_within_project_scope = True,
-        )
-        if within_scope_own_files:
-            test_mode_own_files = struct(
-                test_mode_within_scope_own_jar_files = within_scope_own_files.jar_depset.to_list(),
-                test_mode_within_scope_own_ide_aar_files = within_scope_own_files.ide_aar_depset.to_list(),
-                test_mode_within_scope_own_gensrc_files = within_scope_own_files.gensrc_depset.to_list(),
-            )
-
     expand_sources = False
     if hasattr(ctx.rule.attr, "tags"):
         if "ij-ignore-source-transform" in ctx.rule.attr.tags:
@@ -882,11 +810,10 @@ def _collect_java_dependencies_core_impl(
         aars = aars,
         gensrcs = gensrcs,
         expand_sources = expand_sources,
-        test_mode_own_files = test_mode_own_files,
     )
 
-def _collect_cc_dependencies_core_impl(target, ctx, test_mode, experiment_multi_info_file):
-    cc_info = _collect_own_and_dependency_cc_info(target, ctx.rule, test_mode)
+def _collect_cc_dependencies_core_impl(target, ctx, experiment_multi_info_file):
+    cc_info = _collect_own_and_dependency_cc_info(target, ctx.rule)
     cc_info_files = []
     if experiment_multi_info_file:
         cc_info_files = [_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] + ([cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else [])
@@ -896,7 +823,6 @@ def _collect_cc_dependencies_core_impl(target, ctx, test_mode, experiment_multi_
         cc_compilation_info = cc_info.compilation_info,
         cc_headers = cc_info.gen_headers,
         cc_toolchain_info = cc_info.cc_toolchain_info,
-        test_mode_cc_src_deps = cc_info.test_mode_cc_src_deps,
     )
 
 def _collect_cc_toolchain_info(target, ctx):
@@ -966,7 +892,6 @@ def _collect_cc_toolchain_info(target, ctx):
 
     return create_cc_toolchain_info(
         cc_toolchain_info = struct(file = cc_toolchain_file, id = toolchain_id),
-        test_mode_cc_src_deps = depset([f for f in toolchain_info.all_files.to_list() if f.is_source]),
     )
 
 def _get_ide_aar_file(target, ctx):
@@ -1087,29 +1012,6 @@ def collect_dependencies(parameters):
             "toolchains_aspects": TOOLCHAINS_ASPECTS,
         } if TOOLCHAINS_ASPECTS else {}
     )
-
-collect_all_dependencies_for_tests = aspect(
-    doc = """
-    A variant of collect_dependencies aspect used by query sync integration
-    tests.
-
-    The difference is that collect_all_dependencies does not apply
-    include/exclude directory filtering, which is applied in the test framework
-    instead. See: test_project.bzl for more details.
-    """,
-    implementation = _collect_all_dependencies_for_tests_impl,
-    provides = [DependenciesInfo],
-    attr_aspects = FOLLOW_ATTRIBUTES,
-    attrs = {
-        "_build_zip": attr.label(
-            allow_files = True,
-            cfg = "exec",
-            executable = True,
-            default = ZIP_TOOL_LABEL,
-        ),
-    },
-    fragments = ["cpp"],
-)
 
 def _write_java_info_txt_impl(ctx):
     info_txt_files = []
