@@ -18,7 +18,6 @@ package com.android.tools.idea.common.surface
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
-import java.awt.Dimension
 import kotlin.math.max
 import kotlin.math.min
 
@@ -49,14 +48,7 @@ class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListe
           maxX = max(maxX, it.x + it.scaledContentSize.width)
           maxY = max(maxY, it.y + it.scaledContentSize.height)
         }
-        val currentScale = surface.zoomController.scale
-        val size =
-          Dimension(
-            ((maxX - minX + 2 * MARGIN) / currentScale).toInt(),
-            ((maxY - minY + 2 * MARGIN) / currentScale).toInt(),
-          )
-        val scale = surface.getFitContentIntoWindowScale(size)
-
+        val scale = surface.zoomController.getFitScale()
         surface.zoomController.setScale(scale)
         surface.setScrollPosition(minX - MARGIN, minY - MARGIN)
         surface.revalidateScrollArea()

@@ -39,8 +39,7 @@ class NlDesignSurfaceZoomControllerTest {
   @Test
   fun `test fit scale when fitScale is changed`() {
     // We assume the [PositionableLayoutManager] calculates 10.0 as a scale value to fit the panels
-    val fitScaleProvider = { 10.0 }
-    val zoomController = createNlDesignSurfaceZoomController(fitScaleProvider = fitScaleProvider)
+    val zoomController = createNlDesignSurfaceZoomController(fitScaleProvider = { 10.0 })
 
     // Expected scale is the one returned by the [PositionableLayoutManager]
     assertEquals(10.0, zoomController.getFitScale())

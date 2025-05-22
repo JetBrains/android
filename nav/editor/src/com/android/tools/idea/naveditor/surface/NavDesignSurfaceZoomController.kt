@@ -70,17 +70,10 @@ class NavDesignSurfaceZoomController(
 
   private var zoomListener: ZoomListener? = null
 
-  override fun getFitScale(): Double {
-    val contentSize = Dimension()
-    val view: SceneView? = getFocusedSceneView()
-    if (view != null) {
-      contentSize.size = sceneViewDimensionProvider(view)
-    } else {
-      contentSize.setSize(0, 0)
-    }
-
-    return getFitContentIntoWindowScale(contentSize)
-  }
+  override fun getFitScale(): Double =
+    getFitContentIntoWindowScale(
+      getFocusedSceneView()?.let { sceneViewDimensionProvider(it) } ?: Dimension()
+    )
 
   override fun canZoomToFit(): Boolean {
     if (isEmpty()) {
