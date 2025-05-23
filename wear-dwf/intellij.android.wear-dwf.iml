@@ -21,5 +21,6 @@
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
+    <orderEntry type="module" module-name="android.sdktools.binary-resources" />
   </component>
 </module>

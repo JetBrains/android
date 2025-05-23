@@ -29,22 +29,22 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class AndroidAppBundleExtractorTest {
+class ApkExtractorTest {
 
   private val testDataPath = resolveWorkspacePath("tools/adt/idea/wear-dwf/testData")
 
   @Test
   fun `test extract items`() = runTest {
-    val extractor = AndroidAppBundleExtractor(StandardTestDispatcher(testScheduler))
+    val extractor = ApkExtractor(StandardTestDispatcher(testScheduler))
 
-    val extractedItems = extractor.extract(testDataPath.resolve("import/aab/example.aab")).toList()
+    val extractedItems = extractor.extract(testDataPath.resolve("import/apk/example.apk")).toList()
 
-    assertThat(extractedItems).hasSize(86)
+    assertThat(extractedItems).hasSize(87)
 
     val extractedManifest = extractedItems.filterIsInstance<ExtractedItem.Manifest>().single()
     assertThat(StringUtil.convertLineSeparators(extractedManifest.content))
       .isEqualTo(
-        testDataPath.resolve("import/aab/expected/AndroidManifest_extracted.xml").readText()
+        testDataPath.resolve("import/apk/expected/AndroidManifest_extracted.xml").readText()
       )
 
     val stringFolders =
@@ -83,7 +83,7 @@ class AndroidAppBundleExtractorTest {
     assertThat(rawWatchFace).isNotNull()
     assertThat(StringUtil.convertLineSeparators(rawWatchFace!!.text))
       .isEqualTo(
-        testDataPath.resolve("import/aab/expected/res/raw/watchface_extracted.xml").readText()
+        testDataPath.resolve("import/apk/expected/res/raw/watchface_extracted.xml").readText()
       )
   }
 }

@@ -49,7 +49,7 @@ class WatchFaceStudioFileImporterTest {
         defaultDispatcher = StandardTestDispatcher(testScheduler),
         ioDispatcher = StandardTestDispatcher(testScheduler),
       )
-    val aabFilePath = testDataPath.resolve("import/example.aab")
+    val aabFilePath = testDataPath.resolve("import/aab/example.aab")
 
     val result = importer.import(aabFilePath)
 
@@ -57,37 +57,37 @@ class WatchFaceStudioFileImporterTest {
 
     fixture.checkResultByFile(
       "src/main/$FN_ANDROID_MANIFEST_XML",
-      "import/expected/$FN_ANDROID_MANIFEST_XML",
+      "import/aab/expected/$FN_ANDROID_MANIFEST_XML",
       true,
     )
     fixture.checkResultByFile(
       "src/main/res/raw/watchface.xml",
-      "import/expected/res/raw/watchface.xml",
+      "import/aab/expected/res/raw/watchface.xml",
       true,
     )
     fixture.checkResultByFile(
       "src/main/res/xml/watch_face.xml",
-      "import/expected/res/xml/watch_face.xml",
+      "import/aab/expected/res/xml/watch_face.xml",
       true,
     )
     fixture.checkResultByFile(
       "src/main/res/xml/watch_face_info.xml",
-      "import/expected/res/xml/watch_face_info.xml",
+      "import/aab/expected/res/xml/watch_face_info.xml",
       true,
     )
     fixture.checkResultByFile(
       "src/main/res/xml/watch_face_shapes.xml",
-      "import/expected/res/xml/watch_face_shapes.xml",
+      "import/aab/expected/res/xml/watch_face_shapes.xml",
       true,
     )
     fixture.checkResultByFile(
       "src/main/res/values/strings.xml",
-      "import/expected/res/values/strings.xml",
+      "import/aab/expected/res/values/strings.xml",
       true,
     )
     fixture.checkResultByFile(
       "src/main/res/values-es/strings.xml",
-      "import/expected/res/values-es/strings.xml",
+      "import/aab/expected/res/values-es/strings.xml",
       true,
     )
 
@@ -104,7 +104,7 @@ class WatchFaceStudioFileImporterTest {
         defaultDispatcher = StandardTestDispatcher(testScheduler),
         ioDispatcher = StandardTestDispatcher(testScheduler),
       )
-    val aabFilePath = testDataPath.resolve("import/example.aab")
+    val aabFilePath = testDataPath.resolve("import/aab/example.aab")
     fixture.copyFileToProject(
       "import/AndroidManifest_existing.xml",
       "src/main/$FN_ANDROID_MANIFEST_XML",
@@ -116,7 +116,7 @@ class WatchFaceStudioFileImporterTest {
 
     fixture.checkResultByFile(
       "src/main/$FN_ANDROID_MANIFEST_XML",
-      "import/expected/AndroidManifest_merged.xml",
+      "import/aab/expected/AndroidManifest_merged.xml",
       true,
     )
   }
