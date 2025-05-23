@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction
 import com.android.tools.idea.compose.preview.actions.UiCheckReopenTabAction
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber
+import com.android.tools.idea.compose.preview.resize.ResizePanel
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -213,6 +214,7 @@ class ComposePreviewRepresentationTest {
   @After
   fun tearDown() {
     StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.clearOverride()
+    StudioFlags.COMPOSE_PREVIEW_RESIZING.clearOverride()
     composePreviewEssentialsModeEnabled = false
   }
 
@@ -836,6 +838,35 @@ class ComposePreviewRepresentationTest {
     }
 
   @Test
+  fun testResizePanelIsCreatedInFocusMode_flagTrue() = runComposePreviewRepresentationTest {
+    StudioFlags.COMPOSE_PREVIEW_RESIZING.overrideForTest(true, projectRule.fixture.testRootDisposable)
+    createPreviewAndCompile()
+
+    val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+    val focusElement = previewElements[0]
+
+    setModeAndWaitForRefresh(PreviewMode.Focus(focusElement)) { composeView.focusMode != null }
+
+    assertThat(composeView.focusMode!!.component.components[1] as? ResizePanel).isNotNull()
+  }
+
+  @Test
+  fun testResizePanelIsCreatedInFocusMode_flagFalse() = runComposePreviewRepresentationTest {
+    StudioFlags.COMPOSE_PREVIEW_RESIZING.overrideForTest(
+      false,
+      projectRule.fixture.testRootDisposable,
+    )
+    createPreviewAndCompile()
+
+    val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+    val focusElement = previewElements[0]
+
+    setModeAndWaitForRefresh(PreviewMode.Focus(focusElement)) { composeView.focusMode != null }
+
+    assertThat(composeView.focusMode!!.component.components.size).isEqualTo(1)
+  }
+
+  @Test
   fun testInteractivePreviewManagerFpsLimitIsUpdatedWhenEssentialsModeChanges() =
     runComposePreviewRepresentationTest {
       val preview = createPreviewAndCompile()
@@ -851,7 +882,10 @@ class ComposePreviewRepresentationTest {
 
   @Test
   fun testWearUiCheckMode() {
-    StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.override(true)
+    StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.overrideForTest(
+      true,
+      projectRule.fixture.testRootDisposable,
+    )
 
     val testPsiFile = runWriteActionAndWait {
       fixture.addFileToProjectAndInvalidate(
@@ -1201,7 +1235,7 @@ class ComposePreviewRepresentationTest {
 
     private lateinit var preview: ComposePreviewRepresentation
 
-    private lateinit var composeView: TestComposePreviewView
+    lateinit var composeView: TestComposePreviewView
 
     private lateinit var dataProvider: DataProvider
 

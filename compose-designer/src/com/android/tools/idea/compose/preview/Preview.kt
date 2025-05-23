@@ -1572,11 +1572,15 @@ class ComposePreviewRepresentation(
       }
       is PreviewMode.Focus -> {
         withContext(uiThread) {
-          activeResizePanelInFocusMode = ResizePanel(composeWorkBench.mainSurface)
+          if (StudioFlags.COMPOSE_PREVIEW_RESIZING.get()) {
+            activeResizePanelInFocusMode = ResizePanel(composeWorkBench.mainSurface)
+          }
           composeWorkBench.focusMode =
-            FocusMode(composeWorkBench.mainSurface, activeResizePanelInFocusMode!!).apply {
-              addSelectionListener { activeResizePanelInFocusMode?.clearPanelAndHidePanel() }
-            }
+            activeResizePanelInFocusMode?.let { resizePanel ->
+              FocusMode(composeWorkBench.mainSurface, resizePanel).apply {
+                addSelectionListener { resizePanel.clearPanelAndHidePanel() }
+              }
+            } ?: FocusMode(composeWorkBench.mainSurface)
         }
       }
     }
