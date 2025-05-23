@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
+import com.android.tools.idea.compose.preview.resize.ConfigurationResizeListener
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
