@@ -35,6 +35,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType
+import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.ProjectRule
@@ -48,6 +49,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 import java.awt.Dimension
 import java.util.concurrent.Executors
 import javax.swing.Icon
@@ -64,8 +66,8 @@ class StreamingToolWindowManagerMultiProjectTest {
   val ruleChain = RuleChain(agentRule, project2Rule, androidExecutorsRule, EdtRule())
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
-  private val toolWindow1: TestToolWindow by lazy { createToolWindow(project1) }
-  private val toolWindow2: TestToolWindow by lazy { createToolWindow(project2) }
+  private val toolWindow1: FakeToolWindow by lazy { createToolWindow(project1) }
+  private val toolWindow2: FakeToolWindow by lazy { createToolWindow(project2) }
   private val contentManager1: ContentManager by lazy { toolWindow1.contentManager }
   private val contentManager2: ContentManager by lazy { toolWindow2.contentManager }
 
@@ -158,7 +160,7 @@ class StreamingToolWindowManagerMultiProjectTest {
     assertThat(mirroringManager2.mirroringHandles.value[pixel7Handle2]?.mirroringState).isEqualTo(MirroringState.ACTIVE)
   }
 
-  private fun createToolWindow(project: Project): TestToolWindow {
+  private fun createToolWindow(project: Project): FakeToolWindow {
     val windowManager = TestToolWindowManager(project)
     project1.replaceService(ToolWindowManager::class.java, windowManager, testRootDisposable)
     val toolWindow = windowManager.toolWindow
@@ -168,7 +170,7 @@ class StreamingToolWindowManagerMultiProjectTest {
   }
 
   private inner class TestToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
-    var toolWindow = TestToolWindow(project, this)
+    var toolWindow = FakeToolWindow(project, this)
 
     override fun getToolWindow(id: String?): ToolWindow? {
       return if (id == RUNNING_DEVICES_TOOL_WINDOW_ID) toolWindow else super.getToolWindow(id)
@@ -179,7 +181,7 @@ class StreamingToolWindowManagerMultiProjectTest {
     }
   }
 
-  private inner class TestToolWindow(
+  private inner class FakeToolWindow(
     project: Project,
     private val manager: ToolWindowManager,
   ) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
@@ -193,6 +195,7 @@ class StreamingToolWindowManagerMultiProjectTest {
     private var active = false
     private var type = ToolWindowType.DOCKED
     private var icon = StudioIcons.Shell.ToolWindows.EMULATOR
+    private val decorator = mock<InternalDecorator>()
 
     override fun setAvailable(available: Boolean) {
       this.available = available
@@ -200,6 +203,10 @@ class StreamingToolWindowManagerMultiProjectTest {
 
     override fun isAvailable(): Boolean {
       return available
+    }
+
+    override fun getDecorator(): InternalDecorator {
+      return decorator
     }
 
     override fun show(runnable: Runnable?) {

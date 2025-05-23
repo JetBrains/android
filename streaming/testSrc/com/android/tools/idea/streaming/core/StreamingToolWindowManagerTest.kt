@@ -84,6 +84,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType
+import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.RuleChain
@@ -130,7 +131,7 @@ class StreamingToolWindowManagerTest {
                             EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule)
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
-  private val toolWindow: TestToolWindow by lazy { createToolWindow() }
+  private val toolWindow: FakeToolWindow by lazy { createToolWindow() }
   private val contentManager: ContentManager by lazy { toolWindow.contentManager }
 
   private val deviceMirroringSettings: DeviceMirroringSettings by lazy { DeviceMirroringSettings.getInstance() }
@@ -812,7 +813,7 @@ class StreamingToolWindowManagerTest {
     }
   }
 
-  private fun createToolWindow(): TestToolWindow {
+  private fun createToolWindow(): FakeToolWindow {
     val windowManager = TestToolWindowManager()
     project.replaceService(ToolWindowManager::class.java, windowManager, testRootDisposable)
     val toolWindow = windowManager.toolWindow
@@ -850,7 +851,7 @@ class StreamingToolWindowManagerTest {
   }
 
   private inner class TestToolWindowManager : ToolWindowHeadlessManagerImpl(project) {
-    var toolWindow = TestToolWindow(this)
+    var toolWindow = FakeToolWindow(this)
 
     override fun getToolWindow(id: String?): ToolWindow? {
       return if (id == RUNNING_DEVICES_TOOL_WINDOW_ID) toolWindow else super.getToolWindow(id)
@@ -861,7 +862,7 @@ class StreamingToolWindowManagerTest {
     }
   }
 
-  private inner class TestToolWindow(private val manager: ToolWindowManager) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
+  private inner class FakeToolWindow(private val manager: ToolWindowManager) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
 
     var tabActions: List<AnAction> = emptyList()
       private set
@@ -872,9 +873,14 @@ class StreamingToolWindowManagerTest {
     private var active = false
     private var type = ToolWindowType.DOCKED
     private var icon = StudioIcons.Shell.ToolWindows.EMULATOR
+    private val decorator = mock<InternalDecorator>()
 
     override fun setAvailable(available: Boolean) {
       this.available = available
+    }
+
+    override fun getDecorator(): InternalDecorator {
+      return decorator
     }
 
     override fun isAvailable(): Boolean {
