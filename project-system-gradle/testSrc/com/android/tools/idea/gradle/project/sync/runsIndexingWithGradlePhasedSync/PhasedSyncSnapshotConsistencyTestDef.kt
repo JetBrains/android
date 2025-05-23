@@ -25,11 +25,6 @@ import com.intellij.openapi.project.Project
 import java.io.File
 
 private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
-    // TODO(b/384022658): Content root watching related
-  "/WATCHED_SOURCE_FOLDER",
-  "/WATCHED_RESOURCE_FOLDER",
-  "/WATCHED_TEST_SOURCE_FOLDER",
-  "/WATCHED_TEST_RESOURCE_FOLDER",
 
   // TODO(b/384022658): Facet related
   "/FACET (Android)",
@@ -63,7 +58,13 @@ private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
 private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES =
   PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES +
   // TODO(b/384022658): There are dependency related issues with non-android modules
-  DEPENDENCY_RELATED_PROPERTIES
+  DEPENDENCY_RELATED_PROPERTIES + setOf(
+    // TODO(b/384022658): Content root watching related, these are not set up properly for java/kmp modules yet
+    "/WATCHED_SOURCE_FOLDER",
+    "/WATCHED_RESOURCE_FOLDER",
+    "/WATCHED_TEST_SOURCE_FOLDER",
+    "/WATCHED_TEST_RESOURCE_FOLDER",
+  )
 
 fun ModuleDumpWithType.filterOutKnownConsistencyIssues(testProject: TestProject): ModuleDumpWithType {
   val (androidEntries, rest) = entries.partition { line ->

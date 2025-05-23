@@ -37,12 +37,14 @@ import com.intellij.java.workspace.entities.javaResourceRoots
 import com.intellij.java.workspace.entities.javaSourceRoots
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import com.intellij.openapi.externalSystem.model.project.IExternalSystemSourceType
+import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManager
 import com.intellij.openapi.externalSystem.util.Order
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
+import com.intellij.openapi.vfs.VfsUtilCore.pathToUrl
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
 import com.intellij.platform.workspace.jps.entities.ExcludeUrlEntity
@@ -63,6 +65,9 @@ import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_SOURCE_ROOT_E
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_RESOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_ROOT_ENTITY_TYPE_ID
 import org.jetbrains.annotations.ApiStatus
+import org.jetbrains.jps.model.java.JavaResourceRootType
+import org.jetbrains.jps.model.java.JavaSourceRootType
+import org.jetbrains.jps.model.module.JpsModuleSourceRootType
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.GradleLightBuild
 import org.jetbrains.plugins.gradle.model.GradleLightProject
@@ -279,7 +284,7 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities()
     val newModuleEntity = findOrCreateModuleEntity(moduleName, entitySource, moduleEntitiesMap)
 
     // Create the content root and associate it with the module
-    val contentRootEntity = createContentRootEntity(entitySource, typeToDirsMap)
+    val contentRootEntity = createContentRootEntity(moduleName, entitySource, typeToDirsMap)
 
     newModuleEntity.contentRoots += contentRootEntity
     sourceSetArtifactName to newModuleEntity
@@ -363,11 +368,13 @@ private fun SyncContributorAndroidProjectContext.findOrCreateModuleEntity(
   createModuleEntity(name, entitySource).also {
     registerModuleAction(it.name) { moduleInstance ->
       moduleInstance.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, null)
+      SourceFolderManager.getInstance(project).removeSourceFolders(moduleInstance)
     }
   }
 }
 
 private fun SyncContributorAndroidProjectContext.createContentRootEntity(
+  moduleName: String,
   entitySource: EntitySource,
   typeToDirsMap: Map<out ExternalSystemSourceType?, Set<File>>
 ): ContentRootEntity.Builder {
@@ -392,10 +399,24 @@ private fun SyncContributorAndroidProjectContext.createContentRootEntity(
       sourceRoots += roots
         .filter { (type, _) -> type != null } // manifest directory can have null type
         .flatMap { (type, urls) ->
-          urls.mapNotNull {
-            // TODO(b/384022658): If the source root doesn't exist, we should create a watcher here via SourceFolderManager,
-            // but it's not possible at this moment due to the module itself not being created yet.
-            it.takeIf { it.exists() }?.let { createSourceRootEntity(it, type!!, entitySource) }
+          val (urlsWithExistingFiles, urlsWithMissingFiles) = urls.partition { it.exists() }
+          // nulls filtered already, so using !! is fine
+          val jpsType = type!!.toJpsModuleSourceRootType()
+          if (jpsType != null) {
+            registerModuleAction(moduleName) { moduleInstance ->
+              val sourceFolderManager = SourceFolderManager.getInstance(project)
+              urlsWithMissingFiles.forEach { url ->
+                val normalizedUrl = pathToUrl(url.path)
+                sourceFolderManager.addSourceFolder(moduleInstance, normalizedUrl, jpsType)
+                if (type.isGenerated) {
+                  sourceFolderManager.setSourceFolderGenerated(normalizedUrl, true)
+                }
+              }
+            }
+          }
+
+          urlsWithExistingFiles.map {
+            createSourceRootEntity(it, type, entitySource)
           }
         }
     }
@@ -425,6 +446,16 @@ private fun SyncContributorAndroidProjectContext.createSourceRootEntity(
   }
 }
 
+// copied from ContentRootDataService
+private fun IExternalSystemSourceType.toJpsModuleSourceRootType():  JpsModuleSourceRootType<*>? {
+  return when (ExternalSystemSourceType.from(this)) {
+    ExternalSystemSourceType.SOURCE, ExternalSystemSourceType.SOURCE_GENERATED -> JavaSourceRootType.SOURCE
+    ExternalSystemSourceType.TEST, ExternalSystemSourceType.TEST_GENERATED -> JavaSourceRootType.TEST_SOURCE
+    ExternalSystemSourceType.RESOURCE, ExternalSystemSourceType.RESOURCE_GENERATED -> JavaResourceRootType.RESOURCE
+    ExternalSystemSourceType.TEST_RESOURCE, ExternalSystemSourceType.TEST_RESOURCE_GENERATED -> JavaResourceRootType.TEST_RESOURCE
+    ExternalSystemSourceType.EXCLUDED -> null
+  }
+}
 
 // copied from platform and modified to have the sync contributor context
 internal fun SyncContributorProjectContext.resolveModuleName(): String {

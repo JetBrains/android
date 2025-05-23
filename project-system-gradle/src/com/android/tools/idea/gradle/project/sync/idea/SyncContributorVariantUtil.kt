@@ -179,11 +179,11 @@ private fun createSourceSetDataForSourceProvider(name: IdeArtifactName,
 private fun createSourceSetDataForAndroidArtifact(name: IdeArtifactName, artifact: AndroidArtifact, isProduction: Boolean): List<SourceSetData> {
   return artifact.generatedSourceFolders.map {
     name to mapOf(
-      (if (isProduction) ExternalSystemSourceType.SOURCE else ExternalSystemSourceType.TEST) to setOf(it)
+      (if (isProduction) ExternalSystemSourceType.SOURCE_GENERATED else ExternalSystemSourceType.TEST_GENERATED) to setOf(it)
     )
   } + artifact.generatedResourceFolders.map {
     name to mapOf(
-      (if (isProduction) ExternalSystemSourceType.RESOURCE else ExternalSystemSourceType.TEST_RESOURCE) to setOf(it)
+      (if (isProduction) ExternalSystemSourceType.RESOURCE_GENERATED else ExternalSystemSourceType.TEST_RESOURCE_GENERATED) to setOf(it)
     )
   }
 }
@@ -191,7 +191,7 @@ private fun createSourceSetDataForAndroidArtifact(name: IdeArtifactName, artifac
 private fun createSourceSetDataForTestJavaArtifact(name: IdeArtifactName, artifact: JavaArtifact): List<SourceSetData> {
   return artifact.generatedSourceFolders.map {
     name to mapOf(
-      ExternalSystemSourceType.TEST to setOf(it)
+      ExternalSystemSourceType.TEST_GENERATED to setOf(it)
     )
   }
 }
