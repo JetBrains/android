@@ -43,7 +43,6 @@ import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.fileEditor.impl.text.TextEditorState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -116,7 +115,12 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
   ): FileEditor {
     val textEditor =
       PsiAwareTextEditorProvider().createFileEditor(project, file, document, editorCoroutineScope)
-    val psiFile = readAction { PsiManager.getInstance(project).findFile(file)!! }
+    val psiFile = readAction { PsiManager.getInstance(project).findFile(file) }
+
+    if (psiFile == null) {
+      log.warn("Unable to locate PSI File for ${file.path}")
+      return textEditor
+    }
 
     return withContext(Dispatchers.EDT) {
       buildSourceCodeEditorWithMultiRepresentationPreview(project, psiFile, textEditor)
@@ -131,11 +135,17 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
       log.debug("createEditor file=${file.path}")
     }
 
-    val psiFile = SlowOperations.knownIssue("IDEA-359566").use {
-      runReadAction { PsiManager.getInstance(project).findFile(file)!! }
-    }
-    val textEditor = SlowOperations.knownIssue("IDEA-359566").use {
-      TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
+    val textEditor =
+      SlowOperations.knownIssue("IDEA-359566").use {
+        TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
+      }
+    val psiFile =
+      SlowOperations.knownIssue("IDEA-359566").use {
+        runReadAction { PsiManager.getInstance(project).findFile(file) }
+      }
+    if (psiFile == null) {
+      log.warn("Unable to locate PSI File for ${file.path}")
+      return textEditor
     }
 
     return buildSourceCodeEditorWithMultiRepresentationPreview(project, psiFile, textEditor)
