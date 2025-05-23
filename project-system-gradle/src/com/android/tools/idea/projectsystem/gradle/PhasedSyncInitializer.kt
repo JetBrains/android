@@ -29,6 +29,7 @@ import com.intellij.platform.workspace.jps.entities.ModuleId
 import com.intellij.platform.workspace.jps.entities.modifyExternalSystemModuleOptionsEntity
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.entities
+import com.intellij.workspaceModel.ide.legacyBridge.findModule
 import org.jetbrains.plugins.gradle.service.project.DefaultProjectResolverContext
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
@@ -73,6 +74,9 @@ class FixSyncContributorIssues: GradleSyncContributor {
           // no need to reconcile the root module, or an existing holder module matching the expected name
           if (isGradleRootProject || storage.resolve(ModuleId(resolveModuleName())) != null) return@forEach
           val existingModuleEntity = entitiesByUrls[projectEntitySource.projectRootUrl] ?: return@forEach
+          existingModuleEntity.findModule(storage)?.getAllLinkedModules()?.forEach {
+            it.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, null)
+          }
           storage.removeEntity(existingModuleEntity)
           storage addEntity createModuleEntity(resolveModuleName(), projectEntitySource)
         }

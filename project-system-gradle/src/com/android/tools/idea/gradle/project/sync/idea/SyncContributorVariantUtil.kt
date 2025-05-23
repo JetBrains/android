@@ -20,7 +20,6 @@ import com.android.builder.model.v2.ide.BasicArtifact
 import com.android.builder.model.v2.ide.JavaArtifact
 import com.android.builder.model.v2.ide.SourceProvider
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
 import com.android.tools.idea.gradle.project.sync.Modules
@@ -167,9 +166,8 @@ private fun createSourceSetDataForSourceProvider(name: IdeArtifactName,
         emptySet()
                                            ) - sourceDirectories // exclude source directories in case they are shared
 
-  val sourceSetName = name.toWellKnownSourceSet().sourceSetName
-  return  listOf(
-    sourceSetName to mapOf(
+  return listOf(
+    name to mapOf(
       (if (isProduction) ExternalSystemSourceType.SOURCE else ExternalSystemSourceType.TEST)
         to sourceDirectories,
       (if (isProduction) ExternalSystemSourceType.RESOURCE else ExternalSystemSourceType.TEST_RESOURCE)
@@ -179,22 +177,20 @@ private fun createSourceSetDataForSourceProvider(name: IdeArtifactName,
 }
 
 private fun createSourceSetDataForAndroidArtifact(name: IdeArtifactName, artifact: AndroidArtifact, isProduction: Boolean): List<SourceSetData> {
-  val sourceSetName = name.toWellKnownSourceSet().sourceSetName
   return artifact.generatedSourceFolders.map {
-    sourceSetName to mapOf(
+    name to mapOf(
       (if (isProduction) ExternalSystemSourceType.SOURCE else ExternalSystemSourceType.TEST) to setOf(it)
     )
   } + artifact.generatedResourceFolders.map {
-    sourceSetName to mapOf(
+    name to mapOf(
       (if (isProduction) ExternalSystemSourceType.RESOURCE else ExternalSystemSourceType.TEST_RESOURCE) to setOf(it)
     )
   }
 }
 
 private fun createSourceSetDataForTestJavaArtifact(name: IdeArtifactName, artifact: JavaArtifact): List<SourceSetData> {
-  val sourceSetName = name.toWellKnownSourceSet().sourceSetName
   return artifact.generatedSourceFolders.map {
-    sourceSetName to mapOf(
+    name to mapOf(
       ExternalSystemSourceType.TEST to setOf(it)
     )
   }

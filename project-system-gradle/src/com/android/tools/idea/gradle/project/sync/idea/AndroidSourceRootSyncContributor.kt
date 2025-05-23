@@ -21,11 +21,15 @@ import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.Versions
+import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.convert
 import com.android.tools.idea.gradle.project.sync.idea.entities.AndroidGradleSourceSetEntitySource
+import com.android.tools.idea.projectsystem.gradle.LINKED_ANDROID_GRADLE_MODULE_GROUP
+import com.android.tools.idea.projectsystem.gradle.LinkedAndroidGradleModuleGroup
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import com.intellij.java.workspace.entities.JavaResourceRootPropertiesEntity
 import com.intellij.java.workspace.entities.JavaSourceRootPropertiesEntity
@@ -34,8 +38,11 @@ import com.intellij.java.workspace.entities.javaSourceRoots
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import com.intellij.openapi.externalSystem.model.project.IExternalSystemSourceType
 import com.intellij.openapi.externalSystem.util.Order
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
 import com.intellij.platform.workspace.jps.entities.ExcludeUrlEntity
@@ -71,7 +78,8 @@ import java.io.File
 import kotlin.io.path.absolute
 
 // Need the source type to be nullable because of how AndroidManifest is handled.
-internal typealias SourceSetData = Pair<String, Map<out ExternalSystemSourceType?, Set<File>>>
+internal typealias SourceSetData = Pair<IdeArtifactName, Map<out ExternalSystemSourceType?, Set<File>>>
+internal typealias ModuleAction = (Module) -> Unit
 
 internal open class SyncContributorProjectContext(
   val context: ProjectResolverContext,
@@ -121,6 +129,20 @@ internal class SyncContributorAndroidProjectContext(
   // TODO(b/384022658): Spaces in module names are causing issues, fix them to  be consistent with data services too.
   val isValidContext = holderModuleEntityNullable != null && !resolveModuleName().contains("\\s".toRegex())
 
+  val moduleActions = mutableMapOf<String, MutableList<ModuleAction>>()
+
+  fun registerModuleAction(moduleName: String, action: ModuleAction) {
+    moduleActions.computeIfAbsent (moduleName) { mutableListOf() } += action
+  }
+
+  fun registerModuleActions(actions: Map<String, ModuleAction>) {
+    actions.forEach { moduleName, action ->
+      registerModuleAction(moduleName, action)
+    }
+  }
+
+  fun unregisterModuleActions(moduleName: String) = moduleActions.remove(moduleName)
+
   companion object {
     internal fun create(context: ProjectResolverContext,
                         project: Project,
@@ -144,37 +166,89 @@ internal class SyncContributorAndroidProjectContext(
 @ApiStatus.Internal
 @Order(GradleSyncContributor.Order.SOURCE_ROOT_CONTRIBUTOR)
 class AndroidSourceRootSyncContributor : GradleSyncContributor {
+  var moduleActionsFromPreviousPhase: Map<String, List<ModuleAction>>? = null
+
   override suspend fun onModelFetchPhaseCompleted(
     context: ProjectResolverContext,
     storage: MutableEntityStorage,
     phase: GradleModelFetchPhase,
   ) {
+    performModuleActionsFromPreviousPhase(context.project())
     if (context.isPhasedSyncEnabled) {
       if (phase == GradleModelFetchPhase.PROJECT_SOURCE_SET_PHASE) {
-        configureModulesForSourceSets(context, storage)
+        val allContexts = configureModulesForSourceSets(context, storage)
+        moduleActionsFromPreviousPhase = allContexts.flatMap { it.moduleActions.entries }.associate { it.key to it.value }
       }
     }
   }
+  override suspend fun onModelFetchCompleted(context: ProjectResolverContext, storage: MutableEntityStorage) {
+    performModuleActionsFromPreviousPhase(context.project())
+  }
 
-  private suspend fun configureModulesForSourceSets(context: ProjectResolverContext, storage: MutableEntityStorage) {
+  override suspend fun onModelFetchFailed(context: ProjectResolverContext,
+                                          storage: MutableEntityStorage,
+                                          exception: Throwable) {
+    moduleActionsFromPreviousPhase = null
+  }
+
+  /**
+   * Actual module instances will only be available in the phase after we commit changes to the storage.
+   *
+   * This method performs any module operations registered earlier after the instances are created.
+   */
+  private fun performModuleActionsFromPreviousPhase(project: Project) {
+    if (moduleActionsFromPreviousPhase != null) {
+      val modulesByName = project.modules.associateBy { it.name }
+      // This is fine, it will not be modified as we're being executed in a single-threaded context
+      moduleActionsFromPreviousPhase!!.forEach { moduleName, actions ->
+        val module = checkNotNull(modulesByName[moduleName]) { "No module found for module with registered actions!" }
+        actions.forEach { it(module) }
+      }
+      moduleActionsFromPreviousPhase = null
+    }
+  }
+
+
+  private suspend fun configureModulesForSourceSets(
+    context: ProjectResolverContext,
+    storage: MutableEntityStorage): List<SyncContributorAndroidProjectContext> {
     val project = context.project()
     val syncOptions = context.getSyncOptions(project)
 
     val existingSourceSetEntities = MutableEntityStorage.from(storage.toSnapshot())
+    val knownHolderModuleEntitySources = mutableSetOf<EntitySource>()
     val allAndroidContexts = context.allBuilds.flatMap { buildModel ->
-      buildModel.projects.mapNotNull allProjects@{ projectModel ->
+      buildModel.projects.mapNotNull { projectModel ->
         checkCanceled()
         SyncContributorAndroidProjectContext.create(context, project, storage, syncOptions, buildModel, projectModel)
       }
     }
-    val newModuleEntities =  allAndroidContexts.flatMap { it.getAllSourceSetModuleEntities() }
+    val newModuleEntities = allAndroidContexts.flatMap {
+      with(it) {
+        val sourceSetModuleEntitiesByArtifact = getAllSourceSetModuleEntities()
+        if (sourceSetModuleEntitiesByArtifact.isEmpty()) return@flatMap emptyList()
+        val sourceSetModules = sourceSetModuleEntitiesByArtifact.values
+        val androidModuleGroup = getModuleGroup(sourceSetModuleEntitiesByArtifact)
+        knownHolderModuleEntitySources += holderModuleEntity.entitySource
+
+        val linkedModuleNames = sourceSetModules.map { it.name } + holderModuleEntity.name
+        registerModuleActions(linkedModuleNames.associate {
+          it.to { moduleInstance ->
+            moduleInstance.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, androidModuleGroup)
+          }
+        }
+        )
+        sourceSetModules
+      }
+    }
 
     newModuleEntities.forEach { newModuleEntity ->
       // Create or update the entity after doing all the mutations
       val existingEntity = existingSourceSetEntities.resolve(ModuleId(newModuleEntity.name))
       if (existingEntity == null) {
         existingSourceSetEntities addEntity newModuleEntity
-      } else {
+      }
+      else {
         existingSourceSetEntities.modifyModuleEntity(existingEntity) {
           this.entitySource = newModuleEntity.entitySource
           this.contentRoots = newModuleEntity.contentRoots
@@ -184,20 +258,22 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
       }
     }
     // Only replace the android related source sets
-    storage.replaceBySource({ it is AndroidGradleSourceSetEntitySource }, existingSourceSetEntities)
+    storage.replaceBySource({ it is AndroidGradleSourceSetEntitySource || it in knownHolderModuleEntitySources }, existingSourceSetEntities)
+    return allAndroidContexts
   }
 }
 
 // helpers
-internal fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities(): List<ModuleEntity.Builder> {
+private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities(): Map<IdeArtifactName, ModuleEntity.Builder> {
   val allSourceSets = getAllSourceSetsFromModels()
 
   // This is the module name corresponding to the "holder" module
   val projectModuleName = resolveModuleName()
   val moduleEntitiesMap = mutableMapOf<String, ModuleEntity.Builder>()
 
-  return allSourceSets.map  { (sourceSetName, typeToDirsMap) ->
+  val (sourceSets, ignoredSourceSets) = allSourceSets.map  { (sourceSetArtifactName, typeToDirsMap) ->
     // For each source set in the project, create entity source and the actual entities.
+    val sourceSetName = sourceSetArtifactName.toWellKnownSourceSet().sourceSetName
     val entitySource = AndroidGradleSourceSetEntitySource(projectEntitySource, sourceSetName)
     val moduleName = "$projectModuleName.$sourceSetName"
     val newModuleEntity = findOrCreateModuleEntity(moduleName, entitySource, moduleEntitiesMap)
@@ -206,13 +282,18 @@ internal fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities(
     val contentRootEntity = createContentRootEntity(entitySource, typeToDirsMap)
 
     newModuleEntity.contentRoots += contentRootEntity
-    newModuleEntity
-  }.filter {
+    sourceSetArtifactName to newModuleEntity
+  }.partition { (_, module) ->
     // In some scenarios (for instance KMP), we end up with duplicate content roots, so ignoring those modules completely for now
     // TODO(b/384022658): It's possible this will not be an issue if we start merging source roots as it's being done in the platform side
     // using ContentRootIndex. That's left to later as it's not visible to us yet.
-    it.contentRoots.hasNoDuplicates()
+    module.contentRoots.hasNoDuplicates()
   }
+  ignoredSourceSets.forEach { (_, module) ->
+    // Unregister any module actions that might have been previously registered, as we won't be creating any modules for these
+    unregisterModuleActions(module.name)
+  }
+  return sourceSets.toMap()
 }
 
 private fun List<ContentRootEntity.Builder>.hasNoDuplicates() = this.distinctBy { it.url }.size == this.size
@@ -229,11 +310,25 @@ private fun findCommonAncestor(file1: File, file2: File) : File {
   }.toFile()
 }
 
+private fun SyncContributorAndroidProjectContext.getModuleGroup(
+  sourceSetModules: Map<IdeArtifactName, ModuleEntity.Builder>
+): LinkedAndroidGradleModuleGroup {
+  val modulePointerManager = ModulePointerManager.getInstance(project)
+  return LinkedAndroidGradleModuleGroup(
+    modulePointerManager.create(holderModuleEntity.name),
+    modulePointerManager.create(checkNotNull(sourceSetModules[IdeArtifactName.MAIN]) { "Can't find main module!" }.name),
+    sourceSetModules[IdeArtifactName.UNIT_TEST]?.let { modulePointerManager.create(it.name) },
+    sourceSetModules[IdeArtifactName.ANDROID_TEST]?.let { modulePointerManager.create(it.name) },
+    sourceSetModules[IdeArtifactName.TEST_FIXTURES]?.let { modulePointerManager.create(it.name) },
+    sourceSetModules[IdeArtifactName.SCREENSHOT_TEST]?.let { modulePointerManager.create(it.name) }
+  )
+}
+
 // entity creation
 internal fun SyncContributorProjectContext.createModuleEntity(
   name: String,
   entitySource: EntitySource
-) =   ModuleEntity(
+) = ModuleEntity(
   entitySource = entitySource,
   name = name,
   dependencies = listOf(
@@ -265,7 +360,11 @@ private fun SyncContributorAndroidProjectContext.findOrCreateModuleEntity(
   entitySource: AndroidGradleSourceSetEntitySource,
   moduleEntitiesMap: MutableMap<String, ModuleEntity.Builder>
 ): ModuleEntity.Builder = moduleEntitiesMap.computeIfAbsent(name) {
-  createModuleEntity(name, entitySource)
+  createModuleEntity(name, entitySource).also {
+    registerModuleAction(it.name) { moduleInstance ->
+      moduleInstance.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, null)
+    }
+  }
 }
 
 private fun SyncContributorAndroidProjectContext.createContentRootEntity(

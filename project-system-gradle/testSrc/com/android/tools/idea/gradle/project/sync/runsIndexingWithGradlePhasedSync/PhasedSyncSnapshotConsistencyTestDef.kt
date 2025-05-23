@@ -49,10 +49,11 @@ private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
   // TODO(b/384022658): These are missing from full sync, should they?
   "</>data_binding_base_class_source_out</>",
 
+  // TODO(b/384022658): Set up test fixtures modules in phased sync as well
+  "/LINKED_ANDROID_MODULE_GROUP/testFixtures", // TODO(b/384022658)
 
   // Individual issues
   "/COMPILER_MODULE_EXTENSION", // TODO(b/384022658)
-  "/LINKED_ANDROID_MODULE_GROUP", // TODO(b/384022658)
   "/TEST_MODULE_PROPERTIES", // TODO(b/384022658)
   "/EXCLUDE_FOLDER", // TODO(b/384022658)
   "/Classes" // TODO(b/384022658)
