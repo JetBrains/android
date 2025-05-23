@@ -178,7 +178,7 @@ class GradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     usages.forEach { assertNotNull(it.tooltipText) }
   }
 
-  // TODO(b/159420573): test that with a sufficiently new (>= GRADLE_MINIMUM_VERSION) declared version of gradle, this
+  // TODO(b/159420573): test that with a sufficiently new (>= CompatibleGradleVersion.VERSION_MIN) declared version of gradle, this
   //  processor does nothing.  (Need to programmatically write the properties file so that it doesn't fail when
-  //  GRADLE_MINIMUM_VERSION changes)
+  //  CompatibleGradleVersion.VERSION_MIN changes)
 }
