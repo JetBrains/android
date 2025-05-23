@@ -398,14 +398,14 @@ class StreamingToolWindowManagerTest {
 
     var action = waitForAction(2.seconds, emulator2.avdName)
     executeStreamingAction(action, toolWindow.component, project,
-                           extra = DataSnapshotProvider { it.set(PlatformDataKeys.CONTENT_MANAGER, bottomContentManager) })
+                           extra = DataSnapshotProvider { it[PlatformDataKeys.CONTENT_MANAGER] = bottomContentManager })
     waitForCondition(15.seconds) { bottomContentManager.contents.size == 2 }
     assertThat(bottomContentManager.contents[1].displayName).isEqualTo(emulator2.avdName)
 
     val device2Name = "${device2.deviceState.model} API ${device2.deviceState.buildVersionSdk}"
     action = waitForAction(2.seconds, device2Name)
     executeStreamingAction(action, toolWindow.component, project,
-                           extra = DataSnapshotProvider { it.set(PlatformDataKeys.CONTENT_MANAGER, topContentManager) })
+                           extra = DataSnapshotProvider { it[PlatformDataKeys.CONTENT_MANAGER] = topContentManager })
     waitForCondition(15.seconds) { topContentManager.contents.size == 2 }
     assertThat(topContentManager.contents[1].displayName).isEqualTo(device2Name)
   }
