@@ -43,8 +43,8 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrCodeBlock
  * at all.
  */
 class GradleFileChangeListener(val gradleFiles: GradleFiles) : PsiTreeChangeListener {
-  fun handleEvent(event: PsiTreeChangeEvent, vararg elements: PsiElement) {
-    val psiFile = event.file ?: return
+  fun handleEvent(event: PsiTreeChangeEvent?, vararg elements: PsiElement?) {
+    val psiFile = event?.file ?: return
     val isExternalBuildFile = gradleFiles.isExternalBuildFile(psiFile)
     if (!gradleFiles.isGradleFile(psiFile) && !isExternalBuildFile) return
     if (gradleFiles.containsChangedFile(psiFile.virtualFile)) {
