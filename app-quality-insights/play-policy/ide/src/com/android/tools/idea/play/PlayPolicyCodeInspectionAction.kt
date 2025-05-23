@@ -81,8 +81,8 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
           }
         }
       )
-      border = JBUI.Borders.empty(5)
-      preferredSize = Dimension(preferredSize.width, 66)
+      border = JBUI.Borders.empty(JBUI.scale(2))
+      preferredSize = Dimension(preferredSize.width, JBUI.scale(78))
     }
   }
 
