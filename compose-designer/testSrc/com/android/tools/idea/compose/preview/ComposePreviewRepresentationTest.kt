@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.error.SharedIssuePanelProvider
@@ -839,7 +840,10 @@ class ComposePreviewRepresentationTest {
 
   @Test
   fun testResizePanelIsCreatedInFocusMode_flagTrue() = runComposePreviewRepresentationTest {
-    StudioFlags.COMPOSE_PREVIEW_RESIZING.overrideForTest(true, projectRule.fixture.testRootDisposable)
+    StudioFlags.COMPOSE_PREVIEW_RESIZING.overrideForTest(
+      true,
+      projectRule.fixture.testRootDisposable,
+    )
     createPreviewAndCompile()
 
     val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
@@ -848,6 +852,57 @@ class ComposePreviewRepresentationTest {
     setModeAndWaitForRefresh(PreviewMode.Focus(focusElement)) { composeView.focusMode != null }
 
     assertThat(composeView.focusMode!!.component.components[1] as? ResizePanel).isNotNull()
+  }
+
+  @Test
+  fun testResizePanelIsWorkingForFileWithSinglePreview() {
+    val testFile = runWriteActionAndWait {
+      fixture.addFileToProjectAndInvalidate(
+        "SinglePreview.kt",
+        // language=kotlin
+        """
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.runtime.Composable
+
+            @Composable
+            @Preview
+            fun SinglePreview() {
+            }
+          """
+          .trimIndent(),
+      )
+    }
+
+    return runComposePreviewRepresentationTest(testFile) {
+      StudioFlags.COMPOSE_PREVIEW_RESIZING.overrideForTest(
+        true,
+        projectRule.fixture.testRootDisposable,
+      )
+      createPreviewAndCompile(expectedModelCount = 1)
+
+      val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+      assertThat(mainSurface.models.size).isEqualTo(1)
+      val singleElement = previewElements.single()
+
+      // Don't wait for refresh as it's not going to happen when we switch form grid with one
+      // element to Focus mode
+      setModeAndWaitForRefresh(PreviewMode.Focus(singleElement), waitForRefresh = false) {
+        composeView.focusMode != null
+      }
+
+      val resizePanel = composeView.focusMode!!.component.findDescendant<ResizePanel>()!!
+      assertThat(resizePanel.getCurrentPreviewElementForTest()).isEqualTo(singleElement)
+
+      setModeAndWaitForRefresh(PreviewMode.Default()) { composeView.focusMode == null }
+
+      // Don't wait for refresh as it's not going to happen when we switch form grid with one
+      // element to Focus mode
+      setModeAndWaitForRefresh(PreviewMode.Focus(singleElement), waitForRefresh = false) {
+        composeView.focusMode != null
+      }
+      val resizePanel2 = composeView.focusMode!!.component.findDescendant<ResizePanel>()!!
+      assertThat(resizePanel2.getCurrentPreviewElementForTest()).isEqualTo(singleElement)
+    }
   }
 
   @Test
@@ -1284,12 +1339,15 @@ class ComposePreviewRepresentationTest {
 
     suspend fun setModeAndWaitForRefresh(
       previewMode: PreviewMode,
+      waitForRefresh: Boolean = true,
       // In addition to refresh, we can wait for another condition before returning.
       additionalCondition: () -> Boolean = { true },
     ) {
       waitForAllRefreshesToFinish(30.seconds)
-      var refresh = false
-      composeView.refreshCompletedListeners.add { refresh = true }
+      var refresh = !waitForRefresh
+      if (waitForRefresh) {
+        composeView.refreshCompletedListeners.add { refresh = true }
+      }
       preview.setMode(previewMode)
       delayUntilCondition(250) { refresh && additionalCondition() }
     }

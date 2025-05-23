@@ -58,6 +58,7 @@ import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.SwingConstants
 import kotlin.math.roundToInt
+import org.jetbrains.annotations.TestOnly
 
 private const val textFieldWidth = 60
 private const val deviceButtonWidth = 200
@@ -410,6 +411,11 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
 
   override fun dispose() {
     currentConfiguration?.removeListener(configurationListenerInternal)
+  }
+
+  @TestOnly
+  fun getCurrentPreviewElementForTest(): PsiComposePreviewElementInstance? {
+    return currentFocusedPreviewElement
   }
 }
 

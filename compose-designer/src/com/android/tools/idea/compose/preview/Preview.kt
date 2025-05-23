@@ -1582,6 +1582,10 @@ class ComposePreviewRepresentation(
               }
             } ?: FocusMode(composeWorkBench.mainSurface)
         }
+        // If file had one Preview, on Entering Focus mode render will not be invoked,
+        // so [onAfterRender] and [updateResizePanel] will not be invoked either, we need to do it
+        // manually
+        surface.sceneManagers.singleOrNull()?.let { updateResizePanel() }
       }
     }
     surface.background = mode.backgroundColor
