@@ -105,7 +105,6 @@ import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.android.tools.idea.util.toDisplayString
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.PreviewDisplaySettings
-import com.android.tools.preview.PreviewElementInstance
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewLiteModeEvent
@@ -1069,21 +1068,16 @@ class ComposePreviewRepresentation(
             surface.notifyZoomToFit()
           }
         }
-        updateResizePanelConfigurationForFocusMode()
+        updateResizePanel()
       }
     }
   }
 
   /**
-   * Updates the configuration of the [activeResizePanelInFocusMode] based on the currently selected
-   * element if the preview is in [PreviewMode.Focus].
-   *
-   * This method ensures that the resize panel, when active in focus mode, reflects the device
-   * configuration of the currently focused preview element. It should be called when there's a
-   * possibility that the focused preview or its configuration needs to be synced with the resize
-   * panel, typically after a render or a mode update.
+   * Updates the [activeResizePanelInFocusMode] with the currently focused [LayoutlibSceneManager].
+   * This is called after a render completes in Focus mode.
    */
-  private fun updateResizePanelConfigurationForFocusMode() {
+  private fun updateResizePanel() {
     activeResizePanelInFocusMode?.let { panel ->
       val focusedSceneManager = surface.sceneManagers.singleOrNull()
       if (focusedSceneManager != null) {
@@ -1527,15 +1521,6 @@ class ComposePreviewRepresentation(
   override fun setMode(mode: PreviewMode) {
     previewModeManager.setMode(mode)
   }
-
-  private fun getConfigurationForInstance(selectedPreviewElement: PreviewElementInstance<*>) =
-    surface.models
-      .find { nlModel ->
-        val modelPreviewElement =
-          nlModel.dataProvider?.getData(PREVIEW_ELEMENT_INSTANCE) as PreviewElementInstance<*>
-        modelPreviewElement.instanceId == selectedPreviewElement.instanceId
-      }
-      ?.configuration
 
   /**
    * Performs setup for [mode] when this mode is started from a previous mode of a different class.
