@@ -105,7 +105,19 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
   private var hasBeenResized: Boolean = false
   private val LOG = Logger.getInstance(ResizePanel::class.java)
 
-  private val configurationListenerInternal = ConfigurationListener { flags ->
+  /**
+   * Listener responsible for reacting to device configuration changes to trigger a re-render of the
+   * preview and update its LayoutParams. This instance is created and managed by ResizePanel for
+   * the current [SceneManager].
+   */
+  private var renderTriggerListener: ConfigurationResizeListener? = null
+
+  /**
+   * Listener responsible for updating ResizePanel's own UI elements (e.g., text fields, visibility)
+   * when the device configuration changes, potentially due to external factors or actions from this
+   * panel itself.
+   */
+  private val resizePanelUiUpdaterListener = ConfigurationListener { flags ->
     if ((flags and ConfigurationListener.CFG_DEVICE) != 0) {
       if (currentConfiguration != null) {
         hasBeenResized = true
@@ -183,7 +195,12 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
 
   /** Clears the panel's state, removing any existing configuration and hiding it. */
   fun clearPanelAndHidePanel() {
-    currentConfiguration?.removeListener(configurationListenerInternal)
+    currentConfiguration?.removeListener(resizePanelUiUpdaterListener)
+    renderTriggerListener?.let { existingListener ->
+      Disposer.dispose(existingListener)
+      currentConfiguration?.removeListener(existingListener)
+    }
+    renderTriggerListener = null
     currentSceneManager = null
     currentConfiguration = null
     currentFocusedPreviewElement = null
@@ -290,7 +307,7 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
    *   or null if none.
    */
   fun setSceneManager(sceneManager: LayoutlibSceneManager?) {
-    currentConfiguration?.removeListener(configurationListenerInternal)
+    clearPanelAndHidePanel()
 
     currentSceneManager = sceneManager
     val model = sceneManager?.model
@@ -300,9 +317,15 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
 
     originalDeviceSnapshot = currentConfiguration?.device
     originalDeviceStateSnapshot = currentConfiguration?.deviceState
-    hasBeenResized = false
-    currentConfiguration?.addListener(configurationListenerInternal)
-    isVisible = false
+    currentConfiguration?.addListener(resizePanelUiUpdaterListener)
+    currentConfiguration?.let { configuration ->
+      currentSceneManager?.let { sceneManager ->
+        renderTriggerListener =
+          ConfigurationResizeListener(sceneManager, configuration).also {
+            configuration.addListener(it)
+          }
+      }
+    }
     updatePanelFromConfiguration()
   }
 
@@ -410,7 +433,7 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
   }
 
   override fun dispose() {
-    currentConfiguration?.removeListener(configurationListenerInternal)
+    clearPanelAndHidePanel()
   }
 
   @TestOnly

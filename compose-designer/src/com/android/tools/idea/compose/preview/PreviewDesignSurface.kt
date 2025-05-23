@@ -19,7 +19,6 @@ import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
-import com.android.tools.idea.compose.preview.resize.ConfigurationResizeListener
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.preview.modes.DEFAULT_LAYOUT_OPTION
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -62,7 +61,6 @@ private fun createPreviewDesignSurfaceBuilder(
         it.updateAndRenderWhenActivated = false // don't re-render on activation
         it.sceneRenderConfiguration.renderingTopic =
           RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW
-        it.model.configuration.addListener(ConfigurationResizeListener(it, it.model.configuration))
       }
     }
     .waitForRenderBeforeRestoringZoom(true)
