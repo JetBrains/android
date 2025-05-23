@@ -87,7 +87,7 @@ JVM_SRC_ATTRS = _unique(["srcs"] + IDE_JAVA.srcs_attributes + IDE_JAVA_PROTO.src
 def _noneToEmpty(d):
     return d if d else depset()
 
-def _package_dependencies_impl(target, ctx, params):
+def _package_dependencies_impl(target, ctx):
     dep_info = target[DependenciesInfo]
     java_info = IDE_JAVA.get_java_info(target, ctx.rule)
 
@@ -320,12 +320,11 @@ def _encode_cc_compilation_info_proto(label, cc_compilation_info):
         ]),
     )
 
-def package_dependencies(parameters):
-    def _impl(target, ctx):
-        return _package_dependencies_impl(target, ctx, parameters)
-
+# Do not remove parameters. They may be used to configure experiment values.
+#buildifier: disable=unused_parameters
+def package_dependencies(unused_parameters):
     return aspect(
-        implementation = _impl,
+        implementation = _package_dependencies_impl,
         required_aspect_providers = [[DependenciesInfo]],
     )
 
@@ -987,70 +986,4 @@ def collect_dependencies(parameters):
         **{
             "toolchains_aspects": TOOLCHAINS_ASPECTS,
         } if TOOLCHAINS_ASPECTS else {}
-    )
-
-def _write_java_info_txt_impl(ctx):
-    info_txt_files = []
-    for dep in ctx.attr.deps:
-        target_to_artifacts = dep[DependenciesInfo].target_to_artifacts
-        if target_to_artifacts:
-            info_txt_files.extend([_write_java_target_info(dep.label, target_to_artifacts, ctx, custom_prefix = ctx.label.name + ".")])
-    return DefaultInfo(files = depset(info_txt_files))
-
-def collect_dependencies_aspect_for_tests(custom_aspect_impl):
-    """Creates a custom aspect for use in test code.
-
-    This is used to run the `collect_dependencies` aspect with a custom set of project includes.
-    It's necessary to create a custom aspect to do this, as when invoking as aspect from a build
-    rule it's not possible to give arbitrary values to their parameters.
-
-    This is necessary as bazel requires that all aspects are assigned to top level build vars.
-
-    Args:
-         custom_aspect_impl: A method that invokes `collect_dependencies_for_test` passing the
-         required set of project includes. This should be defined thus:
-
-         def custom_aspect_impl(target, ctx):
-             return collect_dependencies_for_test(target, ctx, include=[
-               "//package/path/to/include",
-             ])
-
-        The `includes` are bazel packages corresponding to the `directories` in a `.bazelproject`.
-
-    Returns:
-        An aspect for use with `write_java_info_txt_rule_for_tests`.
-    """
-    return aspect(
-        implementation = custom_aspect_impl,
-        attr_aspects = FOLLOW_ATTRIBUTES,
-        provides = [DependenciesInfo],
-    )
-
-def write_java_info_txt_rule_for_tests(aspect_name):
-    """Create a rule to run the aspect for use in test code.
-
-    This is used in conjunction with `collect_dependencies_aspect_for_tests` to run the collect
-    dependencies aspect and write the resulting `.java-info.txt` files to an artifact.
-
-    Args:
-        aspect_name: The name that the return value from  `write_java_info_txt_aspect_for_tests`
-        as written to.
-
-    Returns:
-        A custom run implementation that should be assigned to a variable inside a `.bzl` file
-        and them subsequently used thus:
-
-        custom_aspect_rule(
-            name = "java_info",
-            deps = [":my_target"],
-        )
-
-        This will run the aspect as if an "enable analysis" action was run from the IDE on the
-        targets given in `deps`.
-    """
-    return rule(
-        implementation = _write_java_info_txt_impl,
-        attrs = {
-            "deps": attr.label_list(aspects = [aspect_name]),
-        },
     )
