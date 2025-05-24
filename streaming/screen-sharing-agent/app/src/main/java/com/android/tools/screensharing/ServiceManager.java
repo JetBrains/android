@@ -16,5 +16,5 @@
 package com.android.tools.screensharing;
 
 public class ServiceManager {
-  public static native Object getServiceAsInterface(String name, String type, boolean allowNull);
+  public static native Object getServiceAsInterface(String name, String type, boolean waitIfNecessary, boolean allowNull);
 }

@@ -20,6 +20,8 @@
 #include "jvm.h"
 #include "log.h"
 #include "service_manager.h"
+#include "shell_command_executor.h"
+#include "string_util.h"
 
 namespace screensharing {
 
@@ -32,7 +34,17 @@ void XrSimulatedInputManager::InitializeStatics(Jni jni) {
 
   if (xr_simulated_input_manager_.IsNull()) {
     xr_simulated_input_manager_ = ServiceManager::GetServiceAsInterface(
-        jni, "xrsimulatedinputmanager", "android/services/xr/simulatedinputmanager/IXrSimulatedInputManager");
+        jni, "xrsimulatedinputmanager", "android/services/xr/simulatedinputmanager/IXrSimulatedInputManager", false, true);
+    if (xr_simulated_input_manager_.IsNull()) {
+      string value =
+          RTrim(ExecuteShellCommand("getprop persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env"));
+      if (value != "true" && value != "1") {
+        Log::Fatal(XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING,
+                   "The property persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env is not set to true");
+      }
+      xr_simulated_input_manager_ = ServiceManager::GetServiceAsInterface(
+          jni, "xrsimulatedinputmanager", "android/services/xr/simulatedinputmanager/IXrSimulatedInputManager");
+    }
     JClass clazz = xr_simulated_input_manager_.GetClass();
     inject_head_rotation_method_ = clazz.GetMethod("injectHeadRotation", "([F)V");
     inject_head_movement_method_ = clazz.GetMethod("injectHeadMovement", "([F)V");

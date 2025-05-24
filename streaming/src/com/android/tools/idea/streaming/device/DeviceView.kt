@@ -365,7 +365,7 @@ internal class DeviceView(
       val reconnector: Reconnector
       when (frameNumber) {
         0u -> {
-          thisLogger().warn("Failed to initialize the screen sharing agent", exception)
+          logConnectionError(exception)
           message = getConnectionErrorMessage(exception)
           reconnector = Reconnector("Retry", "Connecting to the device") { connectToAgentAsync(initialDisplayOrientation) }
         }
@@ -381,6 +381,15 @@ internal class DeviceView(
     }
   }
 
+  private fun logConnectionError(exception: Throwable?) {
+    when ((exception as? AgentTerminatedException)?.exitCode) {
+      AGENT_WEAK_VIDEO_ENCODER, AGENT_REPEATED_VIDEO_ENCODER_ERRORS, XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
+          thisLogger().warn("Failed to initialize the screen sharing agent")
+
+      else -> thisLogger().warn("Failed to initialize the screen sharing agent", exception)
+    }
+  }
+
   private fun getConnectionErrorMessage(exception: Throwable?): String {
     return when ((exception as? AgentTerminatedException)?.exitCode) {
       AGENT_WEAK_VIDEO_ENCODER ->
@@ -388,6 +397,9 @@ internal class DeviceView(
 
       AGENT_REPEATED_VIDEO_ENCODER_ERRORS ->
           "Repeated video encoder errors during initialization of the device agent. See ${getShowLogHyperlink()} for details."
+
+      XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
+          "The XR device is not configured for mirroring. See ${getShowLogHyperlink()} for details."
 
       else ->
           (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See ${getShowLogHyperlink()} for details."
@@ -404,6 +416,10 @@ internal class DeviceView(
           " See ${getShowLogHyperlink()} for details."
 
       AGENT_REPEATED_VIDEO_ENCODER_ERRORS -> "Repeated video encoder errors. See ${getShowLogHyperlink()} for details."
+
+      XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
+          "The XR device is not configured for mirroring. See ${getShowLogHyperlink()} for details."
+
       else -> "Lost connection to the device. See ${getShowLogHyperlink()} for details."
     }
   }
