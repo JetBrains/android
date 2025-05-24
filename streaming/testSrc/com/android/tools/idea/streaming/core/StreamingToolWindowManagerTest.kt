@@ -46,10 +46,12 @@ import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.tools.idea.streaming.FakeToolWindow
 import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.ToolWindowHeadlessManagerImpl
+import com.android.tools.idea.streaming.createFakeToolWindow
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.streaming.emulator.EmulatorController
@@ -79,12 +81,7 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType
-import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.RuleChain
@@ -108,7 +105,6 @@ import java.awt.Point
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.SECONDS
-import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JViewport
 import javax.swing.SwingConstants
@@ -131,7 +127,8 @@ class StreamingToolWindowManagerTest {
                             EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule)
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
-  private val toolWindow: FakeToolWindow by lazy { createToolWindow() }
+  private val toolWindow: FakeToolWindow
+      by lazy { createFakeToolWindow(windowFactory, RUNNING_DEVICES_TOOL_WINDOW_ID, project, testRootDisposable) }
   private val contentManager: ContentManager by lazy { toolWindow.contentManager }
 
   private val deviceMirroringSettings: DeviceMirroringSettings by lazy { DeviceMirroringSettings.getInstance() }
@@ -813,15 +810,6 @@ class StreamingToolWindowManagerTest {
     }
   }
 
-  private fun createToolWindow(): FakeToolWindow {
-    val windowManager = TestToolWindowManager()
-    project.replaceService(ToolWindowManager::class.java, windowManager, testRootDisposable)
-    val toolWindow = windowManager.toolWindow
-    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
-    windowFactory.init(toolWindow)
-    return toolWindow
-  }
-
   private fun renderAndGetFrameNumber(fakeUi: FakeUi, displayView: AbstractDisplayView): UInt {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return displayView.frameNumber
@@ -848,98 +836,5 @@ class StreamingToolWindowManagerTest {
       popup.items.size >= 2
     }
     return popup
-  }
-
-  private inner class TestToolWindowManager : ToolWindowHeadlessManagerImpl(project) {
-    var toolWindow = FakeToolWindow(this)
-
-    override fun getToolWindow(id: String?): ToolWindow? {
-      return if (id == RUNNING_DEVICES_TOOL_WINDOW_ID) toolWindow else super.getToolWindow(id)
-    }
-
-    override fun invokeLater(runnable: Runnable) {
-      ApplicationManager.getApplication().invokeLater(runnable)
-    }
-  }
-
-  private inner class FakeToolWindow(private val manager: ToolWindowManager) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-
-    var tabActions: List<AnAction> = emptyList()
-      private set
-    var titleActions: List<AnAction> = emptyList()
-      private set
-    private var available = true
-    private var visible = false
-    private var active = false
-    private var type = ToolWindowType.DOCKED
-    private var icon = StudioIcons.Shell.ToolWindows.EMULATOR
-    private val decorator = mock<InternalDecorator>()
-
-    override fun setAvailable(available: Boolean) {
-      this.available = available
-    }
-
-    override fun getDecorator(): InternalDecorator {
-      return decorator
-    }
-
-    override fun isAvailable(): Boolean {
-      return available
-    }
-
-    override fun show(runnable: Runnable?) {
-      if (!visible) {
-        windowFactory.createToolWindowContent(project, this)
-        visible = true
-        notifyStateChanged(ToolWindowManagerEventType.ActivateToolWindow)
-        runnable?.run()
-      }
-    }
-
-    override fun hide(runnable: Runnable?) {
-      if (visible) {
-        visible = false
-        notifyStateChanged(ToolWindowManagerEventType.HideToolWindow)
-        runnable?.run()
-      }
-    }
-
-    override fun activate(runnable: Runnable?) {
-      active = true
-      super.activate(runnable)
-    }
-
-    override fun isVisible() = visible
-
-    override fun isActive() = active
-
-    override fun setTabActions(vararg actions: AnAction) {
-      tabActions = listOf(*actions)
-    }
-
-    override fun setTitleActions(actions: List<AnAction>) {
-      this.titleActions = actions
-    }
-
-    override fun getType(): ToolWindowType {
-      return type
-    }
-
-    override fun setType(type: ToolWindowType, runnable: Runnable?) {
-      this.type = type
-      runnable?.run()
-    }
-
-    override fun getIcon(): Icon {
-      return icon
-    }
-
-    override fun setIcon(icon: Icon) {
-      this.icon = icon
-    }
-
-    private fun notifyStateChanged(changeType: ToolWindowManagerEventType) {
-      project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager, changeType)
-    }
   }
 }
