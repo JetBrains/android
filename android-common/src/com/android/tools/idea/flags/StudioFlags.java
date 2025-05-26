@@ -2374,6 +2374,11 @@ public final class StudioFlags {
                     "enabled it replaces the default model with the public Gemini model.",
                     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_INCLUDE_GRADLE_PROJECT_STRUCTURE_TOOLS_BY_DEFAULT =
+    new BooleanFlag(STUDIOBOT, "include.gradle.project.structure.tools.by.default",
+                    "Enable using Gradle project structure Agent tools by default",
+                    "When enabled, a set of tools allowing the agent to query for the Gradle project structure will be included by default.", false);
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
