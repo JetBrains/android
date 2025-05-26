@@ -87,6 +87,7 @@ jvm_library(
     "//plugins/kotlin/code-insight/impl-base",
     "//plugins/kotlin/code-insight/utils",
     "//jvm/jvm-analysis-impl:analysis-impl",
+    "//xml/impl",
   ],
   runtime_deps = [":lint_resources"]
 )

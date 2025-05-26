@@ -92,5 +92,6 @@
     <orderEntry type="module" module-name="kotlin.code-insight.impl-base" />
     <orderEntry type="module" module-name="kotlin.code-insight.utils" />
     <orderEntry type="module" module-name="intellij.jvm.analysis.impl" />
+    <orderEntry type="module" module-name="intellij.xml.impl" />
   </component>
 </module>
