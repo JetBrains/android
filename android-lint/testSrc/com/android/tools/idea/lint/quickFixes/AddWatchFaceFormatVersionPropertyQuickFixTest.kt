@@ -16,11 +16,11 @@
 package com.android.tools.idea.lint.quickFixes
 
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
+import com.android.ide.common.util.Diffs
 import com.android.tools.idea.lint.AbstractAndroidLintTest
 import com.android.tools.idea.lint.inspections.AndroidLintWatchFaceFormatMissingVersionInspection
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.testing.moveCaret
-import com.android.tools.lint.checks.infrastructure.TestLintResult
 import com.google.common.truth.Truth.assertThat
 import org.intellij.lang.annotations.Language
 
@@ -44,13 +44,13 @@ class AddWatchFaceFormatVersionPropertyQuickFixTest : AbstractAndroidLintTest() 
           .trimIndent(),
       expectedDiff =
         """
-        @@ -9 +9
-                  android:hasCode="false">
-        +         <property
-        +             android:name="com.google.wear.watchface.format.version"
-        +             android:value="1" />
-              </application>
-    """
+        @@ -8,2 +8,5 @@
+                 android:hasCode="false">
+        +        <property
+        +            android:name="com.google.wear.watchface.format.version"
+        +            android:value="1" />
+             </application>
+        """
           .trimIndent(),
     )
   }
@@ -74,13 +74,13 @@ class AddWatchFaceFormatVersionPropertyQuickFixTest : AbstractAndroidLintTest() 
           .trimIndent(),
       expectedDiff =
         """
-        @@ -10 +10
-                  <property android:name="some other property" android:value="some value" />
-        +         <property
-        +             android:name="com.google.wear.watchface.format.version"
-        +             android:value="1" />
-              </application>
-    """
+        @@ -9,2 +9,5 @@
+                 <property android:name="some other property" android:value="some value" />
+        +        <property
+        +            android:name="com.google.wear.watchface.format.version"
+        +            android:value="1" />
+             </application>
+        """
           .trimIndent(),
     )
   }
@@ -101,7 +101,7 @@ class AddWatchFaceFormatVersionPropertyQuickFixTest : AbstractAndroidLintTest() 
     myFixture.launchAction(quickFix)
 
     val fixed = manifestFile.text
-    val diff = TestLintResult.getDiff(manifestContent, fixed, 1)
+    val diff = Diffs.diff(manifestContent, fixed, 1)
     assertThat(diff.trim()).isEqualTo(expectedDiff)
   }
 }
