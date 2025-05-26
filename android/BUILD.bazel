@@ -138,6 +138,7 @@ jvm_library(
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/core-ui",
+    "//platform/credential-store",
     "//platform/xdebugger-api:debugger",
     "//platform/xdebugger-impl:debugger-impl",
     "//platform/editor-ui-api:editor-ui",

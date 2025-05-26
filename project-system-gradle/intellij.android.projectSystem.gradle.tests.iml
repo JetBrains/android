@@ -17,6 +17,7 @@
     <orderEntry type="library" scope="TEST" name="assertJ" level="project" />
     <orderEntry type="library" scope="TEST" name="icu4j" level="project" />
     <orderEntry type="library" scope="TEST" name="rd-core" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.credentialStore" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor.ex" />
     <orderEntry type="library" scope="TEST" name="commons-io" level="project" />
     <orderEntry type="library" scope="TEST" name="commons-lang3" level="project" />

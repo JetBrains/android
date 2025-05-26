@@ -67,6 +67,7 @@ jvm_library(
     "//java/java-analysis-impl:analysis-impl",
     "//java/java-analysis-api:analysis",
     "//java/java-frontback-psi-api:frontback-psi",
+    "//platform/credential-store",
     "//platform/editor-ui-ex:editor-ex",
     "//java/java-impl:impl",
     "//java/java-impl-inspections:impl-inspections",
