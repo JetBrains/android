@@ -102,6 +102,7 @@ enum class ModelFeature(
   HAS_FLAT_DEPENDENCY_MODEL(ModelVersion(12, 0)),
   // ModelVersion(13, 0) is taken by I217c809052b867642de145041de50b5578bc09f5
   HAS_SOURCES_LIST_AND_JAVADOC_IN_VARIANT_DEPENDENCIES(ModelVersion(14, 0)),
+  HAS_BUILD_AWARE_PROJECT_GRAPH(ModelVersion(15, 0)),
   ;
 
   init {
