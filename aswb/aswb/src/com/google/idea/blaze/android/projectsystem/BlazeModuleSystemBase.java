@@ -26,6 +26,8 @@ import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.projectmodel.ExternalLibraryImpl;
 import com.android.projectmodel.SelectiveResourceFolder;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.CapabilityNotSupported;
+import com.android.tools.idea.projectsystem.CapabilityStatus;
 import com.android.tools.idea.projectsystem.ClassFileFinder;
 import com.android.tools.idea.projectsystem.DependencyManagementException;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
@@ -157,6 +159,11 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
   @Override
   public List<NamedModuleTemplate> getModuleTemplates(@Nullable VirtualFile targetDirectory) {
     return BlazeAndroidModuleTemplate.getTemplates(module, targetDirectory);
+  }
+
+  @Override
+  public CapabilityStatus canRegisterDependency(DependencyType type) {
+    return new CapabilityNotSupported();
   }
 
   @Override
