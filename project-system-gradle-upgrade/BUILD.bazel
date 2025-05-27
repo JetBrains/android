@@ -44,6 +44,7 @@ jvm_library(
     "//jps/model-api:model",
     "//platform/lang-api:lang",
     "//platform/lang-impl",
+    "//platform/lvcs-api:lvcs",
     "//platform/lvcs-impl",
     "//platform/refactoring",
     "//platform/usageView",
