@@ -61,7 +61,6 @@ import kotlin.math.roundToInt
 import org.jetbrains.annotations.TestOnly
 
 private const val textFieldWidth = 60
-private const val deviceButtonWidth = 200
 
 /**
  * Panel that allows resizing the preview by selecting a device or entering custom dimensions. It is
@@ -254,8 +253,6 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     button.isBorderPainted = false
     button.isContentAreaFilled = false
     button.isOpaque = false
-
-    button.preferredSize = Dimension(JBUI.scale(deviceButtonWidth), button.preferredSize.height)
 
     button.addActionListener {
       val step = DeviceListPopupStep(currentPopupListItems, this::handleDeviceSelectionFromPopup)
