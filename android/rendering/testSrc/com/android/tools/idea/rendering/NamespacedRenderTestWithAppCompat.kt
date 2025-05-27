@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.res.TestResourceIdManager
 import com.intellij.testFramework.IndexingTestUtil
+import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
 
 class NamespacedRenderTestWithAppCompat : AndroidGradleTestCase() {
 
@@ -37,6 +38,9 @@ class NamespacedRenderTestWithAppCompat : AndroidGradleTestCase() {
   }
 
   override fun tearDown() {
+    // b/416752104: Because this test runs in the UI thread and some tests might trigger a re-index, a dead-lock
+    // can happen when running the tearDown unless we let the indexing complete.
+    waitUntilIndexesAreReady(project)
     resourceIdManger.resetFinalIdsUsed()
     try {
       RenderTestUtil.afterRenderTestCase()
