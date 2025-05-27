@@ -80,7 +80,6 @@ import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -698,9 +697,9 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
 
   private void setupUI() {
     myRootPanel = new JPanel();
-    myRootPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myRootPanel.setLayout(new GridLayoutManager(2, 1, JBUI.emptyInsets(), -1, -1));
     myOutputNamePanelRow = new JPanel();
-    myOutputNamePanelRow.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myOutputNamePanelRow.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
     myRootPanel.add(myOutputNamePanelRow, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -713,7 +712,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                                     new Dimension(80, -1), null, null, 0, false));
     final JPanel panel1 = new JPanel();
-    panel1.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+    panel1.setLayout(new GridLayoutManager(1, 1, JBUI.emptyInsets(), -1, -1));
     myOutputNamePanelRow.add(panel1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
@@ -724,508 +723,23 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     panel1.add(myOutputNameTextField, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    final JBTabbedPane jBTabbedPane1 = new JBTabbedPane();
-    jBTabbedPane1.setTabPlacement(1);
-    myRootPanel.add(jBTabbedPane1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+    final JBTabbedPane imagePanelToolbar = new JBTabbedPane();
+    imagePanelToolbar.setTabPlacement(1);
+    myRootPanel.add(imagePanelToolbar, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
                                                        new Dimension(200, 200), null, 0, false));
-    jBTabbedPane1.setBorder(
+    imagePanelToolbar.setBorder(
       BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0), null, TitledBorder.DEFAULT_JUSTIFICATION,
                                        TitledBorder.DEFAULT_POSITION, null, null));
-    final JPanel panel2 = new JPanel();
-    panel2.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-    jBTabbedPane1.addTab("Foreground Layer", panel2);
-    myForegroundScrollPane = new JBScrollPane();
-    myForegroundScrollPane.setHorizontalScrollBarPolicy(31);
-    panel2.add(myForegroundScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
-                                                           null, null, null, 0, false));
-    myForegroundAllOptionsPanel = new JPanel();
-    myForegroundAllOptionsPanel.setLayout(new GridLayoutManager(6, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundScrollPane.setViewportView(myForegroundAllOptionsPanel);
-    myForegroundLayerNamePanel = new JPanel();
-    myForegroundLayerNamePanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundLayerNamePanel.setVisible(true);
-    myForegroundAllOptionsPanel.add(myForegroundLayerNamePanel,
-                                    new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
-                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
-    myForegroundLayerNameLabel = new JBLabel();
-    myForegroundLayerNameLabel.setText("Layer name:");
-    myForegroundLayerNamePanel.add(myForegroundLayerNameLabel,
-                                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                       new Dimension(70, -1), null, null, 0, false));
-    final JPanel panel3 = new JPanel();
-    panel3.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundLayerNamePanel.add(panel3, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
-                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                               null, null, null, 0, false));
-    myForegroundLayerNameTextField = new JTextField();
-    myForegroundLayerNameTextField.setText("(name)");
-    myForegroundLayerNameTextField.setToolTipText("The filename which will be used for these icons.");
-    panel3.add(myForegroundLayerNameTextField,
-               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    mySourceAssetTitleSeparator = new TitledSeparator();
-    mySourceAssetTitleSeparator.setText("Source Asset");
-    myForegroundAllOptionsPanel.add(mySourceAssetTitleSeparator,
-                                    new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myForegroundAssetTypePanel = new JPanel();
-    myForegroundAssetTypePanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundAllOptionsPanel.add(myForegroundAssetTypePanel,
-                                    new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
-    myForegroundAssetTypeLabel = new JLabel();
-    myForegroundAssetTypeLabel.setText("Asset type:");
-    myForegroundAssetTypePanel.add(myForegroundAssetTypeLabel,
-                                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                       new Dimension(70, -1), null, null, 1, false));
-    myForegroundAssetRadioButtonsPanel = new JPanel();
-    myForegroundAssetRadioButtonsPanel.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundAssetTypePanel.add(myForegroundAssetRadioButtonsPanel,
-                                   new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL,
-                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myForegroundClipartRadioButton = new JRadioButton();
-    myForegroundClipartRadioButton.setText("Clip art");
-    myForegroundClipartRadioButton.setToolTipText("Select from a list of clipart choices to generate Android icons for your app.");
-    myForegroundAssetRadioButtonsPanel.add(myForegroundClipartRadioButton,
-                                           new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                               null, null, 0, false));
-    myForegroundTextRadioButton = new JRadioButton();
-    myForegroundTextRadioButton.setText("Text");
-    myForegroundTextRadioButton.setToolTipText("Enter text which will be rendered into Android icons for your app.");
-    myForegroundAssetRadioButtonsPanel.add(myForegroundTextRadioButton,
-                                           new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                               null, null, 0, false));
-    myForegroundImageRadioButton = new JRadioButton();
-    myForegroundImageRadioButton.setText("Image");
-    myForegroundImageRadioButton.setToolTipText(
-      "Select an image, e.g. PNG, SVG, PSD, or a drawable from disk to generate Android icons for your app.");
-    myForegroundAssetRadioButtonsPanel.add(myForegroundImageRadioButton,
-                                           new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                               null, null, 0, false));
-    myForegroundAssetTypeSourcePanel = new JPanel();
-    myForegroundAssetTypeSourcePanel.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundAllOptionsPanel.add(myForegroundAssetTypeSourcePanel,
-                                    new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
-    myForegroundImageAssetRowPanel = new JPanel();
-    myForegroundImageAssetRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundAssetTypeSourcePanel.add(myForegroundImageAssetRowPanel,
-                                         new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
-    myForegroundImagePathLabel = new JBLabel();
-    myForegroundImagePathLabel.setText("Path:");
-    myForegroundImageAssetRowPanel.add(myForegroundImagePathLabel,
-                                       new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                           GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                           new Dimension(70, -1), null, null, 1, false));
-    myForegroundImageAssetBrowser = new ImageAssetBrowser();
-    myForegroundImageAssetRowPanel.add(myForegroundImageAssetBrowser,
-                                       new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
-                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myForegroundClipartAssetRowPanel = new JPanel();
-    myForegroundClipartAssetRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundAssetTypeSourcePanel.add(myForegroundClipartAssetRowPanel,
-                                         new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
-    myForegroundClipartLabel = new JBLabel();
-    myForegroundClipartLabel.setText("Clip art:");
-    myForegroundClipartAssetRowPanel.add(myForegroundClipartLabel,
-                                         new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                             GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                             new Dimension(70, -1), null, null, 1, false));
-    myForegroundClipartAssetButton = new ClipartIconButton();
-    myForegroundClipartAssetRowPanel.add(myForegroundClipartAssetButton,
-                                         new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                             GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-    myForegroundTextAssetRowPanel = new JPanel();
-    myForegroundTextAssetRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundAssetTypeSourcePanel.add(myForegroundTextAssetRowPanel,
-                                         new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
-    myForegroundTextLabel = new JBLabel();
-    myForegroundTextLabel.setText("Text:");
-    myForegroundTextAssetRowPanel.add(myForegroundTextLabel,
-                                      new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                          new Dimension(70, -1), null, null, 1, false));
-    myForegroundTextAssetEditor = new MultiLineTextAssetEditor();
-    myForegroundTextAssetRowPanel.add(myForegroundTextAssetEditor,
-                                      new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myForegroundColorRowPanel = new JPanel();
-    myForegroundColorRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundAssetTypeSourcePanel.add(myForegroundColorRowPanel,
-                                         new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
-    myForegroundColorLabel = new JBLabel();
-    myForegroundColorLabel.setText("Color:");
-    myForegroundColorRowPanel.add(myForegroundColorLabel,
-                                  new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                      new Dimension(70, -1), null, null, 1, false));
-    myForegroundColorPanel = new ColorPanel();
-    myForegroundColorPanel.setSelectedColor(new Color(-16777216));
-    myForegroundColorRowPanel.add(myForegroundColorPanel,
-                                  new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                      new Dimension(78, -1), null, null, 0, false));
-    myForegroundImageOptionsPanel = new JPanel();
-    myForegroundImageOptionsPanel.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundAllOptionsPanel.add(myForegroundImageOptionsPanel,
-                                    new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                        null, null, 0, true));
-    myForegroundScalingTitleSeparator = new TitledSeparator();
-    myForegroundScalingTitleSeparator.setText("Scaling");
-    myForegroundImageOptionsPanel.add(myForegroundScalingTitleSeparator,
-                                      new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myForegroundTrimPanel = new JPanel();
-    myForegroundTrimPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundTrimPanel.setVisible(true);
-    myForegroundImageOptionsPanel.add(myForegroundTrimPanel,
-                                      new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                          null, null, 0, true));
-    myForegroundTrimLabel = new JBLabel();
-    myForegroundTrimLabel.setText("Trim:");
-    myForegroundTrimPanel.add(myForegroundTrimLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                                         new Dimension(70, -1), null, null, 1, false));
-    myForegroundTrimOptionsPanel = new JPanel();
-    myForegroundTrimOptionsPanel.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundTrimPanel.add(myForegroundTrimOptionsPanel,
-                              new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
-                                                  null, 0, false));
-    final Spacer spacer1 = new Spacer();
-    myForegroundTrimOptionsPanel.add(spacer1,
-                                     new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                         GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-    myForegroundTrimYesRadioButton = new JRadioButton();
-    myForegroundTrimYesRadioButton.setText("Yes");
-    myForegroundTrimYesRadioButton.setToolTipText("Remove any transparent space from around your source asset before rendering to icon.");
-    myForegroundTrimOptionsPanel.add(myForegroundTrimYesRadioButton,
-                                     new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myForegroundTrimNoRadioButton = new JRadioButton();
-    myForegroundTrimNoRadioButton.setSelected(true);
-    myForegroundTrimNoRadioButton.setText("No");
-    myForegroundTrimNoRadioButton.setToolTipText("Leave the original asset unmodified.");
-    myForegroundTrimOptionsPanel.add(myForegroundTrimNoRadioButton,
-                                     new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myForegroundResizePanel = new JPanel();
-    myForegroundResizePanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundResizePanel.setVisible(true);
-    myForegroundImageOptionsPanel.add(myForegroundResizePanel,
-                                      new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                          null, null, 0, true));
-    myForegroundResizeLabel = new JBLabel();
-    myForegroundResizeLabel.setText("Resize:");
-    myForegroundResizePanel.add(myForegroundResizeLabel,
-                                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                    GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                    new Dimension(70, -1), null, null, 1, false));
-    myForegroundResizeSliderPanel = new JPanel();
-    myForegroundResizeSliderPanel.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
-    myForegroundResizePanel.add(myForegroundResizeSliderPanel,
-                                new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
-                                                    null, 0, false));
-    myForegroundResizeSlider = new JSlider();
-    myForegroundResizeSlider.setMaximum(400);
-    myForegroundResizeSlider.setMinimum(0);
-    myForegroundResizeSlider.setMinorTickSpacing(20);
-    myForegroundResizeSlider.setPaintLabels(false);
-    myForegroundResizeSlider.setPaintTicks(true);
-    myForegroundResizeSlider.setSnapToTicks(false);
-    myForegroundResizeSlider.setToolTipText(
-      "Resize the original asset using the specified scaling factor (in percent). This happens after any trimming.");
-    myForegroundResizeSlider.setValue(100);
-    myForegroundResizeSlider.setValueIsAdjusting(false);
-    myForegroundResizeSliderPanel.add(myForegroundResizeSlider,
-                                      new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myForegroundResizeValueTextField = new JTextField();
-    myForegroundResizeValueTextField.setHorizontalAlignment(4);
-    myForegroundResizeValueTextField.setText("100");
-    myForegroundResizeSliderPanel.add(myForegroundResizeValueTextField,
-                                           new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                               new Dimension(30, -1), null, 0, false));
-    myForegroundResizeValueLabel = new JLabel();
-    myForegroundResizeValueLabel.setHorizontalAlignment(4);
-    myForegroundResizeValueLabel.setText("%");
-    myForegroundResizeSliderPanel.add(myForegroundResizeValueLabel,
-                                      new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                          new Dimension(-1, -1), null, 0, false));
-    final Spacer spacer2 = new Spacer();
-    myForegroundAllOptionsPanel.add(spacer2,
-                                    new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
-                                                        GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-    final JPanel panel4 = new JPanel();
-    panel4.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-    jBTabbedPane1.addTab("Background Layer", panel4);
-    myBackgroundScrollPane = new JBScrollPane();
-    myBackgroundScrollPane.setHorizontalScrollBarPolicy(31);
-    panel4.add(myBackgroundScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
-                                                           null, null, null, 0, false));
-    myBackgroundAllOptionsPanel = new JPanel();
-    myBackgroundAllOptionsPanel.setLayout(new GridLayoutManager(6, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myBackgroundScrollPane.setViewportView(myBackgroundAllOptionsPanel);
-    myBackgroundLayerNamePanel = new JPanel();
-    myBackgroundLayerNamePanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myBackgroundLayerNamePanel.setVisible(true);
-    myBackgroundAllOptionsPanel.add(myBackgroundLayerNamePanel,
-                                    new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                        null, null, 0, true));
-    myBackgroundLayerNameLabel = new JBLabel();
-    myBackgroundLayerNameLabel.setText("Layer name:");
-    myBackgroundLayerNamePanel.add(myBackgroundLayerNameLabel,
-                                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                       new Dimension(70, -1), null, null, 0, false));
-    final JPanel panel5 = new JPanel();
-    panel5.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-    myBackgroundLayerNamePanel.add(panel5, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
-                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                               null, null, null, 0, false));
-    myBackgroundLayerNameTextField = new JTextField();
-    myBackgroundLayerNameTextField.setText("(name)");
-    myBackgroundLayerNameTextField.setToolTipText("The filename which will be used for these icons.");
-    panel5.add(myBackgroundLayerNameTextField,
-               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myBackgroundSourceAssetTitleSeparator = new TitledSeparator();
-    myBackgroundSourceAssetTitleSeparator.setText("Source Asset");
-    myBackgroundAllOptionsPanel.add(myBackgroundSourceAssetTitleSeparator,
-                                    new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myBackgroundAssetTypePanel = new JPanel();
-    myBackgroundAssetTypePanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myBackgroundAllOptionsPanel.add(myBackgroundAssetTypePanel,
-                                    new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
-    myBackgroundAssetTypeLabel = new JLabel();
-    myBackgroundAssetTypeLabel.setText("Asset type:");
-    myBackgroundAssetTypePanel.add(myBackgroundAssetTypeLabel,
-                                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                       new Dimension(70, -1), null, null, 1, false));
-    myBackgroundAssetRadioButtonsPanel = new JPanel();
-    myBackgroundAssetRadioButtonsPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myBackgroundAssetTypePanel.add(myBackgroundAssetRadioButtonsPanel,
-                                   new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL,
-                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                       null, null, 0, false));
-    myBackgroundImageRadioButton = new JRadioButton();
-    myBackgroundImageRadioButton.setText("Image");
-    myBackgroundImageRadioButton.setToolTipText(
-      "Select an image, e.g. PNG, SVG, PSD, or a drawable from disk to generate Android icons for your app.");
-    myBackgroundAssetRadioButtonsPanel.add(myBackgroundImageRadioButton,
-                                           new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myBackgroundColorRadioButton = new JRadioButton();
-    myBackgroundColorRadioButton.setText("Color");
-    myBackgroundColorRadioButton.setToolTipText("Select from a background color for the Android icons for your app.");
-    myBackgroundAssetRadioButtonsPanel.add(myBackgroundColorRadioButton,
-                                           new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myBackgroundAssetTypeSourcePanel = new JPanel();
-    myBackgroundAssetTypeSourcePanel.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myBackgroundAllOptionsPanel.add(myBackgroundAssetTypeSourcePanel,
-                                    new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
-    myBackgroundImageAssetRowPanel = new JPanel();
-    myBackgroundImageAssetRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myBackgroundAssetTypeSourcePanel.add(myBackgroundImageAssetRowPanel,
-                                         new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                             GridConstraints.SIZEPOLICY_FIXED, new Dimension(30, 30), null, null, 0, true));
-    myBackgroundImagePathLabel = new JBLabel();
-    myBackgroundImagePathLabel.setText("Path:");
-    myBackgroundImageAssetRowPanel.add(myBackgroundImagePathLabel,
-                                       new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                           GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                           new Dimension(70, -1), null, null, 1, false));
-    myBackgroundImageAssetBrowser = new ImageAssetBrowser();
-    myBackgroundImageAssetRowPanel.add(myBackgroundImageAssetBrowser,
-                                       new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myBackgroundColorRowPanel = new JPanel();
-    myBackgroundColorRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myBackgroundAssetTypeSourcePanel.add(myBackgroundColorRowPanel,
-                                         new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                             GridConstraints.SIZEPOLICY_FIXED, new Dimension(30, 30), null, null, 0, true));
-    myBackgroundColorLabel = new JBLabel();
-    myBackgroundColorLabel.setText("Color:");
-    myBackgroundColorRowPanel.add(myBackgroundColorLabel,
-                                  new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                      new Dimension(70, -1), null, null, 1, false));
-    myBackgroundColorPanel = new ColorPanel();
-    myBackgroundColorPanel.setSelectedColor(new Color(-16777216));
-    myBackgroundColorRowPanel.add(myBackgroundColorPanel,
-                                  new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                      GridConstraints.SIZEPOLICY_FIXED, new Dimension(78, -1), null, null, 0, false));
-    myBackgroundScalingTitleSeparator = new TitledSeparator();
-    myBackgroundScalingTitleSeparator.setText("Scaling");
-    myBackgroundAssetTypeSourcePanel.add(myBackgroundScalingTitleSeparator,
-                                         new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myBackgroundImageOptionsPanel = new JPanel();
-    myBackgroundImageOptionsPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myBackgroundAllOptionsPanel.add(myBackgroundImageOptionsPanel,
-                                    new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
-    myBackgroundTrimRowPanel = new JPanel();
-    myBackgroundTrimRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myBackgroundTrimRowPanel.setVisible(true);
-    myBackgroundImageOptionsPanel.add(myBackgroundTrimRowPanel,
-                                      new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                          null, null, 0, true));
-    myBackgroundTrimLabel = new JBLabel();
-    myBackgroundTrimLabel.setText("Trim:");
-    myBackgroundTrimRowPanel.add(myBackgroundTrimLabel,
-                                 new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                     new Dimension(70, -1), null, null, 1, false));
-    myBackgroundTrimOptionsPanel = new JPanel();
-    myBackgroundTrimOptionsPanel.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
-    myBackgroundTrimRowPanel.add(myBackgroundTrimOptionsPanel,
-                                 new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                     null, null, 0, false));
-    final Spacer spacer3 = new Spacer();
-    myBackgroundTrimOptionsPanel.add(spacer3,
-                                     new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                         GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-    myBackgroundTrimYesRadioButton = new JRadioButton();
-    myBackgroundTrimYesRadioButton.setText("Yes");
-    myBackgroundTrimYesRadioButton.setToolTipText("Remove any transparent space from around your source asset before rendering to icon.");
-    myBackgroundTrimOptionsPanel.add(myBackgroundTrimYesRadioButton,
-                                     new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myBackgroundTrimNoRadioButton = new JRadioButton();
-    myBackgroundTrimNoRadioButton.setSelected(true);
-    myBackgroundTrimNoRadioButton.setText("No");
-    myBackgroundTrimNoRadioButton.setToolTipText("Leave the original asset unmodified.");
-    myBackgroundTrimOptionsPanel.add(myBackgroundTrimNoRadioButton,
-                                     new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myBackgroundResizeRowPanel = new JPanel();
-    myBackgroundResizeRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myBackgroundResizeRowPanel.setVisible(true);
-    myBackgroundImageOptionsPanel.add(myBackgroundResizeRowPanel,
-                                      new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                          null, null, 0, true));
-    myBackgroundResizeLabel = new JBLabel();
-    myBackgroundResizeLabel.setText("Resize:");
-    myBackgroundResizeRowPanel.add(myBackgroundResizeLabel,
-                                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
-                                                       new Dimension(70, -1), null, null, 1, false));
-    myBackgroundResizeSliderPanel = new JPanel();
-    myBackgroundResizeSliderPanel.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
-    myBackgroundResizeRowPanel.add(myBackgroundResizeSliderPanel,
-                                   new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                       null, null, 0, false));
-    myBackgroundResizeSlider = new JSlider();
-    myBackgroundResizeSlider.setMaximum(400);
-    myBackgroundResizeSlider.setMinimum(0);
-    myBackgroundResizeSlider.setMinorTickSpacing(20);
-    myBackgroundResizeSlider.setPaintLabels(false);
-    myBackgroundResizeSlider.setPaintTicks(true);
-    myBackgroundResizeSlider.setSnapToTicks(false);
-    myBackgroundResizeSlider.setToolTipText(
-      "Resize the original asset using the specified scaling factor (in percent). This happens after any trimming.");
-    myBackgroundResizeSlider.setValue(100);
-    myBackgroundResizeSliderPanel.add(myBackgroundResizeSlider,
-                                      new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myBackgroundResizeValueTextField = new JTextField();
-    myBackgroundResizeValueTextField.setHorizontalAlignment(4);
-    myBackgroundResizeValueTextField.setText("100");
-    myBackgroundResizeSliderPanel.add(myBackgroundResizeValueTextField,
-                                           new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                               new Dimension(30, -1), null, 0, false));
-    myBackgroundResizeValueLabel = new JLabel();
-    myBackgroundResizeValueLabel.setHorizontalAlignment(4);
-    myBackgroundResizeValueLabel.setText("%");
-    myBackgroundResizeSliderPanel.add(myBackgroundResizeValueLabel,
-                                      new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                          new Dimension(-1, -1), null, 0, false));
-    final Spacer spacer4 = new Spacer();
-    myBackgroundAllOptionsPanel.add(spacer4,
-                                    new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
-                                                        GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    addForegroundLayerTab(imagePanelToolbar);
+    addBackgroundLayerTab(imagePanelToolbar);
+    addOtherImageOptionLayerTab(imagePanelToolbar);
+  }
+
+  private void addOtherImageOptionLayerTab(JBTabbedPane jBTabbedPane1) {
     final JPanel panel6 = new JPanel();
-    panel6.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    panel6.setLayout(new GridLayoutManager(2, 1, JBUI.emptyInsets(), -1, -1));
     jBTabbedPane1.addTab("Options", panel6);
     myOtherIconsScrollPane = new JBScrollPane();
     myOtherIconsScrollPane.setHorizontalScrollBarPolicy(31);
@@ -1234,7 +748,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
                                                            null, null, null, 0, false));
     myOtherIconsAllOptionsPanel = new JPanel();
-    myOtherIconsAllOptionsPanel.setLayout(new GridLayoutManager(10, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myOtherIconsAllOptionsPanel.setLayout(new GridLayoutManager(10, 2, JBUI.emptyInsets(), -1, -1));
     myOtherIconsScrollPane.setViewportView(myOtherIconsAllOptionsPanel);
     myOtherIconsAllOptionsPanel.setBorder(
       BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0), null, TitledBorder.DEFAULT_JUSTIFICATION,
@@ -1246,7 +760,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
                                                         null, 0, false));
     myGenerateLegacyIconRowPanel = new JPanel();
-    myGenerateLegacyIconRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myGenerateLegacyIconRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
     myGenerateLegacyIconRowPanel.setVisible(true);
     myOtherIconsAllOptionsPanel.add(myGenerateLegacyIconRowPanel,
                                     new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
@@ -1260,7 +774,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                          new Dimension(70, -1), null, null, 1, false));
     mGenerateLegacyIconRadioButtonsPanel = new JPanel();
-    mGenerateLegacyIconRadioButtonsPanel.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
+    mGenerateLegacyIconRadioButtonsPanel.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
     myGenerateLegacyIconRowPanel.add(mGenerateLegacyIconRadioButtonsPanel,
                                      new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -1289,7 +803,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                              new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                                  GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
     myLegacyIconShapeRowPanel = new JPanel();
-    myLegacyIconShapeRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myLegacyIconShapeRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
     myOtherIconsAllOptionsPanel.add(myLegacyIconShapeRowPanel,
                                     new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
@@ -1302,7 +816,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                       new Dimension(70, -1), null, null, 1, false));
     myLegacyIconShapePanel = new JPanel();
-    myLegacyIconShapePanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myLegacyIconShapePanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
     myLegacyIconShapeRowPanel.add(myLegacyIconShapePanel,
                                   new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
@@ -1324,7 +838,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
                                                         null, 0, false));
     myGenerateRoundIconRowPanel = new JPanel();
-    myGenerateRoundIconRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myGenerateRoundIconRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
     myGenerateRoundIconRowPanel.setVisible(true);
     myOtherIconsAllOptionsPanel.add(myGenerateRoundIconRowPanel,
                                     new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
@@ -1338,7 +852,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                         new Dimension(70, -1), null, null, 1, false));
     myGenerateRoundIconRadioButtonsPanel = new JPanel();
-    myGenerateRoundIconRadioButtonsPanel.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
+    myGenerateRoundIconRadioButtonsPanel.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
     myGenerateRoundIconRowPanel.add(myGenerateRoundIconRadioButtonsPanel,
                                     new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -1373,7 +887,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
                                                         null, 0, false));
     myGeneratePlayStoreIconRowPanel = new JPanel();
-    myGeneratePlayStoreIconRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myGeneratePlayStoreIconRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
     myGeneratePlayStoreIconRowPanel.setVisible(true);
     myOtherIconsAllOptionsPanel.add(myGeneratePlayStoreIconRowPanel,
                                     new GridConstraints(6, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
@@ -1387,7 +901,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                             GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                             new Dimension(70, -1), null, null, 1, false));
     myGeneratePlayStoreIconRadioButtonsPanel = new JPanel();
-    myGeneratePlayStoreIconRadioButtonsPanel.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
+    myGeneratePlayStoreIconRadioButtonsPanel.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
     myGeneratePlayStoreIconRowPanel.add(myGeneratePlayStoreIconRadioButtonsPanel,
                                         new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -1427,7 +941,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
                                                         null, 0, false));
     myIconFormatRowPanel = new JPanel();
-    myIconFormatRowPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myIconFormatRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
     myOtherIconsAllOptionsPanel.add(myIconFormatRowPanel,
                                     new GridConstraints(8, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -1439,7 +953,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                                     new Dimension(70, -1), null, null, 1, false));
     myIconFormatRadioButtonsPanel = new JPanel();
-    myIconFormatRadioButtonsPanel.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
+    myIconFormatRadioButtonsPanel.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
     myIconFormatRowPanel.add(myIconFormatRadioButtonsPanel,
                              new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
@@ -1447,7 +961,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                  null, 0, false));
     myIconFormatWebpRadioButton = new JRadioButton();
     myIconFormatWebpRadioButton.setActionCommand("WebP");
-    myIconFormatWebpRadioButton.setLabel("WebP");
+    myIconFormatWebpRadioButton.setText("WebP");
     myIconFormatWebpRadioButton.setSelected(true);
     myIconFormatWebpRadioButton.setText("WebP");
     myIconFormatWebpRadioButton.setToolTipText("Generate WebP icons");
@@ -1457,7 +971,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     final JRadioButton radioButton4 = new JRadioButton();
     radioButton4.setActionCommand("PNG");
-    radioButton4.setLabel("PNG");
+    radioButton4.setText("PNG");
     radioButton4.setText("PNG");
     radioButton4.setToolTipText("Generate PNG icons");
     myIconFormatRadioButtonsPanel.add(radioButton4, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
@@ -1494,6 +1008,503 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     buttonGroup = new ButtonGroup();
     buttonGroup.add(myIconFormatWebpRadioButton);
     buttonGroup.add(radioButton4);
+  }
+
+  private void addBackgroundLayerTab(JBTabbedPane jBTabbedPane1) {
+    final JPanel panel4 = new JPanel();
+    panel4.setLayout(new GridLayoutManager(1, 1, JBUI.emptyInsets(), -1, -1));
+    jBTabbedPane1.addTab("Background Layer", panel4);
+    myBackgroundScrollPane = new JBScrollPane();
+    myBackgroundScrollPane.setHorizontalScrollBarPolicy(31);
+    panel4.add(myBackgroundScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                           null, null, null, 0, false));
+    myBackgroundAllOptionsPanel = new JPanel();
+    myBackgroundAllOptionsPanel.setLayout(new GridLayoutManager(6, 2, JBUI.emptyInsets(), -1, -1));
+    myBackgroundScrollPane.setViewportView(myBackgroundAllOptionsPanel);
+    myBackgroundLayerNamePanel = new JPanel();
+    myBackgroundLayerNamePanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myBackgroundLayerNamePanel.setVisible(true);
+    myBackgroundAllOptionsPanel.add(myBackgroundLayerNamePanel,
+                                    new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                        null, null, 0, true));
+    myBackgroundLayerNameLabel = new JBLabel();
+    myBackgroundLayerNameLabel.setText("Layer name:");
+    myBackgroundLayerNamePanel.add(myBackgroundLayerNameLabel,
+                                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                       new Dimension(70, -1), null, null, 0, false));
+    final JPanel panel5 = new JPanel();
+    panel5.setLayout(new GridLayoutManager(1, 1, JBUI.emptyInsets(), -1, -1));
+    myBackgroundLayerNamePanel.add(panel5, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               null, null, null, 0, false));
+    myBackgroundLayerNameTextField = new JTextField();
+    myBackgroundLayerNameTextField.setText("(name)");
+    myBackgroundLayerNameTextField.setToolTipText("The filename which will be used for these icons.");
+    panel5.add(myBackgroundLayerNameTextField,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myBackgroundSourceAssetTitleSeparator = new TitledSeparator();
+    myBackgroundSourceAssetTitleSeparator.setText("Source Asset");
+    myBackgroundAllOptionsPanel.add(myBackgroundSourceAssetTitleSeparator,
+                                    new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myBackgroundAssetTypePanel = new JPanel();
+    myBackgroundAssetTypePanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myBackgroundAllOptionsPanel.add(myBackgroundAssetTypePanel,
+                                    new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myBackgroundAssetTypeLabel = new JLabel();
+    myBackgroundAssetTypeLabel.setText("Asset type:");
+    myBackgroundAssetTypePanel.add(myBackgroundAssetTypeLabel,
+                                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                       new Dimension(70, -1), null, null, 1, false));
+    myBackgroundAssetRadioButtonsPanel = new JPanel();
+    myBackgroundAssetRadioButtonsPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myBackgroundAssetTypePanel.add(myBackgroundAssetRadioButtonsPanel,
+                                   new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                       null, null, 0, false));
+    myBackgroundImageRadioButton = new JRadioButton();
+    myBackgroundImageRadioButton.setText("Image");
+    myBackgroundImageRadioButton.setToolTipText(
+      "Select an image, e.g. PNG, SVG, PSD, or a drawable from disk to generate Android icons for your app.");
+    myBackgroundAssetRadioButtonsPanel.add(myBackgroundImageRadioButton,
+                                           new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myBackgroundColorRadioButton = new JRadioButton();
+    myBackgroundColorRadioButton.setText("Color");
+    myBackgroundColorRadioButton.setToolTipText("Select from a background color for the Android icons for your app.");
+    myBackgroundAssetRadioButtonsPanel.add(myBackgroundColorRadioButton,
+                                           new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myBackgroundAssetTypeSourcePanel = new JPanel();
+    myBackgroundAssetTypeSourcePanel.setLayout(new GridLayoutManager(3, 2, JBUI.emptyInsets(), -1, -1));
+    myBackgroundAllOptionsPanel.add(myBackgroundAssetTypeSourcePanel,
+                                    new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myBackgroundImageAssetRowPanel = new JPanel();
+    myBackgroundImageAssetRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myBackgroundAssetTypeSourcePanel.add(myBackgroundImageAssetRowPanel,
+                                         new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_FIXED, new Dimension(30, 30), null, null, 0, true));
+    myBackgroundImagePathLabel = new JBLabel();
+    myBackgroundImagePathLabel.setText("Path:");
+    myBackgroundImageAssetRowPanel.add(myBackgroundImagePathLabel,
+                                       new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                           GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                           new Dimension(70, -1), null, null, 1, false));
+    myBackgroundImageAssetBrowser = new ImageAssetBrowser();
+    myBackgroundImageAssetRowPanel.add(myBackgroundImageAssetBrowser,
+                                       new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myBackgroundColorRowPanel = new JPanel();
+    myBackgroundColorRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myBackgroundAssetTypeSourcePanel.add(myBackgroundColorRowPanel,
+                                         new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_FIXED, new Dimension(30, 30), null, null, 0, true));
+    myBackgroundColorLabel = new JBLabel();
+    myBackgroundColorLabel.setText("Color:");
+    myBackgroundColorRowPanel.add(myBackgroundColorLabel,
+                                  new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                      new Dimension(70, -1), null, null, 1, false));
+    myBackgroundColorPanel = new ColorPanel();
+    myBackgroundColorPanel.setSelectedColor(new Color(-16777216));
+    myBackgroundColorRowPanel.add(myBackgroundColorPanel,
+                                  new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                      GridConstraints.SIZEPOLICY_FIXED, new Dimension(78, -1), null, null, 0, false));
+    myBackgroundScalingTitleSeparator = new TitledSeparator();
+    myBackgroundScalingTitleSeparator.setText("Scaling");
+    myBackgroundAssetTypeSourcePanel.add(myBackgroundScalingTitleSeparator,
+                                         new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myBackgroundImageOptionsPanel = new JPanel();
+    myBackgroundImageOptionsPanel.setLayout(new GridLayoutManager(2, 2, JBUI.emptyInsets(), -1, -1));
+    myBackgroundAllOptionsPanel.add(myBackgroundImageOptionsPanel,
+                                    new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myBackgroundTrimRowPanel = new JPanel();
+    myBackgroundTrimRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myBackgroundTrimRowPanel.setVisible(true);
+    myBackgroundImageOptionsPanel.add(myBackgroundTrimRowPanel,
+                                      new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                          null, null, 0, true));
+    myBackgroundTrimLabel = new JBLabel();
+    myBackgroundTrimLabel.setText("Trim:");
+    myBackgroundTrimRowPanel.add(myBackgroundTrimLabel,
+                                 new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                     new Dimension(70, -1), null, null, 1, false));
+    myBackgroundTrimOptionsPanel = new JPanel();
+    myBackgroundTrimOptionsPanel.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
+    myBackgroundTrimRowPanel.add(myBackgroundTrimOptionsPanel,
+                                 new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                     null, null, 0, false));
+    final Spacer spacer3 = new Spacer();
+    myBackgroundTrimOptionsPanel.add(spacer3,
+                                     new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                         GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+    myBackgroundTrimYesRadioButton = new JRadioButton();
+    myBackgroundTrimYesRadioButton.setText("Yes");
+    myBackgroundTrimYesRadioButton.setToolTipText("Remove any transparent space from around your source asset before rendering to icon.");
+    myBackgroundTrimOptionsPanel.add(myBackgroundTrimYesRadioButton,
+                                     new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myBackgroundTrimNoRadioButton = new JRadioButton();
+    myBackgroundTrimNoRadioButton.setSelected(true);
+    myBackgroundTrimNoRadioButton.setText("No");
+    myBackgroundTrimNoRadioButton.setToolTipText("Leave the original asset unmodified.");
+    myBackgroundTrimOptionsPanel.add(myBackgroundTrimNoRadioButton,
+                                     new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myBackgroundResizeRowPanel = new JPanel();
+    myBackgroundResizeRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myBackgroundResizeRowPanel.setVisible(true);
+    myBackgroundImageOptionsPanel.add(myBackgroundResizeRowPanel,
+                                      new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                          null, null, 0, true));
+    myBackgroundResizeLabel = new JBLabel();
+    myBackgroundResizeLabel.setText("Resize:");
+    myBackgroundResizeRowPanel.add(myBackgroundResizeLabel,
+                                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                       new Dimension(70, -1), null, null, 1, false));
+    myBackgroundResizeSliderPanel = new JPanel();
+    myBackgroundResizeSliderPanel.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
+    myBackgroundResizeRowPanel.add(myBackgroundResizeSliderPanel,
+                                   new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                       null, null, 0, false));
+    myBackgroundResizeSlider = new JSlider();
+    myBackgroundResizeSlider.setMaximum(400);
+    myBackgroundResizeSlider.setMinimum(0);
+    myBackgroundResizeSlider.setMinorTickSpacing(20);
+    myBackgroundResizeSlider.setPaintLabels(false);
+    myBackgroundResizeSlider.setPaintTicks(true);
+    myBackgroundResizeSlider.setSnapToTicks(false);
+    myBackgroundResizeSlider.setToolTipText(
+      "Resize the original asset using the specified scaling factor (in percent). This happens after any trimming.");
+    myBackgroundResizeSlider.setValue(100);
+    myBackgroundResizeSliderPanel.add(myBackgroundResizeSlider,
+                                      new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myBackgroundResizeValueTextField = new JTextField();
+    myBackgroundResizeValueTextField.setHorizontalAlignment(4);
+    myBackgroundResizeValueTextField.setText("100");
+    myBackgroundResizeSliderPanel.add(myBackgroundResizeValueTextField,
+                                           new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                               new Dimension(30, -1), null, 0, false));
+    myBackgroundResizeValueLabel = new JLabel();
+    myBackgroundResizeValueLabel.setHorizontalAlignment(4);
+    myBackgroundResizeValueLabel.setText("%");
+    myBackgroundResizeSliderPanel.add(myBackgroundResizeValueLabel,
+                                      new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                          new Dimension(-1, -1), null, 0, false));
+    final Spacer spacer4 = new Spacer();
+    myBackgroundAllOptionsPanel.add(spacer4,
+                                    new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                                        GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+  }
+
+  private void addForegroundLayerTab(JBTabbedPane jBTabbedPane1) {
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new GridLayoutManager(1, 1, JBUI.emptyInsets(), -1, -1));
+    jBTabbedPane1.addTab("Foreground Layer", panel2);
+    myForegroundScrollPane = new JBScrollPane();
+    myForegroundScrollPane.setHorizontalScrollBarPolicy(31);
+    panel2.add(myForegroundScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                           null, null, null, 0, false));
+    myForegroundAllOptionsPanel = new JPanel();
+    myForegroundAllOptionsPanel.setLayout(new GridLayoutManager(6, 2, JBUI.emptyInsets(), -1, -1));
+    myForegroundScrollPane.setViewportView(myForegroundAllOptionsPanel);
+    myForegroundLayerNamePanel = new JPanel();
+    myForegroundLayerNamePanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myForegroundLayerNamePanel.setVisible(true);
+    myForegroundAllOptionsPanel.add(myForegroundLayerNamePanel,
+                                    new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myForegroundLayerNameLabel = new JBLabel();
+    myForegroundLayerNameLabel.setText("Layer name:");
+    myForegroundLayerNamePanel.add(myForegroundLayerNameLabel,
+                                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                       new Dimension(70, -1), null, null, 0, false));
+    final JPanel panel3 = new JPanel();
+    panel3.setLayout(new GridLayoutManager(1, 1, JBUI.emptyInsets(), -1, -1));
+    myForegroundLayerNamePanel.add(panel3, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                               null, null, null, 0, false));
+    myForegroundLayerNameTextField = new JTextField();
+    myForegroundLayerNameTextField.setText("(name)");
+    myForegroundLayerNameTextField.setToolTipText("The filename which will be used for these icons.");
+    panel3.add(myForegroundLayerNameTextField,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    mySourceAssetTitleSeparator = new TitledSeparator();
+    mySourceAssetTitleSeparator.setText("Source Asset");
+    myForegroundAllOptionsPanel.add(mySourceAssetTitleSeparator,
+                                    new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myForegroundAssetTypePanel = new JPanel();
+    myForegroundAssetTypePanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myForegroundAllOptionsPanel.add(myForegroundAssetTypePanel,
+                                    new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myForegroundAssetTypeLabel = new JLabel();
+    myForegroundAssetTypeLabel.setText("Asset type:");
+    myForegroundAssetTypePanel.add(myForegroundAssetTypeLabel,
+                                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                       new Dimension(70, -1), null, null, 1, false));
+    myForegroundAssetRadioButtonsPanel = new JPanel();
+    myForegroundAssetRadioButtonsPanel.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
+    myForegroundAssetTypePanel.add(myForegroundAssetRadioButtonsPanel,
+                                   new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myForegroundClipartRadioButton = new JRadioButton();
+    myForegroundClipartRadioButton.setText("Clip art");
+    myForegroundClipartRadioButton.setToolTipText("Select from a list of clipart choices to generate Android icons for your app.");
+    myForegroundAssetRadioButtonsPanel.add(myForegroundClipartRadioButton,
+                                           new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                               null, null, 0, false));
+    myForegroundTextRadioButton = new JRadioButton();
+    myForegroundTextRadioButton.setText("Text");
+    myForegroundTextRadioButton.setToolTipText("Enter text which will be rendered into Android icons for your app.");
+    myForegroundAssetRadioButtonsPanel.add(myForegroundTextRadioButton,
+                                           new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                               null, null, 0, false));
+    myForegroundImageRadioButton = new JRadioButton();
+    myForegroundImageRadioButton.setText("Image");
+    myForegroundImageRadioButton.setToolTipText(
+      "Select an image, e.g. PNG, SVG, PSD, or a drawable from disk to generate Android icons for your app.");
+    myForegroundAssetRadioButtonsPanel.add(myForegroundImageRadioButton,
+                                           new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                               null, null, 0, false));
+    myForegroundAssetTypeSourcePanel = new JPanel();
+    myForegroundAssetTypeSourcePanel.setLayout(new GridLayoutManager(4, 2, JBUI.emptyInsets(), -1, -1));
+    myForegroundAllOptionsPanel.add(myForegroundAssetTypeSourcePanel,
+                                    new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myForegroundImageAssetRowPanel = new JPanel();
+    myForegroundImageAssetRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myForegroundAssetTypeSourcePanel.add(myForegroundImageAssetRowPanel,
+                                         new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myForegroundImagePathLabel = new JBLabel();
+    myForegroundImagePathLabel.setText("Path:");
+    myForegroundImageAssetRowPanel.add(myForegroundImagePathLabel,
+                                       new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                           GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                           new Dimension(70, -1), null, null, 1, false));
+    myForegroundImageAssetBrowser = new ImageAssetBrowser();
+    myForegroundImageAssetRowPanel.add(myForegroundImageAssetBrowser,
+                                       new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myForegroundClipartAssetRowPanel = new JPanel();
+    myForegroundClipartAssetRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myForegroundAssetTypeSourcePanel.add(myForegroundClipartAssetRowPanel,
+                                         new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myForegroundClipartLabel = new JBLabel();
+    myForegroundClipartLabel.setText("Clip art:");
+    myForegroundClipartAssetRowPanel.add(myForegroundClipartLabel,
+                                         new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                             GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                             new Dimension(70, -1), null, null, 1, false));
+    myForegroundClipartAssetButton = new ClipartIconButton();
+    myForegroundClipartAssetRowPanel.add(myForegroundClipartAssetButton,
+                                         new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+    myForegroundTextAssetRowPanel = new JPanel();
+    myForegroundTextAssetRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myForegroundAssetTypeSourcePanel.add(myForegroundTextAssetRowPanel,
+                                         new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myForegroundTextLabel = new JBLabel();
+    myForegroundTextLabel.setText("Text:");
+    myForegroundTextAssetRowPanel.add(myForegroundTextLabel,
+                                      new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                          new Dimension(70, -1), null, null, 1, false));
+    myForegroundTextAssetEditor = new MultiLineTextAssetEditor();
+    myForegroundTextAssetRowPanel.add(myForegroundTextAssetEditor,
+                                      new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myForegroundColorRowPanel = new JPanel();
+    myForegroundColorRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myForegroundAssetTypeSourcePanel.add(myForegroundColorRowPanel,
+                                         new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myForegroundColorLabel = new JBLabel();
+    myForegroundColorLabel.setText("Color:");
+    myForegroundColorRowPanel.add(myForegroundColorLabel,
+                                  new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                      new Dimension(70, -1), null, null, 1, false));
+    myForegroundColorPanel = new ColorPanel();
+    myForegroundColorPanel.setSelectedColor(new Color(-16777216));
+    myForegroundColorRowPanel.add(myForegroundColorPanel,
+                                  new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                      new Dimension(78, -1), null, null, 0, false));
+    myForegroundImageOptionsPanel = new JPanel();
+    myForegroundImageOptionsPanel.setLayout(new GridLayoutManager(3, 2, JBUI.emptyInsets(), -1, -1));
+    myForegroundAllOptionsPanel.add(myForegroundImageOptionsPanel,
+                                    new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                        null, null, 0, true));
+    myForegroundScalingTitleSeparator = new TitledSeparator();
+    myForegroundScalingTitleSeparator.setText("Scaling");
+    myForegroundImageOptionsPanel.add(myForegroundScalingTitleSeparator,
+                                      new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myForegroundTrimPanel = new JPanel();
+    myForegroundTrimPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myForegroundTrimPanel.setVisible(true);
+    myForegroundImageOptionsPanel.add(myForegroundTrimPanel,
+                                      new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                          null, null, 0, true));
+    myForegroundTrimLabel = new JBLabel();
+    myForegroundTrimLabel.setText("Trim:");
+    myForegroundTrimPanel.add(myForegroundTrimLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                                         new Dimension(70, -1), null, null, 1, false));
+    myForegroundTrimOptionsPanel = new JPanel();
+    myForegroundTrimOptionsPanel.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
+    myForegroundTrimPanel.add(myForegroundTrimOptionsPanel,
+                              new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                  null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myForegroundTrimOptionsPanel.add(spacer1,
+                                     new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                         GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+    myForegroundTrimYesRadioButton = new JRadioButton();
+    myForegroundTrimYesRadioButton.setText("Yes");
+    myForegroundTrimYesRadioButton.setToolTipText("Remove any transparent space from around your source asset before rendering to icon.");
+    myForegroundTrimOptionsPanel.add(myForegroundTrimYesRadioButton,
+                                     new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myForegroundTrimNoRadioButton = new JRadioButton();
+    myForegroundTrimNoRadioButton.setSelected(true);
+    myForegroundTrimNoRadioButton.setText("No");
+    myForegroundTrimNoRadioButton.setToolTipText("Leave the original asset unmodified.");
+    myForegroundTrimOptionsPanel.add(myForegroundTrimNoRadioButton,
+                                     new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myForegroundResizePanel = new JPanel();
+    myForegroundResizePanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myForegroundResizePanel.setVisible(true);
+    myForegroundImageOptionsPanel.add(myForegroundResizePanel,
+                                      new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                          null, null, 0, true));
+    myForegroundResizeLabel = new JBLabel();
+    myForegroundResizeLabel.setText("Resize:");
+    myForegroundResizePanel.add(myForegroundResizeLabel,
+                                new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                    GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                    new Dimension(70, -1), null, null, 1, false));
+    myForegroundResizeSliderPanel = new JPanel();
+    myForegroundResizeSliderPanel.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
+    myForegroundResizePanel.add(myForegroundResizeSliderPanel,
+                                new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                    null, 0, false));
+    myForegroundResizeSlider = new JSlider();
+    myForegroundResizeSlider.setMaximum(400);
+    myForegroundResizeSlider.setMinimum(0);
+    myForegroundResizeSlider.setMinorTickSpacing(20);
+    myForegroundResizeSlider.setPaintLabels(false);
+    myForegroundResizeSlider.setPaintTicks(true);
+    myForegroundResizeSlider.setSnapToTicks(false);
+    myForegroundResizeSlider.setToolTipText(
+      "Resize the original asset using the specified scaling factor (in percent). This happens after any trimming.");
+    myForegroundResizeSlider.setValue(100);
+    myForegroundResizeSlider.setValueIsAdjusting(false);
+    myForegroundResizeSliderPanel.add(myForegroundResizeSlider,
+                                      new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myForegroundResizeValueTextField = new JTextField();
+    myForegroundResizeValueTextField.setHorizontalAlignment(4);
+    myForegroundResizeValueTextField.setText("100");
+    myForegroundResizeSliderPanel.add(myForegroundResizeValueTextField,
+                                           new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                               new Dimension(30, -1), null, 0, false));
+    myForegroundResizeValueLabel = new JLabel();
+    myForegroundResizeValueLabel.setHorizontalAlignment(4);
+    myForegroundResizeValueLabel.setText("%");
+    myForegroundResizeSliderPanel.add(myForegroundResizeValueLabel,
+                                      new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                          new Dimension(-1, -1), null, 0, false));
+    final Spacer spacer2 = new Spacer();
+    myForegroundAllOptionsPanel.add(spacer2,
+                                    new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                                        GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
   }
 
   @NotNull
