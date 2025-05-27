@@ -2245,6 +2245,12 @@ public final class StudioFlags {
                     "When enabled, add Rules section to prompt library settings screen.",
                     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_PROMPT_LIBRARY_CHAT_LOOKUP_ENABLED =
+    new BooleanFlag(STUDIOBOT, "prompt.library.chat.lookup",
+                    "Show Saved Prompts in chat lookup",
+                    "When enabled, add Rules section to lookup popup.",
+                    enabledUpTo(CANARY));
+
   public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
                     "Enable Scroll to Bottom button",
