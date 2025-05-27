@@ -80,7 +80,7 @@ fun JourneysResultsView(
   numEntries: Int,
   onImageDoubleClicked: () -> Unit = {},
 ) {
-  Row(modifier = modifier.height(160.dp).padding(horizontal = 16.dp)) {
+  Row(modifier = modifier.height(320.dp).padding(horizontal = 16.dp)) {
     val path = artifact.screenshotImage
     if (path != null) {
       DoubleClickableWrapper(modifier = Modifier, onDoubleClick = onImageDoubleClicked) {
