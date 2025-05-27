@@ -2367,6 +2367,13 @@ public final class StudioFlags {
                     "When enabled, the compose chat timeline will show a shimmering placeholder while awaiting initial response content.",
                     enabledUpTo(CANARY));
 
+  public static Flag<Boolean> GEMINI_BRING_YOUR_OWN_KEY_ENABLED =
+    new BooleanFlag(STUDIOBOT, "bring.your.own.key",
+                    "Enable providing a public Gemini API key to override the default model.",
+                    "When enabled, a setting and various UI is made visible to provide a Gemini API key, and when provided and" +
+                    "enabled it replaces the default model with the public Gemini model.",
+                    enabledUpTo(CANARY));
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
