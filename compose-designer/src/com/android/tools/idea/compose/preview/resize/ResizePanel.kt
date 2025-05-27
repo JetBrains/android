@@ -49,6 +49,7 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
+import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Point
@@ -137,9 +138,14 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
   }
 
   init {
-    layout = FlowLayout(FlowLayout.CENTER, JBUI.scale(4), JBUI.scale(2))
+    layout = BorderLayout()
     border = JBEmptyBorder(2)
     background = Colors.DEFAULT_BACKGROUND_COLOR
+
+    // Create a new panel for the flowing components
+    val flowingComponentsPanel =
+      JBPanel<JBPanel<*>>(FlowLayout(FlowLayout.CENTER, JBUI.scale(4), JBUI.scale(2)))
+    flowingComponentsPanel.isOpaque = false
 
     devicePickerButton = setupDevicePickerButton()
     widthTextField = JBTextField()
@@ -154,12 +160,16 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     heightTextField.preferredSize =
       Dimension(textFieldPreferredWidth, heightTextField.preferredSize.height)
 
-    add(devicePickerButton)
-    add(widthTextField)
-    add(xLabel)
-    add(heightTextField)
-    add(unitLabel)
-    add(closeButton)
+    // Add most components to the new flowing panel
+    flowingComponentsPanel.add(devicePickerButton)
+    flowingComponentsPanel.add(widthTextField)
+    flowingComponentsPanel.add(xLabel)
+    flowingComponentsPanel.add(heightTextField)
+    flowingComponentsPanel.add(unitLabel)
+
+    // Add the flowing panel to the center and the close button to the east
+    add(flowingComponentsPanel, BorderLayout.CENTER)
+    add(closeButton, BorderLayout.EAST)
 
     Disposer.register(parentDisposable, this)
     clearAndDisablePanel()
