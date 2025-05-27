@@ -110,7 +110,8 @@ class SavePreviewInNewSizeActionTest {
 
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isTrue()
-    assertThat(event.presentation.text).isEqualTo("Save Size (500dp x 500dp)")
+    assertThat(event.presentation.text).isEqualTo("Save New Preview (500dp x 500dp)")
+    assertThat(event.presentation.text).isEqualTo("Save New Preview (500dp x 500dp)")
     assertThat(event.presentation.description)
       .isEqualTo("Add the @Preview annotation with the current preview size (500dp x 500dp)")
   }
