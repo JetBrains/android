@@ -16,6 +16,8 @@
 package com.android.tools.idea.wear.dwf.importer.wfs
 
 import com.android.SdkConstants.ATTR_PACKAGE
+import com.android.SdkConstants.EXT_ANDROID_PACKAGE
+import com.android.SdkConstants.EXT_APP_BUNDLE
 import com.android.SdkConstants.FD_MAIN
 import com.android.SdkConstants.FD_SOURCES
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
@@ -26,8 +28,10 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.ReformatUtil
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.MISSING_MAIN_MODULE
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.UNKNOWN
+import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.UNSUPPORTED_FILE_EXTENSION
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Success
 import com.android.tools.idea.wear.dwf.importer.wfs.extractors.AndroidAppBundleExtractor
+import com.android.tools.idea.wear.dwf.importer.wfs.extractors.ApkExtractor
 import com.android.tools.idea.wear.dwf.importer.wfs.extractors.ExtractedItem
 import com.android.utils.FileUtils
 import com.android.utils.StdLogger
@@ -50,6 +54,7 @@ import java.io.File
 import java.io.InputStream
 import java.nio.file.Path
 import kotlin.io.path.exists
+import kotlin.io.path.extension
 import kotlin.io.path.notExists
 import kotlin.io.path.pathString
 import kotlinx.coroutines.CoroutineDispatcher
@@ -67,8 +72,9 @@ private val LOG = Logger.getInstance(WatchFaceStudioFileImporter::class.java)
 /**
  * Imports watch faces compiled by
  * [Watch Face Studio](https://developer.samsung.com/watch-face-studio/overview.html) into an
- * already existing and open project. These compiled files are `.aab` files and can be built either
- * by publishing a watch face, or deploying a watch face to device, from Watch Face Studio.
+ * already existing and open project. These compiled files are `.aab` and `.apk` files and can be
+ * built either by publishing a watch face, or deploying a watch face to device, from Watch Face
+ * Studio.
  *
  * Existing files may be overwritten if they have the same path as the files that are imported.
  */
@@ -78,8 +84,15 @@ private constructor(
   private val project: Project,
   private val defaultDispatcher: CoroutineDispatcher,
   private val ioDispatcher: CoroutineDispatcher,
-  private val aabFileExtractor: AndroidAppBundleExtractor = AndroidAppBundleExtractor(ioDispatcher),
 ) {
+
+  private val extractorByFileExtension =
+    mapOf(
+      EXT_APP_BUNDLE to AndroidAppBundleExtractor(ioDispatcher),
+      EXT_ANDROID_PACKAGE to ApkExtractor(ioDispatcher),
+    )
+
+  val supportedFileTypes = extractorByFileExtension.keys
 
   private constructor(
     project: Project
@@ -105,8 +118,12 @@ private constructor(
           VfsUtil.createDirectories(mainFolderPath.pathString)
         }
 
+        val fileExtractor =
+          extractorByFileExtension[filePathToImport.extension]
+            ?: return@withContext WFSImportResult.Error(UNSUPPORTED_FILE_EXTENSION)
+
         try {
-          aabFileExtractor.extract(filePathToImport).collect { item ->
+          fileExtractor.extract(filePathToImport).collect { item ->
             when (item) {
               is ExtractedItem.Manifest -> importManifest(mainFolderPath, item)
               is ExtractedItem.StringResource -> importStringResource(mainFolderPath, item)
@@ -273,6 +290,7 @@ sealed class WFSImportResult {
     enum class Type {
       UNKNOWN,
       MISSING_MAIN_MODULE,
+      UNSUPPORTED_FILE_EXTENSION,
     }
   }
 }

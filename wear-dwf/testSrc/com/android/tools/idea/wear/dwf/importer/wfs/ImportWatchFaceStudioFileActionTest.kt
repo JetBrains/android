@@ -44,8 +44,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.only
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -62,6 +62,7 @@ class ImportWatchFaceStudioFileActionTest {
 
   @Before
   fun setup() {
+    whenever(importer.supportedFileTypes).thenReturn(setOf("aab", "apk"))
     projectRule.project.replaceService(
       WatchFaceStudioFileImporter::class.java,
       importer,
@@ -154,7 +155,7 @@ class ImportWatchFaceStudioFileActionTest {
     action.actionPerformed(TestActionEvent.createTestEvent())
     advanceUntilIdle()
 
-    verifyNoInteractions(importer)
+    verify(importer, only()).supportedFileTypes
   }
 
   @Suppress("UnstableApiUsage")
