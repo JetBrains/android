@@ -57,7 +57,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import org.jetbrains.annotations.TestOnly
 
 private val DECORATOR_FACTORY: SceneDecoratorFactory = NlSceneDecoratorFactory()
 
@@ -119,21 +118,9 @@ open class LayoutlibSceneManager(
    */
   var forceNextResizeToWrapContent: Boolean = false
 
-  /**
-   * Returns true if the current preview was resized and currently shown in a different size from
-   * one specified in the file.
-   */
-  val isResized: Boolean
-    get() = layoutlibSceneRenderer.renderTask?.isRenderSizeOverridden == true
-
   /** The configuration to use when inflating and rendering. */
   val sceneRenderConfiguration: LayoutlibSceneRenderConfiguration
     get() = layoutlibSceneRenderer.sceneRenderConfiguration
-
-  /** Returns if there are any pending render requests. */
-  @get:TestOnly
-  val isRendering: Boolean
-    get() = layoutlibSceneRenderer.isRendering()
 
   /** The [RenderResult] of the latest render. */
   open val renderResult: RenderResult?

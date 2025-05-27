@@ -35,6 +35,7 @@ import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
+import com.android.tools.idea.compose.preview.resize.ResizePanel
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
@@ -80,6 +81,7 @@ class SavePreviewInNewSizeActionTest {
   private val sceneManager: LayoutlibSceneManager = Mockito.mock()
   private val designSurface: NlDesignSurface = Mockito.mock()
   private val model: NlModel = Mockito.mock()
+  private val resizePanel: ResizePanel = Mockito.mock()
   private lateinit var modeManager: PreviewModeManager
 
   @Before
@@ -95,8 +97,8 @@ class SavePreviewInNewSizeActionTest {
   }
 
   @Test
-  fun `update isVisible and isEnabled when scene manager is resized`() {
-    `when`(sceneManager.isResized).thenReturn(true)
+  fun `update isVisible and isEnabled when resizePanel is resized`() {
+    `when`(resizePanel.hasBeenResized).thenReturn(true)
     val model = mock<NlModel>()
     `when`(sceneManager.model).thenReturn(model)
     val configuration = createConfiguration(500, 500)
@@ -121,11 +123,12 @@ class SavePreviewInNewSizeActionTest {
       .add(CommonDataKeys.PROJECT, projectRule.project)
       .add(DESIGN_SURFACE, designSurface)
       .add(PreviewModeManager.KEY, modeManager)
+      .add(RESIZE_PANEL_INSTANCE_KEY, resizePanel)
       .build()
 
   @Test
   fun `update isVisible and isEnabled when preview mode is not focus`() {
-    `when`(sceneManager.isResized).thenReturn(true)
+    `when`(resizePanel.hasBeenResized).thenReturn(true)
     modeManager.setMode(PreviewMode.AnimationInspection(mock()))
 
     val event = TestActionEvent.createTestEvent(getDataContext())
@@ -140,7 +143,7 @@ class SavePreviewInNewSizeActionTest {
 
   @Test
   fun `update isVisible and isEnabled when flag is disabled`() {
-    `when`(sceneManager.isResized).thenReturn(true)
+    `when`(resizePanel.hasBeenResized).thenReturn(true)
     val event = TestActionEvent.createTestEvent(getDataContext())
 
     val action = SavePreviewInNewSizeAction()
@@ -154,8 +157,8 @@ class SavePreviewInNewSizeActionTest {
   }
 
   @Test
-  fun `update isVisible and isEnabled when scene manager is not resized`() {
-    `when`(sceneManager.isResized).thenReturn(false)
+  fun `update isVisible and isEnabled when resize panel is not resized`() {
+    `when`(resizePanel.hasBeenResized).thenReturn(false)
     modeManager.setMode(PreviewMode.Focus(mock()))
     val event = TestActionEvent.createTestEvent(getDataContext())
 
@@ -202,7 +205,7 @@ class SavePreviewInNewSizeActionTest {
     configuration.updateScreenSize(smallerSide, biggerSide)
     configuration.deviceState!!.orientation = ScreenOrientation.LANDSCAPE
 
-    `when`(sceneManager.isResized).thenReturn(true)
+    `when`(resizePanel.hasBeenResized).thenReturn(true)
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
@@ -283,7 +286,7 @@ class SavePreviewInNewSizeActionTest {
 
     configuration.updateScreenSize(newWidth, newHeight)
 
-    `when`(sceneManager.isResized).thenReturn(true)
+    `when`(resizePanel.hasBeenResized).thenReturn(true)
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
@@ -362,7 +365,7 @@ class SavePreviewInNewSizeActionTest {
 
     configuration.updateScreenSize(newWidth, newHeight)
 
-    `when`(sceneManager.isResized).thenReturn(true)
+    `when`(resizePanel.hasBeenResized).thenReturn(true)
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
@@ -435,7 +438,7 @@ class SavePreviewInNewSizeActionTest {
       createConfiguration(width = 845, height = 360, orientation = ScreenOrientation.LANDSCAPE)
     configuration.updateScreenSize(845, 360) // Ensure internal state is updated
 
-    `when`(sceneManager.isResized).thenReturn(true)
+    `when`(resizePanel.hasBeenResized).thenReturn(true)
     `when`(model.dataProvider)
       .thenReturn(
         object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {

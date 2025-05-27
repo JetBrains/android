@@ -22,9 +22,7 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.getDimensionsInDp
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.util.toPreviewAnnotationText
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
-import com.android.tools.idea.preview.modes.PreviewMode.Focus
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
@@ -95,7 +93,7 @@ class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.Menu
     val sceneManager = e.getSceneManagerInFocusMode() ?: return
     val configuration = sceneManager.model.configuration
     e.presentation.isEnabledAndVisible =
-      StudioFlags.COMPOSE_PREVIEW_RESIZING.get() && sceneManager.isResized
+      e.dataContext.getData(RESIZE_PANEL_INSTANCE_KEY)?.hasBeenResized == true
 
     if (e.presentation.isEnabledAndVisible) {
       val (widthDp, heightDp) = getDimensionsInDp(configuration)

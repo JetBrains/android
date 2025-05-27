@@ -102,8 +102,14 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
 
   private var originalDeviceSnapshot: Device? = null
   private var originalDeviceStateSnapshot: State? = null
-  private var hasBeenResized: Boolean = false
   private val LOG = Logger.getInstance(ResizePanel::class.java)
+
+  /**
+   * Indicates whether the preview has been resized using this panel at least once since the panel
+   * was last cleared or initialized.
+   */
+  var hasBeenResized: Boolean = false
+    private set
 
   /**
    * Listener responsible for reacting to device configuration changes to trigger a re-render of the
@@ -187,6 +193,7 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
    * close button or selects the "Original" device option from the dropdown.
    */
   private fun revertResizing() {
+    currentSceneManager?.sceneRenderConfiguration?.clearOverrideRenderSize = true
     currentSceneManager?.forceNextResizeToWrapContent = isOriginalPreviewSizeModeWrap()
     currentConfiguration?.setEffectiveDevice(originalDeviceSnapshot, originalDeviceStateSnapshot)
 
