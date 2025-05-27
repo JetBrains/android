@@ -401,7 +401,7 @@ class EmulatorToolWindowPanelTest {
     waitForCondition(2.seconds) { xrInputController.passthroughCoefficient != UNKNOWN_PASSTHROUGH_COEFFICIENT }
     assertAppearance("XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
-    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.INTERACTION)
     val modes = mapOf(
       "Interact with Apps" to XrInputMode.INTERACTION,
       "Hand Tracking" to XrInputMode.HAND,
