@@ -2243,7 +2243,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "prompt.library.rules",
                     "Enable Rules Prompt Library",
                     "When enabled, add Rules section to prompt library settings screen.",
-                    enabledUpTo(DEV));
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
