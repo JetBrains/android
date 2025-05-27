@@ -2401,7 +2401,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "gemini.show.sign.in.dialog",
                     "Enable sign in dialog for Gemini",
                     "Enable Gemini actions to display a dialog prompting the user to sign in",
-                    enabledUpTo(DEV));
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> GEMINI_VERIFY_USER_TIER_IN_ALL_AIDA_RPCS =
     new BooleanFlag(STUDIOBOT, "verify.user.tier.in.aida.rpcs",
