@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -135,9 +134,10 @@ fun JourneysResultsViewCompact(
   artifact: JourneyActionArtifacts,
   index: Int,
   numEntries: Int,
-  onImageDoubleClicked: (() -> Unit)? = null
+  onImageDoubleClicked: (() -> Unit)? = null,
+  showStepCounter: Boolean = true,
 ) {
-  Column(modifier = modifier.padding(16.dp)) {
+  Column(modifier = modifier.padding(8.dp)) {
     Row(modifier = Modifier.weight(1f, fill = true)) {
       val path = artifact.screenshotImage
       if (path != null) {
@@ -151,13 +151,13 @@ fun JourneysResultsViewCompact(
         } else {
           JourneyScreenshot(modifier = Modifier.widthIn(min = 0.dp, max = 160.dp), path = path)
         }
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(20.dp))
       }
 
       val textScrollState = rememberScrollState()
       Box {
         Column(
-          modifier = Modifier.widthIn(max = 400.dp).verticalScroll(textScrollState),
+          modifier = Modifier.widthIn(max = 400.dp).verticalScroll(textScrollState).padding(vertical = 4.dp),
           verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.Top),
         ) {
           ArtifactText(
@@ -178,9 +178,8 @@ fun JourneysResultsViewCompact(
       }
     }
 
-    Spacer(modifier = Modifier.height(12.dp))
-
-    if (numEntries > 1) {
+    if (numEntries > 1 && showStepCounter) {
+      Spacer(modifier = Modifier.height(12.dp))
       StepCounter(
         modifier = Modifier.align(Alignment.CenterHorizontally),
         index = index,
