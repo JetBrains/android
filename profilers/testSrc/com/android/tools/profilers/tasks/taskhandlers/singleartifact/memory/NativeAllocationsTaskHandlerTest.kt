@@ -34,7 +34,7 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
@@ -264,14 +264,14 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
     val pDevice = TaskHandlerTestUtils.createDevice(AndroidVersion.VersionCodes.P)
     assertNull(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(qDevice, debuggableProcess))
     assertNotNull(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess))
-    assertEquals(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess)!!.starTaskSelectionErrorCode,
-                 StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN)
+    assertEquals(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess)!!.startTaskSelectionErrorCode,
+                 StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN)
 
     val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
     assertNull(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(qDevice, profileableProcess))
     assertNotNull(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, profileableProcess))
-    assertEquals(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess)!!.starTaskSelectionErrorCode,
-                 StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN)
+    assertEquals(myNativeAllocationsTaskHandler.checkSupportForDeviceAndProcess(pDevice, debuggableProcess)!!.startTaskSelectionErrorCode,
+                 StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN)
   }
 
   @Test

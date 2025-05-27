@@ -16,12 +16,14 @@
 package com.android.tools.profilers.leakcanary
 
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.leakcanary.LeakCanaryTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.SingleArtifactTaskHandler
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 
 class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager): SingleArtifactTaskHandler<LeakCanaryModel>(sessionsManager) {
 
@@ -71,5 +73,12 @@ class LeakCanaryTaskHandler(private val sessionsManager: SessionsManager): Singl
   /**
    * Always returns true since leak canary task is available regardless of devices feature level and process
    */
-  override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? = null
+  override fun checkSupportForDeviceAndProcess(device: Common.Device, process: Common.Process): StartTaskSelectionError? {
+    val isFeatureSupported = SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_LEAK_WITH_LEAKCANARY)
+
+    if (isFeatureSupported) {
+      return null
+    }
+    return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
+  }
 }

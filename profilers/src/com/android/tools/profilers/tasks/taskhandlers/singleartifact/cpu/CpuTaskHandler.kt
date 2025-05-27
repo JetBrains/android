@@ -22,7 +22,7 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.getMinApiStartTaskErrorMessage
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
@@ -86,11 +86,11 @@ abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : Si
 
     if (config == null) {
       // config being null is only possible if the device does not support any configuration.
-      return StartTaskSelectionError(StarTaskSelectionErrorCode.INVALID_DEVICE,
+      return StartTaskSelectionError(StartTaskSelectionErrorCode.INVALID_DEVICE,
                                      "No task configuration was found for API ${device.featureLevel} device")
     }
 
-    return StartTaskSelectionError(StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN,
+    return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN,
                                    getMinApiStartTaskErrorMessage(config.requiredDeviceLevel))
   }
 

@@ -26,7 +26,7 @@ import com.android.tools.profilers.memory.adapters.MemoryDataProvider
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.JavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKotlinAllocationsTaskArgs
@@ -97,7 +97,7 @@ class JavaKotlinAllocationsTaskHandler(private val sessionsManager: SessionsMana
       return null
     }
 
-    return StartTaskSelectionError(StarTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
+    return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
   }
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?): Boolean {

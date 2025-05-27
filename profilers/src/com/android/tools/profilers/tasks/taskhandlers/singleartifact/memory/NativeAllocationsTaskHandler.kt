@@ -66,7 +66,7 @@ class NativeAllocationsTaskHandler(sessionsManager: SessionsManager) : MemoryTas
       return null
     }
 
-    return StartTaskSelectionError(StartTaskSelectionError.StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN,
+    return StartTaskSelectionError(StartTaskSelectionError.StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN,
                                    getMinApiStartTaskErrorMessage(requiredDeviceLevel))
   }
 

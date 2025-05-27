@@ -60,7 +60,7 @@ fun TaskStartingPointDropdown(profilingProcessStartingPoint: TaskHomeTabModel.Pr
         }
         else {
           Tooltip(tooltip = {
-            Text(processStartDisabledReason?.let { TaskBasedUxStrings.getStartTaskErrorMessage(it.starTaskSelectionErrorCode) }
+            Text(processStartDisabledReason?.let { TaskBasedUxStrings.getStartTaskErrorMessage(it.startTaskSelectionErrorCode) }
                  ?: "Option unavailable")
           }) {
             TaskStartingFromProcessStartOption(false, isSelectedProcessAlive, Modifier.testTag("TaskStartingPointOption"))

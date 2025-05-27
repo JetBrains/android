@@ -38,7 +38,7 @@ import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.JavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKotlinAllocationsTaskArgs
@@ -389,8 +389,8 @@ class JavaKotlinAllocationsTaskHandlerTest {
     val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
     assertNotNull(myJavaKotlinAllocationsTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess))
     assertEquals(
-      myJavaKotlinAllocationsTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess)!!.starTaskSelectionErrorCode,
-      StarTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
+      myJavaKotlinAllocationsTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess)!!.startTaskSelectionErrorCode,
+      StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
 
     val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
     assertNull(myJavaKotlinAllocationsTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess))
