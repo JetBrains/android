@@ -190,7 +190,6 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
             parentDisposable,
             facet,
           )
-        newModel.configuration.startBulkEditing()
 
         copySettingsInto(
           from = previewElement.displaySettings,
@@ -248,10 +247,6 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
               configureLayoutlibSceneManager(previewElement.displaySettings, sceneManager)
           }
       }
-
-  elementsToSceneManagers.forEach { (_, sceneManager) ->
-    sceneManager.model.configuration.finishBulkEditing()
-  }
 
   // Relayout the scene views and repaint, so that the updated lists of previews is shown before
   // the renders start, according to the placeholders added above. At this point, reused models
