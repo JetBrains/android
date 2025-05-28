@@ -21,18 +21,22 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.settingssync.onboarding.BackupAndSyncWizard
 import com.android.tools.idea.settingssync.onboarding.ChooseCategoriesStepPage
 import com.android.tools.idea.settingssync.onboarding.EnableOrSkipStepPage
 import com.android.tools.idea.settingssync.onboarding.PushOrPullStepPage
+import com.google.gct.login2.LoginCompletedCallback
 import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.OAuthScope
 import com.google.gct.wizard.WizardPage
+import com.google.wireless.android.sdk.stats.GoogleLoginPluginEvent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.options.ex.Settings
 import icons.StudioIllustrations
 import icons.StudioIllustrationsCompose
 import javax.swing.Icon
+import javax.swing.SwingUtilities
 import org.jetbrains.jewel.ui.icon.IconKey
 
 class SettingsSyncFeature : LoginFeature {
@@ -78,6 +82,17 @@ class SettingsSyncFeature : LoginFeature {
 
       override fun getPages(): List<WizardPage> {
         return listOf(EnableOrSkipStepPage(), PushOrPullStepPage(), ChooseCategoriesStepPage())
+      }
+    }
+
+  override val onLoginCompleted: LoginCompletedCallback
+    get() = LoginCompletedCallback { user, loginType ->
+      when (loginType) {
+        GoogleLoginPluginEvent.LoginType.FEATURE_LOGIN -> {
+          // Help user onboard when "allowing" feature in the Google Accounts settings page.
+          SwingUtilities.invokeLater { BackupAndSyncWizard().createDialog(user).showAndGet() }
+        }
+        else -> Unit
       }
     }
 }
