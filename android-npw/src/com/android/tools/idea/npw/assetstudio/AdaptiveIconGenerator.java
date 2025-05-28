@@ -22,6 +22,7 @@ import static java.lang.Math.max;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.Density;
 import com.android.tools.idea.concurrency.FutureUtils;
+import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
@@ -58,8 +59,10 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
   private final BoolProperty myShowSafeZone = new BoolValueProperty(true);
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(DEFAULT_BACKGROUND_COLOR);
   private final OptionalProperty<ImageAsset> myBackgroundImageAsset = new OptionalValueProperty<>();
+  private final OptionalProperty<BaseAsset> myMonochromeImageAsset = new OptionalValueProperty<>();
   private final StringProperty myForegroundLayerName = new StringValueProperty();
   private final StringProperty myBackgroundLayerName = new StringValueProperty();
+  private final StringProperty myMonochromeLayerName = new StringValueProperty();
   private final BoolProperty myGenerateLegacyIcon = new BoolValueProperty(true);
 
   /**
@@ -88,6 +91,11 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
   }
 
   @NotNull
+  public OptionalProperty<BaseAsset> monochromeImageAsset() {
+    return myMonochromeImageAsset;
+  }
+
+  @NotNull
   public StringProperty foregroundLayerName() {
     return myForegroundLayerName;
   }
@@ -95,6 +103,11 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
   @NotNull
   public StringProperty backgroundLayerName() {
     return myBackgroundLayerName;
+  }
+
+  @NotNull
+  public StringProperty monochromeLayerName() {
+    return myMonochromeLayerName;
   }
 
   /**
@@ -109,12 +122,39 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
   protected String getAdaptiveIconXml(@NotNull AdaptiveIconOptions options) {
     String backgroundType = options.backgroundImage == null ? "color" : options.backgroundImage.isDrawable() ? "drawable" : "mipmap";
     String foregroundType = options.foregroundImage != null && options.foregroundImage.isDrawable() ? "drawable" : "mipmap";
+    if (isMonochromeSupported()){
+      return generateXmlStringWithMonochromeTag(options, foregroundType, backgroundType);
+    } else {
+      return generateXmlString(options, foregroundType, backgroundType);
+    }
+  }
+
+  private @NotNull String generateXmlStringWithMonochromeTag(@NotNull AdaptiveIconOptions options, String foregroundType, String backgroundType) {
+    // Default monochrome type and name should be equal to foreground until we define monochrome icon for the first time.
+    String monochromeLayerName = options.foregroundLayerName;
+    String monochromeType = foregroundType;
+    if(options.monochromeImage != null){
+      monochromeType = options.monochromeImage.isDrawable() ? "drawable" : "mipmap";
+      monochromeLayerName = options.monochromeLayerName;
+    }
     String format = ""
         + "<?xml version=\"1.0\" encoding=\"utf-8\"?>%1$s"
         + "<adaptive-icon xmlns:android=\"http://schemas.android.com/apk/res/android\">%1$s"
         + "    <background android:drawable=\"@%2$s/%3$s\"/>%1$s"
         + "    <foreground android:drawable=\"@%4$s/%5$s\"/>%1$s"
+        + "    <monochrome android:drawable=\"@%6$s/%7$s\"/>%1$s"
         + "</adaptive-icon>";
+    return String.format(format, myLineSeparator, backgroundType, options.backgroundLayerName, foregroundType, options.foregroundLayerName,
+                         monochromeType, monochromeLayerName);
+  }
+
+  private @NotNull String generateXmlString(@NotNull AdaptiveIconOptions options, String foregroundType, String backgroundType) {
+    String format = ""
+                    + "<?xml version=\"1.0\" encoding=\"utf-8\"?>%1$s"
+                    + "<adaptive-icon xmlns:android=\"http://schemas.android.com/apk/res/android\">%1$s"
+                    + "    <background android:drawable=\"@%2$s/%3$s\"/>%1$s"
+                    + "    <foreground android:drawable=\"@%4$s/%5$s\"/>%1$s"
+                    + "</adaptive-icon>";
     return String.format(format, myLineSeparator, backgroundType, options.backgroundLayerName, foregroundType, options.foregroundLayerName);
   }
 
@@ -220,6 +260,8 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
   @NotNull
   protected abstract Rectangle getLegacyRectangle(@NotNull AdaptiveIconOptions options);
 
+  protected abstract boolean isMonochromeSupported();
+
   @NotNull
   protected AnnotatedImage generateIconBackgroundLayer(@NotNull GraphicGeneratorContext context, @NotNull AdaptiveIconOptions options) {
     if (options.usePlaceholders) {
@@ -266,6 +308,33 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
       }
       catch (RuntimeException e) {
         errorMessage = composeErrorMessage(e, "foreground", imageAsset);
+        image = imageAsset.createErrorImage(imageRect.getSize());
+      }
+    }
+
+    return new AnnotatedImage(image, errorMessage);
+  }
+
+  @NotNull
+  protected AnnotatedImage generateIconMonochromeLayer(@NotNull GraphicGeneratorContext context, @NotNull AdaptiveIconOptions options) {
+    if (options.usePlaceholders) {
+      return PLACEHOLDER_IMAGE;
+    }
+
+    BufferedImage image;
+    String errorMessage = null;
+    Rectangle imageRect = getFullBleedRectangle(options);
+    TransformedImageAsset imageAsset = options.monochromeImage;
+    if (imageAsset == null) {
+      image = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+    }
+    else {
+      try {
+        image = generateIconLayer(context, imageAsset, imageRect, options.useMonochromeColor, options.monochromeColor,
+                                  !options.generateOutputIcons);
+      }
+      catch (RuntimeException e) {
+        errorMessage = composeErrorMessage(e, "monochrome", imageAsset);
         image = imageAsset.createErrorImage(imageRect.getSize());
       }
     }
@@ -448,6 +517,9 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
     /** The background layer name, used to generate resource paths. */
     public String backgroundLayerName;
 
+    /** The monochrome layer name, used to generate resource paths. */
+    public String monochromeLayerName;
+
     /**
      * Whether to use the foreground color. If we are using images as the source asset for our
      * icons, you shouldn't apply the foreground color, which would paint over it and obscure
@@ -455,11 +527,22 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
      */
     public boolean useForegroundColor = true;
 
+    /**
+     * Use monochrome Icon color. Monochrome doesn't have any background so we should use {@link #monochromeColor} to paint the icon.
+     */
+    public boolean useMonochromeColor;
+
     /** Foreground color, as an RRGGBB packed integer */
     public int foregroundColor = 0;
 
+    /** Monochrome color as an RRGGBB packed integer */
+    public int monochromeColor = 0;
+
     /** If foreground is a drawable, the contents of the drawable file and scaling parameters. */
     @Nullable public TransformedImageAsset foregroundImage;
+
+    /** If monochrome is a drawable, the contents of the drawable file and scaling parameters. */
+    @Nullable public TransformedImageAsset monochromeImage;
 
     /**
      * Background color, as an RRGGBB packed integer. The background color is used only if

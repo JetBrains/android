@@ -420,6 +420,12 @@ public class TvChannelIconGenerator extends AdaptiveIconGenerator {
     return scaleRectangle(IMAGE_SIZE_LEGACY_DP, computeScaleFactor(options));
   }
 
+  @Override
+  protected boolean isMonochromeSupported() {
+    // Tv channel icon doesn't support monochrome
+    return false;
+  }
+
   private static double computeScaleFactor(@NotNull IconOptions options) {
     double scaleFactor = getMdpiScaleFactor(getDensity(options));
     if (((TvChannelIconOptions)options).generatePreviewIcons) {

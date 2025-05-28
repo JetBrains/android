@@ -66,7 +66,31 @@ public class LauncherIconGeneratorTest extends AdaptiveIconGeneratorTest {
     myIconGenerator.backgroundImageAsset().setValue(createImageAsset("background.xml"));
     checkGeneratedIcons(expectedFilenames);
   }
+  public void testDrawableBackgroundForegroundAndMonochrome() throws Exception {
+    myIconGenerator.monochromeLayerName().set("ic_launcher_monochrome");
 
+    String[] expectedFilenames = {
+      "resources/mipmap-anydpi-v26/ic_launcher.xml",
+      "resources/mipmap-anydpi-v26/ic_launcher_round.xml",
+      "resources/drawable/ic_launcher_background.xml",
+      "resources/drawable-v24/ic_launcher_foreground.xml",
+      "resources/drawable-v24/ic_launcher_monochrome.xml",
+      "resources/mipmap-xxxhdpi/ic_launcher.png",
+      "resources/mipmap-xxxhdpi/ic_launcher_round.png",
+      "resources/mipmap-xxhdpi/ic_launcher.png",
+      "resources/mipmap-xxhdpi/ic_launcher_round.png",
+      "resources/mipmap-xhdpi/ic_launcher.png",
+      "resources/mipmap-xhdpi/ic_launcher_round.png",
+      "resources/mipmap-hdpi/ic_launcher.png",
+      "resources/mipmap-hdpi/ic_launcher_round.png",
+      "resources/mipmap-mdpi/ic_launcher.png",
+      "resources/mipmap-mdpi/ic_launcher_round.png",
+      "manifests/ic_launcher-playstore.png"};
+    myIconGenerator.sourceAsset().setValue(createImageAsset("foreground.xml"));
+    myIconGenerator.backgroundImageAsset().setValue(createImageAsset("background.xml"));
+    myIconGenerator.monochromeImageAsset().setValue(createImageAsset("monochrome.xml"));
+    checkGeneratedIcons(expectedFilenames);
+  }
   public void testSingleLineText() throws Exception {
     String[] expectedFilenames = {
         "resources/mipmap-anydpi-v26/ic_launcher.xml",

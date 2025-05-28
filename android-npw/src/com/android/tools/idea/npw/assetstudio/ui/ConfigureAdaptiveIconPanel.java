@@ -113,13 +113,16 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
 
   private static final File DEFAULT_FOREGROUND_IMAGE = getBundledImage("asset_studio", "ic_launcher_foreground.xml");
   private static final File DEFAULT_BACKGROUND_IMAGE = getBundledImage("asset_studio", "ic_launcher_background.xml");
+  private static final File DEFAULT_MONOCHROME_IMAGE = getBundledImage("asset_studio", "ic_launcher_monochrome.xml");
   private static final ForegroundAssetType DEFAULT_FOREGROUND_ASSET_TYPE = ForegroundAssetType.IMAGE;
   private static final BackgroundAssetType DEFAULT_BACKGROUND_ASSET_TYPE = BackgroundAssetType.IMAGE;
+  private static final MonochromeAssetType DEFAULT_MONOCHROME_ASSET_TYPE = MonochromeAssetType.IMAGE;
   private static final Density DEFAULT_PREVIEW_DENSITY = Density.XHIGH;
   private static final Shape DEFAULT_ICON_SHAPE = Shape.SQUARE;
 
   private static final String FOREGROUND_ASSET_TYPE_PROPERTY = "foregroundAssetType";
   private static final String BACKGROUND_ASSET_TYPE_PROPERTY = "backgroundAssetType";
+  private static final String MONOCHROME_ASSET_TYPE_PROPERTY = "monochromeAssetType";
   private static final String BACKGROUND_COLOR_PROPERTY = "backgroundColor";
   private static final String GENERATE_LEGACY_ICON_PROPERTY = "generateLegacyIcon";
   private static final String GENERATE_ROUND_ICON_PROPERTY = "generateRoundIcon";
@@ -132,9 +135,12 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private static final String OUTPUT_NAME_PROPERTY = "outputName";
   private static final String FOREGROUND_LAYER_NAME_PROPERTY = "foregroundLayerName";
   private static final String BACKGROUND_LAYER_NAME_PROPERTY = "backgroundLayerName";
+  private static final String MONOCHROME_LAYER_NAME_PROPERTY = "monochromeLayerName";
   private static final String BACKGROUND_IMAGE_PROPERTY = "backgroundImage";
   private static final String FOREGROUND_CLIPART_ASSET_PROPERTY = "foregroundClipartAsset";
   private static final String FOREGROUND_TEXT_ASSET_PROPERTY = "foregroundTextAsset";
+  private static final String MONOCHROME_CLIPART_ASSET_PROPERTY = "monochromeClipartAsset";
+  private static final String MONOCHROME_TEXT_ASSET_PROPERTY = "monochromeTextAsset";
 
   /**
    * This panel presents a list of radio buttons (clipart, image, text), and whichever one is
@@ -264,6 +270,42 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private JRadioButton myIconFormatWebpRadioButton;
   private JPanel myIconFormatRadioButtonsPanel;
 
+  // Monochrome panels tab
+  private JPanel myMonochromeAllOptionsPanel;
+  private JRadioButton myMonochromeClipartRadioButton;
+  private JRadioButton myMonochromeTextRadioButton;
+  private JRadioButton myMonochromeImageRadioButton;
+  private JRadioButton myMonochromeTrimYesRadioButton;
+  private JRadioButton myMonochromeTrimNoRadioButton;
+  private JPanel myMonochromeTrimOptionsPanel;
+  private JSlider myMonochromeResizeSlider;
+  private JTextField myMonochromeResizeValueTextField;
+  private JPanel myMonochromeAssetRadioButtonsPanel;
+  private JPanel myMonochromeResizeSliderPanel;
+  private JTextField myMonochromeLayerNameTextField;
+  private JPanel myMonochromeColorRowPanel;
+  private ColorPanel myMonochromeColorPanel;
+  private JPanel myMonochromeImageAssetRowPanel;
+  private JPanel myMonochromeClipartAssetRowPanel;
+  private JPanel myMonochromeTextAssetRowPanel;
+  private ImageAssetBrowser myMonochromeImageAssetBrowser;
+  private ClipartIconButton myMonochromeClipartAssetButton;
+  private MultiLineTextAssetEditor myMonochromeTextAssetEditor;
+  private JBLabel myMonochromeLayerNameLabel;
+  private JLabel myMonochromeAssetTypeLabel;
+  private JBLabel myMonochromeImagePathLabel;
+  private JBLabel myMonochromeClipartLabel;
+  private JBLabel myMonochromeTextLabel;
+  private JBLabel myMonochromeTrimLabel;
+  private JBLabel myMonochromeResizeLabel;
+  private JBLabel myMonochromeColorLabel;
+  private JPanel myMonochromeImageOptionsPanel;
+  private TitledSeparator myMonochromeScalingTitleSeparator;
+  private ImmutableMap<MonochromeAssetType, AssetComponent<?>> myMonochromeAssetPanelMap;
+  private StringProperty myMonochromeLayerName;
+  private OptionalProperty<BaseAsset> myMonochromeActiveAsset;
+  private AbstractProperty<MonochromeAssetType> myMonochromeAssetType;
+
   @NotNull private final AndroidIconType myIconType;
   @NotNull private final String myDefaultOutputName;
 
@@ -282,6 +324,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
 
   @NotNull private final BindingsManager myGeneralBindings = new BindingsManager();
   @NotNull private final BindingsManager myForegroundActiveAssetBindings = new BindingsManager();
+  @NotNull private final BindingsManager myMonochromeActiveAssetBindings = new BindingsManager();
   @NotNull private final BindingsManager myBackgroundActiveAssetBindings = new BindingsManager();
   @NotNull private final ListenerManager myListeners = new ListenerManager();
   @NotNull private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
@@ -295,16 +338,21 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   @NotNull private final OptionalProperty<ImageAsset> myBackgroundImageAsset;
   @NotNull private final ObjectProperty<Validator.Result> myForegroundAssetValidityState = new ObjectValueProperty<>(Validator.Result.OK);
   @NotNull private final ObjectProperty<Validator.Result> myBackgroundAssetValidityState = new ObjectValueProperty<>(Validator.Result.OK);
+  @NotNull private final ObjectProperty<Validator.Result> myMonochromeAssetValidityState = new ObjectValueProperty<>(Validator.Result.OK);
   @NotNull private final AbstractProperty<ForegroundAssetType> myForegroundAssetType;
   @NotNull private final AbstractProperty<BackgroundAssetType> myBackgroundAssetType;
   @NotNull private final BoolProperty myShowGrid;
   @NotNull private final BoolProperty myShowSafeZone;
   @NotNull private final AbstractProperty<Density> myPreviewDensity;
+
   private ColorProperty myForegroundColor;
+  private ColorProperty myMonochromeColor;
   private AbstractProperty<Color> myBackgroundColor;
   private BoolProperty myForegroundTrimmed;
+  private BoolProperty myMonochromeTrimmed;
   private BoolProperty myBackgroundTrimmed;
   private IntProperty myForegroundResizePercent;
+  private IntProperty myMonochromeResizePercent;
   private IntProperty myBackgroundResizePercent;
   private BoolProperty myGenerateLegacyIcon;
   private BoolProperty myGenerateRoundIcon;
@@ -312,6 +360,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private BoolProperty myGenerateWebpIcons;
   private AbstractProperty<Shape> myLegacyIconShape;
   @NotNull private final IdeResourceNameValidator myNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE);
+
+  @NotNull private final boolean myIsMonochromeSupported;
 
   /**
    * Initializes a panel which can generate Android launcher icons. The supported types passed in
@@ -325,9 +375,11 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                     @NotNull BoolProperty showSafeZone,
                                     @NotNull AbstractProperty<Density> previewDensity,
                                     @NotNull ValidatorPanel validatorPanel,
-                                    @Nullable DrawableRenderer renderer) {
+                                    @Nullable DrawableRenderer renderer,
+                                    boolean isMonochromeSupported) {
     super(new BorderLayout());
-    setupUI();
+    myIsMonochromeSupported = isMonochromeSupported;
+    setupUI(isMonochromeSupported);
     myIconType = iconType;
     myDefaultOutputName = myIconType.toOutputName("");
 
@@ -344,8 +396,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myValidatorPanel = validatorPanel;
 
     myForegroundImageAssetBrowser.getAsset().setDefaultImagePath(DEFAULT_FOREGROUND_IMAGE);
-    myBackgroundImageAssetBrowser.getAsset().setDefaultImagePath(DEFAULT_BACKGROUND_IMAGE);
     myForegroundTextAssetEditor.getAsset().setDefaultText("Aa");
+    myBackgroundImageAssetBrowser.getAsset().setDefaultImagePath(DEFAULT_BACKGROUND_IMAGE);
 
     DefaultComboBoxModel<Shape> legacyShapesModel = new DefaultComboBoxModel<>();
     for (Shape shape : myShapeNames.keySet()) {
@@ -367,6 +419,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myOutputName = new TextProperty(myOutputNameTextField);
     myForegroundLayerName = new TextProperty(myForegroundLayerNameTextField);
     myBackgroundLayerName = new TextProperty(myBackgroundLayerNameTextField);
+
     myListeners.listen(myForegroundLayerName, name -> {
       if (name.equals(defaultForegroundLayerName())) {
         myGeneralBindings.bind(myForegroundLayerName, Expression.create(this::defaultForegroundLayerName, myOutputName));
@@ -389,6 +442,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
       ForegroundAssetType.CLIP_ART, myForegroundClipartAssetButton,
       ForegroundAssetType.TEXT, myForegroundTextAssetEditor);
 
+    // Set default properties for the background, foreground and monochrome assets.
     myForegroundImageAssetBrowser.getAsset().imagePath().setValue(DEFAULT_FOREGROUND_IMAGE);
     myBackgroundImageAssetBrowser.getAsset().imagePath().setValue(DEFAULT_BACKGROUND_IMAGE);
 
@@ -404,7 +458,6 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myForegroundTrimLabel.setLabelFor(myForegroundTrimOptionsPanel);
     myForegroundResizeLabel.setLabelFor(myForegroundResizeSliderPanel);
     myForegroundColorLabel.setLabelFor(myForegroundColorPanel);
-    myGenerateLegacyIconLabel.setLabelFor(mGenerateLegacyIconRadioButtonsPanel);
 
     myBackgroundLayerNameLabel.setLabelFor(myBackgroundLayerNameTextField);
     myBackgroundAssetTypeLabel.setLabelFor(myBackgroundAssetRadioButtonsPanel);
@@ -414,6 +467,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myBackgroundColorLabel.setLabelFor(myBackgroundColorPanel);
     myGenerateRoundIconLabel.setLabelFor(myGenerateRoundIconRadioButtonsPanel);
     myLegacyIconShapeLabel.setLabelFor(myLegacyIconShapeComboBox);
+
+    myGenerateLegacyIconLabel.setLabelFor(mGenerateLegacyIconRadioButtonsPanel);
 
     myForegroundAssetType = new SelectedRadioButtonProperty<>(DEFAULT_FOREGROUND_ASSET_TYPE, ForegroundAssetType.values(),
                                                               myForegroundImageRadioButton, myForegroundClipartRadioButton,
@@ -427,6 +482,46 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myBackgroundImageAsset = new OptionalValueProperty<>(myBackgroundImageAssetBrowser.getAsset());
     myBackgroundImageAssetBrowser.getAsset().setRole("background image");
     myBackgroundColorPanel.setSelectedColor(myIconGenerator.backgroundColor().get());
+
+    if (isMonochromeSupported) {
+      myMonochromeImageAssetBrowser.getAsset().setDefaultImagePath(DEFAULT_MONOCHROME_IMAGE);
+      myMonochromeTextAssetEditor.getAsset().setDefaultText("Aa");
+      myMonochromeLayerName = new TextProperty(myMonochromeLayerNameTextField);
+      myMonochromeLayerName.set(defaultMonochromeLayerName());
+      myListeners.listen(myMonochromeLayerName, name -> {
+        if (name.equals(defaultMonochromeLayerName())) {
+          myGeneralBindings.bind(myMonochromeLayerName, Expression.create(this::defaultMonochromeLayerName, myOutputName));
+        }
+        else {
+          myGeneralBindings.release(myMonochromeLayerName);
+        }
+      });
+      myMonochromeAssetPanelMap = ImmutableMap.of(
+        MonochromeAssetType.IMAGE, myMonochromeImageAssetBrowser,
+        MonochromeAssetType.CLIP_ART, myMonochromeClipartAssetButton,
+        MonochromeAssetType.TEXT, myMonochromeTextAssetEditor);
+      myMonochromeImageAssetBrowser.getAsset().imagePath().setValue(DEFAULT_MONOCHROME_IMAGE);
+      myMonochromeLayerNameLabel.setLabelFor(myMonochromeLayerNameTextField);
+      myMonochromeAssetTypeLabel.setLabelFor(myMonochromeAssetRadioButtonsPanel);
+      myMonochromeImagePathLabel.setLabelFor(myMonochromeImageAssetBrowser);
+      myMonochromeClipartLabel.setLabelFor(myMonochromeClipartAssetButton);
+      myMonochromeTextLabel.setLabelFor(myMonochromeTextAssetEditor);
+      myMonochromeTrimLabel.setLabelFor(myMonochromeTrimOptionsPanel);
+      myMonochromeResizeLabel.setLabelFor(myMonochromeResizeSliderPanel);
+      myMonochromeColorLabel.setLabelFor(myMonochromeColorPanel);
+      myMonochromeAssetType = new SelectedRadioButtonProperty<>(DEFAULT_MONOCHROME_ASSET_TYPE, MonochromeAssetType.values(),
+                                                                myMonochromeImageRadioButton, myMonochromeClipartRadioButton,
+                                                                myMonochromeTextRadioButton);
+      // We start with an unset active asset for Monochrome as this is an optional choice for now.
+      // In case Monochrome is not set (and the optional value property is empty) we fallback to
+      // foreground layer
+      myMonochromeActiveAsset = new OptionalValueProperty<>();
+      myMonochromeImageAssetBrowser.getAsset().setRole("monochrome image");
+      myMonochromeColorPanel.setSelectedColor(DEFAULT_FOREGROUND_COLOR);
+      for (AssetComponent<?> assetComponent : myMonochromeAssetPanelMap.values()) {
+        Disposer.register(this, assetComponent);
+      }
+    }
 
     initializeListenersAndBindings();
     initializeValidators();
@@ -447,6 +542,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     PersistentState state = new PersistentState();
     state.set(FOREGROUND_ASSET_TYPE_PROPERTY, myForegroundAssetType.get(), DEFAULT_FOREGROUND_ASSET_TYPE);
     state.set(BACKGROUND_ASSET_TYPE_PROPERTY, myBackgroundAssetType.get(), DEFAULT_BACKGROUND_ASSET_TYPE);
+
     for (Map.Entry<ForegroundAssetType, AssetComponent<?>> entry : myForegroundAssetPanelMap.entrySet()) {
       state.setChild("foreground" + toUpperCamelCase(entry.getKey()), entry.getValue().getAsset().getState());
     }
@@ -466,6 +562,16 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     state.set(BACKGROUND_LAYER_NAME_PROPERTY, myBackgroundLayerName.get(), defaultBackgroundLayerName());
     state.setChild(FOREGROUND_CLIPART_ASSET_PROPERTY, myForegroundClipartAssetButton.getState());
     state.setChild(FOREGROUND_TEXT_ASSET_PROPERTY, myForegroundTextAssetEditor.getAsset().getState());
+
+    if (myIsMonochromeSupported) {
+      state.set(MONOCHROME_ASSET_TYPE_PROPERTY, myMonochromeAssetType.get(), DEFAULT_MONOCHROME_ASSET_TYPE);
+      for (Map.Entry<MonochromeAssetType, AssetComponent<?>> entry : myMonochromeAssetPanelMap.entrySet()) {
+        state.setChild("monochrome" + toUpperCamelCase(entry.getKey()), entry.getValue().getAsset().getState());
+      }
+      state.set(MONOCHROME_LAYER_NAME_PROPERTY, myMonochromeLayerName.get(), defaultMonochromeLayerName());
+      state.setChild(MONOCHROME_CLIPART_ASSET_PROPERTY, myMonochromeClipartAssetButton.getState());
+      state.setChild(MONOCHROME_TEXT_ASSET_PROPERTY, myMonochromeTextAssetEditor.getAsset().getState());
+    }
     return state;
   }
 
@@ -497,10 +603,16 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myBackgroundLayerName.set(state.get(BACKGROUND_LAYER_NAME_PROPERTY, defaultBackgroundLayerName()));
     PersistentStateUtil.load(myForegroundClipartAssetButton, state.getChild(FOREGROUND_CLIPART_ASSET_PROPERTY));
     PersistentStateUtil.load(myForegroundTextAssetEditor.getAsset(), state.getChild(FOREGROUND_TEXT_ASSET_PROPERTY));
-  }
 
-  private void createUIComponents() {
-    // TODO: place custom component creation code here
+    if (myIsMonochromeSupported) {
+      myMonochromeAssetType.set(state.get(MONOCHROME_ASSET_TYPE_PROPERTY, DEFAULT_MONOCHROME_ASSET_TYPE));
+      for (Map.Entry<MonochromeAssetType, AssetComponent<?>> entry : myMonochromeAssetPanelMap.entrySet()) {
+        PersistentStateUtil.load(entry.getValue().getAsset(), state.getChild("monochrome" + toUpperCamelCase(entry.getKey())));
+      }
+      myMonochromeLayerName.set(state.get(MONOCHROME_LAYER_NAME_PROPERTY, defaultMonochromeLayerName()));
+      PersistentStateUtil.load(myMonochromeClipartAssetButton, state.getChild(MONOCHROME_CLIPART_ASSET_PROPERTY));
+      PersistentStateUtil.load(myMonochromeTextAssetEditor.getAsset(), state.getChild(MONOCHROME_TEXT_ASSET_PROPERTY));
+    }
   }
 
   private void initializeListenersAndBindings() {
@@ -508,7 +620,6 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myBackgroundTrimmed = new SelectedProperty(myBackgroundTrimYesRadioButton);
 
     myForegroundResizePercent = bindTwoWay(myGeneralBindings, myForegroundResizeSlider, myForegroundResizeValueTextField);
-
     myBackgroundResizePercent = bindTwoWay(myGeneralBindings, myBackgroundResizeSlider, myBackgroundResizeValueTextField);
 
     myForegroundColor = new ColorProperty(myForegroundColorPanel);
@@ -532,7 +643,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myBackgroundAssetType.addListener(() -> {
       if (myBackgroundAssetType.get() == BackgroundAssetType.IMAGE) {
         myBackgroundImageAsset.setValue(myBackgroundImageAssetBrowser.getAsset());
-      } else {
+      }
+      else {
         myBackgroundImageAsset.clear();
       }
     });
@@ -543,17 +655,79 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     for (AssetComponent<?> assetComponent : myForegroundAssetPanelMap.values()) {
       assetComponent.addAssetListener(assetPanelListener);
     }
+
     myBackgroundImageAssetBrowser.addAssetListener(assetPanelListener);
 
     Runnable onAssetModified = this::fireAssetListeners;
-    myListeners
-      .listenAll(myForegroundTrimmed, myForegroundResizePercent, myForegroundColor,
-                 myBackgroundTrimmed, myBackgroundResizePercent, myBackgroundColor,
-                 myGenerateLegacyIcon, myLegacyIconShape,
-                 myGenerateRoundIcon, myGeneratePlayStoreIcon, myGenerateWebpIcons)
-      .with(onAssetModified);
 
+    // Property to check if the asset used for monochrome layer is resizable.
+    // This is used to show or hide controls based on the type of the asset.
+    // For example: the resize slider control.
+    BoolValueProperty monochromeIsResizable = new BoolValueProperty();
+
+    // Bindings for monochrome components only if monochrome is supported.
+    if (myIsMonochromeSupported) {
+      myMonochromeTrimmed = new SelectedProperty(myMonochromeTrimYesRadioButton);
+      myMonochromeResizePercent = bindTwoWay(myGeneralBindings, myMonochromeResizeSlider, myMonochromeResizeValueTextField);
+      myMonochromeColor = new ColorProperty(myMonochromeColorPanel);
+
+      // Update monochrome layer asset type depending on asset type radio buttons.
+      myMonochromeAssetType.addListener(() -> {
+        AssetComponent<?> assetComponent = myMonochromeAssetPanelMap.get(myMonochromeAssetType.get());
+        myMonochromeActiveAsset.setNullableValue(assetComponent.getAsset());
+      });
+      for (AssetComponent<?> assetComponent : myMonochromeAssetPanelMap.values()) {
+        assetComponent.addAssetListener(assetPanelListener);
+      }
+      myListeners
+        .listenAll(myForegroundTrimmed, myForegroundResizePercent, myForegroundColor,
+                   myBackgroundTrimmed, myBackgroundResizePercent, myBackgroundColor,
+                   myMonochromeTrimmed, myMonochromeResizePercent, myMonochromeColor,
+                   myGenerateLegacyIcon, myLegacyIconShape,
+                   myGenerateRoundIcon, myGeneratePlayStoreIcon, myGenerateWebpIcons)
+        .with(onAssetModified);
+
+      // Listens for changes to the controls on the foreground panel. When the asset is changed,
+      // it updates the controller bindings to match the properties of the new asset.
+      myListeners.listenAndFire(myMonochromeActiveAsset, () -> {
+        myMonochromeActiveAssetBindings.releaseAll();
+        BaseAsset asset = myMonochromeActiveAsset.getValueOrNull();
+        if (asset != null) {
+          myMonochromeActiveAssetBindings.bindTwoWay(myMonochromeTrimmed, asset.trimmed());
+          myMonochromeActiveAssetBindings.bindTwoWay(myMonochromeResizePercent, asset.scalingPercent());
+          OptionalValueProperty<Color> assetColor = asset.color();
+          if (assetColor.getValueOrNull() == null) {
+            assetColor.setNullableValue(myMonochromeColor.getValueOrNull());
+          }
+          myMonochromeActiveAssetBindings.bindTwoWay(myMonochromeColor, assetColor);
+          myMonochromeActiveAssetBindings.bind(monochromeIsResizable, asset.isResizable());
+          if (asset instanceof ImageAsset) {
+            myMonochromeActiveAssetBindings.bind(myMonochromeAssetValidityState, ((ImageAsset)asset).getValidityState());
+          }
+          else {
+            myMonochromeAssetValidityState.set(Validator.Result.OK);
+          }
+        }
+        getIconGenerator().monochromeImageAsset().setNullableValue(asset);
+        onAssetModified.run();
+      });
+    }
+    else {
+      // If monochrome is not supported we add all the non-monochrome observable listeners
+      myListeners
+        .listenAll(myForegroundTrimmed, myForegroundResizePercent, myForegroundColor,
+                   myBackgroundTrimmed, myBackgroundResizePercent, myBackgroundColor,
+                   myGenerateLegacyIcon, myLegacyIconShape,
+                   myGenerateRoundIcon, myGeneratePlayStoreIcon, myGenerateWebpIcons)
+        .with(onAssetModified);
+    }
+
+    // Property to check if the asset used for foreground layer is resizable.
+    // This is used to show or hide controls based on the type of the asset.
+    // For example: the resize slider control.
     BoolValueProperty foregroundIsResizable = new BoolValueProperty();
+    // Listens for changes to the controls on the foreground panel. When the asset is changed,
+    // it updates the controller bindings to match the properties of the new asset.
     myListeners.listenAndFire(myForegroundActiveAsset, () -> {
       myForegroundActiveAssetBindings.releaseAll();
       BaseAsset asset = myForegroundActiveAsset.get();
@@ -602,6 +776,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
      * otherwise Swing doesn't realize it should trigger a re-layout.
      */
     ImmutableMap.Builder<BoolProperty, ObservableValue<Boolean>> layoutPropertiesBuilder = ImmutableMap.builder();
+
+    // Show and hide selected asset types for foreground layer
     layoutPropertiesBuilder.put(new VisibleProperty(myForegroundImageAssetRowPanel), new SelectedProperty(myForegroundImageRadioButton));
     layoutPropertiesBuilder.put(
       new VisibleProperty(myForegroundClipartAssetRowPanel), new SelectedProperty(myForegroundClipartRadioButton));
@@ -618,6 +794,27 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
       layoutPropertiesBuilder.put(new EnabledProperty(myForegroundTrimYesRadioButton), foregroundIsResizable);
       layoutPropertiesBuilder.put(new EnabledProperty(myForegroundTrimNoRadioButton), foregroundIsResizable);
       layoutPropertiesBuilder.put(new EnabledProperty(myForegroundResizeSlider), foregroundIsResizable);
+    }
+
+    // Show and hide selected asset types for monochrome layer
+    if (myIsMonochromeSupported) {
+      layoutPropertiesBuilder.put(new VisibleProperty(myMonochromeImageAssetRowPanel), new SelectedProperty(myMonochromeImageRadioButton));
+      layoutPropertiesBuilder.put(
+        new VisibleProperty(myMonochromeClipartAssetRowPanel), new SelectedProperty(myMonochromeClipartRadioButton));
+      layoutPropertiesBuilder.put(new VisibleProperty(myMonochromeTextAssetRowPanel), new SelectedProperty(myMonochromeTextRadioButton));
+      Expression<Boolean> isMonochromeIsNotImage =
+        Expression.create(() -> myMonochromeAssetType.get() != MonochromeAssetType.IMAGE, myMonochromeAssetType);
+      layoutPropertiesBuilder.put(new VisibleProperty(myMonochromeColorRowPanel), isMonochromeIsNotImage);
+
+      if (HIDE_INAPPLICABLE_CONTROLS) {
+        layoutPropertiesBuilder.put(new VisibleProperty(myMonochromeScalingTitleSeparator), monochromeIsResizable);
+        layoutPropertiesBuilder.put(new VisibleProperty(myMonochromeImageOptionsPanel), monochromeIsResizable);
+      }
+      else {
+        layoutPropertiesBuilder.put(new EnabledProperty(myMonochromeTrimYesRadioButton), monochromeIsResizable);
+        layoutPropertiesBuilder.put(new EnabledProperty(myMonochromeTrimNoRadioButton), monochromeIsResizable);
+        layoutPropertiesBuilder.put(new EnabledProperty(myMonochromeResizeSlider), monochromeIsResizable);
+      }
     }
 
     // Show either the image or the color UI controls.
@@ -654,6 +851,9 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     }
     myListeners.listenAll(layoutProperties.keySet()).with(() -> {
       SwingUtilities.updateComponentTreeUI(myForegroundAllOptionsPanel);
+      if (myIsMonochromeSupported) {
+        SwingUtilities.updateComponentTreeUI(myMonochromeAllOptionsPanel);
+      }
       SwingUtilities.updateComponentTreeUI(myBackgroundAllOptionsPanel);
       SwingUtilities.updateComponentTreeUI(myOtherIconsAllOptionsPanel);
     });
@@ -683,8 +883,23 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                   "Foreground layer must have a name distinct from the icon name");
     myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myOutputName, myBackgroundLayerName),
                                   "Background layer must have a name distinct from the icon name");
+
     myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myForegroundLayerName, myBackgroundLayerName),
                                   "Background and foreground layers must have distinct names");
+    if (myIsMonochromeSupported) {
+      myValidatorPanel.registerTest(nameIsNotEmptyExpression(isActive, myMonochromeLayerName),
+                                    "Monochrome layer name must be set");
+      myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myOutputName, myMonochromeLayerName),
+                                    "Monochrome layer must have a name distinct from the icon name");
+      myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myMonochromeLayerName, myBackgroundLayerName),
+                                    "Monochrome and foreground layers must have distinct names");
+      myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myMonochromeLayerName, myForegroundLayerName),
+                                    "Monochrome and background layers must have distinct names");
+      myValidatorPanel.registerValidator(myMonochromeAssetValidityState, validity -> validity);
+      myValidatorPanel.registerValidator(
+        new TextProperty(myMonochromeResizeValueTextField), inRange(myMonochromeResizeSlider, "Monochrome scale")
+      );
+    }
     myValidatorPanel.registerValidator(myForegroundAssetValidityState, validity -> validity);
     myValidatorPanel.registerValidator(myBackgroundAssetValidityState, validity -> validity);
     myValidatorPanel.registerValidator(
@@ -695,7 +910,12 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     );
   }
 
-  private void setupUI() {
+  /**
+   * Creates the UI for the Launcher icon and tv icon creation.
+   *
+   * @param isMonochromeSupported when true adds a tab to create monochrome icons, when false it doesn't add the monochrome tab.
+   */
+  private void setupUI(boolean isMonochromeSupported) {
     myRootPanel = new JPanel();
     myRootPanel.setLayout(new GridLayoutManager(2, 1, JBUI.emptyInsets(), -1, -1));
     myOutputNamePanelRow = new JPanel();
@@ -724,7 +944,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     final JBTabbedPane imagePanelToolbar = new JBTabbedPane();
-    imagePanelToolbar.setTabPlacement(1);
+    imagePanelToolbar.setTabPlacement(JBTabbedPane.TOP);
     myRootPanel.add(imagePanelToolbar, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
@@ -734,6 +954,10 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                        TitledBorder.DEFAULT_POSITION, null, null));
     addForegroundLayerTab(imagePanelToolbar);
     addBackgroundLayerTab(imagePanelToolbar);
+    // Don't create the monochrome tab panel if monochrome icons aren't supported for the given Icon Panel (for example Tv channel icons).
+    if (isMonochromeSupported) {
+      addMonochromeLayerTab(imagePanelToolbar);
+    }
     addOtherImageOptionLayerTab(imagePanelToolbar);
   }
 
@@ -990,6 +1214,15 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     buttonGroup = new ButtonGroup();
     buttonGroup.add(myForegroundTrimNoRadioButton);
     buttonGroup.add(myForegroundTrimYesRadioButton);
+    if (myIsMonochromeSupported) {
+      buttonGroup = new ButtonGroup();
+      buttonGroup.add(myMonochromeImageRadioButton);
+      buttonGroup.add(myMonochromeClipartRadioButton);
+      buttonGroup.add(myMonochromeTextRadioButton);
+      buttonGroup = new ButtonGroup();
+      buttonGroup.add(myMonochromeTrimNoRadioButton);
+      buttonGroup.add(myMonochromeTrimYesRadioButton);
+    }
     buttonGroup = new ButtonGroup();
     buttonGroup.add(radioButton1);
     buttonGroup.add(myGenerateLegacyIconYesRadioButton);
@@ -1012,7 +1245,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
 
   private void addBackgroundLayerTab(JBTabbedPane jBTabbedPane1) {
     final JPanel panel4 = new JPanel();
-    panel4.setLayout(new GridLayoutManager(1, 1, JBUI.emptyInsets(), -1, -1));
+    panel4.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
     jBTabbedPane1.addTab("Background Layer", panel4);
     myBackgroundScrollPane = new JBScrollPane();
     myBackgroundScrollPane.setHorizontalScrollBarPolicy(31);
@@ -1252,6 +1485,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myForegroundAllOptionsPanel.setLayout(new GridLayoutManager(6, 2, JBUI.emptyInsets(), -1, -1));
     myForegroundScrollPane.setViewportView(myForegroundAllOptionsPanel);
     myForegroundLayerNamePanel = new JPanel();
+    myForegroundLayerNamePanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
     myForegroundLayerNamePanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
     myForegroundLayerNamePanel.setVisible(true);
     myForegroundAllOptionsPanel.add(myForegroundLayerNamePanel,
@@ -1507,6 +1741,275 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
                                                         GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
   }
 
+  private void addMonochromeLayerTab(JBTabbedPane jBTabbedPane1) {
+    final JPanel panel2 = new JPanel();
+    panel2.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
+    jBTabbedPane1.addTab("Monochrome", panel2);
+    JBScrollPane monochromeScrollPane = new JBScrollPane();
+    monochromeScrollPane.setHorizontalScrollBarPolicy(31);
+    panel2.add(monochromeScrollPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                         null, null, null, 0, false));
+    myMonochromeAllOptionsPanel = new JPanel();
+    myMonochromeAllOptionsPanel.setLayout(new GridLayoutManager(6, 2, JBUI.emptyInsets(), -1, -1));
+    monochromeScrollPane.setViewportView(myMonochromeAllOptionsPanel);
+    JPanel monochromeLayerNamePanel = new JPanel();
+    monochromeLayerNamePanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    monochromeLayerNamePanel.setVisible(true);
+    myMonochromeAllOptionsPanel.add(monochromeLayerNamePanel,
+                                    new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myMonochromeLayerNameLabel = new JBLabel();
+    myMonochromeLayerNameLabel.setText("Layer name:");
+    monochromeLayerNamePanel.add(myMonochromeLayerNameLabel,
+                                 new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                       new Dimension(70, -1), null, null, 0, false));
+    final JPanel panel3 = new JPanel();
+    panel3.setLayout(new GridLayoutManager(1, 1, JBUI.emptyInsets(), -1, -1));
+    monochromeLayerNamePanel.add(panel3, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                               GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             null, null, null, 0, false));
+    myMonochromeLayerNameTextField = new JTextField();
+    myMonochromeLayerNameTextField.setText("(name)");
+    myMonochromeLayerNameTextField.setToolTipText("The filename which will be used for these icons.");
+    panel3.add(myMonochromeLayerNameTextField,
+               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    mySourceAssetTitleSeparator = new TitledSeparator();
+    mySourceAssetTitleSeparator.setText("Source Asset");
+    myMonochromeAllOptionsPanel.add(mySourceAssetTitleSeparator,
+                                    new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    JPanel monochromeAssetTypePanel = new JPanel();
+    monochromeAssetTypePanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myMonochromeAllOptionsPanel.add(monochromeAssetTypePanel,
+                                    new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myMonochromeAssetTypeLabel = new JLabel();
+    myMonochromeAssetTypeLabel.setText("Asset type:");
+    monochromeAssetTypePanel.add(myMonochromeAssetTypeLabel,
+                                 new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                       GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                       new Dimension(70, -1), null, null, 1, false));
+    myMonochromeAssetRadioButtonsPanel = new JPanel();
+    myMonochromeAssetRadioButtonsPanel.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
+    monochromeAssetTypePanel.add(myMonochromeAssetRadioButtonsPanel,
+                                 new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL,
+                                                       GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myMonochromeClipartRadioButton = new JRadioButton();
+    myMonochromeClipartRadioButton.setText("Clip art");
+    myMonochromeClipartRadioButton.setToolTipText("Select from a list of clipart choices to generate Android icons for your app.");
+    myMonochromeAssetRadioButtonsPanel.add(myMonochromeClipartRadioButton,
+                                           new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                               null, null, 0, false));
+    myMonochromeTextRadioButton = new JRadioButton();
+    myMonochromeTextRadioButton.setText("Text");
+    myMonochromeTextRadioButton.setToolTipText("Enter text which will be rendered into Android icons for your app.");
+    myMonochromeAssetRadioButtonsPanel.add(myMonochromeTextRadioButton,
+                                           new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                               null, null, 0, false));
+    myMonochromeImageRadioButton = new JRadioButton();
+    myMonochromeImageRadioButton.setText("Image");
+    myMonochromeImageRadioButton.setToolTipText(
+      "Select an image, e.g. PNG, SVG, PSD, or a drawable from disk to generate Android icons for your app.");
+    myMonochromeAssetRadioButtonsPanel.add(myMonochromeImageRadioButton,
+                                           new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                               null, null, 0, false));
+    JPanel monochromeAssetTypeSourcePanel = new JPanel();
+    monochromeAssetTypeSourcePanel.setLayout(new GridLayoutManager(4, 2, JBUI.emptyInsets(), -1, -1));
+    myMonochromeAllOptionsPanel.add(monochromeAssetTypeSourcePanel,
+                                    new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myMonochromeImageAssetRowPanel = new JPanel();
+    myMonochromeImageAssetRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    monochromeAssetTypeSourcePanel.add(myMonochromeImageAssetRowPanel,
+                                       new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myMonochromeImagePathLabel = new JBLabel();
+    myMonochromeImagePathLabel.setText("Path:");
+    myMonochromeImageAssetRowPanel.add(myMonochromeImagePathLabel,
+                                       new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                           GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                           new Dimension(70, -1), null, null, 1, false));
+    myMonochromeImageAssetBrowser = new ImageAssetBrowser();
+    myMonochromeImageAssetRowPanel.add(myMonochromeImageAssetBrowser,
+                                       new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                                                           GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myMonochromeClipartAssetRowPanel = new JPanel();
+    myMonochromeClipartAssetRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    monochromeAssetTypeSourcePanel.add(myMonochromeClipartAssetRowPanel,
+                                       new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myMonochromeClipartLabel = new JBLabel();
+    myMonochromeClipartLabel.setText("Clip art:");
+    myMonochromeClipartAssetRowPanel.add(myMonochromeClipartLabel,
+                                         new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                             GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                             new Dimension(70, -1), null, null, 1, false));
+    myMonochromeClipartAssetButton = new ClipartIconButton();
+    myMonochromeClipartAssetRowPanel.add(myMonochromeClipartAssetButton,
+                                         new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+    myMonochromeTextAssetRowPanel = new JPanel();
+    myMonochromeTextAssetRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    monochromeAssetTypeSourcePanel.add(myMonochromeTextAssetRowPanel,
+                                       new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myMonochromeTextLabel = new JBLabel();
+    myMonochromeTextLabel.setText("Text:");
+    myMonochromeTextAssetRowPanel.add(myMonochromeTextLabel,
+                                      new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                          new Dimension(70, -1), null, null, 1, false));
+    myMonochromeTextAssetEditor = new MultiLineTextAssetEditor();
+    myMonochromeTextAssetRowPanel.add(myMonochromeTextAssetEditor,
+                                      new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myMonochromeColorRowPanel = new JPanel();
+    myMonochromeColorRowPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    monochromeAssetTypeSourcePanel.add(myMonochromeColorRowPanel,
+                                       new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                             GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                             GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, true));
+    myMonochromeColorLabel = new JBLabel();
+    myMonochromeColorLabel.setText("Color:");
+    myMonochromeColorRowPanel.add(myMonochromeColorLabel,
+                                  new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                      new Dimension(70, -1), null, null, 1, false));
+    myMonochromeColorPanel = new ColorPanel();
+    myMonochromeColorPanel.setSelectedColor(new Color(-16777216));
+    myMonochromeColorRowPanel.add(myMonochromeColorPanel,
+                                  new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                      new Dimension(78, -1), null, null, 0, false));
+    myMonochromeImageOptionsPanel = new JPanel();
+    myMonochromeImageOptionsPanel.setLayout(new GridLayoutManager(3, 2, JBUI.emptyInsets(), -1, -1));
+    myMonochromeAllOptionsPanel.add(myMonochromeImageOptionsPanel,
+                                    new GridConstraints(4, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                        null, null, 0, true));
+    myMonochromeScalingTitleSeparator = new TitledSeparator();
+    myMonochromeScalingTitleSeparator.setText("Scaling");
+    myMonochromeImageOptionsPanel.add(myMonochromeScalingTitleSeparator,
+                                      new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    JPanel myMonochromeTrimPanel = new JPanel();
+    myMonochromeTrimPanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    myMonochromeTrimPanel.setVisible(true);
+    myMonochromeImageOptionsPanel.add(myMonochromeTrimPanel,
+                                      new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                          null, null, 0, true));
+    myMonochromeTrimLabel = new JBLabel();
+    myMonochromeTrimLabel.setText("Trim:");
+    myMonochromeTrimPanel.add(myMonochromeTrimLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                                         new Dimension(70, -1), null, null, 1, false));
+    myMonochromeTrimOptionsPanel = new JPanel();
+    myMonochromeTrimOptionsPanel.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
+    myMonochromeTrimPanel.add(myMonochromeTrimOptionsPanel,
+                              new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                  null, 0, false));
+    final Spacer spacer1 = new Spacer();
+    myMonochromeTrimOptionsPanel.add(spacer1,
+                                     new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                         GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+    myMonochromeTrimYesRadioButton = new JRadioButton();
+    myMonochromeTrimYesRadioButton.setText("Yes");
+    myMonochromeTrimYesRadioButton.setToolTipText("Remove any transparent space from around your source asset before rendering to icon.");
+    myMonochromeTrimOptionsPanel.add(myMonochromeTrimYesRadioButton,
+                                     new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myMonochromeTrimNoRadioButton = new JRadioButton();
+    myMonochromeTrimNoRadioButton.setSelected(true);
+    myMonochromeTrimNoRadioButton.setText("No");
+    myMonochromeTrimNoRadioButton.setToolTipText("Leave the original asset unmodified.");
+    myMonochromeTrimOptionsPanel.add(myMonochromeTrimNoRadioButton,
+                                     new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    JPanel monochromeResizePanel = new JPanel();
+    monochromeResizePanel.setLayout(new GridLayoutManager(1, 2, JBUI.emptyInsets(), -1, -1));
+    monochromeResizePanel.setVisible(true);
+    myMonochromeImageOptionsPanel.add(monochromeResizePanel,
+                                      new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
+                                                          null, null, 0, true));
+    myMonochromeResizeLabel = new JBLabel();
+    myMonochromeResizeLabel.setText("Resize:");
+    monochromeResizePanel.add(myMonochromeResizeLabel,
+                              new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                                    GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
+                                                    new Dimension(70, -1), null, null, 1, false));
+    myMonochromeResizeSliderPanel = new JPanel();
+    myMonochromeResizeSliderPanel.setLayout(new GridLayoutManager(1, 3, JBUI.emptyInsets(), -1, -1));
+    monochromeResizePanel.add(myMonochromeResizeSliderPanel,
+                              new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
+                                                    null, 0, false));
+    myMonochromeResizeSlider = new JSlider();
+    myMonochromeResizeSlider.setMaximum(400);
+    myMonochromeResizeSlider.setMinimum(0);
+    myMonochromeResizeSlider.setMinorTickSpacing(20);
+    myMonochromeResizeSlider.setPaintLabels(false);
+    myMonochromeResizeSlider.setPaintTicks(true);
+    myMonochromeResizeSlider.setSnapToTicks(false);
+    myMonochromeResizeSlider.setToolTipText(
+      "Resize the original asset using the specified scaling factor (in percent). This happens after any trimming.");
+    myMonochromeResizeSlider.setValue(100);
+    myMonochromeResizeSlider.setValueIsAdjusting(false);
+    myMonochromeResizeSliderPanel.add(myMonochromeResizeSlider,
+                                      new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                                          GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    myMonochromeResizeValueTextField = new JTextField();
+    myMonochromeResizeValueTextField.setHorizontalAlignment(4);
+    myMonochromeResizeValueTextField.setText("100");
+    myMonochromeResizeSliderPanel.add(myMonochromeResizeValueTextField,
+                                      new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                          new Dimension(30, -1), null, 0, false));
+    JLabel monochromeResizeValueLabel = new JLabel();
+    monochromeResizeValueLabel.setHorizontalAlignment(4);
+    monochromeResizeValueLabel.setText("%");
+    myMonochromeResizeSliderPanel.add(monochromeResizeValueLabel,
+                                      new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                          new Dimension(-1, -1), null, 0, false));
+    final Spacer spacer2 = new Spacer();
+    myMonochromeAllOptionsPanel.add(spacer2,
+                                    new GridConstraints(5, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+                                                        GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+  }
+
   @NotNull
   private static Expression<Boolean> nameIsNotEmptyExpression(@NotNull VisibleProperty isActive, @NotNull StringProperty name) {
     return Expression.create(() -> !isActive.get() || !StringUtil.isEmptyOrSpaces(name.get()), isActive, name);
@@ -1567,8 +2070,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myGeneralBindings.bindTwoWay(myIconGenerator.backgroundColor(), myBackgroundColor);
     myGeneralBindings.bindTwoWay(myIconGenerator.showSafeZone(), myShowSafeZone);
     myGeneralBindings.bindTwoWay(myIconGenerator.generateLegacyIcon(), myGenerateLegacyIcon);
-    if (myIconGenerator instanceof LauncherIconGenerator) {
-      LauncherIconGenerator iconGenerator = (LauncherIconGenerator)myIconGenerator;
+    if (myIconGenerator instanceof LauncherIconGenerator iconGenerator) {
       myGeneralBindings.bindTwoWay(iconGenerator.generateRoundIcon(), myGenerateRoundIcon);
       myGeneralBindings.bindTwoWay(iconGenerator.generatePlayStoreIcon(), myGeneratePlayStoreIcon);
       myGeneralBindings.bindTwoWay(iconGenerator.generateWebpIcons(), myGenerateWebpIcons);
@@ -1578,6 +2080,9 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     }
     myGeneralBindings.bindTwoWay(myIconGenerator.foregroundLayerName(), myForegroundLayerName);
     myGeneralBindings.bindTwoWay(myIconGenerator.backgroundLayerName(), myBackgroundLayerName);
+    if (myIsMonochromeSupported) {
+      myGeneralBindings.bindTwoWay(myIconGenerator.monochromeLayerName(), myMonochromeLayerName);
+    }
   }
 
   @Override
@@ -1585,6 +2090,9 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myGeneralBindings.releaseAll();
     myForegroundActiveAssetBindings.releaseAll();
     myBackgroundActiveAssetBindings.releaseAll();
+    if (myIsMonochromeSupported) {
+      myMonochromeActiveAssetBindings.releaseAll();
+    }
     myListeners.releaseAll();
     myAssetListeners.clear();
   }
@@ -1599,6 +2107,11 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     return myOutputName.get() + "_background";
   }
 
+  @NotNull
+  private String defaultMonochromeLayerName() {
+    return myOutputName.get() + "_monochrome";
+  }
+
   private enum ForegroundAssetType {
     IMAGE,
     CLIP_ART,
@@ -1608,5 +2121,11 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private enum BackgroundAssetType {
     IMAGE,
     COLOR,
+  }
+
+  private enum MonochromeAssetType {
+    IMAGE,
+    CLIP_ART,
+    TEXT,
   }
 }

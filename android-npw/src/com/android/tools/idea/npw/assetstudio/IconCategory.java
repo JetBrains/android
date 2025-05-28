@@ -38,6 +38,7 @@ public enum IconCategory {
   // Adaptive icons layers.
   ADAPTIVE_FOREGROUND_LAYER,
   ADAPTIVE_BACKGROUND_LAYER,
+  ADAPTIVE_MONOCHROME_LAYER,
 
   XML_RESOURCE,
 

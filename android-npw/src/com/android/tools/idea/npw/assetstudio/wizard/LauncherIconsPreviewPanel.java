@@ -66,27 +66,18 @@ class LauncherIconsPreviewPanel extends PreviewIconsPanel {
   }
 
   private static int getPreviewShapeDisplayOrder(@NotNull PreviewShape previewShape) {
-    switch (previewShape) {
-      case CIRCLE:
-        return 1;
-      case SQUIRCLE:
-        return 2;
-      case ROUNDED_SQUARE:
-        return 3;
-      case SQUARE:
-        return 4;
-      case FULL_BLEED:
-        return 5;
-      case LEGACY:
-        return 6;
-      case LEGACY_ROUND:
-        return 7;
-      case PLAY_STORE:
-        return 8;
-      case NONE:
-      default:
-        return 1000;  // Arbitrary high value.
-    }
+    return switch (previewShape) {
+      case MONOCHROME_CIRCLE -> 0;
+      case CIRCLE -> 1;
+      case SQUIRCLE -> 2;
+      case ROUNDED_SQUARE -> 3;
+      case SQUARE -> 4;
+      case FULL_BLEED -> 5;
+      case LEGACY -> 6;
+      case LEGACY_ROUND -> 7;
+      case PLAY_STORE -> 8;
+      default -> 1000;  // Arbitrary high value.
+    };
   }
 
   @NotNull

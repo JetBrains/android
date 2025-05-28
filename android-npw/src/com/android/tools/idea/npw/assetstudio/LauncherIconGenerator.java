@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangle;
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
 
 import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.PathString;
@@ -133,22 +134,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
       if (color != null) {
         options.foregroundColor = color.getRGB();
       }
-      double scaleFactor = foregroundAsset.scalingPercent().get() / 100.;
-      if (foregroundAsset instanceof ImageAsset && ((ImageAsset)foregroundAsset).isClipart()) {
-        scaleFactor *= 0.58;  // Scale correction for clip art to more or less fit into the safe zone.
-      }
-      else if (foregroundAsset instanceof TextAsset) {
-        scaleFactor *= 0.46;  // Scale correction for text to more or less fit into the safe zone.
-      }
-      else if (foregroundAsset.trimmed().get()) {
-        // Scale correction for images to fit into the safe zone.
-        // Finding the smallest circle containing the image is not trivial (see https://en.wikipedia.org/wiki/Smallest-circle_problem).
-        // For simplicity we treat the safe zone as a square.
-        scaleFactor *= IMAGE_SIZE_SAFE_ZONE_DP.getWidth() / SIZE_FULL_BLEED_DP.getWidth();
-      }
-      options.foregroundImage =
-        new TransformedImageAsset(foregroundAsset, SIZE_FULL_BLEED_DP, scaleFactor,
-                                  color, getGraphicGeneratorContext(), myLineSeparator);
+      options.foregroundImage = createAndTransformAsset(foregroundAsset, color);
     }
     // Set background image.
     ImageAsset backgroundAsset = backgroundImageAsset().getValueOrNull();
@@ -159,11 +145,23 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
                                   null, getGraphicGeneratorContext(), myLineSeparator);
     }
 
+    // Set monochrome image
+    BaseAsset monochromeAsset = monochromeImageAsset().getValueOrNull();
+    if (monochromeAsset != null) {
+      options.useMonochromeColor = monochromeAsset.isColorable();
+      Color color = monochromeAsset.isColorable() ? monochromeAsset.color().getValueOrNull() : null;
+      if (color != null) {
+        options.monochromeColor = color.getRGB();
+      }
+      options.monochromeImage = createAndTransformAsset(monochromeAsset, color);
+    }
+
     options.backgroundColor = backgroundColor().get().getRGB();
     options.showGrid = myShowGrid.get();
     options.showSafeZone = showSafeZone().get();
     options.previewDensity = myPreviewDensity.get();
     options.foregroundLayerName = foregroundLayerName().get();
+    options.monochromeLayerName = monochromeLayerName().get();
     options.backgroundLayerName = backgroundLayerName().get();
     options.generateLegacyIcon = generateLegacyIcon().get();
     options.legacyIconShape = myLegacyIconShape.get();
@@ -171,6 +169,31 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
     options.generatePlayStoreIcon = myGeneratePlayStoreIcon.get();
     options.generateWebpIcons = myGenerateWebpIcons.get();
     return options;
+  }
+
+  private TransformedImageAsset createAndTransformAsset(BaseAsset asset, Color color) {
+    double scaleFactor = asset.scalingPercent().get() / 100.;
+    if (asset instanceof ImageAsset && ((ImageAsset)asset).isClipart()) {
+      scaleFactor *= 0.58;  // Scale correction for clip art to more or less fit into the safe zone.
+    }
+    else if (asset instanceof TextAsset) {
+      scaleFactor *= 0.46;  // Scale correction for text to more or less fit into the safe zone.
+    }
+    else if (asset.trimmed().get()) {
+      // Scale correction for images to fit into the safe zone.
+      // Finding the smallest circle containing the image is not trivial (see https://en.wikipedia.org/wiki/Smallest-circle_problem).
+      // For simplicity, we calculate the scale factor considering the safe zone as a square and
+      // the circle with diameter equal to the image is inscribed on it.
+      scaleFactor *= IMAGE_SIZE_SAFE_ZONE_DP.getWidth() / SIZE_FULL_BLEED_DP.getWidth();
+    }
+    return new TransformedImageAsset(
+      asset,
+      SIZE_FULL_BLEED_DP,
+      scaleFactor,
+      color,
+      getGraphicGeneratorContext(),
+      myLineSeparator
+    );
   }
 
   @Override
@@ -261,6 +284,22 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
       });
     }
 
+    // Generate monochrome mipmap only if the monochrome is a raster image.
+    if (options.monochromeImage != null && options.monochromeImage.isRasterImage()) {
+      tasks.add(() -> {
+        LauncherIconOptions monochromeOptions = options.clone();
+        monochromeOptions.generatePlayStoreIcon = false;
+        monochromeOptions.generatePreviewIcons = false;
+        monochromeOptions.generateOutputIcons = true;
+        AnnotatedImage monochromeImage = generateIconMonochromeLayer(context, monochromeOptions);
+        return new GeneratedImageIcon(monochromeOptions.monochromeLayerName,
+                                      new PathString(getIconPath(monochromeOptions, options.monochromeLayerName)),
+                                      IconCategory.ADAPTIVE_MONOCHROME_LAYER,
+                                      density,
+                                      monochromeImage);
+      });
+    }
+
     if (options.generateLegacyIcon) {
       tasks.add(() -> {
         LauncherIconOptions legacyOptions = options.clone();
@@ -331,24 +370,26 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
       TransformedImageAsset image = options.foregroundImage;
       tasks.add(() -> {
         LauncherIconOptions iconOptions = options.clone();
-        iconOptions.generatePlayStoreIcon = false;
-        iconOptions.density = Density.ANYDPI;
-        iconOptions.iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
+        return createDrawableXml(name,
+                                 iconOptions,
+                                 image,
+                                 "foreground",
+                                 iconOptions.foregroundLayerName,
+                                 IconCategory.ADAPTIVE_FOREGROUND_LAYER);
+      });
+    }
 
-        if (!image.isDrawable()) {
-          getLog().error("Background image is not drawable!", new Throwable());
-        }
-        String xmlDrawableText = image.getTransformedDrawable();
-        if (xmlDrawableText == null) {
-          getLog().error("Transformed foreground drawable is null" + (image.isDrawable() ? " but the image is drawable" : ""),
-                         new Throwable());
-          xmlDrawableText = "<vector/>"; // Use an empty image. It will be recomputed again soon.
-        }
-        iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
-        return new GeneratedXmlResource(name,
-                                        new PathString(getIconPath(iconOptions, iconOptions.foregroundLayerName)),
-                                        IconCategory.ADAPTIVE_FOREGROUND_LAYER,
-                                        xmlDrawableText);
+    if (options.monochromeImage != null && options.monochromeImage.isDrawable()) {
+      // Generate monochrome drawable.
+      TransformedImageAsset image = options.monochromeImage;
+      tasks.add(() -> {
+        LauncherIconOptions iconOptions = options.clone();
+        return createDrawableXml(name,
+                                 iconOptions,
+                                 image,
+                                 "monochrome",
+                                 iconOptions.monochromeLayerName,
+                                 IconCategory.ADAPTIVE_MONOCHROME_LAYER);
       });
     }
 
@@ -357,24 +398,12 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
       TransformedImageAsset image = options.backgroundImage;
       tasks.add(() -> {
         LauncherIconOptions iconOptions = options.clone();
-        iconOptions.generatePlayStoreIcon = false;
-        iconOptions.density = Density.ANYDPI;
-        iconOptions.iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
-
-        if (!image.isDrawable()) {
-          getLog().error("Background image is not drawable!", new Throwable());
-        }
-        String xmlDrawableText = image.getTransformedDrawable();
-        if (xmlDrawableText == null) {
-          getLog().error("Transformed background drawable is null" + (image.isDrawable() ? " but the image is drawable" : ""),
-                         new Throwable());
-          xmlDrawableText = "<vector/>"; // Use an empty image. It will be recomputed again soon.
-        }
-        iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
-        return new GeneratedXmlResource(name,
-                                        new PathString(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
-                                        IconCategory.ADAPTIVE_BACKGROUND_LAYER,
-                                        xmlDrawableText);
+        return createDrawableXml(name,
+                                 iconOptions,
+                                 image,
+                                 "background",
+                                 iconOptions.backgroundLayerName,
+                                 IconCategory.ADAPTIVE_BACKGROUND_LAYER);
       });
     } else if (options.backgroundImage == null) {
       // Generate background color value.
@@ -398,6 +427,32 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
     }
   }
 
+  private @NotNull GeneratedXmlResource createDrawableXml(@NotNull String name,
+                                                          LauncherIconOptions iconOptions,
+                                                          TransformedImageAsset image,
+                                                          String imageType,
+                                                          String layerName,
+                                                          IconCategory foregroundIconCategory) {
+    iconOptions.generatePlayStoreIcon = false;
+    iconOptions.density = Density.ANYDPI;
+    iconOptions.iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
+
+    if (!image.isDrawable()) {
+      getLog().error(capitalize(imageType) + " image is not drawable!", new Throwable());
+    }
+    String xmlDrawableText = image.getTransformedDrawable();
+    if (xmlDrawableText == null) {
+      getLog().error("Transformed " + imageType + " drawable is null" + (image.isDrawable() ? " but the image is drawable" : ""),
+                     new Throwable());
+      xmlDrawableText = "<vector/>"; // Use an empty image. It will be recomputed again soon.
+    }
+    iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
+    return new GeneratedXmlResource(name,
+                                    new PathString(getIconPath(iconOptions, layerName)),
+                                    foregroundIconCategory,
+                                    xmlDrawableText);
+  }
+
   private void createPreviewImagesTasks(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options,
                                         @NotNull List<Callable<GeneratedIcon>> tasks) {
     if (!options.generatePreviewIcons) {
@@ -405,6 +460,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
     }
 
     List<PreviewShape> previewShapes = new ArrayList<>();
+    previewShapes.add(PreviewShape.MONOCHROME_CIRCLE);
     previewShapes.add(PreviewShape.FULL_BLEED);
     previewShapes.add(PreviewShape.SQUIRCLE);
     previewShapes.add(PreviewShape.CIRCLE);
@@ -487,6 +543,8 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
   @NotNull
   private AnnotatedImage generatePreviewImage(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
     switch (options.previewShape) {
+      case MONOCHROME_CIRCLE:
+        return generateMonochromeViewportPreviewImage(context, options);
       case CIRCLE:
       case SQUIRCLE:
       case ROUNDED_SQUARE:
@@ -622,27 +680,31 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
     return new AnnotatedImage(image, mergedImage.getErrorMessage());
   }
 
+  /** Generates a preview image with a {@link PreviewShape} mask applied (e.g. Square, Squircle). */
+  @NotNull
+  private AnnotatedImage generateMonochromeViewportPreviewImage(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options) {
+    AnnotatedImage monochromeLayer = generateIconMonochromeLayer(context, options);
+    BufferedImage image = monochromeLayer.getImage();
+    BufferedImage mask = generateMaskLayer(context, options, PreviewShape.MONOCHROME_CIRCLE);
+    image = cropImageToViewport(options, image);
+    image = applyMask(image, mask);
+    drawGrid(options, image);
+
+    return new AnnotatedImage(image, monochromeLayer.getErrorMessage());
+  }
+
   @Nullable
   private BufferedImage generateMaskLayer(@NotNull GraphicGeneratorContext context, @NotNull LauncherIconOptions options,
                                           @NotNull PreviewShape shape) {
-    String maskName;
-    switch (shape) {
-      case CIRCLE:
-        maskName = "circle";
-        break;
-      case SQUARE:
-        maskName = "square";
-        break;
-      case ROUNDED_SQUARE:
-        maskName = "rounded_corner";
-        break;
-      case SQUIRCLE:
+    String maskName = switch (shape) {
+      case MONOCHROME_CIRCLE, CIRCLE -> "circle";
+      case SQUARE -> "square";
+      case ROUNDED_SQUARE -> "rounded_corner";
+      case SQUIRCLE ->
         //noinspection SpellCheckingInspection
-        maskName = "squircle";
-        break;
-      default:
-        maskName = null;
-    }
+        "squircle";
+      default -> null;
+    };
     if (maskName == null) {
       return null;
     }
@@ -688,6 +750,11 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
       return options.generatePreviewIcons ? IMAGE_SIZE_VIEWPORT_PREVIEW_PLAY_STORE_PX : IMAGE_SIZE_VIEWPORT_PLAY_STORE_PX;
     }
     return scaleRectangle(IMAGE_SIZE_LEGACY_DP, getMdpiScaleFactor(options.density));
+  }
+
+  @Override
+  protected boolean isMonochromeSupported() {
+    return true;
   }
 
   @Override
@@ -890,6 +957,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
   }
 
   public enum PreviewShape {
+    MONOCHROME_CIRCLE("monochrome-circle", "Monochrome"),
     CIRCLE("circle", "Circle"),
     SQUIRCLE("squircle", "Squircle"),
     ROUNDED_SQUARE("rounded-square", "Rounded Square"),

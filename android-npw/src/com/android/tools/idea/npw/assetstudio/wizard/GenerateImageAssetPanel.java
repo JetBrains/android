@@ -235,24 +235,16 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     DrawableRenderer renderer = new DrawableRenderer(facet, targetFile);
     Disposer.register(this, renderer);
     for (AndroidIconType iconType : supportedTypes) {
-      ConfigureIconView view;
-      switch (iconType) {
-        case LAUNCHER:
-        case TV_CHANNEL:
-          view = new ConfigureAdaptiveIconPanel(this, facet, iconType, myShowGridProperty, myShowSafeZoneProperty,
-                                                myPreviewDensityProperty, myValidatorPanel, renderer);
-          break;
-        case LAUNCHER_LEGACY:
-        case ACTIONBAR:
-        case NOTIFICATION:
-          view = new ConfigureIconPanel(this, facet, iconType, minSdkVersion, myValidatorPanel, renderer);
-          break;
-        case TV_BANNER:
-          view = new ConfigureTvBannerPanel(this, facet, myValidatorPanel, renderer);
-          break;
-        default:
-          throw new IllegalArgumentException("Invalid icon type");
-      }
+      ConfigureIconView view = switch (iconType) {
+        case LAUNCHER -> new ConfigureAdaptiveIconPanel(this, facet, iconType, myShowGridProperty, myShowSafeZoneProperty,
+                                                        myPreviewDensityProperty, myValidatorPanel, renderer, true);
+        // Tv channel icons don't support monochrome.
+        case TV_CHANNEL -> new ConfigureAdaptiveIconPanel(this, facet, iconType, myShowGridProperty, myShowSafeZoneProperty,
+                                                          myPreviewDensityProperty, myValidatorPanel, renderer, false);
+        case LAUNCHER_LEGACY, ACTIONBAR, NOTIFICATION ->
+          new ConfigureIconPanel(this, facet, iconType, minSdkVersion, myValidatorPanel, renderer);
+        case TV_BANNER -> new ConfigureTvBannerPanel(this, facet, myValidatorPanel, renderer);
+      };
       myConfigureIconViews.put(iconType, view);
       myConfigureIconPanels.add(view.getRootComponent(), iconType.toString());
     }
@@ -397,7 +389,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     myIconTypePanel.add(myConfigureIconPanels, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                                    GridConstraints.SIZEPOLICY_CAN_GROW,
                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
-                                                                   GridConstraints.SIZEPOLICY_CAN_GROW, new Dimension(350, -1), null, null,
+                                                                   GridConstraints.SIZEPOLICY_CAN_GROW, new Dimension(430, -1), null, null,
                                                                    0, false));
     myPreviewPanel = new JPanel();
     myPreviewPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 2, 0, 0), -1, -1));
