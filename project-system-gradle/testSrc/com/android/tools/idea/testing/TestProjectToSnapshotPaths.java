@@ -12,6 +12,7 @@ public final class TestProjectToSnapshotPaths {
   public static final String COMPATIBILITY_TESTS_AS_36 = "projects/compatibility_tests/AS36";
   public static final String COMPATIBILITY_TESTS_AS_36_NO_IML = "projects/compatibility_tests/AS36_noiml";
   public static final String COMPOSITE_BUILD = "projects/compositeBuild";
+  public static final String COMPOSITE_BUILD_WITH_DEPENDENCY_SUBS = "projects/compositeBuildWithDependencySubs";
   public static final String CUSTOM_NAMESPACE = "projects/customNamespace";
   public static final String CUSTOM_SOURCE_TYPE = "projects/customSourceType";
   public static final String DEPENDENT_MODULES = "projects/dependentModules";

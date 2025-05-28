@@ -107,6 +107,7 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.PSD_SAMPLE_GROOVY),
       ProjectStructureSnapshotTestDef(TestProject.TWO_JARS),
       ProjectStructureSnapshotTestDef(TestProject.COMPOSITE_BUILD),
+      ProjectStructureSnapshotTestDef(TestProject.COMPOSITE_BUILD_WITH_DEPENDENCY_SUBS),
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC),
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM),
