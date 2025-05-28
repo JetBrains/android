@@ -18,14 +18,19 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.getDimensionsInDp
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.util.toPreviewAnnotationText
+import com.android.tools.idea.concurrency.asCollection
+import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.preview.PreviewElement
 import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -33,6 +38,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.DumbAwareAction
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.name.FqName
@@ -43,8 +53,11 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 /**
  * Saves the current preview state (dimensions, decorations etc.) by creating a new `@Preview`
  * annotation with a unique name for the same composable function.
+ *
+ * @param dispatcher on which we are going to launch switching to the new preview.
  */
-class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.MenuSaveall) {
+class SavePreviewInNewSizeAction(val dispatcher: CoroutineDispatcher = Dispatchers.Default) :
+  DumbAwareAction("", "", AllIcons.Actions.MenuSaveall) {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
@@ -74,6 +87,7 @@ class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.Menu
     )
 
     val nameForNewPreview = createNewName(configuration)
+    setUpSwitchingToNewPreview(e, nameForNewPreview)
 
     WriteCommandAction.runWriteCommandAction(
       project,
@@ -111,6 +125,36 @@ class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.Menu
       e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
   }
+
+  /**
+   * Sets up the switching to the newly created preview after the action is performed. It observes
+   * the flow of all preview elements and, once the new preview with the given name is found,
+   * switches the [PreviewModeManager] to [PreviewMode.Focus] on that preview.
+   */
+  private fun setUpSwitchingToNewPreview(e: AnActionEvent, nameForNewPreview: String) {
+    val allPreviewFlow = e.dataContext.getData(PreviewFlowManager.KEY)
+    val modeManager = e.dataContext.getData(PreviewModeManager.KEY)
+    val composeManger = e.dataContext.getData(COMPOSE_PREVIEW_MANAGER)
+
+    if (allPreviewFlow != null && modeManager != null && composeManger != null) {
+      // Switch to the new preview
+      composeManger.createCoroutineScope().launch(dispatcher) {
+        // Take the first emission from the flow, it should be the list after our change, so we use
+        // drop(1).
+        val currentPreviews = allPreviewFlow.allPreviewElementsFlow.drop(1).first()
+
+        val newPreview =
+          currentPreviews.asCollection().find { preview ->
+            preview.originalNameFromParameter() == nameForNewPreview
+          }
+
+        newPreview?.let { modeManager.setMode(PreviewMode.Focus(it)) }
+      }
+    }
+  }
+
+  private fun PreviewElement<*>.originalNameFromParameter() =
+    displaySettings.parameterName?.substringBefore(" - ")?.trim()
 }
 
 /**
