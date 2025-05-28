@@ -64,6 +64,7 @@ import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewService
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.moveCaretToEnd
@@ -104,7 +105,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -204,20 +204,18 @@ class CommonPreviewRepresentationTest {
       )
   }
 
-  @After
-  fun tearDown() {
-    StudioFlags.PREVIEW_RENDER_QUALITY.clearOverride()
-  }
-
   @Test
   fun testFullRefreshIsTriggeredOnSuccessfulBuild() =
     runBlocking(workerThread) {
       // Turn off flag to make sure quality refreshes won't affect the asserts in this test
-      StudioFlags.PREVIEW_RENDER_QUALITY.override(false)
+      StudioFlags.PREVIEW_RENDER_QUALITY.overrideForTest(false, projectRule.testRootDisposable)
       val previewRepresentation = createPreviewRepresentation()
       previewRepresentation.compileAndWaitForRefresh()
 
       // block the refresh manager with a high priority refresh that won't finish
+      delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) {
+        refreshManager.getTotalRequestsInQueueForTest() == 0
+      }
       val blockingRefresh = blockRefreshManager()
 
       // building the project again should invalidate the preview representation
@@ -326,7 +324,7 @@ class CommonPreviewRepresentationTest {
   fun testReactivationWithoutChangesDontFullRefresh(): Unit =
     runBlocking(workerThread) {
       // Turn off flag to make sure quality refreshes won't affect the asserts in this test
-      StudioFlags.PREVIEW_RENDER_QUALITY.override(false)
+      StudioFlags.PREVIEW_RENDER_QUALITY.overrideForTest(false, projectRule.testRootDisposable)
       val previewRepresentation = createPreviewRepresentation()
       previewRepresentation.compileAndWaitForRefresh()
 
@@ -381,7 +379,7 @@ class CommonPreviewRepresentationTest {
   @Test
   fun testPreviewRefreshMetricsAreTracked() {
     // Turn off flag to make sure quality refreshes won't affect the asserts in this test
-    StudioFlags.PREVIEW_RENDER_QUALITY.override(false)
+    StudioFlags.PREVIEW_RENDER_QUALITY.overrideForTest(false, projectRule.testRootDisposable)
 
     var refreshTrackerFailed = false
     var successEventCount = 0
