@@ -46,7 +46,8 @@ internal const val UI_MODE_NIGHT_MASK = 0x30
  * @param isNight When true, `UI_MODE_NIGHT_YES` is used, `UI_MODE_NIGHT_NO` for false
  * @param uiModeType The specific ui mode being used, identified by the `TYPE` prefix, e.g:
  *   `UI_MODE_TYPE_NORMAL`
- * @param display Display name seen in the dropdown menu
+ * @param deviceDisplayName the device display name, this value is different from [display] as it
+ *   shows instead the name seen in the dropdown menu
  * @param uiModeTypeResolvedValue String of the actual value of the referenced field, used to know
  *   which option is currently selected, will be mixed with the resolved value of the selected night
  *   mode
@@ -54,7 +55,7 @@ internal const val UI_MODE_NIGHT_MASK = 0x30
 internal open class UiModeWithNightMaskEnumValue(
   isNight: Boolean,
   uiModeType: String,
-  override val display: String,
+  deviceDisplayName: String,
   uiModeTypeResolvedValue: String,
 ) : BaseClassEnumValue {
 
@@ -65,6 +66,13 @@ internal open class UiModeWithNightMaskEnumValue(
       "Configuration.$UI_MODE_NIGHT_YES or Configuration.$uiModeType"
     } else {
       "Configuration.$uiModeType"
+    }
+
+  override val display: String =
+    if (isNight) {
+      "$deviceDisplayName (night)"
+    } else {
+      deviceDisplayName
     }
 
   override val fqFallbackValue: String =

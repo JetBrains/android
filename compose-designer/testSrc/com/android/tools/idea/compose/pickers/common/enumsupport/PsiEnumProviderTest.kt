@@ -29,7 +29,11 @@ class PsiEnumProviderTest {
   fun testDefaultUiModeEnumValues() {
     // Night mode mask support
     checkDefaultEnumValue(0x11.toString(), "Normal", getUiModeDefaultEnumValue(0x11.toString()))
-    checkDefaultEnumValue(0x21.toString(), "Normal", getUiModeDefaultEnumValue(0x21.toString()))
+    checkDefaultEnumValue(
+      0x21.toString(),
+      "Normal (night)",
+      getUiModeDefaultEnumValue(0x21.toString()),
+    )
 
     // Supported types (undefined night mode)
     checkDefaultEnumValue("0", "Undefined", getUiModeDefaultEnumValue("0"))
