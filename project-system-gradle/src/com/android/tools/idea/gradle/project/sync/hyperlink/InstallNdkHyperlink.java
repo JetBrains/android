@@ -131,7 +131,7 @@ public class InstallNdkHyperlink extends SyncIssueNotificationHyperlink {
     Runnable onError = () -> ApplicationManager.getApplication().invokeLater(
       () -> notifyNdkPackageNotFound(project),
       ModalityState.any());
-    sdkManager.load(DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), progressRunner,
+    sdkManager.load(DEFAULT_EXPIRATION_PERIOD_MS, null, onComplete, onError, progressRunner,
                     new StudioDownloader(), StudioSettingsController.getInstance());
   }
 
