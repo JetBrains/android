@@ -141,7 +141,7 @@ class PreviewAnnotationGeneratorTest {
     val previewElement = createPreviewElement(name = "BasicPreview", group = "MyGroup")
     val configuration = createConfiguration(width = 1080, height = 1920)
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "BasicPreview")
     assertThat(generatedText)
       .isEqualTo(
         """
@@ -162,7 +162,7 @@ class PreviewAnnotationGeneratorTest {
       createPreviewElement(name = "CustomSizePreview", widthDp = 200, heightDp = 300)
     val configuration = createConfiguration(width = 200, height = 300)
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "CustomSizePreview")
     assertThat(generatedText)
       .isEqualTo(
         """
@@ -187,7 +187,7 @@ class PreviewAnnotationGeneratorTest {
         orientation = ScreenOrientation.LANDSCAPE,
       )
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "DevicePreview")
     // Expected DPI for XHIGH is 320.
     // Original pixel dimensions: 1080x1920 (portrait aspect)
     // When orientation is LANDSCAPE, deviceSize() will return (1920, 1080) pixels.
@@ -225,7 +225,7 @@ class PreviewAnnotationGeneratorTest {
       )
     val configuration = createConfiguration(width = 400, height = 600)
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "FullPreview")
     assertThat(generatedText)
       .isEqualTo(
         """
@@ -251,7 +251,8 @@ class PreviewAnnotationGeneratorTest {
     val previewElement = createPreviewElement(name = "ShowSystemUiPreview", showDecoration = true)
     val configuration = createConfiguration(width = 400, height = 600)
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText =
+      toPreviewAnnotationText(previewElement, configuration, "ShowSystemUiPreview")
 
     assertThat(generatedText)
       .isEqualTo(
@@ -282,7 +283,7 @@ class PreviewAnnotationGeneratorTest {
       )
     val configuration = createConfiguration(width = 100, height = 100)
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "DefaultParams")
     assertThat(generatedText)
       .isEqualTo(
         """
@@ -302,7 +303,8 @@ class PreviewAnnotationGeneratorTest {
     val configuration =
       createConfiguration(width = 1000, height = 500, orientation = ScreenOrientation.LANDSCAPE)
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText =
+      toPreviewAnnotationText(previewElement, configuration, "LandscapeComposable")
     // For composable resize, if width < height but orientation is landscape,
     // they should be swapped to represent the actual dimensions.
     assertThat(generatedText)
@@ -324,7 +326,7 @@ class PreviewAnnotationGeneratorTest {
     val configuration =
       createConfiguration(width = 500, height = 1000, orientation = ScreenOrientation.PORTRAIT)
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "PortraitComposable")
     assertThat(generatedText)
       .isEqualTo(
         """
@@ -349,7 +351,7 @@ class PreviewAnnotationGeneratorTest {
         orientation = ScreenOrientation.PORTRAIT,
       )
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "DevicePortrait")
     // 500px at 480dpi -> 500 * (160/480) = 166.66 -> 166dp (int truncation)
     // 1000px at 480dpi -> 1000 * (160/480) = 333.33 -> 333dp (int truncation)
     assertThat(generatedText)
@@ -366,7 +368,7 @@ class PreviewAnnotationGeneratorTest {
   }
 
   @Test
-  fun `toPreviewAnnotationText uses parameterName for name attribute`() = runTest {
+  fun `toPreviewAnnotationText uses passed name for name attribute`() = runTest {
     val originalName = "MyOriginalName"
     val previewElement =
       createPreviewElement(
@@ -376,12 +378,12 @@ class PreviewAnnotationGeneratorTest {
       )
     val configuration = createConfiguration(width = 100, height = 100)
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "NewName")
     assertThat(generatedText)
       .isEqualTo(
         """
         @Preview(
-            name = "MyOriginalName",
+            name = "NewName",
             widthDp = 100,
             heightDp = 100
         )
@@ -407,13 +409,13 @@ class PreviewAnnotationGeneratorTest {
     val configuration =
       createConfiguration(width = 845, height = 360, orientation = ScreenOrientation.LANDSCAPE)
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "NewName")
 
     assertThat(generatedText)
       .isEqualTo(
         """
         @Preview(
-            name = "phone",
+            name = "NewName",
             widthDp = 845,
             heightDp = 360
         )

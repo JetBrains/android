@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.compose.preview.message
@@ -39,7 +40,10 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
-/** Action to save the current size of a resized Compose Preview. */
+/**
+ * Saves the current preview state (dimensions, decorations etc.) by creating a new `@Preview`
+ * annotation with a unique name for the same composable function.
+ */
 class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.MenuSaveall) {
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -54,12 +58,13 @@ class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.Menu
     val ktPsiFactory = KtPsiFactory(project)
 
     val previewMethod = previewElement.previewBody?.element?.parent as? KtFunction ?: return
+    val deviceState = configuration.deviceState ?: error("Device state should not be null")
 
     val (widthDp, heightDp) = getDimensionsInDp(configuration)
     val mode =
       if (showDecorations) ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE
       else ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE
-    val dpi = configuration.deviceState!!.hardware.screen.pixelDensity.dpiValue
+    val dpi = deviceState.hardware.screen.pixelDensity.dpiValue
     ComposeResizeToolingUsageTracker.logResizeSaved(
       DESIGN_SURFACE.getData(e.dataContext),
       mode,
@@ -67,6 +72,8 @@ class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.Menu
       heightDp,
       dpi,
     )
+
+    val nameForNewPreview = createNewName(configuration)
 
     WriteCommandAction.runWriteCommandAction(
       project,
@@ -78,7 +85,8 @@ class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.Menu
         // Use KtFile.addImport to ensure the @Preview import is present
         targetFile.addImport(FqName(COMPOSE_PREVIEW_ANNOTATION_FQN))
 
-        val newAnnotationText = toPreviewAnnotationText(previewElement, configuration)
+        val newAnnotationText =
+          toPreviewAnnotationText(previewElement, configuration, nameForNewPreview)
         val newAnnotationEntry = ktPsiFactory.createAnnotationEntry(newAnnotationText)
 
         ShortenReferencesFacility.getInstance()
@@ -118,4 +126,21 @@ internal fun AnActionEvent.getSceneManagerInFocusMode(): LayoutlibSceneManager? 
     return getData(DESIGN_SURFACE)?.sceneManagers?.firstOrNull() as? LayoutlibSceneManager
   }
   return null
+}
+
+/**
+ * Generates a new name for the saved preview. If the device is a standard device, use its display
+ * name. Otherwise, use the dimensions in dp.
+ */
+private fun createNewName(configuration: Configuration): String {
+  val targetDevice =
+    configuration.device
+      ?: error("Device should not be null, because it's required for rendering preview")
+
+  if (targetDevice.id != Configuration.CUSTOM_DEVICE_ID) {
+    return targetDevice.displayName
+  }
+  val (widthDp, heightDp) = getDimensionsInDp(configuration)
+
+  return "${widthDp}x${heightDp}dp"
 }

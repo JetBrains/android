@@ -242,10 +242,83 @@ class SavePreviewInNewSizeActionTest {
       .isEqualTo(
         """
           @Preview(
-              name = "MyPreview",
+              name = "200x100dp",
               group = "MyGroup",
               showSystemUi = true,
               device = "spec:width=200dp,height=100dp,dpi=160,orientation=landscape"
+          )
+        """
+          .trimIndent()
+      )
+  }
+
+  @Test
+  fun `add new annotation, no custom device`() = runTest {
+    @Language("kotlin")
+    val composeTest =
+      projectRule.fixture.addFileToProject(
+        "src/Test.kt",
+        """
+                import androidx.compose.ui.tooling.preview.Preview
+                import androidx.compose.runtime.Composable
+
+                @Preview(name = "MyPreview", group = "MyGroup", showSystemUi = true)
+                @Composable
+                fun MyComposable() {
+                }
+                """
+          .trimIndent(),
+      )
+
+    val previewElement =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+          projectRule.project,
+          composeTest.virtualFile,
+        )
+        .first()
+    modeManager.setMode(PreviewMode.Focus(previewElement))
+    val originalAnnotation = previewElement.previewElementDefinition!!.element as KtAnnotationEntry
+
+    val configuration = createConfiguration(500, 600)
+
+    val newDevice = device(100, 300, ScreenOrientation.LANDSCAPE, "Pixel_9")
+
+    configuration.setDevice(newDevice, true)
+
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) =
+            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        }
+      )
+    `when`(model.configuration).thenReturn(configuration)
+
+    val action = SavePreviewInNewSizeAction()
+    val event = TestActionEvent.createTestEvent(getDataContext())
+
+    action.actionPerformed(event)
+
+    val previewElements =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+        projectRule.project,
+        composeTest.virtualFile,
+      )
+
+    assertThat(previewElements.size).isEqualTo(2)
+    val newAnnotation =
+      previewElements
+        .map { (it.previewElementDefinition!!.element!! as KtAnnotationEntry) }
+        .find { it.text != originalAnnotation.text }!!
+
+    assertThat(newAnnotation.text)
+      .isEqualTo(
+        """
+          @Preview(
+              name = "Pixel 9",
+              group = "MyGroup",
+              showSystemUi = true,
+              device = "spec:width=300dp,height=100dp,dpi=160,orientation=landscape"
           )
         """
           .trimIndent()
@@ -319,7 +392,7 @@ class SavePreviewInNewSizeActionTest {
       .isEqualTo(
         """
           @Preview(
-              name = "MyPreview",
+              name = "100x200dp",
               group = "MyGroup",
               showBackground = true,
               widthDp = 100,
@@ -470,7 +543,7 @@ class SavePreviewInNewSizeActionTest {
       .isEqualTo(
         """
         @Preview(
-            name = "phone",
+            name = "845x360dp",
             device = "spec:width=360dp,height=640dp,dpi=480",
             widthDp = 845,
             heightDp = 360
@@ -489,7 +562,7 @@ class SavePreviewInNewSizeActionTest {
       annotation class DevicePreviews
 
       @Preview(
-          name = "phone",
+          name = "845x360dp",
           device = "spec:width=360dp,height=640dp,dpi=480",
           widthDp = 845,
           heightDp = 360
@@ -523,12 +596,17 @@ class SavePreviewInNewSizeActionTest {
     return configuration
   }
 
-  private fun device(width: Int, height: Int, orientation: ScreenOrientation): Device =
+  private fun device(
+    width: Int,
+    height: Int,
+    orientation: ScreenOrientation,
+    id: String = Configuration.CUSTOM_DEVICE_ID,
+  ): Device =
     Device.Builder()
       .apply {
         setTagId("")
-        setName("Custom")
-        setId(Configuration.CUSTOM_DEVICE_ID)
+        setName(id.replace("_", " "))
+        setId(id)
         setManufacturer("")
         addSoftware(Software())
         addState(
