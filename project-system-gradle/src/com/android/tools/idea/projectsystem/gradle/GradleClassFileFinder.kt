@@ -24,6 +24,8 @@ import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getPathFromFqcn
 import com.android.tools.idea.rendering.classloading.loaders.JarManager
+import com.android.tools.idea.util.findAndroidModule
+import com.android.tools.idea.util.isAndroidModule
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.diagnostic.Logger
@@ -241,7 +243,11 @@ private constructor(private val module: Module, private val scope: CompileRootsS
   ClassFileFinder {
 
   override fun findClassFile(fqcn: String): ClassContent? {
-    return module.getCompileOutputs(scope)?.findClass(fqcn)
+    return if (module.isAndroidModule()) {
+      module.getCompileOutputs(scope).findClass(fqcn)
+    } else {
+      module.findAndroidModule()?.getCompileOutputs(scope)?.findClass(fqcn)
+    }
   }
 
   companion object {
