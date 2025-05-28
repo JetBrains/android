@@ -40,6 +40,7 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
   private var minimumSize: Dimension? = null
   private var preferredSize: Dimension? = null
   private var cancellationPolicy = CancellationPolicy.ALWAYS_CAN_CANCEL
+  private var undecorated = false
 
   /**
    * Convenience construction for wizards that only have a single step in them.
@@ -128,6 +129,14 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
     return this
   }
 
+  /**
+   * Set to `true` if this dialog should have no window decorations
+   */
+  fun setUndecorated(undecorated: Boolean): StudioWizardDialogBuilder {
+    this.undecorated = undecorated
+    return this
+  }
+
   fun build(customLayout: ModelWizardDialog.CustomLayout): ModelWizardDialog {
     minimumSize = minimumSize ?: customLayout.defaultMinSize
     preferredSize = preferredSize ?: customLayout.defaultPreferredSize
@@ -137,9 +146,9 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
       minimumSize = preferredSize
     }
     val dialog: ModelWizardDialog = if (parent != null)
-      ModelWizardDialog(wizard, title, parent!!, customLayout, helpUrl, cancellationPolicy)
+      ModelWizardDialog(wizard, title, parent!!, customLayout, helpUrl, cancellationPolicy, undecorated)
     else
-      ModelWizardDialog(wizard, title, customLayout, project, helpUrl, modalityType, cancellationPolicy)
+      ModelWizardDialog(wizard, title, customLayout, project, helpUrl, modalityType, cancellationPolicy, undecorated)
     val contentPanel = dialog.contentPanel
     if (contentPanel != null) {
       contentPanel.minimumSize = getClampedSize(minimumSize!!)

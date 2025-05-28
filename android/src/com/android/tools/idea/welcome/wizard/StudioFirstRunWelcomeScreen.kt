@@ -152,6 +152,7 @@ class StudioFirstRunWelcomeScreen(
     val modelWizardDialog =
       StudioWizardDialogBuilder(modelWizard, "")
         .setCancellationPolicy(ModelWizardDialog.CancellationPolicy.CAN_CANCEL_UNTIL_CAN_FINISH)
+        .setUndecorated(true)
         .build()
     mainPanel = modelWizardDialog.contentPanel
 
