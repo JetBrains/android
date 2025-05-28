@@ -92,7 +92,7 @@ class AdbLibApplicationService : Disposable {
   }
 
   override fun dispose() {
-    session.close()
+    configuration.dispose()
     host.close()
   }
 
