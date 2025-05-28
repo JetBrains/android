@@ -63,8 +63,8 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
               |> Could not resolve all artifacts for configuration 'classpath'.
               |   > Could not find androidx.databinding:databinding-common:$latestKnown.
               |     Required by:
-              |         root project : > com.android.tools.build:gradle:$latestKnown
-              |         root project : > com.android.tools.build:gradle:$latestKnown > androidx.databinding:databinding-compiler-common:$latestKnown
+              |         buildscript of root project 'project' > com.android.tools.build:gradle:$latestKnown
+              |         buildscript of root project 'project' > com.android.tools.build:gradle:$latestKnown > androidx.databinding:databinding-compiler-common:$latestKnown
               |
               |Possible solution:
               | - Declare repository providing the artifact, see the documentation at https://docs.gradle.org/current/userguide/declaring_repositories.html
@@ -127,7 +127,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
               """.trimMargin())
             expect.that(it.description).endsWith("""
               |     Required by:
-              |         root project :
+              |         buildscript of root project 'project'
               |
               |Possible solution:
               | - Declare repository providing the artifact, see the documentation at https://docs.gradle.org/current/userguide/declaring_repositories.html
@@ -221,7 +221,7 @@ class MissingDependencyFailureTest : AbstractIssueCheckerIntegrationTest() {
             |> Could not resolve all artifacts for configuration 'classpath'.
             |   > Could not resolve my.not.existing.dependency:gradle:1.2.3-dev.
             |     Required by:
-            |         project :app
+            |         buildscript of project ':app'
             |      > No cached version of my.not.existing.dependency:gradle:1.2.3-dev available for offline mode.
             |
             |Possible solution:

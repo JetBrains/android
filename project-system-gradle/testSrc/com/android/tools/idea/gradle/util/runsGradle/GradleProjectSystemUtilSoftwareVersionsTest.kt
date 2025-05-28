@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.util.KotlinGradleProjectSystemUtil
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import org.gradle.util.GradleVersion
+import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -43,6 +45,10 @@ class GradleProjectSystemUtilSoftwareVersionsTest {
 
   @Test
   fun testOlderKotlin() {
+    assumeTrue(GradleVersion.current() < GradleVersion.version("9.0-milestone-1"))
+    /**
+     * TODO update or remove as Kotlin 1.6 is now deprecated.
+     */
     val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_KAPT)
     val buildGradle = preparedProject.root.resolve("build.gradle")
     buildGradle.replaceContent { contents ->

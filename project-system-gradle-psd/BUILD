@@ -89,7 +89,6 @@ iml_module(
         "//tools/base/build-system:declarative_android_gradle_plugin.zip",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
-        "//tools/external/gradle:gradle-8.14-20250304001707+0000",
     ],
     # do not sort: must match IML order
     test_deps = [
@@ -184,7 +183,7 @@ maven_repository(
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:commons-logging.commons-logging_1.1.1",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
-        "@maven//:org.jacoco.org.jacoco.ant_0.8.12",
+        "@maven//:org.jacoco.org.jacoco.ant_0.8.13",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",

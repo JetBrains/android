@@ -41,6 +41,7 @@ import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.TruthJUnit.assume
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
@@ -56,6 +57,7 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.workspace.storage.impl.url.toVirtualFileUrl
 import com.intellij.testFramework.RunsInEdt
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.fail
@@ -237,12 +239,18 @@ class SyncScenariosIntegrationTest {
   fun testGradleSourceSetModelClash() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val buildFile = preparedProject.root.resolve("app").resolve("build.gradle")
-    buildFile.writeText(buildFile.readText() + """
-      
-      sourceSets {
-        test.resources.srcDirs += 'src/test/resources'
-      }
-    """.trimIndent())
+    /**
+     * With Gradle 9.0 this Groovy code needs to first create and later get by named().
+     *  org.gradle.api.InvalidUserDataException: Cannot add a SourceSet with name 'test1' as a SourceSet with that name already exists
+     * We also cannot use name 'test' as it collides with a name we're already using, resulting in:
+     *  Cannot add a configuration with name 'testImplementation' as a configuration with that name already exists
+     */
+    buildFile.writeText(buildFile.readText() + "\n\n" +
+      "sourceSets {\n" +
+      "    def k = create(\"test1\")\n" +
+      "    k.resources.srcDirs += 'src/test/resources'\n" +
+      "}\n"
+    )
 
     val received = mutableListOf<Notification>()
 
@@ -271,7 +279,7 @@ class SyncScenariosIntegrationTest {
       val notification = received.find { it.groupId == "Detected Gradle source sets" }
       assertThat(notification).isNotNull()
       assertThat(notification!!.title).isEqualTo("Non-Android source sets detected in 'app'")
-      assertThat(notification.content).isEqualTo("Gradle source sets ignored: test.")
+      assertThat(notification.content).isEqualTo("Gradle source sets ignored: test1.")
 
     }
   }

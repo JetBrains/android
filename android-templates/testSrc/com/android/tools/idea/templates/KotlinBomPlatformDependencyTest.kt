@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.lint.common.getModuleDir
@@ -27,9 +26,7 @@ import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.withCompileSdk
@@ -43,6 +40,7 @@ import com.android.utils.FileUtils
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import org.gradle.util.GradleVersion
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -50,6 +48,7 @@ import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.io.File
+import org.junit.Assume.assumeTrue
 
 class KotlinBomPlatformDependencyTest {
   // The test SDK Manager needs to be set, and loadProject also changes the project files to the specified version
@@ -113,6 +112,8 @@ class KotlinBomPlatformDependencyTest {
 
   @Test
   fun kgp1_7_20_hasTransitiveDepTo_kotlinStdLib1_8_0() {
+    // b/429579986
+    assumeTrue(GradleVersion.current() < GradleVersion.version("9.0-milestone-1"))
     projectRule.load(TestProjectPaths.KOTLIN_WITH_VERSION_CATALOG, agpVersion.withKotlin("1.7.20"))
 
     generateModuleFiles(projectRule.project, moduleModel)
@@ -128,6 +129,8 @@ class KotlinBomPlatformDependencyTest {
 
   @Test
   fun kgp1_8_10_hasTransitiveDepToKotlinStdLib1_8_0() {
+    // b/429579986
+    assumeTrue(GradleVersion.current() < GradleVersion.version("9.0-milestone-1"))
     projectRule.load(TestProjectPaths.KOTLIN_WITH_VERSION_CATALOG, agpVersion.withKotlin("1.8.10"))
 
     generateModuleFiles(projectRule.project, moduleModel)

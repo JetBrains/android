@@ -80,7 +80,7 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
             exception: org.gradle.groovy.scripts.ScriptCompilationException
               at: [0]org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler#wrapCompilationFailure
             exception: org.codehaus.groovy.control.MultipleCompilationErrorsException
-              at: [0]org.apache.groovy.parser.antlr4.AstBuilder#collectSyntaxError
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler#compileScript
           }
         }
       """.trimIndent()
@@ -111,7 +111,7 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
             exception: org.gradle.groovy.scripts.ScriptCompilationException
               at: [0]org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler#wrapCompilationFailure
             exception: org.codehaus.groovy.control.MultipleCompilationErrorsException
-              at: [0]org.apache.groovy.parser.antlr4.AstBuilder#collectSyntaxError
+              at: [0]org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler#compileScript
           }
         }
       """.trimIndent()

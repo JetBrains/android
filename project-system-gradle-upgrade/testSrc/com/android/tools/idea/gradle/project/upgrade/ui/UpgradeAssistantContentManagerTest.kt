@@ -628,7 +628,7 @@ class UpgradeAssistantContentManagerTest {
         buildscript {
           dependencies {
             classpath 'com.android.tools.build:gradle:4.1.0'
-            classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21'
+            classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22'
           }
         }
       """.trimIndent()

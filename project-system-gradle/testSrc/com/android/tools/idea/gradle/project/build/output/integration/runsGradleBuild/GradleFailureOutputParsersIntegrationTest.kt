@@ -74,7 +74,7 @@ tasks.register("runFailingTasks") {
           * Try:
           > Run with --stacktrace option to get the stack trace.
           > Run with --debug option to get more log output.
-          > Run with --scan to get full insights.
+          > Run with --scan to generate a Build Scan (Powered by Develocity).
           > Get more help at https://help.gradle.org.
         """.trimIndent())
         assertThat(output).doesNotContain("BUILD FAILED in ")
@@ -115,7 +115,7 @@ tasks.register("runFailingTasks") {
           * Try:
           > Run with --stacktrace option to get the stack trace.
           > Run with --debug option to get more log output.
-          > Run with --scan to get full insights.
+          > Run with --scan to generate a Build Scan (Powered by Develocity).
           > Get more help at https://help.gradle.org.
         """.trimIndent())
       }
@@ -129,7 +129,7 @@ tasks.register("runFailingTasks") {
           * Try:
           > Run with --stacktrace option to get the stack trace.
           > Run with --debug option to get more log output.
-          > Run with --scan to get full insights.
+          > Run with --scan to generate a Build Scan (Powered by Develocity).
           > Get more help at https://help.gradle.org.
         """.trimIndent())
       }
@@ -218,7 +218,7 @@ tasks.register("runFailingTasks") {
           * Try:
           > Run with --stacktrace option to get the stack trace.
           > Run with --debug option to get more log output.
-          > Run with --scan to get full insights.
+          > Run with --scan to generate a Build Scan (Powered by Develocity).
           > Get more help at https://help.gradle.org.
         """.trimIndent())
       }
@@ -232,7 +232,7 @@ tasks.register("runFailingTasks") {
           * Try:
           > Run with --stacktrace option to get the stack trace.
           > Run with --debug option to get more log output.
-          > Run with --scan to get full insights.
+          > Run with --scan to generate a Build Scan (Powered by Develocity).
           > Get more help at https://help.gradle.org.
         """.trimIndent())
       }
@@ -246,7 +246,7 @@ tasks.register("runFailingTasks") {
           * Try:
           > Run with --stacktrace option to get the stack trace.
           > Run with --debug option to get more log output.
-          > Run with --scan to get full insights.
+          > Run with --scan to generate a Build Scan (Powered by Develocity).
           > Get more help at https://help.gradle.org.
         """.trimIndent())
       }

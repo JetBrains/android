@@ -36,9 +36,11 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.IconManager
 import com.intellij.ui.icons.CoreIconManager
+import java.io.File
+import org.gradle.util.GradleVersion
+import org.junit.Assume.assumeTrue
 import org.junit.Ignore
 import org.junit.Test
-import java.io.File
 
 /**
  * An entry point to all tests asserting certain properties of synced projects.  See: [SyncedProjectTest.Companion.getTests] for the exact

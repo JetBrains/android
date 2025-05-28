@@ -2398,7 +2398,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         annotationProcessor           : <empty>
                         api                           : <empty>
                         apiDependenciesMetadata       : <empty>
-                        - archives                    : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
+                        archives                      : <empty>
                         compileOnly                   : <empty>
                         compileOnlyApi                : <empty>
                         compileOnlyDependenciesMetadata         : <empty>

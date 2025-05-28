@@ -550,8 +550,7 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/adt/idea/project-system-gradle/testData",
-        "//tools/external/gradle:gradle-8.14-20250304001707+0000",
-        "//tools/external/gradle:gradle-8.14-milestone-4",
+        "//tools/external/gradle:gradle-distrib-9.0.0",
     ],
     # do not sort: must match IML order
     test_deps = [
@@ -758,7 +757,7 @@ maven_repository(
         "@maven//:commons-logging.commons-logging_1.1.1",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
         "@maven//:org.gradle.toolchains.foojay-resolver-convention.org.gradle.toolchains.foojay-resolver-convention.gradle.plugin_0.8.0",
-        "@maven//:org.jacoco.org.jacoco.ant_0.8.12",
+        "@maven//:org.jacoco.org.jacoco.ant_0.8.13",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.6.21",
@@ -773,6 +772,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.22",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_2.2.0",
         "@maven//:org.jetbrains.kotlin.kotlin-test-junit_" + KGP_VERSION_FOR_TESTS,
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.6.4",

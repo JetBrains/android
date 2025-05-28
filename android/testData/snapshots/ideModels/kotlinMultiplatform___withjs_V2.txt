@@ -2303,11 +2303,11 @@
                 12                            : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>.
 Required by:
-    project :jsModule
+    project ':jsModule'
                 13                            : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>.
 Required by:
-    project :jsModule > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+    project ':jsModule' > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 2                             : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>.
 Searched in the following locations:
@@ -2316,11 +2316,11 @@ Searched in the following locations:
   - file:<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/org/jetbrains/kotlin/kotlin-dom-api-compat/<KOTLIN_VERSION>/kotlin-dom-api-compat-<KOTLIN_VERSION>.pom
   - file:<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/org/jetbrains/kotlin/kotlin-dom-api-compat/<KOTLIN_VERSION>/kotlin-dom-api-compat-<KOTLIN_VERSION>.jar
 Required by:
-    project :jsModule
+    project ':jsModule'
                 3                             : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>.
 Required by:
-    project :jsModule
+    project ':jsModule'
                 4                             : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>.
 Searched in the following locations:
@@ -2329,25 +2329,25 @@ Searched in the following locations:
   - file:<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/org/jetbrains/kotlin/kotlin-stdlib-js/<KOTLIN_VERSION>/kotlin-stdlib-js-<KOTLIN_VERSION>.pom
   - file:<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/org/jetbrains/kotlin/kotlin-stdlib-js/<KOTLIN_VERSION>/kotlin-stdlib-js-<KOTLIN_VERSION>.jar
 Required by:
-    project :jsModule > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+    project ':jsModule' > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 5                             : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>.
 Required by:
-    project :jsModule
+    project ':jsModule'
                 6                             : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>.
 Required by:
-    project :jsModule > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+    project ':jsModule' > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 7                             : DefaultFileCollectionDependency
                     - files                       : <ROOT>/jsModule/build/classes/kotlin/main [-]
                 8                             : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>.
 Required by:
-    project :jsModule
+    project ':jsModule'
                 9                             : DefaultUnresolvedExternalDependency
                     failureMessage                : Could not find org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>.
 Required by:
-    project :jsModule > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+    project ':jsModule' > org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             extraFeatures                 : ExtraFeaturesImpl
                 isHMPPEnabled                 : true
             kotlinGradlePluginVersion

@@ -708,7 +708,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.myrbsdk_10000
          Files:
-            -> ../../.gradle/caches/8.13/transforms/<hash>/transformed/ads-sdk/standalone.apk
+            -> ../../.gradle/caches/9.0.0/transforms/<hash>/transformed/ads-sdk/standalone.apk
          RequiredInstallationOptions: []
 
          ApplicationId: com.example.rubidumconsumer
@@ -730,7 +730,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.myrbsdk_10000
          Files:
-            -> ../../.gradle/caches/8.13/transforms/<hash>/transformed/ads-sdk/standalone.apk
+            -> ../../.gradle/caches/9.0.0/transforms/<hash>/transformed/ads-sdk/standalone.apk
          RequiredInstallationOptions: []
 
          ApplicationId: com.example.rubidumconsumer
@@ -836,7 +836,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.myrbsdk_10000
          Files:
-            ->  ../../.gradle/caches/8.13/transforms/<hash>/transformed/ads-sdk/standalone.apk
+            ->  ../../.gradle/caches/9.0.0/transforms/<hash>/transformed/ads-sdk/standalone.apk
          RequiredInstallationOptions: []
 
          ApplicationId: com.example.rubidumconsumer
@@ -859,7 +859,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.myrbsdk_10000
          Files:
-            -> ../../.gradle/caches/8.13/transforms/<hash>/transformed/ads-sdk/standalone.apk
+            -> ../../.gradle/caches/9.0.0/transforms/<hash>/transformed/ads-sdk/standalone.apk
          RequiredInstallationOptions: []
 
          ApplicationId: com.example.rubidumconsumer

@@ -98,7 +98,6 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     assertTrue(DeclarativeIdeSupport.isEnabled());
     File file = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION_DECLARATIVE);
     VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(getProjectFolderPath(), true));
-    setupGradleSnapshotToWrapper();
     importProject();
     prepareProjectForTest(myFixture.getProject(), null);
     simulateSyncForGradleFilesUpdate();
@@ -122,13 +121,6 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
     myGradleFiles.maybeProcessSyncSucceeded();
     UIUtil.dispatchAllInvocationEvents();
     assertFalse(myGradleFiles.areGradleFilesModified());
-  }
-
-  private void setupGradleSnapshotToWrapper() throws IOException {
-    Path distribution = TestUtils.resolveWorkspacePath("tools/external/gradle");
-    Path gradle = distribution.resolve("gradle-8.14-20250304001707+0000-bin.zip");
-    GradleWrapper wrapper = GradleWrapper.find(myFixture.getProject());
-    wrapper.updateDistributionUrl(gradle.toFile());
   }
 
   public void testNotModifiedWhenAddingWhitespaceInBuildFile() throws Exception {

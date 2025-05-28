@@ -1213,7 +1213,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
     GradleModuleModel
         agpVersion                    : 8.11.0-rc02
         gradlePath                    : :androidLib
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.13
         buildFile                     : <ROOT>/androidLib/build.gradle.kts
         buildFilePath                 : <ROOT>/androidLib/build.gradle.kts
         rootFolderPath                : <ROOT>
@@ -1719,7 +1719,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleTypeoneModetwoDebug
                 GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileTypeoneModetwoDebugAndroidTestSources
@@ -1766,7 +1766,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     AssembleTaskName              : assembleTypeoneModetwoDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/androidLib/build/intermediates/apk_ide_redirect_file/typeoneModetwoDebugAndroidTest/createTypeoneModetwoDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/androidTest/typeoneModetwo/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -1808,7 +1808,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                         module                        : <ROOT>-:androidLib-MAIN
                     runtimeClasspath
                         module                        : <ROOT>-:androidLib-MAIN
-                MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :androidLib (DefaultExternalProject) (*seen*)
 MODULE                        : Kotlin_Multiplatform.androidLib.androidTest
 MODULE                        : Kotlin_Multiplatform.androidLib.main
@@ -1817,7 +1817,7 @@ MODULE                        : Kotlin_Multiplatform.app
     GradleModuleModel
         agpVersion                    : 8.11.0-rc02
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.13
         buildFile                     : <ROOT>/app/build.gradle.kts
         buildFilePath                 : <ROOT>/app/build.gradle.kts
         rootFolderPath                : <ROOT>
@@ -2124,7 +2124,7 @@ MODULE                        : Kotlin_Multiplatform.app
                     ApkFromBundleTaskName         : extractApksForDebug
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/createDebugApksFromBundleListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -2157,7 +2157,7 @@ MODULE                        : Kotlin_Multiplatform.app
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -2260,7 +2260,7 @@ MODULE                        : Kotlin_Multiplatform.app
                         module                        : <ROOT>-:kmpJvmOnly-jvmMain
                         module                        : <ROOT>-:kmpJvmOnly-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : Kotlin_Multiplatform.app.androidTest
 MODULE                        : Kotlin_Multiplatform.app.main
@@ -2268,7 +2268,7 @@ MODULE                        : Kotlin_Multiplatform.app.unitTest
 MODULE                        : Kotlin_Multiplatform.kmpFirstLib
     GradleModuleModel
         gradlePath                    : :kmpFirstLib
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.13
         buildFile                     : <ROOT>/kmpFirstLib/build.gradle.kts
         buildFilePath                 : <ROOT>/kmpFirstLib/build.gradle.kts
         rootFolderPath                : <ROOT>
@@ -2432,7 +2432,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleAndroidMain
-                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileAndroidInstrumentedTest
@@ -2477,7 +2477,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleAndroidInstrumentedTest
                     AssembleTaskOutputListingFile : <ROOT>/kmpFirstLib/build/intermediates/apk_ide_redirect_file/androidInstrumentedTest/createAndroidInstrumentedTestApkListingFileRedirect/redirect.txt [-]
-                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -2511,7 +2511,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         module                        : :-:kmpSecondLib-androidMain
                         module                        : :-:kmpJvmOnly-commonMain
                         module                        : :-:kmpJvmOnly-jvmMain
-                MockablePlatformJar           : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+                MockablePlatformJar           : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
         dependencies
             androidInstrumentedTest
@@ -2793,7 +2793,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib.commonTest
 MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
     GradleModuleModel
         gradlePath                    : :kmpJvmOnly
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.13
         buildFile                     : <ROOT>/kmpJvmOnly/build.gradle.kts
         buildFilePath                 : <ROOT>/kmpJvmOnly/build.gradle.kts
         rootFolderPath                : <ROOT>
@@ -2998,7 +2998,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly.jvmTest
 MODULE                        : Kotlin_Multiplatform.kmpSecondLib
     GradleModuleModel
         gradlePath                    : :kmpSecondLib
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.13
         buildFile                     : <ROOT>/kmpSecondLib/build.gradle.kts
         buildFilePath                 : <ROOT>/kmpSecondLib/build.gradle.kts
         rootFolderPath                : <ROOT>
@@ -3123,7 +3123,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleAndroidMain
-                DesugaredMethodFiles          : <GRADLE>/caches/<GRADLE_VERSION>/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                DesugaredMethodFiles          : <GRADLE>/caches/8.13/transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
     kotlinMppGradleModel          : {androidMain=androidMain, commonMain=commonMain, commonTest=commonTest, jvmMain=jvmMain, jvmTest=jvmTest} (KotlinMPPGradleModelImpl)
         dependencies
             androidMain

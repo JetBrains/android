@@ -1004,7 +1004,6 @@ MODULE                        : kotlinMultiPlatform
                         appleTestIntransitiveDependenciesMetadata         : <empty>
                         appleTestResolvableDependenciesMetadata : <empty>
                         appleTestRuntimeOnly          : <empty>
-                        - archives                    : <ROOT>/module2/non-existing-file-workaround-for-gradle-29630.txt [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-iosx64-metadata.jar [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-iossimulatorarm64-metadata.jar [-]
                         - archives                    : <ROOT>/module2/build/libs/module2-iosarm64-metadata.jar [-]

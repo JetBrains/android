@@ -62,7 +62,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
             exception: org.gradle.api.ProjectConfigurationException
               at: [0]org.gradle.configuration.project.LifecycleProjectEvaluator#wrapException
             exception: org.gradle.internal.exceptions.LocationAwareException
-              at: [0]org.gradle.kotlin.dsl.execution.Interpreter${'$'}ProgramHost${'$'}compileSecondStageOf${'$'}cacheDir${'$'}1#invoke
+              at: [0]org.gradle.kotlin.dsl.execution.Interpreter${'$'}ProgramHost${'#'}compileSecondStageOf${'$'}lambda${'$'}3
             exception: org.gradle.kotlin.dsl.support.ScriptCompilationException
               at: [0]org.gradle.kotlin.dsl.support.KotlinCompilerKt#reportToMessageCollectorAndThrowOnErrors
           }
@@ -87,7 +87,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
         //     Unresolved reference: abcd
         //     Build 06caa169-39fa-46b1-befd-827d18fbb27e is started
         //     Build 06caa169-39fa-46b1-befd-827d18fbb27e is closed
-        expect.that(it.lines().firstOrNull()).isEqualTo("Unresolved reference: abcd")
+        expect.that(it.lines().firstOrNull()).isEqualTo("Unresolved reference 'abcd'.")
       }
     )
   }
@@ -103,7 +103,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
         // The message may have multiple lines, so check the first line only
-        expect.that(it.lines().firstOrNull()).isEqualTo("Unresolved reference: abcd")
+        expect.that(it.lines().firstOrNull()).isEqualTo("Unresolved reference 'abcd'.")
       }
     )
   }
@@ -119,7 +119,7 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
         // The message may have multiple lines, so check the first line only
-        expect.that(it.lines().firstOrNull()).isEqualTo("Unresolved reference: abcd")
+        expect.that(it.lines().firstOrNull()).isEqualTo("Unresolved reference 'abcd'.")
       }
     )
   }
