@@ -2588,21 +2588,21 @@ public final class StudioFlags {
     "first.run.migrated.wizard.enabled",
     "Migrated First Run Wizard Enabled",
     "Show the migrated version of the welcome wizard when Studio first starts",
-    enabledUpTo(CANARY)
+    enabledUpTo(STABLE)
   );
   public static final Flag<Boolean> SDK_SETUP_MIGRATED_WIZARD_ENABLED = new BooleanFlag(
     WIZARD_MIGRATION,
     "sdk.setup.migrated.wizard.enabled",
     "Migrated SDK Setup Wizard Enabled",
     "Show the migrated version of the SDK setup wizard",
-    enabledUpTo(CANARY)
+    enabledUpTo(STABLE)
   );
   public static final Flag<Boolean> AEHD_CONFIGURATION_MIGRATED_WIZARD_ENABLED = new BooleanFlag(
     WIZARD_MIGRATION,
     "aehd.configuration.migrated.wizard.enabled",
     "Migrated AEHD Configuration Wizard Enabled",
     "Show the migrated version fo the AEHD configuration wizard",
-    enabledUpTo(CANARY)
+    enabledUpTo(STABLE)
   );
   // endregion WIZARD_MIGRATION
 
