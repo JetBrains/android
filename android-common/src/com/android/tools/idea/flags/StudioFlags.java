@@ -2379,6 +2379,16 @@ public final class StudioFlags {
                     "Enable using Gradle project structure Agent tools by default",
                     "When enabled, a set of tools allowing the agent to query for the Gradle project structure will be included by default.", false);
 
+  public static final Flag<Boolean> GEMINI_AGENT_MODE =
+    new BooleanFlag(STUDIOBOT, "agent.mode",
+                    "Enable agent mode.",
+                    "When enabled, the agent mode will be enabled in the Gemini toolwindow.", enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> GEMINI_VERSION_UPGRADE_AGENT =
+    new BooleanFlag(STUDIOBOT, "version.upgrade.agent",
+                    "Enable Gemini Version Upgrade Agent.",
+                    "Enables the agent that helps with upgrading dependencies to newer versions.", enabledUpTo(DEV));
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
