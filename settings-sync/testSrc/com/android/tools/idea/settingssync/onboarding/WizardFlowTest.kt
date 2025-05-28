@@ -45,6 +45,7 @@ import com.google.gct.wizard.WizardPage
 import com.google.gct.wizard.WizardState
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.BACKUP_AND_SYNC_EVENT
 import com.google.wireless.android.sdk.stats.BackupAndSyncEvent
+import com.google.wireless.android.sdk.stats.GoogleLoginPluginEvent
 import com.intellij.openapi.components.SettingsCategory
 import com.intellij.openapi.util.Disposer
 import com.intellij.settingsSync.core.ServerState
@@ -161,7 +162,10 @@ class WizardFlowTest {
       WizardState().apply {
         // Make sure we won't skip the page
         getOrCreateState { GoogleSignInWizard.SignInState() }
-          .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+          .apply {
+            signedInUser = PreferredUser.User(email = USER_EMAIL)
+            loginType = GoogleLoginPluginEvent.LoginType.COMBINED_LOGIN
+          }
       }
     initWizard(pages, wizardState, expectedInitialPage = step3, scope)
 
@@ -213,7 +217,10 @@ class WizardFlowTest {
       WizardState().apply {
         // Make sure we won't skip the page
         getOrCreateState { GoogleSignInWizard.SignInState() }
-          .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+          .apply {
+            signedInUser = PreferredUser.User(email = USER_EMAIL)
+            loginType = GoogleLoginPluginEvent.LoginType.COMBINED_LOGIN
+          }
       }
     initWizard(pages, wizardState, expectedInitialPage = step3, scope)
 
@@ -270,7 +277,10 @@ class WizardFlowTest {
       WizardState().apply {
         // Make sure we won't skip the page
         getOrCreateState { GoogleSignInWizard.SignInState() }
-          .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+          .apply {
+            signedInUser = PreferredUser.User(email = USER_EMAIL)
+            loginType = GoogleLoginPluginEvent.LoginType.COMBINED_LOGIN
+          }
       }
     initWizard(pages, wizardState, expectedInitialPage = step1, scope)
 
@@ -303,7 +313,10 @@ class WizardFlowTest {
       WizardState().apply {
         // Make sure we won't skip the page
         getOrCreateState { GoogleSignInWizard.SignInState() }
-          .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+          .apply {
+            signedInUser = PreferredUser.User(email = USER_EMAIL)
+            loginType = GoogleLoginPluginEvent.LoginType.COMBINED_LOGIN
+          }
       }
     initWizard(pages, wizardState, expectedInitialPage = step1, scope)
 
@@ -335,7 +348,10 @@ class WizardFlowTest {
       WizardState().apply {
         // Make sure we won't skip the page
         getOrCreateState { GoogleSignInWizard.SignInState() }
-          .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+          .apply {
+            signedInUser = PreferredUser.User(email = USER_EMAIL)
+            loginType = GoogleLoginPluginEvent.LoginType.COMBINED_LOGIN
+          }
       }
     initWizard(pages, wizardState, expectedInitialPage = step2, scope)
 
@@ -384,7 +400,10 @@ class WizardFlowTest {
       WizardState().apply {
         // Make sure we won't skip the page
         getOrCreateState { GoogleSignInWizard.SignInState() }
-          .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+          .apply {
+            signedInUser = PreferredUser.User(email = USER_EMAIL)
+            loginType = GoogleLoginPluginEvent.LoginType.COMBINED_LOGIN
+          }
       }
     initWizard(pages, wizardState, expectedInitialPage = step2, scope)
 

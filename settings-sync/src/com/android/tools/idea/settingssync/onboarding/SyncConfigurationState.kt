@@ -30,6 +30,7 @@ import com.google.gct.login2.ui.onboarding.compose.GoogleSignInWizard
 import com.google.gct.wizard.WizardState
 import com.google.gct.wizard.WizardStateElement
 import com.google.wireless.android.sdk.stats.BackupAndSyncEvent
+import com.google.wireless.android.sdk.stats.GoogleLoginPluginEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.settingsSync.core.SettingsSyncBundle
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
@@ -159,9 +160,18 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
     SyncEventsMetrics.getInstance()
       .trackEvent(
         BackupAndSyncEvent.newBuilder().apply {
-          // TODO: Currently fine, but need to revisit this if this code is reused for the other
-          // enablement flow.
-          enablementFlow = BackupAndSyncEvent.EnablementFlow.UNIFIED_SIGN_IN_FLOW
+          enablementFlow =
+            when (getOrCreateState { GoogleSignInWizard.SignInState() }.loginType) {
+              GoogleLoginPluginEvent.LoginType.COMBINED_LOGIN -> {
+                BackupAndSyncEvent.EnablementFlow.UNIFIED_SIGN_IN_FLOW
+              }
+              GoogleLoginPluginEvent.LoginType.FEATURE_LOGIN -> {
+                BackupAndSyncEvent.EnablementFlow.ACCOUNT_SETTINGS_PAGE
+              }
+              else -> {
+                BackupAndSyncEvent.EnablementFlow.UNKNOWN_FLOW
+              }
+            }
         }
       )
   }
