@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
+import com.android.tools.compose.MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.util.isValidComposePreviewForRunConfiguration
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
@@ -89,7 +90,8 @@ open class ComposePreviewRunConfigurationProducer :
         } else {
           parameter.annotationEntries
             .firstOrNull { annotation ->
-              annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN)
+              annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN) ||
+              annotation.fqNameMatches(MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN)
             }
             ?.let { previewParameter ->
               previewParameter.providerClassName()?.let { providerClass ->
@@ -152,8 +154,10 @@ private fun KtParameter.providerClassNameK2(): String? {
   allowAnalysisOnEdt {
     return analyze(this) {
       val annotatedSymbol = this@providerClassNameK2.symbol
-      val annotationClassId = ClassId.topLevel(FqName(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN))
-      val annotation = annotatedSymbol.annotations[annotationClassId].singleOrNull()
+      val annotationClassId1 = ClassId.topLevel(FqName(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN))
+      val annotationClassId2 = ClassId.topLevel(FqName(MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN))
+      val annotation = annotatedSymbol.annotations[annotationClassId1].singleOrNull() ?:
+                       annotatedSymbol.annotations[annotationClassId2].singleOrNull()
       annotation?.let(::findProviderClassId)?.asFqNameString()
     }
   }
