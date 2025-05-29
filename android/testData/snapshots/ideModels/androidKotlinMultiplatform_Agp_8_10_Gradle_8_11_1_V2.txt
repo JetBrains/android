@@ -889,8 +889,6 @@ MODULE                        : Kotlin_Multiplatform
                         metadataCompilationRuntimeOnly          : <empty>
                         metadataCompileClasspath      : <empty>
                         - metadataSourcesElements     : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-kotlin-sources.jar [-]
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         unitTestKotlinScriptDef       : <empty>
                         unitTestKotlinScriptDefExtensions       : <empty>
                     - additionalArtifacts         : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib-metadata.jar [-]
@@ -996,8 +994,6 @@ MODULE                        : Kotlin_Multiplatform
                         metadataCompilationRuntimeOnly          : <empty>
                         metadataCompileClasspath      : <empty>
                         - metadataSourcesElements     : <ROOT>/kmpJvmOnly/build/libs/kmpJvmOnly-kotlin-sources.jar [-]
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testKotlinScriptDef           : <empty>
                         testKotlinScriptDefExtensions : <empty>
                     sourceSets

@@ -20,23 +20,26 @@ import com.intellij.build.output.BuildOutputInstantReader
 import java.util.regex.Pattern
 
 object BuildOutputParserUtils {
-    const val MESSAGE_GROUP_INFO_SUFFIX = " info"
-    const val MESSAGE_GROUP_STATISTICS_SUFFIX = " statistics"
-    const val MESSAGE_GROUP_WARNING_SUFFIX = " warnings"
-    const val MESSAGE_GROUP_ERROR_SUFFIX = " errors"
-    const val BUILD_FAILED_WITH_EXCEPTION_LINE = "FAILURE: Build failed with an exception."
-    //TODO (b/362959090): This is part of the new Gradle output for multiple failures. Need to adjust all parsers.
-    const val BUILD_COMPLETED_WITH_FAILURES_LINE = "FAILURE: Build completed with "
+  const val MESSAGE_GROUP_INFO_SUFFIX = " info"
+  const val MESSAGE_GROUP_STATISTICS_SUFFIX = " statistics"
+  const val MESSAGE_GROUP_WARNING_SUFFIX = " warnings"
+  const val MESSAGE_GROUP_ERROR_SUFFIX = " errors"
+  const val BUILD_FAILED_WITH_EXCEPTION_LINE = "FAILURE: Build failed with an exception."
+  const val BUILD_COMPLETED_WITH_FAILURES_LINE = "FAILURE: Build completed with "
 
-    fun consumeRestOfOutput(reader: BuildOutputInstantReader) {
-      while (true) {
-        val nextLine = reader.readLine() ?: break
-        if (nextLine.startsWith("BUILD FAILED") || nextLine.startsWith("CONFIGURE FAILED")) break
-      }
-    }
+  fun String.isBuildFailureOutputLine(): Boolean =
+    startsWith(BUILD_FAILED_WITH_EXCEPTION_LINE) ||
+    startsWith(BUILD_COMPLETED_WITH_FAILURES_LINE)
+
+  fun String?.isEndOfBuildOutputLine(): Boolean =
+    this == null ||
+    startsWith("BUILD FAILED") ||
+    startsWith("CONFIGURE FAILED") ||
+    startsWith("BUILD SUCCESSFUL") ||
+    startsWith("CONFIGURE SUCCESSFUL")
 
   /** Extracts task name from @param [parentEventId]. */
-   fun extractTaskNameFromId(parentEventId: Any): String? {
+  fun extractTaskNameFromId(parentEventId: Any): String? {
     if (parentEventId !is String) {
       return null
     }

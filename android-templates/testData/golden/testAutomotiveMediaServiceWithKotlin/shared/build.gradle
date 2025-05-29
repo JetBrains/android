@@ -4,11 +4,11 @@ plugins {
 }
 android {
     namespace 'template.test.in.shared'
-    compileSdkVersion 35
+    compileSdk 35
 
     defaultConfig {
-        minSdkVersion 23
-        targetSdkVersion 35
+        minSdk 23
+        targetSdk 35
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

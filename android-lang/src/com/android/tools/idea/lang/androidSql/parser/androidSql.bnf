@@ -377,12 +377,21 @@ isnull_expression ::= expression ( ISNULL | NOTNULL | NOT NULL )
 in_expression ::=  expression ( NOT )? IN ( '(' ( expression_subquery | expression_list )? ')' | ( database_name '.' )? defined_table_name )
 exists_expression ::= ( ( NOT )? EXISTS )? '(' expression_subquery ')'
 function_call_expression ::=
-  // We use two different parts to match https://www.sqlite.org/lang_expr.html#functions.
-  // The first matches window functions while the second matches simple and aggregate
-  // functions. It's important it happen in this order or else the parser may break when
-  // it completes parsing what it thinks is a simple function, only to encounter an over_clause.
-  function_name LPAREN ( STAR | expression_list )? RPAREN filter_clause? over_clause
-  | function_name LPAREN DISTINCT? ( STAR | expression_list order_clause? ) ? RPAREN filter_clause?
+  // Functions are defined at https://www.sqlite.org/lang_expr.html#functions. We need to avoid
+  // recursively evaluating `expression_list` more than once, which would happen if we naively split
+  // these rules into simple, aggregate, and window variants. Instead, the three types are mixed
+  // here, front-loading unique tokens at the beginning of each branch to avoid evaluating the
+  // expression list more than once.
+  //
+  // 1. Simple, aggregate, or window functions that have no arguments, or have a single star arguments.
+  function_name LPAREN STAR? RPAREN filter_clause? over_clause?
+  // 2. Aggregate functions with DISTINCT and optional ORDER BY
+  | function_name LPAREN DISTINCT expression_list order_clause? RPAREN filter_clause?
+  // 3. Aggregate functions with ORDER BY
+  // 4. Simple, aggregate, or window functions with arguments (but no DISTINCT/ORDER BY)
+  // Since these cases are identical up until the expression list, they're combined for evaluation until then.
+  | function_name LPAREN expression_list
+      (order_clause RPAREN filter_clause? | RPAREN filter_clause? over_clause?)
 
 private expression_subquery ::= &(WITH|SELECT|VALUES) subquery_greedy {pin=1}
 

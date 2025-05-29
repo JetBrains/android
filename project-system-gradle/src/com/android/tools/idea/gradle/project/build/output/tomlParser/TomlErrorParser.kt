@@ -15,30 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.build.output.tomlParser
 
-import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils
+import com.android.tools.idea.gradle.project.build.output.GradleBuildFailureParser
+import com.android.tools.idea.gradle.project.build.output.GradleBuildFailureParser.FailureDetailsHandler
+import com.android.tools.idea.gradle.project.build.output.LinesBuildOutputInstantReader
+import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
-import com.intellij.build.output.BuildOutputInstantReader
-import com.intellij.build.output.BuildOutputParser
 import java.util.function.Consumer
 
-class TomlErrorParser : BuildOutputParser {
-  override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
-    if (!line.startsWith(BuildOutputParserUtils.BUILD_FAILED_WITH_EXCEPTION_LINE)) return false
+class TomlErrorParser : FailureDetailsHandler {
 
-    // First skip to what went wrong line.
-    if (!reader.readLine().isNullOrBlank()) return false
-
-    var whereOrWhatLine = reader.readLine()
-    if (whereOrWhatLine == "* Where:") {
-      // Should be location line followed with blank
-      if (reader.readLine().isNullOrBlank()) return false
-      if (!reader.readLine().isNullOrBlank()) return false
-      whereOrWhatLine = reader.readLine()
-    }
-
-    if (whereOrWhatLine != "* What went wrong:") return false
-
-    val newReader = ResettableReader(reader)
+  override fun consumeFailureMessage(
+    failure: GradleBuildFailureParser.ParsedFailureDetails,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>
+  ): Boolean {
     val handlers = listOf(
       UnknownTopLevelElementHandler(),
       InvalidAliasHandler(),
@@ -50,19 +41,15 @@ class TomlErrorParser : BuildOutputParser {
     )
 
     handlers.forEach { handler ->
+      val newReader = LinesBuildOutputInstantReader(failure.whatWentWrongSectionLines, parentEventId)
       val result = handler.tryExtractMessage(newReader)
       if (result.isNotEmpty()) {
         result.forEach { messageConsumer.accept(it) }
-        BuildOutputParserUtils.consumeRestOfOutput(reader)
         return true
-      }
-      else {
-        newReader.resetPosition()
       }
     }
     return false
   }
-
 
   companion object {
     private const val tomlDefinition = "Invalid TOML catalog definition"

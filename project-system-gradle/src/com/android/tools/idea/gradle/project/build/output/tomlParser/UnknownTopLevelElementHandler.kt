@@ -29,7 +29,7 @@ import com.intellij.pom.Navigatable
 class UnknownTopLevelElementHandler : TomlErrorHandler {
   private val PROBLEM_TOP_LEVEL_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), unknown top level elements \\[([^ ]+)\\].*".toRegex()
 
-  override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
+  override fun tryExtractMessage(reader: BuildOutputInstantReader): List<BuildIssueEvent> {
     if (reader.readLine()?.endsWith(BUILD_ISSUE_TOML_START) == true) {
       val problemLine = reader.readLine() ?: return listOf()
       PROBLEM_TOP_LEVEL_PATTERN.matchEntire(problemLine)?.let {

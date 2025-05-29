@@ -117,3 +117,27 @@ inline fun <T> FlowableCollection<T>.filter(filter: (T) -> Boolean): FlowableCol
       FlowableCollection.Present(this.collection.filter { filter(it) })
     }
   }
+
+fun <T> FlowableCollection<T>.chunked(size: Int): FlowableCollection<List<T>> =
+  when (this) {
+    is FlowableCollection.Uninitialized -> FlowableCollection.Uninitialized
+    is FlowableCollection.Present -> {
+      FlowableCollection.Present(this.collection.chunked(size))
+    }
+  }
+
+fun <T> FlowableCollection<T>.getOrNull(index: Int): T? =
+  when (this) {
+    is FlowableCollection.Uninitialized -> null
+    is FlowableCollection.Present -> (this.collection as? List<T>)?.getOrNull(index)
+  }
+
+/**
+ * Returns the size of the collection, or null for uninitialized collections
+ * ([FlowableCollection.Uninitialized]).
+ */
+fun <T> FlowableCollection<T>.sizeOrNull(): Int? =
+  when (this) {
+    is FlowableCollection.Uninitialized -> null
+    is FlowableCollection.Present -> this.collection.size
+  }

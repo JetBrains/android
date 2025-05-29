@@ -57,7 +57,6 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import org.jetbrains.annotations.TestOnly
 
 private val DECORATOR_FACTORY: SceneDecoratorFactory = NlSceneDecoratorFactory()
 
@@ -110,20 +109,18 @@ open class LayoutlibSceneManager(
     )
 
   /**
-   * Returns true if the current preview was resized and currently shown in a different size from
-   * one specified in the file.
+   * If `true`, the next layout pass triggered via `ConfigurationResizeListener` should attempt to
+   * size the Composable content to `WRAP_CONTENT`.
+   *
+   * This flag is set by UI actions (like reverting to original size in `ResizePanel`) when a
+   * "shrink-mode" Composable (where `showDecorations` is false and its original `@Preview` did not
+   * define explicit dimensions) should revert to truly wrapping its content.
    */
-  val isResized: Boolean
-    get() = layoutlibSceneRenderer.renderTask?.isRenderSizeOverridden == true
+  var forceNextResizeToWrapContent: Boolean = false
 
   /** The configuration to use when inflating and rendering. */
   val sceneRenderConfiguration: LayoutlibSceneRenderConfiguration
     get() = layoutlibSceneRenderer.sceneRenderConfiguration
-
-  /** Returns if there are any pending render requests. */
-  @get:TestOnly
-  val isRendering: Boolean
-    get() = layoutlibSceneRenderer.isRendering()
 
   /** The [RenderResult] of the latest render. */
   open val renderResult: RenderResult?

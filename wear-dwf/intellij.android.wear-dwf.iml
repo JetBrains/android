@@ -16,5 +16,11 @@
     <orderEntry type="module" module-name="intellij.android.wear-wff-schema" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="android.sdktools.analyzer" />
+    <orderEntry type="module" module-name="android.sdktools.resource-repository" />
+    <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
+    <orderEntry type="library" name="aapt-proto" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
+    <orderEntry type="module" module-name="android.sdktools.binary-resources" />
   </component>
 </module>

@@ -35,7 +35,6 @@ class CapabilitySupported : CapabilityStatus() {
  * Indicates that the capability is not supported by the project system. Includes a user-readable message
  * explaining that the capability is unsupported.
  */
-open class CapabilityNotSupported(@Nls val message: String = "The build system for this project does not support this feature",
-                                  @Nls(capitalization = Nls.Capitalization.Title) val title: String = "Unsupported Capability") : CapabilityStatus() {
+class CapabilityNotSupported : CapabilityStatus() {
   override fun isSupported(): Boolean = false
 }

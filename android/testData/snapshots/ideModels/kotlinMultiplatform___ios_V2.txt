@@ -777,8 +777,6 @@ MODULE                        : kotlinMultiPlatform
                         releaseWearApp                : <empty>
                         releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1304,8 +1302,6 @@ MODULE                        : kotlinMultiPlatform
                         resolvableIosX64CompilationApi          : <empty>
                         resolvableIosX64TestCompilationApi      : <empty>
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
                         testDebugAnnotationProcessor  : <empty>

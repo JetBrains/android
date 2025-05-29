@@ -57,6 +57,7 @@ import com.android.tools.lint.detector.api.Position;
 import com.android.tools.res.FileResourceReader;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.Pair;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -116,12 +117,9 @@ public class AndroidLintIdeClient extends LintIdeClient {
     List<File> result = super.findGlobalRuleJars(driver, warnDeprecated);
     if (StudioFlags.ENABLE_PLAY_POLICY_INSIGHTS.get()) {
       PlayPolicyInsightsJarCache cache = getPlayPolicyInsightsJarCache();
-      File policyJar = cache.getLatestCustomRuleJar();
-      if (policyJar != null) {
-        List<File> list = new ArrayList<>(result);
-        list.add(policyJar);
-        return list;
-      }
+      ArrayList<File> jars = Lists.newArrayList(cache.getCustomRuleJars());
+      jars.addAll(result);
+      return jars;
     }
     return result;
   }

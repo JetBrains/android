@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ID_CAMPIING_TENT">Camping Tent</string>
+    <string name="ID_CAMPING_CAR">Camping Car</string>
+    <string name="ID_CAMPING_CHAIR">Camping Chair</string>
+    <string name="ID_CAMPING_STYLE">Camping style</string>
+    <string name="ID_HANDS">Hands</string>
+    <string name="ID_HANDS_BASIC">Basic Hands</string>
+    <string name="ID_HANDS_SIMPLE">Simple Hands</string>
+    <string name="ID_HANDS_STYLISH">Stylish Hands</string>
+    <string name="ID_INDEX">Index</string>
+    <string name="ID_INDEX_CIRCULAR">Circular Index</string>
+    <string name="ID_INDEX_HOUR">Hour Index</string>
+    <string name="ID_INDEX_LINEAR">Linear Index</string>
+    <string name="ID_INDEX_MINUTE">Minute Index</string>
+    <string name="ID_INDEX_TRIANGULAR">Triangular Index</string>
+    <string name="ID_LABEL_CAMPING">Camping</string>
+    <string name="app_name">Camping</string>
+    <string name="title_runtime">Module Runtime</string>
+    <string name="watchface_title">Camping</string>
+</resources>

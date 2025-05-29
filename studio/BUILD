@@ -417,6 +417,7 @@ studio_plugin(
             "//tools/base/deploy/installer:android-installer-bundle",
             "//tools/adt/idea/android:asset-studio-bundle",
             "//prebuilts/tools/common/trace-processor-daemon:trace-processor-daemon-bundle",
+            "//tools/adt/idea/android-lint:bundled-policy-checks",
         ],
     },
     visibility = ["//visibility:public"],
@@ -720,6 +721,7 @@ studio_plugin(
         "//tools/vendor/google/ml/aiplugin/core:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/core:gemini_plugin_proto",
+        "//tools/vendor/google/ml:aiplugin.login.sdkcompat",
     ],
     modules = {
         "aiplugin.jar": [

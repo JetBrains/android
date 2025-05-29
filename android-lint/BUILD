@@ -1,3 +1,4 @@
+load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
@@ -39,6 +40,13 @@ iml_module(
         "//tools/adt/idea/gmaven:intellij.android.gmaven",
         "//tools/adt/idea/.idea/libraries:agp-version",
     ],
+)
+
+studio_data(
+    name = "bundled-policy-checks",
+    files = glob(["policy-checks/*.jar"]),
+    mappings = {"tools/adt/idea/android-lint/policy-checks/": ""},
+    visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build

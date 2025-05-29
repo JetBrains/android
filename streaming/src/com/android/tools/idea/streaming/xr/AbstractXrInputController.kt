@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.xr
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
@@ -66,8 +65,7 @@ internal abstract class AbstractXrInputController : Disposable {
       }
     }
 
-  @Volatile var inputMode: XrInputMode =
-      if (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) XrInputMode.HAND else XrInputMode.INTERACTION
+  @Volatile var inputMode: XrInputMode = XrInputMode.INTERACTION
     @UiThread set(value) {
       if (field != value) {
         if (!areNavigationKeysEnabled(value)) {
@@ -383,12 +381,12 @@ internal abstract class AbstractXrInputController : Disposable {
 }
 
 internal enum class XrInputMode {
+  /** Mouse and keyboard events are used to interact with running apps. */
+  INTERACTION,
   /** Mouse is used to interact with running apps simulating hand tracking. */
   HAND,
   /** Mouse is used to interact with running apps simulating eye tracking. */
   EYE,
-  /** Mouse and keyboard events are used to interact with running apps. */
-  INTERACTION,
   /** Relative mouse coordinates control view direction. */
   VIEW_DIRECTION,
   /** Relative mouse coordinates control location in x-y plane. Mouse wheel controls moving forward and back. */

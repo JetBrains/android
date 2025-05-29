@@ -22,7 +22,9 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.getDimensionsInDp
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.util.toPreviewAnnotationText
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -91,7 +93,7 @@ class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.Menu
     val sceneManager = e.getSceneManagerInFocusMode() ?: return
     val configuration = sceneManager.model.configuration
     e.presentation.isEnabledAndVisible =
-      StudioFlags.COMPOSE_PREVIEW_RESIZING.get() && sceneManager.isResized
+      e.dataContext.getData(RESIZE_PANEL_INSTANCE_KEY)?.hasBeenResized == true
 
     if (e.presentation.isEnabledAndVisible) {
       val (widthDp, heightDp) = getDimensionsInDp(configuration)
@@ -101,4 +103,19 @@ class SavePreviewInNewSizeAction : DumbAwareAction("", "", AllIcons.Actions.Menu
       e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
   }
+}
+
+/**
+ * Returns the [LayoutlibSceneManager] associated with the current [AnActionEvent].
+ *
+ * If the current mode is [PreviewMode.Focus], it retrieves the scene manager from the
+ * [DESIGN_SURFACE]. Returns `null` if the mode is not Focus or if the scene manager cannot be
+ * found.
+ */
+internal fun AnActionEvent.getSceneManagerInFocusMode(): LayoutlibSceneManager? {
+  val mode = getData(PreviewModeManager.KEY)?.mode?.value ?: return null
+  if (mode is PreviewMode.Focus) {
+    return getData(DESIGN_SURFACE)?.sceneManagers?.firstOrNull() as? LayoutlibSceneManager
+  }
+  return null
 }

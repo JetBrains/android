@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
+<issues format="6" by="lint 8.11.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.11.0-dev">
 
     <issue
         id="JbUiStored"
@@ -19,7 +19,7 @@
         errorLine2="                                           ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/widget/ChessBoardPanel.kt"
-            line="67"
+            line="65"
             column="44"/>
     </issue>
 
@@ -140,7 +140,7 @@
         errorLine2="                                  ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerToolbar.kt"
-            line="62"
+            line="63"
             column="35"/>
     </issue>
 
@@ -151,7 +151,7 @@
         errorLine2="                                   ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerToolbar.kt"
-            line="63"
+            line="64"
             column="36"/>
     </issue>
 
@@ -162,7 +162,7 @@
         errorLine2="                                  ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerToolbar.kt"
-            line="64"
+            line="65"
             column="35"/>
     </issue>
 
@@ -173,7 +173,7 @@
         errorLine2="                            ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/explorer/ResourceExplorerToolbar.kt"
-            line="66"
+            line="67"
             column="29"/>
     </issue>
 
@@ -184,7 +184,7 @@
         errorLine2="                              ~~~~~">
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/widget/SectionList.kt"
-            line="69"
+            line="70"
             column="31"/>
     </issue>
 
@@ -235,23 +235,23 @@
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="      !androidTestSources.containsFile(virtualFile) &amp;&amp; !androidTestSources.isContainedBy(virtualFile) &amp;&amp;"
-        errorLine2="                                                                           ~~~~~~~~~~~~~">
+        errorLine1="      androidTestSources?.containsFile(virtualFile) == false &amp;&amp; !androidTestSources.isContainedBy(virtualFile) &amp;&amp;"
+        errorLine2="                                                                                    ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/testartifacts/instrumented/AndroidTestConfigurationProducer.kt"
-            line="203"
-            column="76"/>
+            line="197"
+            column="85"/>
     </issue>
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
-        errorLine1="      !generatedAndroidTestSources.containsFile(virtualFile) &amp;&amp; !generatedAndroidTestSources.isContainedBy(virtualFile)"
-        errorLine2="                                                                                             ~~~~~~~~~~~~~">
+        errorLine1="      generatedAndroidTestSources?.containsFile(virtualFile) == false &amp;&amp; !generatedAndroidTestSources.isContainedBy(virtualFile)"
+        errorLine2="                                                                                                      ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/testartifacts/instrumented/AndroidTestConfigurationProducer.kt"
-            line="204"
-            column="94"/>
+            line="198"
+            column="103"/>
     </issue>
 
     <issue
@@ -261,7 +261,7 @@
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="441"
+            line="425"
             column="31"/>
     </issue>
 
@@ -272,7 +272,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/model/MergedManifestInfo.java"
-            line="403"
+            line="417"
             column="9"/>
     </issue>
 
@@ -283,7 +283,7 @@
         errorLine2="                     ~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
-            line="431"
+            line="576"
             column="22"/>
     </issue>
 
@@ -329,6 +329,50 @@
             file="src/com/android/tools/idea/ui/resourcemanager/plugin/SVGAssetRenderer.kt"
             line="37"
             column="12"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
+        errorLine1="      SourceFilePosition location = ManifestUtils.getActionLocation(myFacet.getModule(), record);"
+        errorLine2="                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
+            line="541"
+            column="51"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
+        errorLine1="        file = createMetadataForFile(myFacet, ManifestUtils.getActionLocation(myFacet.getModule(), record)).getFile();"
+        errorLine2="                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
+            line="670"
+            column="61"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
+        errorLine1="      if (FileUtil.filesEqual(ManifestUtils.getActionLocation(myFacet.getModule(), record).getFile().getSourceFile(), mainManifest)) {"
+        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
+            line="744"
+            column="45"/>
+    </issue>
+
+    <issue
+        id="WrongThread"
+        message="Call must be from `@{Slow,WorkerThread}`, but context is allowing `@UiThread`"
+        errorLine1="      SourceFilePosition sourceFilePosition = ManifestUtils.getActionLocation(myFacet.getModule(), record);"
+        errorLine2="                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
+            line="754"
+            column="61"/>
     </issue>
 
 </issues>

@@ -15,12 +15,14 @@
  */
 package com.google.idea.blaze.android.functional;
 
+import static com.android.ide.common.repository.GoogleMavenArtifactIdHelper.APP_COMPAT_V7;
 import static com.android.ide.common.repository.GoogleMavenArtifactIdHelper.CONSTRAINT_LAYOUT_COORDINATE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.idea.blaze.android.targetmapbuilder.NbAarTarget.aar_import;
 import static com.google.idea.blaze.android.targetmapbuilder.NbAndroidTarget.android_library;
 
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -207,6 +209,59 @@ public class BazelModuleSystemExternalDependencyIntegrationTest
     BazelModuleSystem workspaceModuleSystem = BazelModuleSystem.getInstance(workspaceModule);
     assertThat(workspaceModuleSystem.getRegisteredDependency(CONSTRAINT_LAYOUT_COORDINATE))
         .isNotNull();
+  }
+
+  @Test
+  public void getRegisteredDependency_findsFirstLevelWellKnownMavenArtifactIdDependency() {
+    setTargetMap(
+        android_library("//java/com/foo/gallery/activities:activities")
+            .src("MainActivity.java")
+            .res("res")
+            .dep(CONSTRAINT_LAYOUT_LABEL),
+        android_library(CONSTRAINT_LAYOUT_LABEL));
+    runFullBlazeSyncWithNoIssues();
+
+    Module workspaceModule =
+        ModuleFinder.getInstance(getProject())
+            .findModuleByName("java.com.foo.gallery.activities.activities");
+    BazelModuleSystem workspaceModuleSystem = BazelModuleSystem.getInstance(workspaceModule);
+    assertThat(workspaceModuleSystem.getRegisteredDependency(GoogleMavenArtifactId.CONSTRAINT_LAYOUT))
+        .isNotNull();
+  }
+
+  @Test
+  public void getRegisteredDependency_nullForUnlocatedDependency() {
+    setTargetMap(
+        android_library("//java/com/foo/gallery/activities:activities")
+            .src("MainActivity.java")
+            .res("res")
+            .dep(CONSTRAINT_LAYOUT_LABEL),
+        android_library(CONSTRAINT_LAYOUT_LABEL));
+    runFullBlazeSyncWithNoIssues();
+
+    Module workspaceModule =
+        ModuleFinder.getInstance(getProject())
+            .findModuleByName("java.com.foo.gallery.activities.activities");
+    BazelModuleSystem workspaceModuleSystem = BazelModuleSystem.getInstance(workspaceModule);
+    assertThat(workspaceModuleSystem.getRegisteredDependency(APP_COMPAT_V7)).isNull();
+  }
+
+  @Test
+  public void getRegisteredDependency_nullForUnlocatedWellKnownMavenArtifactIdDependency() {
+    setTargetMap(
+        android_library("//java/com/foo/gallery/activities:activities")
+            .src("MainActivity.java")
+            .res("res")
+            .dep(CONSTRAINT_LAYOUT_LABEL),
+        android_library(CONSTRAINT_LAYOUT_LABEL));
+    runFullBlazeSyncWithNoIssues();
+
+    Module workspaceModule =
+        ModuleFinder.getInstance(getProject())
+            .findModuleByName("java.com.foo.gallery.activities.activities");
+    BazelModuleSystem workspaceModuleSystem = BazelModuleSystem.getInstance(workspaceModule);
+    assertThat(workspaceModuleSystem.getRegisteredDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7))
+            .isNull();
   }
 
   private File getAarDir(File aarLibraryFile) {

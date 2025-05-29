@@ -28,11 +28,9 @@ public interface AndroidSqlBindParameter extends PsiElement {
   @Nullable
   PsiElement getNamedParameter();
 
-  @Nullable
-  String getParameterNameAsString();
+  @Nullable String getParameterNameAsString();
 
-  @Nullable
-  PsiReference getReference();
+  @Nullable PsiReference getReference();
 
   boolean isColonNamedParameter();
 

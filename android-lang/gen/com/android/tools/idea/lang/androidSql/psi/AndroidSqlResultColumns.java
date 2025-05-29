@@ -28,7 +28,6 @@ public interface AndroidSqlResultColumns extends AndroidSqlTableElement {
   @NotNull
   List<AndroidSqlResultColumn> getResultColumnList();
 
-  @Nullable
-  AndroidSqlTable getSqlTable();
+  @Nullable AndroidSqlTable getSqlTable();
 
 }

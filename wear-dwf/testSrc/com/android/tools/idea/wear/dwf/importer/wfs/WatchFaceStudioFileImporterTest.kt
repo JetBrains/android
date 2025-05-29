@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.wear.dwf.importer.wfs
 
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.UNSUPPORTED_FILE_EXTENSION
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.vfs.LocalFileSystem
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -26,6 +27,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class WatchFaceStudioFileImporterTest {
 
   @get:Rule val projectRule = AndroidProjectRule.withAndroidModel()
@@ -40,53 +42,141 @@ class WatchFaceStudioFileImporterTest {
     fixture.testDataPath = testDataPath.toString()
   }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
   @Test
-  fun `test import example WFS file`() = runTest {
+  fun `test import example AAB file`() = runTest {
     val importer =
       WatchFaceStudioFileImporter.getInstanceForTest(
         project = projectRule.project,
         defaultDispatcher = StandardTestDispatcher(testScheduler),
         ioDispatcher = StandardTestDispatcher(testScheduler),
       )
-    val wfsFile =
-      LocalFileSystem.getInstance().findFileByNioFile(testDataPath.resolve("wfs/example.wfs"))
-        ?: error("expected WFS file to exist")
+    val aabFilePath = testDataPath.resolve("import/aab/example.aab")
 
-    val result = importer.import(wfsFile)
+    val result = importer.import(aabFilePath)
 
     assertThat(result).isEqualTo(WFSImportResult.Success)
+
+    fixture.checkResultByFile(
+      "src/main/$FN_ANDROID_MANIFEST_XML",
+      "import/aab/expected/$FN_ANDROID_MANIFEST_XML",
+      true,
+    )
     fixture.checkResultByFile(
       "src/main/res/raw/watchface.xml",
-      "wfs/expected/raw/watchface.xml",
+      "import/aab/expected/res/raw/watchface.xml",
       true,
     )
     fixture.checkResultByFile(
       "src/main/res/xml/watch_face.xml",
-      "wfs/expected/xml/watch_face.xml",
+      "import/aab/expected/res/xml/watch_face.xml",
       true,
     )
     fixture.checkResultByFile(
       "src/main/res/xml/watch_face_info.xml",
-      "wfs/expected/xml/watch_face_info.xml",
+      "import/aab/expected/res/xml/watch_face_info.xml",
       true,
     )
     fixture.checkResultByFile(
       "src/main/res/xml/watch_face_shapes.xml",
-      "wfs/expected/xml/watch_face_shapes.xml",
+      "import/aab/expected/res/xml/watch_face_shapes.xml",
       true,
     )
-    assertThat(fixture.findFileInTempDir("src/main/res/drawable-nodpi/preview.png").exists())
-      .isTrue()
-    assertThat(fixture.findFileInTempDir("src/main/res/drawable-nodpi/").children).hasLength(68)
+    fixture.checkResultByFile(
+      "src/main/res/values/strings.xml",
+      "import/aab/expected/res/values/strings.xml",
+      true,
+    )
+    fixture.checkResultByFile(
+      "src/main/res/values-es/strings.xml",
+      "import/aab/expected/res/values-es/strings.xml",
+      true,
+    )
 
-    assertThat(fixture.tempDirFixture.getFile("src/main/res/values/strings.xml")).isNull()
-    assertThat(fixture.tempDirFixture.getFile("src/main/honeyface.json")).isNull()
-    assertThat(fixture.tempDirFixture.getFile("src/main/res/drawable-nodpi/preview_circular.png"))
-      .isNull()
+    assertThat(fixture.findFileInTempDir("src/main/res/drawable-nodpi-v4/preview.png").exists())
+      .isTrue()
+    assertThat(fixture.findFileInTempDir("src/main/res/drawable-nodpi-v4/").children).hasLength(54)
   }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
+  fun `test import example APK file`() = runTest {
+    val importer =
+      WatchFaceStudioFileImporter.getInstanceForTest(
+        project = projectRule.project,
+        defaultDispatcher = StandardTestDispatcher(testScheduler),
+        ioDispatcher = StandardTestDispatcher(testScheduler),
+      )
+    val apkFilePath = testDataPath.resolve("import/apk/example.apk")
+
+    val result = importer.import(apkFilePath)
+
+    assertThat(result).isEqualTo(WFSImportResult.Success)
+
+    fixture.checkResultByFile(
+      "src/main/$FN_ANDROID_MANIFEST_XML",
+      "import/apk/expected/$FN_ANDROID_MANIFEST_XML",
+      true,
+    )
+    fixture.checkResultByFile(
+      "src/main/res/raw/watchface.xml",
+      "import/apk/expected/res/raw/watchface.xml",
+      true,
+    )
+    fixture.checkResultByFile(
+      "src/main/res/xml/watch_face.xml",
+      "import/apk/expected/res/xml/watch_face.xml",
+      true,
+    )
+    fixture.checkResultByFile(
+      "src/main/res/xml/watch_face_info.xml",
+      "import/apk/expected/res/xml/watch_face_info.xml",
+      true,
+    )
+    fixture.checkResultByFile(
+      "src/main/res/xml/watch_face_shapes.xml",
+      "import/apk/expected/res/xml/watch_face_shapes.xml",
+      true,
+    )
+    fixture.checkResultByFile(
+      "src/main/res/values/strings.xml",
+      "import/apk/expected/res/values/strings.xml",
+      true,
+    )
+    fixture.checkResultByFile(
+      "src/main/res/values-es/strings.xml",
+      "import/apk/expected/res/values-es/strings.xml",
+      true,
+    )
+
+    assertThat(fixture.findFileInTempDir("src/main/res/drawable-nodpi-v4/preview.png").exists())
+      .isTrue()
+    assertThat(fixture.findFileInTempDir("src/main/res/drawable-nodpi-v4/").children).hasLength(54)
+  }
+
+  @Test
+  fun `import merges manifest with existing manifest`() = runTest {
+    val importer =
+      WatchFaceStudioFileImporter.getInstanceForTest(
+        project = projectRule.project,
+        defaultDispatcher = StandardTestDispatcher(testScheduler),
+        ioDispatcher = StandardTestDispatcher(testScheduler),
+      )
+    val aabFilePath = testDataPath.resolve("import/aab/example.aab")
+    fixture.copyFileToProject(
+      "import/AndroidManifest_existing.xml",
+      "src/main/$FN_ANDROID_MANIFEST_XML",
+    )
+
+    val result = importer.import(aabFilePath)
+
+    assertThat(result).isEqualTo(WFSImportResult.Success)
+
+    fixture.checkResultByFile(
+      "src/main/$FN_ANDROID_MANIFEST_XML",
+      "import/aab/expected/AndroidManifest_merged.xml",
+      true,
+    )
+  }
+
   @Test
   fun `test import invalid file`() = runTest {
     val importer =
@@ -95,10 +185,39 @@ class WatchFaceStudioFileImporterTest {
         defaultDispatcher = StandardTestDispatcher(testScheduler),
         ioDispatcher = StandardTestDispatcher(testScheduler),
       )
-    val invalidFile = fixture.addFileToProject("invalid.wfs", "")
+    val invalidFile = fixture.addFileToProject("invalid.aab", "")
 
-    val result = importer.import(invalidFile.virtualFile)
+    val result = importer.import(invalidFile.virtualFile.toNioPath())
 
     assertThat(result).isEqualTo(WFSImportResult.Error())
+  }
+
+  @Test
+  fun `test supported file types`() = runTest {
+    val importer =
+      WatchFaceStudioFileImporter.getInstanceForTest(
+        project = projectRule.project,
+        defaultDispatcher = StandardTestDispatcher(testScheduler),
+        ioDispatcher = StandardTestDispatcher(testScheduler),
+      )
+
+    val supportedFileTypes = importer.supportedFileTypes
+
+    assertThat(supportedFileTypes).isEqualTo(setOf("aab", "apk"))
+  }
+
+  @Test
+  fun `test import unsupported file type`() = runTest {
+    val importer =
+      WatchFaceStudioFileImporter.getInstanceForTest(
+        project = projectRule.project,
+        defaultDispatcher = StandardTestDispatcher(testScheduler),
+        ioDispatcher = StandardTestDispatcher(testScheduler),
+      )
+    val invalidFile = fixture.addFileToProject("invalid.unsupported", "")
+
+    val result = importer.import(invalidFile.virtualFile.toNioPath())
+
+    assertThat(result).isEqualTo(WFSImportResult.Error(UNSUPPORTED_FILE_EXTENSION))
   }
 }

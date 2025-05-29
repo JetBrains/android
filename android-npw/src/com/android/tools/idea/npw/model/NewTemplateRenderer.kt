@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.model
 
+import com.android.sdklib.AndroidMajorVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
@@ -35,6 +36,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.TemplateType
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateModule.BytecodeLevel
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateModule.ModuleType
+import com.google.wireless.android.sdk.stats.ApiVersion
 import com.google.wireless.android.sdk.stats.KotlinSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -408,6 +410,13 @@ fun logRendering(
   }
 }
 
+private fun AndroidMajorVersion.toApiVersion(): ApiVersion {
+  val builder = ApiVersion.newBuilder()
+  builder.apiLevel = apiLevel.toLong()
+  codename?.let { builder.codename = it }
+  return builder.build()
+}
+
 fun logRendering(projectData: ProjectTemplateData, project: Project, metrics: TemplateMetrics) {
   val templateComponentBuilder =
     TemplatesUsage.TemplateComponent.newBuilder().apply {
@@ -418,23 +427,11 @@ fun logRendering(projectData: ProjectTemplateData, project: Project, metrics: Te
   val templateModuleBuilder =
     TemplatesUsage.TemplateModule.newBuilder().apply {
       moduleType = metrics.moduleType
-      minSdk = metrics.minSdk
-      if (metrics.minSdk != 0 || metrics.minSdkCodename.isNotEmpty()) {
-        minSdkVersionBuilder.apply {
-          apiLevel = metrics.minSdk.toLong()
-          if (metrics.minSdkCodename != "${metrics.minSdk}") {
-            codename = metrics.minSdkCodename
-          }
-        }
+      metrics.minSdk?.let {
+        minSdk = it.apiLevel
+        minSdkVersion = it.toApiVersion()
       }
-      if (metrics.targetSdk != 0 || metrics.targetSdkCodename.isNotEmpty()) {
-        targetSdkVersionBuilder.apply {
-          apiLevel = metrics.targetSdk.toLong()
-          if (metrics.targetSdkCodename != "${metrics.targetSdk}") {
-            codename = metrics.targetSdkCodename
-          }
-        }
-      }
+      metrics.targetSdk?.let { targetSdkVersion = it.toApiVersion() }
       if (metrics.bytecodeLevel != null) {
         bytecodeLevel =
           when (metrics.bytecodeLevel) {

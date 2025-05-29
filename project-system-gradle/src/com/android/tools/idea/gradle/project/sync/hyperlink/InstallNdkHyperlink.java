@@ -88,7 +88,7 @@ public class InstallNdkHyperlink extends SyncIssueNotificationHyperlink {
     StudioLoggerProgressIndicator progressIndicator = new StudioLoggerProgressIndicator(getClass());
     RepoManager sdkManager = sdkHandler.getRepoManager(progressIndicator);
 
-    StudioProgressRunner progressRunner = new StudioProgressRunner(false, false, "Loading Remote SDK", project);
+    StudioProgressRunner progressRunner = new StudioProgressRunner(false, "Loading Remote SDK", project);
     RepoManager.RepoLoadedListener onComplete = packages ->
       ApplicationManager.getApplication().invokeLater(() -> {
 

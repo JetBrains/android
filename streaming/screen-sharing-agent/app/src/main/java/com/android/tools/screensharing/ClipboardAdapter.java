@@ -47,7 +47,7 @@ public class ClipboardAdapter {
   private static PersistableBundle overlaySuppressor;
 
   static {
-    clipboard = ServiceManager.getServiceAsInterface("clipboard", "android/content/IClipboard", true);
+    clipboard = ServiceManager.getServiceAsInterface("clipboard", "android/content/IClipboard", true, true);
 
     if (clipboard == null) {
       Log.w(ATTRIBUTION_TAG, "Could not find \"clipboard\" service - clipboard synchronization is not possible.");

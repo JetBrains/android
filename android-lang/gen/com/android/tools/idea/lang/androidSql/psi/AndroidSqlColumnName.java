@@ -25,7 +25,6 @@ import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumnPsiRefe
 
 public interface AndroidSqlColumnName extends AndroidSqlNameElement {
 
-  @NotNull
-  AndroidSqlColumnPsiReference getReference();
+  @NotNull AndroidSqlColumnPsiReference getReference();
 
 }

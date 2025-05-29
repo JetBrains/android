@@ -510,6 +510,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       contentManager.addSelectedPanelDataProvider()
       Disposer.register(contentManager) {
         contentManagers.remove(contentManager)
+        // When the tool window switches from a split to a non-split state by dragging a tab,
+        // ToolWindowContentUi.update is not called after component tree takes its final shape.
+        // This causes the tool window name to become visible when it should be hidden.
+        // To compensate for that we trigger a layout update explicitly.
+        toolWindow.updateContentUi()
       }
     }
   }
@@ -672,16 +677,28 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun showToolWindowName() {
     if (StudioFlags.RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME.get()) {
-      toolWindow.component.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, null)
+      findTopLevelDecorator(toolWindow.decorator)?.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, null)
       toolWindow.updateContentUi()
     }
   }
 
   private fun hideToolWindowName() {
     if (StudioFlags.RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME.get()) {
-      toolWindow.component.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "true")
+      findTopLevelDecorator(toolWindow.decorator)?.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "true")
       toolWindow.updateContentUi()
     }
+  }
+
+  private fun findTopLevelDecorator(component: Component): InternalDecorator? {
+    var candidate: InternalDecorator? = null
+    var parent: Component? = component
+    while (parent != null) {
+      if (parent is InternalDecorator) {
+        candidate = parent
+      }
+      parent = parent.parent
+    }
+    return candidate
   }
 
   @AnyThread

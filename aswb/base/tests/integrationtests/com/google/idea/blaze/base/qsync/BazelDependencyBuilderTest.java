@@ -108,8 +108,7 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
         ImmutableList.of("dir1/sub1"),
         ImmutableList.of("always_build_rule1", "always_build_rule2"),
         true,
-        false,
-        true
+        false
       ));
     assertThat(invocationFiles.aspectFileLabel()).isEqualTo(String.format("//.aswb:qs-%s.bzl", dependencyBuilder.getProjectHash()));
     assertThat(
@@ -130,7 +129,6 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
                      ],
                      generate_aidl_classes = True,
                      use_generated_srcjars = False,
-                     experiment_multi_info_file = True,
                    )
                    
                    collect_dependencies = _collect_dependencies(_config)

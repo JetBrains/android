@@ -301,7 +301,7 @@ internal class DeviceController(
           break
         }
         catch (e: IOException) {
-          if (e.message?.startsWith("Connection reset") == true) {
+          if (e.message?.startsWith("Connection reset") == true || e.message?.endsWith("network name is no longer available") == true) {
             break
           }
           throw e

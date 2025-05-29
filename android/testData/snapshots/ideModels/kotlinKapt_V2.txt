@@ -1137,8 +1137,6 @@ MODULE                        : MainActivity
                         remoteRuntimeOnly             : <empty>
                         remoteWearApp                 : <empty>
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1347,8 +1345,6 @@ MODULE                        : MainActivity
                         - runtimeElements             : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         - runtimeElements-published   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1622,8 +1618,6 @@ MODULE                        : MainActivity
                         releaseUnitTestRuntimeOnly    : <empty>
                         releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>

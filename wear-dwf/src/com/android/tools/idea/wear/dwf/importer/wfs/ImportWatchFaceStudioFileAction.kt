@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wear.dwf.WearDwfBundle.message
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.MISSING_MAIN_MODULE
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.UNKNOWN
+import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.UNSUPPORTED_FILE_EXTENSION
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -37,14 +38,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val NOTIFICATION_GROUP = "Wear Declarative Watch Faces"
-private const val WFS_FILE_EXTENSION = "wfs"
 
 /**
- * This action allows users to import
- * [WatchFaceStudio](https://developer.samsung.com/watch-face-studio/overview.html) files. These are
- * files with a `.wfs` file extension. These files are zip files containing some drawable resources
- * as well as a `honeyface.json` file which contains necessary information to generate a Declarative
- * Watch Face.
+ * This action allows users to import watch face files produced by
+ * [Watch Face Studio](https://developer.samsung.com/watch-face-studio/overview.html).
+ *
+ * The supported file types are [WatchFaceStudioFileImporter.supportedFileTypes].
  *
  * @see [WatchFaceStudioFileImporter]
  */
@@ -54,10 +53,6 @@ class ImportWatchFaceStudioFileAction(
 ) : DumbAwareAction() {
 
   constructor() : this(defaultDispatcher = Dispatchers.Default, edtDispatcher = Dispatchers.EDT)
-
-  private val descriptor =
-    FileChooserDescriptor(true, false, false, false, false, false)
-      .withExtensionFilter(WFS_FILE_EXTENSION)
 
   private val notificationGroup =
     NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP)
@@ -72,12 +67,16 @@ class ImportWatchFaceStudioFileAction(
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    val wfsFile = FileChooser.chooseFile(descriptor, null, e.project, null) ?: return
+    val importer = WatchFaceStudioFileImporter.getInstance(project)
+    val descriptor =
+      FileChooserDescriptor(true, false, false, false, false, false)
+        .withExtensionFilter("Watch face files", *importer.supportedFileTypes.toTypedArray())
+    val fileToImport = FileChooser.chooseFile(descriptor, null, e.project, null) ?: return
 
     project.coroutineScope.launch(defaultDispatcher) {
       val result =
         withBackgroundProgress(project, message("wfs.import.progress")) {
-          WatchFaceStudioFileImporter.getInstance(project).import(wfsFile)
+          WatchFaceStudioFileImporter.getInstance(project).import(fileToImport.toNioPath())
         }
 
       withContext(edtDispatcher) {
@@ -100,6 +99,7 @@ class ImportWatchFaceStudioFileAction(
       when (errorType) {
         UNKNOWN -> message("wfs.import.error.generic.message")
         MISSING_MAIN_MODULE -> message("wfs.import.error.missing.main.module.message")
+        UNSUPPORTED_FILE_EXTENSION -> message("wfs.import.error.unsupported.file.extension")
       }
     notificationGroup.createNotification(message, NotificationType.ERROR).notify(project)
   }

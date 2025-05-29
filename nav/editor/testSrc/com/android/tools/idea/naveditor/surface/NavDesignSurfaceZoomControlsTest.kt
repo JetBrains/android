@@ -22,6 +22,7 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.editor.zoomActionPlace
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.executeOnPooledThread
@@ -32,6 +33,7 @@ import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
+import com.android.tools.idea.uibuilder.scene.AsyncDisplayRule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataContext
@@ -59,9 +61,17 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 class NavDesignSurfaceZoomControlsTest {
-  @get:Rule val androidProjectRule = AndroidProjectRule.withSdk()
+  private val androidProjectRule = AndroidProjectRule.withSdk()
+  private val asyncDisplayRule = AsyncDisplayRule()
+
+  @get:Rule
+  val ruleChain =
+    RuleChain.outerRule(IconLoaderRule()) // Must be before AndroidProjectRule
+      .around(asyncDisplayRule)
+      .around(androidProjectRule)!!
 
   @Before
   fun setup() {
@@ -273,7 +283,7 @@ class NavDesignSurfaceZoomControlsTest {
 
   private suspend fun delayUntilImageSimilar(fakeUi: FakeUi, goldenImageName: String) {
     delayUntilCondition(100, 5.seconds) {
-      val output = fakeUi.render()
+      val output = asyncDisplayRule.renderInFakeUi(fakeUi)
       try {
         ImageDiffUtil.assertImageSimilar(getGoldenImagePath(goldenImageName), output, 0.1, 1)
         return@delayUntilCondition true

@@ -58,8 +58,7 @@ public class AndroidSqlSingleTableStatementTableImpl extends ASTWrapperPsiElemen
   }
 
   @Override
-  @Nullable
-  public AndroidSqlTable getSqlTable() {
+  public @Nullable AndroidSqlTable getSqlTable() {
     return PsiImplUtil.getSqlTable(this);
   }
 

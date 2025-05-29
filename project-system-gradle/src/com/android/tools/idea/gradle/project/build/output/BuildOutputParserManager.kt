@@ -32,42 +32,40 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.NlsSafe
 import org.apache.commons.lang3.ClassUtils
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.plugins.gradle.execution.build.output.GradleBuildScriptErrorParser
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
-class BuildOutputParserManager @TestOnly constructor(
-  private val project: Project,
-  private val buildOutputParsers: List<BuildOutputParser>
-) {
-  // TODO(b/143478291): with linked projects, there will be multiple build tasks with the same project. buildOutputParsers should be updated to a map from task id to list of BuildOutputParser.
-  @Suppress("unused")
-  private constructor(project: Project) : this(project,
-                                               listOf(GradleBuildOutputParser(),
-                                                      ClangOutputParser(),
-                                                      CmakeOutputParser(),
-                                                      XmlErrorOutputParser(),
-                                                      JavaLanguageLevelDeprecationOutputParser(),
-                                                      AndroidGradlePluginOutputParser(),
-                                                      DataBindingOutputParser(),
-                                                      FilteringJavacOutputParser(),
-                                                      FilteringGradleCompilationReportParser(),
-                                                      KotlincWithQuickFixesParser(),
-                                                      ConfigurationCacheErrorParser(),
-                                                      TomlErrorParser(),
-                                                      DeclarativeErrorParser(),
-                                                      GradleBuildMultipleFailuresParser(),
-                                                      GradleBuildScriptErrorParser()))
+class BuildOutputParserManager(private val project: Project) {
 
   private val tasksEventIds: MutableMap<String, Any> = ConcurrentHashMap()
 
-  fun getBuildOutputParsers(buildId: ExternalSystemTaskId): List<BuildOutputParser> =
-    buildOutputParsers.map { BuildOutputParserWrapper(it, buildId) }
+  fun getBuildOutputParsers(buildId: ExternalSystemTaskId): List<BuildOutputParser> {
+    val failureHandlers = listOf(
+      DeprecatedJavaLanguageLevelFailureHandler(),
+      ConfigurationCacheErrorParser(),
+      DeclarativeErrorParser(),
+      TomlErrorParser()
+    )
+    val buildOutputParsers: List<BuildOutputParser> = listOf(
+      GradleBuildOutputParser(),
+      ClangOutputParser(),
+      CmakeOutputParser(),
+      XmlErrorOutputParser(),
+      JavaLanguageLevelDeprecationOutputParser(),
+      AndroidGradlePluginOutputParser(),
+      DataBindingOutputParser(),
+      FilteringJavacOutputParser(),
+      FilteringGradleCompilationReportParser(),
+      KotlincWithQuickFixesParser(),
+      GradleBuildMultipleFailuresParser(failureHandlers),
+      GradleBuildSingleFailureParser(failureHandlers)
+    )
+    return buildOutputParsers.map { BuildOutputParserWrapper(it, buildId) }
       .map { FixingParentIdParserWrapper(buildId, it) }
+  }
 
   // Temporal fix until we properly support this case handling in GradleOutputDispatcherFactory
   // TODO (b/414343360): remove once fix is ready in the platform code

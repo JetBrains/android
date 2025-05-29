@@ -921,8 +921,6 @@ MODULE                        : project
                         screenshotTestReleaseWearApp  : <empty>
                         screenshotTestRuntimeOnly     : <empty>
                         screenshotTestWearApp         : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>

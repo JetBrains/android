@@ -16,14 +16,14 @@
 package com.android.tools.idea.common.util
 
 import android.view.View
+import android.view.ViewGroup
 import java.awt.Dimension
 
 /**
  * Update the layout parameters of the given view object to the new size. It's needed to override
  * any values(width/height) that were set in Preview annotation.
  *
- * View object is actual android.view.View (or child class) object. Uses reflection to access
- * fields.
+ * View object is actual android.view.View (or child class) object.
  *
  * @param viewObj the view object whose layout parameters will be updated.
  * @param newDeviceSize the new size of the device.
@@ -34,4 +34,19 @@ fun updateLayoutParams(viewObject: Any, newDeviceSize: Dimension) {
   val layoutParams = view.layoutParams
   layoutParams.width = newDeviceSize.width
   layoutParams.height = newDeviceSize.height
+}
+
+/**
+ * Update the layout parameters of the given view object to WRAP_CONTENT. It's needed to override
+ * any values(width/height).
+ *
+ * View object is actual android.view.View (or child class) object.
+ *
+ * @param viewObj the view object whose layout parameters will be updated.
+ */
+fun updateLayoutParamsToWrapContent(viewObject: Any) {
+  updateLayoutParams(
+    viewObject,
+    Dimension(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT),
+  )
 }

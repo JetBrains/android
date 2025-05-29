@@ -15,59 +15,44 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.tools.idea.gradle.project.build.output.GradleBuildFailureParser.FailureDetailsHandler
 import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
+import com.intellij.build.FileNavigatable
+import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.issue.BuildIssueQuickFix
-import com.intellij.build.output.BuildOutputInstantReader
-import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import java.util.function.Consumer
 
-class ConfigurationCacheErrorParser : BuildOutputParser {
-  override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
-    if (!line.startsWith(BuildOutputParserUtils.BUILD_FAILED_WITH_EXCEPTION_LINE)) return false
-    // First skip to what went wrong line.
-    if (!reader.readLine().isNullOrBlank()) return false
+class ConfigurationCacheErrorParser : FailureDetailsHandler {
 
-    var whereOrWhatLine = reader.readLine()
-    if (whereOrWhatLine == "* Where:") {
-      // Should be location line followed with blank
-      if (reader.readLine().isNullOrBlank()) return false
-      if (!reader.readLine().isNullOrBlank()) return false
-      whereOrWhatLine = reader.readLine()
+  override fun consumeFailureMessage(
+    failure: GradleBuildFailureParser.ParsedFailureDetails,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>
+  ): Boolean {
+    if (failure.whatWentWrongSectionLines.firstOrNull() == "Configuration cache problems found in this build.") {
+      //TODO Create bug: this should be FileMessage when possible, otherwise it is not presented under file. But this requires refactoring so do separately.
+      val buildIssue = object : ErrorMessageAwareBuildIssue {
+        override val description: String = failure.whatWentWrongSectionText.trimEnd()
+        override val quickFixes: List<BuildIssueQuickFix> = emptyList()
+        override val title: String = BUILD_ISSUE_TITLE
+        override val buildErrorMessage: BuildErrorMessage
+          get() = BuildErrorMessage.newBuilder().setErrorShownType(BuildErrorMessage.ErrorType.CONFIGURATION_CACHE).build()
+
+        override fun getNavigatable(project: Project): Navigatable? = location?.let {
+          return FileNavigatable(project, it)
+        }
+      }
+      messageConsumer.accept(BuildIssueEventImpl(parentEventId, buildIssue, MessageEvent.Kind.ERROR))
+      return true
     }
-
-    if (whereOrWhatLine != "* What went wrong:") return false
-    val firstDescriptionLine = reader.readLine() ?: return false
-
-    // Check if it is a configuration cache error.
-    if (firstDescriptionLine != "Configuration cache problems found in this build.") return false
-    val description = StringBuilder().appendLine(firstDescriptionLine)
-    // All lines up to '* Try:' block should be a description we want to show.
-    while (true) {
-      val descriptionLine = reader.readLine() ?: return false
-      if (descriptionLine == "* Try:") break
-      description.appendLine(descriptionLine)
-    }
-
-    BuildOutputParserUtils.consumeRestOfOutput(reader)
-
-    val buildIssue = object : ErrorMessageAwareBuildIssue {
-      override val description: String = description.toString().trimEnd()
-      override val quickFixes: List<BuildIssueQuickFix> = emptyList()
-      override val title: String = BUILD_ISSUE_TITLE
-      override val buildErrorMessage: BuildErrorMessage
-        get() = BuildErrorMessage.newBuilder().setErrorShownType(BuildErrorMessage.ErrorType.CONFIGURATION_CACHE).build()
-
-      override fun getNavigatable(project: Project): Navigatable? = null
-
-    }
-    messageConsumer.accept(BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR))
-    return true
+    return false
   }
 
   companion object {

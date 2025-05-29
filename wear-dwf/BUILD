@@ -17,6 +17,12 @@ iml_module(
         "//tools/base/wear-wff-schema:studio.intellij.android.wear-wff-schema",
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer",
+        "//tools/base/resource-repository:studio.android.sdktools.resource-repository",
+        "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer",
+        "//tools/adt/idea/.idea/libraries:aapt-proto",
+        "//tools/base/build-system:studio.android.sdktools.manifest-merger",
+        "//tools/base/apkparser:studio.android.sdktools.binary-resources",
     ],
 )
 

@@ -30,11 +30,18 @@ import kotlinx.coroutines.flow.StateFlow
  * @see [FlowableCollection]
  */
 interface PreviewFlowManager<T : PreviewElement<*>> : PreviewGroupManager {
+
   /** Flow containing all the available [T]s for this manager. */
   val allPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 
   /**
-   * Flow containing the filtered [T]s from [allPreviewElementsFlow], that are expected to be
+   * Paginator responsible for paginating the filtered [T]s from [allPreviewElementsFlow] into
+   * different pages.
+   */
+  val previewFlowPaginator: PreviewFlowPaginator<T>
+
+  /**
+   * Flow containing the corresponding page from the [previewFlowPaginator] that is expected to be
    * rendered. The content of this flow should differ from [renderedPreviewElementsFlow] iff there
    * is a pending refresh to be done. These filtered [T]s are already sorted.
    */

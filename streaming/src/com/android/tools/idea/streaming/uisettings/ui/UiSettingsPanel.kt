@@ -18,7 +18,6 @@ package com.android.tools.idea.streaming.uisettings.ui
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.secondaryPanelBackground
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
 import com.intellij.openapi.ui.ComboBox
@@ -80,7 +79,7 @@ internal class UiSettingsPanel(
           }
         }
 
-        if (deviceType == DeviceType.HANDHELD && StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) {
+        if (deviceType == DeviceType.HANDHELD) {
           row(JBLabel(GESTURE_NAVIGATION_TITLE)) {
             comboBox(model.navigationModel)
               .accessibleName(GESTURE_NAVIGATION_TITLE)
@@ -143,13 +142,11 @@ internal class UiSettingsPanel(
           }.visibleIf(model.permissionMonitoringDisabled)
         }
 
-        if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
-          row(JBLabel(DEBUG_LAYOUT_TITLE)) {
-            checkBox("")
-              .accessibleName(DEBUG_LAYOUT_TITLE)
-              .bind(model.debugLayout)
-              .apply { component.name = DEBUG_LAYOUT_TITLE }
-          }
+        row(JBLabel(DEBUG_LAYOUT_TITLE)) {
+          checkBox("")
+            .accessibleName(DEBUG_LAYOUT_TITLE)
+            .bind(model.debugLayout)
+            .apply { component.name = DEBUG_LAYOUT_TITLE }
         }
 
         row {

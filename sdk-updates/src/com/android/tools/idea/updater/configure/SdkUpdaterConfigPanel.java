@@ -637,7 +637,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
     // TODO: make progress runner handle invokes?
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
     StudioProgressRunner progressRunner =
-      new StudioProgressRunner(false, false, "Loading SDK", projects.length == 0 ? null : projects[0]);
+      new StudioProgressRunner(false, "Loading SDK", projects.length == 0 ? null : projects[0]);
     if (forceRemoteReload) {
       myPlatformComponentsPanel.startLoading();
       myToolComponentsPanel.startLoading();

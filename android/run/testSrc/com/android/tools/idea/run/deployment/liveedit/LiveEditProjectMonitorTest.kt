@@ -362,6 +362,6 @@ class LiveEditProjectMonitorTest {
 
     monitor.onManualLETrigger()
     assertTrue(done.await(5000, TimeUnit.MILLISECONDS))
-    assertTrue(statuses.last().description.startsWith(LiveEditUpdateException.Error.NON_KOTLIN.message))
+    assertTrue(statuses.last().description.startsWith(LiveEditUpdateException.Error.NON_KOTLIN_IS_JAVA.message))
   }
 }

@@ -771,8 +771,6 @@
                             releaseWearApp                : <empty>
                             releaseWearBundling           : <empty>
                             runtimeOnly                   : <empty>
-                            swiftExportClasspath          : <empty>
-                            swiftExportClasspathResolvable          : <empty>
                             testAnnotationProcessor       : <empty>
                             testApi                       : <empty>
                             testApiDependenciesMetadata   : <empty>
@@ -893,8 +891,6 @@
                             - publicPackageJsonConfiguration        : <ROOT>/jsModule/build/tmp/publicPackageJson/package.json [-]
                             runtimeClasspath              : <empty>
                             runtimeOnly                   : <empty>
-                            swiftExportClasspath          : <empty>
-                            swiftExportClasspathResolvable          : <empty>
                             testApi                       : <empty>
                             testApiDependenciesMetadata   : <empty>
                             testCompilationApi            : <empty>
@@ -1158,8 +1154,6 @@
                             releaseUnitTestRuntimeClasspath         : <empty>
                             releaseWearApp                : <empty>
                             runtimeOnly                   : <empty>
-                            swiftExportClasspath          : <empty>
-                            swiftExportClasspathResolvable          : <empty>
                             testAnnotationProcessor       : <empty>
                             testCompileOnly               : <empty>
                             testDebugAnnotationProcessor  : <empty>

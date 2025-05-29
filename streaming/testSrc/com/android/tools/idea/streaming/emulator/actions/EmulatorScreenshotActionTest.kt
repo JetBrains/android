@@ -35,7 +35,6 @@ import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
-import com.android.tools.idea.testing.HeadlessTaskSupportRule
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
@@ -75,7 +74,7 @@ class EmulatorScreenshotActionTest {
 
   @get:Rule
   val ruleChain = RuleChain(projectRule, DataManagerRule(projectRule), emulatorRule, ClipboardSynchronizationDisablementRule(),
-                            HeadlessTaskSupportRule(), EdtRule(), HeadlessDialogRule())
+                            EdtRule(), HeadlessDialogRule())
 
   private lateinit var avdFolder: Path
   private val emulator: FakeEmulator by lazy { emulatorRule.newEmulator(avdFolder) }

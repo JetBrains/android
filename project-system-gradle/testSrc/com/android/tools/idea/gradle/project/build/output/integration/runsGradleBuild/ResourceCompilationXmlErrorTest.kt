@@ -70,7 +70,7 @@ Execution failed for task ':app:mergeDebugResources'.
 > Run with --scan to get full insights.
 > Get more help at https://help.gradle.org.
       """.trimIndent())
-        assertThat(event.description).contains("BUILD FAILED in ")
+        assertThat(event.description).doesNotContain("BUILD FAILED in ")
       }
 
       // Failure should be filtered from BOW finish event, it contains useless information for this error.

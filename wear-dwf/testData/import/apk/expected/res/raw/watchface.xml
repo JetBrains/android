@@ -1,0 +1,1522 @@
+<WatchFace
+    clipShape="CIRCLE"
+    height="450"
+    width="450">
+    <Metadata
+        key="CLOCK_TYPE"
+        value="ANALOG" />
+    <UserConfigurations>
+        <ColorConfiguration
+            defaultValue="0"
+            displayName="color_selector_display_name"
+            id="themeColor"
+            screenReaderText="color_selector_display_name">
+            <ColorOption
+                colors="#ff231651 #fff35858 #ffeeeaea"
+                displayName="ith_option_display_name"
+                id="0"
+                screenReaderText="ith_option_display_name" />
+            <ColorOption
+                colors="#cc595656 #ff2374ab #cc88c0ee"
+                displayName="ith_option_display_name"
+                id="1"
+                screenReaderText="ith_option_display_name" />
+            <ColorOption
+                colors="#ff383838 #ffa3c24d #ff65afff"
+                displayName="ith_option_display_name"
+                id="2"
+                screenReaderText="ith_option_display_name" />
+            <ColorOption
+                colors="#ff383838 #ff3b3b99 #ffc0b7fc"
+                displayName="ith_option_display_name"
+                id="3"
+                screenReaderText="ith_option_display_name" />
+            <ColorOption
+                colors="#ff090943 #ff9dc9a0 #ff37a151"
+                displayName="ith_option_display_name"
+                id="4"
+                screenReaderText="ith_option_display_name" />
+            <ColorOption
+                colors="#ff383838 #ffa3c24d #fff4a261"
+                displayName="ith_option_display_name"
+                id="5"
+                screenReaderText="ith_option_display_name" />
+            <ColorOption
+                colors="#ff383838 #ff057d89 #fff5c095"
+                displayName="ith_option_display_name"
+                id="6"
+                screenReaderText="ith_option_display_name" />
+        </ColorConfiguration>
+        <ListConfiguration
+            defaultValue="0"
+            displayName="ID_CAMPING_STYLE"
+            icon="style_wfs_fa2248ac_2ad4_46e9_9461_7c1bb1df0001_0"
+            id="fa2248ac_2ad4_46e9_9461_7c1bb1df0001"
+            screenReaderText="ID_CAMPING_STYLE">
+            <ListOption
+                displayName="ID_CAMPING_CAR"
+                icon="style_wfs_fa2248ac_2ad4_46e9_9461_7c1bb1df0001_0"
+                id="0"
+                screenReaderText="ID_CAMPING_CAR" />
+            <ListOption
+                displayName="ID_CAMPING_CHAIR"
+                icon="style_wfs_fa2248ac_2ad4_46e9_9461_7c1bb1df0001_1"
+                id="1"
+                screenReaderText="ID_CAMPING_CHAIR" />
+            <ListOption
+                displayName="ID_CAMPIING_TENT"
+                icon="style_wfs_fa2248ac_2ad4_46e9_9461_7c1bb1df0001_2"
+                id="2"
+                screenReaderText="ID_CAMPIING_TENT" />
+        </ListConfiguration>
+        <ListConfiguration
+            defaultValue="0"
+            displayName="ID_HANDS"
+            icon="style_wfs_846d8cbf_6bf8_4843_a618_9aeb84eaa0b9_0"
+            id="846d8cbf_6bf8_4843_a618_9aeb84eaa0b9"
+            screenReaderText="ID_HANDS">
+            <ListOption
+                displayName="ID_HANDS_BASIC"
+                icon="style_wfs_846d8cbf_6bf8_4843_a618_9aeb84eaa0b9_0"
+                id="0"
+                screenReaderText="ID_HANDS_BASIC" />
+            <ListOption
+                displayName="ID_HANDS_SIMPLE"
+                icon="style_wfs_846d8cbf_6bf8_4843_a618_9aeb84eaa0b9_1"
+                id="1"
+                screenReaderText="ID_HANDS_SIMPLE" />
+            <ListOption
+                displayName="ID_HANDS_STYLISH"
+                icon="style_wfs_846d8cbf_6bf8_4843_a618_9aeb84eaa0b9_2"
+                id="2"
+                screenReaderText="ID_HANDS_STYLISH" />
+        </ListConfiguration>
+        <ListConfiguration
+            defaultValue="0"
+            displayName="ID_INDEX"
+            icon="style_wfs_1a8cd8eb_e9c1_4378_b384_f0269a1e423d_0"
+            id="1a8cd8eb_e9c1_4378_b384_f0269a1e423d"
+            screenReaderText="ID_INDEX">
+            <ListOption
+                displayName="ID_INDEX_MINUTE"
+                icon="style_wfs_1a8cd8eb_e9c1_4378_b384_f0269a1e423d_0"
+                id="0"
+                screenReaderText="ID_INDEX_MINUTE" />
+            <ListOption
+                displayName="ID_INDEX_CIRCULAR"
+                icon="style_wfs_1a8cd8eb_e9c1_4378_b384_f0269a1e423d_1"
+                id="1"
+                screenReaderText="ID_INDEX_CIRCULAR" />
+            <ListOption
+                displayName="ID_INDEX_LINEAR"
+                icon="style_wfs_1a8cd8eb_e9c1_4378_b384_f0269a1e423d_2"
+                id="2"
+                screenReaderText="ID_INDEX_LINEAR" />
+            <ListOption
+                displayName="ID_INDEX_TRIANGULAR"
+                icon="style_wfs_1a8cd8eb_e9c1_4378_b384_f0269a1e423d_3"
+                id="3"
+                screenReaderText="ID_INDEX_TRIANGULAR" />
+            <ListOption
+                displayName="ID_INDEX_HOUR"
+                icon="style_wfs_1a8cd8eb_e9c1_4378_b384_f0269a1e423d_4"
+                id="4"
+                screenReaderText="ID_INDEX_HOUR" />
+        </ListConfiguration>
+    </UserConfigurations>
+    <Scene backgroundColor="#ff000000">
+        <Condition>
+            <Expressions>
+                <Expression name="conditionalLine_ab81">
+                    <![CDATA[([HOUR_0_23] >= 6 && [HOUR_0_23] < 18)]]></Expression>
+            </Expressions>
+            <Compare expression="conditionalLine_ab81">
+                <Group
+                    name="BG_day_5890"
+                    alpha="255"
+                    height="450"
+                    width="450"
+                    x="0"
+                    y="0">
+                    <PartImage
+                        name="sky_day_c635"
+                        alpha="255"
+                        height="450"
+                        width="450"
+                        x="0"
+                        y="0">
+                        <Image resource="wfs_bg_sky_day_ff5659f0_3397_4f24_908e_31bda492b2e41747844241278_trimmed" />
+                    </PartImage>
+                    <PartImage
+                        name="mountain_day_4846"
+                        alpha="255"
+                        height="254"
+                        pivotY="0.1141732"
+                        width="450"
+                        x="0"
+                        y="196">
+                        <Image resource="wfs_bg_mountain_day_05e53992_a891_4f9f_a975_3cc946a25e481747844241307_trimmed" />
+                    </PartImage>
+                    <PartImage
+                        name="ground_day_1555"
+                        alpha="255"
+                        height="224"
+                        pivotY="-0.0044643"
+                        width="450"
+                        x="0"
+                        y="226">
+                        <Image resource="wfs_bg_ground_day_8f58b51c_481a_4f17_9672_3741bdb7c72b1747844241332_trimmed" />
+                    </PartImage>
+                    <PartImage
+                        name="sun_7427"
+                        alpha="255"
+                        height="89"
+                        pivotX="0.505618"
+                        pivotY="1.7640449"
+                        width="89"
+                        x="180"
+                        y="68">
+                        <Variant
+                            mode="AMBIENT"
+                            target="alpha"
+                            value="0" />
+                        <Image resource="wfs_object_sun_52d295cf_5c6c_4404_9116_66285f98bd311747844241355_trimmed" />
+                    </PartImage>
+                    <PartImage
+                        name="balloon_4401"
+                        alpha="255"
+                        height="66"
+                        pivotX="2.875"
+                        pivotY="0.1818182"
+                        width="40"
+                        x="110"
+                        y="213">
+                        <Variant
+                            mode="AMBIENT"
+                            target="alpha"
+                            value="0" />
+                        <Image resource="wfs_object_balloon_f6ad78c3_c19b_445e_b4a2_2df3b152b3b11747844241377_trimmed" />
+                    </PartImage>
+                </Group>
+            </Compare>
+        </Condition>
+        <Condition>
+            <Expressions>
+                <Expression name="conditionalLine_36b0">
+                    <![CDATA[([HOUR_0_23] >= 0 && [HOUR_0_23] < 6) || ([HOUR_0_23] >= 18 && [HOUR_0_23] < 24)]]></Expression>
+            </Expressions>
+            <Compare expression="conditionalLine_36b0">
+                <Group
+                    name="BG_night_d6a8"
+                    alpha="255"
+                    height="455"
+                    width="450"
+                    x="0"
+                    y="0">
+                    <Group
+                        name="optimizedGroup_416a"
+                        alpha="255"
+                        height="455"
+                        width="450"
+                        x="0"
+                        y="0">
+                        <PartImage
+                            name="sky_night_1d78"
+                            alpha="255"
+                            height="450"
+                            width="450"
+                            x="0"
+                            y="0">
+                            <Image resource="wfs_bg_sky_night_f811084b_4a23_4a95_8577_9c5c1eae09701747844241410_trimmed" />
+                        </PartImage>
+                        <PartImage
+                            name="mountain_night_0c18"
+                            alpha="255"
+                            height="254"
+                            pivotY="0.1141732"
+                            width="450"
+                            x="0"
+                            y="196">
+                            <Image resource="wfs_bg_mountain_night_de227c10_cb65_4b64_bcbe_454fd980abb01747844241448_trimmed" />
+                        </PartImage>
+                        <PartImage
+                            name="ground_night_e727"
+                            alpha="255"
+                            height="225"
+                            pivotY="0"
+                            width="450"
+                            x="0"
+                            y="225">
+                            <Image resource="wfs_bg_ground_night_31eefd17_a1df_46fe_b6ce_c188efe15b981747844241473_trimmed" />
+                        </PartImage>
+                        <PartImage
+                            name="moon_1e5b"
+                            alpha="255"
+                            height="80"
+                            pivotX="0.525"
+                            pivotY="1.9"
+                            width="80"
+                            x="183"
+                            y="73">
+                            <Variant
+                                mode="AMBIENT"
+                                target="alpha"
+                                value="0" />
+                            <Image resource="wfs_object_moon_94c5eef3_22ea_43f8_acf4_34e56389b61e1747844241498_trimmed" />
+                        </PartImage>
+                    </Group>
+                    <Condition>
+                        <Expressions>
+                            <Expression name="conditionalLine_d261">
+                                <![CDATA[([WEATHER.CONDITION] >= 2 && [WEATHER.CONDITION] <= 12) || ([WEATHER.CONDITION] == 14)]]></Expression>
+                        </Expressions>
+                        <Compare expression="conditionalLine_d261">
+                            <PartImage
+                                name="birds_c49d"
+                                alpha="255"
+                                height="55"
+                                pivotX="1.1545455"
+                                pivotY="-0.2363636"
+                                width="110"
+                                x="98"
+                                y="243">
+                                <Variant
+                                    mode="AMBIENT"
+                                    target="alpha"
+                                    value="0" />
+                                <Image resource="wfs_object_birds_4b552314_bf26_4b6f_82b5_aa5dcfba8fb41747844241522_trimmed" />
+                            </PartImage>
+                        </Compare>
+                    </Condition>
+                </Group>
+            </Compare>
+        </Condition>
+        <Condition>
+            <Expressions>
+                <Expression name="conditionalLine_bab8">
+                    <![CDATA[([HOUR_0_23] >= 6 && [HOUR_0_23] < 18)]]></Expression>
+            </Expressions>
+            <Compare expression="conditionalLine_bab8">
+                <Group
+                    name="camping_day_1de8"
+                    alpha="255"
+                    height="450"
+                    width="450"
+                    x="0"
+                    y="0">
+                    <ListConfiguration id="fa2248ac_2ad4_46e9_9461_7c1bb1df0001">
+                        <ListOption id="1">
+                            <PartImage
+                                name="camping_day_1de8"
+                                height="159"
+                                pivotX="-0.0641026"
+                                pivotY="-0.1761006"
+                                width="156"
+                                x="235"
+                                y="253">
+                                <Image resource="wfs_object_chair_day_465ad364_94ae_4441_a325_381c0d57e1891747844241563_trimmed" />
+                            </PartImage>
+                        </ListOption>
+                        <ListOption id="2">
+                            <PartImage
+                                name="camping_day_1de8"
+                                height="150"
+                                pivotX="0.1346154"
+                                pivotY="-0.28"
+                                width="208"
+                                x="197"
+                                y="267">
+                                <Image resource="wfs_object_tent_day_9658e948_4d4c_4a2a_979c_2cb90bd1ac291747844241562_trimmed" />
+                            </PartImage>
+                        </ListOption>
+                        <ListOption id="0">
+                            <PartImage
+                                name="camping_day_1de8"
+                                height="167"
+                                pivotX="0.2222222"
+                                pivotY="-0.2095808"
+                                width="225"
+                                x="175"
+                                y="260">
+                                <Image resource="wfs_object_caravan_day_cec16877_e4a0_4d27_8a9e_c75b8659ba361747844241564_trimmed" />
+                            </PartImage>
+                        </ListOption>
+                    </ListConfiguration>
+                </Group>
+            </Compare>
+        </Condition>
+        <Condition>
+            <Expressions>
+                <Expression name="conditionalLine_09a0">
+                    <![CDATA[([HOUR_0_23] >= 0 && [HOUR_0_23] < 6) || ([HOUR_0_23] >= 18 && [HOUR_0_23] < 24)]]></Expression>
+            </Expressions>
+            <Compare expression="conditionalLine_09a0">
+                <Group
+                    name="camping_night_6330"
+                    alpha="255"
+                    height="450"
+                    width="450"
+                    x="0"
+                    y="0">
+                    <ListConfiguration id="fa2248ac_2ad4_46e9_9461_7c1bb1df0001">
+                        <ListOption id="1">
+                            <PartImage
+                                name="camping_night_6330"
+                                height="159"
+                                pivotX="0.0060241"
+                                pivotY="-0.1823899"
+                                width="166"
+                                x="224"
+                                y="254">
+                                <Image resource="wfs_object_chair_night_734c42d0_2ff2_4f8c_983c_4771dea033451747844241621_trimmed" />
+                            </PartImage>
+                        </ListOption>
+                        <ListOption id="2">
+                            <PartImage
+                                name="camping_night_6330"
+                                height="193"
+                                pivotX="0.1462264"
+                                pivotY="-0.0051813"
+                                width="212"
+                                x="194"
+                                y="226">
+                                <Image resource="wfs_object_tent_night_c03a37b1_9219_444e_923f_4b565ecc0b5a1747844241622_trimmed" />
+                            </PartImage>
+                        </ListOption>
+                        <ListOption id="0">
+                            <PartImage
+                                name="camping_night_6330"
+                                height="175"
+                                pivotX="0.2164502"
+                                pivotY="-0.1657143"
+                                width="231"
+                                x="175"
+                                y="254">
+                                <Image resource="wfs_object_caravan_night_f7ab6e3a_9001_4caa_929c_8e9ea36502ae1747844241623_trimmed" />
+                            </PartImage>
+                        </ListOption>
+                    </ListConfiguration>
+                </Group>
+            </Compare>
+        </Condition>
+        <Group
+            name="optimizedGroup_d66d"
+            alpha="255"
+            height="450"
+            width="450"
+            x="0"
+            y="0">
+            <PartDraw
+                name="black_80_1804"
+                alpha="0"
+                height="458"
+                width="458"
+                x="-4"
+                y="-4">
+                <Variant
+                    mode="AMBIENT"
+                    target="alpha"
+                    value="255" />
+                <Ellipse
+                    height="458"
+                    width="458"
+                    x="0"
+                    y="0">
+                    <Fill color="#d4000000" />
+                </Ellipse>
+            </PartDraw>
+            <Group
+                name="Index_always_on_614e"
+                alpha="0"
+                height="450"
+                width="450"
+                x="0"
+                y="0">
+                <Variant
+                    mode="AMBIENT"
+                    target="alpha"
+                    value="255" />
+                <ListConfiguration id="1a8cd8eb_e9c1_4378_b384_f0269a1e423d">
+                    <ListOption id="1">
+                        <PartImage
+                            name="Index_always_on_614e"
+                            height="416"
+                            pivotX="0.5"
+                            pivotY="0.5"
+                            width="416"
+                            x="17"
+                            y="17">
+                            <Image resource="wfs_adjustmentcolor_1747844241789_b4e6b4b2_7b95_4ac1_af6f_6ab2d456c23d" />
+                        </PartImage>
+                    </ListOption>
+                    <ListOption id="2">
+                        <PartImage
+                            name="Index_always_on_614e"
+                            height="420"
+                            pivotX="0.5"
+                            pivotY="0.5"
+                            width="420"
+                            x="15"
+                            y="15">
+                            <Image resource="wfs_adjustmentcolor_1747844241768_312fbbb1_ba48_4b45_8047_bc54bff690ce" />
+                        </PartImage>
+                    </ListOption>
+                    <ListOption id="0">
+                        <PartImage
+                            name="Index_always_on_614e"
+                            height="428"
+                            pivotX="0.5"
+                            pivotY="0.5"
+                            width="428"
+                            x="11"
+                            y="11">
+                            <Image resource="wfs_adjustmentcolor_1747844241859_fd37ffcc_fb0b_40a8_9fbb_928fcdfc7011" />
+                        </PartImage>
+                    </ListOption>
+                    <ListOption id="4">
+                        <PartImage
+                            name="Index_always_on_614e"
+                            height="436"
+                            pivotX="0.5"
+                            pivotY="0.5"
+                            width="436"
+                            x="7"
+                            y="7">
+                            <Image resource="wfs_adjustmentcolor_1747844241860_e1db4df3_6103_4683_8135_ab327a37a971" />
+                        </PartImage>
+                    </ListOption>
+                    <ListOption id="3">
+                        <PartImage
+                            name="Index_always_on_614e"
+                            height="430"
+                            pivotX="0.5"
+                            pivotY="0.5"
+                            width="430"
+                            x="10"
+                            y="10">
+                            <Image resource="wfs_adjustmentcolor_1747844241860_d3315341_07e6_48a6_99fe_5addbb9ada79" />
+                        </PartImage>
+                    </ListOption>
+                </ListConfiguration>
+            </Group>
+            <Group
+                name="Index_normal_ee80"
+                alpha="255"
+                height="450"
+                width="450"
+                x="0"
+                y="0">
+                <Variant
+                    mode="AMBIENT"
+                    target="alpha"
+                    value="0" />
+                <ListConfiguration id="1a8cd8eb_e9c1_4378_b384_f0269a1e423d">
+                    <ListOption id="3">
+                        <PartImage
+                            name="Index_normal_ee80"
+                            height="430"
+                            pivotX="0.5"
+                            pivotY="0.5"
+                            width="430"
+                            x="10"
+                            y="10">
+                            <Image resource="wfs_index_1747844241883_5809ffe5_9417_4b11_b1bb_badfae55b2741747844241925_trimmed" />
+                        </PartImage>
+                    </ListOption>
+                    <ListOption id="4">
+                        <PartImage
+                            name="Index_normal_ee80"
+                            height="436"
+                            pivotX="0.5"
+                            pivotY="0.5"
+                            width="436"
+                            x="7"
+                            y="7">
+                            <Image resource="wfs_index_1747844241886_82e72d60_0115_4965_84da_1acad86311e41747844241927_trimmed" />
+                        </PartImage>
+                    </ListOption>
+                    <ListOption id="1">
+                        <PartImage
+                            name="Index_normal_ee80"
+                            height="416"
+                            pivotX="0.5"
+                            pivotY="0.5"
+                            width="416"
+                            x="17"
+                            y="17">
+                            <Image resource="wfs_index_1747844241879_1e5de889_1780_4c4a_9e19_a87ce29277e61747844241927_trimmed" />
+                        </PartImage>
+                    </ListOption>
+                    <ListOption id="2">
+                        <PartImage
+                            name="Index_normal_ee80"
+                            height="420"
+                            pivotX="0.5"
+                            pivotY="0.5"
+                            width="420"
+                            x="15"
+                            y="15">
+                            <Image resource="wfs_index_1747844241882_bffdf3a3_4978_4521_9551_1fe652fe9b681747844241963_trimmed" />
+                        </PartImage>
+                    </ListOption>
+                    <ListOption id="0">
+                        <PartImage
+                            name="Index_normal_ee80"
+                            height="428"
+                            pivotX="0.5"
+                            pivotY="0.5"
+                            width="428"
+                            x="11"
+                            y="11">
+                            <Image resource="wfs_index_1747844241877_381198bd_26b1_451f_8e9b_390033bc0ac61747844241928_trimmed" />
+                        </PartImage>
+                    </ListOption>
+                </ListConfiguration>
+            </Group>
+        </Group>
+        <Condition>
+            <Expressions>
+                <Expression name="conditionalLine_a20e">
+                    <![CDATA[([HOUR_0_23] >= 6 && [HOUR_0_23] < 18)]]></Expression>
+            </Expressions>
+            <Compare expression="conditionalLine_a20e">
+                <PartText
+                    name="Date_day_d677"
+                    alpha="255"
+                    angle="19.5"
+                    height="135"
+                    pivotY="0"
+                    width="343"
+                    x="13"
+                    y="206">
+                    <Localization calendar="GREGORIAN" />
+                    <TextCircular
+                        align="CENTER"
+                        centerX="171"
+                        centerY="0"
+                        direction="COUNTER_CLOCKWISE"
+                        ellipsis="FALSE"
+                        endAngle="90"
+                        height="231.72537071675896"
+                        startAngle="270"
+                        width="303.8824241736387">
+                        <Font
+                            color="#ff2197d9"
+                            family="SYNC_TO_DEVICE"
+                            size="33"
+                            slant="NORMAL"
+                            weight="NORMAL">
+                            <Template>%s, %s %s
+                                <Parameter expression="[DAY_OF_WEEK_S]" />
+                                <Parameter expression="[MONTH_S]" />
+                                <Parameter expression="[DAY_Z]" />
+                            </Template>
+                        </Font>
+                    </TextCircular>
+                </PartText>
+            </Compare>
+        </Condition>
+        <Condition>
+            <Expressions>
+                <Expression name="conditionalLine_0c57">
+                    <![CDATA[([HOUR_0_23] >= 0 && [HOUR_0_23] < 6) || ([HOUR_0_23] >= 18 && [HOUR_0_23] < 24)]]></Expression>
+            </Expressions>
+            <Compare expression="conditionalLine_0c57">
+                <PartText
+                    name="Date_night_71aa"
+                    alpha="255"
+                    angle="19.5"
+                    height="135"
+                    pivotY="0"
+                    width="343"
+                    x="13"
+                    y="206">
+                    <Localization calendar="GREGORIAN" />
+                    <TextCircular
+                        align="CENTER"
+                        centerX="171"
+                        centerY="0"
+                        direction="COUNTER_CLOCKWISE"
+                        ellipsis="FALSE"
+                        endAngle="90"
+                        height="231.72537071675896"
+                        startAngle="270"
+                        width="303.8824241736387">
+                        <Font
+                            color="#ffffffff"
+                            family="SYNC_TO_DEVICE"
+                            size="33"
+                            slant="NORMAL"
+                            weight="NORMAL">
+                            <Template>%s, %s %s
+                                <Parameter expression="[DAY_OF_WEEK_S]" />
+                                <Parameter expression="[MONTH_S]" />
+                                <Parameter expression="[DAY_Z]" />
+                            </Template>
+                        </Font>
+                    </TextCircular>
+                </PartText>
+            </Compare>
+        </Condition>
+        <PartDraw
+            name="Ellipse2_b9f9"
+            alpha="255"
+            height="100"
+            width="100"
+            x="280"
+            y="180">
+            <Ellipse
+                height="100"
+                width="100"
+                x="0"
+                y="0">
+                <Fill color="#66000000" />
+            </Ellipse>
+        </PartDraw>
+        <ComplicationSlot
+            name="CircleComplication_0"
+            alpha="204"
+            displayName="Circle Complication"
+            height="100"
+            isCustomizable="TRUE"
+            slotId="0"
+            supportedTypes="RANGED_VALUE SHORT_TEXT SMALL_IMAGE MONOCHROMATIC_IMAGE"
+            width="100"
+            x="280"
+            y="180">
+            <DefaultProviderPolicy
+                defaultSystemProvider="WATCH_BATTERY"
+                defaultSystemProviderType="RANGED_VALUE" />
+            <BoundingOval
+                height="100"
+                width="100"
+                x="0"
+                y="0" />
+            <Complication type="RANGED_VALUE">
+                <Condition>
+                    <Expressions>
+                        <Expression name="rangeIconTextTitle">
+                            <![CDATA[[COMPLICATION.MONOCHROMATIC_IMAGE] != null && [COMPLICATION.TEXT] != null && [COMPLICATION.TITLE] != null]]></Expression>
+                        <Expression name="rangeIconText">
+                            <![CDATA[[COMPLICATION.MONOCHROMATIC_IMAGE] != null && ([COMPLICATION.TEXT] != null || [COMPLICATION.TITLE] != null)]]></Expression>
+                        <Expression name="rangeIcon">
+                            <![CDATA[[COMPLICATION.MONOCHROMATIC_IMAGE] != null]]></Expression>
+                        <Expression name="rangeTextTitle">
+                            <![CDATA[[COMPLICATION.TEXT] != null && [COMPLICATION.TITLE] != null]]></Expression>
+                        <Expression name="rangeText">
+                            <![CDATA[([COMPLICATION.TEXT] != null || [COMPLICATION.TITLE] != null)]]></Expression>
+                    </Expressions>
+                    <Compare expression="rangeIconTextTitle">
+                        <PartDraw
+                            name="ProgressBar_cf05"
+                            alpha="255"
+                            height="93"
+                            width="93"
+                            x="3"
+                            y="3">
+                            <Arc
+                                centerX="46.7391"
+                                centerY="46.7391"
+                                direction="CLOCKWISE"
+                                endAngle="359.999"
+                                height="85.4783"
+                                startAngle="0"
+                                width="85.4783">
+                                <Stroke
+                                    cap="ROUND"
+                                    color="#1affffff"
+                                    thickness="8" />
+                            </Arc>
+                            <Arc
+                                centerX="46.7391"
+                                centerY="46.7391"
+                                direction="CLOCKWISE"
+                                endAngle="270"
+                                height="85.4783"
+                                startAngle="0"
+                                width="85.4783">
+                                <Transform
+                                    target="endAngle"
+                                    value="0 + (((clamp(([COMPLICATION.RANGED_VALUE_VALUE]), ([COMPLICATION.RANGED_VALUE_MIN]), ([COMPLICATION.RANGED_VALUE_MAX])) - ([COMPLICATION.RANGED_VALUE_MIN])) / (([COMPLICATION.RANGED_VALUE_MAX]) - ([COMPLICATION.RANGED_VALUE_MIN]))) * (360))" />
+                                <Stroke
+                                    cap="ROUND"
+                                    color="#ffffffff"
+                                    thickness="8" />
+                            </Arc>
+                        </PartDraw>
+                        <PartImage
+                            name="Icon_90f9"
+                            alpha="255"
+                            height="24"
+                            width="24"
+                            x="38"
+                            y="17">
+                            <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                        </PartImage>
+                        <PartText
+                            name="Text_892a"
+                            alpha="255"
+                            height="24"
+                            width="61"
+                            x="20"
+                            y="42">
+                            <Text
+                                align="CENTER"
+                                ellipsis="TRUE">
+                                <Font
+                                    color="#ffffffff"
+                                    family="SYNC_TO_DEVICE"
+                                    size="20"
+                                    slant="NORMAL"
+                                    weight="NORMAL">
+                                    <Template>%s
+                                        <Parameter expression="[COMPLICATION.TEXT] != null ? [COMPLICATION.TEXT] : [COMPLICATION.TITLE]" />
+                                    </Template>
+                                </Font>
+                            </Text>
+                        </PartText>
+                        <PartText
+                            name="Title_cf39"
+                            alpha="255"
+                            height="15"
+                            width="59"
+                            x="21"
+                            y="67">
+                            <Text
+                                align="CENTER"
+                                ellipsis="TRUE">
+                                <Font
+                                    color="#ffadadad"
+                                    family="SYNC_TO_DEVICE"
+                                    size="12"
+                                    slant="NORMAL"
+                                    weight="NORMAL">
+                                    <Template>%s
+                                        <Parameter expression="[COMPLICATION.TITLE]" />
+                                    </Template>
+                                </Font>
+                            </Text>
+                        </PartText>
+                    </Compare>
+                    <Compare expression="rangeIconText">
+                        <PartDraw
+                            name="ProgressBar_ee3c"
+                            alpha="255"
+                            height="93"
+                            width="93"
+                            x="3"
+                            y="3">
+                            <Arc
+                                centerX="46.7391"
+                                centerY="46.7391"
+                                direction="CLOCKWISE"
+                                endAngle="359.999"
+                                height="85.4783"
+                                startAngle="0"
+                                width="85.4783">
+                                <Stroke
+                                    cap="ROUND"
+                                    color="#1affffff"
+                                    thickness="8" />
+                            </Arc>
+                            <Arc
+                                centerX="46.7391"
+                                centerY="46.7391"
+                                direction="CLOCKWISE"
+                                endAngle="270"
+                                height="85.4783"
+                                startAngle="0"
+                                width="85.4783">
+                                <Transform
+                                    target="endAngle"
+                                    value="0 + (((clamp(([COMPLICATION.RANGED_VALUE_VALUE]), ([COMPLICATION.RANGED_VALUE_MIN]), ([COMPLICATION.RANGED_VALUE_MAX])) - ([COMPLICATION.RANGED_VALUE_MIN])) / (([COMPLICATION.RANGED_VALUE_MAX]) - ([COMPLICATION.RANGED_VALUE_MIN]))) * (360))" />
+                                <Stroke
+                                    cap="ROUND"
+                                    color="#ffffffff"
+                                    thickness="8" />
+                            </Arc>
+                        </PartDraw>
+                        <PartImage
+                            name="Icon_6fdf"
+                            alpha="255"
+                            height="24"
+                            width="24"
+                            x="38"
+                            y="24">
+                            <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                        </PartImage>
+                        <PartText
+                            name="Text_8f53"
+                            alpha="255"
+                            height="30"
+                            width="65"
+                            x="17"
+                            y="43">
+                            <Text
+                                align="CENTER"
+                                ellipsis="TRUE">
+                                <Font
+                                    color="#ffffffff"
+                                    family="SYNC_TO_DEVICE"
+                                    size="20"
+                                    slant="NORMAL"
+                                    weight="NORMAL">
+                                    <Template>%s
+                                        <Parameter expression="[COMPLICATION.TEXT] != null ? [COMPLICATION.TEXT] : [COMPLICATION.TITLE]" />
+                                    </Template>
+                                </Font>
+                            </Text>
+                        </PartText>
+                    </Compare>
+                    <Compare expression="rangeIcon">
+                        <PartDraw
+                            name="ProgressBar_cac1"
+                            alpha="255"
+                            height="93"
+                            width="93"
+                            x="3"
+                            y="3">
+                            <Arc
+                                centerX="46.7391"
+                                centerY="46.7391"
+                                direction="CLOCKWISE"
+                                endAngle="359.999"
+                                height="85.4783"
+                                startAngle="0"
+                                width="85.4783">
+                                <Stroke
+                                    cap="ROUND"
+                                    color="#1affffff"
+                                    thickness="8" />
+                            </Arc>
+                            <Arc
+                                centerX="46.7391"
+                                centerY="46.7391"
+                                direction="CLOCKWISE"
+                                endAngle="270"
+                                height="85.4783"
+                                startAngle="0"
+                                width="85.4783">
+                                <Transform
+                                    target="endAngle"
+                                    value="0 + (((clamp(([COMPLICATION.RANGED_VALUE_VALUE]), ([COMPLICATION.RANGED_VALUE_MIN]), ([COMPLICATION.RANGED_VALUE_MAX])) - ([COMPLICATION.RANGED_VALUE_MIN])) / (([COMPLICATION.RANGED_VALUE_MAX]) - ([COMPLICATION.RANGED_VALUE_MIN]))) * (360))" />
+                                <Stroke
+                                    cap="ROUND"
+                                    color="#ffffffff"
+                                    thickness="8" />
+                            </Arc>
+                        </PartDraw>
+                        <PartImage
+                            name="Icon_b739"
+                            alpha="255"
+                            height="43"
+                            width="43"
+                            x="26"
+                            y="28">
+                            <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                        </PartImage>
+                    </Compare>
+                    <Compare expression="rangeTextTitle">
+                        <PartDraw
+                            name="ProgressBar_9203"
+                            alpha="255"
+                            height="93"
+                            width="93"
+                            x="3"
+                            y="3">
+                            <Arc
+                                centerX="46.7391"
+                                centerY="46.7391"
+                                direction="CLOCKWISE"
+                                endAngle="359.999"
+                                height="85.4783"
+                                startAngle="0"
+                                width="85.4783">
+                                <Stroke
+                                    cap="ROUND"
+                                    color="#1affffff"
+                                    thickness="8" />
+                            </Arc>
+                            <Arc
+                                centerX="46.7391"
+                                centerY="46.7391"
+                                direction="CLOCKWISE"
+                                endAngle="270"
+                                height="85.4783"
+                                startAngle="0"
+                                width="85.4783">
+                                <Transform
+                                    target="endAngle"
+                                    value="0 + (((clamp(([COMPLICATION.RANGED_VALUE_VALUE]), ([COMPLICATION.RANGED_VALUE_MIN]), ([COMPLICATION.RANGED_VALUE_MAX])) - ([COMPLICATION.RANGED_VALUE_MIN])) / (([COMPLICATION.RANGED_VALUE_MAX]) - ([COMPLICATION.RANGED_VALUE_MIN]))) * (360))" />
+                                <Stroke
+                                    cap="ROUND"
+                                    color="#ffffffff"
+                                    thickness="8" />
+                            </Arc>
+                        </PartDraw>
+                        <PartText
+                            name="Text_1b39"
+                            alpha="255"
+                            height="30"
+                            width="65"
+                            x="17"
+                            y="29">
+                            <Text
+                                align="CENTER"
+                                ellipsis="TRUE">
+                                <Font
+                                    color="#ffffffff"
+                                    family="SYNC_TO_DEVICE"
+                                    size="20"
+                                    slant="NORMAL"
+                                    weight="NORMAL">
+                                    <Template>%s
+                                        <Parameter expression="[COMPLICATION.TEXT] != null ? [COMPLICATION.TEXT] : [COMPLICATION.TITLE]" />
+                                    </Template>
+                                </Font>
+                            </Text>
+                        </PartText>
+                        <PartText
+                            name="Title_e66e"
+                            alpha="255"
+                            height="20"
+                            width="59"
+                            x="21"
+                            y="57">
+                            <Text
+                                align="CENTER"
+                                ellipsis="TRUE">
+                                <Font
+                                    color="#ffadadad"
+                                    family="SYNC_TO_DEVICE"
+                                    size="12"
+                                    slant="NORMAL"
+                                    weight="NORMAL">
+                                    <Template>%s
+                                        <Parameter expression="[COMPLICATION.TITLE]" />
+                                    </Template>
+                                </Font>
+                            </Text>
+                        </PartText>
+                    </Compare>
+                    <Compare expression="rangeText">
+                        <PartDraw
+                            name="ProgressBar_2f88"
+                            alpha="255"
+                            height="93"
+                            width="93"
+                            x="3"
+                            y="3">
+                            <Arc
+                                centerX="46.7391"
+                                centerY="46.7391"
+                                direction="CLOCKWISE"
+                                endAngle="359.999"
+                                height="85.4783"
+                                startAngle="0"
+                                width="85.4783">
+                                <Stroke
+                                    cap="ROUND"
+                                    color="#1affffff"
+                                    thickness="8" />
+                            </Arc>
+                            <Arc
+                                centerX="46.7391"
+                                centerY="46.7391"
+                                direction="CLOCKWISE"
+                                endAngle="270"
+                                height="85.4783"
+                                startAngle="0"
+                                width="85.4783">
+                                <Transform
+                                    target="endAngle"
+                                    value="0 + (((clamp(([COMPLICATION.RANGED_VALUE_VALUE]), ([COMPLICATION.RANGED_VALUE_MIN]), ([COMPLICATION.RANGED_VALUE_MAX])) - ([COMPLICATION.RANGED_VALUE_MIN])) / (([COMPLICATION.RANGED_VALUE_MAX]) - ([COMPLICATION.RANGED_VALUE_MIN]))) * (360))" />
+                                <Stroke
+                                    cap="ROUND"
+                                    color="#ffffffff"
+                                    thickness="8" />
+                            </Arc>
+                        </PartDraw>
+                        <PartText
+                            name="Text_9aac"
+                            alpha="255"
+                            height="30"
+                            width="65"
+                            x="17"
+                            y="35">
+                            <Text
+                                align="CENTER"
+                                ellipsis="TRUE">
+                                <Font
+                                    color="#ffffffff"
+                                    family="SYNC_TO_DEVICE"
+                                    size="20"
+                                    slant="NORMAL"
+                                    weight="NORMAL">
+                                    <Template>%s
+                                        <Parameter expression="[COMPLICATION.TEXT] != null ? [COMPLICATION.TEXT] : [COMPLICATION.TITLE]" />
+                                    </Template>
+                                </Font>
+                            </Text>
+                        </PartText>
+                    </Compare>
+                    <Default>
+                        <PartDraw
+                            name="ProgressBar_3fd9"
+                            alpha="255"
+                            height="93"
+                            width="93"
+                            x="3"
+                            y="3">
+                            <Arc
+                                centerX="46.7391"
+                                centerY="46.7391"
+                                direction="CLOCKWISE"
+                                endAngle="359.999"
+                                height="85.4783"
+                                startAngle="0"
+                                width="85.4783">
+                                <Stroke
+                                    cap="ROUND"
+                                    color="#1affffff"
+                                    thickness="8" />
+                            </Arc>
+                            <Arc
+                                centerX="46.7391"
+                                centerY="46.7391"
+                                direction="CLOCKWISE"
+                                endAngle="270"
+                                height="85.4783"
+                                startAngle="0"
+                                width="85.4783">
+                                <Transform
+                                    target="endAngle"
+                                    value="0 + (((clamp(([COMPLICATION.RANGED_VALUE_VALUE]), ([COMPLICATION.RANGED_VALUE_MIN]), ([COMPLICATION.RANGED_VALUE_MAX])) - ([COMPLICATION.RANGED_VALUE_MIN])) / (([COMPLICATION.RANGED_VALUE_MAX]) - ([COMPLICATION.RANGED_VALUE_MIN]))) * (360))" />
+                                <Stroke
+                                    cap="ROUND"
+                                    color="#ffffffff"
+                                    thickness="8" />
+                            </Arc>
+                        </PartDraw>
+                    </Default>
+                </Condition>
+            </Complication>
+            <Complication type="SHORT_TEXT">
+                <Condition>
+                    <Expressions>
+                        <Expression name="shortText">
+                            <![CDATA[[COMPLICATION.TITLE] == null && [COMPLICATION.MONOCHROMATIC_IMAGE] == null]]></Expression>
+                        <Expression name="shortTextIcon">
+                            <![CDATA[[COMPLICATION.TITLE] == null && [COMPLICATION.MONOCHROMATIC_IMAGE] != null]]></Expression>
+                        <Expression name="shortTextTitle">
+                            <![CDATA[[COMPLICATION.TITLE] != null && [COMPLICATION.MONOCHROMATIC_IMAGE] == null]]></Expression>
+                    </Expressions>
+                    <Compare expression="shortText">
+                        <PartText
+                            name="Text_06b5"
+                            alpha="255"
+                            height="30"
+                            width="80"
+                            x="10"
+                            y="35">
+                            <Text
+                                align="CENTER"
+                                ellipsis="TRUE">
+                                <Font
+                                    color="#ffffffff"
+                                    family="SYNC_TO_DEVICE"
+                                    size="20"
+                                    slant="NORMAL"
+                                    weight="NORMAL">
+                                    <Template>%s
+                                        <Parameter expression="[COMPLICATION.TEXT] != null ? [COMPLICATION.TEXT] : [COMPLICATION.TITLE]" />
+                                    </Template>
+                                </Font>
+                            </Text>
+                        </PartText>
+                    </Compare>
+                    <Compare expression="shortTextIcon">
+                        <PartImage
+                            name="Icon_741f"
+                            alpha="255"
+                            height="24"
+                            width="24"
+                            x="38"
+                            y="22">
+                            <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                        </PartImage>
+                        <PartText
+                            name="Text_dddb"
+                            alpha="255"
+                            height="30"
+                            width="80"
+                            x="10"
+                            y="48">
+                            <Text
+                                align="CENTER"
+                                ellipsis="TRUE">
+                                <Font
+                                    color="#ffffffff"
+                                    family="SYNC_TO_DEVICE"
+                                    size="20"
+                                    slant="NORMAL"
+                                    weight="NORMAL">
+                                    <Template>%s
+                                        <Parameter expression="[COMPLICATION.TEXT] != null ? [COMPLICATION.TEXT] : [COMPLICATION.TITLE]" />
+                                    </Template>
+                                </Font>
+                            </Text>
+                        </PartText>
+                    </Compare>
+                    <Compare expression="shortTextTitle">
+                        <PartText
+                            name="Text_541f"
+                            alpha="255"
+                            height="30"
+                            width="83"
+                            x="9"
+                            y="28">
+                            <Text
+                                align="CENTER"
+                                ellipsis="TRUE">
+                                <Font
+                                    color="#ffffffff"
+                                    family="SYNC_TO_DEVICE"
+                                    size="20"
+                                    slant="NORMAL"
+                                    weight="NORMAL">
+                                    <Template>%s
+                                        <Parameter expression="[COMPLICATION.TEXT] != null ? [COMPLICATION.TEXT] : [COMPLICATION.TITLE]" />
+                                    </Template>
+                                </Font>
+                            </Text>
+                        </PartText>
+                        <PartText
+                            name="Title_01f5"
+                            alpha="255"
+                            height="20"
+                            width="83"
+                            x="9"
+                            y="57">
+                            <Text
+                                align="CENTER"
+                                ellipsis="TRUE">
+                                <Font
+                                    color="#ffadadad"
+                                    family="SYNC_TO_DEVICE"
+                                    size="12"
+                                    slant="NORMAL"
+                                    weight="NORMAL">
+                                    <Template>%s
+                                        <Parameter expression="[COMPLICATION.TITLE]" />
+                                    </Template>
+                                </Font>
+                            </Text>
+                        </PartText>
+                    </Compare>
+                    <Default>
+                        <PartImage
+                            name="Icon_cf9e"
+                            alpha="255"
+                            height="24"
+                            width="24"
+                            x="38"
+                            y="11">
+                            <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                        </PartImage>
+                        <PartText
+                            name="Text_2194"
+                            alpha="255"
+                            height="30"
+                            width="91"
+                            x="4"
+                            y="37">
+                            <Text
+                                align="CENTER"
+                                ellipsis="TRUE">
+                                <Font
+                                    color="#ffffffff"
+                                    family="SYNC_TO_DEVICE"
+                                    size="20"
+                                    slant="NORMAL"
+                                    weight="NORMAL">
+                                    <Template>%s
+                                        <Parameter expression="[COMPLICATION.TEXT] != null ? [COMPLICATION.TEXT] : [COMPLICATION.TITLE]" />
+                                    </Template>
+                                </Font>
+                            </Text>
+                        </PartText>
+                        <PartText
+                            name="Title_c6bb"
+                            alpha="255"
+                            height="20"
+                            width="59"
+                            x="21"
+                            y="70">
+                            <Text
+                                align="CENTER"
+                                ellipsis="TRUE">
+                                <Font
+                                    color="#ffadadad"
+                                    family="SYNC_TO_DEVICE"
+                                    size="12"
+                                    slant="NORMAL"
+                                    weight="NORMAL">
+                                    <Template>%s
+                                        <Parameter expression="[COMPLICATION.TITLE]" />
+                                    </Template>
+                                </Font>
+                            </Text>
+                        </PartText>
+                    </Default>
+                </Condition>
+            </Complication>
+            <Complication type="SMALL_IMAGE">
+                <PartImage
+                    name="Image_e412"
+                    alpha="255"
+                    height="100"
+                    width="100"
+                    x="0"
+                    y="0">
+                    <Image resource="[COMPLICATION.SMALL_IMAGE]" />
+                </PartImage>
+            </Complication>
+            <Complication type="MONOCHROMATIC_IMAGE">
+                <PartImage
+                    name="Icon_d903"
+                    alpha="255"
+                    height="52"
+                    width="52"
+                    x="24"
+                    y="24">
+                    <Image resource="[COMPLICATION.MONOCHROMATIC_IMAGE]" />
+                </PartImage>
+            </Complication>
+            <Complication type="EMPTY" />
+        </ComplicationSlot>
+        <Group
+            name="hands_e4e0"
+            alpha="255"
+            height="458"
+            width="458"
+            x="-4"
+            y="-4">
+            <Group
+                name="AnalogClock1_be5c"
+                alpha="255"
+                height="450"
+                width="50"
+                x="204"
+                y="4">
+                <ListConfiguration id="846d8cbf_6bf8_4843_a618_9aeb84eaa0b9">
+                    <ListOption id="0">
+                        <AnalogClock
+                            alpha="255"
+                            height="450"
+                            width="50"
+                            x="0"
+                            y="0">
+                            <HourHand
+                                alpha="255"
+                                height="121"
+                                pivotX="0.5"
+                                pivotY="0.8760331"
+                                resource="wfs_wfs_hands_hour_01_01_eb50f29a_529d_4bf3_b50f_439a7725d2f8_451d074a_dca7_4d0e_b7a3_8d1426f5ec2d1747844242010_trimmed"
+                                tintColor="[CONFIGURATION.themeColor.1]"
+                                width="30"
+                                x="10"
+                                y="119" />
+                            <HourHand
+                                alpha="255"
+                                height="118"
+                                pivotX="0.6666667"
+                                pivotY="0.8813559"
+                                resource="wfs_wfs_hands_hour_01_02_897b04a1_be2a_46ba_a0c8_2d855d9068b4_bb68e7ef_c328_45c3_b842_dedb00e9d4b61747844242029_trimmed"
+                                width="21"
+                                x="11"
+                                y="121" />
+                            <MinuteHand
+                                alpha="255"
+                                height="162"
+                                pivotX="0.5"
+                                pivotY="0.8765432"
+                                resource="wfs_wfs_hands_min_01_01_fc06c74e_b8f8_46ea_9cd0_31a890c09cd1_305c4915_217c_4ce1_a5c7_bc29c1258d871747844242048_trimmed"
+                                tintColor="[CONFIGURATION.themeColor.2]"
+                                width="40"
+                                x="5"
+                                y="83" />
+                            <MinuteHand
+                                alpha="255"
+                                height="160"
+                                pivotX="0.6785714"
+                                pivotY="0.88125"
+                                resource="wfs_wfs_hands_min_01_02_44f5891c_6c00_42e9_a4c6_4c15af08a54b_c6ee80fd_3a3d_4d50_b160_352d069d521d1747844242067_trimmed"
+                                width="28"
+                                x="6"
+                                y="84" />
+                            <SecondHand
+                                alpha="255"
+                                height="191"
+                                pivotX="0.5"
+                                pivotY="0.9685864"
+                                resource="wfs_wfs_hands_sec_04_1599b827_4aae_4fc9_bdb2_8e2a58d05816_5d70e3ed_0869_4748_8804_09942916e2c71747844242085_trimmed"
+                                tintColor="[CONFIGURATION.themeColor.0]"
+                                width="12"
+                                x="19"
+                                y="40">
+                                <Variant
+                                    mode="AMBIENT"
+                                    target="alpha"
+                                    value="0" />
+                            </SecondHand>
+                        </AnalogClock>
+                    </ListOption>
+                    <ListOption id="1">
+                        <AnalogClock
+                            alpha="255"
+                            height="450"
+                            width="50"
+                            x="0"
+                            y="0">
+                            <HourHand
+                                alpha="255"
+                                height="140"
+                                pivotX="0.5"
+                                pivotY="0.9285714"
+                                resource="wfs_wfs_hands_hour_03_01_387ec38b_8af2_4a05_9c8c_de4dc4c48f1b_74b7774d_5b9f_445a_9e63_a2479fa5ca011747844242103_trimmed"
+                                tintColor="[CONFIGURATION.themeColor.1]"
+                                width="20"
+                                x="15"
+                                y="95" />
+                            <HourHand
+                                alpha="255"
+                                height="67"
+                                pivotX="0.5"
+                                pivotY="0.8507463"
+                                resource="wfs_wfs_hands_hour_03_02_a5a71282_2e02_40a1_8b0f_8c568733d724_412cbe5f_27a1_4d7f_a523_4205f42f688f1747844242122_trimmed"
+                                width="20"
+                                x="15"
+                                y="168" />
+                            <MinuteHand
+                                alpha="255"
+                                height="200"
+                                pivotX="0.5"
+                                pivotY="0.965"
+                                resource="wfs_wfs_hands_min_03_01_f67e00dd_7e14_42b8_97ce_fe81aa4b70cc_0fb95970_97c5_41f6_bf74_98c4fa7e64c41747844242139_trimmed"
+                                tintColor="[CONFIGURATION.themeColor.2]"
+                                width="14"
+                                x="18"
+                                y="32" />
+                            <MinuteHand
+                                alpha="255"
+                                height="64"
+                                pivotX="0.5"
+                                pivotY="0.890625"
+                                resource="wfs_wfs_hands_min_03_02_3fe3e473_9dfd_494f_b5b1_f959c18c6056_68825ee5_d87b_452e_9115_d4c391f8fe641747844242157_trimmed"
+                                width="14"
+                                x="18"
+                                y="168" />
+                            <SecondHand
+                                alpha="255"
+                                height="228"
+                                pivotX="0.5"
+                                pivotY="0.8421053"
+                                resource="wfs_wfs_hands_sec_03_99fe1602_97a3_457a_a70d_14bd91ee3fe4_14829c4b_70b1_4cee_8b1b_98553ee19a4d1747844242175_trimmed"
+                                tintColor="[CONFIGURATION.themeColor.0]"
+                                width="12"
+                                x="19"
+                                y="33">
+                                <Variant
+                                    mode="AMBIENT"
+                                    target="alpha"
+                                    value="0" />
+                            </SecondHand>
+                        </AnalogClock>
+                    </ListOption>
+                    <ListOption id="2">
+                        <AnalogClock
+                            alpha="255"
+                            height="450"
+                            width="50"
+                            x="0"
+                            y="0">
+                            <HourHand
+                                alpha="255"
+                                height="144"
+                                pivotX="0.5"
+                                pivotY="0.875"
+                                resource="wfs_wfs_hands_hour_04_01_82ca04f0_ae48_4e2d_9ad8_6cd813fdcdb7_ba493b90_2d59_41d3_ad1d_d7846855eb7c1747844242192_trimmed"
+                                tintColor="[CONFIGURATION.themeColor.1]"
+                                width="36"
+                                x="7"
+                                y="99" />
+                            <HourHand
+                                alpha="255"
+                                height="66"
+                                pivotX="0.5"
+                                pivotY="1.7878788"
+                                resource="wfs_wfs_hands_hour_04_02_ef31c249_2c79_4256_b1b5_9847ea642d25_58611423_82a1_4446_8d48_b4e9a477abfb1747844242210_trimmed"
+                                width="8"
+                                x="21"
+                                y="107" />
+                            <MinuteHand
+                                alpha="255"
+                                height="198"
+                                pivotX="0.5"
+                                pivotY="0.9343434"
+                                resource="wfs_wfs_hands_min_04_01_35f7922b_0af1_42ea_9ca5_2655d3b0e453_167f41d9_7429_4ee1_9358_724dda7c6a4f1747844242228_trimmed"
+                                tintColor="[CONFIGURATION.themeColor.2]"
+                                width="26"
+                                x="12"
+                                y="40" />
+                            <MinuteHand
+                                alpha="255"
+                                height="127"
+                                pivotX="0.5"
+                                pivotY="1.4094488"
+                                resource="wfs_wfs_hands_min_04_02_d23d3382_7653_43fb_95c2_57fdc1de361d_896a4b18_0792_4ba8_ada4_22aa778245b11747844242246_trimmed"
+                                width="6"
+                                x="22"
+                                y="46" />
+                            <SecondHand
+                                alpha="255"
+                                height="228"
+                                pivotX="0.5"
+                                pivotY="0.8464912"
+                                resource="wfs_wfs_hands_sec_02_9d877d89_d0cf_4a96_b074_875d3fa42748_70af9513_0c2d_47f5_808f_67bb866f26901747844242264_trimmed"
+                                tintColor="[CONFIGURATION.themeColor.0]"
+                                width="28"
+                                x="11"
+                                y="32">
+                                <Variant
+                                    mode="AMBIENT"
+                                    target="alpha"
+                                    value="0" />
+                            </SecondHand>
+                        </AnalogClock>
+                    </ListOption>
+                </ListConfiguration>
+            </Group>
+            <PartDraw
+                name="dim_f7fb"
+                alpha="0"
+                height="458"
+                width="458"
+                x="0"
+                y="0">
+                <Variant
+                    mode="AMBIENT"
+                    target="alpha"
+                    value="255" />
+                <Ellipse
+                    height="458"
+                    width="458"
+                    x="0"
+                    y="0">
+                    <Fill color="#1a000000" />
+                </Ellipse>
+            </PartDraw>
+        </Group>
+    </Scene>
+</WatchFace>

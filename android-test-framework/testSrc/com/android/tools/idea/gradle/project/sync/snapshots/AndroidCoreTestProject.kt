@@ -69,7 +69,6 @@ enum class AndroidCoreTestProject(
     }
   ),
   HELLO_JNI(TestProjectPaths.HELLO_JNI),
-  INSTANT_APP(TestProjectPaths.INSTANT_APP),
   INSTANT_APP_WITH_DYNAMIC_FEATURES(TestProjectPaths.INSTANT_APP_WITH_DYNAMIC_FEATURES),
   KOTLIN_GRADLE_DSL(TestProjectPaths.KOTLIN_GRADLE_DSL),
   KOTLIN_KAPT(TestProjectPaths.KOTLIN_KAPT),

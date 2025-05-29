@@ -572,7 +572,7 @@ public final class StudioFlags {
     "Use adblib version of `AndroidDebugBridgeDelegate`",
     "Use adblib version of `AndroidDebugBridgeDelegate` in `AndroidDebugBridge` class. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    false);
+    enabledUpTo(DEV));
 
   public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE_USAGE_TRACKER = new BooleanFlag(
     RUNDEBUG,
@@ -1170,14 +1170,6 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "trace.discovery", "Enable Tracing of Emulator Discovery",
     "Enables tracing of Emulator discovery",
     false);
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS = new BooleanFlag(
-    EMBEDDED_EMULATOR, "ui.settings.debug.layout", "Show Debug Layout in UI settings",
-    "Enables Debug Layout in Device UI Shortcuts to display layout bounds",
-    true);
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS = new BooleanFlag(
-    EMBEDDED_EMULATOR, "ui.settings.gesture.navigation", "Show Gesture Navigation in Device UI Shortcuts",
-    "Enables Gesture Navigation setting in Device UI Shortcuts",
-    true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_ALLOW_XR_AVD = new BooleanFlag(
     EMBEDDED_EMULATOR, "allow.xr", "Allow XR AVD to run embedded",
     "Enables running an XR AVD in the Running Devices tool window",
@@ -1481,6 +1473,12 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> PREVIEW_PAGINATION = new BooleanFlag(
+    PREVIEW_COMMON, "pagination",
+    "Support paginating the previews",
+    "If enabled, the previews shown in a file will be paginated",
+    false
+  );
   //endregion
 
   //region Compose
@@ -2099,20 +2097,20 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "inline.code.completion.shortcut.hint.enabled",
                     "Enable the inline completion shortcut key hint.",
                     "When enabled, a custom inlay displaying 'TAB to complete' or similar text will be shown alongside inline completions.",
-                    enabledUpTo(CANARY));
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_DEFERRED_MULTILINE_SUGGESTIONS_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.deferred.multiline.suggestions.enabled",
                     "Enable deferred multiline suggestions.",
                     "When enabled, any part of a multi-line suggestion hidden behind the autosuggest popup will be removed, and " +
                     "offered later to the user if they accept the first line of the completion.",
-                    enabledUpTo(CANARY));
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_SYNTAX_HIGHLIGHTING_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.syntax.highlighting.enabled",
                     "Enable syntax highlighting for inline suggestions.",
                     "When inline completions will use lexical syntax highlighting colors.",
-                    enabledUpTo(CANARY));
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "compiler.error.context.enabled",
@@ -2245,7 +2243,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "prompt.library.rules",
                     "Enable Rules Prompt Library",
                     "When enabled, add Rules section to prompt library settings screen.",
-                    enabledUpTo(DEV));
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
@@ -2369,6 +2367,28 @@ public final class StudioFlags {
                     "When enabled, the compose chat timeline will show a shimmering placeholder while awaiting initial response content.",
                     enabledUpTo(CANARY));
 
+  public static Flag<Boolean> GEMINI_BRING_YOUR_OWN_KEY_ENABLED =
+    new BooleanFlag(STUDIOBOT, "bring.your.own.key",
+                    "Enable providing a public Gemini API key to override the default model.",
+                    "When enabled, a setting and various UI is made visible to provide a Gemini API key, and when provided and" +
+                    "enabled it replaces the default model with the public Gemini model.",
+                    enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> STUDIOBOT_INCLUDE_GRADLE_PROJECT_STRUCTURE_TOOLS_BY_DEFAULT =
+    new BooleanFlag(STUDIOBOT, "include.gradle.project.structure.tools.by.default",
+                    "Enable using Gradle project structure Agent tools by default",
+                    "When enabled, a set of tools allowing the agent to query for the Gradle project structure will be included by default.", false);
+
+  public static final Flag<Boolean> GEMINI_AGENT_MODE =
+    new BooleanFlag(STUDIOBOT, "agent.mode",
+                    "Enable agent mode.",
+                    "When enabled, the agent mode will be enabled in the Gemini toolwindow.", enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> GEMINI_VERSION_UPGRADE_AGENT =
+    new BooleanFlag(STUDIOBOT, "version.upgrade.agent",
+                    "Enable Gemini Version Upgrade Agent.",
+                    "Enables the agent that helps with upgrading dependencies to newer versions.", enabledUpTo(DEV));
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
@@ -2396,7 +2416,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "gemini.show.sign.in.dialog",
                     "Enable sign in dialog for Gemini",
                     "Enable Gemini actions to display a dialog prompting the user to sign in",
-                    enabledUpTo(DEV));
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> GEMINI_VERIFY_USER_TIER_IN_ALL_AIDA_RPCS =
     new BooleanFlag(STUDIOBOT, "verify.user.tier.in.aida.rpcs",

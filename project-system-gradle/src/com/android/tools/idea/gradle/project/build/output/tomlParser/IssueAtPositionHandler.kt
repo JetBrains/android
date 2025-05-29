@@ -34,7 +34,7 @@ class IssueAtPositionHandler : TomlErrorHandler {
   val REASON_FILE_AND_POSITION_PATTERN: Regex = "\\s+Reason: In file '([^']+)' at line ([0-9]+), column ([0-9]+):.*".toRegex()
   val REASON_FILE_AND_POSITION_PATTERN_CONTINUATION: Regex = "\\s+In file '([^']+)' at line ([0-9]+), column ([0-9]+):.*".toRegex()
 
-  override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
+  override fun tryExtractMessage(reader: BuildOutputInstantReader): List<BuildIssueEvent> {
     if (reader.readLine()?.endsWith(BUILD_ISSUE_TOML_START) == true) {
       val description = StringBuilder().appendLine(BUILD_ISSUE_TOML_TITLE)
       val problemLine = reader.readLine() ?: return listOf()

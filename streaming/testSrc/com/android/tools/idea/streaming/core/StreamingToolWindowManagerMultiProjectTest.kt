@@ -18,31 +18,23 @@ package com.android.tools.idea.streaming.core
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.android.tools.idea.streaming.FakeToolWindow
 import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.streaming.ToolWindowHeadlessManagerImpl
+import com.android.tools.idea.streaming.createFakeToolWindow
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.openapi.wm.ToolWindowType
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.replaceService
 import com.intellij.ui.content.ContentManager
-import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -50,7 +42,6 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
 import java.util.concurrent.Executors
-import javax.swing.Icon
 import kotlin.time.Duration.Companion.seconds
 
 /** Tests for [StreamingToolWindowManager] involving two projects. */
@@ -64,8 +55,10 @@ class StreamingToolWindowManagerMultiProjectTest {
   val ruleChain = RuleChain(agentRule, project2Rule, androidExecutorsRule, EdtRule())
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
-  private val toolWindow1: TestToolWindow by lazy { createToolWindow(project1) }
-  private val toolWindow2: TestToolWindow by lazy { createToolWindow(project2) }
+  private val toolWindow1: FakeToolWindow
+      by lazy { createFakeToolWindow(windowFactory, RUNNING_DEVICES_TOOL_WINDOW_ID, project1, testRootDisposable) }
+  private val toolWindow2: FakeToolWindow
+      by lazy { createFakeToolWindow(windowFactory, RUNNING_DEVICES_TOOL_WINDOW_ID, project2, testRootDisposable) }
   private val contentManager1: ContentManager by lazy { toolWindow1.contentManager }
   private val contentManager2: ContentManager by lazy { toolWindow2.contentManager }
 
@@ -156,105 +149,5 @@ class StreamingToolWindowManagerMultiProjectTest {
     waitForCondition(2.seconds) { contentManager2.contents.size == 2 } // The same devices are shown in the second tool window.
     assertThat(mirroringManager2.mirroringHandles.value[pixel4Handle2]?.mirroringState).isEqualTo(MirroringState.ACTIVE)
     assertThat(mirroringManager2.mirroringHandles.value[pixel7Handle2]?.mirroringState).isEqualTo(MirroringState.ACTIVE)
-  }
-
-  private fun createToolWindow(project: Project): TestToolWindow {
-    val windowManager = TestToolWindowManager(project)
-    project1.replaceService(ToolWindowManager::class.java, windowManager, testRootDisposable)
-    val toolWindow = windowManager.toolWindow
-    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
-    windowFactory.init(toolWindow)
-    return toolWindow
-  }
-
-  private inner class TestToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
-    var toolWindow = TestToolWindow(project, this)
-
-    override fun getToolWindow(id: String?): ToolWindow? {
-      return if (id == RUNNING_DEVICES_TOOL_WINDOW_ID) toolWindow else super.getToolWindow(id)
-    }
-
-    override fun invokeLater(runnable: Runnable) {
-      ApplicationManager.getApplication().invokeLater(runnable)
-    }
-  }
-
-  private inner class TestToolWindow(
-    project: Project,
-    private val manager: ToolWindowManager,
-  ) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-
-    var tabActions: List<AnAction> = emptyList()
-      private set
-    var titleActions: List<AnAction> = emptyList()
-      private set
-    private var available = true
-    private var visible = false
-    private var active = false
-    private var type = ToolWindowType.DOCKED
-    private var icon = StudioIcons.Shell.ToolWindows.EMULATOR
-
-    override fun setAvailable(available: Boolean) {
-      this.available = available
-    }
-
-    override fun isAvailable(): Boolean {
-      return available
-    }
-
-    override fun show(runnable: Runnable?) {
-      if (!visible) {
-        windowFactory.createToolWindowContent(project, this)
-        visible = true
-        notifyStateChanged(ToolWindowManagerEventType.ShowToolWindow)
-        runnable?.run()
-      }
-    }
-
-    override fun hide(runnable: Runnable?) {
-      if (visible) {
-        visible = false
-        notifyStateChanged(ToolWindowManagerEventType.HideToolWindow)
-        runnable?.run()
-      }
-    }
-
-    override fun activate(runnable: Runnable?) {
-      active = true
-      super.activate(runnable)
-    }
-
-    override fun isVisible() = visible
-
-    override fun isActive() = active
-
-    override fun setTabActions(vararg actions: AnAction) {
-      tabActions = listOf(*actions)
-    }
-
-    override fun setTitleActions(actions: List<AnAction>) {
-      this.titleActions = actions
-    }
-
-    override fun getType(): ToolWindowType {
-      return type
-    }
-
-    override fun setType(type: ToolWindowType, runnable: Runnable?) {
-      this.type = type
-      runnable?.run()
-    }
-
-    override fun getIcon(): Icon {
-      return icon
-    }
-
-    override fun setIcon(icon: Icon) {
-      this.icon = icon
-    }
-
-    private fun notifyStateChanged(changeType: ToolWindowManagerEventType) {
-      project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager, changeType)
-    }
   }
 }

@@ -26,7 +26,7 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.artifacts.DigestMap;
-import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaTargetArtifacts;
+import com.google.idea.blaze.qsync.java.JavaTargetInfo;
 import java.nio.file.Path;
 
 /** Information about a project dependency that is calculated when the dependency is built. */
@@ -86,7 +86,7 @@ public abstract class JavaArtifactInfo {
     return new AutoValue_JavaArtifactInfo.Builder();
   }
 
-  public static JavaArtifactInfo create(JavaTargetArtifacts proto, DigestMap digestMap) {
+  public static JavaArtifactInfo create(JavaTargetInfo.JavaArtifacts proto, DigestMap digestMap) {
     // Note, the proto contains a list of sources, we take the parent as we want directories instead
     Label target = Label.of(proto.getTarget());
     return builder()

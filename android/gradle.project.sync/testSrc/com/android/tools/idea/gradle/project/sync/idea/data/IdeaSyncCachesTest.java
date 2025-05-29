@@ -29,7 +29,6 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -43,7 +42,6 @@ public class IdeaSyncCachesTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myInvalidator = new IdeaSyncCachesInvalidator();
-    WorkspaceModelCacheImpl.forceEnableCaching(getTestRootDisposable());
   }
 
   public void testCacheIsInvalidated() {

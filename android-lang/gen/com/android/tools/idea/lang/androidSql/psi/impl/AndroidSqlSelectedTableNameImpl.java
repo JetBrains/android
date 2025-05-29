@@ -46,8 +46,7 @@ public class AndroidSqlSelectedTableNameImpl extends AbstractAndroidSqlNameEleme
   }
 
   @Override
-  @NotNull
-  public AndroidSqlSelectedTablePsiReference getReference() {
+  public @NotNull AndroidSqlSelectedTablePsiReference getReference() {
     return PsiImplUtil.getReference(this);
   }
 

@@ -115,9 +115,6 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   public static final BoolExperiment buildUseTargetPatternFile =
       new BoolExperiment("qsync.build.use.target.pattern.file", false);
 
-  public static final BoolExperiment multiInfoFile =
-      new BoolExperiment("qsync.multi.info.file.mode", true);
-
   public static final StringExperiment aspectLocation =
       new StringExperiment("qsync.build.aspect.location");
   public static final String INVOCATION_FILES_DIR = ".aswb";
@@ -130,8 +127,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       ImmutableList<String> exclude,
       ImmutableList<String> alwaysBuildRules,
       boolean generateIdlClasses,
-      boolean useGeneratedSrcJars,
-      boolean experimentMultiInfoFile) {}
+      boolean useGeneratedSrcJars) {}
 
   /**
    * Logs message if the number of artifact info files fetched is greater than
@@ -252,8 +248,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
             excludes,
             alwaysBuildRules,
             true,
-            buildGeneratedSrcJars.getValue(),
-            multiInfoFile.getValue());
+            buildGeneratedSrcJars.getValue());
 
     InvocationFiles invocationFiles = getInvocationFiles(buildTargets, parameters);
     var outputGroups = request.getOutputGroups(languages);
@@ -372,7 +367,6 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     appendStringList(result, "always_build_rules", parameters.alwaysBuildRules);
     appendBoolean(result, "generate_aidl_classes", parameters.generateIdlClasses);
     appendBoolean(result, "use_generated_srcjars", parameters.useGeneratedSrcJars);
-    appendBoolean(result, "experiment_multi_info_file", parameters.experimentMultiInfoFile);
     result.append(")\n");
     result.append("\n");
     result.append("collect_dependencies = _collect_dependencies(_config)\n");

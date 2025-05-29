@@ -31,5 +31,6 @@
     <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.backup.api" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="TEST" />
   </component>
 </module>

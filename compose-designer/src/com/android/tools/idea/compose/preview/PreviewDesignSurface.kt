@@ -61,7 +61,6 @@ private fun createPreviewDesignSurfaceBuilder(
         it.updateAndRenderWhenActivated = false // don't re-render on activation
         it.sceneRenderConfiguration.renderingTopic =
           RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW
-        it.model.configuration.addListener(ConfigurationResizeListener(it, it.model.configuration))
       }
     }
     .waitForRenderBeforeRestoringZoom(true)

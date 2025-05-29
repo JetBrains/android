@@ -79,8 +79,6 @@ internal enum class TestDeviceType {
  */
 internal class UiSettingsIntegrationRule : ExternalResource() {
   private val disposableRule = DisposableRule()
-  private val gestureRule = FlagRule(StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS, true)
-  private val debugLayoutRule = FlagRule(StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS, true)
   private val timeoutRule = FlagRule(StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS, 30_000)
   private val headlessDialogRule = HeadlessDialogRule()
   private val projectRule = AndroidProjectRule.withAndroidModel(
@@ -110,7 +108,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   }
 
   override fun apply(base: Statement, description: Description): Statement =
-    apply(base, description, projectRule, disposableRule, gestureRule, debugLayoutRule, timeoutRule, headlessDialogRule)
+    apply(base, description, projectRule, disposableRule, timeoutRule, headlessDialogRule)
 
   private fun apply(base: Statement, description: Description, vararg rules: TestRule): Statement {
     var statement = super.apply(base, description)

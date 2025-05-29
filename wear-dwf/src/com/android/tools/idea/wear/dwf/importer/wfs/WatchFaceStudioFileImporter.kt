@@ -15,142 +15,271 @@
  */
 package com.android.tools.idea.wear.dwf.importer.wfs
 
+import com.android.SdkConstants.ATTR_PACKAGE
+import com.android.SdkConstants.EXT_ANDROID_PACKAGE
+import com.android.SdkConstants.EXT_APP_BUNDLE
 import com.android.SdkConstants.FD_MAIN
-import com.android.SdkConstants.FD_RES
-import com.android.SdkConstants.FD_RES_RAW
 import com.android.SdkConstants.FD_SOURCES
-import com.android.ide.common.xml.XmlPrettyPrinter
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.manifmerger.ManifestMerger2
+import com.android.manifmerger.MergingReport
+import com.android.manifmerger.XmlDocument
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportException.InvalidHoneyFaceFileException
-import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error
+import com.android.tools.idea.util.ReformatUtil
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.MISSING_MAIN_MODULE
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.UNKNOWN
+import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.UNSUPPORTED_FILE_EXTENSION
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Success
-import com.android.tools.idea.wear.dwf.importer.wfs.honeyface.HoneyFaceParser
-import com.android.tools.idea.wear.dwf.importer.wfs.honeyface.HoneyFaceXmlConverter
+import com.android.tools.idea.wear.dwf.importer.wfs.extractors.AndroidAppBundleExtractor
+import com.android.tools.idea.wear.dwf.importer.wfs.extractors.ApkExtractor
+import com.android.tools.idea.wear.dwf.importer.wfs.extractors.ExtractedItem
+import com.android.utils.FileUtils
+import com.android.utils.StdLogger
+import com.android.utils.XmlUtils
 import com.intellij.openapi.application.edtWriteAction
+import com.intellij.openapi.application.readAndWriteAction
+import com.intellij.openapi.command.writeCommandAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.io.Decompressor
+import com.intellij.openapi.vfs.findOrCreateFile
+import com.intellij.openapi.vfs.writeBytes
+import java.io.File
+import java.io.InputStream
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.io.path.extension
+import kotlin.io.path.notExists
+import kotlin.io.path.pathString
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.AndroidFileTemplateProvider
+import org.jetbrains.android.dom.resources.Resources
 import org.jetbrains.android.facet.AndroidRootUtil
+import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
-import java.io.File
-import java.nio.file.Path
-import kotlin.io.path.exists
-
-private val EXCLUDED_FILES =
-  setOf("res/drawable-nodpi/preview_circular.png", "res/values/strings.xml")
-
-private const val WATCH_FACE_FILENAME = "watchface.xml"
-private const val HONEY_FACE_FILENAME = "honeyface.json"
-private const val WFS_PREVIEW_FILENAME = "latest_preview.png"
-private const val STUDIO_PREVIEW_FILENAME = "preview.png"
+import org.w3c.dom.Document
 
 private val LOG = Logger.getInstance(WatchFaceStudioFileImporter::class.java)
 
 /**
- * Imports [WatchFaceStudio](https://developer.samsung.com/watch-face-studio/overview.html) files
- * (`.wfs`) to an already existing and open project.
+ * Imports watch faces compiled by
+ * [Watch Face Studio](https://developer.samsung.com/watch-face-studio/overview.html) into an
+ * already existing and open project. These compiled files are `.aab` and `.apk` files and can be
+ * built either by publishing a watch face, or deploying a watch face to device, from Watch Face
+ * Studio.
  *
  * Existing files may be overwritten if they have the same path as the files that are imported.
  */
 @Service(Service.Level.PROJECT)
 class WatchFaceStudioFileImporter
-private constructor(private val project: Project,
-                    private val defaultDispatcher: CoroutineDispatcher,
-                    private val ioDispatcher: CoroutineDispatcher) {
+private constructor(
+  private val project: Project,
+  private val defaultDispatcher: CoroutineDispatcher,
+  private val ioDispatcher: CoroutineDispatcher,
+) {
 
-  private constructor(project: Project) : this(project = project, defaultDispatcher = Dispatchers.Default, ioDispatcher = Dispatchers.IO)
+  private val extractorByFileExtension =
+    mapOf(
+      EXT_APP_BUNDLE to AndroidAppBundleExtractor(ioDispatcher),
+      EXT_ANDROID_PACKAGE to ApkExtractor(ioDispatcher),
+    )
 
-  private val parser: HoneyFaceParser = HoneyFaceParser()
-  private val xmlConverter: HoneyFaceXmlConverter = HoneyFaceXmlConverter()
+  val supportedFileTypes = extractorByFileExtension.keys
 
-  suspend fun import(wfsFile: VirtualFile): WFSImportResult = withContext(defaultDispatcher) {
-    val mainModuleRoot =
-      AndroidRootUtil.findModuleRootFolderPath(
-        project.modules.first { it.getModuleSystem().isProductionAndroidModule() }
-      )
-    if (mainModuleRoot == null) {
-      return@withContext Error(MISSING_MAIN_MODULE)
-    }
-    val mainFolderPath = mainModuleRoot.toPath().resolve(FD_SOURCES).resolve(FD_MAIN)
-    if (!mainFolderPath.exists()) {
-      withContext(ioDispatcher) { mainFolderPath.toFile().mkdirs() }
-    }
-    val resFolderPath = mainFolderPath.resolve(FD_RES)
-    if (!resFolderPath.exists()) {
-      withContext(ioDispatcher) { resFolderPath.toFile().mkdirs() }
-    }
+  private constructor(
+    project: Project
+  ) : this(
+    project = project,
+    defaultDispatcher = Dispatchers.Default,
+    ioDispatcher = Dispatchers.IO,
+  )
 
-    try {
-      extractWFSFiles(wfsFile, mainFolderPath, resFolderPath)
-      generateRawWatchFaceFile(mainFolderPath, resFolderPath)
-    }
-    catch (e: Throwable) {
-      LOG.warn("An error occurred when importing the Watch Face Studio file.", e)
-      return@withContext Error()
-    }
-    finally {
-      edtWriteAction {
-        LocalFileSystem.getInstance().findFileByNioFile(mainFolderPath)?.refresh(false, true)
+  suspend fun import(filePathToImport: Path): WFSImportResult =
+    withContext(defaultDispatcher) {
+      val mainModuleRoot =
+        AndroidRootUtil.findModuleRootFolderPath(
+          project.modules.first { it.getModuleSystem().isProductionAndroidModule() }
+        )
+      if (mainModuleRoot == null) {
+        return@withContext WFSImportResult.Error(MISSING_MAIN_MODULE)
+      }
+
+      withContext(ioDispatcher) {
+        val mainFolderPath = mainModuleRoot.toPath().resolve(FD_SOURCES).resolve(FD_MAIN)
+        if (mainFolderPath.notExists()) {
+          VfsUtil.createDirectories(mainFolderPath.pathString)
+        }
+
+        val fileExtractor =
+          extractorByFileExtension[filePathToImport.extension]
+            ?: return@withContext WFSImportResult.Error(UNSUPPORTED_FILE_EXTENSION)
+
+        try {
+          fileExtractor.extract(filePathToImport).collect { item ->
+            when (item) {
+              is ExtractedItem.Manifest -> importManifest(mainFolderPath, item)
+              is ExtractedItem.StringResource -> importStringResource(mainFolderPath, item)
+              is ExtractedItem.BinaryResource -> importBinaryResource(mainFolderPath, item)
+              is ExtractedItem.TextResource -> importTextResource(mainFolderPath, item)
+            }
+          }
+        } catch (e: Throwable) {
+          LOG.warn("An error occurred when importing the Watch Face Studio file.", e)
+          return@withContext WFSImportResult.Error()
+        }
+        Success
       }
     }
-    Success
-  }
 
-  private suspend fun extractWFSFiles(
-    wfsFile: VirtualFile,
+  private suspend fun importManifest(
     mainFolderPath: Path,
-    resFolderPath: Path,
+    extractedManifest: ExtractedItem.Manifest,
   ) {
-    withContext(ioDispatcher) {
-      Decompressor.Zip(wfsFile.toNioPath())
-        .entryFilter { it -> it.name !in EXCLUDED_FILES }
-        .extract(mainFolderPath)
+    val archiveManifestDocument = XmlUtils.parseDocument(extractedManifest.content, true)
+    // The package can be different from the current app/module, resulting in an error when
+    // deploying the watch face, unless we remove it.
+    archiveManifestDocument.documentElement.removeAttribute(ATTR_PACKAGE)
 
-      val wfsPreviewFile = mainFolderPath.resolve(WFS_PREVIEW_FILENAME).toFile()
-      if (wfsPreviewFile.exists()) {
-        val previewFileDestination = resFolderPath.resolve(STUDIO_PREVIEW_FILENAME).toFile()
+    val manifestPath = mainFolderPath.resolve(FN_ANDROID_MANIFEST_XML)
+    val manifestContent =
+      if (manifestPath.exists()) {
+        mergeManifests(manifestPath.toFile(), archiveManifestDocument)
+      } else {
+        XmlUtils.toXml(archiveManifestDocument)
+      }
 
-        FileUtil.copy(previewFileDestination, previewFileDestination)
-        FileUtil.delete(wfsPreviewFile)
+    writeAndReformat(
+      mainFolderPath.resolve(FN_ANDROID_MANIFEST_XML).findOrCreateVirtualFile(),
+      manifestContent,
+    )
+  }
+
+  private fun mergeManifests(manifestFile: File, archiveManifest: Document): String {
+    val archiveManifestFile = File.createTempFile("archiveManifest", ".xml") // will not be created
+    val mergeReport =
+      ManifestMerger2.newMerger(
+          manifestFile,
+          StdLogger(StdLogger.Level.WARNING),
+          ManifestMerger2.MergeType.APPLICATION,
+        )
+        .withFeatures(
+          ManifestMerger2.Invoker.Feature.SKIP_BLAME,
+          ManifestMerger2.Invoker.Feature.NO_IMPLICIT_PERMISSION_ADDITION,
+          ManifestMerger2.Invoker.Feature.HANDLE_VALUE_CONFLICTS_AUTOMATICALLY,
+          ManifestMerger2.Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT,
+          ManifestMerger2.Invoker.Feature.KEEP_GOING_AFTER_ERRORS,
+        )
+        .asType(XmlDocument.Type.OVERLAY)
+        .addFlavorAndBuildTypeManifest(archiveManifestFile)
+        .withFileStreamProvider(
+          object : ManifestMerger2.FileStreamProvider() {
+            override fun getInputStream(file: File): InputStream? {
+              if (FileUtils.isSameFile(file, archiveManifestFile)) {
+                return XmlUtils.toXml(archiveManifest).byteInputStream()
+              }
+              return super.getInputStream(file)
+            }
+          }
+        )
+        .merge()
+
+    return mergeReport.getMergedDocument(MergingReport.MergedManifestKind.MERGED)?.takeIf {
+      mergeReport.result.isSuccess
+    } ?: error("Failed to merge the manifest")
+  }
+
+  private suspend fun importStringResource(
+    mainFolderPath: Path,
+    stringResource: ExtractedItem.StringResource,
+  ) {
+    val importPath = mainFolderPath.resolve(stringResource.filePath)
+    val stringResourceFile =
+      VfsUtil.findFile(importPath, true)
+        ?: VfsUtil.createDirectories(importPath.parent.pathString).let { parentDirectory ->
+          val fileName = importPath.fileName.pathString
+          edtWriteAction {
+            AndroidFileTemplateProvider.createFromTemplate(
+                project,
+                parentDirectory,
+                AndroidFileTemplateProvider.VALUE_RESOURCE_FILE_TEMPLATE,
+                fileName,
+              )
+              ?.containingFile
+              ?.virtualFile ?: error("Expected $fileName to be created")
+          }
+        }
+
+    val stringDomElement =
+      AndroidUtils.loadDomElement(project, stringResourceFile, Resources::class.java)
+        ?: error("Failed to load DomElement for $stringResourceFile")
+
+    writeCommandAction(project, "Extracting String Resource") {
+      val stringElement =
+        stringDomElement.strings.find { it.name.stringValue == stringResource.name }
+          ?: stringDomElement.addString().also { it.name.stringValue = stringResource.name }
+      stringElement.stringValue = stringResource.value
+    }
+  }
+
+  private suspend fun importBinaryResource(
+    mainFolderPath: Path,
+    resource: ExtractedItem.BinaryResource,
+  ) {
+    val destinationFile = mainFolderPath.resolve(resource.filePath).findOrCreateVirtualFile()
+    edtWriteAction { destinationFile.writeBytes(resource.binaryContent) }
+  }
+
+  private suspend fun importTextResource(
+    mainFolderPath: Path,
+    resource: ExtractedItem.TextResource,
+  ) {
+    val destinationFile = mainFolderPath.resolve(resource.filePath).findOrCreateVirtualFile()
+    writeAndReformat(destinationFile, resource.text)
+  }
+
+  private suspend fun writeAndReformat(destinationFile: VirtualFile, content: String) {
+    val normalized = StringUtil.convertLineSeparators(content)
+    readAndWriteAction {
+      val document =
+        FileDocumentManager.getInstance().getDocument(destinationFile)
+          ?: error("Expected file document to exist")
+      writeCommandAction(project, "Writing and Reformatting File") {
+        document.setText(normalized)
+        ReformatUtil.reformatAndRearrange(project, destinationFile, keepDocumentLocked = true)
+        FileDocumentManager.getInstance().saveDocument(document)
       }
     }
   }
 
-  private suspend fun generateRawWatchFaceFile(mainFolderPath: Path, resFolderPath: Path) =
-    withContext(ioDispatcher) {
-      val honeyFaceFile = File(mainFolderPath.toFile(), HONEY_FACE_FILENAME)
-      val honeyFace =
-        parser.parse(honeyFaceFile)
-          ?: throw InvalidHoneyFaceFileException("Failed to parse the HoneyFace file.")
-      FileUtil.delete(honeyFaceFile)
-
-      val rawWatchFaceXmlDocument = xmlConverter.toXml(honeyFace)
-      val rawWatchFaceFile = resFolderPath.resolve(FD_RES_RAW).resolve(WATCH_FACE_FILENAME).toFile()
-
-      FileUtil.createIfDoesntExist(rawWatchFaceFile)
-      FileUtil.writeToFile(
-        rawWatchFaceFile,
-        XmlPrettyPrinter.prettyPrint(rawWatchFaceXmlDocument, false),
-      )
-    }
+  private suspend fun Path.findOrCreateVirtualFile(): VirtualFile {
+    val parentDirectory =
+      VfsUtil.createDirectories(parent.pathString)
+        ?: error("expected ${parent.pathString} to be created")
+    return edtWriteAction { parentDirectory.findOrCreateFile(fileName.pathString) }
+  }
 
   companion object {
     fun getInstance(project: Project): WatchFaceStudioFileImporter = project.service()
 
     @TestOnly
-    internal fun getInstanceForTest(project: Project, defaultDispatcher: CoroutineDispatcher, ioDispatcher: CoroutineDispatcher) =
-      WatchFaceStudioFileImporter(project = project, defaultDispatcher = defaultDispatcher, ioDispatcher = ioDispatcher)
+    internal fun getInstanceForTest(
+      project: Project,
+      defaultDispatcher: CoroutineDispatcher,
+      ioDispatcher: CoroutineDispatcher,
+    ) =
+      WatchFaceStudioFileImporter(
+        project = project,
+        defaultDispatcher = defaultDispatcher,
+        ioDispatcher = ioDispatcher,
+      )
   }
 }
 
@@ -161,6 +290,7 @@ sealed class WFSImportResult {
     enum class Type {
       UNKNOWN,
       MISSING_MAIN_MODULE,
+      UNSUPPORTED_FILE_EXTENSION,
     }
   }
 }

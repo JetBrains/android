@@ -18,19 +18,25 @@ package com.android.tools.idea.gradle.project.build.output
 import com.android.tools.idea.Projects
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.base.Charsets
-import com.google.common.base.Splitter
 import com.google.common.truth.Truth
+import com.intellij.build.BuildProgressListener
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
-import com.intellij.build.output.BuildOutputInstantReader
+import com.intellij.build.output.BuildOutputInstantReaderImpl
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemOutputParserProvider
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Rule
 import org.junit.Test
+import kotlin.sequences.forEach
 
 class DeclarativeErrorParserTest {
   private val projectRule = AndroidProjectRule.onDisk()
@@ -52,9 +58,9 @@ class DeclarativeErrorParserTest {
         }
       }
     }
-    """.trimIndent(), ::getDeclarativeBuildOutput) { file, iterator, reader ->
+    """.trimIndent(), ::getDeclarativeBuildOutput) { file, iterator, parentEventId ->
       verifyIssue(iterator,
-                  reader.parentEventId,
+                  parentEventId,
                   getDeclarativeBuildIssueDescription(project.basePath + "/path/build.gradle.dcl"),
                   3,
                   8,
@@ -70,9 +76,9 @@ class DeclarativeErrorParserTest {
       produ{}ctFlavors {
       }
     }
-    """.trimIndent(), ::getFailureBuildingLanguageTree) { file, iterator, reader ->
+    """.trimIndent(), ::getFailureBuildingLanguageTree) { file, iterator, parentEventId ->
       verifyIssue(iterator,
-                  reader.parentEventId,
+                  parentEventId,
                   getFailureBuildingLanguageTreeDescription(project.basePath + "/path/build.gradle.dcl"),
                   1,
                   9,
@@ -89,9 +95,9 @@ class DeclarativeErrorParserTest {
       }
       namespace = 1
     }
-    """.trimIndent(), ::getMultipleSubject) { file, iterator, reader ->
-      verifyIssue(iterator, reader.parentEventId, getMultipleSubject1(file.path), 1, 9, file)
-      verifyIssue(iterator, reader.parentEventId, getMultipleSubject2(file.path), 3, 4, file)
+    """.trimIndent(), ::getMultipleSubject) { file, iterator, parentEventId ->
+      verifyIssue(iterator, parentEventId, getMultipleSubject1(file.path), 1, 9, file)
+      verifyIssue(iterator, parentEventId, getMultipleSubject2(file.path), 3, 4, file)
     }
   }
 
@@ -105,26 +111,35 @@ class DeclarativeErrorParserTest {
         minSdk = "24"
       }
     }
-    """.trimIndent(), ::getMultipleIssueOutput) { file, iterator, reader ->
-      verifyIssue(iterator, reader.parentEventId, getMultipleIssue1(file.path), 1, 4, file)
-      verifyIssue(iterator, reader.parentEventId, getMultipleIssue2(file.path), 3, 8, file)
+    """.trimIndent(), ::getMultipleIssueOutput) { file, iterator, parentEventId ->
+      verifyIssue(iterator, parentEventId, getMultipleIssue1(file.path), 1, 4, file)
+      verifyIssue(iterator, parentEventId, getMultipleIssue2(file.path), 3, 8, file)
     }
   }
 
   private fun doTest(content: String,
                      buildOutput: (String) -> String,
-                     assert: (VirtualFile, Iterator<MessageEvent>, BuildOutputInstantReader) -> Unit) {
+                     assert: (VirtualFile, Iterator<MessageEvent>, Any) -> Unit) {
     val file = createFile("path", "build.gradle.dcl", content)
-    val parser = DeclarativeErrorParser()
-    val reader = LinesBuildOutputInstantReader(Splitter.on("\n").split(buildOutput(file!!.path)).toList(), "Test Id")
     val consumer = TestMessageEventConsumer()
 
-    val line = reader.readLine()!!
-    val parsed = parser.parse(line, reader, consumer)
+    val progressListener = object : BuildProgressListener {
+      override fun onEvent(buildId: Any, event: BuildEvent) {
+        if (event is MessageEvent) {
+          consumer.accept(event)
+        }
+      }
+    }
 
-    Truth.assertThat(parsed).isTrue()
+    val taskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, projectRule.project)
+    val parentEventId = "Test Id"
+    val parsers = ExternalSystemOutputParserProvider.EP_NAME.extensions.flatMap { it.getBuildOutputParsers(taskId) }
+    val parser = BuildOutputInstantReaderImpl(taskId, parentEventId, progressListener, parsers)
+    parser.disableActiveReading()
+    buildOutput(file!!.path).lineSequence().forEach { parser.appendLine(it) }
+    parser.closeAndGetFuture().join()
     val iterator = consumer.messageEvents.filterIsInstance<MessageEvent>().listIterator()
-    assert(file, iterator, reader)
+    assert(file, iterator, parentEventId)
   }
 
   private fun verifyIssue(iterator: Iterator<MessageEvent>, parentId: Any, description: String, line: Int, column: Int, file: VirtualFile) {

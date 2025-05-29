@@ -52,7 +52,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -329,16 +328,14 @@ class ComposePreviewViewImplTest {
         mainFileSmartPointer.element!!,
         fixture.testRootDisposable,
         EmptyProgressIndicator(),
-        {
-          previewView.hasRendered = true
-          previewView.hasContent = true
-        },
         testPreviewElementModelAdapter,
         DefaultModelUpdater(),
         navigationHandler = ComposePreviewNavigationHandler(),
         configureLayoutlibSceneManager = configureLayoutlibSceneManager,
         null,
       )
+      previewView.hasRendered = true
+      previewView.hasContent = true
     }
     ApplicationManager.getApplication().invokeAndWait {
       previewView.updateVisibilityAndNotifications()
@@ -453,43 +450,6 @@ class ComposePreviewViewImplTest {
     assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel> { it.isShowing }.size)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display1" }!!.isShowing)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display2" }!!.isShowing)
-  }
-
-  @Test
-  fun `configuration listeners are not triggered before the whole setup of the model is completed`() {
-    val composePreviewManager = TestComposePreviewManager()
-    val previews =
-      listOf(
-        SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
-          "Fake Test Method",
-          "Display1",
-        )
-      )
-    val fakePreviewProvider =
-      object : PreviewElementProvider<PsiComposePreviewElementInstance> {
-        override suspend fun previewElements(): Sequence<PsiComposePreviewElementInstance> =
-          previews.asSequence()
-      }
-    var listenerInvoked = 0
-    var layoutSceneManagerConfigured = false
-    updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
-    val configureLayoutlibSceneManager =
-      { _: PreviewDisplaySettings, layoutSceneManager: LayoutlibSceneManager ->
-        layoutSceneManagerConfigured = true
-        layoutSceneManager
-      }
-    previewView.mainSurface.models.single().configuration.addListener { change ->
-      // Check that listener invoked after we updated sceneManager.sceneRenderConfiguration
-      assertThat(layoutSceneManagerConfigured).isTrue()
-      listenerInvoked++
-      true
-    }
-    updatePreviewAndRefreshWithProvider(
-      fakePreviewProvider,
-      composePreviewManager,
-      configureLayoutlibSceneManager = configureLayoutlibSceneManager,
-    )
-    assertThat(listenerInvoked).isEqualTo(1)
   }
 
   @Test

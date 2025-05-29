@@ -29,9 +29,11 @@ using namespace std;
 ServiceManager::ServiceManager(Jni jni)
     : service_manager_class_() {
   service_manager_class_ = jni.GetClass("android/os/ServiceManager");
-  // The waitForService method was introduced only in API 30. Fall back to getService on earlier versions.
-  const char* method_name = Agent::feature_level() >= 30 ? "waitForService" : "getService";
-  wait_for_service_method_ = service_manager_class_.GetStaticMethod(method_name, "(Ljava/lang/String;)Landroid/os/IBinder;");
+  get_service_method_ = service_manager_class_.GetStaticMethod("getService", "(Ljava/lang/String;)Landroid/os/IBinder;");
+  if (Agent::feature_level() >= 30) {
+    // The waitForService method was introduced only in API 30. Fall back to getService on earlier versions.
+    wait_for_service_method_ = service_manager_class_.GetStaticMethod("waitForService", "(Ljava/lang/String;)Landroid/os/IBinder;");
+  }
   service_manager_class_.MakeGlobal();
 }
 
@@ -40,8 +42,8 @@ ServiceManager& ServiceManager::GetInstance(Jni jni) {
   return instance;
 }
 
-JObject ServiceManager::GetServiceAsInterface(Jni jni, const char* name, const char* type, bool allow_null) {
-  JObject binder = GetService(jni, name, allow_null);
+JObject ServiceManager::GetServiceAsInterface(Jni jni, const char* name, const char* type, bool wait_if_necessary, bool allow_null) {
+  JObject binder = GetService(jni, name, wait_if_necessary, allow_null);
   if (binder.IsNull()) {
     return binder;
   }
@@ -58,9 +60,10 @@ JObject ServiceManager::GetServiceAsInterface(Jni jni, const char* name, const c
   return service;
 }
 
-JObject ServiceManager::WaitForService(Jni jni, const char* name, bool allow_null) {
-  Log::D("WaitForService(\"%s\")", name);
-  JObject binder = service_manager_class_.CallStaticObjectMethod(jni, wait_for_service_method_, JString(jni, name).ref());
+JObject ServiceManager::GetServiceInternal(Jni jni, const char* name, bool wait_if_necessary, bool allow_null) {
+  Log::D("GetService(\"%s\", %s, %s)", name, wait_if_necessary ? "true" : "false", allow_null ? "true" : "false");
+  jmethodID method = wait_if_necessary && wait_for_service_method_ != nullptr ? wait_for_service_method_ : get_service_method_;
+  JObject binder = service_manager_class_.CallStaticObjectMethod(jni, method, JString(jni, name).ref());
   if (binder.IsNull()) {
     if (allow_null) {
       jni.CheckAndClearException();
@@ -74,10 +77,10 @@ JObject ServiceManager::WaitForService(Jni jni, const char* name, bool allow_nul
 extern "C"
 JNIEXPORT jobject JNICALL
 Java_com_android_tools_screensharing_ServiceManager_getServiceAsInterface(
-    JNIEnv* jni_env, jclass clazz, jstring name, jstring type, jboolean allow_null) {
+    JNIEnv* jni_env, jclass clazz, jstring name, jstring type, jboolean wait_if_necessary, jboolean allow_null) {
   Jni jni(jni_env);
   return ServiceManager::GetServiceAsInterface(
-      jni, JString(jni, name).GetValue().c_str(), JString(jni, type).GetValue().c_str(), allow_null).Release();
+      jni, JString(jni, name).GetValue().c_str(), JString(jni, type).GetValue().c_str(), wait_if_necessary, allow_null).Release();
 }
 
 }  // namespace screensharing

@@ -210,7 +210,7 @@ abstract class SdkComponentsStepController(
                   }
                 }
               ),
-              StudioProgressRunner(false, false, "Finding Available SDK Components", project),
+              StudioProgressRunner(false, "Finding Available SDK Components", project),
               StudioDownloader(),
               StudioSettingsController.getInstance(),
             )

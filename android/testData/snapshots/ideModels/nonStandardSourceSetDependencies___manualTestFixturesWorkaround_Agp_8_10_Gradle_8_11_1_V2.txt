@@ -919,8 +919,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseWearApp                : <empty>
                         releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1089,8 +1087,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         metadataCompilationRuntimeOnly          : <empty>
                         metadataCompileClasspath      : <empty>
                         - metadataSourcesElements     : <ROOT>/common/build/libs/common-kotlin-sources.jar [-]
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testKotlinScriptDef           : <empty>
                         testKotlinScriptDefExtensions : <empty>
                     sourceSets
@@ -1200,8 +1196,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         - runtimeElements             : <ROOT>/desktop/build/libs/desktop.jar [-]
                         - runtimeElements-published   : <ROOT>/desktop/build/libs/desktop.jar [-]
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1455,8 +1449,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseUnitTestRuntimeOnly    : <empty>
                         releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1770,8 +1762,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseUnitTestRuntimeClasspath         : <empty>
                         releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
                         testDebugAnnotationProcessor  : <empty>
@@ -1878,8 +1868,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         - runtimeElements             : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                         - runtimeElements-published   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -2115,8 +2103,6 @@ MODULE                        : NonStandardSourceSetDependencies
                                 - metadataSourcesElements     : <ROOT>/kmp-java/sample/build/libs/sample-kotlin-sources.jar [-]
                                 runtimeClasspath              : <empty>
                                 runtimeOnly                   : <empty>
-                                swiftExportClasspath          : <empty>
-                                swiftExportClasspathResolvable          : <empty>
                                 testAnnotationProcessor       : <empty>
                                 testCompileClasspath          : <empty>
                                 testCompileOnly               : <empty>
@@ -2559,8 +2545,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseUnitTestRuntimeOnly    : <empty>
                         releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
-                        swiftExportClasspath          : <empty>
-                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>

@@ -52,14 +52,12 @@ public class AndroidSqlBindParameterImpl extends ASTWrapperPsiElement implements
   }
 
   @Override
-  @Nullable
-  public String getParameterNameAsString() {
+  public @Nullable String getParameterNameAsString() {
     return PsiImplUtil.getParameterNameAsString(this);
   }
 
   @Override
-  @Nullable
-  public PsiReference getReference() {
+  public @Nullable PsiReference getReference() {
     return PsiImplUtil.getReference(this);
   }
 

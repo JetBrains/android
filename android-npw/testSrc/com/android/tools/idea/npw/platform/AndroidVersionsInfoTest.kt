@@ -56,11 +56,6 @@ class AndroidVersionsInfoTest {
   fun stableVersion() {
     val versionItem = AndroidVersionsInfo.VersionItem.fromStableVersion(OLDER_VERSION)
     assertEquals(OLDER_VERSION, versionItem.minApiLevel)
-    assertEquals(OLDER_VERSION.toString(), versionItem.minApiLevelStr)
-    assertEquals(NPW_CURRENT_VERSION, versionItem.buildApiLevel)
-    assertEquals("$NPW_CURRENT_VERSION.0", versionItem.buildApiLevelStr)
-    assertEquals(NPW_CURRENT_VERSION, versionItem.targetApiLevel)
-    assertEquals("$NPW_CURRENT_VERSION", versionItem.targetApiLevelStr)
     assertThat(versionItem.toString()).contains(getCodeName(OLDER_VERSION))
   }
 
@@ -71,11 +66,6 @@ class AndroidVersionsInfoTest {
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidVersion(version)
     assertEquals("API TEST_CODENAME Preview", versionItem.label)
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
-    assertEquals("TEST_CODENAME", versionItem.minApiLevelStr)
-    assertEquals(FUTURE_VERSION, versionItem.buildApiLevel)
-    assertEquals("${FUTURE_VERSION - 1}.0-TEST_CODENAME", versionItem.buildApiLevelStr)
-    assertEquals(FUTURE_VERSION, versionItem.targetApiLevel)
-    assertEquals("TEST_CODENAME", versionItem.targetApiLevelStr)
   }
 
   /**
@@ -83,38 +73,28 @@ class AndroidVersionsInfoTest {
    */
   @Test
   fun stableAndroidTarget() {
-    val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(OLDER_VERSION, 0))
+    val versionItem =
+      AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(OLDER_VERSION, 0))
     assertEquals(OLDER_VERSION, versionItem.minApiLevel)
-    assertEquals(OLDER_VERSION.toString(), versionItem.minApiLevelStr)
-    assertEquals(NPW_CURRENT_VERSION, versionItem.buildApiLevel)
-    assertEquals("$NPW_CURRENT_VERSION.0", versionItem.buildApiLevelStr)
-    assertEquals(NPW_CURRENT_VERSION, versionItem.targetApiLevel)
-    assertEquals("$NPW_CURRENT_VERSION", versionItem.targetApiLevelStr)
   }
 
   /** For preview Android target versions, the Build API should be the same as the preview */
   @Test
   fun withPreviewAndroidTarget() {
-    val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(FUTURE_VERSION - 1, "TEST_CODENAME"))
+    val versionItem =
+      AndroidVersionsInfo.VersionItem.fromAndroidVersion(
+        AndroidVersion(FUTURE_VERSION - 1, "TEST_CODENAME")
+      )
     assertEquals("API TEST_CODENAME Preview", versionItem.label)
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
-    assertEquals("TEST_CODENAME", versionItem.minApiLevelStr)
-    assertEquals(FUTURE_VERSION, versionItem.buildApiLevel)
-    assertEquals("${FUTURE_VERSION - 1}.0-TEST_CODENAME", versionItem.buildApiLevelStr)
-    assertEquals(FUTURE_VERSION, versionItem.targetApiLevel)
-    assertEquals("TEST_CODENAME", versionItem.targetApiLevelStr)
   }
 
   /** For future Android target versions, the Build API should be updated too */
   @Test
   fun futureAndroidVersion() {
-    val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(FUTURE_VERSION, 0))
+    val versionItem =
+      AndroidVersionsInfo.VersionItem.fromAndroidVersion(AndroidVersion(FUTURE_VERSION, 0))
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
-    assertEquals(FUTURE_VERSION.toString(), versionItem.minApiLevelStr)
-    assertEquals(FUTURE_VERSION, versionItem.buildApiLevel)
-    assertEquals("${FUTURE_VERSION}.0", versionItem.buildApiLevelStr)
-    assertEquals(FUTURE_VERSION, versionItem.targetApiLevel)
-    assertEquals("$FUTURE_VERSION", versionItem.targetApiLevelStr)
   }
 
   @Test
@@ -129,11 +109,9 @@ class AndroidVersionsInfoTest {
     val versionItem = AndroidVersionsInfo.VersionItem(AndroidVersion(31, 0), AndroidVersion(32, 0))
     val withApi30 = versionItem.withCompileSdk(AndroidVersion(30, 0))
     assertThat(withApi30.minApiLevel).isEqualTo(30)
-    assertThat(withApi30.buildApiLevel).isEqualTo(30)
 
     val withApi33 = versionItem.withCompileSdk(AndroidVersion(33, 0))
     assertThat(withApi33.minApiLevel).isEqualTo(31)
-    assertThat(withApi33.buildApiLevel).isEqualTo(33)
   }
 
   @Test

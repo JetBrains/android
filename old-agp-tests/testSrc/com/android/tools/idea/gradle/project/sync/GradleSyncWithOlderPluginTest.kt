@@ -21,6 +21,7 @@ import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.requestSyncAndWait
@@ -48,7 +49,7 @@ class GradleSyncWithOlderPluginTest {
   @Test
   fun testDaemonStops5Dot3Dot1() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AGP_33_WITH_5_3_1)
-    preparedProject.open { project ->
+    preparedProject.open(updateOptions = { it.copy(verifyOpened = { } ) }) { project ->
       verifyDaemonStops(project)
     }
   }
@@ -56,7 +57,7 @@ class GradleSyncWithOlderPluginTest {
   fun verifyDaemonStops(project: Project) {
     stopDaemons()
     Truth.assertThat(areGradleDaemonsRunning()).isFalse()
-    project.requestSyncAndWait()
+    AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest(), {})
     Truth.assertThat(areGradleDaemonsRunning()).isTrue()
     stopDaemons()
     Truth.assertThat(areGradleDaemonsRunning()).isFalse()

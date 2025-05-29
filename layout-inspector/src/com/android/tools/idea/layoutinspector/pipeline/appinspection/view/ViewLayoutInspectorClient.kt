@@ -239,6 +239,9 @@ class ViewLayoutInspectorClient(
 
   private fun handleFoldEvent(foldEvent: LayoutInspectorViewProtocol.FoldEvent) {
     model.foldInfo = foldEvent.convert()
+    if (model.foldInfo != null) {
+      stats.foldInfoReceived()
+    }
   }
 
   private fun handleProgressEvent(progressEvent: LayoutInspectorViewProtocol.ProgressEvent) =

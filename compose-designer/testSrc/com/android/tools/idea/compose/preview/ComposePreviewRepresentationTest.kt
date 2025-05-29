@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.error.SharedIssuePanelProvider
@@ -25,6 +26,7 @@ import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction
 import com.android.tools.idea.compose.preview.actions.UiCheckReopenTabAction
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber
+import com.android.tools.idea.compose.preview.resize.ResizePanel
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -57,6 +59,7 @@ import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider
@@ -212,6 +215,7 @@ class ComposePreviewRepresentationTest {
   @After
   fun tearDown() {
     StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.clearOverride()
+    StudioFlags.COMPOSE_PREVIEW_RESIZING.clearOverride()
     composePreviewEssentialsModeEnabled = false
   }
 
@@ -835,6 +839,89 @@ class ComposePreviewRepresentationTest {
     }
 
   @Test
+  fun testResizePanelIsCreatedInFocusMode_flagTrue() = runComposePreviewRepresentationTest {
+    StudioFlags.COMPOSE_PREVIEW_RESIZING.overrideForTest(
+      true,
+      projectRule.fixture.testRootDisposable,
+    )
+    createPreviewAndCompile()
+
+    val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+    val focusElement = previewElements[0]
+
+    setModeAndWaitForRefresh(PreviewMode.Focus(focusElement)) { composeView.focusMode != null }
+
+    assertThat(composeView.focusMode!!.component.components[1] as? ResizePanel).isNotNull()
+  }
+
+  @Test
+  fun testResizePanelIsWorkingForFileWithSinglePreview() {
+    val testFile = runWriteActionAndWait {
+      fixture.addFileToProjectAndInvalidate(
+        "SinglePreview.kt",
+        // language=kotlin
+        """
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.runtime.Composable
+
+            @Composable
+            @Preview
+            fun SinglePreview() {
+            }
+          """
+          .trimIndent(),
+      )
+    }
+
+    return runComposePreviewRepresentationTest(testFile) {
+      StudioFlags.COMPOSE_PREVIEW_RESIZING.overrideForTest(
+        true,
+        projectRule.fixture.testRootDisposable,
+      )
+      createPreviewAndCompile(expectedModelCount = 1)
+
+      val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+      assertThat(mainSurface.models.size).isEqualTo(1)
+      val singleElement = previewElements.single()
+
+      // Don't wait for refresh as it's not going to happen when we switch form grid with one
+      // element to Focus mode
+      setModeAndWaitForRefresh(PreviewMode.Focus(singleElement), waitForRefresh = false) {
+        composeView.focusMode != null
+      }
+
+      val resizePanel = composeView.focusMode!!.component.findDescendant<ResizePanel>()!!
+      assertThat(resizePanel.getCurrentPreviewElementForTest()).isEqualTo(singleElement)
+
+      setModeAndWaitForRefresh(PreviewMode.Default()) { composeView.focusMode == null }
+
+      // Don't wait for refresh as it's not going to happen when we switch form grid with one
+      // element to Focus mode
+      setModeAndWaitForRefresh(PreviewMode.Focus(singleElement), waitForRefresh = false) {
+        composeView.focusMode != null
+      }
+      val resizePanel2 = composeView.focusMode!!.component.findDescendant<ResizePanel>()!!
+      assertThat(resizePanel2.getCurrentPreviewElementForTest()).isEqualTo(singleElement)
+    }
+  }
+
+  @Test
+  fun testResizePanelIsCreatedInFocusMode_flagFalse() = runComposePreviewRepresentationTest {
+    StudioFlags.COMPOSE_PREVIEW_RESIZING.overrideForTest(
+      false,
+      projectRule.fixture.testRootDisposable,
+    )
+    createPreviewAndCompile()
+
+    val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+    val focusElement = previewElements[0]
+
+    setModeAndWaitForRefresh(PreviewMode.Focus(focusElement)) { composeView.focusMode != null }
+
+    assertThat(composeView.focusMode!!.component.components.size).isEqualTo(1)
+  }
+
+  @Test
   fun testInteractivePreviewManagerFpsLimitIsUpdatedWhenEssentialsModeChanges() =
     runComposePreviewRepresentationTest {
       val preview = createPreviewAndCompile()
@@ -850,7 +937,10 @@ class ComposePreviewRepresentationTest {
 
   @Test
   fun testWearUiCheckMode() {
-    StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.override(true)
+    StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.overrideForTest(
+      true,
+      projectRule.fixture.testRootDisposable,
+    )
 
     val testPsiFile = runWriteActionAndWait {
       fixture.addFileToProjectAndInvalidate(
@@ -1062,6 +1152,82 @@ class ComposePreviewRepresentationTest {
     }
   }
 
+  @Test
+  fun previewPagination() {
+    StudioFlags.PREVIEW_PAGINATION.overrideForTest(true, projectRule.fixture.testRootDisposable)
+    val testPsiFile =
+      fixture.addFileToProjectAndInvalidate(
+        "Test.kt",
+        // language=kotlin
+        """
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.runtime.Composable
+
+            @Composable
+            @Preview(name = "1")
+            @Preview(name = "2")
+            @Preview(name = "3")
+            @Preview(name = "4")
+            @Preview(name = "5")
+            fun MyFun() {
+            }
+          """
+          .trimIndent(),
+      )
+
+    runComposePreviewRepresentationTest(testPsiFile) {
+      val preview = createPreviewAndCompile()
+      delayUntilCondition(delayPerIterationMs = 100) {
+        """
+          MyFun - 1
+          MyFun - 2
+          MyFun - 3
+          MyFun - 4
+          MyFun - 5
+        """
+          .trimIndent() == preview.getRenderedPreviewNames()
+      }
+
+      preview.composePreviewFlowManager.previewFlowPaginator.pageSize = 2
+      delayUntilCondition(delayPerIterationMs = 100) {
+        """
+          MyFun - 1
+          MyFun - 2
+        """
+          .trimIndent() == preview.getRenderedPreviewNames()
+      }
+
+      preview.composePreviewFlowManager.previewFlowPaginator.selectedPage = 1
+      delayUntilCondition(delayPerIterationMs = 100) {
+        """
+          MyFun - 3
+          MyFun - 4
+        """
+          .trimIndent() == preview.getRenderedPreviewNames()
+      }
+
+      preview.composePreviewFlowManager.previewFlowPaginator.selectedPage = 2
+      delayUntilCondition(delayPerIterationMs = 100) {
+        """
+          MyFun - 5
+        """
+          .trimIndent() == preview.getRenderedPreviewNames()
+      }
+
+      // Increasing page size from 2 to 3 will make the page 2 (0-indexed) disappear, so the
+      // selectedPage should automatically change to 1.
+      preview.composePreviewFlowManager.previewFlowPaginator.pageSize = 3
+      delayUntilCondition(delayPerIterationMs = 100) {
+        """
+          MyFun - 4
+          MyFun - 5
+        """
+          .trimIndent() == preview.getRenderedPreviewNames()
+      }
+      assertEquals(1, preview.composePreviewFlowManager.previewFlowPaginator.selectedPage)
+    }
+  }
+
   private fun runComposePreviewRepresentationTest(
     previewPsiFile: PsiFile = createPreviewPsiFile(),
     mainSurface: NlDesignSurface =
@@ -1124,7 +1290,7 @@ class ComposePreviewRepresentationTest {
 
     private lateinit var preview: ComposePreviewRepresentation
 
-    private lateinit var composeView: TestComposePreviewView
+    lateinit var composeView: TestComposePreviewView
 
     private lateinit var dataProvider: DataProvider
 
@@ -1173,12 +1339,15 @@ class ComposePreviewRepresentationTest {
 
     suspend fun setModeAndWaitForRefresh(
       previewMode: PreviewMode,
+      waitForRefresh: Boolean = true,
       // In addition to refresh, we can wait for another condition before returning.
       additionalCondition: () -> Boolean = { true },
     ) {
       waitForAllRefreshesToFinish(30.seconds)
-      var refresh = false
-      composeView.refreshCompletedListeners.add { refresh = true }
+      var refresh = !waitForRefresh
+      if (waitForRefresh) {
+        composeView.refreshCompletedListeners.add { refresh = true }
+      }
       preview.setMode(previewMode)
       delayUntilCondition(250) { refresh && additionalCondition() }
     }
@@ -1204,4 +1373,9 @@ class ComposePreviewRepresentationTest {
       }
     }
   }
+
+  private fun ComposePreviewRepresentation.getRenderedPreviewNames() =
+    renderedPreviewElementsInstancesFlowForTest().value.asCollection().joinToString("\n") {
+      it.displaySettings.name
+    }
 }
