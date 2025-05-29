@@ -18,6 +18,7 @@
 
 #include "log.h"
 #include "shell_command_executor.h"
+#include "string_util.h"
 
 namespace screensharing {
 
@@ -25,10 +26,7 @@ using namespace std;
 
 string Settings::Get(Settings::Table table, const char* key) {
   string command = string("cmd settings get ") + table_names_[static_cast<int>(table)] + " " + key;
-  string value = ExecuteShellCommand(command.c_str());
-  while (!value.empty() && value.back() <= ' ') {
-    value.erase(value.size() - 1);
-  }
+  string value = RTrim(ExecuteShellCommand(command.c_str()));
   return value == "null" ? "" : value;
 }
 
