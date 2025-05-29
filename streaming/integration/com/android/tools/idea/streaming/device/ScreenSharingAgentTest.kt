@@ -19,10 +19,10 @@ import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.testutils.TestUtils.getBinPath
-import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.asdriver.tests.AndroidSystem
+import com.android.tools.idea.adb.CreateAndroidDebugBridgeForAdblibRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.testing.flags.overrideForTest
@@ -391,7 +391,8 @@ class ScreenSharingAgentTest {
 
     @get:ClassRule
     @get:JvmStatic
-    val ruleChain: RuleChain = RuleChain(projectRule, disposableRule, system, EdtRule())
+    val ruleChain: RuleChain =
+      RuleChain(projectRule, disposableRule, CreateAndroidDebugBridgeForAdblibRule(), system, EdtRule())
 
     private lateinit var adb: Adb
     private lateinit var emulator: Emulator
@@ -420,11 +421,6 @@ class ScreenSharingAgentTest {
 
       val disposable = Disposer.newDisposable("ScreenSharingAgentTest").also { classDisposable = it }
       StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.overrideForTest("debug", disposable)
-
-      val adbBinary = resolveWorkspacePath("prebuilts/studio/sdk/linux/platform-tools/adb")
-      check(Files.exists(adbBinary))
-      check(System.getProperty(AndroidSdkUtils.ADB_PATH_PROPERTY) == null)
-      System.setProperty(AndroidSdkUtils.ADB_PATH_PROPERTY, adbBinary.toString())
 
       adb = system.runAdb()
       emulator = system.runEmulator(Emulator.SystemImage.API_30)

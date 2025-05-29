@@ -27,6 +27,7 @@ import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.testlib.Adb
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.testlib.Emulator
+import com.android.tools.idea.adb.CreateAndroidDebugBridgeForAdblibRule
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.StreamingDevicePanel
@@ -81,6 +82,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   private val disposableRule = DisposableRule()
   private val timeoutRule = FlagRule(StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS, 30_000)
   private val headlessDialogRule = HeadlessDialogRule()
+  private val createAndroidDebugBridgeRule = CreateAndroidDebugBridgeForAdblibRule()
   private val projectRule = AndroidProjectRule.withAndroidModel(
     createAndroidProjectBuilderForDefaultTestProjectStructure()
       .copy(applicationIdFor = { APPLICATION_ID })
@@ -108,7 +110,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   }
 
   override fun apply(base: Statement, description: Description): Statement =
-    apply(base, description, projectRule, disposableRule, timeoutRule, headlessDialogRule)
+    apply(base, description, projectRule, createAndroidDebugBridgeRule, disposableRule, timeoutRule, headlessDialogRule)
 
   private fun apply(base: Statement, description: Description, vararg rules: TestRule): Statement {
     var statement = super.apply(base, description)
@@ -153,10 +155,6 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   }
 
   private fun initAdb(): Adb {
-    val adbBinary = TestUtils.resolveWorkspacePath("prebuilts/studio/sdk/linux/platform-tools/adb")
-    check(Files.exists(adbBinary))
-    check(System.getProperty(AndroidSdkUtils.ADB_PATH_PROPERTY) == null)
-    System.setProperty(AndroidSdkUtils.ADB_PATH_PROPERTY, adbBinary.toString())
     return system.runAdb()
   }
 
