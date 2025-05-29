@@ -385,7 +385,7 @@ private class HeadlessDialogWrapperPeer(
   }
 
   override fun setLocation(x: Int, y: Int) {
-    setLocation(Point(x, y))
+    location = Point(x, y)
   }
 
   override fun show(): CompletableFuture<*> {
@@ -569,7 +569,7 @@ private class HeadlessDialogWrapperPeer(
     }
 
     init {
-      setGlassPane(IdeGlassPaneImpl(this));
+      setGlassPane(IdeGlassPaneImpl(this))
       putClientProperty("DIALOG_ROOT_PANE", true)
       border = UIManager.getBorder("Window.border")
     }
