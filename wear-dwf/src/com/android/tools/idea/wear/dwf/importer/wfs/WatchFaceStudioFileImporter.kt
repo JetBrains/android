@@ -22,6 +22,7 @@ import com.android.SdkConstants.FD_RES
 import com.android.manifmerger.ManifestMerger2
 import com.android.manifmerger.MergingReport
 import com.android.manifmerger.XmlDocument
+import com.android.tools.idea.project.AndroidRunConfigurationsManager
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.ReformatUtil
@@ -124,6 +125,9 @@ private constructor(
             }
           }
         }
+
+        AndroidRunConfigurationsManager.getInstance(project).createProjectRunConfigurations().join()
+
         WFSImportResult.Success
       } catch (e: Throwable) {
         LOG.warn("An error occurred when importing the Watch Face Studio file.", e)

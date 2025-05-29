@@ -26,22 +26,23 @@ import org.jetbrains.annotations.TestOnly
 
 class AndroidRunConfigurationsManager(private val project: Project) {
 
-  private val operationsStates= mutableListOf<Job>()
+  private val operationsStates = mutableListOf<Job>()
 
-  fun createProjectRunConfigurations() {
-    project.coroutineScope.launch {
-      withBackgroundProgress(project, "Setting up run configurations...") {
-        AndroidRunConfigurations.instance.createRunConfigurations(project)
-      }
-    }.also {
-      if (ApplicationManager.getApplication().isUnitTestMode) {
-        synchronized(operationsStates) {
-          operationsStates.removeIf { it.isCompleted }
-          operationsStates.add(it)
+  fun createProjectRunConfigurations() =
+    project.coroutineScope
+      .launch {
+        withBackgroundProgress(project, "Setting up run configurations...") {
+          AndroidRunConfigurations.instance.createRunConfigurations(project)
         }
       }
-    }
-  }
+      .also {
+        if (ApplicationManager.getApplication().isUnitTestMode) {
+          synchronized(operationsStates) {
+            operationsStates.removeIf { it.isCompleted }
+            operationsStates.add(it)
+          }
+        }
+      }
 
   @TestOnly
   @Throws(Exception::class)
