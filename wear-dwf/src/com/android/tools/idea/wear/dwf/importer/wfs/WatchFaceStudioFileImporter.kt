@@ -18,18 +18,17 @@ package com.android.tools.idea.wear.dwf.importer.wfs
 import com.android.SdkConstants.ATTR_PACKAGE
 import com.android.SdkConstants.EXT_ANDROID_PACKAGE
 import com.android.SdkConstants.EXT_APP_BUNDLE
-import com.android.SdkConstants.FD_MAIN
-import com.android.SdkConstants.FD_SOURCES
-import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.SdkConstants.FD_RES
 import com.android.manifmerger.ManifestMerger2
 import com.android.manifmerger.MergingReport
 import com.android.manifmerger.XmlDocument
+import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.ReformatUtil
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.MISSING_MAIN_MODULE
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.UNKNOWN
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.UNSUPPORTED_FILE_EXTENSION
-import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Success
 import com.android.tools.idea.wear.dwf.importer.wfs.extractors.AndroidAppBundleExtractor
 import com.android.tools.idea.wear.dwf.importer.wfs.extractors.ApkExtractor
 import com.android.tools.idea.wear.dwf.importer.wfs.extractors.ExtractedItem
@@ -45,24 +44,25 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
+import com.intellij.openapi.util.io.toNioPathOrNull
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.findOrCreateFile
 import com.intellij.openapi.vfs.writeBytes
+import com.intellij.util.io.URLUtil
 import java.io.File
 import java.io.InputStream
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.extension
-import kotlin.io.path.notExists
 import kotlin.io.path.pathString
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.AndroidFileTemplateProvider
 import org.jetbrains.android.dom.resources.Resources
-import org.jetbrains.android.facet.AndroidRootUtil
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
 import org.w3c.dom.Document
@@ -104,43 +104,35 @@ private constructor(
 
   suspend fun import(filePathToImport: Path): WFSImportResult =
     withContext(defaultDispatcher) {
-      val mainModuleRoot =
-        AndroidRootUtil.findModuleRootFolderPath(
-          project.modules.first { it.getModuleSystem().isProductionAndroidModule() }
-        )
-      if (mainModuleRoot == null) {
-        return@withContext WFSImportResult.Error(MISSING_MAIN_MODULE)
-      }
+      val mainAndroidFacet =
+        project.modules
+          .mapNotNull { it.androidFacet }
+          .firstOrNull { it.getModuleSystem().isProductionAndroidModule() }
+          ?: return@withContext WFSImportResult.Error(MISSING_MAIN_MODULE)
 
-      withContext(ioDispatcher) {
-        val mainFolderPath = mainModuleRoot.toPath().resolve(FD_SOURCES).resolve(FD_MAIN)
-        if (mainFolderPath.notExists()) {
-          VfsUtil.createDirectories(mainFolderPath.pathString)
-        }
+      val fileExtractor =
+        extractorByFileExtension[filePathToImport.extension]
+          ?: return@withContext WFSImportResult.Error(UNSUPPORTED_FILE_EXTENSION)
 
-        val fileExtractor =
-          extractorByFileExtension[filePathToImport.extension]
-            ?: return@withContext WFSImportResult.Error(UNSUPPORTED_FILE_EXTENSION)
-
-        try {
+      try {
+        withContext(ioDispatcher) {
           fileExtractor.extract(filePathToImport).collect { item ->
             when (item) {
-              is ExtractedItem.Manifest -> importManifest(mainFolderPath, item)
-              is ExtractedItem.StringResource -> importStringResource(mainFolderPath, item)
-              is ExtractedItem.BinaryResource -> importBinaryResource(mainFolderPath, item)
-              is ExtractedItem.TextResource -> importTextResource(mainFolderPath, item)
+              is ExtractedItem.Manifest -> importManifest(mainAndroidFacet.mainManifestPath(), item)
+              is ExtractedItem.Resource ->
+                importResource(mainAndroidFacet.resolveResourcePath(item.filePath), item)
             }
           }
-        } catch (e: Throwable) {
-          LOG.warn("An error occurred when importing the Watch Face Studio file.", e)
-          return@withContext WFSImportResult.Error()
         }
-        Success
+        WFSImportResult.Success
+      } catch (e: Throwable) {
+        LOG.warn("An error occurred when importing the Watch Face Studio file.", e)
+        WFSImportResult.Error()
       }
     }
 
   private suspend fun importManifest(
-    mainFolderPath: Path,
+    manifestPath: Path,
     extractedManifest: ExtractedItem.Manifest,
   ) {
     val archiveManifestDocument = XmlUtils.parseDocument(extractedManifest.content, true)
@@ -148,7 +140,6 @@ private constructor(
     // deploying the watch face, unless we remove it.
     archiveManifestDocument.documentElement.removeAttribute(ATTR_PACKAGE)
 
-    val manifestPath = mainFolderPath.resolve(FN_ANDROID_MANIFEST_XML)
     val manifestContent =
       if (manifestPath.exists()) {
         mergeManifests(manifestPath.toFile(), archiveManifestDocument)
@@ -156,10 +147,7 @@ private constructor(
         XmlUtils.toXml(archiveManifestDocument)
       }
 
-    writeAndReformat(
-      mainFolderPath.resolve(FN_ANDROID_MANIFEST_XML).findOrCreateVirtualFile(),
-      manifestContent,
-    )
+    writeAndReformat(manifestPath.findOrCreateVirtualFile(), manifestContent)
   }
 
   private fun mergeManifests(manifestFile: File, archiveManifest: Document): String {
@@ -196,15 +184,22 @@ private constructor(
     } ?: error("Failed to merge the manifest")
   }
 
+  private suspend fun importResource(destinationPath: Path, resource: ExtractedItem.Resource) {
+    when (resource) {
+      is ExtractedItem.StringResource -> importStringResource(destinationPath, resource)
+      is ExtractedItem.BinaryResource -> importBinaryResource(destinationPath, resource)
+      is ExtractedItem.TextResource -> importTextResource(destinationPath, resource)
+    }
+  }
+
   private suspend fun importStringResource(
-    mainFolderPath: Path,
+    destinationPath: Path,
     stringResource: ExtractedItem.StringResource,
   ) {
-    val importPath = mainFolderPath.resolve(stringResource.filePath)
     val stringResourceFile =
-      VfsUtil.findFile(importPath, true)
-        ?: VfsUtil.createDirectories(importPath.parent.pathString).let { parentDirectory ->
-          val fileName = importPath.fileName.pathString
+      VfsUtil.findFile(destinationPath, true)
+        ?: VfsUtil.createDirectories(destinationPath.parent.pathString).let { parentDirectory ->
+          val fileName = destinationPath.fileName.pathString
           edtWriteAction {
             AndroidFileTemplateProvider.createFromTemplate(
                 project,
@@ -230,18 +225,18 @@ private constructor(
   }
 
   private suspend fun importBinaryResource(
-    mainFolderPath: Path,
+    destinationPath: Path,
     resource: ExtractedItem.BinaryResource,
   ) {
-    val destinationFile = mainFolderPath.resolve(resource.filePath).findOrCreateVirtualFile()
+    val destinationFile = destinationPath.findOrCreateVirtualFile()
     edtWriteAction { destinationFile.writeBytes(resource.binaryContent) }
   }
 
   private suspend fun importTextResource(
-    mainFolderPath: Path,
+    destinationPath: Path,
     resource: ExtractedItem.TextResource,
   ) {
-    val destinationFile = mainFolderPath.resolve(resource.filePath).findOrCreateVirtualFile()
+    val destinationFile = destinationPath.findOrCreateVirtualFile()
     writeAndReformat(destinationFile, resource.text)
   }
 
@@ -258,6 +253,38 @@ private constructor(
       }
     }
   }
+
+  private fun AndroidFacet.mainManifestPath() =
+    SourceProviders.getInstance(this)
+      .mainIdeaSourceProvider
+      ?.manifestFileUrls
+      ?.singleOrNull()
+      ?.urlToPath() ?: error("Expected a single manifest URL to exist")
+
+  /**
+   * Resolves the path of an extracted resource (which is in the form `res/<type>/<filename.xml>`)
+   * to a resource path within the given [AndroidFacet]. The `res` from the [resourcePath] will be
+   * replaced with the name of the res folder used by the facet.
+   */
+  private fun AndroidFacet.resolveResourcePath(resourcePath: Path): Path {
+    val resDirectoryPath =
+      SourceProviders.getInstance(this)
+        .mainIdeaSourceProvider
+        ?.resDirectoryUrls
+        ?.singleOrNull()
+        ?.urlToPath() ?: error("Expected a single res directory URL to exist")
+
+    // remove the `res/` directory from the resource path to use the one from the facet instead
+    return resDirectoryPath.resolve(resourcePath.withoutResDirectory())
+  }
+
+  private fun String.urlToPath() = URLUtil.extractPath(this).toNioPathOrNull()
+
+  /** Removes the first `res` directory from the path, if any. */
+  private fun Path.withoutResDirectory() =
+    indexOfFirst { it.pathString == FD_RES }
+      .takeIf { it >= 0 && it < count() }
+      ?.let { subpath(it + 1, count()) } ?: this
 
   private suspend fun Path.findOrCreateVirtualFile(): VirtualFile {
     val parentDirectory =

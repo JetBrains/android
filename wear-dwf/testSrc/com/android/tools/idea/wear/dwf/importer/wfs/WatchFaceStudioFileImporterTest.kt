@@ -17,6 +17,7 @@ package com.android.tools.idea.wear.dwf.importer.wfs
 
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.UNSUPPORTED_FILE_EXTENSION
 import com.google.common.truth.Truth.assertThat
@@ -30,7 +31,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class WatchFaceStudioFileImporterTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.withAndroidModel()
+  @get:Rule val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder())
 
   private val fixture
     get() = projectRule.fixture
