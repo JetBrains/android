@@ -48,6 +48,7 @@ jvm_library(
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
+    "//platform/indexing-api:indexing",
     "//platform/lang-core",
     "//platform/lang-impl",
     "//platform/projectModel-api:projectModel",
