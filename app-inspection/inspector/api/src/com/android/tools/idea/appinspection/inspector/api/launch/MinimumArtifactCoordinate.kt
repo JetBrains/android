@@ -19,7 +19,8 @@ enum class MinimumArtifactCoordinate(module: Module, override val version: Strin
   ArtifactCoordinate {
   COMPOSE_UI(Module.COMPOSE_UI, "1.0.0-beta02"),
   COMPOSE_UI_ANDROID(Module.COMPOSE_UI_ANDROID, "1.5.0-beta01"),
-  WORK_RUNTIME(Module.WORK_RUNTIME, "2.5.0");
+  WORK_RUNTIME(Module.WORK_RUNTIME, "2.5.0"),
+  JXR_SCENE_CORE(Module.SCENE_CORE, "1.0.0-alpha01");
 
   override val groupId = module.groupId
   override val artifactId = module.artifactId
@@ -32,5 +33,6 @@ enum class MinimumArtifactCoordinate(module: Module, override val version: Strin
     COMPOSE_UI("androidx.compose.ui", "ui"),
     COMPOSE_UI_ANDROID("androidx.compose.ui", "ui-android"),
     WORK_RUNTIME("androidx.work", "work-runtime"),
+    SCENE_CORE("androidx.xr.scenecore", "scenecore"),
   }
 }
