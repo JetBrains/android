@@ -40,6 +40,7 @@ jvm_library(
     "//java/idea-ui:ui",
     "//platform/core-ui",
     "//platform/editor-ui-api:editor-ui",
+    "//platform/external-system-impl:externalSystem-impl",
     "//platform/platform-impl:ide-impl",
     "//jps/model-api:model",
     "//platform/lang-api:lang",
