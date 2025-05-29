@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.sync.SdkSyncImpl.projectIsAndroid;
 
 import com.android.test.testutils.TestUtils;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -30,10 +30,14 @@ import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /**
  * Tests for {@link SdkSyncImpl}.
  */
+@RunWith(JUnit4.class)
 public class SdkSyncImplTest extends HeavyPlatformTestCase {
   private LocalProperties myLocalProperties;
   private File myAndroidSdkPath;
@@ -52,17 +56,26 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
     IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 
+  @Test
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndLocalPropertiesExistsAndNoProjectSdk() throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
       myIdeSdks.setAndroidSdkPath(myAndroidSdkPath);
     });
 
     createEmptyLocalPropertiesFile();
+
     mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, null);
 
-    assertProjectSdkSet();
+    if (projectIsAndroid(myLocalProperties, null)) {
+      assertProjectSdkSet();
+    }
+    else {
+      assertNull("IDEA should not implicitly create sdk.dir entry in local.properties (e.g. in pure java-gradle projects)",
+                  myLocalProperties.getAndroidSdkPath());
+    }
   }
 
+  @Test
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndNoLocalPropertiesExistsAndNoProjectSdk() throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
       myIdeSdks.setAndroidSdkPath(myAndroidSdkPath);
@@ -71,15 +84,16 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
     assertNoLocalPropertiesExists();
     mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, null);
 
-    if (IdeInfo.getInstance().isAndroidStudio()) {
+    if (projectIsAndroid(myLocalProperties, null)) {
       assertProjectSdkSet();
     }
     else {
-      assertFalse("IDEA should not implicitly create local.properties (e.g. in pure java-gradle projects",
+      assertFalse("IDEA should not implicitly create local.properties (e.g. in pure java-gradle projects)",
                   myLocalProperties.getPropertiesFilePath().exists());
     }
   }
 
+  @Test
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndInvalidProjectSdk() throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
       myIdeSdks.setAndroidSdkPath(myAndroidSdkPath);
@@ -87,21 +101,25 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
 
     myLocalProperties.setAndroidSdkPath(new File("randomPath"));
     myLocalProperties.save();
+    assertTrue(projectIsAndroid(myLocalProperties, null));
 
     mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, null);
 
     assertProjectSdkSet();
   }
 
+  @Test
   public void testSyncIdeAndProjectAndroidHomesWithNoIdeSdkAndValidProjectSdk() throws Exception {
     myLocalProperties.setAndroidSdkPath(myAndroidSdkPath);
     myLocalProperties.save();
+    assertTrue(projectIsAndroid(myLocalProperties, null));
 
     mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, null);
 
     assertDefaultSdkSet();
   }
 
+  @Test
   public void testSyncIdeAndProjectAndroidHomesWhenNoLocalPropertiesExistsAndUserSelectsValidSdkPath() throws Exception {
     Ref<Boolean> selectSdkDialogShown = new Ref<>(false);
     SdkSyncImpl.FindValidSdkPathTask task = new SdkSyncImpl.FindValidSdkPathTask() {
@@ -118,9 +136,9 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
 
     assertEquals("IDEA should not ask users to configure Android SDK in pure java-gradle projects. " +
                  "Android Studio asks users to do so.",
-                 IdeInfo.getInstance().isAndroidStudio(), selectSdkDialogShown.get().booleanValue());
+                 projectIsAndroid(myLocalProperties, null), selectSdkDialogShown.get().booleanValue());
 
-    if (IdeInfo.getInstance().isAndroidStudio()) {
+    if (projectIsAndroid(myLocalProperties, null)) {
       assertProjectSdkSet();
       assertDefaultSdkSet();
     } else {
@@ -128,6 +146,7 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
     }
   }
 
+  @Test
   public void testSyncIdeAndProjectAndroidHomesWhenLocalPropertiesExistsAndUserSelectsValidSdkPath() throws Exception {
     Ref<Boolean> selectSdkDialogShown = new Ref<>(false);
     SdkSyncImpl.FindValidSdkPathTask task = new SdkSyncImpl.FindValidSdkPathTask() {
@@ -144,16 +163,18 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
 
     assertEquals("IDEA should not ask users to configure Android SDK in KMPP projects with no android modules (https://youtrack.jetbrains.com/issue/IDEA-265504). " +
                  "Android Studio asks users to do so.",
-                 IdeInfo.getInstance().isAndroidStudio(), selectSdkDialogShown.get().booleanValue());
+                 projectIsAndroid(myLocalProperties, null), selectSdkDialogShown.get().booleanValue());
 
-    if (IdeInfo.getInstance().isAndroidStudio()) {
+    if (projectIsAndroid(myLocalProperties, null)) {
       assertProjectSdkSet();
       assertDefaultSdkSet();
     } else {
-      assertNull(myLocalProperties.getAndroidSdkPath());
+      assertNull("IDEA should not implicitly create sdk.dir entry in local.properties (e.g. in pure java-gradle projects)",
+                 myLocalProperties.getAndroidSdkPath());
     }
   }
 
+  @Test
   public void testSyncIdeAndProjectAndroidHomesWhenUserDoesNotSelectValidSdkPath() throws Exception {
     SdkSyncImpl.FindValidSdkPathTask task = new SdkSyncImpl.FindValidSdkPathTask() {
       @Nullable
@@ -164,10 +185,10 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
     };
     try {
       mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, getProject());
-      assertFalse("Expecting ExternalSystemException in Android Studio", IdeInfo.getInstance().isAndroidStudio());
+      assertFalse("Expecting ExternalSystemException in Android Studio", projectIsAndroid(myLocalProperties, null));
     }
     catch (ExternalSystemException e) {
-      assertTrue("Not expecting ExternalSystemException in IDEA", IdeInfo.getInstance().isAndroidStudio());
+      assertTrue("Not expecting ExternalSystemException in IDEA", projectIsAndroid(myLocalProperties, null));
     }
 
     assertNull(myIdeSdks.getAndroidSdkPath());
