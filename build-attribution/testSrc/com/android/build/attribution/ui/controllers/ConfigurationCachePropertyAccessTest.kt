@@ -15,8 +15,8 @@
  */
 package com.android.build.attribution.ui.controllers
 
-import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.BuildInvocationType
+import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode

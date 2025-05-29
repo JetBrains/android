@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.tools.idea.smali.SmaliFileType;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -25,6 +24,9 @@ import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory;
 import com.intellij.openapi.editor.impl.EditorFactoryImpl;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.SyntaxHighlighter;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory;
 import com.intellij.openapi.project.Project;
@@ -59,7 +61,7 @@ public class DexCodeViewer extends DialogWrapper {
     myEditor = factory.createEditor(doc, project);
 
     EditorHighlighterFactory editorHighlighterFactory = EditorHighlighterFactory.getInstance();
-    final SyntaxHighlighter syntaxHighlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(SmaliFileType.getInstance(), project, null);
+    SyntaxHighlighter syntaxHighlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(getSmaliFileTypeOrFallback(), project, null);
     ((EditorEx)myEditor).setHighlighter(editorHighlighterFactory.createEditorHighlighter(syntaxHighlighter, EditorColorsManager.getInstance().getGlobalScheme()));
     ((EditorEx)myEditor).setCaretVisible(true);
 
@@ -94,6 +96,13 @@ public class DexCodeViewer extends DialogWrapper {
   @Override
   protected @NonNls @Nullable String getDimensionServiceKey() {
     return ShowDisassemblyAction.class.getName();
+  }
+
+  private static @NotNull FileType getSmaliFileTypeOrFallback() {
+    FileType smaliFileType = FileTypeManager.getInstance().findFileTypeByName("Smali");
+    if (smaliFileType == null) return FileTypes.UNKNOWN;
+
+    return smaliFileType;
   }
 
   @Override

@@ -133,7 +133,7 @@ class AndroidModularizeProcessor(
         String.format(Locale.US, "%1\$d resources in %2\$d files", usagesCount, filesCount)
     }
 
-  override fun findUsages(): Array<UsageInfo> {
+  protected override fun findUsages(): Array<UsageInfo> {
     val result = mutableListOf<UsageInfo>()
 
     myClasses.forEach { result.add(UsageInfo(it)) }

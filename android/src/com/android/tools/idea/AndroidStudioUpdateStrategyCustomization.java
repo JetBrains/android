@@ -1,7 +1,6 @@
 package com.android.tools.idea;
 
 import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.updateSettings.UpdateStrategyCustomization;
 import com.intellij.openapi.updateSettings.impl.ChannelStatus;
 import com.intellij.openapi.updateSettings.impl.UpdateChannel;

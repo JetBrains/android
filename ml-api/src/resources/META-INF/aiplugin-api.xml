@@ -14,10 +14,6 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <!--
-  This file is called aiplugin-api.xml because there's another file called ml-api.xml at
-  tools/idea/platform/ml-api/resources/META-INF/ml-api.xml and this causes a name conflict.
-  -->
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.ml.studioBotExternalFlags"
                     interface="com.android.tools.idea.gemini.StudioBotExternalFlags" />

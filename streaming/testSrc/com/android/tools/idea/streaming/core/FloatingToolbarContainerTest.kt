@@ -16,7 +16,7 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.google.common.truth.Truth.assertThat

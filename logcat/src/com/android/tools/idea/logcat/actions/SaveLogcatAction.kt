@@ -40,10 +40,10 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlinx.coroutines.launch
 
 private const val SAVE_PATH_KEY = "Logcat.SavePath"
 

@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.lint.intentions;
 
+import static com.android.tools.idea.lint.quickFixes.ParcelableQuickFix.Operation.IMPLEMENT;
+
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.quickFixes.ParcelableQuickFix;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.openapi.editor.Editor;
@@ -23,14 +27,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.quickFixes.ParcelableQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.lint.quickFixes.ParcelableQuickFix.Operation.IMPLEMENT;
 
 public class ImplementParcelableAction extends AbstractIntentionAction implements HighPriorityAction {
   private final ParcelableQuickFix myQuickFix;

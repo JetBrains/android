@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.lint.inspections;
 
-import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.AppLinksAutoVerifyDetector;
 
 public class AndroidLintAppLinksAutoVerifyInspection extends AndroidLintInspectionBase {

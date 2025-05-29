@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2010 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.completion;
 
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
@@ -44,6 +30,7 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlChildRole;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
@@ -117,8 +104,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
     PsiElement parent = position.getParent();
     PsiElement originalParent = originalPosition != null ? originalPosition.getParent() : null;
 
-    if (parent instanceof XmlTag) {
-      XmlTag tag = (XmlTag)parent;
+    if (parent instanceof XmlTag tag) {
 
       if (tag.getParentTag() != null) {
         return;
@@ -137,7 +123,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
         PsiElement element = reference.getElement();
         int refOffset = element.getTextRange().getStartOffset() + reference.getRangeInElement().getStartOffset();
         if (refOffset != position.getTextRange().getStartOffset()) {
-          // do not provide completion if we're inside some reference starting in the middle of tag name
+          // do not provide completion if we're inside some reference starting in the middle of the tag name
           return;
         }
       }
@@ -146,13 +132,12 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
         resultSet.stopHere();
       }
     }
-    else if (parent instanceof XmlAttribute) {
+    else if (parent instanceof XmlAttribute attribute) {
       ASTNode attrName = XmlChildRole.ATTRIBUTE_NAME_FINDER.findChild(parent.getNode());
 
       if (attrName == null || attrName.getPsi() != position) {
         return;
       }
-      XmlAttribute attribute = (XmlAttribute)parent;
       String namespace = attribute.getNamespace();
 
       XmlTag tag = attribute.getParent();
@@ -189,12 +174,12 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
     }
   }
 
-  private void addNamespaces(CompletionResultSet resultSet,
-                             @NotNull Map<String, String> namespaces,
-                             boolean withPrefix) {
+  private static void addNamespaces(CompletionResultSet resultSet,
+                                    @NotNull Map<String, String> namespaces,
+                                    boolean withPrefix) {
     Collection<String> declaredNamespaces = namespaces.values();
     Stream<String> lookupStrings = Arrays.stream(AVAILABLE_NAMESPACES)
-      .filter(availableNamespace -> declaredNamespaces.stream().noneMatch(availableNamespace::contains));
+      .filter(availableNamespace -> !ContainerUtil.exists(declaredNamespaces, availableNamespace::contains));
     if (withPrefix) {
       lookupStrings = lookupStrings.map(it -> NAMESPACE_PREFIX + ":" + it);
     }
@@ -271,7 +256,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
         if (SdkConstants.ANDROID_URI.equals(xmlName.getNamespaceKey())) {
           String realName = XmlAttributeImpl.getRealName(attribute);
           String lookupElementString =
-            realName.length() == 0 ? namespacePrefix + ":" + xmlName.getLocalName() : xmlName.getLocalName();
+            realName.isEmpty() ? namespacePrefix + ":" + xmlName.getLocalName() : xmlName.getLocalName();
 
           LookupElementBuilder lookupElement =
             LookupElementBuilder.create(psiElement, lookupElementString).withInsertHandler(XmlAttributeInsertHandler.INSTANCE);
@@ -312,8 +297,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       LookupElement lookupElement = result.getLookupElement();
       Object obj = lookupElement.getObject();
 
-      if (obj instanceof String) {
-        String s = (String)obj;
+      if (obj instanceof String s) {
         int index = s.indexOf(':');
 
         String attributeName = s.substring(index + 1);
@@ -359,9 +343,9 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
                                                                         boolean markDeprecated) {
     if (!localName.startsWith(LAYOUT_ATTRIBUTE_PREFIX)) {
       if (markDeprecated) {
-        return result.withLookupElement(PrioritizedLookupElement.withPriority(new LookupElementDecorator<LookupElement>(lookupElement) {
+        return result.withLookupElement(PrioritizedLookupElement.withPriority(new LookupElementDecorator<>(lookupElement) {
           @Override
-          public void renderElement(LookupElementPresentation presentation) {
+          public void renderElement(@NotNull LookupElementPresentation presentation) {
             super.renderElement(presentation);
             presentation.setStrikeout(true);
           }
@@ -375,14 +359,14 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       HashSet<String> lookupStrings = new HashSet<>(lookupElement.getAllLookupStrings());
       lookupStrings.add(localSuffix);
 
-      lookupElement = new LookupElementDecorator<LookupElement>(lookupElement) {
+      lookupElement = new LookupElementDecorator<>(lookupElement) {
         @Override
         public Set<String> getAllLookupStrings() {
           return lookupStrings;
         }
 
         @Override
-        public void renderElement(LookupElementPresentation presentation) {
+        public void renderElement(@NotNull LookupElementPresentation presentation) {
           super.renderElement(presentation);
           presentation.setStrikeout(markDeprecated);
         }

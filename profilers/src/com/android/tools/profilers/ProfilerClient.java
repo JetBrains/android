@@ -17,11 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.idea.transport.TransportClient;
 import com.android.tools.profiler.proto.Commands;
-import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.EventServiceGrpc;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.annotations.VisibleForTesting;

@@ -2455,4 +2455,3 @@ class AndroidModelTest : GradleFileModelTestCase() {
     }
   }
 }
-

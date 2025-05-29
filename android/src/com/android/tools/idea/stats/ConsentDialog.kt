@@ -30,7 +30,6 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.AppUIUtil
 import icons.StudioIllustrations
 import java.awt.Color
-import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.GridBagConstraints
@@ -41,10 +40,8 @@ import java.awt.event.ActionEvent
 import java.lang.Boolean
 import javax.swing.Action
 import javax.swing.JComponent
-import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.event.HyperlinkEvent
 
 class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
   override fun createActions(): Array<Action> {

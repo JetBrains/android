@@ -25,7 +25,6 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.roots.PackageIndex
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 

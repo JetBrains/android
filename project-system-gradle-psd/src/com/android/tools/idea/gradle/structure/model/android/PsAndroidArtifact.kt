@@ -15,10 +15,21 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_API
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.API
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_API
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_FIXTURES_API
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_FIXTURES_COMPILE
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_FIXTURES_IMPLEMENTATION
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons

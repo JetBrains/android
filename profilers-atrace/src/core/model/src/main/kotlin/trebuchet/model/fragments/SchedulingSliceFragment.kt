@@ -18,7 +18,6 @@ package trebuchet.model.fragments
 
 import trebuchet.model.SchedSlice
 import trebuchet.model.SchedulingState
-import trebuchet.model.base.Slice
 
 class SchedulingSliceFragment(override val state: SchedulingState, override val startTime: Double)
         : SchedSlice {

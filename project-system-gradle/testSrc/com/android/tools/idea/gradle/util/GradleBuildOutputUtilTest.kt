@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.util
 
-import com.android.ide.common.build.BaselineProfileDetails
 import com.android.ide.common.build.GenericBuiltArtifactsLoader
 import com.android.tools.idea.log.LogWrapper
 import com.android.utils.FileUtils.writeToFile

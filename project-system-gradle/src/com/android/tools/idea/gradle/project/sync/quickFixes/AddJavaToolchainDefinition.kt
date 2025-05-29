@@ -39,7 +39,7 @@ class AddJavaToolchainDefinition(
 ) : BaseRefactoringProcessor(project) {
   private val projectBuildModel = ProjectBuildModel.get(myProject)
 
-  override fun findUsages(): Array<UsageInfo> {
+  protected override fun findUsages(): Array<UsageInfo> {
 
     val usages = ArrayList<UsageInfo>()
     usages.addAll(modules.flatMap { projectBuildModel.getModuleBuildModel(it)?.findJavaToolchainVersionUsages() ?: emptyList() })

@@ -50,6 +50,7 @@ import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.analytics.trackOpenConfigSet
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
+import com.intellij.CommonBundle
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -199,7 +200,7 @@ class VisualizationForm(
     surface.name = VISUALIZATION_DESIGN_SURFACE_NAME
     surface.zoomController.storeId = VISUALIZATION_DESIGN_SURFACE_NAME
     myWorkBench = WorkBench(project, "Visualization", null, this)
-    myWorkBench.setLoadingText("Loading...")
+    myWorkBench.setLoadingText(CommonBundle.getLoadingTreeNodeText())
     myWorkBench.setToolContext(surface)
     myActionToolbarPanel = createToolbarPanel()
     myRoot.add(myActionToolbarPanel, BorderLayout.NORTH)

@@ -30,12 +30,12 @@ import com.intellij.testFramework.TestApplicationManager
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.util.preferredWidth
+import org.junit.Rule
+import org.junit.Test
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.SortOrder
 import javax.swing.SwingUtilities.convertPoint
-import org.junit.Rule
-import org.junit.Test
 
 @RunsInEdt
 class CategoryTableTest {

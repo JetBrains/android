@@ -73,8 +73,9 @@ import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private val SYNC_NOTIFICATION_GROUP: NotificationGroup =
+private val SYNC_NOTIFICATION_GROUP: NotificationGroup by lazy {
   NotificationGroupManager.getInstance().getNotificationGroup("Gradle Sync")
+}
 
 /**
  * This class manages the state of Gradle sync for a project.

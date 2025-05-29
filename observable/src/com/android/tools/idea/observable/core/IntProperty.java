@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.observable.core;
 
-import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.AbstractProperty;
+import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.expressions.integer.ComparisonExpression;
 import org.jetbrains.annotations.NotNull;
 

@@ -15,30 +15,31 @@
  */
 package com.android.tools.idea.common.fixtures;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.uibuilder.fixtures.ResizeFixture;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.SegmentType;
-import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.idea.common.util.NlTreeDumper;
 import com.intellij.psi.xml.XmlTag;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-
-import static com.android.SdkConstants.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class ComponentFixture {
   private final ScreenFixture myScreenFixture;

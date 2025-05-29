@@ -24,12 +24,12 @@ import static org.junit.Assert.fail;
 
 import com.android.ide.common.rendering.api.Result;
 import com.android.sdklib.devices.Device;
-import com.android.tools.adtui.ImageUtils;
 import com.android.testutils.ImageDiffUtil;
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
+import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.RenderService;
@@ -48,6 +48,7 @@ import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -70,7 +71,9 @@ import org.jetbrains.annotations.Nullable;
 public class RenderTestUtil {
   public static final String DEFAULT_DEVICE_ID = "Nexus 4";
   public static final String HOLO_THEME = "@android:style/Theme.Holo";
-  private static final float MAX_PERCENT_DIFFERENT = 1.0f;
+
+  // AS Koala 2024.1.2 Canary 7 Merge: Increased rendering margin for IntelliJ
+  private static final float MAX_PERCENT_DIFFERENT = 2.0f;
 
   /**
    * Method to be called before every render test case. If you are using JUnit 4, use the {@link RenderTestRule} instead.

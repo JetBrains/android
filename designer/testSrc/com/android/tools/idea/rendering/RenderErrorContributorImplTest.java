@@ -21,7 +21,7 @@ import static com.android.tools.rendering.ProblemSeverity.WARNING;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.errors.ui.MessageTip;

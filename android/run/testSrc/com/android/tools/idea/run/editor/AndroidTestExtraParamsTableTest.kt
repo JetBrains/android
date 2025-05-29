@@ -93,7 +93,9 @@ class AndroidTestExtraParamsTableTest {
     table.tableView.addSelection(params[1])
 
     // Make sure revert button is displayed and tapping the button reverts the modification on the element.
-    val availableActions = requireNotNull(findComponentOfType(table.component, CommonActionsPanel::class.java)).toolbar.run {
+    val toolbar = requireNotNull(findComponentOfType(table.component, CommonActionsPanel::class.java)).toolbar
+    PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
+    val availableActions = toolbar.run {
       PlatformTestUtil.waitForFuture(updateActionsAsync())
       actions
     }

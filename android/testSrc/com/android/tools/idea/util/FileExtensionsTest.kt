@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.util
 
-import com.android.resources.TEST_DATA_DIR
-import com.android.testutils.TestUtils
 import com.android.testutils.truth.PathSubject.assertThat
+import com.android.tools.idea.aar.AarTestUtils
 import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
@@ -44,7 +43,7 @@ class FileExtensionsTest : AndroidTestCase() {
   }
 
   fun testApk() {
-    val apkFile = TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/design_aar/res.apk")
+    val apkFile = AarTestUtils.resolveAarTestData("design_aar/res.apk")
     assertThat(apkFile).exists()
     val entryPath = FileUtilRt.toSystemIndependentName(apkFile.toString()) + ApkFileSystem.APK_SEPARATOR +
                     "res/drawable-mdpi-v4/design_ic_visibility.png"

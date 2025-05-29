@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.common.fixtures;
 
-import com.android.tools.idea.common.LayoutTestUtilities;
-import com.android.tools.adtui.common.SwingCoordinate;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import java.awt.*;
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.LayoutTestUtilities;
+import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetContext;
 import java.awt.dnd.DropTargetDropEvent;
 import java.util.Arrays;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class DropTargetDropEventBuilder {
   private final DropTargetContext myDropTargetContext;

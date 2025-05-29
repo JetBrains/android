@@ -16,16 +16,15 @@
 package com.android.tools.idea.navigator.nodes.other;
 
 import com.intellij.icons.AllIcons;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.java.JavaResourceRootType;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
-
-import javax.swing.*;
 import org.jetbrains.kotlin.config.SourceKotlinRootType;
 import org.jetbrains.kotlin.config.TestSourceKotlinRootType;
 
-enum NonAndroidSourceType {
+public enum NonAndroidSourceType {
   JAVA(JavaSourceRootType.SOURCE, "java", AllIcons.Modules.SourceRoot),
   JAVA_TESTS(JavaSourceRootType.TEST_SOURCE, "tests", AllIcons.Modules.SourceRoot),
   KOTLIN(SourceKotlinRootType.INSTANCE, "kotlin", AllIcons.Modules.SourceRoot),

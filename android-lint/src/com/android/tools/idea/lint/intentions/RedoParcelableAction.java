@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.lint.intentions;
 
+import static com.android.tools.idea.lint.quickFixes.ParcelableQuickFix.Operation.REIMPLEMENT;
+
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.lint.quickFixes.ParcelableQuickFix.Operation.REIMPLEMENT;
 
 public class RedoParcelableAction extends ImplementParcelableAction {
 

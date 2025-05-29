@@ -24,14 +24,13 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.ColorIcon;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.swing.Icon;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AnnotationsRenderer {
   public static class Result {
@@ -100,7 +99,7 @@ public class AnnotationsRenderer {
     for (Map.Entry<Integer,String> entry : intDef.valuesMap.entrySet()) {
       int key = entry.getKey();
       if ((value & key) != 0) {
-        if (sb.length() > 0) {
+        if (!sb.isEmpty()) {
           sb.append(" | ");
         }
         sb.append(entry.getValue());

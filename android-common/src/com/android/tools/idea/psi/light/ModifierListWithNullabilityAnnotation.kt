@@ -17,10 +17,7 @@ package com.android.tools.idea.psi.light
 
 import com.android.tools.idea.psi.createNullabilityAnnotation
 import com.intellij.psi.PsiAnnotation
-import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiModifierList
-import com.intellij.psi.PsiType
-import com.intellij.psi.impl.light.LightFieldBuilder
 import com.intellij.psi.impl.light.LightModifierList
 
 /**

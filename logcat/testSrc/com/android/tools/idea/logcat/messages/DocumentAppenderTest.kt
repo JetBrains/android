@@ -28,9 +28,9 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import java.awt.Color
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Color
 
 private val blue = TextAttributes().apply { foregroundColor = Color.blue }
 private val red = TextAttributes().apply { foregroundColor = Color.red }

@@ -16,11 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.builders;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.ColorAssetModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.DrawableAssetModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.GradientModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.GradientStopModel;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.ShapeModel;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.DrawableAssetModel;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.GradientModel;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.GradientStopModel;

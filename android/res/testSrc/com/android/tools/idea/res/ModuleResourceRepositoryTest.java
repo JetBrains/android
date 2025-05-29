@@ -29,7 +29,6 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.res.CacheableResourceRepository;
-import com.android.tools.res.LocalResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -38,7 +37,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.PsiManagerEx;
-import com.intellij.psi.impl.file.impl.FileManagerImpl;
+import com.intellij.psi.impl.file.impl.FileManagerEx;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.IOException;
@@ -421,7 +420,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertNotSame(res1, res2);
     // Check that we indeed don't have the PsiDirectory already cached, by poking at the implementation classes.
     PsiManagerEx psiManager = (PsiManagerEx)PsiManager.getInstance(getProject());
-    FileManagerImpl fileManager = (FileManagerImpl)psiManager.getFileManager();
+    FileManagerEx fileManager = psiManager.getFileManagerEx();
     assertNull(fileManager.getCachedDirectory(res2));
     assertNull(fileManager.getCachedPsiFile(layout2));
 

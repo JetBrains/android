@@ -190,7 +190,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       override fun minimumValue(): Int = slider.minimum
     }
 
-  val panelThumbRect: () -> Rectangle = { thumbRect }
+  val panelThumbRect: () -> Rectangle = { super.thumbRect }
 
   /** List of elements to display. */
   var elements: List<TimelineElement> = listOf()

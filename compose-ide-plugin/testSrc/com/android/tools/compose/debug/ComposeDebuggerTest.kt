@@ -23,9 +23,9 @@ import com.intellij.testFramework.UsefulTestCase.assertDoesntContain
 import com.intellij.ui.classFilter.DebuggerClassFilterProvider
 import com.intellij.xdebugger.impl.settings.XDebuggerSettingManagerImpl
 import com.intellij.xdebugger.settings.DebuggerSettingsCategory
-import javax.swing.JCheckBox
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JCheckBox
 
 class ComposeDebuggerTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()

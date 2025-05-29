@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.room.generators;
 
-import static com.android.tools.idea.room.generators.TestUtils.*;
+import static com.android.tools.idea.room.generators.TestUtils.createDatabaseBundle;
+import static com.android.tools.idea.room.generators.TestUtils.createEntityBundle;
 import static com.android.tools.idea.room.generators.TestUtils.createFieldBundle;
-import static com.google.common.truth.Truth.*;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.room.migrations.generators.JavaMigrationClassGenerator;
 import com.android.tools.idea.room.migrations.json.DatabaseBundle;

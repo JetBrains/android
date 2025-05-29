@@ -42,7 +42,7 @@ public class GradleDslInfixExpression extends GradlePropertiesDslElement impleme
   @Override
   public @NotNull GradleNameElement getNameElement() {
     List<GradleDslExpression> expressions = getPropertyElements(GradleDslExpression.class);
-    if (expressions.size() > 0) {
+    if (!expressions.isEmpty()) {
       return expressions.get(0).getNameElement();
     }
     return super.getNameElement();

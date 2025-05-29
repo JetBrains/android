@@ -29,7 +29,6 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
-import javax.swing.table.DefaultTableModel
 
 class DownloadsInfoPageView(
   val pageModel: DownloadsInfoPageModel,

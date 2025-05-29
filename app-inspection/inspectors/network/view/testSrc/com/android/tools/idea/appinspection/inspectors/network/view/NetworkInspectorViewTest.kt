@@ -115,7 +115,7 @@ class NetworkInspectorViewTest {
 
     val parentPanel = JPanel(BorderLayout())
     parentPanel.background = DEFAULT_BACKGROUND
-    val splitter = ThreeComponentsSplitter(disposableRule.disposable)
+    val splitter = ThreeComponentsSplitter()
     splitter.focusTraversalPolicy = LayoutFocusTraversalPolicy()
     splitter.dividerWidth = 0
     splitter.setDividerMouseZoneSize(-1)

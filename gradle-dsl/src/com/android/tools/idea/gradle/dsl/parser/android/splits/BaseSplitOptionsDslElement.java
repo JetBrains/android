@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android.splits;
 
-import static com.android.tools.idea.gradle.dsl.model.android.splits.BaseSplitOptionsModelImpl.*;
+import static com.android.tools.idea.gradle.dsl.model.android.splits.BaseSplitOptionsModelImpl.ENABLE;
+import static com.android.tools.idea.gradle.dsl.model.android.splits.BaseSplitOptionsModelImpl.EXCLUDE;
+import static com.android.tools.idea.gradle.dsl.model.android.splits.BaseSplitOptionsModelImpl.INCLUDE;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;

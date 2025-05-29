@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.benchmarks.tests
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.benchmarks.MlModelBindingBenchmark
 import com.android.tools.idea.benchmarks.measureTimeMs
 import com.android.tools.idea.testing.AndroidGradleProjectRule

@@ -15,25 +15,24 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
+import static com.android.tools.apk.analyzer.dex.DexFiles.getDexFile;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.apk.analyzer.dex.PackageTreeCreator;
 import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
 import com.android.tools.apk.analyzer.dex.tree.DexPackageNode;
-import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.android.tools.apk.analyzer.dex.DexFiles.getDexFile;
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
+import org.junit.Test;
 
 public class GenerateProguardKeepRuleActionTest {
   private DexElementNode myPackageTree;

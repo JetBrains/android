@@ -30,13 +30,13 @@ class ProfileRunExecutor : DefaultRunExecutor() {
 
   override fun getDisabledIcon(): Icon = StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
 
-  override fun getDescription(): String = "Profile selected configuration"
+  override fun getDescription(): String = AndroidProfilerBundle.message("android.profiler.action.profile.description")
 
-  override fun getActionName(): String = "Profile"
+  override fun getActionName(): String = AndroidProfilerBundle.message("android.profiler.action.profile")
 
   override fun getId(): String = EXECUTOR_ID
 
-  override fun getStartActionText(): String = "Profile"
+  override fun getStartActionText(): String = AndroidProfilerBundle.message("android.profiler.action.profile")
 
   override fun getContextActionId(): String = "ProfileRunClass"
 

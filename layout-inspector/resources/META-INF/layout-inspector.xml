@@ -15,8 +15,10 @@
   -->
 <idea-plugin>
 
-  <actions>
-    <action id="Android.RunLayoutInspector" class="com.android.tools.idea.layoutinspector.ShowLayoutInspectorAction">
+  <actions resource-bundle="messages.LayoutInspectorBundle">
+    <action id="Android.RunLayoutInspector"
+            class="com.android.tools.idea.layoutinspector.ShowLayoutInspectorAction"
+            icon="StudioIcons.Shell.Menu.LAYOUT_INSPECTOR">
       <add-to-group group-id="AndroidToolsGroup" />
     </action>
 
@@ -41,11 +43,10 @@
               implementationClass="com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileType" fieldName="INSTANCE"/>
 
     <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
-    <library.toolWindow id="Layout Inspector"
+    <android.toolWindow id="Layout Inspector"
                       anchor="bottom"
                       secondary="true"
                       icon="StudioIcons.Shell.ToolWindows.CAPTURES"
-                      librarySearchClass="com.android.tools.idea.sdk.AndroidProjectChecker"
                       factoryClass="com.android.tools.idea.layoutinspector.LayoutInspectorToolWindowFactory"/>
 
     <fileEditorProvider implementation="com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileEditor$Provider"/>

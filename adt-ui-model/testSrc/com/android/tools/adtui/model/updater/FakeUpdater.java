@@ -16,10 +16,9 @@
 package com.android.tools.adtui.model.updater;
 
 import com.android.tools.adtui.model.StopwatchTimer;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class FakeUpdater extends Updater {
   private List<Updatable> myUpdatables;

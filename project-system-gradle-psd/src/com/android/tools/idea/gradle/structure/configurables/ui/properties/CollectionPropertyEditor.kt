@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotated
-import com.android.tools.idea.gradle.structure.model.meta.emptyKnownValues
 import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.android.tools.idea.gradle.structure.model.meta.valueFormatter
 import com.google.common.util.concurrent.ListenableFuture

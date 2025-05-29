@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.concurrency.SwingWorker;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import java.util.Locale;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +36,7 @@ public class IconGenerationProcessor {
   @Nullable private Request myRunningRequest;
 
   public void enqueue(@NotNull IconGenerator iconGenerator, @NotNull Consumer<IconGeneratorResult> onDone) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
 
     if (iconGenerator.sourceAsset().get().isPresent()) {
       IconOptions options = iconGenerator.createOptions(true);
@@ -46,7 +47,7 @@ public class IconGenerationProcessor {
   }
 
   private void processNextRequest() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
 
     if (myQueuedRequest == null) {
       return;
@@ -61,7 +62,7 @@ public class IconGenerationProcessor {
     Request request = myRunningRequest;
     if (request != null) {
       Worker worker = new Worker(request, () -> {
-        ApplicationManager.getApplication().assertIsDispatchThread();
+        ThreadingAssertions.assertEventDispatchThread();
         myRunningRequest = null;
         processNextRequest();
       });
@@ -129,7 +130,7 @@ public class IconGenerationProcessor {
 
     @Override
     public void finished() {
-      ApplicationManager.getApplication().assertIsDispatchThread();
+      ThreadingAssertions.assertEventDispatchThread();
       try {
         myRequest.done();
       }

@@ -255,9 +255,9 @@ class AndroidDeviceSpecUtilTest {
     whenever(launchedDevice.version).thenReturn(version)
     if (config.isNotEmpty()) {
       whenever(launchedDevice.executeShellCommand(Mockito.anyString(),
-                                                Mockito.any(),
-                                                Mockito.anyLong(),
-                                                Mockito.any())).thenAnswer {
+                                                  Mockito.any(),
+                                                  Mockito.anyLong(),
+                                                  Mockito.any())).thenAnswer {
         // get the 2nd arg (the receiver to feed it the lines).
         val receiver = it.arguments[1] as IShellOutputReceiver
         val byteArray = "$config\n".toByteArray(Charsets.UTF_8)

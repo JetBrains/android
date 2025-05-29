@@ -18,7 +18,6 @@ package org.jetbrains.android.dom
 import com.android.SdkConstants
 import com.intellij.util.xml.GenericAttributeValue
 import com.intellij.util.xml.Namespace
-import org.jetbrains.android.dom.navigation.NavigationDomFileDescription
 
 /**
  * Attribute in the android XML namespace.

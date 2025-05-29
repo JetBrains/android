@@ -22,13 +22,18 @@ import com.intellij.uiDesigner.core.AbstractLayout;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.util.containers.Stack;
 import com.intellij.util.ui.JBUI;
-
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.LayoutManager;
 import java.util.Locale;
-import javax.swing.*;
+import javax.swing.JComponent;
+import javax.swing.JSlider;
+import javax.swing.JTable;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
 
 /**
  * Helper class used to scale UI elements defined in <code>.form</code> files according to the current
@@ -353,7 +358,7 @@ public class FormScalingUtil {
   private String buildStackString() {
     StringBuilder sb = new StringBuilder();
     for (String text : myStack) {
-      if (sb.length() > 0)
+      if (!sb.isEmpty())
         sb.append(" > ");
       sb.append(text);
     }

@@ -15,11 +15,13 @@
  */
 package com.android.tools.adtui.model;
 
+import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.adtui.model.updater.Updater;
 import org.junit.Test;
-
-import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
-import static org.junit.Assert.*;
 
 public class LineChartModelTest {
   @Test

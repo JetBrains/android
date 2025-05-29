@@ -93,20 +93,20 @@ abstract class ProjectRenderer(protected val template: Template, val goldenDirNa
         // TODO(qumeric): support C++
         FormFactor.XR,
         FormFactor.Mobile -> { data: TemplateData ->
-            this.generateAndroidModule(data as ModuleTemplateData, appTitle, false)
-          }
+          this.generateAndroidModule(data as ModuleTemplateData, appTitle, false)
+        }
         FormFactor.Wear -> { data: TemplateData ->
-            this.generateWearModule(data as ModuleTemplateData, appTitle, false)
-          }
+          this.generateWearModule(data as ModuleTemplateData, appTitle, false)
+        }
         FormFactor.Tv -> { data: TemplateData ->
-            this.generateTvModule(data as ModuleTemplateData, appTitle, false)
-          }
+          this.generateTvModule(data as ModuleTemplateData, appTitle, false)
+        }
         FormFactor.Automotive -> { data: TemplateData ->
-            this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false)
-          }
+          this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false)
+        }
         FormFactor.Generic -> { data: TemplateData ->
-            this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate", false)
-          }
+          this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate", false)
+        }
       }
 
     val context =

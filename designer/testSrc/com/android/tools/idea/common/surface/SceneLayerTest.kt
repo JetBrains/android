@@ -21,8 +21,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito
+import org.mockito.Mockito.anyInt
 
 class SceneLayerTest {
 

@@ -33,12 +33,12 @@ import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.openapi.project.modules
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import java.awt.Rectangle
-import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.awt.Rectangle
+import java.io.File
 
 class ModuleComposeResolverTest {
 

@@ -18,9 +18,9 @@ package com.android.tools.idea.run.deployment.selector
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.RunManager
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
+import com.intellij.util.concurrency.ThreadingAssertions
 
 internal class ExecutionTargetService
 @VisibleForTesting
@@ -47,7 +47,8 @@ constructor(
       // In certain test scenarios, this action may get updated in the main test thread instead of
       // the EDT thread (is this correct?).
       // So we'll just make sure the following gets run on the EDT thread and wait for its result.
-      ApplicationManager.getApplication().invokeAndWait {
+      ThreadingAssertions.assertEventDispatchThread()
+
         val runManager = runManager(project)
         val settings = runManager.selectedConfiguration
 
@@ -59,9 +60,8 @@ constructor(
         // RunnerAndConfigurationSettings is temporary/shared and
         // left dangling.
         if (settings == null || runManager.findSettings(settings.configuration) == null) {
-          return@invokeAndWait
+          return
         }
         executionTargetManager.activeTarget = target
-      }
     }
 }

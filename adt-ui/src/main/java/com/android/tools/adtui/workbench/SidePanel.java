@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param <T> Specifies the type of data controlled by a {@link WorkBench}.
  */
-class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
+public class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
   private static final String SPLITTER = "SPLITTER";
   private static final String EMPTY = "EMPTY";
 
@@ -42,7 +42,7 @@ class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
   private final JPanel myEmpty;
   private final Splitter mySplitter;
 
-  SidePanel(@NotNull Side side, @NotNull SideModel<T> model) {
+  public SidePanel(@NotNull Side side, @NotNull SideModel<T> model) {
     super(new BorderLayout());
     mySide = side;
     mySplitter = new OnePixelSplitter(true);

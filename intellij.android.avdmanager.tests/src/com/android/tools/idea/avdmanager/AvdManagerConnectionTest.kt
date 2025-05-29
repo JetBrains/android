@@ -164,7 +164,7 @@ class AvdManagerConnectionTest : AndroidTestCase() {
     // Add a file that indicates QEMU-2 support
     q2_64Package.location.resolve("kernel-ranchu-64").recordExistingFile()
 
-    packages.setLocalPkgInfos(ImmutableList.of<LocalPackage?>(q1Package, q2Package, q2_64Package))
+    packages.setLocalPkgInfos(ImmutableList.of<LocalPackage>(q1Package, q2Package, q2_64Package))
     val mgr = FakeRepoManager(sdkRoot, packages)
 
     val sdkHandler = AndroidSdkHandler(sdkRoot, avdLocation, mgr)

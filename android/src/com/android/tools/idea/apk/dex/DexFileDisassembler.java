@@ -16,21 +16,20 @@
 package com.android.tools.idea.apk.dex;
 
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.ide.PooledThreadExecutor;
+import static com.android.tools.apk.analyzer.dex.DexFiles.getDexFile;
+import static com.android.tools.smali.baksmali.Baksmali.disassembleDexFile;
+import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
+import static com.intellij.concurrency.JobSchedulerImpl.getCPUCoresCount;
+
 import com.android.tools.smali.baksmali.BaksmaliOptions;
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
 import com.android.tools.smali.dexlib2.iface.DexFile;
-
+import com.google.common.util.concurrent.ListeningExecutorService;
 import java.io.File;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import static com.android.tools.apk.analyzer.dex.DexFiles.getDexFile;
-import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
-import static com.intellij.concurrency.JobSchedulerImpl.getCPUCoresCount;
-import static com.android.tools.smali.baksmali.Baksmali.disassembleDexFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 public class DexFileDisassembler {
   public boolean disassemble(@NotNull File dexFile, @NotNull File outputFolder) throws ExecutionException, InterruptedException {

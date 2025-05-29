@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite.utils
 
 import com.android.SdkConstants
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection

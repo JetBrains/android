@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies;
 
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
+import static com.intellij.util.ui.UIUtil.getTextFieldBorder;
+
 import com.android.tools.idea.gradle.structure.model.PsModelNameComparator;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
@@ -23,7 +27,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ui.CheckboxTree;
-import com.intellij.ui.CheckboxTreeAdapter;
+import com.intellij.ui.CheckboxTreeListener;
 import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBLabel;
@@ -33,20 +37,17 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import java.awt.Insets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
 import kotlin.Unit;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
-import static com.intellij.util.ui.UIUtil.getTextFieldBorder;
 
 class ModuleDependenciesForm {
   @NotNull private final CheckboxTree myPossibleDependenciesTree;
@@ -80,7 +81,7 @@ class ModuleDependenciesForm {
     CheckedTreeNode root = new CheckedTreeNode(null);
 
     List<PsModule> modules = findAvailableModules(module);
-    Collections.sort(modules, new PsModelNameComparator<>());
+    modules.sort(new PsModelNameComparator<>());
 
     modules.forEach(m -> {
       CheckedTreeNode node = new CheckedTreeNode(m);
@@ -89,7 +90,7 @@ class ModuleDependenciesForm {
     });
 
     myPossibleDependenciesTree = new CheckboxTree(cellRenderer, root);
-    myPossibleDependenciesTree.addCheckboxTreeListener(new CheckboxTreeAdapter() {
+    myPossibleDependenciesTree.addCheckboxTreeListener(new CheckboxTreeListener() {
       @Override
       public void nodeStateChanged(@NotNull CheckedTreeNode node) {
         Object data = node.getUserObject();

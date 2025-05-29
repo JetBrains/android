@@ -16,14 +16,15 @@
 package com.android.tools.adtui.stdui;
 
 import com.intellij.util.ui.JBUI;
-
-import javax.swing.*;
+import java.awt.Graphics;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.border.Border;
 import javax.swing.plaf.UIResource;
 import javax.swing.plaf.basic.BasicButtonUI;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 class CommonButtonUI extends BasicButtonUI {
 

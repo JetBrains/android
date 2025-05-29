@@ -16,11 +16,11 @@
 package com.android.tools.idea.profilers.commands.util
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.service.LogcatService
-import com.jetbrains.rd.util.AtomicInteger
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicInteger
 
 internal class FakeLogcatService : LogcatService {
   private var channel: Channel<List<LogcatMessage>>? = null

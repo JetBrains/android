@@ -48,6 +48,7 @@ echo "--add-opens=java.desktop/javax.swing=ALL-UNNAMED" >> .test/args.txt
 echo "--add-opens=java.desktop/javax.swing.plaf.basic=ALL-UNNAMED" >> .test/args.txt
 echo "--add-opens=java.desktop/javax.swing.text=ALL-UNNAMED" >> .test/args.txt
 echo "--add-opens=java.desktop/javax.swing.text.html=ALL-UNNAMED" >> .test/args.txt
+echo "--add-opens=java.desktop/javax.swing.text.html.parser=ALL-UNNAMED" >> .test/args.txt
 echo "--add-opens=java.desktop/sun.awt=ALL-UNNAMED" >> .test/args.txt
 echo "--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED" >> .test/args.txt
 echo "--add-opens=java.desktop/sun.awt.datatransfer=ALL-UNNAMED" >> .test/args.txt

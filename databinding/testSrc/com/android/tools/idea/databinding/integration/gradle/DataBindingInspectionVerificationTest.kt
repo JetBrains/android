@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding.integration.gradle
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.openapi.project.guessProjectDir

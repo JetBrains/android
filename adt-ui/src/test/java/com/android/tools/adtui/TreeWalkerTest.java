@@ -15,13 +15,16 @@
  */
 package com.android.tools.adtui;
 
-import org.junit.Test;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.stream.Collectors;
-
 import static com.google.common.truth.Truth.assertThat;
+
+import java.awt.Component;
+import java.util.stream.Collectors;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import org.junit.Test;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent") // Don't care in tests
 public class TreeWalkerTest {

@@ -21,8 +21,8 @@ import com.android.build.attribution.analyzers.BuildAnalyzersWrapper
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.CHECK_JETIFIER_TASK_NAME
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
-import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.BuildInvocationType
+import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer

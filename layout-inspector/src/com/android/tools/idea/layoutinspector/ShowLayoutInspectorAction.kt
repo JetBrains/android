@@ -30,7 +30,7 @@ class ShowLayoutInspectorAction :
   DumbAwareAction(
     AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
     AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
-    StudioIcons.Shell.Menu.LAYOUT_INSPECTOR,
+    StudioIcons.Shell.Menu.LAYOUT_INSPECTOR
   ) {
   override fun update(e: AnActionEvent) {
     val project = e.project

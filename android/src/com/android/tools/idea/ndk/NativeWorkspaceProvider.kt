@@ -20,7 +20,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
-import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 import kotlin.streams.asStream

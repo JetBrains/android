@@ -17,10 +17,9 @@
   <depends optional="true" config-file="device-manager-v2-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <extensions defaultExtensionNs="com.intellij">
     <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
-    <library.toolWindow id="Device Manager 2"
+    <android.toolWindow id="Device Manager 2"
                 anchor="right"
                 icon="StudioIcons.Shell.ToolWindows.DEVICE_MANAGER"
-                librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
                 factoryClass="com.android.tools.idea.devicemanagerv2.DeviceManager2ToolWindowFactory"/>
     <notificationGroup id="Device Manager Messages"
                        displayType="BALLOON"

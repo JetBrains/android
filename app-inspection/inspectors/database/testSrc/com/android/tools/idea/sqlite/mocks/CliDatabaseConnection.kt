@@ -141,7 +141,7 @@ class CliDatabaseConnection(
       }
       .asListenableFuture()
 
-  override fun close(): ListenableFuture<Unit> = Futures.immediateFuture(null)
+  override fun close(): ListenableFuture<Unit> = Futures.immediateFuture(Unit)
 
   override fun readSchema(): ListenableFuture<SqliteSchema> =
     CoroutineScope(coroutineDispatcher)

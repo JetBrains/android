@@ -13,16 +13,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin version="2">
+<idea-plugin>
   <id>com.android.tools.idea.smali</id>
-  <name>Smali Support</name>
+  <name>Smali Viewer</name>
   <category>Android</category>
-  <vendor url="http://www.google.com">Google, Inc.</vendor>
+  <vendor>JetBrains, Google</vendor>
 
   <description><![CDATA[Adds support for <em>smali</em> files produced by Android disassembler]]></description>
 
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
-       on how to target different products -->
   <depends>com.intellij.modules.lang</depends>
   <depends>com.intellij.java</depends>
 
@@ -33,9 +31,4 @@
     <lang.syntaxHighlighterFactory language="Smali" implementationClass="com.android.tools.idea.smali.SmaliSyntaxHighlighterFactory"/>
     <annotator language="Smali" implementationClass="com.android.tools.idea.smali.SmaliAnnotator"/>
   </extensions>
-
-  <actions>
-    <!-- Add your actions here -->
-  </actions>
-
 </idea-plugin>

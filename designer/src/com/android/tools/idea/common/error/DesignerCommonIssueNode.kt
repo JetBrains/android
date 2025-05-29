@@ -32,7 +32,6 @@ import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.notebook.editor.BackedVirtualFile
-import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project

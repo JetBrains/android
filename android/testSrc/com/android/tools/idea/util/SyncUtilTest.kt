@@ -24,14 +24,12 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.util.ThrowableRunnable
+import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
@@ -193,7 +191,7 @@ class SyncUtilTest {
     // We need to emulate sync because in production all the listeners (for example [ProjectLightResourceClassService])
     // will trigger sync indirectly through methods like dropPsiCaches().
     emulateSync(SyncResult.SUCCESS)
-    invokeAndWaitIfNeeded { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertThat(callCount.get()).isEqualTo(1)
 
     val latch2 = CountDownLatch(1)

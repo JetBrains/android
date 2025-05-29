@@ -317,7 +317,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
         component.setDisplayedMnemonicIndex(mnemonicIndex);
       }
     }
-}
+  }
 
   private static class LayoutCodeStylePanel extends MyFileSpecificPanel<AndroidXmlCodeStyleSettings.LayoutSettings> {
     private JPanel myPanel;

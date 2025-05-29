@@ -16,11 +16,10 @@
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
 import com.android.tools.idea.gradle.model.IdeArtifactName;
+import java.util.Objects;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 
 class Configuration {
   static final Configuration MAIN = new Configuration("Main", IdeArtifactName.MAIN);

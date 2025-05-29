@@ -26,7 +26,6 @@ import com.android.tools.profiler.proto.Interaction;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.StudioProfilers;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -136,7 +135,7 @@ public class LifecycleEventDataSeries implements DataSeries<EventAction<Lifecycl
       }
     }
 
-    Collections.sort(series, Comparator.comparingLong(data -> data.x));
+    series.sort(Comparator.comparingLong(data -> data.x));
     return series;
   }
 }

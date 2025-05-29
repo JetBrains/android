@@ -31,10 +31,9 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.compose.StudioTheme
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
-import javax.swing.JComponent
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
@@ -42,6 +41,7 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
+import javax.swing.JComponent
 
 private val toolbarSpacing = 6.dp
 private const val descriptionOpened = "Hide preview group"
@@ -54,7 +54,7 @@ fun OrganizationHeader(group: OrganizationGroup) {
   IconButton(
     modifier =
       Modifier.testTag("openButton")
-        .height(ActionToolbarImpl.DEFAULT_MINIMUM_BUTTON_SIZE.height.dp),
+        .height(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height.dp),
     onClick = { group.setOpened(!opened.value) },
   ) {
     Row(verticalAlignment = Alignment.CenterVertically) {

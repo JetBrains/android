@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.intellij.openapi.Disposable
 import com.intellij.ui.navigation.Place
-import javax.swing.JComponent
 
 /**
  * A configuration UI for type [ModelT].

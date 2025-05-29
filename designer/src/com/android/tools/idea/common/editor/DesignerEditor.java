@@ -20,7 +20,6 @@ import com.android.tools.idea.common.lint.BackgroundEditorHighlighter;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -121,12 +120,6 @@ public abstract class DesignerEditor extends UserDataHolderBase implements FileE
       myBackgroundHighlighter = new BackgroundEditorHighlighter(myEditorPanel, myEditorPanel.getModelLintIssueAnnotator());
     }
     return myBackgroundHighlighter;
-  }
-
-  @Nullable
-  @Override
-  public FileEditorLocation getCurrentLocation() {
-    return null;
   }
 
   @Nullable

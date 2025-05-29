@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.testing
 
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdkPathStore
@@ -82,7 +83,8 @@ internal class TestProjectFixtureRuleImpl(
                   },
                   fixtureName,
                   AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-                  null
+                  null,
+                  sdk = it,
                 )
                 preparedProject.open {
                   projectContext_ = this
@@ -118,26 +120,19 @@ private fun setupJdk(path: Path, testRootDisposable: Disposable): Sdk? {
   return addedSdk
 }
 
-private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(testRootDisposable: Disposable, body: () -> Unit) {
-  val jdkPath = EmbeddedDistributionPaths.getInstance().embeddedJdkPath
-  WriteAction.runAndWait<Throwable> {
+private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(testRootDisposable: Disposable, body: (Sdk?) -> Unit) {
+  val jdkPath = TestUtils.getEmbeddedJdk17Path()
+  val sdk = WriteAction.computeAndWait<Sdk, Throwable> {
     // drop any discovered SDKs to not leak them
     cleanJdkTable()
-    setupJdk(jdkPath, testRootDisposable)
-  }
-
-  val jdk = IdeSdks.getInstance().jdk ?: error("Failed to set JDK")
-  if (jdk.homePath != jdkPath.toAbsolutePath().toString()) {
-    Disposer.register(testRootDisposable) {
-      runWriteAction { runCatchingAndRecord { ProjectJdkTable.getInstance().removeJdk(jdk) } }
-    }
+    setupJdk(jdkPath, testRootDisposable) ?: error("Failed to set JDK")
   }
 
   val oldAndroidSdkPath = IdeSdks.getInstance().androidSdkPath
   Disposer.register(testRootDisposable) {
     runWriteAction { runCatchingAndRecord { AndroidSdkPathStore.getInstance().androidSdkPath = oldAndroidSdkPath?.toPath() } }
   }
-  runCatchingAndRecord { body() }
+  runCatchingAndRecord { body(sdk) }
   runInEdtAndWait { runCatchingAndRecord { removeAllAndroidSdks() } }
 }
 

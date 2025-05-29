@@ -16,11 +16,11 @@
 package com.android.tools.adtui.eventrenderer;
 
 import com.android.tools.adtui.model.event.EventAction;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import javax.swing.Icon;
+import org.jetbrains.annotations.NotNull;
 
 public class EventIconRenderer<E> implements EventRenderer<E> {
   private static int BORDER_MARGIN = 2;

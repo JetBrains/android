@@ -19,11 +19,13 @@ import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
+import com.intellij.idea.IgnoreJUnit3
 import java.io.File
 
 class AdditionalArtifactsTest : AndroidGradleTestCase() {
 
   // regression test for b/329877056
+  @IgnoreJUnit3(reason = "IDEA-370311")
   fun testSourceDownloadedWithoutGradleMetadata() {
 
     val projectRoot = prepareProjectForImport(TestProjectPaths.KOTLIN_LIB)

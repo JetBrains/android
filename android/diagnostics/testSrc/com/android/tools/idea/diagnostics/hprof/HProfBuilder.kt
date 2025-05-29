@@ -34,6 +34,17 @@ import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
 import java.lang.reflect.Array
 import java.lang.reflect.Modifier
+import kotlin.Any
+import kotlin.ByteArray
+import kotlin.IllegalArgumentException
+import kotlin.IllegalStateException
+import kotlin.Int
+import kotlin.Long
+import kotlin.LongArray
+import kotlin.String
+import kotlin.arrayOf
+import kotlin.code
+import kotlin.toRawBits
 
 class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> String?)) {
 

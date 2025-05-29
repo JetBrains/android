@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator.AndroidModuleValidatorImpl;
 import com.intellij.openapi.module.Module;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link AndroidModuleValidatorImpl}.

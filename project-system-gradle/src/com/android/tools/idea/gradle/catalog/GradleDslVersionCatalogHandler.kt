@@ -4,7 +4,6 @@ package com.android.tools.idea.gradle.catalog
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME
 import com.android.tools.idea.gradle.dsl.model.getGradleVersionCatalogFiles
-import com.android.tools.idea.projectsystem.gradle.GradleModelSource
 import com.android.utils.mapValuesNotNull
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -19,6 +18,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.plugins.gradle.service.resolve.GradleVersionCatalogHandler
 import java.io.File
 import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.dsl.model.GradleModelSource
 
 /**
  * This is a copy of JetBrains GradleVersionCatalogHandler that provides access to Studio Version Catalog model.

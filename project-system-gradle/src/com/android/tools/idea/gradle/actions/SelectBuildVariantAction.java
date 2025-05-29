@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.android.tools.idea.gradle.util.ui.EventUtil.getSelectedAndroidModule;
+
 import com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -26,7 +28,6 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.actions.AndroidStudioGradleAction.isGradleProject;
-import static com.android.tools.idea.gradle.util.ui.EventUtil.getSelectedAndroidModule;
 
 /**
  * Action that allows users to select a build variant for the selected module, if the module is an Android Gradle module.

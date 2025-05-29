@@ -28,9 +28,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * State of a row in {@link SdkUpdaterConfigurable}.
  */
-class PackageNodeModel {
+public class PackageNodeModel {
 
-  enum SelectedState {
+  public enum SelectedState {
     NOT_INSTALLED,
     MIXED,
     INSTALLED

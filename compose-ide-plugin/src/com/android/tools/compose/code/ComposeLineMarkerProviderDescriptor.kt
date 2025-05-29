@@ -82,8 +82,8 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
     private fun isComposableInvocation(parentFunction: KtCallExpression): Boolean {
       if (KotlinPluginModeProvider.isK2Mode()) {
         analyze(parentFunction) {
-          // `KtCallExpression.resolveCall()` expects the call to be successful always, or throws.
-          // Instead, we should use `KtElement.resolveCall()` that allows an unresolved call.
+          // `KtCallExpression.resolveCallOld()` expects the call to be successful always, or throws.
+          // Instead, we should use `KtElement.resolveCallOld()` that allows an unresolved call.
           val callInfo = (parentFunction as KtElement).resolveToCall() ?: return false
           val symbol = callInfo.singleFunctionCallOrNull()?.symbol ?: return false
           return isComposableInvocation(symbol)

@@ -23,7 +23,7 @@ import com.android.ddmlib.FakeClientBuilder
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess

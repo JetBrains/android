@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 public final class ApkPackage {
   @NotNull private final String myName;

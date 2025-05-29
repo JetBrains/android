@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
-import com.intellij.icons.AllIcons;
-import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.ui.components.JBLabel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
 import static javax.swing.BorderFactory.createEmptyBorder;
+
+import com.intellij.icons.AllIcons;
+import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.components.JBLabel;
+import java.awt.BorderLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 public class CollapsiblePanel extends JPanel {
   @NotNull private final JPanel myPanel;

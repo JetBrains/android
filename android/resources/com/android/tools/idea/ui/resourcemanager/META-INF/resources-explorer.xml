@@ -43,10 +43,11 @@
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.ui.resourcemanager.importer.ImportConfigurationManager"/>
     <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
-    <library.toolWindow id="Resources Explorer"
-                      anchor="left" icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS" doNotActivateOnStart="true"
-                      librarySearchClass="com.android.tools.idea.sdk.AndroidProjectChecker"
-                      factoryClass="com.android.tools.idea.ui.resourcemanager.ResourceExplorerToolFactory"/>
+    <android.toolWindow id="Resources Explorer"
+                        anchor="left"
+                        icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS"
+                        doNotActivateOnStart="true"
+                        factoryClass="com.android.tools.idea.ui.resourcemanager.ResourceExplorerToolFactory"/>
   </extensions>
 
   <actions>
@@ -63,8 +64,6 @@
       <reference ref="FindUsages"/>
       <reference ref="SelectIn"/>
       <reference ref="RevealIn"/>
-      <separator/>
-      <reference ref="ConvertToWebp" />
     </group>
 
     <action class="com.android.tools.idea.ui.resourcemanager.actions.ShowFileInResourceManagerAction"

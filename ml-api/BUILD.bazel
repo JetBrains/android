@@ -1,31 +1,58 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+### auto-generated section `build intellij.android.ml-api` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
-# managed by go/iml_to_build
-iml_module(
-    name = "intellij.android.ml-api",
-    srcs = ["src/main/kotlin"],
-    data = [
-        "//prebuilts/studio/jdk:mock-jdk17",  # Used by test descriptors.
-        "//tools/adt/idea/adt-testutils:test-log.properties",  # Used for idea.log.config.properties.file.
-        "//tools/adt/idea/studio:required_jvm_args",  # Used to compute JNA path
-    ],
-    iml_files = ["intellij.android.ml-api.iml"],
-    resources = ["src/resources"],
-    test_class = "com.android.tools.idea.gemini.GeminiPluginApiTestSuite",
-    # do not sort: must match IML order
-    test_deps = [
-        "//tools/base/testutils:studio.android.sdktools.testutils",
-        "@intellij//:test-framework",
-        "//tools/adt/idea/.idea/libraries:truth",
-        "//tools/adt/idea/.idea/libraries:kotlin-test",
-        "//tools/adt/idea/.idea/libraries:junit4",
-        "@intellij//:com.intellij.java",
-        "@intellij//:org.jetbrains.kotlin",
-        "@intellij//:com.intellij.platform.images",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
-    ],
-    test_srcs = ["src/testSrc/kotlin"],
-    visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = ["@intellij//:intellij-sdk"],
+jvm_resources(
+  name = "ml-api_resources",
+  files = glob(["src/resources/**/*"]),
+  strip_prefix = "src/resources"
 )
+
+jvm_library(
+  name = "ml-api",
+  module_name = "intellij.android.ml-api",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/main/kotlin/**/*.kt", "src/main/kotlin/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:kotlin-stdlib",
+    "@lib//:studio-platform-provided",
+    "//platform/extensions",
+    "//platform/core-api:core",
+    "//platform/util",
+  ],
+  runtime_deps = [":ml-api_resources"]
+)
+### auto-generated section `build intellij.android.ml-api` end
+
+### auto-generated section `build intellij.android.ml-api-tests` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "ml-api-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/testSrc/kotlin/**/*.kt", "src/testSrc/kotlin/**/*.java"], allow_empty = True),
+  associates = ["//android/ml-api"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:mockito",
+    "@lib//:mockito-kotlin",
+    "@lib//:truth",
+    "@lib//:kotlin-stdlib",
+    "@lib//:kotlin-test",
+    "@lib//:kotlinc-kotlin-compiler-common",
+    "@lib//:junit4",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/indexing-api:indexing",
+    "//platform/indexing-impl",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//android/adt-testutils:adt-testutils_test_lib",
+  ]
+)
+
+jvm_test(
+  name = "ml-api-tests_test",
+  runtime_deps = [":ml-api-tests_test_lib"]
+)
+### auto-generated section `build intellij.android.ml-api-tests` end

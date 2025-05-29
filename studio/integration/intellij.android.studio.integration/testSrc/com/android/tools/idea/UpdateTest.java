@@ -19,7 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidSdk;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;

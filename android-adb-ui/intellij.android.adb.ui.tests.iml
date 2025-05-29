@@ -7,29 +7,35 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="TEST" name="junit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-plugin-com.intellij.platform.images" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-plugin-intellij.webp" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-plugin-com.intellij.java" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.ddmlib" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.device-provisioner" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adb.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.analysis" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.editor.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.images" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
+    <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.adb.ui" />
 </module>

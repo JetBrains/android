@@ -1,0 +1,35 @@
+### auto-generated section `build intellij.android.core.integration` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+java_library(
+  name = "integration",
+  visibility = ["//visibility:public"]
+)
+
+jvm_library(
+  name = "integration_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:protobuf",
+    "@lib//:studio-platform",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "@lib//:truth",
+    "//android/android:core",
+    "//android/as-driver/utils:utils_test_lib",
+    "@lib//:studio-test-platform",
+    "//platform/util",
+    "//platform/analysis-impl",
+    "@lib//:guava",
+    "//android/platform-performance-testing:platform-performance-testing_test_lib",
+  ]
+)
+
+jvm_test(
+  name = "integration_test",
+  runtime_deps = [":integration_test_lib"]
+)
+### auto-generated section `build intellij.android.core.integration` end

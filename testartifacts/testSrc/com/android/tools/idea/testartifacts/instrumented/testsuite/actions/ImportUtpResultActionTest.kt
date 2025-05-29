@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
 import com.google.common.truth.Truth.assertThat
 import com.android.tools.idea.protobuf.TextFormat
+import com.google.common.truth.Truth.assertThat
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext

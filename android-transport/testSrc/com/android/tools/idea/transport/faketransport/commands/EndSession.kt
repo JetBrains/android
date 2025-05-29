@@ -16,9 +16,8 @@
 package com.android.tools.idea.transport.faketransport.commands
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Commands.Command
-import com.android.tools.profiler.proto.Transport.EventGroup
+import com.android.tools.profiler.proto.Common
 
 /**
  * This class handles end session commands by finding the begin session event created then adding a session ended event to to list.

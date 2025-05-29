@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.observable.expressions.value;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public final class ValueExpressionsTest {
   @Test

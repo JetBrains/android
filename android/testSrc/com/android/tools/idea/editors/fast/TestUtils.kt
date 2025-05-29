@@ -16,13 +16,8 @@
 package com.android.tools.idea.editors.fast
 
 import com.android.tools.idea.editors.build.RenderingBuildStatusManagerForTests
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
-import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableSet
-import com.google.common.util.concurrent.Futures
-import com.intellij.psi.search.EverythingGlobalScope
-import com.intellij.psi.search.GlobalSearchScope
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path

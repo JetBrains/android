@@ -18,6 +18,7 @@ package com.android.tools.idea.util.fsm
 import com.android.tools.idea.util.fsm.StateMachine.Config
 import com.android.tools.idea.util.fsm.StateMachine.SelfTransitionBehavior
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.diagnostic.DefaultLogger
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration
@@ -25,7 +26,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.TestTimeSource
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
-import org.apache.log4j.Level
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -508,7 +508,7 @@ class StateMachineTest {
       .inOrder()
   }
 
-  private class FakeLogger : Logger() {
+  private class FakeLogger : DefaultLogger("") {
     val debugLogs: MutableCollection<String> = mutableListOf()
     val warnLogs: MutableCollection<String> = mutableListOf()
 
@@ -531,10 +531,6 @@ class StateMachineTest {
     }
 
     override fun error(message: String, t: Throwable?, vararg details: String?) {
-      throw NotImplementedError()
-    }
-
-    override fun setLevel(level: Level) {
       throw NotImplementedError()
     }
   }

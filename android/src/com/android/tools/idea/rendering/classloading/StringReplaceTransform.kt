@@ -17,10 +17,10 @@ package com.android.tools.idea.rendering.classloading
 
 import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
 import com.android.tools.rendering.classloading.fromPackageNameToBinaryName
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.FieldVisitor
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.FieldVisitor
+import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
 
 private class StringReplaceMethodTransform(
   delegate: MethodVisitor,

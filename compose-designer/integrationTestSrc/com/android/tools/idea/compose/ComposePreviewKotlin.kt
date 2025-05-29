@@ -19,11 +19,11 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import java.nio.file.Path
-import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 
 /**
  * Note: the "Kotlin" in the name of this is because the test ensures Compose Preview works on

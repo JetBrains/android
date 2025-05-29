@@ -20,7 +20,7 @@ import static org.jetbrains.android.AndroidTestCase.addAndroidFacetAndSdk;
 import static org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen;
 
 import com.android.SdkConstants;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.tests.AdtTestProjectDescriptors;
 import com.intellij.openapi.application.Application;
@@ -48,7 +48,6 @@ import org.jetbrains.android.ComponentStack;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Adapted from {@link org.jetbrains.android.AndroidTestCase}.

@@ -23,7 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.openapi.Disposable;

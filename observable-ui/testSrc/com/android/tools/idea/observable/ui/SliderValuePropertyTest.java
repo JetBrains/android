@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.observable.ui;
 
-import com.android.tools.idea.observable.CountListener;
-import org.junit.Test;
-
-import javax.swing.*;
-
 import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.idea.observable.CountListener;
+import javax.swing.JSlider;
+import org.junit.Test;
 
 public class SliderValuePropertyTest {
   @Test

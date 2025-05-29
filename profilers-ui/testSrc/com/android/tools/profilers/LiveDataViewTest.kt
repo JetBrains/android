@@ -19,10 +19,6 @@ import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.model.TooltipModel
 import com.android.tools.adtui.model.ViewBinder
-import com.android.tools.profilers.LiveDataModel
-import com.android.tools.profilers.LiveDataView
-import com.android.tools.profilers.Stage
-import com.android.tools.profilers.StageView
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test

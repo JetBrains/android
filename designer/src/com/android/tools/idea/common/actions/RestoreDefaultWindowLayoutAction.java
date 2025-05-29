@@ -18,6 +18,7 @@ package com.android.tools.idea.common.actions;
 import com.android.tools.adtui.workbench.DetachedToolWindowManager;
 import com.android.tools.adtui.workbench.WorkBenchManager;
 import com.intellij.ide.actions.RestoreDefaultLayoutAction;
+import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -32,7 +33,7 @@ public class RestoreDefaultWindowLayoutAction extends AnAction implements DumbAw
   private final RestoreDefaultLayoutAction myDelegate;
 
   public RestoreDefaultWindowLayoutAction() {
-    super("Restore Default Layout");
+    super(ActionsBundle.messagePointer("action.RestoreDefaultLayout.text"), ActionsBundle.messagePointer("action.RestoreDefaultLayout.description"));
     myDelegate = new RestoreDefaultLayoutAction();
   }
 

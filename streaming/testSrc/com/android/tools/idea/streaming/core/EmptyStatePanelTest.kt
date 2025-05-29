@@ -36,7 +36,6 @@ import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -45,7 +44,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.ConcurrencyUtil
 import com.intellij.util.ui.UIUtil
 import org.junit.After
-import org.junit.Assume.assumeFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

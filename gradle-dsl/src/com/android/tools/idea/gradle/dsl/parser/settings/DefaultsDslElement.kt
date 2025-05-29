@@ -27,22 +27,23 @@ import java.util.stream.Stream
 class DefaultsDslElement(parent: GradleDslElement, name: GradleNameElement): GradleDslBlockElement(parent, name) {
   companion object {
     @JvmField
-    val DEFAULTS_DSL_ELEMENT = PropertiesElementDescription("defaults",
+    internal val DEFAULTS_DSL_ELEMENT = PropertiesElementDescription("defaults",
                                                             DefaultsDslElement::class.java) {
       parent, name -> DefaultsDslElement(parent, name)
     }
 
 
-    val CHILD_PROPERTIES_ELEMENT_MAP = Stream.of(*arrayOf(
+    private val CHILD_PROPERTIES_ELEMENT_MAP = Stream.of(*arrayOf(
       arrayOf("androidApp", AndroidDslElement.ANDROID_APP),
       arrayOf("androidLibrary", AndroidDslElement.ANDROID_LIBRARY),
     )).collect(ImmutableMap.toImmutableMap({ data: Array<*> -> data[0] as String },
                                            { data: Array<*> -> data[1] as PropertiesElementDescription<*> }))
 
   }
+
   override fun getChildPropertiesElementsDescriptionMap(
     kind: GradleDslNameConverter.Kind?
-  ): ImmutableMap<String?, PropertiesElementDescription<*>?> {
+  ): Map<String, PropertiesElementDescription<*>?> {
     return CHILD_PROPERTIES_ELEMENT_MAP
   }
 }

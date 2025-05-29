@@ -16,10 +16,10 @@
 package com.android.tools.idea.npw.module.recipes.automotiveModule
 
 import com.android.tools.idea.npw.module.recipes.basicThemesXml
-import com.android.tools.idea.wizard.template.ModuleTemplateData
-import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
+import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.RecipeExecutor
 
 fun RecipeExecutor.generateAutomotiveModule(
   data: ModuleTemplateData,

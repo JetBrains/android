@@ -24,6 +24,7 @@ import static com.android.tools.idea.run.deployment.liveedit.PsiValidatorKt.getP
 
 import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
@@ -503,9 +504,9 @@ public class LiveEditProjectMonitor implements Disposable {
 
     updateEditableStatus(LiveEditStatus.InProgress.INSTANCE);
 
-    while(!processChanges(project, bufferedFiles,
-                          LiveEditService.isLeTriggerOnSave() ? LiveEditEvent.Mode.ON_SAVE : LiveEditEvent.Mode.MANUAL)) {
-        LOGGER.info("ProcessChanges was interrupted");
+    while (!processChanges(project, bufferedFiles,
+                           LiveEditService.isLeTriggerOnSave() ? LiveEditEvent.Mode.ON_SAVE : LiveEditEvent.Mode.MANUAL)) {
+      LOGGER.info("ProcessChanges was interrupted");
     }
     bufferedFiles.clear();
   }
@@ -753,9 +754,9 @@ public class LiveEditProjectMonitor implements Disposable {
   @VisibleForTesting
   void updateEditableStatus(@NotNull LiveEditStatus newStatus) {
     liveEditDevices.update((device, prevStatus) -> (
-      prevStatus.unrecoverable() ||
-      prevStatus == LiveEditStatus.Disabled.INSTANCE ||
-      prevStatus == LiveEditStatus.NoMultiDeploy.INSTANCE) ? prevStatus : newStatus);
+                                                     prevStatus.unrecoverable() ||
+                                                     prevStatus == LiveEditStatus.Disabled.INSTANCE ||
+                                                     prevStatus == LiveEditStatus.NoMultiDeploy.INSTANCE) ? prevStatus : newStatus);
   }
 
   private void handleDeviceStatusChange(Map<IDevice, LiveEditStatus> map) {
@@ -774,11 +775,12 @@ public class LiveEditProjectMonitor implements Disposable {
   static Installer newInstaller(IDevice device) {
     MetricsRecorder metrics = new MetricsRecorder();
     AdbClient adb = new AdbClient(device, LOGGER);
-    return new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
+    // we use EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() to make sure the path is correctly adjuasted in IJ.
+    return new AdbInstaller(EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
   }
 
   private LiveUpdateDeployer.UpdateLiveEditResult pushUpdatesToDevice(
-      String applicationId, IDevice device, LiveEditDesugarResponse update) {
+    String applicationId, IDevice device, LiveEditDesugarResponse update) {
     LiveUpdateDeployer deployer = new LiveUpdateDeployer(LOGGER);
     Installer installer = newInstaller(device);
     AdbClient adb = new AdbClient(device, LOGGER);

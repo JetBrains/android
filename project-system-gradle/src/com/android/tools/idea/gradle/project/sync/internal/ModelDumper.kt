@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.ide.common.gradle.Component
 import com.google.common.collect.Sets
-import com.jetbrains.rd.util.getOrCreate
 import java.io.File
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -306,7 +305,7 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
   private val Any.printableClassName
     get() = if (this::class.simpleName.orEmpty().startsWith("\$Proxy")) "<PROXY>" else this::class.simpleName ?: "?"
 
-  private fun getClassDumperDescriptorFor(values: Any) = modelClassDumperDescriptors.getOrCreate(values::class) {
+  private fun getClassDumperDescriptorFor(values: Any) = modelClassDumperDescriptors.computeIfAbsent(values::class) {
     @Suppress("UNCHECKED_CAST") (ModelClassDumperDescriptor(values::class as KClass<Any>)) // This is safe because we only use it to invoke methods on the same instance.)
   }
 

@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.common.contentDeselectionBackground
-import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.memory.adapters.MemoryObject
 import java.awt.Graphics

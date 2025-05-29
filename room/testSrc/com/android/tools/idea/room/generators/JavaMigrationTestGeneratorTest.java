@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.room.generators;
 
-import static com.google.common.truth.Truth.*;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.room.migrations.generators.JavaMigrationTestGenerator;
 import com.intellij.openapi.command.WriteCommandAction;

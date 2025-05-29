@@ -16,7 +16,6 @@
 package com.android.tools.idea.profilers;
 
 import com.android.annotations.Nullable;
-
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 

@@ -15,12 +15,6 @@
  */
 package com.android.build.attribution.ui.data
 
-import com.android.build.attribution.analyzers.DownloadsAnalyzer
-import com.android.build.attribution.analyzers.DownloadsAnalyzer.DownloadStatus.FAILURE
-import com.android.build.attribution.analyzers.DownloadsAnalyzer.DownloadStatus.MISSED
-import com.android.build.attribution.analyzers.DownloadsAnalyzer.DownloadStatus.SUCCESS
-import com.android.build.attribution.analyzers.DownloadsAnalyzer.KnownRepository.GOOGLE
-import com.android.build.attribution.analyzers.DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL
 import com.android.build.attribution.ui.mockDownloadsData
 import com.google.common.truth.Truth
 import org.junit.Test

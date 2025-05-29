@@ -35,8 +35,8 @@ import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkException
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_INTERNAL_JAVA
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_INTERNAL_JAVA
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_JAVA_HOME

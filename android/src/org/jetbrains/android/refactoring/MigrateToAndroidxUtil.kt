@@ -21,7 +21,6 @@ import com.android.support.AndroidxName
 import com.android.tools.idea.projectsystem.cacheInvalidatingOnSyncModifications
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.lang.properties.IProperty
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 

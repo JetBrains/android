@@ -26,7 +26,6 @@ import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.JBColor
-import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBDimension
@@ -37,13 +36,11 @@ import java.awt.Desktop
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.Action
-import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.ScrollPaneConstants
 import javax.swing.event.HyperlinkEvent
 
 class AndroidSdkCompatibilityDialog(

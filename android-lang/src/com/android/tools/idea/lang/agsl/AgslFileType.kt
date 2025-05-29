@@ -17,8 +17,8 @@ package com.android.tools.idea.lang.agsl
 
 import com.intellij.openapi.fileTypes.LanguageFileType
 import icons.StudioIcons
-import javax.swing.Icon
 import org.jetbrains.annotations.NonNls
+import javax.swing.Icon
 
 /**
  * File type registration for AGSL. We don't actually intend to support developing AGSL as separate

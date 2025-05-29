@@ -17,11 +17,10 @@ package com.android.tools.idea.uibuilder.api;
 
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.common.model.NlComponent;
-
-import javax.swing.*;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import javax.swing.Icon;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A handler for a component in the structure pane.

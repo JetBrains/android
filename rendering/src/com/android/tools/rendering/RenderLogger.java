@@ -125,7 +125,7 @@ public class RenderLogger implements IRenderLogger {
    * "too many problems" RenderProblem will be added.
    */
   @VisibleForTesting
-  static final int RENDER_PROBLEMS_LIMIT =
+  public static final int RENDER_PROBLEMS_LIMIT =
     Integer.getInteger("com.android.tools.idea.rendering.RENDER_PROBLEMS_LIMIT", 100);
 
   /**
@@ -133,7 +133,7 @@ public class RenderLogger implements IRenderLogger {
    * have STACK_OVERFLOW_TRACE_LIMIT/2 elements from the top and STACK_OVERFLOW_TRACE_LIMIT/2 from the bottom.
    */
   @VisibleForTesting
-  static final int STACK_OVERFLOW_TRACE_LIMIT =
+  public static final int STACK_OVERFLOW_TRACE_LIMIT =
     Integer.getInteger("com.android.tools.idea.rendering.STACK_OVERFLOW_TRACE_LIMIT", 100);
 
   private static Set<String> ourIgnoredFidelityWarnings;

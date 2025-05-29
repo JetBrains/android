@@ -19,10 +19,9 @@ import com.intellij.openapi.roots.ui.configuration.ConfigurationError;
 import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.text.HtmlChunk;
 import com.intellij.ui.awt.RelativePoint;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class ProjectConfigurationError extends ConfigurationError {
   @Nullable private final JComponent myNavigationTarget;

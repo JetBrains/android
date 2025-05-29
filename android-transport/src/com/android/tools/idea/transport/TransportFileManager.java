@@ -26,6 +26,7 @@ import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
+import com.android.tools.idea.downloads.AndroidProfilerDownloader;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup;
@@ -36,7 +37,6 @@ import com.android.tools.profiler.proto.Transport;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.messages.MessageBus;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -57,68 +57,77 @@ public final class TransportFileManager implements TransportFileCopier {
 
   private static class HostFiles {
     @NotNull static final DeployableFile TRANSPORT = new DeployableFile.Builder("transport")
-      .setReleaseDir(Constants.TRANSPORT_RELEASE_DIR)
-      .setDevDir(Constants.TRANSPORT_DEV_DIR)
+      .setReleaseDir(androidPluginDir(Constants.TRANSPORT_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.TRANSPORT_RELEASE_DIR))
       .setExecutable(true)
       .build();
 
     @NotNull static final DeployableFile PERFA = new DeployableFile.Builder("perfa.jar").build();
 
     @NotNull static final DeployableFile JVMTI_AGENT = new DeployableFile.Builder("libjvmtiagent.so")
-      .setReleaseDir(Constants.JVMTI_AGENT_RELEASE_DIR)
-      .setDevDir(Constants.JVMTI_AGENT_DEV_DIR)
+      .setReleaseDir(androidPluginDir(Constants.JVMTI_AGENT_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.JVMTI_AGENT_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("libjvmtiagent_%s.so") // e.g. libjvmtiagent_arm64.so
       .build();
 
     @NotNull static final DeployableFile SIMPLEPERF = new DeployableFile.Builder("simpleperf")
-      .setReleaseDir(Constants.SIMPLEPERF_RELEASE_DIR)
-      .setDevDir(Constants.SIMPLEPERF_DEV_DIR)
+      .setReleaseDir(androidPluginDir(Constants.SIMPLEPERF_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.SIMPLEPERF_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("simpleperf_%s") // e.g simpleperf_arm64
       .build();
 
     @NotNull static final DeployableFile PERFETTO = new DeployableFile.Builder("perfetto")
-      .setReleaseDir(Constants.PERFETTO_RELEASE_DIR)
-      .setDevDir(Constants.PERFETTO_DEV_DIR)
+      .setReleaseDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("perfetto_%s") // e.g perfetto_arm64
       .build();
 
     @NotNull static final DeployableFile PERFETTO_SO = new DeployableFile.Builder("libperfetto.so")
-      .setReleaseDir(Constants.PERFETTO_RELEASE_DIR)
-      .setDevDir(Constants.PERFETTO_DEV_DIR)
+      .setReleaseDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("%s/libperfetto.so") // e.g arm64/libperfetto.so
       .build();
 
     @NotNull static final DeployableFile TRACED = new DeployableFile.Builder("traced")
-      .setReleaseDir(Constants.PERFETTO_RELEASE_DIR)
-      .setDevDir(Constants.PERFETTO_DEV_DIR)
+      .setReleaseDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("traced_%s") // e.g traced_arm64
       .build();
 
     @NotNull static final DeployableFile TRACED_PROBE = new DeployableFile.Builder("traced_probes")
-      .setReleaseDir(Constants.PERFETTO_RELEASE_DIR)
-      .setDevDir(Constants.PERFETTO_DEV_DIR)
+      .setReleaseDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("traced_probes_%s") // e.g traced_probe_arm64
       .build();
 
     @NotNull static final DeployableFile TRACEBOX = new DeployableFile.Builder("tracebox")
-      .setReleaseDir(Constants.TRACEBOX_RELEASE_DIR)
-      .setDevDir(Constants.TRACEBOX_DEV_DIR)
+      .setReleaseDir(androidPluginDir(Constants.TRACEBOX_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.TRACEBOX_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("tracebox_%s") // e.g tracebox_arm64
       .build();
+  }
+
+  private static String androidPluginDir(String childDirectory) {
+    return AndroidProfilerDownloader.getInstance()
+      .getHostDir(childDirectory)
+      .toPath()
+      .toAbsolutePath()
+      .toString();
   }
 
   private static Logger getLogger() {
     return Logger.getInstance(TransportFileManager.class);
   }
 
-  static final String DEVICE_DIR = "/data/local/tmp/perfd/";
+  @VisibleForTesting
+  public static final String DEVICE_DIR = "/data/local/tmp/perfd/";
   private static final String CODE_CACHE_DIR = "code_cache";
   private static final String DAEMON_CONFIG_FILE = "daemon.config";
   private static final String AGENT_CONFIG_FILE = "agent.config";
@@ -134,6 +143,7 @@ public final class TransportFileManager implements TransportFileCopier {
     if (!StudioFlags.TRANSPORT_CONSERVATIVE_COPY.get()) {
       myDevice.executeShellCommand("rm -rf " + DEVICE_DIR, new NullOutputReceiver());
     }
+    if (!AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace()) return;
     // Copy resources into device directory, all resources need to be included in profiler-artifacts target to build and
     // in AndroidStudioProperties.groovy to package in release.
     copyFileToDevice(HostFiles.TRANSPORT);

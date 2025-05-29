@@ -17,10 +17,10 @@ package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.rendering.classloading.toClassTransform
-import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics
 import com.android.tools.rendering.classloading.ModuleClassLoader
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
+import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics
+import com.android.tools.rendering.classloading.toClassTransform
 import com.android.tools.rendering.classloading.useWithClassLoader
 import org.junit.After
 import org.junit.Assert.assertEquals

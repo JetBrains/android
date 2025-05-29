@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis.leir
 
-import org.objectweb.asm.tree.LocalVariableNode
+import org.jetbrains.org.objectweb.asm.tree.LocalVariableNode
 
 class IrLocalVariable(node: LocalVariableNode, labels: IrLabels) {
   val index = node.index

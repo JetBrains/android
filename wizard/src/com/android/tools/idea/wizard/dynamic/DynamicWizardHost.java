@@ -17,11 +17,10 @@ package com.android.tools.idea.wizard.dynamic;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.progress.ProgressIndicator;
+import java.awt.Dimension;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * This interface allows decoupling the dynamic wizard from underlying

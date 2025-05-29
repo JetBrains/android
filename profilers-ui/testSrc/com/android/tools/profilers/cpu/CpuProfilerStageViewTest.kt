@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu
 
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.instructions.InstructionsPanel

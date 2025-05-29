@@ -1,0 +1,3 @@
+- name: lib/android-smali.jar
+  modules:
+  - name: intellij.android.smali

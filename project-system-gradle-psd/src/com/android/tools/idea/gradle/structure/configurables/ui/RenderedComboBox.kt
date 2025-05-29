@@ -24,7 +24,9 @@ import com.intellij.ui.components.fields.ExtendableTextComponent
 import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.StatusText
-import java.awt.*
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.Rectangle
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import javax.swing.DefaultComboBoxModel

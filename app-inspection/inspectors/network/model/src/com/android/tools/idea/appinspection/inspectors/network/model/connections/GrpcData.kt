@@ -17,10 +17,11 @@ package com.android.tools.idea.appinspection.inspectors.network.model.connection
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.protobuf.ByteString
-import java.util.TreeMap
-import java.util.concurrent.TimeUnit
+import com.google.common.annotations.VisibleForTesting
 import studio.network.inspection.NetworkInspectorProtocol
 import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcMetadata
+import java.util.TreeMap
+import java.util.concurrent.TimeUnit
 
 /**
  * Data of gRPC connection. Each [GrpcData] object matches a gRPC connection with a unique id, and
@@ -28,8 +29,7 @@ import studio.network.inspection.NetworkInspectorProtocol.GrpcEvent.GrpcMetadata
  * connection starts. Response data may start empty but filled when connection completes.
  */
 @Suppress("DataClassPrivateConstructor")
-data class GrpcData
-private constructor(
+data class GrpcData @VisibleForTesting constructor(
   override val id: Long,
   override val updateTimeUs: Long,
   override val requestStartTimeUs: Long,

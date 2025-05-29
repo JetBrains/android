@@ -16,12 +16,7 @@
 package com.android.tools.idea.run.activity;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.utils.concurrency.AsyncSupplier;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class ActivityLocator {
   public static final class ActivityLocatorException extends Exception {

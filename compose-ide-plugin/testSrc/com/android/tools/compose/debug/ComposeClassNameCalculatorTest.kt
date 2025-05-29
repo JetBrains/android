@@ -20,7 +20,6 @@ package com.android.tools.compose.debug
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.assertInstanceOf
-import kotlin.test.fail
 import org.jetbrains.kotlin.idea.debugger.base.util.ClassNameCalculator
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
@@ -30,6 +29,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.fail
 
 class ComposeClassNameCalculatorTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()

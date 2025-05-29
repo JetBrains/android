@@ -1,4 +1,4 @@
-// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.uipreview;
 
 import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
@@ -36,18 +36,18 @@ import java.awt.event.MouseEvent;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.swing.DefaultListModel;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NotNull;
@@ -88,7 +88,8 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
       }
     }.installOn(myList);
 
-    JBScrollPane scrollPane = new JBScrollPane(myList, JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    JBScrollPane scrollPane = new JBScrollPane(myList, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                               ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     // The cell renderer is calculated in the background when using PsiClassListCellRenderer so, by the time the dialog
     // opens we can not yet calculate the right width. With this, we ensure that it is visible in all conditions.
     scrollPane.setPreferredSize(JBUI.size(900, 300));

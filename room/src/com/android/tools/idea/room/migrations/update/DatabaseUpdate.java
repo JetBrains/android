@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.room.migrations.update;
 
-import static com.android.tools.idea.room.migrations.update.SchemaDiffUtil.*;
+import static com.android.tools.idea.room.migrations.update.SchemaDiffUtil.ftsTableNeedsExternalContentSource;
+import static com.android.tools.idea.room.migrations.update.SchemaDiffUtil.isTableStructureTheSame;
+import static com.android.tools.idea.room.migrations.update.SchemaDiffUtil.isTableTypeTheSame;
 
 import com.android.tools.idea.room.migrations.json.DatabaseBundle;
 import com.android.tools.idea.room.migrations.json.DatabaseViewBundle;

@@ -417,7 +417,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     }
 
     @Override
-    protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
+    protected AbstractTreeNode<?> createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
       return new AndroidViewProjectNode(project, settings);
     }
   }

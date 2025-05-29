@@ -16,10 +16,10 @@
 package com.android.tools.rendering.classloading
 
 import com.intellij.openapi.diagnostic.Logger
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.PriorityQueue
 import java.util.Stack
 import java.util.concurrent.atomic.LongAdder
-import org.jetbrains.annotations.VisibleForTesting
 
 /** Interface for reading [ModuleClassLoader] stats. */
 interface ModuleClassLoaderDiagnosticsRead {

@@ -248,6 +248,7 @@ class LayoutInspectorToolWindowFactoryTest {
   }
 
   @Test
+  @Ignore("IntelliJ configures Android Toolwindows via AndroidToolWindow")
   fun isLibraryToolWindow() {
     val toolWindow =
       LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find {

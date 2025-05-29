@@ -45,7 +45,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.messages.Topic
-import com.jetbrains.rd.util.getOrCreate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -121,7 +120,7 @@ private class DaemonRegistry(
       daemons.remove(version)
 
       // We did not have an existing one so start a request. startingDaemons avoids duplicating requests.
-      return@synchronized startingDaemons.getOrCreate(version) {
+      return@synchronized startingDaemons.computeIfAbsent(version) {
         val pending = CompletableDeferred<CompilerDaemonClient>()
         // Launch a new coroutine for the daemon creation, so we do not block in the synchronized block.
         // This coroutine will do the potentially heavy daemon creation and complete the pending CompletableDeferred once

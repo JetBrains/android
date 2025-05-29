@@ -17,10 +17,10 @@ package com.android.tools.idea.transport.manager
 
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import org.junit.rules.ExternalResource
+import kotlin.coroutines.EmptyCoroutineContext
 
 class TransportStreamManagerRule(private val fakeGrpcServer: FakeGrpcServer) : ExternalResource() {
   lateinit var streamManager: TransportStreamManager

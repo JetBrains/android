@@ -16,18 +16,16 @@
 package com.android.tools.adtui;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.android.tools.adtui.TreeWalker;
 import com.google.common.base.Strings;
 import com.intellij.ui.components.JBLabel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.HierarchyEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Iterator;
-import java.util.Optional;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A label which automatically listens to all focus events whenever it is part of the current UI

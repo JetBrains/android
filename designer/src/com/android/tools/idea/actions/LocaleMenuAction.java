@@ -80,7 +80,7 @@ public class LocaleMenuAction extends DropDownAction {
       add(new SetLocaleAction(title, Locale.ANY, currentLocalLabel.equals(title)));
       addSeparator();
 
-      Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
+      locales.sort(Locale.LANGUAGE_CODE_COMPARATOR);
       for (Locale locale : locales) {
         title = Locale.getLocaleLabel(locale, false);
 

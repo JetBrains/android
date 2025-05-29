@@ -18,7 +18,9 @@ package com.android.tools.idea.ui.designer.overlays;
 import static icons.StudioIcons.Common.DELETE;
 import static icons.StudioIcons.LayoutEditor.Motion.LOOP;
 import static icons.StudioIcons.LayoutEditor.Toolbar.LAYER;
-import static icons.StudioIcons.LayoutInspector.Toolbar.*;
+import static icons.StudioIcons.LayoutInspector.Toolbar.CLEAR_OVERLAY;
+import static icons.StudioIcons.LayoutInspector.Toolbar.LOAD_OVERLAY;
+import static icons.StudioIcons.LayoutInspector.Toolbar.MODE_3D;
 
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -97,13 +99,13 @@ public class OverlayMenuAction extends DropDownAction {
    * The overlay is fetched each time and it is not cached.
    */
   @VisibleForTesting
-  static class ToggleOverlayAction extends AnAction implements Toggleable {
+  public static class ToggleOverlayAction extends AnAction implements Toggleable {
     @NotNull
     private final OverlayEntry myOverlayEntry;
     @NotNull
     private final OverlayConfiguration myOverlayConfiguration;
 
-    ToggleOverlayAction(@NotNull OverlayConfiguration overlayConfiguration,
+    public ToggleOverlayAction(@NotNull OverlayConfiguration overlayConfiguration,
                         @NotNull String title,
                         @NotNull OverlayEntry overlayEntry,
                         boolean checked) {
@@ -300,11 +302,11 @@ public class OverlayMenuAction extends DropDownAction {
   }
 
   @VisibleForTesting
-  static class DeleteOverlayAction extends AnAction {
+  public static class DeleteOverlayAction extends AnAction {
     @NotNull
     private final OverlayConfiguration myOverlayConfiguration;
 
-    DeleteOverlayAction(@NotNull OverlayConfiguration overlayConfiguration) {
+    public DeleteOverlayAction(@NotNull OverlayConfiguration overlayConfiguration) {
       super("Delete Overlay...", null, DELETE);
       myOverlayConfiguration = overlayConfiguration;
     }

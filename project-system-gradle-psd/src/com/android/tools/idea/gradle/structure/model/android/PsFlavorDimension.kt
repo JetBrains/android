@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.structure.model.PsChildModel
-import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.navigation.PsFlavorDimensionNavigationPath
 import icons.StudioIcons.Misc.PRODUCT_FLAVOR_DIMENSION
 import java.util.Objects

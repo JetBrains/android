@@ -17,7 +17,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="Device Explorer" displayType="BALLOON"/>
 
-    <applicationConfigurable groupId="tools" id="device.explorer"
+    <applicationConfigurable groupId="tools.android" id="device.explorer"
                              provider="com.android.tools.idea.device.explorer.files.options.DeviceFileExplorerConfigurableProvider"
                              bundle="messages.DeviceFileExplorerBundle"
                              key="configurable.name.device.file.explorer"/>
@@ -27,11 +27,10 @@
                     serviceImplementation="com.android.tools.idea.device.explorer.files.DeviceExplorerFileManagerImpl" />
 
     <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
-    <library.toolWindow id="Device Explorer"
-                anchor="right"
-                secondary="true"
-                icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
-                librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
-                factoryClass="com.android.tools.idea.device.explorer.DeviceExplorerToolWindowFactory"/>
+    <android.toolWindow id="Device Explorer"
+                        anchor="right"
+                        secondary="true"
+                        icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
+                        factoryClass="com.android.tools.idea.device.explorer.DeviceExplorerToolWindowFactory"/>
   </extensions>
 </idea-plugin>

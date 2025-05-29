@@ -38,7 +38,7 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.platform.workspace.jps.entities.ModuleEntity;
-import com.intellij.workspaceModel.ide.impl.legacyBridge.module.ModuleBridgeImpl;
+import com.intellij.workspaceModel.ide.legacyBridge.ModuleBridge;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -91,7 +91,7 @@ public class SupportedModuleChecker {
   }
 
   private boolean isKotlinScriptModule(@NotNull Module module) {
-    ModuleBridgeImpl moduleBridge = (ModuleBridgeImpl)module;
+    ModuleBridge moduleBridge = (ModuleBridge)module;
     ModuleEntity resolved = moduleBridge.getEntityStorage().getCurrent().resolve(moduleBridge.getModuleEntityId());
     if (resolved == null) {
       return false;
@@ -112,7 +112,7 @@ public class SupportedModuleChecker {
   }
 
   @VisibleForTesting
-  static class UnsupportedModulesQuickFix extends NotificationHyperlink {
+  public static class UnsupportedModulesQuickFix extends NotificationHyperlink {
 
     private final List<ModulePointer> unsupportedModules;
 

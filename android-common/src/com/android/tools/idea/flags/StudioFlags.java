@@ -17,9 +17,11 @@ package com.android.tools.idea.flags;
 
 import static com.android.tools.idea.IdeChannel.Channel.CANARY;
 import static com.android.tools.idea.IdeChannel.Channel.DEV;
+import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 import static com.android.tools.idea.IdeChannel.Channel.NIGHTLY;
 import static com.android.tools.idea.IdeChannel.Channel.STABLE;
 import static com.android.tools.idea.flags.ChannelDefault.enabledUpTo;
+import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 
 import com.android.flags.BooleanFlag;
 import com.android.flags.EnumFlag;
@@ -39,6 +41,7 @@ import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.Cancellation;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -134,7 +137,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_PICK_LATEST_PATCH_AGP = new BooleanFlag(
     NPW, "use.patch.releases", "Use the latest patch release of AGP",
     "When enabled Studio will pick future patch releases of AGP for new projects.",
-    true);
+    false);
 
   public static final Flag<Boolean> NPW_SHOW_AGP_VERSION_COMBO_BOX = new BooleanFlag(
     NPW, "show.agp.version.combobox", "Show AGP version combobox",
@@ -581,7 +584,7 @@ public final class StudioFlags {
     "Enable Android Studio usage stats for IDevice methods",
     "Track IDevice method calls and success rates. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    enabledUpTo(CANARY));
+    false);
 
   public static final Flag<Boolean> ADBLIB_USE_PROCESS_INVENTORY_SERVER = new BooleanFlag(
     RUNDEBUG,
@@ -597,7 +600,7 @@ public final class StudioFlags {
     "Use the `app_info` feature if available on the device for discovering processes",
     "Check the `app_info` feature for connected devices, and use it to track processes if available. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    enabledUpTo(CANARY));
+    false);
 
   public static final Flag<Boolean> JDWP_TRACER = new BooleanFlag(
     RUNDEBUG,
@@ -809,7 +812,7 @@ public final class StudioFlags {
     "(which can come from STUDIO_CUSTOM_REPO or from a local build of AGP when running studio from IDEA) " +
     "in the new project templates and for determining which versions of AGP are available for the upgrade assistant.\n" +
     "Note: repositories set in gradle.ide.development.offline.repo.location are always respected, even if this flag is disabled.",
-    StudioPathManager.isRunningFromSources());
+    isAndroidStudio() && StudioPathManager.isRunningFromSources());
 
   public static final Flag<String> DEVELOPMENT_OFFLINE_REPO_LOCATION = new StringFlag(
     GRADLE_IDE, "development.offline.repo.location", "Development offline repository location",
@@ -856,7 +859,7 @@ public final class StudioFlags {
     GRADLE_IDE, "recommend.patch.releases", "Recommend upgrading to the latest patch release of AGP",
     "While stable versions of Android Studio support importing projects of newer patch releases of the same major-minor series " +
     "unless this is enabled, the upgrade assistant will not recommend those updates.",
-    true);
+    false);
 
   public static final Flag<Boolean> SUPPORT_FUTURE_AGP_VERSIONS = new BooleanFlag(
     GRADLE_IDE, "support.future.agp.versions", "Support opening projects that use future AGPs",
@@ -1049,7 +1052,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_THROW_UNEXPECTED_ERROR = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.throw.unexpected.error", "Throw exception when encountering an unexpected error",
     "When this flag is enabled, LayoutInspector will throw an exception when an unexpected error is being logged to the metrics.",
-    StudioPathManager.isRunningFromSources());
+    isAndroidStudio() && StudioPathManager.isRunningFromSources());
 
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.ignore.framework.recompositions", "Ignore recompositions in compose framework",
@@ -1796,7 +1799,7 @@ public final class StudioFlags {
       "direct.access.settings.page",
       "Device Streaming Settings Page",
       "Show Device Streaming Settings Page",
-      true);
+      false);
 
   public static final Flag<String> DIRECT_ACCESS_ENDPOINT =
     new StringFlag(
@@ -2013,12 +2016,12 @@ public final class StudioFlags {
   // region STUDIO_BOT
   private static final FlagGroup STUDIOBOT = new FlagGroup(FLAGS, "studiobot", "Gemini");
   public static final Flag<Boolean> STUDIOBOT_ENABLED =
-    new BooleanFlag(STUDIOBOT, "enabled", "Enable Gemini", "Enable Gemini Tool Window", true);
+    new BooleanFlag(STUDIOBOT, "enabled", "Enable Gemini", "Enable Gemini Tool Window", false);
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
                     "Enable sending inline code completion metrics to the AIDA CES service",
-                    "When enabled, metrics related to inline code completion suggestions will be sent to the CES service for AIDA.", true);
+                    "When enabled, metrics related to inline code completion suggestions will be sent to the CES service for AIDA.", false);
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_FILE_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.file.context.enabled",
@@ -2462,6 +2465,10 @@ public final class StudioFlags {
     return IdeInfo.getInstance().isAndroidStudio() || BUILD_OUTPUT_DOWNLOADS_INFORMATION.isOverridden()
            ? BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()
            : false;
+  }
+
+  private static boolean isAndroidStudio() {
+    return "AndroidStudio".equals(getPlatformPrefix());
   }
 
   // region Settings Sync

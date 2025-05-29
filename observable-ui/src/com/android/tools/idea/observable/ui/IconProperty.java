@@ -17,12 +17,14 @@ package com.android.tools.idea.observable.ui;
 
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.OptionalProperty;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Optional;
+import javax.swing.AbstractButton;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link AbstractProperty} that wraps a label and exposes its icon value.

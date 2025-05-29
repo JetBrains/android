@@ -48,12 +48,10 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl
 import com.android.tools.idea.gradle.dsl.model.notifications.CircularApplication
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.collect.ImmutableMap
-import com.intellij.psi.filters.getters.looksLikeBuilder
 import com.intellij.testFramework.UsefulTestCase
 import junit.framework.TestCase
 import org.hamcrest.CoreMatchers.equalTo

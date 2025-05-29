@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document;
 
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchGradient;
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchGradient;
 import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 

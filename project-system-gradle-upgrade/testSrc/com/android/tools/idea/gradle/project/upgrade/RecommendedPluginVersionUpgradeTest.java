@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.ide.common.repository.AgpVersion;
 import com.intellij.openapi.project.Project;
+import java.util.Arrays;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import java.util.Arrays;
-import java.util.Collection;
-
-import static org.junit.Assert.*;
 
 /**
  * Tests for {@link GradlePluginUpgrade#shouldRecommendPluginUpgrade(Project)}.

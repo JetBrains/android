@@ -42,7 +42,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.isAndroidx

@@ -1,0 +1,42 @@
+### auto-generated section `build intellij.android.core.editors.fast` start
+load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "editors.fast_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:junit4",
+    "//android/android:core",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/android-common:common",
+    "//android/android:core-tests_test_lib",
+    "@lib//:truth",
+    "@lib//:kotlinc-kotlin-compiler-common",
+    "//java/java-psi-api:psi",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/extensions",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util-ex",
+    "//plugins/kotlin/base/util",
+    "//plugins/kotlin/base/util:util_test_lib",
+    "//java/testFramework",
+    "//android/preview-fast-compile",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//plugins/kotlin/base/plugin",
+    "//plugins/kotlin/base/plugin:plugin_test_lib",
+  ]
+)
+
+jvm_test(
+  name = "editors.fast_test",
+  runtime_deps = [":editors.fast_test_lib"]
+)
+### auto-generated section `build intellij.android.core.editors.fast` end

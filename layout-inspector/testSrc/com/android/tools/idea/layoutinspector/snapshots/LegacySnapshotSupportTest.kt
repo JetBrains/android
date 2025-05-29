@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.snapshots
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
