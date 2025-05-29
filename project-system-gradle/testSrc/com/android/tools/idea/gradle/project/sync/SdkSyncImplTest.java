@@ -78,12 +78,15 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
   private File myAndroidSdkPath;
   private IdeSdks myIdeSdks;
   private SdkSyncImpl mySdkSync;
+  private boolean myCheckedProjectIsAndroid;
 
   private String originalPlatformPrefix;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+
+    myCheckedProjectIsAndroid = false;
     originalPlatformPrefix = System.getProperty(PLATFORM_PREFIX_KEY);
     System.setProperty(PLATFORM_PREFIX_KEY, isAndroidStudio ? ANDROID_STUDIO_PLATFORM_PREFIX : IDEA_CE_PREFIX);
     VirtualFile baseDir = PlatformTestUtil.getOrCreateProjectBaseDir(getProject());
@@ -104,6 +107,10 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
   protected void tearDown() throws Exception {
     try {
       System.setProperty(PLATFORM_PREFIX_KEY, originalPlatformPrefix);
+      assertTrue("Each test should call projectIsAndroid at least once, " +
+                 "to assert being in the context of Android project, assume such " +
+                 "project required for test execution or configure the test " +
+                 "behaviour based on test context project", myCheckedProjectIsAndroid);
     }
     catch (Throwable e) {
       addSuppressedException(e);
@@ -288,6 +295,8 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
   }
 
   private boolean projectIsAndroid() {
-    return SdkSyncImpl.projectIsAndroid(myLocalProperties, getProject());
+    boolean projectIsAndroid = SdkSyncImpl.projectIsAndroid(myLocalProperties, getProject());
+    myCheckedProjectIsAndroid = true;
+    return projectIsAndroid;
   }
 }
