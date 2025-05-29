@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.device.actions
+package com.android.tools.idea.streaming.uisettings.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
-import com.android.tools.idea.streaming.device.DeviceUiSettingsController
+import com.android.tools.idea.streaming.device.actions.AbstractDeviceAction
+import com.android.tools.idea.streaming.device.actions.getDeviceConfig
+import com.android.tools.idea.streaming.device.actions.getDeviceController
+import com.android.tools.idea.streaming.uisettings.DeviceUiSettingsController
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -29,9 +32,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.Dimension
 
-/**
- * Opens a picker with UI settings of a physical device.
- */
+/** Opens a picker with UI settings of a physical device. */
 internal class DeviceUiSettingsAction : AbstractDeviceAction(
   configFilter = {
     it.apiLevel >= 33

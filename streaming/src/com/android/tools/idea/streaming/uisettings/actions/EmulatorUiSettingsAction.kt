@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.emulator.actions
+package com.android.tools.idea.streaming.uisettings.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.emulator.EmulatorUiSettingsController
+import com.android.tools.idea.streaming.emulator.actions.AbstractEmulatorAction
+import com.android.tools.idea.streaming.emulator.actions.getEmulatorConfig
+import com.android.tools.idea.streaming.emulator.actions.getEmulatorController
+import com.android.tools.idea.streaming.emulator.actions.getEmulatorView
 import com.android.tools.idea.streaming.emulator.isReadyForAdbCommands
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
@@ -28,9 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * Opens a picker with UI settings of an emulator.
- */
+/** Opens a picker with UI settings of an emulator. */
 internal class EmulatorUiSettingsAction : AbstractEmulatorAction(
   configFilter = { it.api >= 33 && it.deviceType != DeviceType.AUTOMOTIVE },
 ) {

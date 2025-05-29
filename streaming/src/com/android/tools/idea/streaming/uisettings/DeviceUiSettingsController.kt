@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.device
+package com.android.tools.idea.streaming.uisettings
 
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity
 import com.android.tools.idea.res.AppLanguageService
+import com.android.tools.idea.streaming.device.DeviceConfiguration
+import com.android.tools.idea.streaming.device.DeviceController
+import com.android.tools.idea.streaming.device.UiSettingsChangeResponse
+import com.android.tools.idea.streaming.device.UiSettingsResponse
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
 import com.android.tools.idea.streaming.uisettings.stats.UiSettingsStats
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsController

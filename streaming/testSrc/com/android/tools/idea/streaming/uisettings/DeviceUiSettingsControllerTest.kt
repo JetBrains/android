@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.device
+package com.android.tools.idea.streaming.uisettings
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.ide.common.resources.configuration.LocaleQualifier
@@ -22,7 +22,12 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.res.AppLanguageInfo
 import com.android.tools.idea.res.AppLanguageService
+import com.android.tools.idea.streaming.device.DeviceClient
+import com.android.tools.idea.streaming.device.DeviceView
+import com.android.tools.idea.streaming.device.FakeScreenSharingAgent
+import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
+import com.android.tools.idea.streaming.device.UNKNOWN_ORIENTATION
 import com.android.tools.idea.streaming.emulator.APPLICATION_ID1
 import com.android.tools.idea.streaming.emulator.APPLICATION_ID2
 import com.android.tools.idea.streaming.emulator.CUSTOM_DENSITY
