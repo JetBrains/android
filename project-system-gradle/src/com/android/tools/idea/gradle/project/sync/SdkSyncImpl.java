@@ -61,17 +61,14 @@ public class SdkSyncImpl implements SdkSync {
     syncIdeAndProjectAndroidNdk(localProperties);
   }
 
-  /**
-   * In IDEA, there are non-android gradle projects. IDEA should not create local.properties file and should not ask users to configure
-   * Android SDK unless we are sure that they are working with Android projects
-   * We assume that project is Android when local.properties or AndroidManifest.xml is present:
-   * <a href="https://developer.android.com/guide/topics/manifest/manifest-intro">manifest-intro</a>
-   */
   @VisibleForTesting
   void syncIdeAndProjectAndroidSdk(@NotNull LocalProperties localProperties,
                                    @NotNull FindValidSdkPathTask findSdkPathTask,
                                    @Nullable Project project) {
-    if (!projectIsAndroid(localProperties, project) || localProperties.hasAndroidDirProperty()) {
+    if (!projectIsAndroid(localProperties, project)) {
+      return;
+    }
+    if (localProperties.hasAndroidDirProperty()) {
       // if android.dir is specified, we don't sync SDKs. User is working with SDK sources.
       return;
     }
@@ -252,7 +249,15 @@ public class SdkSyncImpl implements SdkSync {
     }
   }
 
-  private static boolean projectIsAndroid(@NotNull LocalProperties localProperties, @Nullable Project project) {
+
+  /**
+   * In IDEA, there are non-android gradle projects. IDEA should not create local.properties file and should not ask users to configure
+   * Android SDK unless we are sure that they are working with Android projects.
+   * We assume that project is Android when local.properties with sdk.dir or AndroidManifest.xml file is present:
+   * <a href="https://developer.android.com/guide/topics/manifest/manifest-intro">manifest-intro</a>
+   */
+  @VisibleForTesting
+  static boolean projectIsAndroid(@NotNull LocalProperties localProperties, @Nullable Project project) {
     return IdeInfo.getInstance().isAndroidStudio()
            || Strings.isNotEmpty(localProperties.getProperty(SDK_DIR_PROPERTY))
            || project != null && ReadAction.nonBlocking(() -> ContainerUtil.exists(
