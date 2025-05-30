@@ -33,9 +33,6 @@ private val PROPERTIES_WITH_KNOWN_RESYNC_ISSUES = setOf(
 
   // TODO(b/384022658)
   "/Classes",
-
-  // TODO(b/384022658): These are missing from full sync, should they?
-  "</>data_binding_base_class_source_out</>",
 )
 
 private fun getProjectSpecificResyncIssues(testProject: TestProject) = when(testProject) {

@@ -30,8 +30,13 @@ import com.android.tools.idea.gradle.project.sync.Modules
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.convertArtifactName
 import com.android.tools.idea.gradle.project.sync.getDefaultVariant
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.isAaptGeneratedSourcesFolder
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.isDataBindingGeneratedBaseClassesFolder
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.isSafeArgGeneratedSourcesFolder
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import org.jetbrains.plugins.gradle.model.GradleLightProject
+import java.io.File
 
 /** Returns all source sets (main and for a selected variant) for a given gradle project. */
 internal fun SyncContributorAndroidProjectContext.getAllSourceSetsFromModels(): List<SourceSetData> {
@@ -195,8 +200,12 @@ private fun SyncContributorAndroidProjectContext.createSourceSetDataForSourcePro
   )
 }
 
-private fun createSourceSetDataForAndroidArtifact(name: IdeArtifactName, artifact: AndroidArtifact, isProduction: Boolean): List<SourceSetData> {
-  return artifact.generatedSourceFolders.map {
+private fun SyncContributorAndroidProjectContext.createSourceSetDataForAndroidArtifact(
+  name: IdeArtifactName,
+  artifact: AndroidArtifact,
+  isProduction: Boolean
+): List<SourceSetData> {
+  return artifact.generatedSourceFoldersToUse(basicAndroidProject.buildFolder).map {
     name to mapOf(
       (if (isProduction) ExternalSystemSourceType.SOURCE_GENERATED else ExternalSystemSourceType.TEST_GENERATED) to setOf(it)
     )
@@ -207,12 +216,21 @@ private fun createSourceSetDataForAndroidArtifact(name: IdeArtifactName, artifac
   }
 }
 
-private fun createSourceSetDataForTestJavaArtifact(name: IdeArtifactName, artifact: JavaArtifact): List<SourceSetData> {
-  return artifact.generatedSourceFolders.map {
+private fun SyncContributorAndroidProjectContext.createSourceSetDataForTestJavaArtifact(name: IdeArtifactName, artifact: JavaArtifact):
+  List<SourceSetData> {
+  return artifact.generatedSourceFoldersToUse(basicAndroidProject.buildFolder).map {
     name to mapOf(
       ExternalSystemSourceType.TEST_GENERATED to setOf(it)
     )
   }
 }
+
+private fun AbstractArtifact.generatedSourceFoldersToUse(buildFolder: File) =
+  generatedSourceFolders.filter {
+    !isAaptGeneratedSourcesFolder(it, buildFolder) &&
+    !isDataBindingGeneratedBaseClassesFolder(it, buildFolder) &&
+    !isSafeArgGeneratedSourcesFolder(it, buildFolder)
+  }
+
 
 private fun GradleLightProject.moduleId() = Modules.createUniqueModuleId(projectIdentifier.buildIdentifier.rootDir, path)
