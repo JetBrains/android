@@ -2395,6 +2395,14 @@ public final class StudioFlags {
                     "Enable Gemini Version Upgrade Agent.",
                     "Enables the agent that helps with upgrading dependencies to newer versions.", enabledUpTo(DEV));
 
+  public enum CodeIndexingMode {NONE, BM25}
+
+  public static final EnumFlag<CodeIndexingMode> GEMINI_INDEX_CODEBASE =
+    new EnumFlag<>(STUDIOBOT, "codebase.indexing.mode",
+                   "Codebase Indexing Mode",
+                   "Index the codebase to allow searching using natural language",
+                   CodeIndexingMode.NONE);
+
   public enum DasherSupportMode {
     /**
      * Don't include any special treatment for dasher users.
