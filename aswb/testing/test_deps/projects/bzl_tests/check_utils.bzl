@@ -196,3 +196,35 @@ def _file_subject_short_path_equals_or_end_with(self, path):
         "expected: {}".format(path),
         "actual: {}".format(self.file.short_path),
     )
+
+def subjects_str_factory(actual, *, meta):
+    """Creates a new `LabelSubject` for asserting `Label` objects.
+
+    Args:
+        actual: ([`Label`]) the label to check against.
+        meta: ([`ExpectMeta`]) the metadata about the call chain.
+
+    Returns:
+        [`LabelSubject`].
+    """
+    self = struct(actual = actual, meta = meta)
+    return struct(
+        actual = actual,
+        contains_exactly = lambda *a, **k: _str_subject_equals(self, *a, **k),
+    )
+
+def _str_subject_equals(self, other):
+    """Assert that the subject string equals the other string.
+
+    Method: StrSubject.equals
+
+    Args:
+        self: implicitly added.
+        other: ([`str`]) the expected value it should equal.
+    """
+    if self.actual == other:
+        return
+    self.meta.add_failure(
+        "expected: {}".format(other),
+        "actual: {}".format(self.actual),
+    )
