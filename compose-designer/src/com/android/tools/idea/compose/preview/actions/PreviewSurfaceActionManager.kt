@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
@@ -37,10 +36,8 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Separator
 import java.awt.MouseInfo
-import javax.swing.JComponent
 import javax.swing.SwingUtilities
 
 /** [ActionManager] to be used by the Compose Preview. */
@@ -48,16 +45,6 @@ internal class PreviewSurfaceActionManager(
   private val surface: DesignSurface<LayoutlibSceneManager>,
   private val navigationHandler: NavigationHandler,
 ) : CommonPreviewActionManager(surface, navigationHandler) {
-
-  private val copyResultImageAction =
-    CopyResultImageAction(
-      message("copy.result.image.action.title"),
-      message("copy.result.image.action.done.text"),
-    )
-
-  override fun registerActionsShortcuts(component: JComponent) {
-    registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
-  }
 
   override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
     // Copy Image

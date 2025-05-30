@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.preview.actions
 
+import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.sceneview.InteractiveLabelPanel
 import com.android.tools.idea.common.surface.sceneview.LabelPanel
+import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Separator
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
@@ -42,9 +45,18 @@ open class CommonPreviewActionManager(
   private val interactivePreviewAction =
     if (supportInteractivePreview) EnableInteractiveAction() else null
 
-  override fun registerActionsShortcuts(component: JComponent) {}
+  protected val copyResultImageAction =
+    CopyResultImageAction(
+      message("copy.result.image.action.title"),
+      message("copy.result.image.action.done.text"),
+    )
 
-  override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
+  override fun registerActionsShortcuts(component: JComponent) {
+    registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
+  }
+
+  override fun getPopupMenuActions(leafComponent: NlComponent?) =
+    DefaultActionGroup().apply { add(copyResultImageAction) }
 
   override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
 
