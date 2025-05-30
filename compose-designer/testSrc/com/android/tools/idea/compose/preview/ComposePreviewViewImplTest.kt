@@ -559,5 +559,5 @@ class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
 
   override fun createPreviewGenerator() = if (isNullPreviewGeneratorAction) null else fakeAction
 
-  override fun createSendPreviewAction() = fakeAction
+  override fun transformPreviewAction() = fakeAction
 }
