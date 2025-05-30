@@ -27,6 +27,7 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.getDimensionsInDp
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.configurations.DeviceGroup
+import com.android.tools.idea.configurations.ReferenceDevice
 import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.util.getSdkDevices
@@ -283,8 +284,8 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
   }
 
   /**
-   * Builds the base list of items for the device picker popup, consisting of SDK and AVD devices
-   * grouped by their categories.
+   * Builds the base list of items for the device picker popup, consisting of reference and SDK
+   * devices grouped by their categories.
    *
    * The resulting list serves as the primary content for the device selection popup. Other dynamic
    * items, like an "Original" device option, may be added to this base list by the caller before
@@ -295,12 +296,18 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
    *   device items within those groups. Returns an empty list if [module] is null.
    */
   private fun buildBasePopupListItems(module: Module?): List<DropDownListItem> {
-    if (module == null) {
-      return emptyList()
-    }
-    val sdkDevices = getSdkDevices(module)
-    val groupedDisplayDevices: Map<DeviceGroup, List<Device>> = groupDevices(sdkDevices)
     val popupItems = mutableListOf<DropDownListItem>()
+
+    val referenceDevices = ReferenceDevice.getWindowSizeDevices()
+    if (referenceDevices.isNotEmpty()) {
+      popupItems.add(
+        DropDownListItem.DeviceGroupHeaderItem(DeviceGroup.CANONICAL_DEVICE.displayName)
+      )
+      referenceDevices.forEach { device -> popupItems.add(DropDownListItem.DeviceItem(device)) }
+    }
+
+    val sdkDevices = module?.let { getSdkDevices(it) } ?: emptyList()
+    val groupedDisplayDevices: Map<DeviceGroup, List<Device>> = groupDevices(sdkDevices)
 
     val sortedGroupedDeviceMap = getDeviceGroupsSortedAsMap(groupedDisplayDevices)
 
