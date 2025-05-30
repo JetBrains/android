@@ -27,8 +27,6 @@ import java.io.File
 
 private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
   // TODO(b/384022658): Facet related
-  "/FACET (Android)",
-  "/FACET (Android-Gradle)",
   "/FACET (Kotlin)",
 
   // Individual issues
@@ -56,6 +54,13 @@ private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES =
     // Individual issues
     "/COMPILER_MODULE_EXTENSION",
     "/TEST_MODULE_PROPERTIES", // TODO(b/384022658)
+
+    // TODO(b/384022658): Facet related
+    // Apparently these are currently set up even for Java libraries (and aar wrapper modules)!.
+    // KMP modules are also not setup but that's expected.
+    "/FACET (Android-Gradle)",
+    // These are still present in the KMP holder modules, and not set up by phased sync, so we need to filter them out here
+    "/FACET (Android)",
   )
 
 fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.template) {
@@ -77,6 +82,8 @@ fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.templa
     TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
       // TODO(b/384022658): When switching from debug to release, the orphaned androidTest module isn't removed as in full sync
       "MODULE (MultiFlavor.app.androidTest)",
+      // This is stored in the facet but does actually change correctly when switching, so we need to ignore it here.
+      "/SelectedBuildVariant"
     )
     TestProject.MAIN_IN_ROOT -> setOf(
       // This is incorrectly populated as a content root(!) in old sync

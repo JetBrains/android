@@ -259,13 +259,16 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
         updatedEntities.modifyModuleEntity(holderModuleEntity) {
           setJavaSettingsForHolderModule(this)
           setSdkForHolderModule(this)
+          createOrUpdateAndroidGradleFacet(updatedEntities, this)
+          createOrUpdateAndroidFacet(updatedEntities, this)
+          // There seems to be a bug in workspace model implementation that requires doing this to update list of changed props
+          this.facets = facets
         }
         linkModuleGroup(sourceSetModuleEntitiesByArtifact)
 
         sourceSetModules
       }
     }
-
     newModuleEntities.forEach { newModuleEntity ->
       // Create or update the entity after doing all the mutations
       val existingEntity = updatedEntities.resolve(ModuleId(newModuleEntity.name))
@@ -402,6 +405,8 @@ private fun SyncContributorAndroidProjectContext.findOrCreateModuleEntity(
   productionModuleName: String?
 ): ModuleEntity.Builder = moduleEntitiesMap.computeIfAbsent(name) {
   createModuleEntity(name, entitySource).also { moduleEntity ->
+    // Use empty storage to look up facet because the facet doesn't exist when creating a module
+    createOrUpdateAndroidFacet(MutableEntityStorage.create(), moduleEntity)
     if (productionModuleName != null) {
       moduleEntity.testProperties = TestModulePropertiesEntity(
         ModuleId(productionModuleName),
