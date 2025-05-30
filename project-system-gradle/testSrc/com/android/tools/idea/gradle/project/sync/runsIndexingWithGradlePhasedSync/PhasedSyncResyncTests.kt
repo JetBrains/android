@@ -31,11 +31,6 @@ private val PROPERTIES_WITH_KNOWN_RESYNC_ISSUES = setOf(
     // TODO(b/384022658): Related to module sources
   "/ORDER_ENTRY (<Module source>)",
 
-  // TODO(b/384022658): External module options related
-  "/ExternalModuleGroup",
-  "/ExternalModuleVersion",
-  "/LinkedProjectId",
-
   // TODO(b/384022658)
   "/Classes",
 

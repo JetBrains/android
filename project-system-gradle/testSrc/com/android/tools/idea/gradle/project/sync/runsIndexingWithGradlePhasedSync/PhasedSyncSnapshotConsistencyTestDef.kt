@@ -31,11 +31,6 @@ private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
   "/FACET (Android-Gradle)",
   "/FACET (Kotlin)",
 
-  // TODO(b/384022658): External module options related
-  "/ExternalModuleGroup",
-  "/ExternalModuleVersion",
-  "/LinkedProjectId",
-
   // TODO(b/384022658): These are missing from full sync, should they?
   "</>data_binding_base_class_source_out</>",
 

@@ -375,14 +375,15 @@ private fun SyncContributorProjectContext.createModuleOptionsEntity(source: Enti
   entitySource = source
 ) {
   externalSystem = GradleConstants.SYSTEM_ID.id
-  linkedProjectId = GradleProjectResolverUtil.getModuleId(context, externalProject)
   linkedProjectPath = externalProject.projectDir.path
   rootProjectPath = context.projectPath
 
-  externalSystemModuleGroup = externalProject.group
-  externalSystemModuleVersion = externalProject.version
-  if (entitySource is AndroidGradleSourceSetEntitySource) {
+  val holderModuleId = GradleProjectResolverUtil.getModuleId(context, externalProject)
+  if (source is AndroidGradleSourceSetEntitySource) {
     externalSystemModuleType = GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY
+    linkedProjectId = "$holderModuleId:${source.sourceSetName}"
+  } else {
+    linkedProjectId = holderModuleId
   }
 }
 
