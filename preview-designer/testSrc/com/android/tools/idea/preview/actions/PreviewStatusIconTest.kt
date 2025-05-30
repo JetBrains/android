@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.actions
+package com.android.tools.idea.preview.actions
 
 import com.android.ide.common.rendering.api.Result
 import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.compose.preview.ComposePreviewManager
-import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
+import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.TestActionEvent
 import icons.StudioIcons
 import org.junit.After
@@ -36,28 +36,27 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 
-class ComposePreviewStatusIconActionTest {
+private class TestStatus(
+  override val isRefreshing: Boolean = false,
+  override val hasRenderErrors: Boolean = false,
+  override val hasSyntaxErrors: Boolean = false,
+  override val isOutOfDate: Boolean = false,
+  override val areResourcesOutOfDate: Boolean = false,
+  override val previewedFile: PsiFile? = null,
+) : PreviewViewModelStatus
+
+class PreviewStatusIconTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private val composePreviewManager = TestComposePreviewManager()
+  private var currentStatus: PreviewViewModelStatus = TestStatus()
 
   private val context
     get() =
       SimpleDataContext.builder()
         .add(CommonDataKeys.PROJECT, projectRule.project)
         .add(SCENE_VIEW, sceneViewMock)
-        .add(PREVIEW_VIEW_MODEL_STATUS, composePreviewManager.currentStatus)
+        .add(PREVIEW_VIEW_MODEL_STATUS, currentStatus)
         .build()
-
-  private val originStatus =
-    ComposePreviewManager.Status(
-      hasRenderErrors = false,
-      hasSyntaxErrors = false,
-      isOutOfDate = false,
-      areResourcesOutOfDate = false,
-      isRefreshing = false,
-      psiFilePointer = null,
-    )
 
   private val tf = listOf(true, false)
 
@@ -97,7 +96,7 @@ class ComposePreviewStatusIconActionTest {
 
   @Test
   fun testIconState() {
-    val action = ComposePreviewStatusIconAction()
+    val action = PreviewStatusIcon()
 
     // Syntax error has priority over the other properties
     for (syntaxError in tf) {
@@ -109,13 +108,13 @@ class ComposePreviewStatusIconActionTest {
                 updateFastPreviewStatus(enableState)
                 this.renderError = renderError
                 val status =
-                  originStatus.copy(
+                  TestStatus(
                     hasRenderErrors = runtimeError,
                     hasSyntaxErrors = syntaxError,
                     isOutOfDate = outOfDate,
                     isRefreshing = refreshing,
                   )
-                composePreviewManager.currentStatus = status
+                currentStatus = status
                 val event = TestActionEvent.createTestEvent(context)
                 action.update(event)
                 val expectedToShowIcon = renderError && !refreshing

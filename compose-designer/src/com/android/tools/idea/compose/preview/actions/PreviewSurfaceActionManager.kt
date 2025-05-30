@@ -29,6 +29,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.JumpToDefinitionAction
+import com.android.tools.idea.preview.actions.PreviewStatusIcon
 import com.android.tools.idea.preview.actions.ViewInFocusModeAction
 import com.android.tools.idea.preview.actions.ZoomToSelectionAction
 import com.android.tools.idea.preview.actions.disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild
@@ -121,5 +122,5 @@ internal class PreviewSurfaceActionManager(
         .visibleOnlyInStaticPreview()
 
   override fun getSceneViewStatusIconAction(): AnAction =
-    ComposePreviewStatusIconAction().visibleOnlyInStaticPreview()
+    PreviewStatusIcon().visibleOnlyInStaticPreview()
 }

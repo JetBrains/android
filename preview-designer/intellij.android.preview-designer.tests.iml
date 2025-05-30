@@ -37,6 +37,7 @@
     <orderEntry type="library" scope="TEST" name="mockito-kotlin" level="project" />
     <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
+    <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.preview-designer" />
 </module>
