@@ -96,6 +96,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.jetbrains.plugins.gradle.service.GradleFileModificationTracker
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionContextImpl
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 import java.io.IOException
@@ -303,8 +304,9 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               }
             }
           }
-          buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener, cancellationToken, executionSettings)
-          GradleExecutionHelper.prepareForExecution(operation, cancellationToken, id, executionSettings, listener, buildEnvironment)
+          val context = GradleExecutionContextImpl(gradleRootProjectPath, id, executionSettings, listener, cancellationToken)
+          context.buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, context).also { buildEnvironment = it }
+          GradleExecutionHelper.prepareForExecution(operation, context)
           if (enableBuildAttribution) {
             buildAttributionManager = project.getService(BuildAttributionManager::class.java)
             setUpBuildAttributionManager(
