@@ -47,6 +47,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
@@ -172,8 +173,10 @@ open class LayoutlibSceneManager(
     val newSceneView: SceneView =
       model.file.rootTag
         ?.takeIf {
-          it.getAttributeValue(SdkConstants.ATTR_SHOW_IN, SdkConstants.TOOLS_URI) ==
-            NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE
+          runReadAction {
+            it.getAttributeValue(SdkConstants.ATTR_SHOW_IN, SdkConstants.TOOLS_URI) ==
+              NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE
+          }
         }
         ?.let {
           ScreenView.newBuilder(designSurface, this)
