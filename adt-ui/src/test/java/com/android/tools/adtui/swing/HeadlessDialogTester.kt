@@ -322,7 +322,7 @@ private class HeadlessDialogWrapperPeer(
     return null
   }
 
-  override fun getWindow(): Window? {
+  override fun getWindow(): Window {
     return dialogWindow
   }
 
