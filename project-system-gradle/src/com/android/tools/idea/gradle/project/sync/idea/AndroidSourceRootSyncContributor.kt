@@ -348,7 +348,7 @@ private fun SyncContributorAndroidProjectContext.setJavaSettingsForHolderModule(
   holderModuleEntity.javaSettings = JavaModuleSettingsEntity(
     inheritedCompilerOutput = false,
     excludeOutput = context.isDelegatedBuild,
-    entitySource = projectEntitySource)
+    entitySource = holderModuleEntity.entitySource)
 }
 
 

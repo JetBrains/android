@@ -21,7 +21,6 @@ import com.android.testutils.TestUtils.getSdk
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.dump
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.nameProperties
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -179,36 +178,6 @@ private fun ModuleDumpWithType.includeByModuleName(names: List<String>) = copy (
     names.any { line.contains("MODULE ($it)") }
   }
 )
-
-fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.template) {
-  TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
-  TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES -> setOf(
-    // TODO(b/384022658): Linked android module group is still set for KMP holder modules by full sync, but not phased sync
-    "LINKED_ANDROID_MODULE_GROUP",
-    // TODO(b/384022658): KMP projects are currently ignored by phased sync, except for when there is no Android target configured.
-    "</>src</>jvmMain",
-    "</>src</>jvmTest"
-  ) else -> when(testProject) {
-    // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
-    TestProject.KOTLIN_KAPT,
-    TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
-      "</>kaptKotlin</>",
-      "</>kapt</>"
-    )
-    // TODO(b/384022658): When switching from debug to release, the orphaned androidTest module isn't removed as in full sync
-    TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
-      "MODULE (MultiFlavor.app.androidTest)",
-    )
-    TestProject.MAIN_IN_ROOT -> setOf(
-      // This is incorrectly populated as a content root(!) in old sync
-      "project</>app</>AndroidManifest.xml",
-      // This is incorrectly missing from the old sync content roots
-      "project</>app</>src</>debug"
-    )
-    else -> emptySet()
-  }
-}
-
 
 @Suppress("UnstableApiUsage")
 @Order(Int.MAX_VALUE)

@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -60,6 +61,52 @@ private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES =
     // Individual issues
     "/COMPILER_MODULE_EXTENSION",
   )
+
+fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.template) {
+  TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+  TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES -> setOf(
+    // TODO(b/384022658): Linked android module group is still set for KMP holder modules by full sync, but not phased sync
+    "LINKED_ANDROID_MODULE_GROUP",
+    // TODO(b/384022658): KMP projects are currently ignored by phased sync, except for when there is no Android target configured.
+    "</>src</>jvmMain",
+    "</>src</>jvmTest"
+  ) else -> when(testProject) {
+    // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
+    TestProject.KOTLIN_KAPT,
+    TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
+      "</>kaptKotlin</>",
+      "</>kapt</>"
+    )
+
+    TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
+      // TODO(b/384022658): When switching from debug to release, the orphaned androidTest module isn't removed as in full sync
+      "MODULE (MultiFlavor.app.androidTest)",
+    )
+    TestProject.MAIN_IN_ROOT -> setOf(
+      // This is incorrectly populated as a content root(!) in old sync
+      "project</>app</>AndroidManifest.xml",
+      // This is incorrectly missing from the old sync content roots
+      "project</>app</>src</>debug"
+    )
+    // TODO:(b/384022658): When syncing an already existing project with iml,
+    //  1. Some external options metadata is different
+    //  2. Holder modules have their directory as a content root (which should be incorrect)
+    TestProject.COMPATIBILITY_TESTS_AS_36 -> setOf(
+      // 1
+      "/ExternalModuleGroup",
+      "/ExternalModuleVersion",
+      // 2
+      "MODULE (AS36.features)/CONENT_ENTRY",
+      "MODULE (AS36.libs)/CONENT_ENTRY",
+      "MODULE (AS36.libs.java_lib)/CONENT_ENTRY",
+      "MODULE (AS36.app)/CONENT_ENTRY",
+      "MODULE (AS36.features.dynamicfeature)/CONENT_ENTRY",
+      "MODULE (AS36.features.dynamicfeature2)/CONENT_ENTRY",
+      "MODULE (AS36.libs.android_library)/CONENT_ENTRY"
+    )
+    else -> emptySet()
+  }
+}
 
 fun ModuleDumpWithType.filterOutKnownConsistencyIssues(testProject: TestProject): ModuleDumpWithType {
   val (androidEntries, rest) = entries.partition { line ->
@@ -117,8 +164,6 @@ data class PhasedSyncSnapshotConsistencyTestDef(
   companion object {
     val tests = phasedSyncTestProjects.filterNot {
       setOf(
-      // It's currently expected that phased sync's intermediate state is inconsistent with the full sync for this compatibility test
-      TestProject.COMPATIBILITY_TESTS_AS_36,
       // TODO(b/384022658): Handle spaces in the root project name (settings.gradle) correctly
       TestProject.TWO_JARS,
       TestProject.ANDROID_KOTLIN_MULTIPLATFORM,
