@@ -404,6 +404,12 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   if (!display_info.IsValid()) {
     return;
   }
+
+  // Wake up the device if the display was turned off.
+  if (action == AMOTION_EVENT_ACTION_DOWN) {
+    WakeUpDevice();
+  }
+
   int32_t tool = message.is_mouse() ? AMOTION_EVENT_TOOL_TYPE_STYLUS : AMOTION_EVENT_TOOL_TYPE_FINGER;
 
   if ((Agent::flags() & USE_UINPUT || input_event_injection_disabled_) && Agent::feature_level() >= 35 &&
@@ -546,11 +552,6 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   if (action == AMOTION_EVENT_ACTION_UP) {
     // This event may have started an app. Update the app-level display orientation.
     Agent::SetVideoOrientation(display_id, DisplayStreamer::CURRENT_VIDEO_ORIENTATION);
-  }
-
-  // Wake up the device if the display was turned off.
-  if (action == AMOTION_EVENT_ACTION_DOWN) {
-    WakeUpDevice();
   }
 }
 
