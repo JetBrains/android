@@ -80,6 +80,7 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "@lib//:protobuf",
     "@lib//:truth",
+    "//platform/core-ui",
     "//platform/ide-core-impl",
     "//android/android-adb:adb",
     "//android/adt-testutils:adt-testutils_test_lib",

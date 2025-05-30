@@ -28,6 +28,7 @@ jvm_library(
     "//android/project-system",
     "//android/project-system-gradle-models:projectSystem-gradle-models",
     "@lib//:mockito-kotlin",
+    "//platform/core-ui",
     "//platform/execution",
     "//platform/core-api:core",
     "//platform/util",

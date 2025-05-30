@@ -86,6 +86,7 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "@lib//:kotlin-test-junit",
     "@lib//:kotlin-test",
+    "//platform/core-ui",
     "//platform/ide-core-impl",
     "@lib//:truth",
     "@lib//:org-codehaus-groovy-groovy-json",

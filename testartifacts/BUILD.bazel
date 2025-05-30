@@ -76,6 +76,7 @@ jvm_library(
     "//android/utp",
     "//android/utp:utp_test_lib",
     "//android/testartifacts",
+    "//platform/core-ui",
     "//platform/editor-ui-api:editor-ui",
     "//jps/model-api:model",
     "//platform/testFramework",

@@ -49,6 +49,7 @@ jvm_library(
     "//android/android:core",
     "//platform/core-api:core",
     "//platform/analysis-api:analysis",
+    "//platform/core-ui",
     "//uast/uast-common:uast",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//platform/testFramework",
