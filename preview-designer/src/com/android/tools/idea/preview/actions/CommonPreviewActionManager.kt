@@ -31,7 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 /** Common preview [ActionManager] for the [DesignSurface]. */
-class CommonPreviewActionManager(
+open class CommonPreviewActionManager(
   surface: DesignSurface<LayoutlibSceneManager>,
   private val navigationHandler: NavigationHandler,
   supportAnimationPreview: Boolean = true,
@@ -48,7 +48,8 @@ class CommonPreviewActionManager(
 
   override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
 
-  override fun getSceneViewStatusIconAction(): AnAction = PreviewStatusIcon()
+  override fun getSceneViewStatusIconAction(): AnAction =
+    PreviewStatusIcon().visibleOnlyInStaticPreview()
 
   override fun createSceneViewLabel(
     sceneView: SceneView,

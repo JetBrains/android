@@ -19,17 +19,14 @@ import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.common.surface.sceneview.InteractiveLabelPanel
-import com.android.tools.idea.common.surface.sceneview.LabelPanel
 import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.zoomTargetProvider
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
+import com.android.tools.idea.preview.actions.CommonPreviewActionManager
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.JumpToDefinitionAction
-import com.android.tools.idea.preview.actions.PreviewStatusIcon
 import com.android.tools.idea.preview.actions.ViewInFocusModeAction
 import com.android.tools.idea.preview.actions.ZoomToSelectionAction
 import com.android.tools.idea.preview.actions.disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild
@@ -45,14 +42,12 @@ import com.intellij.openapi.actionSystem.Separator
 import java.awt.MouseInfo
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.StateFlow
 
 /** [ActionManager] to be used by the Compose Preview. */
 internal class PreviewSurfaceActionManager(
   private val surface: DesignSurface<LayoutlibSceneManager>,
   private val navigationHandler: NavigationHandler,
-) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
+) : CommonPreviewActionManager(surface, navigationHandler) {
 
   private val copyResultImageAction =
     CopyResultImageAction(
@@ -62,19 +57,6 @@ internal class PreviewSurfaceActionManager(
 
   override fun registerActionsShortcuts(component: JComponent) {
     registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
-  }
-
-  override fun createSceneViewLabel(
-    sceneView: SceneView,
-    scope: CoroutineScope,
-    isPartOfOrganizationGroup: StateFlow<Boolean>,
-  ): LabelPanel {
-    return InteractiveLabelPanel(
-      sceneView.sceneManager.model.displaySettings,
-      scope,
-      isPartOfOrganizationGroup,
-      suspend { navigationHandler.handleNavigate(sceneView, false) },
-    )
   }
 
   override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
@@ -103,9 +85,6 @@ internal class PreviewSurfaceActionManager(
     return actionGroup
   }
 
-  override fun getToolbarActions(selection: MutableList<NlComponent>): DefaultActionGroup =
-    DefaultActionGroup()
-
   override fun getSceneViewContextToolbarActions(): List<AnAction> =
     listOf(Separator()) +
       listOfNotNull(
@@ -120,7 +99,4 @@ internal class PreviewSurfaceActionManager(
         .disabledIfRefreshingOrHasErrorsOrProjectNeedsBuild()
         .hideIfRenderErrors()
         .visibleOnlyInStaticPreview()
-
-  override fun getSceneViewStatusIconAction(): AnAction =
-    PreviewStatusIcon().visibleOnlyInStaticPreview()
 }
