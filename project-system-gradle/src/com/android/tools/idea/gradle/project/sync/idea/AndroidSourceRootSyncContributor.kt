@@ -61,8 +61,10 @@ import com.intellij.platform.workspace.jps.entities.SdkDependency
 import com.intellij.platform.workspace.jps.entities.SdkId
 import com.intellij.platform.workspace.jps.entities.SourceRootEntity
 import com.intellij.platform.workspace.jps.entities.SourceRootTypeId
+import com.intellij.platform.workspace.jps.entities.TestModulePropertiesEntity
 import com.intellij.platform.workspace.jps.entities.exModuleOptions
 import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
+import com.intellij.platform.workspace.jps.entities.testProperties
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityStorage
 import com.intellij.platform.workspace.storage.ImmutableEntityStorage
@@ -297,13 +299,19 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities()
   // This is the module name corresponding to the "holder" module
   val projectModuleName = resolveModuleName()
   val moduleEntitiesMap = mutableMapOf<String, ModuleEntity.Builder>()
+  val mainSourceSetName = IdeArtifactName.MAIN.toWellKnownSourceSet().sourceSetName
 
   return allSourceSets.associate  { (sourceSetArtifactName, typeToDirsMap) ->
     // For each source set in the project, create entity source and the actual entities.
     val sourceSetName = sourceSetArtifactName.toWellKnownSourceSet().sourceSetName
     val entitySource = AndroidGradleSourceSetEntitySource(projectEntitySource, sourceSetName)
     val moduleName = "$projectModuleName.$sourceSetName"
-    val newModuleEntity = findOrCreateModuleEntity(moduleName, entitySource, moduleEntitiesMap)
+    val newModuleEntity = findOrCreateModuleEntity(
+      moduleName,
+      entitySource,
+      moduleEntitiesMap,
+      productionModuleName = "$projectModuleName.$mainSourceSetName".takeIf { it != moduleName } // Only set for test modules
+    )
 
     // Create the content roots and associate it with the module
     newModuleEntity.contentRoots += createContentRootEntities(moduleName, entitySource, typeToDirsMap)
@@ -390,10 +398,18 @@ private fun SyncContributorProjectContext.createModuleOptionsEntity(source: Enti
 private fun SyncContributorAndroidProjectContext.findOrCreateModuleEntity(
   name: String,
   entitySource: AndroidGradleSourceSetEntitySource,
-  moduleEntitiesMap: MutableMap<String, ModuleEntity.Builder>
+  moduleEntitiesMap: MutableMap<String, ModuleEntity.Builder>,
+  productionModuleName: String?
 ): ModuleEntity.Builder = moduleEntitiesMap.computeIfAbsent(name) {
-  createModuleEntity(name, entitySource).also {
-    registerModuleAction(it.name) { moduleInstance ->
+  createModuleEntity(name, entitySource).also { moduleEntity ->
+    if (productionModuleName != null) {
+      moduleEntity.testProperties = TestModulePropertiesEntity(
+        ModuleId(productionModuleName),
+        entitySource
+      )
+    }
+
+    registerModuleAction(moduleEntity.name) { moduleInstance ->
       moduleInstance.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, null)
       SourceFolderManager.getInstance(project).removeSourceFolders(moduleInstance)
     }

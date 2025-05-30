@@ -26,7 +26,6 @@ import com.intellij.openapi.project.Project
 import java.io.File
 
 private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
-
   // TODO(b/384022658): Facet related
   "/FACET (Android)",
   "/FACET (Android-Gradle)",
@@ -36,7 +35,6 @@ private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
   "/LINKED_ANDROID_MODULE_GROUP/testFixtures", // TODO(b/384022658)
 
   // Individual issues
-  "/TEST_MODULE_PROPERTIES", // TODO(b/384022658)
   "/EXCLUDE_FOLDER", // TODO(b/384022658)
   "/Classes" // TODO(b/384022658)
 )
@@ -60,6 +58,7 @@ private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES =
 
     // Individual issues
     "/COMPILER_MODULE_EXTENSION",
+    "/TEST_MODULE_PROPERTIES", // TODO(b/384022658)
   )
 
 fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.template) {
