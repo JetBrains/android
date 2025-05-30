@@ -46,7 +46,7 @@ class SharedMacrosTest {
       targetSdk(AndroidMajorVersion(99, "SomeFutureVersion"), agpVersion),
     )
     assertEquals(
-      "compileSdkVersion \"99.0-SomeFutureVersion\"",
+      "compileSdkVersion \"SomeFutureVersion\"",
       compileSdk(AndroidVersion(99, "SomeFutureVersion"), agpVersion),
     )
   }
@@ -76,7 +76,7 @@ class SharedMacrosTest {
       targetSdk(AndroidMajorVersion(99, "SomeFutureVersion"), agpVersion),
     )
     assertEquals(
-      "compileSdkPreview \"99.0-SomeFutureVersion\"",
+      "compileSdkPreview \"SomeFutureVersion\"",
       compileSdk(AndroidVersion(99, "SomeFutureVersion"), agpVersion),
     )
   }
