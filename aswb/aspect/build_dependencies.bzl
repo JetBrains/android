@@ -81,11 +81,11 @@ IDE_JAVA_PROTO = _validate_ide(
 IDE_CC = _validate_ide(
     _ide_cc_not_validated,
     template = struct(
-        c_compile_action_name = "",  # An action named to be used with cc_common.get_memory_inefficient_command_line or similar.
-        cpp_compile_action_name = "",  # An action named to be used with cc_common.get_memory_inefficient_command_line or similar.
         follow_attributes = ["_cc_toolchain"],  # Additional attributes for the aspect to follow and request DependenciesInfo provider.
         toolchains_aspects = [],  # Toolchain types for the aspect to follow.
         toolchain_target = _rule_function,  # A function that takes a rule and returns a toolchain target (or a toolchain container).
+        compilation_context = _rule_function,  # A function that takes a target and returns compilation_context of target.
+        cc_toolchain_info = _rule_function,  # A function that takes a target and ctx, returns a struct that contains cc toolchain info.
     ),
 )
 
@@ -667,7 +667,7 @@ def _get_cc_toolchain_dependency_info(rule):
 
 def _collect_own_and_dependency_cc_info(target, rule):
     dependency_info = _get_cc_toolchain_dependency_info(rule)
-    compilation_context = target[CcInfo].compilation_context
+    compilation_context = IDE_CC.compilation_context(target)
     cc_toolchain_info = None
     if dependency_info:
         cc_toolchain_info = dependency_info.cc_toolchain_info
@@ -713,9 +713,7 @@ def _collect_dependencies_core_impl(
     cc_dep_info = None
     if CcInfo in target:
         cc_dep_info = _collect_cc_dependencies_core_impl(target, ctx)
-    cc_toolchain_dep_info = None
-    if cc_common.CcToolchainInfo in target:
-        cc_toolchain_dep_info = _collect_cc_toolchain_info(target, ctx)
+    cc_toolchain_dep_info = _collect_cc_toolchain_info(target, ctx)
     return merge_dependencies_info(target, ctx, java_dep_info, cc_dep_info, cc_toolchain_dep_info)
 
 def _collect_java_dependencies_core_impl(
@@ -770,60 +768,9 @@ def _collect_cc_dependencies_core_impl(target, ctx):
     )
 
 def _collect_cc_toolchain_info(target, ctx):
-    toolchain_info = target[cc_common.CcToolchainInfo]
-
-    cpp_fragment = ctx.fragments.cpp
-
-    # TODO(b/301235884): This logic is not quite right. `ctx` here is the context for the
-    #  cc_toolchain target itself, so the `features` and `disabled_features` were using here are
-    #  for the cc_toolchain, not the individual targets that this information will ultimately be
-    #  used for. Instead, we should attach `toolchain_info` itself to the `DependenciesInfo`
-    #  provider, and execute this logic once per top level cc target that we're building, to ensure
-    #  that the right features are used.
-    feature_config = cc_common.configure_features(
-        ctx = ctx,
-        cc_toolchain = toolchain_info,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features + [
-            # Note: module_maps appears to be necessary here to ensure the API works
-            # in all cases, and to avoid the error:
-            # Invalid toolchain configuration: Cannot find variable named 'module_name'
-            # yaqs/3227912151964319744
-            "module_maps",
-        ],
-    )
-    c_variables = cc_common.create_compile_variables(
-        feature_configuration = feature_config,
-        cc_toolchain = toolchain_info,
-        user_compile_flags = cpp_fragment.copts + cpp_fragment.conlyopts,
-    )
-    cpp_variables = cc_common.create_compile_variables(
-        feature_configuration = feature_config,
-        cc_toolchain = toolchain_info,
-        user_compile_flags = cpp_fragment.copts + cpp_fragment.cxxopts,
-    )
-    c_options = cc_common.get_memory_inefficient_command_line(
-        feature_configuration = feature_config,
-        action_name = IDE_CC.c_compile_action_name,
-        variables = c_variables,
-    )
-    cpp_options = cc_common.get_memory_inefficient_command_line(
-        feature_configuration = feature_config,
-        action_name = IDE_CC.cpp_compile_action_name,
-        variables = cpp_variables,
-    )
-    toolchain_id = str(target.label) + "%" + toolchain_info.target_gnu_system_name
-
-    cc_toolchain_info = struct(
-        id = toolchain_id,
-        compiler_executable = toolchain_info.compiler_executable,
-        cpu = toolchain_info.cpu,
-        compiler = toolchain_info.compiler,
-        target_name = toolchain_info.target_gnu_system_name,
-        built_in_include_directories = toolchain_info.built_in_include_directories,
-        c_options = c_options,
-        cpp_options = cpp_options,
-    )
+    cc_toolchain_info = IDE_CC.cc_toolchain_info(target, ctx)
+    if not cc_toolchain_info:
+        return None
 
     cc_toolchain_file_name = target.label.name + "." + cc_toolchain_info.target_name + ".txt"
     cc_toolchain_file = ctx.actions.declare_file(cc_toolchain_file_name)
@@ -835,7 +782,7 @@ def _collect_cc_toolchain_info(target, ctx):
     )
 
     return create_cc_toolchain_info(
-        cc_toolchain_info = struct(file = cc_toolchain_file, id = toolchain_id),
+        cc_toolchain_info = struct(file = cc_toolchain_file, id = cc_toolchain_info.id),
     )
 
 def _get_ide_aar_file(target, ctx):
