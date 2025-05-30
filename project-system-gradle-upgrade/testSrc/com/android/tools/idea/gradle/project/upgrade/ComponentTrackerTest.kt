@@ -56,6 +56,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.SHADERS_DEFAULT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.USE_ANDROIDX_DEFAULT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.USE_R8_STRICT_FULL_MODE_FOR_KEEP_RULES_DEFAULT
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.DEFAULT_TARGET_SDK_TO_COMPILE_SDK_IF_UNSET
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FIND_USAGES
@@ -696,6 +697,23 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
         .build(),
       UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("8.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(USE_R8_STRICT_FULL_MODE_FOR_KEEP_RULES_DEFAULT).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1).setFiles(2))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testTargetSdkDefaultUsageTracker() {
+    val processor = TargetSdkDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("8.0.0").setNewAgpVersion("9.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(DEFAULT_TARGET_SDK_TO_COMPILE_SDK_IF_UNSET).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(1).setFiles(2))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("8.0.0").setNewAgpVersion("9.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(DEFAULT_TARGET_SDK_TO_COMPILE_SDK_IF_UNSET).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1).setFiles(2))
         .build(),
     )

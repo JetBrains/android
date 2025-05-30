@@ -420,6 +420,13 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action
+        id="AndroidMigrateToDefaultTargetSdkToCompileSdkValueIfUnset"
+        class="org.jetbrains.android.refactoring.MigrateToDefaultTargetSdkToCompileSdkIfUnsetAction"
+        text="Default TargetSdk to CompileSdk"
+        description="Migrates the project to default targetSdk to compileSdk while preserving current behavior.">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
+    <action
         id="AndroidX.BaselineProfile.RunGenerate"
         class="com.android.tools.idea.run.configuration.BaselineProfileAction"
         text="Generate Entire App Baseline Profile"
