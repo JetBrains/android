@@ -88,6 +88,7 @@ import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionContextImpl
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
@@ -293,10 +294,11 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               }
             }
           }
-          val buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener, cancellationTokenSource.token(), executionSettings)
-          val gradleVersion = buildEnvironment?.gradle?.gradleVersion?.let(GradleInstallationManager::getGradleVersionSafe)
+          val context = GradleExecutionContextImpl(gradleRootProjectPath, id, executionSettings, listener, cancellationTokenSource.token())
+          context.buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, context)
+          val gradleVersion = context.buildEnvironment?.gradle?.gradleVersion?.let(GradleInstallationManager::getGradleVersionSafe)
           GradleTaskManager.configureTasks(myRequest.rootProjectPath.path, myRequest.taskId, executionSettings, gradleVersion)
-          GradleExecutionHelper.prepareForExecution(operation, cancellationTokenSource.token(), id, executionSettings, listener, buildEnvironment)
+          GradleExecutionHelper.prepareForExecution(operation, context)
           if (enableBuildAttribution) {
             buildAttributionManager = project.getService(BuildAttributionManager::class.java)
             setUpBuildAttributionManager(
