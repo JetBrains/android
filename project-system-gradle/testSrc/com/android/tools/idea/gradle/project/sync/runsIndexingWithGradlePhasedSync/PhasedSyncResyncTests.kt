@@ -32,10 +32,6 @@ private fun getProjectSpecificResyncIssues(testProject: TestProject) = when(test
   TestProject.SIMPLE_APPLICATION_VIA_SYMLINK -> setOf(
     "/RootProjectPath"
   )
-  // TODO(b/384022658): These projects have test fixture source sets and they are not handled yet.
-  TestProject.TEST_FIXTURES, TestProject.TEST_STATIC_DIR -> setOf(
-    "/LINKED_ANDROID_MODULE_GROUP",
-  )
   TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE -> setOf(
     // TODO(b/384022658): We don't set up tasks in phased sync, although it shouldn't really affect a re-sync, it does for this project.
     "BUILD_TASKS",

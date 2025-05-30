@@ -110,6 +110,14 @@ internal fun SyncContributorAndroidProjectContext.getSourceSetDataForBasicAndroi
 
         }
       }
+      it.testFixturesArtifact?.let {
+        processBasicArtifact(it, IdeArtifactName.TEST_FIXTURES, isProduction = false)
+        containers.forEach {
+          it.testFixturesSourceProvider?.let {
+            sourceSets += createSourceSetDataForSourceProvider(IdeArtifactName.TEST_FIXTURES, it, isProduction = false, versions)
+          }
+        }
+      }
     }
 
   return sourceSets
@@ -138,6 +146,9 @@ internal fun SyncContributorAndroidProjectContext.getSourceSetDataForAndroidProj
         variant.unitTestArtifact?.let {
           sourceSets += createSourceSetDataForTestJavaArtifact(IdeArtifactName.UNIT_TEST, it)
         }
+      }
+      variant.testFixturesArtifact?.let {
+        sourceSets += createSourceSetDataForAndroidArtifact(IdeArtifactName.TEST_FIXTURES, it, isProduction = false)
       }
     }
   return sourceSets

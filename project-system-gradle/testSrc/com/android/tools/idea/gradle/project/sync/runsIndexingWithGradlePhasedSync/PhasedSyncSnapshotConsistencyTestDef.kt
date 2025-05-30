@@ -31,9 +31,6 @@ private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
   "/FACET (Android-Gradle)",
   "/FACET (Kotlin)",
 
-  // TODO(b/384022658): Set up test fixtures modules in phased sync as well
-  "/LINKED_ANDROID_MODULE_GROUP/testFixtures", // TODO(b/384022658)
-
   // Individual issues
   "/EXCLUDE_FOLDER", // TODO(b/384022658)
   "/Classes" // TODO(b/384022658)
