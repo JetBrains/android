@@ -73,6 +73,7 @@ jvm_library(
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
+    "//platform/analysis-api:analysis",
     "//platform/editor-ui-ex:editor-ex",
     "//android/adt-ui-model",
     "//android/adt-ui-model:adt-ui-model_test_lib",

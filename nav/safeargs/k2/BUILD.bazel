@@ -17,6 +17,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/project-system",
+    "//platform/analysis-api:analysis",
     "//platform/core-api:core",
     "//xml/impl",
     "//plugins/kotlin/base/project-structure",

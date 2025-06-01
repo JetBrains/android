@@ -21,6 +21,7 @@ jvm_library(
     "//android/android:core",
     "//android/as-driver/utils:utils_test_lib",
     "@lib//:studio-test-platform",
+    "//platform/analysis-api:analysis",
     "//platform/util",
     "//platform/analysis-impl",
     "@lib//:guava",

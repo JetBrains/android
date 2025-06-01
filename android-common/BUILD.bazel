@@ -35,6 +35,7 @@ jvm_library(
     "//android/jps-model",
     "//android/render-resources",
     "//java/java-impl:impl",
+    "//platform/analysis-api:analysis",
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/core-ui",

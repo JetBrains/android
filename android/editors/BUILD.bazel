@@ -26,6 +26,7 @@ jvm_library(
     "//android/wizard-model",
     "//android/wizard-model:wizard-model_test_lib",
     "@lib//:mockito-kotlin",
+    "//platform/analysis-api:analysis",
     "//platform/editor-ui-api:editor-ui",
     "//platform/lang-impl",
     "//java/java-psi-api:psi",

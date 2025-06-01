@@ -32,6 +32,7 @@ jvm_library(
     "//java/java-indexing-api:indexing",
     "//java/java-psi-api:psi",
     "//java/java-psi-impl:psi-impl",
+    "//platform/analysis-api:analysis",
     "//platform/analysis-impl",
     "//platform/core-api:core",
     "//platform/core-impl",
