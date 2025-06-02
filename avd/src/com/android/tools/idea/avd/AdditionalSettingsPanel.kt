@@ -22,11 +22,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import com.android.resources.ScreenOrientation
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.CameraLocation
 import com.android.sdklib.internal.avd.AvdCamera
@@ -195,20 +195,24 @@ private fun StartupGroup(device: VirtualDevice) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Startup")
 
-    Row {
-      Text("Orientation", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+    val orientations =
+      remember(device) { device.deviceProfile.allStates.mapTo(HashSet()) { it.orientation } }
+    if (orientations.size > 1) {
+      Row {
+        Text("Orientation", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-      Dropdown(
-        Modifier.alignByBaseline(),
-        menuContent = {
-          ORIENTATIONS.forEach {
-            selectableItem(device.orientation == it, onClick = { device.orientation = it }) {
-              Text(it.shortDisplayValue)
+        Dropdown(
+          Modifier.alignByBaseline(),
+          menuContent = {
+            orientations.forEach {
+              selectableItem(device.orientation == it, onClick = { device.orientation = it }) {
+                Text(it.shortDisplayValue)
+              }
             }
-          }
-        },
-      ) {
-        Text(device.orientation.shortDisplayValue)
+          },
+        ) {
+          Text(device.orientation.shortDisplayValue)
+        }
       }
     }
 
@@ -235,9 +239,6 @@ private fun StartupGroup(device: VirtualDevice) {
     }
   }
 }
-
-private val ORIENTATIONS =
-  listOf(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE).toImmutableList()
 
 private val BOOTS = enumValues<Boot>().asIterable().toImmutableList()
 
