@@ -70,7 +70,8 @@ public enum AccelerationErrorCode {
   PLATFORM_TOOLS_UPDATE_ADVISED(-6, "Platform tools update is available", UPDATE_PLATFORM_TOOLS, "Please download platform tools"),
   SYSTEM_IMAGE_UPDATE_ADVISED(-7, "System image update is available", UPDATE_SYSTEM_IMAGES, "Please update system images"),
   HAXM_REQUIRES_INTEL_CPU(-8, "HAXM is deprecated and should be uninstalled.", NONE, "Please use the latest emulator and follow https://developer.android.com/studio/run/emulator-acceleration#vm-windows to configure WHPX or AEHD instead"),
-  AEHD_REQUIRES_WINDOWS(-9, "Android Emulator hypervisor driver can only be installed on Windows.", NONE, "Please file a bug against Android Studio.");
+  AEHD_REQUIRES_WINDOWS(-9, "Android Emulator hypervisor driver can only be installed on Windows.", NONE, "Please file a bug against Android Studio."),
+  MACOS_VERSION_TOO_OLD(-10, "The Android Emulator requires macOS 12.7 or newer.", NONE, "Please upgrade to a newer version of macOS.");
 
   private int myErrorCode;
   private String myProblem;
@@ -131,6 +132,11 @@ public enum AccelerationErrorCode {
                       (SystemInfo.isWindows ? DEV_OBSOLETE_WIN :
                        UNKNOWN_ERROR);
       case 15: return HYPER_V_ENABLED;
+      case 134:
+        if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("12.7")) {
+          return MACOS_VERSION_TOO_OLD;
+        }
+        // fallthrough
       default:
         Logger.getInstance(AccelerationErrorCode.class).warn(SdkConstants.FN_EMULATOR_CHECK + " terminated with code " + code);
         return UNKNOWN_ERROR;
