@@ -2368,7 +2368,8 @@ public final class StudioFlags {
   public static final Flag<Boolean> STUDIOBOT_INCLUDE_GRADLE_PROJECT_STRUCTURE_TOOLS_BY_DEFAULT =
     new BooleanFlag(STUDIOBOT, "include.gradle.project.structure.tools.by.default",
                     "Enable using Gradle project structure Agent tools by default",
-                    "When enabled, a set of tools allowing the agent to query for the Gradle project structure will be included by default.", false);
+                    "When enabled, a set of tools allowing the agent to query for the Gradle project structure will be included by default.",
+                    enabledUpTo(DEV));
 
   public static final Flag<Boolean> GEMINI_AGENT_MODE =
     new BooleanFlag(STUDIOBOT, "agent.mode",
