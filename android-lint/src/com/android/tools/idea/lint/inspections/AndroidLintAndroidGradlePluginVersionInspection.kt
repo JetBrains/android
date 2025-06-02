@@ -25,7 +25,6 @@ import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.lint.checks.GradleDetector
-import com.android.tools.lint.checks.GradleDetector.Companion.KEY_REVISION
 import com.android.tools.lint.detector.api.Incident
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.openapi.editor.Editor
@@ -45,28 +44,30 @@ class AndroidLintAndroidGradlePluginVersionInspection :
     incident: Incident,
   ): Array<LintIdeQuickFix> {
     val fixes = super.getQuickFixes(startElement, endElement, incident)
-    if (incident.file.path.endsWith(DOT_PROPERTIES)) {
+    return when {
       // gradle wrapper update: don't link to the AGP upgrade assistant
-      return fixes
+      incident.file.path.endsWith(DOT_PROPERTIES) -> fixes
+      !LintIdeSupport.get().shouldRecommendUpdateAgp(startElement.project) -> fixes
+      else ->
+        arrayOf(
+          InvokeAGPUpgradeAssistantQuickFix(
+            LintIdeSupport.get().recommendedAgpVersion(startElement.project)
+          ),
+          *fixes,
+        )
     }
-    val version =
-      incident.clientProperties?.get(KEY_REVISION)?.let { AgpVersion.parse(it) }
-        ?: LintIdeSupport.get().recommendedAgpVersion(startElement.project)
-        ?: return fixes
-    return arrayOf(InvokeAGPUpgradeAssistantQuickFix(version), *fixes)
   }
 
-  class InvokeAGPUpgradeAssistantQuickFix(private val agpVersion: AgpVersion?) :
+  class InvokeAGPUpgradeAssistantQuickFix(agpVersion: AgpVersion?) :
     DefaultLintQuickFix(
-      if (agpVersion == null) "Invoke AGP Upgrade Assistant"
-      else "Invoke AGP Upgrade Assistant for upgrade to $agpVersion"
+      "Invoke AGP Upgrade Assistant${if (agpVersion != null) " for upgrade to $agpVersion" else ""}"
     ) {
     override fun apply(
       startElement: PsiElement,
       endElement: PsiElement,
       context: AndroidQuickfixContexts.Context,
     ) {
-      LintIdeSupport.get().updateAgpToLatest(startElement.project, agpVersion)
+      LintIdeSupport.get().updateAgp(startElement.project)
     }
 
     override fun generatePreview(

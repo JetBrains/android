@@ -203,9 +203,9 @@ abstract class LintIdeSupport {
 
   open fun recommendedAgpVersion(project: Project): AgpVersion? = null
 
-  open fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean = false
+  open fun shouldRecommendUpdateAgp(project: Project): Boolean = false
 
-  open fun updateAgpToLatest(project: Project, agpVersion: AgpVersion?) {}
+  open fun updateAgp(project: Project) {}
 
   open fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project): Boolean = false
 

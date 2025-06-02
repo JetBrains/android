@@ -205,11 +205,10 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     }
   }
 
-  override fun shouldRecommendUpdateAgpToLatest(project: Project) =
+  override fun shouldRecommendUpdateAgp(project: Project) =
     project.getService(AssistantInvoker::class.java).shouldRecommendPluginUpgradeToLatest(project)
 
-  override fun updateAgpToLatest(project: Project, agpVersion: AgpVersion?) {
-    // TODO: AGP Upgrade Assistant needs to be updated to support updating to a specific version
+  override fun updateAgp(project: Project) {
     project.getService(AssistantInvoker::class.java).performRecommendedPluginUpgrade(project)
   }
 
