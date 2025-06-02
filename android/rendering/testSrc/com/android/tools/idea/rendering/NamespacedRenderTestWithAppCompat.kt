@@ -15,42 +15,52 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.res.TestResourceIdManager
-import com.intellij.testFramework.IndexingTestUtil
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-class NamespacedRenderTestWithAppCompat : AndroidGradleTestCase() {
+class NamespacedRenderTestWithAppCompat {
+
+  @get:Rule val projectRule = AndroidGradleProjectRule()
+
+  @get:Rule val renderRule = RenderTestRule()
+
+  private val project: Project
+    get() = projectRule.project
 
   private lateinit var resourceIdManger: TestResourceIdManager
 
-  override fun setUp() {
-    super.setUp()
-    loadProject(TestProjectPaths.NAMESPACES_WITH_APPCOMPAT)
-    generateSources()
-    IndexingTestUtil.waitUntilIndexesAreReady(project)
-    RenderTestUtil.beforeRenderTestCase()
-    resourceIdManger = TestResourceIdManager.getManager(myAndroidFacet.module)
+  @Before
+  fun setUp() {
+    projectRule.loadProject(TestProjectPaths.NAMESPACES_WITH_APPCOMPAT)
+    projectRule.generateSources()
+    waitUntilIndexesAreReady(project)
+    resourceIdManger = TestResourceIdManager.getManager(projectRule.findGradleModule(":app")!!)
     // Disable final IDs for this test, so it can use light classes to resolve resources.
-    // Final IDs being enabled/disabled are covered by other tests, namely ModuleClassLoaderTest and LibraryResourceClassLoaderTest.
+    // Final IDs being enabled/disabled are covered by other tests, namely ModuleClassLoaderTest and
+    // LibraryResourceClassLoaderTest.
     resourceIdManger.setFinalIdsUsed(false)
   }
 
-  override fun tearDown() {
-    // b/416752104: Because this test runs in the UI thread and some tests might trigger a re-index, a dead-lock
-    // can happen when running the tearDown unless we let the indexing complete.
-    waitUntilIndexesAreReady(project)
+  @After
+  fun tearDown() {
     resourceIdManger.resetFinalIdsUsed()
-    try {
-      RenderTestUtil.afterRenderTestCase()
-    } finally {
-      super.tearDown()
-    }
   }
 
+  @Test
   fun testActivityMain() {
-    val layout = project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
-    RenderTestUtil.checkRendering(myAndroidFacet, layout, getTestDataPath() + "/layouts/namespaced_with_appcompat/activity_main.png")
+    val layout =
+      project.baseDir.findFileByRelativePath("app/src/main/res/layout/activity_main.xml")!!
+    RenderTestUtil.checkRendering(
+      projectRule.androidFacet(":app"),
+      layout,
+      projectRule.resolveTestDataPath("/layouts/namespaced_with_appcompat/activity_main.png").path,
+    )
   }
 }
