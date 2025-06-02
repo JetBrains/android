@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.settings
 
+import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
@@ -40,10 +41,14 @@ class DefaultsDslElement(parent: GradleDslElement, name: GradleNameElement): Gra
                                            { data: Array<*> -> data[1] as PropertiesElementDescription<*> }))
 
   }
+
   override fun getChildPropertiesElementsDescriptionMap(
-    kind: GradleDslNameConverter.Kind?
+    kind: GradleDslNameConverter.Kind
   ): ImmutableMap<String?, PropertiesElementDescription<*>?> {
-    return CHILD_PROPERTIES_ELEMENT_MAP
+      return ImmutableMap.builder<String, PropertiesElementDescription<*>>()
+        .putAll(CHILD_PROPERTIES_ELEMENT_MAP)
+        .putAll(GradleBlockModelMap.getElementMap(DefaultsDslElement::class.java, kind))
+        .build()
   }
 }
 

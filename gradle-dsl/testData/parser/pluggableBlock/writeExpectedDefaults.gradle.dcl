@@ -1,0 +1,5 @@
+defaults {
+  myTestDslElement {
+    stringVal = "one"
+  }
+}
