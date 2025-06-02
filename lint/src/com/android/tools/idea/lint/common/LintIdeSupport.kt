@@ -201,11 +201,19 @@ abstract class LintIdeSupport {
     }
   }
 
-  open fun recommendedAgpVersion(project: Project): AgpVersion? = null
+  interface AgpUpgradeInfo {
+    val project: Project
+  }
 
-  open fun shouldRecommendUpdateAgp(project: Project): Boolean = false
+  open fun computeAgpUpgradeInfo(project: Project): AgpUpgradeInfo? = null
 
-  open fun updateAgp(project: Project) {}
+  open fun upgradeAgp(info: AgpUpgradeInfo) {}
+
+  protected open fun recommendedAgpVersion(project: Project): AgpVersion? = null
+
+  protected open fun shouldRecommendUpdateAgp(project: Project): Boolean = false
+
+  protected open fun updateAgp(project: Project) {}
 
   open fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project): Boolean = false
 

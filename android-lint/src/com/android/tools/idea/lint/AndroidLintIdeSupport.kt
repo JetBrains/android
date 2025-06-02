@@ -193,6 +193,22 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     }
   }
 
+  data class AndroidAgpUpgradeInfo(
+    override val project: Project,
+    val agpVersion: AgpVersion?, // for display, not logic
+  ) : AgpUpgradeInfo
+
+  override fun computeAgpUpgradeInfo(project: Project): AgpUpgradeInfo? {
+    if (shouldRecommendUpdateAgp(project)) {
+      return AndroidAgpUpgradeInfo(project, recommendedAgpVersion(project))
+    }
+    return null
+  }
+
+  override fun upgradeAgp(info: AgpUpgradeInfo) {
+    updateAgp(info.project)
+  }
+
   override fun recommendedAgpVersion(project: Project): AgpVersion? {
     val current = project.findPluginInfo()?.pluginVersion ?: return null
     val latestKnown = AgpVersions.latestKnown
