@@ -235,6 +235,7 @@ jvm_library(
     "//android/completion",
     "@lib//:kotlinc-analysis-api-k2-provided",
     "@lib//:jgoodies-forms",
+    "//spellchecker/xml",
     ":artifactResolver-m31_provided",
   ],
   exports = ["//android/build-common"],

@@ -228,5 +228,6 @@
     <orderEntry type="module" module-name="intellij.android.completion" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-k2" level="project" />
     <orderEntry type="library" name="jgoodies-forms" level="project" />
+    <orderEntry type="module" module-name="intellij.spellchecker.xml" />
   </component>
 </module>
