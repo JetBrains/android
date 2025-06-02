@@ -1805,7 +1805,7 @@ public final class StudioFlags {
       "play.policy.insights.auto.update",
       "Play Policy Insights Auto Update",
       "Update Play Policy lint rule library to the latest",
-      false);
+      enabledUpTo(CANARY));
   // endregion Play Policy Insights
 
   // region Firebase Test Lab
