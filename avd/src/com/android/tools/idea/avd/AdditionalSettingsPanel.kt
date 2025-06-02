@@ -37,7 +37,6 @@ import com.android.tools.idea.avd.StorageCapacityFieldState.LessThanMin
 import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
 import com.android.tools.idea.avd.StorageCapacityFieldState.Result
 import com.android.tools.idea.avd.StorageCapacityFieldState.Valid
-import com.android.tools.idea.flags.StudioFlags
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toImmutableList
@@ -51,7 +50,6 @@ internal fun AdditionalSettingsPanel(
   state: ConfigureDevicePanelState,
   modifier: Modifier = Modifier,
 ) {
-  val hasPlayStore = state.hasPlayStore()
   val device = state.device
   Column(modifier, verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
     Row {
@@ -70,12 +68,7 @@ internal fun AdditionalSettingsPanel(
     NetworkGroup(device)
     StartupGroup(device)
 
-    StorageGroup(
-      device = device,
-      state = state.storageGroupState,
-      hasPlayStore = hasPlayStore,
-      postMvpFeaturesEnabled = StudioFlags.POST_MVP_VIRTUAL_DEVICE_DIALOG_FEATURES_ENABLED.get(),
-    )
+    StorageGroup(device = device, state = state.storageGroupState)
 
     EmulatedPerformanceGroup(
       device = device,

@@ -50,7 +50,7 @@ class StorageGroupTest {
     val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false) }
+    setContent { StorageGroup(device, state) }
 
     // Act
     composeRule.onInternalStorageTextField().performTextReplacement("6")
@@ -69,7 +69,7 @@ class StorageGroupTest {
     val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false) }
+    setContent { StorageGroup(device, state) }
 
     // Act
     composeRule.onInternalStorageTextField().performTextReplacement("")
@@ -88,7 +88,7 @@ class StorageGroupTest {
     val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false) }
+    setContent { StorageGroup(device, state) }
 
     // Act
     composeRule.onInternalStorageTextField().performTextReplacement("1")
@@ -107,7 +107,7 @@ class StorageGroupTest {
     val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false) }
+    setContent { StorageGroup(device, state) }
 
     // Act
     composeRule.onInternalStorageTextField().performTextReplacement("8589934592")
@@ -127,7 +127,7 @@ class StorageGroupTest {
     val state = StorageGroupState(device)
 
     // Act
-    setContent { StorageGroup(device, state, false, true) }
+    setContent { StorageGroup(device, state) }
 
     // Assert
     composeRule.onNodeWithText("Expanded storage").assertExists()
@@ -140,7 +140,7 @@ class StorageGroupTest {
     val state = StorageGroupState(device)
 
     // Act
-    setContent { StorageGroup(device, state, false, true) }
+    setContent { StorageGroup(device, state) }
 
     // Assert
     composeRule.onNodeWithText("Expanded storage").assertDoesNotExist()
@@ -153,7 +153,7 @@ class StorageGroupTest {
     val state = StorageGroupState(device)
 
     // Act
-    setContent { StorageGroup(device, state, false, false) }
+    setContent { StorageGroup(device, state) }
 
     // Assert
     composeRule.onNodeWithText("Expanded storage").assertExists()
@@ -165,7 +165,7 @@ class StorageGroupTest {
     val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false) }
+    setContent { StorageGroup(device, state) }
 
     // Act
     composeRule.onNodeWithText("Existing image").performClick()
@@ -184,7 +184,7 @@ class StorageGroupTest {
     val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false) }
+    setContent { StorageGroup(device, state) }
 
     // Act
     composeRule.onNodeWithText("Existing image").performClick()
@@ -204,7 +204,7 @@ class StorageGroupTest {
     val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false) }
+    setContent { StorageGroup(device, state) }
 
     // Act
     composeRule.onNodeWithText("None").performClick()
@@ -221,7 +221,7 @@ class StorageGroupTest {
     val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false) }
+    setContent { StorageGroup(device, state) }
 
     // Act
     composeRule.onCustomTextField().performTextReplacement("513")
@@ -241,7 +241,7 @@ class StorageGroupTest {
     val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false) }
+    setContent { StorageGroup(device, state) }
 
     // Act
     composeRule.onCustomTextField().performTextReplacement("")
@@ -260,7 +260,7 @@ class StorageGroupTest {
     val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false) }
+    setContent { StorageGroup(device, state) }
 
     // Act
     composeRule.onCustomTextField().performTextReplacement("9")
@@ -279,7 +279,7 @@ class StorageGroupTest {
     val device = TestDevices.pixel6()
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false) }
+    setContent { StorageGroup(device, state) }
 
     // Act
     composeRule.onCustomTextField().performTextReplacement("8796093022208")
@@ -301,7 +301,7 @@ class StorageGroupTest {
       }
     val state = StorageGroupState(device)
 
-    setContent { StorageGroup(device, state, false, false) }
+    setContent { StorageGroup(device, state) }
 
     // Act
     composeRule.onCustomTextField().performTextReplacement("513")
