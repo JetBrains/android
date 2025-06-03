@@ -1223,6 +1223,10 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "use.uinput", "Use uinput module (https://kernel.org/doc/html/v4.12/input/uinput.html)",
     "Use uinput module ((https://kernel.org/doc/html/v4.12/input/uinput.html) for injecting input events",
     false);
+  public static final Flag<Boolean> DEVICE_MIRRORING_UNICODE_TYPING = new BooleanFlag(
+    DEVICE_MIRRORING, "unicode.typing", "Enable Unicode Typing",
+    "Enable typing of arbitrary Unicode characters",
+    false);
   //endregion
 
   //region Screenshot and Screen Recording
