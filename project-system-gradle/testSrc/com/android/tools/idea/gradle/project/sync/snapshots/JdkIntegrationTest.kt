@@ -38,7 +38,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
-import com.intellij.openapi.util.RecursionManager
 import com.intellij.testFramework.PlatformTestUtil
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
@@ -58,10 +57,6 @@ class JdkIntegrationTest(
     environment: TestEnvironment = TestEnvironment(),
     body: ProjectRunnable.() -> Unit
   ) {
-    if (project is JdkTestProject.SimpleApplicationMultipleRoots) {
-      // TODO (b/359232184) Multiple root projects cause CachingPreventedException
-      RecursionManager.disableMissedCacheAssertions(projectRule.testRootDisposable)
-    }
     val preparedProject = projectRule.prepareTestProject(
       agpVersion = project.agpVersion,
       name = project.name,
