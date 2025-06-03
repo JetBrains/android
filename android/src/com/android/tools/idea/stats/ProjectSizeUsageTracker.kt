@@ -19,7 +19,6 @@ import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.concurrency.coroutineScope
-import com.android.tools.idea.project.coroutines.runReadActionInSmartModeWithIndexes
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.serverflags.ServerFlagService
@@ -29,6 +28,7 @@ import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.progress.ProgressManager
@@ -92,7 +92,7 @@ class ReportProjectSizeTask(val project: Project) : Runnable {
           .withProjectId(project)
 
         FileType.entries.forEach { fileType ->
-          project.runReadActionInSmartModeWithIndexes {
+          smartReadAction(project) {
             builder.addIntellijProjectSizeStatsForFileType(fileType)
           }
         }
