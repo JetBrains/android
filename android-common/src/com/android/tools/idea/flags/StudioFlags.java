@@ -771,7 +771,7 @@ public final class StudioFlags {
     "deobfuscate",
     "Enable stack trace deobfuscation using R8 Retrace",
     "Enable stack trace deobfuscation using R8 Retrace",
-    false
+    true
   );
   //endregion
 
