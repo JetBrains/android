@@ -77,7 +77,7 @@ fun ComposeViewInfo.findSmallestHit(
   @AndroidCoordinate x: Int,
   @AndroidCoordinate y: Int,
 ): Collection<ComposeViewInfo> {
-  val viewInfos = findAllLeafHits(x, y)
+  val viewInfos = findAllHitsWithPoint(x, y)
   if (viewInfos.isEmpty()) return listOf()
   return listOf(
     viewInfos.minByOrNull {
@@ -95,75 +95,40 @@ fun List<ComposeViewInfo>.findSmallestHit(x: Int, y: Int): Collection<ComposeVie
 }
 
 /**
- * To be able to find every possible hit we need to find each leaf node of the tree within the file
- * we are looking for. A leaf node being defined as living in this file and having no children that
- * live in the file.
+ * Traverses the compose view tree to compile a list of view information that contain the specified
+ * x, y coordinates.
  */
-fun ComposeViewInfo.findLeafHitsInFile(x: Int, y: Int, fileName: String): List<ComposeViewInfo> {
-  if (!this.containsPoint(x, y)) return emptyList()
-  val leafHits = mutableListOf<ComposeViewInfo>()
+fun ComposeViewInfo.findAllHitsWithPoint(x: Int, y: Int): List<ComposeViewInfo> {
+  val hits = mutableListOf<ComposeViewInfo>()
   val stack = mutableListOf(this)
 
   while (stack.isNotEmpty()) {
     val currentViewInfo: ComposeViewInfo = stack.pop()
-    val childrenContainingPoint =
-      currentViewInfo.children.filter { it.containsPoint(x, y) && it.doesFileExistInTree(fileName) }
-
-    // If no children contain point then it must be a leaf
-    if (childrenContainingPoint.isEmpty() && currentViewInfo.sourceLocation.fileName == fileName) {
-      leafHits.push(currentViewInfo)
-    } else {
-      stack.addAll(childrenContainingPoint)
+    if (currentViewInfo.containsPoint(x, y)) {
+      hits.push(currentViewInfo)
     }
+    stack.addAll(currentViewInfo.children)
   }
-  return leafHits.toList()
+  return hits
 }
 
 /**
- * Traverses the compose view tree to compile a [Collection] of leaf nodes that contain the
- * specified x, y coordinates and are in the [fileName] passed in.
+ * Traverses the compose view tree to compile a [Collection] of [ComposeViewInfo] that contain the
+ * specified x, y coordinates.
  */
-fun List<ComposeViewInfo>.findLeafHitsInFile(
-  x: Int,
-  y: Int,
-  fileName: String,
-): Collection<ComposeViewInfo> {
-  return flatMap { it.findLeafHitsInFile(x, y, fileName) }
-}
-
-/** This function will return all hits that have no children. */
-fun ComposeViewInfo.findAllLeafHits(x: Int, y: Int): List<ComposeViewInfo> {
-  if (!this.containsPoint(x, y)) return emptyList()
-  val leafHits = mutableListOf<ComposeViewInfo>()
-  val stack = mutableListOf(this)
-
-  while (stack.isNotEmpty()) {
-    var currentViewInfo: ComposeViewInfo = stack.pop()
-    var childrenContainingPoint = currentViewInfo.children.filter { it.containsPoint(x, y) }
-
-    // If no children contain point then it must be a leaf
-    if (childrenContainingPoint.isEmpty()) {
-      leafHits.push(currentViewInfo)
-    } else {
-      stack.addAll(childrenContainingPoint)
-    }
-  }
-  return leafHits.toList()
+fun List<ComposeViewInfo>.findAllHitsWithPoint(x: Int, y: Int): Collection<ComposeViewInfo> {
+  return flatMap { it.findAllHitsWithPoint(x, y) }
 }
 
 /** This function will return all ComposeViewInfo objects recursively that are in the given file. */
 fun ComposeViewInfo.findAllHitsInFile(fileName: String): List<ComposeViewInfo> {
-  if (!this.doesFileExistInTree(fileName)) return emptyList()
   val stack = mutableListOf(this)
   val hits = mutableListOf<ComposeViewInfo>()
 
   while (stack.isNotEmpty()) {
     val currentViewInfo: ComposeViewInfo = stack.pop()
-    val childrenContainingPoint =
-      currentViewInfo.children.filter { it.doesFileExistInTree(fileName) }
-
-    if (currentViewInfo.sourceLocation.fileName == fileName) hits.push(currentViewInfo)
-    stack.addAll(childrenContainingPoint)
+    if (currentViewInfo.isInFile(fileName)) hits.push(currentViewInfo)
+    stack.addAll(currentViewInfo.children)
   }
   return hits.toList()
 }
@@ -180,8 +145,8 @@ fun ComposeViewInfo.containsPoint(x: Int, y: Int): Boolean {
   return bounds.isNotEmpty() && bounds.containsPoint(x, y)
 }
 
-fun ComposeViewInfo.doesFileExistInTree(fileName: String): Boolean {
-  return sourceLocation.fileName == fileName || children.any { it.doesFileExistInTree(fileName) }
+fun ComposeViewInfo.isInFile(fileName: String): Boolean {
+  return sourceLocation.fileName == fileName
 }
 
 /** Pixel bounds. The model closely resembles how Compose Stack is returned. */
