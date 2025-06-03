@@ -70,10 +70,14 @@ class VitalsClient(
   parentDisposable: Disposable,
   private val cache: AppInsightsCache,
   private val interceptor: ClientInterceptor,
-  private val grpcClient: VitalsGrpcClient =
-    VitalsGrpcClientImpl.create(parentDisposable, interceptor),
+  private val grpcClientOverride: VitalsGrpcClient? = null,
   private val aiInsightClient: AiInsightClient = GeminiAiInsightClient(project, cache),
 ) : AppInsightsClient {
+
+  private val grpcClient: VitalsGrpcClient by lazy {
+    grpcClientOverride ?: VitalsGrpcClientImpl.create(parentDisposable, interceptor)
+  }
+
   override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> =
     runGrpcCatchingWithSupervisorScope(LoadingState.Ready(emptyList())) {
       LoadingState.Ready(grpcClient.listAccessibleApps())
