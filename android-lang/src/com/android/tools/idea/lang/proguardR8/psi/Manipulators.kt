@@ -27,8 +27,8 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.AbstractElementManipulator
 import com.intellij.psi.impl.source.DummyHolderFactory
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
-
 
 class ProguardR8QualifiedNameManipulator : AbstractElementManipulator<ProguardR8QualifiedName>() {
 
@@ -74,9 +74,7 @@ class ProguardR8QualifiedNameManipulator : AbstractElementManipulator<ProguardR8
   }
 }
 
-
 class ProguardR8ClassMemberNameManipulator : AbstractElementManipulator<ProguardR8ClassMemberName>() {
-
   override fun handleContentChange(element: ProguardR8ClassMemberName, range: TextRange, newContent: String): ProguardR8ClassMemberName {
     // Throwing an exception here blocks refactoring, included renames started from a Kotlin file,
     // even if the Shrinker Config File wasn't even open. For the user this means a error message is displayed and refactoring is cancelled.
@@ -93,5 +91,35 @@ class ProguardR8ClassMemberNameManipulator : AbstractElementManipulator<Proguard
     val identifier = element.node.findChildByType(ProguardR8PsiTypes.JAVA_IDENTIFIER) as? LeafPsiElement
     identifier?.replaceWithText(newContent)
     return element
+  }
+}
+
+class ProguardR8FileManipulator : AbstractElementManipulator<ProguardR8File>() {
+  private fun createFileFromText(text: String, element: ProguardR8File): ProguardR8File? {
+    val lexer = ProguardR8Lexer(acceptJavaIdentifiers = false)
+    val builder = PsiBuilderFactory.getInstance().createBuilder(ProguardR8ParserDefinition(), lexer, "-foo $text")
+    val ast = ProguardR8Parser().parse(ProguardR8PsiTypes.RULE, builder)
+    val holder = DummyHolderFactory.createHolder(element.manager, element.language, element)
+    holder.treeElement.addChild(ast)
+    val rule = ast.psi as? ProguardR8Rule ?: return null
+    return PsiTreeUtil.findChildOfType(rule, ProguardR8File::class.java)
+  }
+
+  override fun handleContentChange(element: ProguardR8File, range: TextRange, newContent: String?): ProguardR8File? {
+    val oldText = element.text
+    val newText = "${oldText.substring(0, range.startOffset)}$newContent${oldText.substring(range.endOffset)}"
+    val newElement = createFileFromText(newText, element) ?: return null
+
+    return element.replace(newElement) as ProguardR8File
+  }
+
+  override fun getRangeInElement(element: ProguardR8File): TextRange {
+    val start = if (element.isQuoted) 1 else 0
+    val end = when {
+      element.singleQuotedString != null -> element.text.length - 1
+      element.doubleQuotedString != null -> element.text.length - 1
+      else -> element.text.length
+    }
+    return TextRange.create(start, end)
   }
 }
