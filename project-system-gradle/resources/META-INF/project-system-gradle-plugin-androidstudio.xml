@@ -32,6 +32,14 @@
     <applicationConfigurable parentId="appearance" id="appearance.project.tool.window" bundle="messages.AndroidBundle"
                          key="configurable.ProjectToolWindowConfigurable.displayName"
                          provider="com.android.tools.idea.gradle.projectView.ProjectToolWindowConfigurableProvider"/>
+    <advancedSetting default="false" id="project.view.default" bundle="messages.AndroidBundle"
+                     groupKey="group.advanced.settings.project.view"
+                     descriptionKey="advanced.setting.project.view.default.description"
+                     service="com.android.tools.idea.gradle.projectView.AndroidProjectViewSettings"
+                     property="defaultToProjectView"/>
+    <applicationService
+        serviceInterface="com.android.tools.idea.gradle.projectView.AndroidProjectViewSettings"
+        serviceImplementation="com.android.tools.idea.gradle.projectView.AndroidProjectViewSettingsImpl"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState"/>
     <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"
