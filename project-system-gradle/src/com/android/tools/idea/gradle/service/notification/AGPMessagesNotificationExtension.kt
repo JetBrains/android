@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.service.notification
 
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.isCompilationFailureLine
 import com.android.tools.idea.gradle.project.build.output.JavaLanguageLevelDeprecationOutputParser
+import com.intellij.execution.rmi.RemoteUtil
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationExtension
 import com.intellij.util.ExceptionUtil
@@ -38,6 +40,7 @@ class AGPMessagesNotificationExtension: ExternalSystemNotificationExtension {
   override fun isInternalError(error: Throwable): Boolean {
     return isXmlProcessorError(error)
            || isJavaLanguageLevelDeprecationError(error)
+           || isCompilationError(error)
   }
 
   private fun isXmlProcessorError(error: Throwable): Boolean {
@@ -50,5 +53,16 @@ class AGPMessagesNotificationExtension: ExternalSystemNotificationExtension {
   private fun isJavaLanguageLevelDeprecationError(error: Throwable): Boolean {
     val firstLine = error.message?.lineSequence()?.firstOrNull()
     return firstLine != null && JavaLanguageLevelDeprecationOutputParser.javaVersionRemovedPattern.matcher(firstLine).matches()
+  }
+
+  private fun isCompilationError(error: Throwable): Boolean {
+    // See b/278800524
+    // org.jetbrains.plugins.gradle.service.notification.GradleNotificationExtension.isInternalError filters out
+    // compilation errors from javac but not from kotlin. Failure parsers however (GradleBuildFailureParser)
+    // filter out all compilation errors, they are to be handled by specific parsers.
+    // Add same filtering as in GradleBuildFailureParser here so that empty error node is not created from exception.
+    val unwrapped = RemoteUtil.unwrap(error)
+    val messageFirstLine = unwrapped.message?.lineSequence()?.firstOrNull()
+    return messageFirstLine?.isCompilationFailureLine() == true
   }
 }

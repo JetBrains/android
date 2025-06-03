@@ -276,37 +276,11 @@ tasks.register("$name") {
   private fun PreparedTestProject.openAndBuildWithFailingTasks(
     withStacktrace: Boolean,
     verification: PreparedTestProject.Context.(List<BuildEvent>, Map<String, List<String>>) -> Unit
-  ) {
-    open { project ->
-      val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
-      val outputsMap = mutableMapOf<String, MutableList<String>>()
-      val allBuildEventsProcessedLatch = CountDownLatch(1)
-      // Build
-      val result = project.buildAndWait(eventHandler = { event ->
-        if (event is OutputBuildEvent) {
-          outputsMap.getOrPut(event.parentPath()) { ArrayList() }
-            .add(event.message)
-        }
-        if (event !is BuildIssueEvent && event !is MessageEvent && event !is FinishBuildEvent) return@buildAndWait
-        buildEvents.add(event)
-        // Events are generated in a separate thread(s) and if we don't wait for the FinishBuildEvent
-        // some might not reach here by the time we inspect them below resulting in flakiness (like b/318490086).
-        if (event is FinishBuildEventImpl) {
-          allBuildEventsProcessedLatch.countDown()
-        }
-      }) { buildInvoker ->
-        buildInvoker.executeTasks(
-          GradleBuildInvoker.Request.builder(project, projectRoot, "runFailingTasks")
-            .setCommandLineArguments(if (withStacktrace) listOf("--stacktrace") else emptyList())
-            .build()
-        )
-      }
-      assertThat(result.isBuildSuccessful).isEqualTo(false)
-      allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
-
-      verification(buildEvents, outputsMap)
-    }
-  }
+  ) = openAndBuildWithFailingTasks(
+    tasks = listOf("runFailingTasks"),
+    withStacktrace = withStacktrace,
+    verification = verification
+  )
 
   private fun  buildOutputWindowStateDump(
     buildEvents: List<BuildEvent>,

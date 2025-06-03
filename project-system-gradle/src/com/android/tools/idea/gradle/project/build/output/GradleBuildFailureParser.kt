@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.isCompilationFailureLine
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.DuplicateMessageAware
@@ -180,12 +181,6 @@ abstract class GradleBuildFailureParser(
     val unresolvedDependencyIssue = UnresolvedDependencyBuildIssue(dependencyName, description, indexOfSuffix > 0)
     return BuildIssueEventImpl(parentId, unresolvedDependencyIssue, MessageEvent.Kind.ERROR)
   }
-
-  private fun String.isCompilationFailureLine(): Boolean =
-    this.startsWith("Compilation failed") ||
-    this == "Compilation error. See log for more details" ||
-    this == "Script compilation error:" ||
-    this.contains("compiler failed")
 
   /**
    * Copy of GradleConsoleFilter in org.jetbrains.plugins.gradle.execution (revision
