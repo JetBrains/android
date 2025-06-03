@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.apk;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.apk.ImportApkAction.LAST_IMPORTED_LOCATION;
+import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.project.CustomProjectTypeImporter;
 import com.intellij.ide.ProjectGroup;
@@ -27,25 +36,15 @@ import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import kotlin.coroutines.Continuation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
 import org.mockito.Mock;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.apk.ImportApkAction.LAST_IMPORTED_LOCATION;
-import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link ImportApkAction}.
@@ -161,11 +160,6 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
     @Override
     public AnAction[] getRecentProjectsActions(boolean addClearListItem) {
       return AnAction.EMPTY_ARRAY;
-    }
-
-    @Override
-    public boolean willReopenProjectOnStart() {
-      return false;
     }
 
     @Override
