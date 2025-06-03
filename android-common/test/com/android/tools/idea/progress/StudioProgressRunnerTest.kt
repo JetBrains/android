@@ -57,7 +57,7 @@ class StudioProgressRunnerTest : BareTestFixtureTestCase() {
     val runner = StudioProgressRunner(false, "test", null)
     val invoked = AtomicBoolean(false)
 
-    runner.runSyncWithProgress { _, _ ->
+    runner.runSyncWithProgress { _ ->
       assertFalse(ApplicationManager.getApplication().isDispatchThread)
       try {
         Thread.sleep(100)
@@ -79,7 +79,7 @@ class StudioProgressRunnerTest : BareTestFixtureTestCase() {
 
     val coroutineScope = CoroutineScope(EmptyCoroutineContext)
     coroutineScope.launch {
-      runner.runAsyncWithProgress { _, _ ->
+      runner.runAsyncWithProgress { _ ->
         assertFalse(ApplicationManager.getApplication().isDispatchThread)
         try {
           lock.acquire()
@@ -99,7 +99,7 @@ class StudioProgressRunnerTest : BareTestFixtureTestCase() {
         val runner = StudioProgressRunner(false, "test", null)
         val invoked = AtomicBoolean(false)
 
-        runner.runSyncWithProgress { _, _ ->
+        runner.runSyncWithProgress { _ ->
           assertFalse(ApplicationManager.getApplication().isDispatchThread)
           try {
             Thread.sleep(100)
@@ -126,14 +126,14 @@ class StudioProgressRunnerTest : BareTestFixtureTestCase() {
     val loadFinish = CompletableDeferred<Unit>()
     val callback = CompletableDeferred<Unit>()
 
-    runner.runAsyncWithProgress { _, _ ->
+    runner.runAsyncWithProgress { _ ->
       loadStart.await()
       // As usual, Dispatchers.EDT is instant deadlock.
       withContext(Dispatchers.Main) { callback.complete(Unit) }
       loadFinish.complete(Unit)
     }
 
-    runner.runSyncWithProgress { _, _ ->
+    runner.runSyncWithProgress { _ ->
       loadStart.complete(Unit)
       withTimeout(5000) {
         callback.await()

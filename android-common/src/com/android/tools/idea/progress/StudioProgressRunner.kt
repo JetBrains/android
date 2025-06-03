@@ -53,11 +53,11 @@ constructor(
       if (project == null) {
         // withBackgroundProgress requires a project to own the progress indicator. If we don't have
         // one, just run the task directly and pass an empty progress indicator.
-        r.run(NullProgressIndicator, this@StudioProgressRunner)
+        r.run(NullProgressIndicator)
       } else {
         withBackgroundProgress(project, title, cancellable) {
           reportRawProgress { reporter ->
-            r.run(RawProgressReporterAdapter(reporter), this@StudioProgressRunner)
+            r.run(RawProgressReporterAdapter(reporter))
           }
         }
       }
@@ -82,7 +82,7 @@ constructor(
               if (cancellable) TaskCancellation.cancellable() else TaskCancellation.nonCancellable(),
           ) {
             reportRawProgress { reporter ->
-              progressRunnable.run(RawProgressReporterAdapter(reporter), this@StudioProgressRunner)
+              progressRunnable.run(RawProgressReporterAdapter(reporter))
             }
           }
         },
