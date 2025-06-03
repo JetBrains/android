@@ -2481,7 +2481,7 @@ public final class StudioFlags {
       "enable",
       "Enable Backup/Restore feature",
       "Enable Backup/Restore feature",
-      enabledUpTo(CANARY));
+      true);
 
   public static final Flag<Integer> BACKUP_GMSCORE_MIN_VERSION =
     new IntFlag(
