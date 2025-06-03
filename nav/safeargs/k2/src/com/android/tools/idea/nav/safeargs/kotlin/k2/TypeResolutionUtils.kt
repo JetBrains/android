@@ -17,6 +17,11 @@ package com.android.tools.idea.nav.safeargs.kotlin.k2
 
 import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.psi.java.getPsiTypeStr
+import org.jetbrains.kotlin.lexer.KtKeywordToken
+import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 
 // getPsiTypeStr() returns Java type strings, so they need to be converted to their Kotlin
 // equivalents.
@@ -39,9 +44,9 @@ fun NavArgumentData.resolveKotlinType(modulePackageName: String): String {
   val nonNullType =
     TYPE_MAP[psiType]
       ?: if (psiType.endsWith("[]")) {
-        "kotlin.Array<${psiType.removeSuffix("[]")}>"
+        "kotlin.Array<${psiType.removeSuffix("[]").escapeFqNameComponents()}>"
       } else {
-        psiType
+        psiType.escapeFqNameComponents()
       }
 
   return if (isNonNull()) {
@@ -50,3 +55,18 @@ fun NavArgumentData.resolveKotlinType(modulePackageName: String): String {
     "$nonNullType?"
   }
 }
+
+val KEYWORDS_TO_ESCAPE: Set<String> =
+  KtTokens.KEYWORDS.types.mapNotNullTo(mutableSetOf()) { (it as? KtKeywordToken)?.value }
+
+fun String.escapeKeywords(): String = if (this in KEYWORDS_TO_ESCAPE) "`$this`" else this
+
+fun String.escapeFqNameComponents(): String = split(".").joinToString(".") { it.escapeKeywords() }
+
+fun String.escapeNewlinesForComment(): String = replace('\n', '⏎')
+
+fun Name.toEscapedString(): String = asString().escapeKeywords()
+
+fun FqName.toEscapedString(): String = pathSegments().joinToString(".") { it.toEscapedString() }
+
+fun ClassId.toEscapedString(): String = asSingleFqName().toEscapedString()
