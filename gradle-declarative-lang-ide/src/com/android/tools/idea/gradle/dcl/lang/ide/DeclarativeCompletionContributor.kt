@@ -76,6 +76,7 @@ import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.PsiElementPattern
 import com.intellij.patterns.PsiJavaPatterns
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -127,10 +128,25 @@ private val factoryArgument = object : PatternCondition<PsiElement>(null) {
 private val factoryArgumentString = object : PatternCondition<PsiElement>(null) {
   override fun accepts(element: PsiElement, context: ProcessingContext?): Boolean {
     val parent = element.parent
-    return parent is DeclarativeLiteral &&
-           parent.value is String &&
-           parent.parent is DeclarativeArgument
+    if (parent is PsiErrorElement) {
+      // when user typing
+      return parent.prevSibling.prevMeaningfulSibling() is DeclarativeArgument
+    }
+    else {
+      // when there did not type
+      return parent is DeclarativeLiteral &&
+             parent.value is String &&
+             parent.parent is DeclarativeArgument
+    }
   }
+}
+
+private fun PsiElement.prevMeaningfulSibling(): PsiElement? {
+  var prevElement: PsiElement? = this
+  while (prevElement != null && prevElement is PsiWhiteSpace) {
+    prevElement = prevElement.prevSibling
+  }
+  return prevElement
 }
 
 private val LEFT_ELEMENT_ASSIGNMENT:ElementPattern<LeafPsiElement> = psiElement(LeafPsiElement::class.java).andOr(
@@ -425,12 +441,9 @@ class DeclarativeCompletionContributor : CompletionContributor() {
         val schema = DeclarativeService.getInstance(project).getDeclarativeSchema() ?: return
         val offset = parameters.offset
         val psiFile = parameters.originalFile
-        var element = psiFile.findElementAt(max(0, offset - 1)) ?: return
-        if(psiElement().whitespace().accepts(element)){
-          element = element.skipBackWhitespaces() ?: return
-        }
-        val argument = element.parent.parent as? DeclarativeArgument ?: return
-        val functionElement = argument.parent.parent as? DeclarativeSimpleFactory ?: return
+        val element = psiFile.findElementAt(max(0, offset - 1)) ?: return
+
+        val functionElement = element.findParentOfType<DeclarativeSimpleFactory>() ?: return
         val schemaFunctions = getRootFunctions(functionElement.identifier, schema)
         val function = schemaFunctions.find { it.name == functionElement.identifier.name } ?: return
         val toInfixFunction = schema.getInfixFunctions(element.containingFile.name)["to"]
@@ -631,15 +644,6 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     }
     return nextLeaf
   }
-
-  private fun PsiElement.skipBackWhitespaces(): PsiElement? {
-    var prevLeaf: PsiElement? = this
-    while (prevLeaf != null && prevLeaf is PsiWhiteSpace) {
-      prevLeaf = PsiTreeUtil.prevLeaf(prevLeaf, true)
-    }
-    return prevLeaf
-  }
-
 
   private fun EntryWithContext.toSuggestionPair() =
     this.entry to Suggestion(entry.simpleName, getType(this))
