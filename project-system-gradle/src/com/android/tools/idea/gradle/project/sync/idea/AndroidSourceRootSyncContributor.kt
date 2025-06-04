@@ -31,9 +31,11 @@ import com.android.tools.idea.gradle.project.sync.idea.entities.AndroidGradleSou
 import com.android.tools.idea.projectsystem.gradle.LINKED_ANDROID_GRADLE_MODULE_GROUP
 import com.android.tools.idea.projectsystem.gradle.LinkedAndroidGradleModuleGroup
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
+import com.intellij.java.workspace.entities.JavaModuleSettingsEntity
 import com.intellij.java.workspace.entities.JavaResourceRootPropertiesEntity
 import com.intellij.java.workspace.entities.JavaSourceRootPropertiesEntity
 import com.intellij.java.workspace.entities.javaResourceRoots
+import com.intellij.java.workspace.entities.javaSettings
 import com.intellij.java.workspace.entities.javaSourceRoots
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import com.intellij.openapi.externalSystem.model.project.IExternalSystemSourceType
@@ -236,6 +238,13 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
         val androidModuleGroup = getModuleGroup(sourceSetModuleEntitiesByArtifact)
         knownHolderModuleEntitySources += holderModuleEntity.entitySource
 
+        // Setup the javaSettings for the holder module. This does not set any compiler output paths as the holder modules don't have any.
+        existingSourceSetEntities.modifyModuleEntity(holderModuleEntity) {
+          this.javaSettings = JavaModuleSettingsEntity(inheritedCompilerOutput = false,
+                                                       excludeOutput = context.isDelegatedBuild,
+                                                       // TODO(b/384022658): projectEntitySource? should be used here.
+                                                       entitySource = holderModuleEntity.entitySource)
+        }
         val linkedModuleNames = sourceSetModules.map { it.name } + holderModuleEntity.name
         registerModuleActions(linkedModuleNames.associate {
           it.to { moduleInstance ->
@@ -258,10 +267,12 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
           this.entitySource = newModuleEntity.entitySource
           this.contentRoots = newModuleEntity.contentRoots
           this.exModuleOptions = newModuleEntity.exModuleOptions
+          this.javaSettings = newModuleEntity.javaSettings
           // Not modifying existing dependencies here because we don't have that info here yet.
         }
       }
     }
+
     // Only replace the android related source sets
     storage.replaceBySource({ it is AndroidGradleSourceSetEntitySource || it in knownHolderModuleEntitySources }, existingSourceSetEntities)
     return allAndroidContexts
@@ -287,6 +298,7 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities()
     val contentRootEntity = createContentRootEntity(moduleName, entitySource, typeToDirsMap)
 
     newModuleEntity.contentRoots += contentRootEntity
+    newModuleEntity.javaSettings = createJavaModuleSettingsEntity(entitySource, sourceSetArtifactName)
     sourceSetArtifactName to newModuleEntity
   }.partition { (_, module) ->
     // In some scenarios (for instance KMP), we end up with duplicate content roots, so ignoring those modules completely for now
@@ -420,7 +432,22 @@ private fun SyncContributorAndroidProjectContext.createContentRootEntity(
           }
         }
     }
+}
+
+private fun SyncContributorAndroidProjectContext.createJavaModuleSettingsEntity(
+  entitySource: AndroidGradleSourceSetEntitySource,
+  sourceSetArtifactName: IdeArtifactName
+): JavaModuleSettingsEntity.Builder {
+  return JavaModuleSettingsEntity(
+     inheritedCompilerOutput = false, excludeOutput = context.isDelegatedBuild, entitySource = entitySource) {
+    val artifact = getSelectedVariantArtifact(sourceSetArtifactName)
+
+    val sourceCompilerOutput = if (sourceSetArtifactName == IdeArtifactName.MAIN) artifact?.classesFolders?.firstOrNull()?.toVirtualFileUrl() else null
+    val testCompilerOutput = if (sourceSetArtifactName != IdeArtifactName.MAIN) artifact?.classesFolders?.firstOrNull()?.toVirtualFileUrl() else null
+    this.compilerOutput = sourceCompilerOutput
+    this.compilerOutputForTests = testCompilerOutput
   }
+}
 
 private fun SyncContributorAndroidProjectContext.createSourceRootEntity(
   file: File,

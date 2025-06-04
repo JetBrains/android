@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
+import com.android.builder.model.v2.ide.AbstractArtifact
 import com.android.builder.model.v2.ide.AndroidArtifact
 import com.android.builder.model.v2.ide.BasicArtifact
 import com.android.builder.model.v2.ide.JavaArtifact
 import com.android.builder.model.v2.ide.SourceProvider
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_SCREENSHOT_TEST
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
@@ -142,6 +146,19 @@ internal fun SyncContributorAndroidProjectContext.getVariantName(): String? =
     else -> null
   } // default variant as specified by the build script
   ?: basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors) // default variant
+
+internal fun SyncContributorAndroidProjectContext.getSelectedVariantArtifact(sourceSetArtifactName: IdeArtifactName): AbstractArtifact? {
+  val variantName = getVariantName()
+
+  val selectedVariant = androidProject.variants.singleOrNull { it.name == variantName } ?: error("Can't determine the selected variant")
+  return when(sourceSetArtifactName) {
+    IdeArtifactName.MAIN -> selectedVariant.mainArtifact
+    IdeArtifactName.TEST_FIXTURES -> selectedVariant.testFixturesArtifact
+    IdeArtifactName.UNIT_TEST -> if (useContainer) selectedVariant.hostTestArtifacts[ARTIFACT_NAME_UNIT_TEST] else selectedVariant.unitTestArtifact
+    IdeArtifactName.ANDROID_TEST -> if (useContainer) selectedVariant.deviceTestArtifacts[ARTIFACT_NAME_ANDROID_TEST] else selectedVariant.androidTestArtifact
+    IdeArtifactName.SCREENSHOT_TEST -> if (useContainer) selectedVariant.hostTestArtifacts[ARTIFACT_NAME_SCREENSHOT_TEST] else error("ScreenshotTest are not available")
+  }
+}
 
 private fun createSourceSetDataForSourceProvider(name: IdeArtifactName,
                                                  provider: SourceProvider,
