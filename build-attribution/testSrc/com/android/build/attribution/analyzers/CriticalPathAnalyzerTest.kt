@@ -195,8 +195,8 @@ class CriticalPathAnalyzerTest {
       invokeTasks("assembleDebug").also { assertThat(it.isBuildSuccessful).isTrue() }
       val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
       val results = buildAnalyzerStorageManager.getSuccessfulResult()
-      assertThat(results.getTasksDeterminingBuildDuration()).isEmpty()
-      assertThat(results.getPluginsDeterminingBuildDuration()).isEmpty()
+      assertThat(results.getTasksDeterminingBuildDuration().isEmpty())
+      assertThat(results.getPluginsDeterminingBuildDuration().isEmpty())
     }
   }
 }
