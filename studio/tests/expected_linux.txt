@@ -437,7 +437,7 @@ android-studio/jbr/release
 android-studio/lib/annotations.jar
 android-studio/lib/app.jar
 android-studio/lib/bouncy-castle.jar
-android-studio/lib/build-marker-AI-251.25410.109.2512.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-251.26094.121.2512.__BUILD_NUMBER__
 android-studio/lib/external-system-rt.jar
 android-studio/lib/externalProcess-rt.jar
 android-studio/lib/forms_rt.jar
@@ -484,6 +484,7 @@ android-studio/lib/modules/intellij.platform.inline.completion.jar
 android-studio/lib/modules/intellij.platform.jewel.foundation.jar
 android-studio/lib/modules/intellij.platform.jewel.ideLafBridge.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.core.jar
+android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.autolink.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmAlerts.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmStrikethrough.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmTables.jar

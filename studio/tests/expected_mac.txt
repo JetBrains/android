@@ -484,6 +484,7 @@ Android Studio Preview.app/Contents/lib/modules/intellij.platform.inline.complet
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.foundation.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.ideLafBridge.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.core.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.autolink.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.gfmAlerts.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.gfmStrikethrough.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.gfmTables.jar

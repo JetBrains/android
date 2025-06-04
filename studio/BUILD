@@ -1271,6 +1271,7 @@ iml_module(
         "@intellij//:intellij.platform.jewel.foundation",
         "@intellij//:intellij.platform.jewel.ideLafBridge",
         "@intellij//:intellij.platform.jewel.markdown.core",
+        "@intellij//:intellij.platform.jewel.markdown.extensions.autolink",
         "@intellij//:intellij.platform.jewel.markdown.extensions.gfmAlerts",
         "@intellij//:intellij.platform.jewel.markdown.extensions.gfmStrikethrough",
         "@intellij//:intellij.platform.jewel.markdown.extensions.gfmTables",

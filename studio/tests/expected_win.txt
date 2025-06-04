@@ -545,6 +545,7 @@ android-studio/lib/modules/intellij.platform.inline.completion.jar
 android-studio/lib/modules/intellij.platform.jewel.foundation.jar
 android-studio/lib/modules/intellij.platform.jewel.ideLafBridge.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.core.jar
+android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.autolink.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmAlerts.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmStrikethrough.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmTables.jar

@@ -80,6 +80,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.foundation" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.ideLafBridge" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.core" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.autolink" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.gfmAlerts" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.gfmStrikethrough" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.gfmTables" level="project" />
