@@ -42,7 +42,7 @@ internal class EnableOrSkipStepPage : WizardPage() {
   }
   override val controlProvider: (WizardState) -> WizardPageControl = { state ->
     object : WizardPageControl() {
-      override fun shouldShow(): Boolean {
+      override suspend fun shouldShow(): Boolean {
         val configurationState = state.getOrCreateState { SyncConfigurationState() }
 
         with(configurationState) {
@@ -52,6 +52,8 @@ internal class EnableOrSkipStepPage : WizardPage() {
       }
     }
   }
+  override val WizardState.navigationStateDependency: Any?
+    get() = getOrCreateState { SyncConfigurationState() }.configurationOption
 }
 
 @Composable
