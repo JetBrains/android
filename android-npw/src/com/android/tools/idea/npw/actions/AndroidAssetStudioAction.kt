@@ -13,153 +13,105 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.actions;
+package com.android.tools.idea.npw.actions
 
-import com.android.tools.idea.projectsystem.AndroidModulePaths;
-import com.android.tools.idea.projectsystem.NamedModuleTemplate;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.wizard.model.ModelWizard;
-import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
-import com.intellij.ide.IdeView;
-import com.intellij.openapi.actionSystem.ActionUpdateThread;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import icons.StudioIcons;
-import java.awt.Dimension;
-import java.io.File;
-import java.net.URL;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.projectsystem.AndroidModulePaths
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.wizard.model.ModelWizard
+import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.VirtualFile
+import icons.StudioIcons
+import org.jetbrains.android.facet.AndroidFacet
+import java.awt.Dimension
+import java.io.File
+import java.net.URL
 
 /**
  * Action to invoke one of the Asset Studio wizards.
  *
  * This action is visible anywhere within a module that has an Android facet.
  */
-public abstract class AndroidAssetStudioAction extends AnAction {
+abstract class AndroidAssetStudioAction(
+  text: String?,
+  description: String?,
+) : AnAction(text, description, StudioIcons.Common.ANDROID_HEAD) {
 
-  protected AndroidAssetStudioAction(@Nullable String text, @Nullable String description) {
-    super(text, description, StudioIcons.Common.ANDROID_HEAD);
+  override fun update(event: AnActionEvent) {
+    event.presentation.setVisible(isAvailable(event))
   }
 
-  protected static boolean isAvailable(@NotNull DataContext dataContext) {
-    Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
-    IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
-    VirtualFile location = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-    return module != null &&
-           view != null &&
-           location != null &&
-           view.getDirectories().length > 0 &&
-           AndroidFacet.getInstance(module) != null &&
-           ProjectSystemUtil.getProjectSystem(module.getProject()).allowsFileCreation() &&
-           getModuleTemplate(module, location) != null;
-  }
+  override fun actionPerformed(event: AnActionEvent) {
+    if (event.getData(LangDataKeys.IDE_VIEW) == null) return
+    val module = event.getData(PlatformCoreDataKeys.MODULE) ?: return
+    val location = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
+    val facet = AndroidFacet.getInstance(module) ?: return
+    val template: NamedModuleTemplate = getModuleTemplate(module, location) ?: return
+    val resFolder: File = findClosestResFolder(template.paths, location) ?: return
 
-  @Nullable
-  private static NamedModuleTemplate getModuleTemplate(@NotNull Module module, @NotNull VirtualFile location) {
-    for (NamedModuleTemplate namedTemplate : ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(location)) {
-      if (!namedTemplate.getPaths().getResDirectories().isEmpty()) {
-        return namedTemplate;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  private static File findClosestResFolder(@NotNull AndroidModulePaths paths, @NotNull VirtualFile location) {
-    String toFind = location.getPath();
-    File bestMatch = null;
-    int bestCommonPrefixLength = -1;
-    for (File resDir : paths.getResDirectories()) {
-      int commonPrefixLength = StringUtil.commonPrefixLength(resDir.getPath(), toFind);
-      if (commonPrefixLength > bestCommonPrefixLength) {
-        bestCommonPrefixLength = commonPrefixLength;
-        bestMatch = resDir;
-      }
-    }
-    return bestMatch;
-  }
-
-  @Override
-  public final void update(@NotNull AnActionEvent e) {
-    e.getPresentation().setVisible(isAvailable(e.getDataContext()));
-  }
-
-  @Override
-  public @NotNull ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.BGT;
-  }
-
-  @Override
-  public final void actionPerformed(@NotNull AnActionEvent e) {
-    DataContext dataContext = e.getDataContext();
-
-    IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
-    if (view == null) {
-      return;
-    }
-
-    Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
-    if (module == null) {
-      return;
-    }
-
-    VirtualFile location = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
-    if (location == null) {
-      return;
-    }
-
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return;
-    }
-
-    NamedModuleTemplate template = getModuleTemplate(module, location);
-    if (template == null) {
-      return;
-    }
-
-    File resFolder = findClosestResFolder(template.getPaths(), location);
-    if (resFolder == null) {
-      return;
-    }
-
-    ModelWizard wizard = createWizard(facet, template, resFolder);
-    if (wizard != null) {
-      StudioWizardDialogBuilder dialogBuilder = new StudioWizardDialogBuilder(wizard, "Asset Studio");
-      dialogBuilder.setProject(facet.getModule().getProject())
-          .setMinimumSize(getWizardMinimumSize())
-          .setPreferredSize(getWizardPreferredSize())
-          .setHelpUrl(getHelpUrl());
-      dialogBuilder.build().show();
-    }
+    val wizard = createWizard(facet, template, resFolder)
+    val dialogBuilder = StudioWizardDialogBuilder(wizard, "Asset Studio")
+    dialogBuilder.setProject(facet.module.project)
+      .setMinimumSize(wizardMinimumSize)
+      .setPreferredSize(wizardPreferredSize)
+      .setHelpUrl(helpUrl)
+    dialogBuilder.build().show()
   }
 
   /**
-   * Creates a wizard to show or returns {@code null} if the showing of a wizard should be aborted.
+   * Creates a wizard to show or returns `null` if the showing of a wizard should be aborted.
    * If a subclass class aborts showing the wizard, it should still give some visual indication,
    * such as an error dialog.
    */
-  @Nullable
-  protected abstract ModelWizard createWizard(@NotNull AndroidFacet facet, @NotNull NamedModuleTemplate template, @NotNull File resFolder);
+  protected abstract fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate, resFolder: File): ModelWizard
 
-  @NotNull
-  protected abstract Dimension getWizardMinimumSize();
+  protected abstract val wizardMinimumSize: Dimension
 
-  @NotNull
-  protected abstract Dimension getWizardPreferredSize();
+  protected abstract val wizardPreferredSize: Dimension
 
-  @Nullable
-  protected URL getHelpUrl() {
-    return null;
+  protected open val helpUrl: URL?
+    get() = null
+}
+
+private fun isAvailable(event: AnActionEvent): Boolean {
+  val module = event.getData(PlatformCoreDataKeys.MODULE) ?: return false
+  val view = event.getData(LangDataKeys.IDE_VIEW) ?: return false
+  val location = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return false
+
+  return view.directories.size > 0 && AndroidFacet.getInstance(module) != null &&
+         module.project.getProjectSystem().allowsFileCreation() && getModuleTemplate(module, location) != null
+}
+
+private fun getModuleTemplate(module: Module, location: VirtualFile): NamedModuleTemplate? {
+  for (namedTemplate in module.getModuleSystem().getModuleTemplates(location)) {
+    if (!namedTemplate.paths.resDirectories.isEmpty()) {
+      return namedTemplate
+    }
   }
+  return null
+}
+
+private fun findClosestResFolder(paths: AndroidModulePaths, location: VirtualFile): File? {
+  val toFind = location.path
+  var bestMatch: File? = null
+  var bestCommonPrefixLength = -1
+  for (resDir in paths.resDirectories) {
+    val commonPrefixLength = StringUtil.commonPrefixLength(resDir.path, toFind)
+    if (commonPrefixLength > bestCommonPrefixLength) {
+      bestCommonPrefixLength = commonPrefixLength
+      bestMatch = resDir
+    }
+  }
+  return bestMatch
 }

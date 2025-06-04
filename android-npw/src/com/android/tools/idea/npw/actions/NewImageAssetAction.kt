@@ -30,21 +30,19 @@ import java.net.URL
  * Action to invoke the Image Asset Wizard that allows user to generate various kinds of Android icons.
  */
 class NewImageAssetAction : AndroidAssetStudioAction("Image Asset", "Open Asset Studio to create an image asset") {
+
   override fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate, resFolder: File): ModelWizard {
     val wizardBuilder = ModelWizard.Builder()
     wizardBuilder.addStep(NewImageAssetStep(GenerateIconsModel(facet, "imageWizard", template, resFolder), facet))
     return wizardBuilder.build()
   }
 
-  override fun getWizardMinimumSize(): Dimension {
-    return JBUI.size(800, 600)
-  }
+  override val wizardMinimumSize: Dimension
+    get() = JBUI.size(800, 600)
 
-  override fun getWizardPreferredSize(): Dimension {
-    return JBUI.size(1020, 680)
-  }
+  override val wizardPreferredSize: Dimension
+    get() = JBUI.size(1020, 680)
 
-  override fun getHelpUrl(): URL {
-    return toUrl("https://developer.android.com/r/studio-ui/image-asset-studio.html")
-  }
+  override val helpUrl: URL
+    get() = toUrl("https://developer.android.com/r/studio-ui/image-asset-studio.html")
 }
