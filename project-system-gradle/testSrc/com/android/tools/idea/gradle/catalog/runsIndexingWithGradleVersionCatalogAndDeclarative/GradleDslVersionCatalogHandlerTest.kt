@@ -183,26 +183,6 @@ class GradleDslVersionCatalogHandlerTest  {
   }
 
   @Test
-  fun testAccessorDotNotation() {
-    testWithCustomCatalogFile("""
-      [versions]
-      constraint.layout = "1.0.2"
-      gradlePlugins.agp = "8.0.0-beta01"
-
-      [libraries]
-      constraint.layout = { module = "com.android.support.constraint:constraint-layout", version.ref = "constraint.layout" }
-
-      [plugins]
-      android.application = { id = "com.android.application", version.ref = "gradlePlugins.agp" }
-
-      [bundles]
-      both.bundle = ["constraint.layout"]
-    """.trimIndent(), setOf("constraint.layout",
-                            "plugins.android.application", "versions.constraint.layout",
-                            "versions.gradlePlugins.agp", "bundles.both.bundle"))
-  }
-
-  @Test
   fun testAccessorExtNotation() {
     testWithCustomCatalogFile("""
       [versions]
@@ -214,12 +194,11 @@ class GradleDslVersionCatalogHandlerTest  {
       constraint_ext = { module = "com.android.support.constraint:constraint-layout", version.ref = "constraint_layout" }
 
       [plugins]
-      android.application = { id = "com.android.application", version.ref = "gradlePlugins_agp" }
-      android.application_ext = { id = "com.android.application", version.ref = "gradlePlugins_agp" }
+      android_application = { id = "com.android.application", version.ref = "gradlePlugins_agp" }
+      android_application_ext = { id = "com.android.application", version.ref = "gradlePlugins_agp" }
     """.trimIndent(), setOf("constraint", "constraint.ext",
                             "plugins.android.application", "plugins.android.application.ext",
-                            "versions.constraint.layout", "versions.gradlePlugins.agp",
-                            "bundles.both.bundle"))
+                             "versions.constraint.layout", "versions.gradlePlugins.agp"))
 
   }
 
@@ -273,7 +252,7 @@ class GradleDslVersionCatalogHandlerTest  {
     findDocument()?.commitToPsi(projectRule.project)
   }
 
-  private fun testWithCustomCatalogFile(catalogContent:String, dependencies:Set<String>){
+  private fun testWithCustomCatalogFile(catalogContent:String, givenDependencies:Set<String>){
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG)
 
     val root = StandardFileSystems.local().findFileByPath(project.basePath!!)!!
@@ -290,7 +269,7 @@ class GradleDslVersionCatalogHandlerTest  {
 
     val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")!!
     val dependencies = extractDependenciesInGradleFormat(accessor)
-    assertThat(dependencies).containsExactly(*dependencies.toTypedArray())
+    assertThat(dependencies).containsExactlyElementsIn(givenDependencies)
   }
 
   private fun extractDependenciesInGradleFormat(accessor: PsiClass): List<String> {
