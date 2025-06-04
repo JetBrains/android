@@ -478,10 +478,10 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       myConfigurables.keys.toList().forEach(Consumer<Configurable> { it.disposeUIResources() })
 
       myUiState.save(myProject)
-
       Disposer.dispose(myDisposable)
     }
     finally {
+      myDetails.removeAll()
       myDisposable = MyDisposable()
       myConfigurables.clear()
       mySelectedConfigurable = null
