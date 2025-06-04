@@ -526,7 +526,6 @@ PROJECT                       : project
             Scope                         : Test
         ORDER_ENTRY                   : project.lib.testFixtures
             Scope                         : Test
-            isProductionOnTestDependency  : true
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
@@ -704,7 +703,6 @@ PROJECT                       : project
             Scope                         : Test
         ORDER_ENTRY                   : project.lib.testFixtures
             Scope                         : Test
-            isProductionOnTestDependency  : true
         BUILD_TASKS
                 CLEAN                         : :lib:generateDebugAndroidTestSources
                 ASSEMBLE                      : :lib:assembleDebugAndroidTest
@@ -968,7 +966,6 @@ PROJECT                       : project
             Scope                         : Test
         ORDER_ENTRY                   : project.lib.testFixtures
             Scope                         : Test
-            isProductionOnTestDependency  : true
         Classes
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : jar://<PROJECT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar!/

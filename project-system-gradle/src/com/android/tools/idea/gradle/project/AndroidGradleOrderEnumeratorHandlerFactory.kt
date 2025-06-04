@@ -54,10 +54,9 @@ class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.
     return object : GradleOrderEnumeratorHandler(module) {
       override fun shouldAddRuntimeDependenciesToTestCompilationClasspath(): Boolean = false
 
-      // TODO(b/421864524): Verify if we need this since we  now use MPSS
       override fun shouldIncludeTestsFromDependentModulesToTestClasspath(): Boolean = true
 
-      override fun shouldProcessDependenciesRecursively(): Boolean = false
+      override fun shouldProcessDependenciesRecursively(): Boolean = true
 
       private fun applicableArtifacts(
         module: Module,

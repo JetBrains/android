@@ -72,7 +72,7 @@ public class AndroidGradleOrderEnumeratorHandlerTest {
     Module libModule = gradleModule(projectRule.getProject(), ":jav");
 
     OrderEnumerationHandler appHandler = new AndroidGradleOrderEnumeratorHandlerFactory().createHandler(appModule);
-    assertFalse(appHandler.shouldProcessDependenciesRecursively());
+    assertTrue(appHandler.shouldProcessDependenciesRecursively());
     assertFalse(new AndroidGradleOrderEnumeratorHandlerFactory().isApplicable(libModule));
   }
 }
