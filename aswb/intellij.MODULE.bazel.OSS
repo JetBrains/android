@@ -1,0 +1,19 @@
+"""
+Download the Android Studio platform to build the ASwB plugin for.
+
+The plugin api used to build the ASwB plugin will be retrieved from this
+downlaoded platform.
+"""
+
+intellij = use_extension("//tools/base/intellij-bazel:extensions.bzl", "intellij")
+
+intellij.remote_platform(
+    name = "my_android_studio",
+    # Change the url and sha256 according to the version you're building for.
+    url = "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2025.1.2.2/android-studio-2025.1.2.2-linux.tar.gz",
+    sha256 = "cd0dcf2bd16af22628712445b185cdae7277e102465244282ed48d84503621da",
+    top_level_dir = "android-studio",
+    export_plugins = True,
+)
+
+use_repo(intellij, "intellij", "my_android_studio")
