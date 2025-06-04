@@ -19,15 +19,15 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.gradle.dcl.lang.DeclarativeParserDefinition
 import com.android.tools.idea.gradle.dcl.lang.psi.AssignmentType
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeASTFactory
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeBlock
+import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeEntry
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeFile
 import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeLiteral
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.LanguageASTFactory
 import com.intellij.testFramework.ParsingTestCase
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeAbstractFactory
-import com.android.tools.idea.gradle.dcl.lang.psi.DeclarativeEntry
 
 class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativeParserDefinition()) {
 
@@ -191,6 +191,18 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
   }
 
   fun testEndFileArgumentErrorRecovery(){
+    doTest(true, false)
+  }
+
+  fun testFirstArgumentErrorRecovery(){
+    doTest(true, false)
+  }
+
+  fun testArgumentErrorRecoveryNoClosingParenthesis(){
+    doTest(true, false)
+  }
+
+  fun testFactoryWithCommentsInArguments(){
     doTest(true, false)
   }
 

@@ -24,6 +24,17 @@ FILE
             PsiWhiteSpace(' ')
             PsiErrorElement:DeclarativeTokenType.to expected, got 't'
               PsiElement(DeclarativeTokenType.token)('t')
+            PsiWhiteSpace(' ')
+            PsiElement(DeclarativeTokenType.,)(',')
+            PsiWhiteSpace(' ')
+            PsiElement(ARGUMENT)
+              PsiElement(SIMPLE_FACTORY)
+                PsiElement(IDENTIFIER)
+                  PsiElement(DeclarativeTokenType.token)('mapOf')
+                PsiElement(DeclarativeTokenType.()('(')
+                PsiElement(ARGUMENTS_LIST)
+                  <empty list>
+                PsiElement(DeclarativeTokenType.))(')')
           PsiElement(DeclarativeTokenType.))(')')
       PsiWhiteSpace('\n')
       PsiElement(DeclarativeTokenType.})('}')

@@ -90,7 +90,38 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // (argument (OP_COMMA argument)*)?
+  // argument
+  static boolean argumentContainer(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "argumentContainer")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = argument(b, l + 1);
+    exit_section_(b, l, m, r, false, DeclarativeParser::argumentRecovery);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // !(OP_COMMA|OP_RPAREN)
+  static boolean argumentRecovery(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "argumentRecovery")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !argumentRecovery_0(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // OP_COMMA|OP_RPAREN
+  private static boolean argumentRecovery_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "argumentRecovery_0")) return false;
+    boolean r;
+    r = consumeToken(b, OP_COMMA);
+    if (!r) r = consumeToken(b, OP_RPAREN);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // (argumentContainer (OP_COMMA argumentContainer)*)?
   public static boolean argumentsList(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "argumentsList")) return false;
     Marker m = enter_section_(b, l, _NONE_, ARGUMENTS_LIST, "<arguments list>");
@@ -99,18 +130,18 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // argument (OP_COMMA argument)*
+  // argumentContainer (OP_COMMA argumentContainer)*
   private static boolean argumentsList_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "argumentsList_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = argument(b, l + 1);
+    r = argumentContainer(b, l + 1);
     r = r && argumentsList_0_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
 
-  // (OP_COMMA argument)*
+  // (OP_COMMA argumentContainer)*
   private static boolean argumentsList_0_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "argumentsList_0_1")) return false;
     while (true) {
@@ -121,13 +152,13 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // OP_COMMA argument
+  // OP_COMMA argumentContainer
   private static boolean argumentsList_0_1_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "argumentsList_0_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, OP_COMMA);
-    r = r && argument(b, l + 1);
+    r = r && argumentContainer(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -438,12 +469,6 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // <<afterClosingRParen>>
-  static boolean factory_recover(PsiBuilder b, int l) {
-    return afterClosingRParen(b, l + 1);
-  }
-
-  /* ********************************************************** */
   // token
   public static boolean identifier(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "identifier")) return false;
@@ -570,6 +595,7 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   // identifier OP_LPAREN argumentsList OP_RPAREN
   static boolean private_factory(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "private_factory")) return false;
+    if (!nextTokenIs(b, TOKEN)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_);
     r = identifier(b, l + 1);
@@ -577,7 +603,7 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     p = r; // pin = 2
     r = r && report_error_(b, argumentsList(b, l + 1));
     r = p && consumeToken(b, OP_RPAREN) && r;
-    exit_section_(b, l, m, r, p, DeclarativeParser::factory_recover);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
