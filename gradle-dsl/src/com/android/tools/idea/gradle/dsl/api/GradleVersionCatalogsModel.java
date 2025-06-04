@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,4 +51,10 @@ public interface GradleVersionCatalogsModel {
 
   @Nullable
   GradleVersionCatalogModel getVersionCatalogModel(String catalogName);
+
+  /*
+   * Use it when you got catalog file information from sync or other sources
+   */
+  @NotNull
+  GradleVersionCatalogModel getVersionCatalogModel(VirtualFile file, String catalogName);
 }

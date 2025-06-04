@@ -1,6 +1,7 @@
 // Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.catalog
 
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.intellij.lang.java.JavaLanguage
@@ -8,7 +9,14 @@ import com.intellij.lang.java.beans.PropertyKind
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.psi.*
+import com.intellij.psi.CommonClassNames
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassType
+import com.intellij.psi.PsiElementFactory
+import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.impl.light.LightClass
 import com.intellij.psi.impl.light.LightMethodBuilder
 import com.intellij.psi.search.GlobalSearchScope
@@ -25,7 +33,7 @@ import org.jetbrains.plugins.gradle.service.resolve.GradleCommonClassNames
 class SyntheticVersionCatalogAccessor(
   project: Project,
   scope: GlobalSearchScope,
-  model: GradleVersionCatalogsModel,
+  model: GradleVersionCatalogModel,
   className: String,
   delegate: PsiClass
 ) :
@@ -33,17 +41,17 @@ class SyntheticVersionCatalogAccessor(
 
   private val libraries: Array<PsiMethod> =
     SyntheticAccessorBuilder(project, scope, className, Kind.LIBRARY)
-      .buildMethods(this, model.libraries(className)!!.properties.let(::assembleTree), "")
+      .buildMethods(this, model.libraries().properties.let(::assembleTree), "")
       .toTypedArray()
 
   private val plugins: PsiMethod = SyntheticAccessorBuilder(project, scope, className, Kind.PLUGIN)
-    .buildEnclosingMethod(this, model.plugins(className)!!.properties, "plugins")
+    .buildEnclosingMethod(this, model.plugins().properties, "plugins")
 
   private val versions: PsiMethod = SyntheticAccessorBuilder(project, scope, className, Kind.VERSION)
-    .buildEnclosingMethod(this, model.versions(className)!!.properties, "versions")
+    .buildEnclosingMethod(this, model.versions().properties, "versions")
 
   private val bundles: PsiMethod = SyntheticAccessorBuilder(project, scope, className, Kind.BUNDLE)
-    .buildEnclosingMethod(this, model.bundles(className)!!.properties, "bundles")
+    .buildEnclosingMethod(this, model.bundles().properties, "bundles")
 
   private val className = "LibrariesFor${StringUtil.capitalize(className)}"
 
@@ -62,7 +70,7 @@ class SyntheticVersionCatalogAccessor(
     fun create(
       project: Project,
       scope: GlobalSearchScope,
-      model: GradleVersionCatalogsModel,
+      model: GradleVersionCatalogModel,
       className: String
     ): SyntheticVersionCatalogAccessor? {
       val delegate = JavaPsiFacade.getInstance(project).findClass(CommonClassNames.JAVA_LANG_OBJECT, scope)

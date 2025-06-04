@@ -39,6 +39,7 @@ import org.jetbrains.plugins.groovy.intentions.style.inference.resolve
 import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 
 @RunsInEdt
 class GradleDslVersionCatalogHandlerTest  {
@@ -234,6 +235,36 @@ class GradleDslVersionCatalogHandlerTest  {
     }
     val handler = GradleDslVersionCatalogHandler()
     assertThat(handler.getDefaultCatalogName(project)).contains("dep")
+  }
+
+  // b/416753385
+  // If there is custom logic around module include GradleBuildModel cannot add module to project by reading settings file
+  // That means it will not see catalog defined in settings file.
+  // We use sync catalog data as a fallback in this case.
+  @Test
+  fun testCustomInclude() {
+    projectRule.projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG) { root ->
+      val settings = File(root, "settings.gradle")
+      settings.replaceContent {
+        it.replace("include ':app'", "inc('app')\n " +
+                                     "def inc(String str){\n " +
+                                     "    include(str)\n" +
+                                     "}")
+      }
+    }
+
+    val root = StandardFileSystems.local().findFileByPath(project.basePath!!)!!
+    val source = root.findFileByRelativePath("app/build.gradle")!!
+    val psiFile = PsiManager.getInstance(project).findFile(source)!!
+    val context = psiFile.findReferenceByText("libs.guava")
+    assertNotNull(context)
+
+    val handler = GradleDslVersionCatalogHandler()
+
+    val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")!!
+    val dependencies = extractDependenciesInGradleFormat(accessor)
+    assertThat(dependencies).containsExactly("constraint.layout", "guava", "junit", "androidx.room.ktx",
+                                             "versions.constraint.layout", "versions.guava", "versions.junit")
   }
 
   private fun VirtualFile.writeTextAndCommit(text: String) {

@@ -1,6 +1,7 @@
 // Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.catalog
 
+import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME
 import com.android.tools.idea.gradle.dsl.model.getGradleVersionCatalogFiles
@@ -11,14 +12,12 @@ import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import org.jetbrains.plugins.gradle.service.resolve.GradleVersionCatalogHandler
 import java.io.File
-import com.android.tools.idea.Projects
 
 /**
  * This is a copy of JetBrains GradleVersionCatalogHandler that provides access to Studio Version Catalog model.
@@ -42,9 +41,15 @@ class GradleDslVersionCatalogHandler : GradleVersionCatalogHandler {
     val scope = context.resolveScope
     val module = ModuleUtilCore.findModuleForPsiElement(context) ?: return null
     val buildModel = getBuildModel(module) ?: return null
-    val versionCatalogModel = buildModel.versionCatalogsModel
-    if (versionCatalogModel.getVersionCatalogModel(catalogName) == null) return null
-    return SyntheticVersionCatalogAccessor.create(project, scope, versionCatalogModel, catalogName)
+    val versionCatalogsModel = buildModel.versionCatalogsModel
+    val versionCatalogModel = versionCatalogsModel.getVersionCatalogModel(catalogName)
+    if (versionCatalogModel != null) {
+      return SyntheticVersionCatalogAccessor.create(project, scope, versionCatalogModel, catalogName)
+    }
+    // fall back to sync data
+    val syncCatalogFile = getVersionCatalogFiles(module)[catalogName] ?: return null
+    val syncCatalogModel = versionCatalogsModel.getVersionCatalogModel(syncCatalogFile, catalogName)
+    return SyntheticVersionCatalogAccessor.create(project, scope, syncCatalogModel, catalogName)
   }
 
   override fun getAccessorsForAllCatalogs(context: PsiElement): Map<String, PsiClass> {
