@@ -7,9 +7,11 @@
           <option name="additionalArguments" value="-Xjvm-default=all -Xsam-conversions=class -Xstrict-java-nullability-assertions" />
         </compilerSettings>
         <compilerArguments>
-          <option name="jvmTarget" value="1.8" />
-          <option name="languageVersion" value="2.0" />
-          <option name="apiVersion" value="2.0" />
+          <stringArguments>
+            <stringArg name="jvmTarget" arg="1.8" />
+            <stringArg name="apiVersion" arg="2.2" />
+            <stringArg name="languageVersion" arg="2.2" />
+          </stringArguments>
         </compilerArguments>
       </configuration>
     </facet>
