@@ -17,14 +17,18 @@ def _aspect_impl(target, ctx):
     java_info = IDE_JAVA.get_java_info(target, ctx.rule)
     kotlin_info = IDE_KOTLIN.get_kotlin_info(target, ctx.rule)
     java_proto_info = IDE_JAVA_PROTO.get_java_proto_info(target, ctx.rule)
-    cc_toolchain_target = IDE_CC.toolchain_target(ctx.rule)
+    toolchain_target = IDE_CC.toolchain_target(ctx.rule)
+    compilation_context = IDE_CC.compilation_context(target)
+    cc_toolchain_info = IDE_CC.cc_toolchain_info(target, ctx)
     android_info = IDE_ANDROID.get_android_info(target, ctx.rule)
     return TargetInfo(
         label = target.label,
         java_info = java_info,
         kotlin_info = kotlin_info,
         java_proto_info = java_proto_info,
-        cc_toolchain_target = cc_toolchain_target,
+        toolchain_target = toolchain_target,
+        compilation_context = compilation_context,
+        cc_toolchain_info = cc_toolchain_info,
         android_info = android_info,
     )
 
@@ -33,7 +37,7 @@ build_dependencies_deps_aspect = aspect(
     attr_aspects = ["deps"],
 )
 
-TargetInfo = provider("The language sepecific information for a target. When that lang_info is not applied to the target, it will be None.", fields = ["label", "deps", "java_info", "kotlin_info", "java_proto_info", "cc_toolchain_target", "android_info"])
+TargetInfo = provider("The language sepecific information for a target. When that lang_info is not applied to the target, it will be None.", fields = ["label", "deps", "java_info", "kotlin_info", "java_proto_info", "toolchain_target", "compilation_context", "cc_toolchain_info", "android_info"])
 
 TargetsInfo = provider("A list of TargetInfo for all the targets in the dependency tree.", fields = ["target_infos"])
 

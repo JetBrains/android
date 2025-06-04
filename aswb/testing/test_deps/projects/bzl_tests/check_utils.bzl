@@ -38,6 +38,38 @@ def _label_subject_equals(self, other):
         "actual: {}".format(self.actual),
     )
 
+def target_factory(actual, *, meta):
+    """Creates a subject for asserting Targets.
+
+    Method: TargetSubject.new
+
+    Args:
+        actual: ([`Target`]) the target to check against.
+        meta: ([`ExpectMeta`]) metadata about the call chain.
+
+    Returns:
+        [`TargetSubject`] object
+    """
+    self = struct(actual = actual, meta = meta)
+    public = struct(
+        equals = lambda *a, **k: _target_label_equals(self, *a, **k),
+    )
+    return public
+
+def _target_label_equals(self, other):
+    """Asserts the target's label is equal to `other`.
+
+    Method: TargetSubject.equals
+
+    Args:
+        self: implicitly added.
+        other: ([`Label`] | [`str`]) the expected value. If a `str` is passed, it
+            will be converted to a `Label` using the `Label` function.
+    """
+    if (type(self.actual)) != "Target":
+        self.meta.add_failure("Unexpected type {}".format(type(self.actual)))
+    return _label_subject_equals(struct(actual = self.actual.label, meta = self.meta), other)
+
 def nested_struct_factory(actual, *, meta, attrs):
     """Creates a `StructSubject`, which is a thin wrapper around a [`struct`].
 
@@ -56,6 +88,8 @@ def nested_struct_factory(actual, *, meta, attrs):
     Returns:
         [`StructSubject`].
     """
+    if actual == None:
+        return subjects_str_factory(actual = actual, meta = meta)
     _struct_subject = StructSubject.new(
         actual,
         meta = meta,
@@ -132,13 +166,13 @@ def subjects_depset_factory(actual, *, meta):
 
     return struct(
         actual = actual,
-        contains_exactly = lambda *a, **k: _collection_file_contains_exactly(struct(
+        contains_exactly = lambda *a, **k: _collection_contains_exactly(struct(
             actual = actual,
             meta = meta,
         ), *a, **k),
     )
 
-def _collection_file_contains_exactly(self, expecteds):
+def _collection_contains_exactly(self, expecteds):
     actual = self.actual
     if type(actual) == "depset":
         actual = actual.to_list()
@@ -149,7 +183,10 @@ def _collection_file_contains_exactly(self, expecteds):
     for i in range(len(actual)):
         file = actual[i]
         expected = expecteds[i]
-        _file_subject_short_path_equals_or_end_with(struct(file = file, meta = self.meta), expected)
+        if type(file) == "File":
+            _file_subject_short_path_equals_or_end_with(struct(file = file, meta = self.meta), expected)
+        elif type(file) == "string":
+            _str_subject_equals(struct(actual = file, meta = self.meta), expected)
 
 def subjects_file_factory(actual, *, meta):
     """Creates a FileSubject asserting against the given file.

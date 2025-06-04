@@ -166,7 +166,9 @@ def _get_cc_toolchain_info(target, ctx):
     )
 
 def _get_cc_compilation_context(target):
-    return target[CcInfo].compilation_context
+    if CcInfo in target:
+        return target[CcInfo].compilation_context
+    return None
 
 IDE_CC = struct(
     follow_attributes = ["_cc_toolchain"],
