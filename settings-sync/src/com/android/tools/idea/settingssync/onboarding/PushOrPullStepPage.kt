@@ -65,15 +65,12 @@ internal class PushOrPullStepPage : WizardPage() {
         val settingsSyncState =
           when (configurationState.pushOrPull) {
             PushOrPull.PULL -> {
-              val result: UpdateResult? =
-                configurationState.getCloudStatusWithModalProgressBlocking(
-                  userEmail =
-                    checkNotNull(with(configurationState) { state.getOnboardingUser().email }),
-                  // No network call at this point as the result is supposedly already cached.
-                  allowFetchIfCacheMiss = false,
-                  parentComponent = null,
-                )
+              val email =
+                with(configurationState) { state.getOnboardingUser().email }
+                  ?: error("Should have valid email address at this point.")
 
+              // No network call at this point as the result is supposedly already cached.
+              val result: UpdateResult? = configurationState.cloudStatusCache[email]
               (result as? UpdateResult.Success)?.settingsSnapshot?.getState()
                 ?: error("Should have valid remote settings sync data available. (current: $result")
             }
@@ -86,7 +83,7 @@ internal class PushOrPullStepPage : WizardPage() {
         true
       }
 
-      override fun shouldShow(): Boolean {
+      override suspend fun shouldShow(): Boolean {
         with(configurationState) {
           if (state.canSkipFeatureConfiguration()) return false
 
@@ -96,11 +93,8 @@ internal class PushOrPullStepPage : WizardPage() {
           val onboardingUserEmail = state.getOnboardingUser().email ?: return true
 
           val cloudStatus: UpdateResult =
-            getCloudStatusWithModalProgressBlocking(
-              userEmail = onboardingUserEmail,
-              allowFetchIfCacheMiss = true,
-              parentComponent = null,
-            ) ?: error("Should have remote settings sync data available.")
+            getCloudStatus(userEmail = onboardingUserEmail, allowFetchIfCacheMiss = true)
+              ?: error("Should have remote settings sync data available.")
 
           return when (cloudStatus) {
             UpdateResult.NoFileOnServer,

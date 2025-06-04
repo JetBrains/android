@@ -19,7 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.state.ToggleableState
-import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.settingssync.PROVIDER_CODE_GOOGLE
 import com.android.tools.idea.settingssync.SettingsSyncFeature
 import com.android.tools.idea.settingssync.SyncEventsMetrics
@@ -41,7 +40,6 @@ import com.intellij.settingsSync.core.UpdateResult
 import com.intellij.settingsSync.core.communicator.RemoteCommunicatorHolder
 import com.intellij.settingsSync.core.config.SettingsSyncEnabler
 import java.util.concurrent.CountDownLatch
-import javax.swing.JComponent
 
 internal val feature
   get() = LoginFeature.feature<SettingsSyncFeature>()
@@ -107,27 +105,6 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
     if (activeSyncUser != null && activeSyncUser == getOnboardingUser().email) return true
 
     return false
-  }
-
-  @UiThread
-  fun getCloudStatusWithModalProgressBlocking(
-    userEmail: String,
-    allowFetchIfCacheMiss: Boolean,
-    parentComponent: JComponent?,
-  ): UpdateResult? {
-    return cloudStatusCache[userEmail]
-      ?: run {
-        if (allowFetchIfCacheMiss) {
-          checkCloudUpdatesWithModalProgressBlocking(
-              userEmail,
-              PROVIDER_CODE_GOOGLE,
-              parentComponent,
-            )
-            .also { cloudStatusCache[userEmail] = it }
-        } else {
-          null
-        }
-      }
   }
 
   suspend fun getCloudStatus(userEmail: String, allowFetchIfCacheMiss: Boolean): UpdateResult? {

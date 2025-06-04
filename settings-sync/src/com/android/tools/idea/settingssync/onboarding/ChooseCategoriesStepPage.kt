@@ -43,7 +43,7 @@ internal class ChooseCategoriesStepPage : WizardPage() {
   }
   override val controlProvider: (WizardState) -> WizardPageControl = { state ->
     object : WizardPageControl() {
-      override fun shouldShow(): Boolean {
+      override suspend fun shouldShow(): Boolean {
         val configurationState = state.getOrCreateState { SyncConfigurationState() }
 
         with(configurationState) {

@@ -17,13 +17,8 @@ package com.android.tools.idea.settingssync.onboarding
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.platform.ide.progress.ModalTaskOwner
-import com.intellij.platform.ide.progress.TaskCancellation
-import com.intellij.platform.ide.progress.runWithModalProgressBlocking
-import com.intellij.settingsSync.core.SettingsSyncBundle
 import com.intellij.settingsSync.core.UpdateResult
 import com.intellij.settingsSync.core.communicator.SettingsSyncCommunicatorProvider
-import javax.swing.JComponent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -42,19 +37,5 @@ internal suspend fun checkCloudUpdates(userEmail: String, providerCode: String):
     } finally {
       Disposer.dispose(parentDisposable)
     }
-  }
-}
-
-internal fun checkCloudUpdatesWithModalProgressBlocking(
-  userEmail: String,
-  providerCode: String,
-  parentJComponent: JComponent?,
-): UpdateResult {
-  return runWithModalProgressBlocking(
-    owner = parentJComponent?.let { ModalTaskOwner.component(it) } ?: ModalTaskOwner.guess(),
-    title = SettingsSyncBundle.message("enable.sync.check.server.data.progress"),
-    cancellation = TaskCancellation.nonCancellable(),
-  ) {
-    checkCloudUpdates(userEmail, providerCode)
   }
 }
