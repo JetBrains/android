@@ -88,6 +88,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -101,7 +102,6 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
@@ -209,8 +209,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
 
     myValidatorPanel = new ValidatorPanel(this, myRootPanel, /* hideOnSuccess */ true, "Conversion Issues", "Encountered Issues:");
 
-    myPreviewResolutionComboBox.setRenderer(
-      SimpleListCellRenderer.create("", Density::getResourceValue));
+    myPreviewResolutionComboBox.setRenderer(SimpleListCellRenderer.create("", Density::getResourceValue));
     DefaultComboBoxModel<Density> densitiesModel = new DefaultComboBoxModel<>();
     densitiesModel.addElement(Density.MEDIUM);
     densitiesModel.addElement(Density.HIGH);
@@ -229,7 +228,10 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     // Create a card and a view for each icon type.
     assert myConfigureIconPanels.getLayout() instanceof CardLayout;
     // NOTE: `res` folder should work fine with project systems to represent a specific target.
-    VirtualFile targetFile = Objects.requireNonNull(VfsUtil.findFileByIoFile(resFolder, false));
+    VirtualFile targetFile = findConfigDir(resFolder.toPath());
+    if (targetFile == null) {
+      throw new IllegalArgumentException("Resource folder" + resFolder + " is outside of project source roots");
+    }
     DrawableRenderer renderer = new DrawableRenderer(facet, targetFile);
     Disposer.register(this, renderer);
     for (AndroidIconType iconType : supportedTypes) {
@@ -291,6 +293,16 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     Disposer.register(this, myValidatorPanel);
     Disposer.register(this, myDisposable);
     add(myValidatorPanel);
+  }
+
+  private static @Nullable VirtualFile findConfigDir(@NotNull Path dir) {
+    do {
+      VirtualFile virtualFile = VfsUtil.findFile(dir, false); // May be null if dir hasn't been created yet.
+      if (virtualFile != null) {
+        return virtualFile;
+      }
+    } while ((dir = dir.getParent()) != null);
+    return null;
   }
 
   private void initializeListenersAndBindings() {
