@@ -114,4 +114,15 @@ class DetailsPanelHeaderTest {
     detailsPanelHeader.update(DetailsPanelHeaderModel.fromIssueVariant(ISSUE1.issueDetails, null))
     assertThat(detailsPanelHeader.variantPanel.isVisible).isFalse()
   }
+
+  @Test
+  fun `header hides title when cleared and shows when update`() {
+    val header = DetailsPanelHeader()
+
+    header.clear()
+    assertThat(header.titleLabel.isVisible).isFalse()
+
+    header.update(DetailsPanelHeaderModel.fromIssueVariant(ISSUE1.issueDetails, null))
+    assertThat(header.titleLabel.isVisible).isTrue()
+  }
 }
