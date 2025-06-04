@@ -401,7 +401,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     String error = result.getFirst();
     VirtualFile newFile = result.getSecond();
     if (error != null) {
-      Messages.showErrorDialog(project, error, "Create Resource");
+      ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(project, error, "Create Resource"));
     }
     else {
       // First create a compatible configuration based on the current configuration
