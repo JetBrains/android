@@ -20,6 +20,7 @@ jvm_library(
     "//platform/analysis-api:analysis",
     "//platform/core-api:core",
     "//xml/impl",
+    "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/project-structure",
     "//android/nav/safeargs/common",
     "//plugins/kotlin/base/util",

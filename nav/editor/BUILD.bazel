@@ -113,6 +113,7 @@ jvm_library(
     "//java/testFramework",
     "//java/openapi:java",
     "//xml/dom-impl",
+    "//xml/xml-psi-api:psi",
     "@lib//:kotlinx-coroutines-test",
   ]
 )
