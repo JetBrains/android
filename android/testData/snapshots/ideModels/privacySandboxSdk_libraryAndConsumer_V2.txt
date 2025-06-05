@@ -3489,7 +3489,7 @@ MODULE                        : project.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 21
                     moduleName                    : app_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -3507,7 +3507,7 @@ MODULE                        : project.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 21
                     moduleName                    : app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -3525,7 +3525,7 @@ MODULE                        : project.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 21
                     moduleName                    : app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
@@ -4693,7 +4693,7 @@ MODULE                        : project.app-with-dynamic-feature
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 21
                     moduleName                    : app-with-dynamic-feature_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -4711,7 +4711,7 @@ MODULE                        : project.app-with-dynamic-feature
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 21
                     moduleName                    : app-with-dynamic-feature_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -4729,7 +4729,7 @@ MODULE                        : project.app-with-dynamic-feature
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 1.8
+                    jvmTarget                     : 21
                     moduleName                    : app-with-dynamic-feature_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true

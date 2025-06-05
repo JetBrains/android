@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    compileSdk 34
+    compileSdk 36
     minSdk = 33
     namespace = "com.example.adssdk"
 

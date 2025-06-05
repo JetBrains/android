@@ -296,7 +296,8 @@ abstract class ProviderIntegrationTestCase {
 
     override fun File.toTestString(): String {
       val m2Root = m2Dirs.find { path.startsWith(it.path) }
-      return if (m2Root != null) "<M2>/${relativeTo(m2Root).path}" else relativeTo(File(projectRule.getBaseTestPath())).path
+      val rawPath = if (m2Root != null) "<M2>/${relativeTo(m2Root).path}" else relativeTo(File(projectRule.getBaseTestPath())).path
+      return rawPath.replace("""\b[a-f0-9]{32}\b""".toRegex(RegexOption.IGNORE_CASE), "<hash>")
     }
 
     override fun <T> Result<T>.toTestString(toTestString: T.() -> String) =
