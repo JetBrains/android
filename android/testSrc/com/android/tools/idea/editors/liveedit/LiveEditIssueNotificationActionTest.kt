@@ -43,7 +43,8 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import kotlin.test.assertEquals
 
-internal class LiveEditNotificationActionTest {
+/** Tests for [LiveEditIssueNotificationAction]. */
+internal class LiveEditIssueNotificationActionTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule("30")
 
