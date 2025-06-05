@@ -81,17 +81,25 @@ class ManagedVirtualDeviceCatalogService
           !it.key.contains(ANDROID_TV_IMAGE) &&
           !it.key.contains(ANDROID_AUTO_IMAGE)
         }.forEach { (installId, updatablePackage) ->
-          val propertyList = installId.split(";")
-          val apiInfo = propertyList[1].substring(8)
-          val abiInfo = propertyList[3]
-          val apiLevel = ((updatablePackage.local ?: updatablePackage.remote)?.typeDetails as? DetailsTypes.SysImgDetailsType)?.apiLevel
-                         ?: -1
-          val imageSource = propertyList[2].let { if (it == "default") "google" else it }
+          val typeDetails = updatablePackage.representative.typeDetails as? DetailsTypes.SysImgDetailsType
+          if (typeDetails == null) {
+            LOGGER.warn("Could not get typeDetails for $installId. Skipping.")
+            return@forEach
+          }
+          val apiLevel = typeDetails.apiLevel
+          val apiPreview = typeDetails.androidVersion.codename  ?: ""
+          val abiInfo = typeDetails.abis.firstOrNull() ?: ""
 
+          val propertyList = installId.split(";")
+          if (propertyList.size != 4) {
+            LOGGER.warn("Could not get imageSource for $installId. Skipping.")
+            return@forEach
+          }
+          val imageSource = propertyList[2].let { if (it == "default") "google" else it }
           if (apiLevel > 0) {
             deviceCatalog.apiLevels.add(ManagedVirtualDeviceCatalog.ApiVersionInfo(
               apiLevel = apiLevel,
-              apiPreview = if (apiInfo.toIntOrNull() == null) apiInfo else "",
+              apiPreview = apiPreview,
               imageSource = imageSource,
               require64Bit = (!abiInfo.contains("arm") && abiInfo.contains("64")),
             ))

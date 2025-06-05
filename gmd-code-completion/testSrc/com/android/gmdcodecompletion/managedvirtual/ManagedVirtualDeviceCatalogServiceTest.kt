@@ -58,8 +58,12 @@ class ManagedVirtualDeviceCatalogServiceTest : LightPlatformTestCase() {
     super.setUp()
     whenever(mockAndroidSdks.tryToChooseSdkHandler().getRepoManager(any())).thenReturn(mockRepoManager)
     whenever(mockAndroidSdks.tryToChooseSdkHandler().getRepoManagerAndLoadSynchronously(any())).thenReturn(mockRepoManager)
-    whenever(mockUpdatablePackage.remote).thenReturn(mockRemotePackage)
+    whenever(mockUpdatablePackage.getRepresentative()).thenReturn(mockRemotePackage)
     whenever(mockRemotePackage.typeDetails).thenReturn(mockTypeDetail)
+    whenever(mockTypeDetail.apiLevel).thenReturn(23)
+    whenever(mockTypeDetail.androidVersion).thenReturn(mock())
+    whenever(mockTypeDetail.androidVersion.codename).thenReturn(null)
+    whenever(mockTypeDetail.getAbis()).thenReturn(listOf("armeabi-v7a"))
     TestApplicationManager.getInstance()
   }
 
