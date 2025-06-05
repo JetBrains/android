@@ -2008,6 +2008,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> DOMAIN_ISSUES_INSPECTION =
     new BooleanFlag(APP_LINKS_ASSISTANT, "app.links.assistant.domain.issues.inspection", "App Links Assistant domain issues inspection",
                     "Domain issues inspection that opens relevant App Links Assistant content", false);
+  public static final Flag<Boolean> ALA_SERVICE_COMPATIBILITY_ENABLED =
+    new BooleanFlag(APP_LINKS_ASSISTANT, "service.compatibility.enabled", "App Links Assistant service compatibility enabled",
+                    "Flag that controls whether service compatibility banner is enabled", true);
   // endregion App Links Assistant
 
   // region NEW_COLLECT_LOGS_DIALOG
