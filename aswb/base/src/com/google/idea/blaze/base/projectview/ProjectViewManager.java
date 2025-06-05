@@ -91,9 +91,10 @@ public abstract class ProjectViewManager {
                                                       ProjectView.Builder projectView) {
     ScalarSection<Boolean> useQuerySyncSection = ScalarSection.builder(UseQuerySyncSection.KEY)
       .set(importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC).build();
+    ScalarSection<Boolean> enableCodeAnalysisSection = ScalarSection.builder(EnableCodeAnalysisOnSyncSection.KEY).set(true).build();
     Optional<Section<?>> existingUseQuerySyncSection = projectViewFile.projectView
       .getSections().stream().filter(x -> x.isSectionType(UseQuerySyncSection.KEY)).findAny();
-
+    TextBlockSection autoConversionIndicator = TextBlockSection.of(TextBlock.of(BaseQuerySyncConversionUtility.AUTO_CONVERSION_INDICATOR));
     if (existingUseQuerySyncSection.isEmpty()) {
       projectView.add(useQuerySyncSection);
       return true;
@@ -107,9 +108,13 @@ public abstract class ProjectViewManager {
     if (existingProjectType == BlazeImportSettings.ProjectType.ASPECT_SYNC
           && importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC) {
         existingUseQuerySyncSection.ifPresent(projectView::remove);
-        projectView.add(TextBlockSection.of(TextBlock.of(BaseQuerySyncConversionUtility.AUTO_CONVERSION_INDICATOR)));
+        if (projectViewFile.projectView.getSections().stream().noneMatch(x -> x.equals(autoConversionIndicator))) {
+          projectView.add(autoConversionIndicator);
+        }
         projectView.add(useQuerySyncSection);
-        projectView.add(ScalarSection.builder(EnableCodeAnalysisOnSyncSection.KEY).set(true).build());
+        if (projectViewFile.projectView.getSections().stream().noneMatch(x -> x.equals(enableCodeAnalysisSection))) {
+          projectView.add(enableCodeAnalysisSection);
+        }
         Notifications.Bus.notify(
           new Notification(
             "QuerySync",
