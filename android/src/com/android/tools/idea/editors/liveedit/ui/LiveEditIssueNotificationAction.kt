@@ -24,9 +24,9 @@ import com.android.tools.adtui.status.IssueNotificationAction
 import com.android.tools.adtui.status.POPUP_ACTION
 import com.android.tools.idea.actions.BrowserHelpAction
 import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
@@ -85,7 +85,7 @@ internal fun getStatusInfo(project: Project, dataContext: DataContext): LiveEdit
  * Creates an [InformationPopup]. The given [dataContext] will be used by the popup to query for
  * things like the current editor.
  */
-internal fun defaultCreateInformationPopup(
+private fun defaultCreateInformationPopup(
   project: Project,
   dataContext: DataContext,
 ): InformationPopup? {
