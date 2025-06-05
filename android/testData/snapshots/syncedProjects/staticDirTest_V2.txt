@@ -263,6 +263,7 @@ PROJECT                       : project
             Scope                         : Test
         ORDER_ENTRY                   : project.app.testFixtures
             Scope                         : Test
+            isProductionOnTestDependency  : true
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
@@ -549,6 +550,7 @@ PROJECT                       : project
             Scope                         : Test
         ORDER_ENTRY                   : project.app.testFixtures
             Scope                         : Test
+            isProductionOnTestDependency  : true
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugScreenshotTest/compileDebugScreenshotTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/intermediates/built_in_kotlinc/debugScreenshotTest/compileDebugScreenshotTestKotlin/classes
@@ -833,6 +835,7 @@ PROJECT                       : project
             Scope                         : Test
         ORDER_ENTRY                   : project.app.testFixtures
             Scope                         : Test
+            isProductionOnTestDependency  : true
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
