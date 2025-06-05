@@ -188,15 +188,15 @@ class CriticalPathAnalyzerTest {
 
   @Test
   fun testCriticalPathAnalyzerOnNoOpBuild() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BUILD_ANALYZER_CHECK_ANALYZERS)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
     preparedProject.runTest {
       invokeTasks("assembleDebug").also { assertThat(it.isBuildSuccessful).isTrue() }
       invokeTasks("assembleDebug").also { assertThat(it.isBuildSuccessful).isTrue() }
       val buildAnalyzerStorageManager = project.getService(BuildAnalyzerStorageManager::class.java)
       val results = buildAnalyzerStorageManager.getSuccessfulResult()
-      assertThat(results.getTasksDeterminingBuildDuration().isEmpty())
-      assertThat(results.getPluginsDeterminingBuildDuration().isEmpty())
+      assertThat(results.getTasksDeterminingBuildDuration()).isEmpty()
+      assertThat(results.getPluginsDeterminingBuildDuration()).isEmpty()
     }
   }
 }
