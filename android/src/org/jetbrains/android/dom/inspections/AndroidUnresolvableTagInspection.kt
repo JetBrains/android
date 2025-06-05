@@ -54,7 +54,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
       return ProblemDescriptor.EMPTY_ARRAY
     }
     val facet = AndroidFacet.getInstance(file) ?: return ProblemDescriptor.EMPTY_ARRAY
-    if (!facet.module.getModuleSystem().canRegisterDependency().isSupported())
+    if (!facet.module.getModuleSystem().canRegisterDependency())
       return ProblemDescriptor.EMPTY_ARRAY
 
     if (isRelevantFile(facet, file)) {

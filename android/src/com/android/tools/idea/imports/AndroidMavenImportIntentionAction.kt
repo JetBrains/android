@@ -129,7 +129,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
     val module = ModuleUtil.findModuleForPsiElement(element) ?: return false
     val moduleSystem = module.getModuleSystem()
-    if (!moduleSystem.canRegisterDependency().isSupported()) return false
+    if (!moduleSystem.canRegisterDependency()) return false
 
     // TODO: b/398839232 for non-jvm modules, we currently don't support import suggestions
     if (module.multiplatformNonJvm()) {
@@ -348,7 +348,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       val moduleSystem = module.getModuleSystem()
       addDependency(module, artifact, artifactVersion)
       extraArtifacts.forEach { (type, artifacts) ->
-        if (moduleSystem.canRegisterDependency(type).isSupported()) {
+        if (moduleSystem.canRegisterDependency(type)) {
           artifacts.forEach { artifact -> addDependency(module, artifact, artifactVersion, type) }
         }
       }

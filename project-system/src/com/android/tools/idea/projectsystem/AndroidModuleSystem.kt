@@ -134,7 +134,7 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
 
   /** Whether this module system supports adding dependencies of the given type via [registerDependency] */
   fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION) =
-    if (getRegisteringModuleSystem() == null) CapabilityNotSupported() else CapabilitySupported()
+    getRegisteringModuleSystem() != null
 
   /**
    * Register a requested dependency of the given type with the build system.  Note that the requested dependency
