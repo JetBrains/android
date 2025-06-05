@@ -20,6 +20,7 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.adb.FakeAdbServiceRule
+import com.android.tools.idea.adb.PreInitAndroidDebugBridgeRule
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
 import com.intellij.testFramework.ProjectRule
@@ -31,15 +32,21 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 class DeviceCableMonitorTest {
-  @get:Rule val projectRule = ProjectRule()
-  @get:Rule val adbRule = FakeAdbRule()
-  @get:Rule val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
+  private val projectRule = ProjectRule()
+  private val preInitRule = PreInitAndroidDebugBridgeRule()
+  private val adbRule = FakeAdbRule()
+  private val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
   private lateinit var monitor: DeviceCableMonitor
 
   private var notificationDetected = false
   private val latch = CountDownLatch(1)
+
+  @get:Rule
+  val ruleChain =
+    RuleChain.outerRule(projectRule).around(preInitRule).around(adbRule).around(adbServiceRule)!!
 
   @Before
   fun setup() {
