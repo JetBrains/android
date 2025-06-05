@@ -226,7 +226,6 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         doImportSuggestion(
           project,
           element,
-          registry,
           suggestion.artifactToAdd,
           suggestion.version,
           suggestion.classToImport,
@@ -274,7 +273,6 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     fun doImportSuggestion(
       project: Project,
       element: PsiElement,
-      registry: MavenClassRegistry,
       artifact: String,
       artifactVersion: String?,
       importSymbol: String?,
@@ -282,13 +280,18 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     ) {
       val module = ModuleUtil.findModuleForPsiElement(element) ?: return
 
+      val extraArtifacts = MavenClassRegistry.findExtraArtifacts(artifact).map { it.value to it.key }.groupBy({ it.first }, { it.second })
+      val annotationProcessor = MavenClassRegistry.findAnnotationProcessor(artifact)?.let {
+        if (module.getModuleSystem().useAndroidX) AndroidxNameUtils.getCoordinateMapping(it) else it
+      }
       WriteCommandAction.runWriteCommandAction(project) {
         doImportSuggestionWithWriteLock(
           project,
           module,
           element,
-          registry,
           artifact,
+          extraArtifacts,
+          annotationProcessor,
           artifactVersion,
           importSymbol,
         )
@@ -328,8 +331,9 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       project: Project,
       module: Module,
       element: PsiElement,
-      registry: MavenClassRegistry,
       artifact: String,
+      extraArtifacts: Map<DependencyType, List<String>>,
+      annotationProcessor: String?,
       artifactVersion: String?,
       importSymbol: String?,
     ) {
@@ -339,29 +343,16 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         addImportStatement(project, element, importSymbol)
       }
 
-      addDependency(module, artifact, artifactVersion)
-      // Also add on an extra dependency for special cases.
-      MavenClassRegistry.findExtraArtifacts(artifact).forEach {
-        addDependency(module, it.key, artifactVersion, it.value)
-      }
-
-      // Also add dependent annotation processor?
       val moduleSystem = module.getModuleSystem()
-      if (moduleSystem.canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR).isSupported()) {
-        MavenClassRegistry.findAnnotationProcessor(artifact)?.let {
-          val annotationProcessor =
-            if (moduleSystem.useAndroidX) {
-              AndroidxNameUtils.getCoordinateMapping(it)
-            } else {
-              it
-            }
-
-          addDependency(
-            module,
-            annotationProcessor,
-            artifactVersion,
-            DependencyType.ANNOTATION_PROCESSOR,
-          )
+      addDependency(module, artifact, artifactVersion)
+      extraArtifacts.forEach { (type, artifacts) ->
+        if (moduleSystem.canRegisterDependency(type).isSupported()) {
+          artifacts.forEach { artifact -> addDependency(module, artifact, artifactVersion, type) }
+        }
+      }
+      if (annotationProcessor != null) {
+        if (moduleSystem.canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR).isSupported()) {
+          addDependency(module, annotationProcessor, artifactVersion, DependencyType.ANNOTATION_PROCESSOR)
         }
       }
     }
