@@ -19,6 +19,7 @@ import com.google.gct.login2.CredentialedUser
 import com.google.gct.login2.GoogleLoginService
 import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.PreferredUser
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
 import com.intellij.settingsSync.core.SettingsSyncSettings
 import com.intellij.settingsSync.core.auth.SettingsSyncAuthService
@@ -27,6 +28,9 @@ import icons.StudioIllustrations
 import java.awt.Component
 import javax.swing.Icon
 import javax.swing.JComponent
+
+private val log
+  get() = Logger.getInstance(GoogleAuthService::class.java)
 
 class GoogleAuthService : SettingsSyncAuthService {
   private val feature = LoginFeature.feature<SettingsSyncFeature>()
@@ -41,15 +45,9 @@ class GoogleAuthService : SettingsSyncAuthService {
     get() = PROVIDER_NAME_GOOGLE
 
   /**
-   * Current behavior: Returns a list of [SettingsSyncUserData] which contains
-   * 1) user who uses the feature (irrespective of their B&S feature authorization status)
-   * 2) the logged-in users that have authorized B&S
-   *
-   * Expected behavior: Returns a list of [SettingsSyncUserData] which contains
-   * 1) user who uses the feature (irrespective of their B&S feature authorization status)
-   * 2) the remaining logged-in users (irrespective of their B&S feature authorization status)
-   *
-   * TODO: the above expected behavior requires JB's cooperative effort to make it work.
+   * Returns a list of [SettingsSyncUserData] which contains
+   * 1) logged-in users irrespective of their B&S feature authorization status
+   * 2) active sync user irrespective of their B&S feature authorization status
    */
   override fun getAvailableUserAccounts(): List<SettingsSyncUserData> {
     val currentUser =
@@ -58,9 +56,7 @@ class GoogleAuthService : SettingsSyncAuthService {
         ?.let { getUserData(it) }
 
     val allLoggedInUsers =
-      GoogleLoginService.instance.allUsersFlow.value.values
-        .filter { it.isLoggedIn(feature) }
-        .map { it.createSettingsSyncUserData() }
+      GoogleLoginService.instance.allUsersFlow.value.values.map { it.createSettingsSyncUserData() }
 
     return listOfNotNull(currentUser) + allLoggedInUsers.filterNot { it == currentUser }
   }
@@ -75,7 +71,6 @@ class GoogleAuthService : SettingsSyncAuthService {
   }
 
   override suspend fun login(parentComponent: Component?): SettingsSyncUserData? {
-    // TODO: ask JB to offer userId hint.
     return login(preferredUser = PreferredUser.None, parentComponent = parentComponent)
   }
 
@@ -94,6 +89,27 @@ class GoogleAuthService : SettingsSyncAuthService {
   }
 
   override fun crossSyncSupported(): Boolean = false
+
+  override fun getPendingUserAction(userId: String): SettingsSyncAuthService.PendingUserAction? {
+    if (isLoggedIn(userId)) return null
+
+    val user = PreferredUser.User(userId)
+    return SettingsSyncAuthService.PendingUserAction(
+      message = "Authorization Required",
+      actionTitle = "Authorize",
+      actionDescription = "give access",
+    ) { component ->
+      try {
+        login(user, parentComponent = component)
+      } catch (t: Throwable) {
+        log.warn("Failed to authorize $user", t)
+      }
+    }
+  }
+
+  private fun isLoggedIn(userEmail: String): Boolean {
+    return feature.isLoggedIn(userEmail)
+  }
 }
 
 internal fun getActiveSyncUserEmail(): String? {

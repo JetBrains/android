@@ -20,7 +20,6 @@ import com.android.tools.idea.settingssync.onboarding.feature
 import com.google.api.client.auth.oauth2.Credential
 import com.google.gct.login2.GoogleLoginService
 import com.google.gct.login2.LoginFeature
-import com.google.gct.login2.PreferredUser
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
@@ -29,7 +28,6 @@ import com.intellij.settingsSync.core.AbstractServerCommunicator
 import com.intellij.settingsSync.core.SettingsSyncEvents
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
 import com.intellij.settingsSync.core.SettingsSyncRemoteCommunicator
-import com.intellij.settingsSync.core.SettingsSyncStatusTracker
 import com.intellij.settingsSync.core.SyncSettingsEvent
 import com.intellij.settingsSync.core.communicator.SettingsSyncCommunicatorProvider
 import java.io.IOException
@@ -43,7 +41,6 @@ import kotlinx.coroutines.launch
 
 internal const val PROVIDER_CODE_GOOGLE = "google"
 internal const val PROVIDER_NAME_GOOGLE = "Google"
-internal const val LOGIN_ACTION_DESCRIPTION = "Log in with Google account"
 
 /**
  * Listens to Google login state changes for the active sync user and reacts accordingly.
@@ -81,20 +78,7 @@ class GoogleLoginStateListener(private val coroutineScope: CoroutineScope) {
           // naturally. But this is not the case now.
           //
           // Since we should not rely on periodically (1h) sync or "on focus" sync for refreshing
-          // sync status, we explicitly clean up some state or trigger sync event here.
-
-          // 1. Clear up the Google login action required previously if applicable.
-          if (isLoggedIn) {
-            val status = SettingsSyncStatusTracker.getInstance().currentStatus
-            if (
-              status is SettingsSyncStatusTracker.SyncStatus.ActionRequired &&
-                status.actionTitle == LOGIN_ACTION_DESCRIPTION
-            ) {
-              SettingsSyncStatusTracker.getInstance().clearActionRequired()
-            }
-          }
-
-          // 2. Trigger sync to make sure the sync status is updated after login state change. Note
+          // sync status, we explicitly clean up some state by triggering sync event here. Note
           // there could be unfortunately duplicate requests on login settings changes.
           SettingsSyncEvents.getInstance().fireSettingsChanged(SyncSettingsEvent.SyncRequest)
         }
@@ -115,7 +99,7 @@ class GoogleCommunicatorProvider : SettingsSyncCommunicatorProvider {
   override val providerCode: String = PROVIDER_CODE_GOOGLE
 
   override fun createCommunicator(userId: String): SettingsSyncRemoteCommunicator {
-    return GoogleCloudServerCommunicator(userId, authService)
+    return GoogleCloudServerCommunicator(userId)
   }
 
   override fun isAvailable(): Boolean {
@@ -132,10 +116,7 @@ private class UnauthorizedException(message: String) : IOException(message)
 private val log
   get() = Logger.getInstance(GoogleCloudServerCommunicator::class.java)
 
-class GoogleCloudServerCommunicator(
-  private val email: String,
-  private val authService: GoogleAuthService,
-) : AbstractServerCommunicator() {
+class GoogleCloudServerCommunicator(private val email: String) : AbstractServerCommunicator() {
   private val lastRemoteErrorRef = AtomicReference<Throwable>()
   private val googleDriveClient = GoogleDriveClient { getCredential(email) }
 
@@ -185,9 +166,7 @@ class GoogleCloudServerCommunicator(
   override fun handleRemoteError(e: Throwable): String {
     // Logic is mostly copied from IJ implementation.
     val defaultMessage = "Error during communication with server"
-    if (e is UnauthorizedException) {
-      setAuthActionRequired()
-    } else if (e is IOException) {
+    if (e is IOException) {
       if (lastRemoteErrorRef.get()?.message != e.message) {
         lastRemoteErrorRef.set(e)
         log.warn("$defaultMessage: ${e.message}")
@@ -196,21 +175,6 @@ class GoogleCloudServerCommunicator(
       log.error(e)
     }
     return e.message ?: defaultMessage
-  }
-
-  private fun setAuthActionRequired() {
-    val user = PreferredUser.User(email)
-
-    SettingsSyncStatusTracker.getInstance().setActionRequired(
-      "Authorization Required",
-      LOGIN_ACTION_DESCRIPTION,
-    ) { component ->
-      try {
-        authService.login(user, parentComponent = component)
-      } catch (t: Throwable) {
-        log.warn("Failed to authorize $user", t)
-      }
-    }
   }
 
   override fun dispose() = Unit

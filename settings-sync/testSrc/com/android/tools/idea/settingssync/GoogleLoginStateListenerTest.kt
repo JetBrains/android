@@ -30,7 +30,6 @@ import com.intellij.settingsSync.core.SettingsSyncEventListener
 import com.intellij.settingsSync.core.SettingsSyncEvents
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
 import com.intellij.settingsSync.core.SettingsSyncSettings
-import com.intellij.settingsSync.core.SettingsSyncStatusTracker
 import com.intellij.settingsSync.core.SyncSettingsEvent
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -246,30 +245,6 @@ class GoogleLoginStateListenerTest {
     assertThat(loginStates).containsExactly(false, true)
     assertThat(syncEvents)
       .containsExactly(SyncSettingsEvent.SyncRequest, SyncSettingsEvent.SyncRequest)
-  }
-
-  @Test
-  fun `can clear required auth action by logging-in`() = runTest {
-    // Prepare
-    googleLoginStateListener.startListening()
-
-    SettingsSyncStatusTracker.getInstance().setActionRequired(
-      "Authorization Required",
-      LOGIN_ACTION_DESCRIPTION,
-    ) {}
-
-    assertThat(SettingsSyncStatusTracker.getInstance().currentStatus)
-      .isInstanceOf(SettingsSyncStatusTracker.SyncStatus.ActionRequired::class.java)
-
-    // Actions
-    loginUsersRule.setActiveUser(TEST_EMAIL, features = listOf(feature))
-
-    // Verify
-    assertThat(loginStates).containsExactly(false, true)
-    assertThat(syncEvents)
-      .containsExactly(SyncSettingsEvent.SyncRequest, SyncSettingsEvent.SyncRequest)
-    assertThat(SettingsSyncStatusTracker.getInstance().currentStatus)
-      .isInstanceOf(SettingsSyncStatusTracker.SyncStatus.Success::class.java)
   }
 }
 
