@@ -31,6 +31,8 @@ import com.android.backup.ErrorCode.APP_NOT_INSTALLED
 import com.android.backup.ErrorCode.BACKUP_NOT_ACTIVATED
 import com.android.backup.ErrorCode.BACKUP_NOT_ENABLED
 import com.android.backup.ErrorCode.BACKUP_NOT_SUPPORTED
+import com.android.backup.ErrorCode.BMGR_ERROR_BACKUP
+import com.android.backup.ErrorCode.BMGR_ERROR_RESTORE
 import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
 import com.android.backup.ErrorCode.PLAY_STORE_NOT_INSTALLED
 import com.android.tools.adtui.validation.ErrorDetailDialog
@@ -392,6 +394,8 @@ internal constructor(
       APP_NOT_INSTALLED -> false
       APP_NOT_DEBUGGABLE -> false
       BACKUP_NOT_ENABLED -> false
+      BMGR_ERROR_BACKUP -> false
+      BMGR_ERROR_RESTORE -> false
       else -> true
     }
   }

@@ -330,6 +330,7 @@ studio_plugin(
             "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer",
             "//tools/base/apkparser:studio.android.sdktools.binary-resources",
             "//tools/base/backup:studio.android.sdktools.backup",
+            "//tools/base/backup/bmgr-parser:studio.android.sdktools.backup.bmgr.parser",
             "//tools/base/build-analyzer/common:studio.android.build-analyzer.common",
             "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model",
             "//tools/base/build-system/builder-test-api:studio.android.sdktools.builder-test-api",
