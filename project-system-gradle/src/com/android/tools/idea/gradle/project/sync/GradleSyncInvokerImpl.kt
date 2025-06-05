@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.gradle.project.Info
+import com.android.tools.idea.gradle.project.SyncDueMessage
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
@@ -46,6 +47,7 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
       listener?.syncSkipped(project)
       return
     }
+    SyncDueMessage.dismissNotificationIfPresent(project)
     if (GradleSyncState.getInstance(project).isSyncInProgress) {
       listener?.syncSkipped(project)
       return

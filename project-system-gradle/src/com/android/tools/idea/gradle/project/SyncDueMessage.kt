@@ -43,6 +43,7 @@ import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.DialogWrapper.OK_EXIT_CODE
 import com.intellij.openapi.ui.DoNotAskOption
 import com.intellij.openapi.ui.MessageConstants
@@ -212,6 +213,12 @@ object SyncDueMessage {
         it.expire()
         it.hideBalloon()
       }
+  }
+
+  fun getProjectsWhereNotificationShown(): List<Project> {
+    return ProjectManager.getInstance().openProjects.filter {
+      NotificationsManager.getNotificationsManager().getNotificationsOfType(SyncDueNotification::class.java, it).isNotEmpty()
+    }
   }
 
   private fun isShownFirstTime(): Boolean {
