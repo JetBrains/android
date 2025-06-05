@@ -4,6 +4,7 @@ plugins {
 
 android {
     minSdk = 33
+    compileSdk = 36
     namespace = "com.example.adssdk"
 
     bundle {

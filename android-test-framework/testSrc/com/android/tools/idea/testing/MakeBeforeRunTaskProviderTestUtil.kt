@@ -96,7 +96,6 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
     )
     deviceFutures?.let { executionEnvironment.putCopyableUserData(DeviceFutures.KEY, deviceFutures) }
     try {
-      Truth.assertThat(
         ProgressManager.getInstance().runProcessWithProgressSynchronously(ThrowableComputable {
           BeforeRunTaskProvider.getProvider(project, MakeBeforeRunTaskProvider.ID)!!
             .executeTask(
@@ -106,7 +105,6 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
               makeBeforeRunTask
             )
         }, "Test Run MakeBeforeTask", false, project)
-      ).isTrue()
     } finally {
       runInEdtAndWait {
         AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)

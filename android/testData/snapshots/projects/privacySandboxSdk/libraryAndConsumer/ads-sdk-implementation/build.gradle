@@ -5,17 +5,12 @@ plugins {
 
 android {
     namespace 'com.example.ads_sdk_implementation'
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 33
-        targetSdk = 34
+        targetSdk = 36
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
