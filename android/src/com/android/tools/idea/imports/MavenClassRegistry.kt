@@ -17,6 +17,8 @@ package com.android.tools.idea.imports
 
 import com.android.tools.idea.imports.MavenClassRegistry.LibraryImportData
 import com.android.tools.idea.projectsystem.DependencyType
+import com.android.tools.idea.projectsystem.DependencyType.ANNOTATION_PROCESSOR
+import com.android.tools.idea.projectsystem.DependencyType.DEBUG_IMPLEMENTATION
 import com.google.gson.stream.JsonReader
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileTypes.FileType
@@ -158,17 +160,6 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
       return MavenClassRegistry(lookup)
     }
 
-    /** For the given runtime artifact, if it also requires an annotation processor, provide it. */
-    fun findAnnotationProcessor(artifact: String): String? {
-      return when (artifact) {
-        "androidx.room:room-runtime",
-        "android.arch.persistence.room:runtime" -> "android.arch.persistence.room:compiler"
-        "androidx.remotecallback:remotecallback" ->
-          "androidx.remotecallback:remotecallback-processor"
-        else -> null
-      }
-    }
-
     /**
      * For the given artifact, if it also requires extra artifacts for proper functionality, provide
      * it.
@@ -181,8 +172,13 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
      */
     fun findExtraArtifacts(artifact: String): Map<String, DependencyType> {
       return when (artifact) {
+        "androidx.room:room-runtime",
+        "android.arch.persistence.room:runtime" ->
+          mapOf("android.arch.persistence.room:compiler" to ANNOTATION_PROCESSOR)
+        "androidx.remotecallback:remotecallback" ->
+          mapOf("androidx.remotecallback:remotecallback-processor" to ANNOTATION_PROCESSOR)
         "androidx.compose.ui:ui-tooling-preview" ->
-          mapOf("androidx.compose.ui:ui-tooling" to DependencyType.DEBUG_IMPLEMENTATION)
+          mapOf("androidx.compose.ui:ui-tooling" to DEBUG_IMPLEMENTATION)
         else -> emptyMap()
       }
     }

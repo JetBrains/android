@@ -279,11 +279,15 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       sync: Boolean,
     ) {
       val module = ModuleUtil.findModuleForPsiElement(element) ?: return
+      val moduleSystem = module.getModuleSystem()
 
-      val extraArtifacts = MavenClassRegistry.findExtraArtifacts(artifact).map { it.value to it.key }.groupBy({ it.first }, { it.second })
-      val annotationProcessor = MavenClassRegistry.findAnnotationProcessor(artifact)?.let {
-        if (module.getModuleSystem().useAndroidX) AndroidxNameUtils.getCoordinateMapping(it) else it
-      }
+      fun String.toAndroidXIfNecessary() =
+        if (moduleSystem.useAndroidX) AndroidxNameUtils.getCoordinateMapping(this) else this
+
+      val extraArtifacts =
+        MavenClassRegistry.findExtraArtifacts(artifact)
+          .map { it.value to it.key }
+          .groupBy({ it.first }, { it.second.toAndroidXIfNecessary() })
       WriteCommandAction.runWriteCommandAction(project) {
         doImportSuggestionWithWriteLock(
           project,
@@ -291,7 +295,6 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
           element,
           artifact,
           extraArtifacts,
-          annotationProcessor,
           artifactVersion,
           importSymbol,
         )
@@ -333,7 +336,6 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       element: PsiElement,
       artifact: String,
       extraArtifacts: Map<DependencyType, List<String>>,
-      annotationProcessor: String?,
       artifactVersion: String?,
       importSymbol: String?,
     ) {
@@ -348,11 +350,6 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       extraArtifacts.forEach { (type, artifacts) ->
         if (moduleSystem.canRegisterDependency(type).isSupported()) {
           artifacts.forEach { artifact -> addDependency(module, artifact, artifactVersion, type) }
-        }
-      }
-      if (annotationProcessor != null) {
-        if (moduleSystem.canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR).isSupported()) {
-          addDependency(module, annotationProcessor, artifactVersion, DependencyType.ANNOTATION_PROCESSOR)
         }
       }
     }
