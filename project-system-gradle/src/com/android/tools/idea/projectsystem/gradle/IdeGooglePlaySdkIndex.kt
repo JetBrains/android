@@ -62,9 +62,9 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
     super.logNonCompliant(groupId, artifactId, versionString, file)
     val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
     if (isBlocking)
-      generateBlockingPolicyMessages(groupId, artifactId, versionString).forEach { logger.warn(it)}
+      logger.warn(generateBlockingPolicyMessage(groupId, artifactId, versionString))
     else
-      generatePolicyMessages(groupId, artifactId, versionString).forEach { logger.warn(it)}
+      logger.warn(generatePolicyMessage(groupId, artifactId, versionString))
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_IS_NON_COMPLIANT)
   }
 
