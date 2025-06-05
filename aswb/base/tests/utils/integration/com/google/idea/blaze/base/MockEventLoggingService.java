@@ -21,17 +21,21 @@ import com.google.idea.blaze.base.logging.EventLoggingService;
 import com.google.idea.blaze.base.logging.utils.HighlightStats;
 import com.google.idea.blaze.base.logging.utils.SyncStats;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStats;
+import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
 import com.google.idea.testing.ServiceHelper;
 import com.intellij.openapi.Disposable;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-/** Provides a {@link EventLoggingService} for integration tests. */
+/**
+ * Provides a {@link EventLoggingService} for integration tests.
+ */
 public class MockEventLoggingService implements EventLoggingService {
 
   private final List<SyncStats> syncStats = Lists.newArrayList();
   private final List<QuerySyncActionStats> querySyncStats = Lists.newArrayList();
+  private final List<QuerySyncAutoConversionStats> querySyncAutoConversionStats = Lists.newArrayList();
 
   public MockEventLoggingService(Disposable parentDisposable) {
     ServiceHelper.registerApplicationService(EventLoggingService.class, this, parentDisposable);
@@ -45,6 +49,8 @@ public class MockEventLoggingService implements EventLoggingService {
     return ImmutableList.copyOf(querySyncStats);
   }
 
+  public ImmutableList<QuerySyncAutoConversionStats> getQuerySyncAutoConversionStats() { return ImmutableList.copyOf(querySyncAutoConversionStats); }
+
   @Override
   public void log(SyncStats stats) {
     syncStats.add(stats);
@@ -56,15 +62,18 @@ public class MockEventLoggingService implements EventLoggingService {
   }
 
   @Override
-  public void logCommand(Class<?> loggingClass, Command command) {}
+  public void log(QuerySyncAutoConversionStats stats) { querySyncAutoConversionStats.add(stats); }
+
+  @Override
+  public void logCommand(Class<?> loggingClass, Command command) { }
 
   @Override
   public void logEvent(
-      Class<?> loggingClass,
-      String eventType,
-      Map<String, String> keyValues,
-      @Nullable Long durationInNanos) {}
+    Class<?> loggingClass,
+    String eventType,
+    Map<String, String> keyValues,
+    @Nullable Long durationInNanos) { }
 
   @Override
-  public void logHighlightStats(HighlightStats highlightStats) {}
+  public void logHighlightStats(HighlightStats highlightStats) { }
 }

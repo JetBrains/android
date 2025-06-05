@@ -16,12 +16,11 @@
 package com.google.idea.blaze.base.projectview;
 
 import com.google.idea.blaze.base.project.BaseQuerySyncConversionUtility;
+import com.google.idea.blaze.base.project.QuerySyncConversionUtility;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.ScalarSection;
 import com.google.idea.blaze.base.projectview.section.Section;
 import com.google.idea.blaze.base.projectview.section.sections.EnableCodeAnalysisOnSyncSection;
-import com.google.idea.blaze.base.projectview.section.sections.TextBlock;
-import com.google.idea.blaze.base.projectview.section.sections.TextBlockSection;
 import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -46,17 +45,18 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class ProjectViewManager {
   private static final Logger logger = Logger.getInstance(ProjectViewManager.class);
-
   public static ProjectViewManager getInstance(Project project) {
     return project.getService(ProjectViewManager.class);
   }
 
   public static void migrateImportSettingsToProjectViewFile(Project project,
                                                             BlazeImportSettings importSettings,
-                                                            ProjectViewSet.ProjectViewFile projectViewFile) {
+                                                            ProjectViewSet.ProjectViewFile projectViewFile,
+                                                            QuerySyncConversionUtility querySyncConversionUtility) {
     ProjectView.Builder projectView = ProjectView.builder(projectViewFile.projectView);
     boolean isWorkspaceLocationUpdated = addUpdateWorkspaceLocationSection(importSettings, projectViewFile, projectView);
-    boolean isUseQuerySyncSectionUpdated = addUpdateUseQuerySyncSection(project, importSettings, projectViewFile, projectView);
+    boolean isUseQuerySyncSectionUpdated =
+      addUpdateUseQuerySyncSection(project, importSettings, projectViewFile, projectView, querySyncConversionUtility);
     if (isWorkspaceLocationUpdated || isUseQuerySyncSectionUpdated) {
       String projectViewText = ProjectViewParser.projectViewToString(projectView.build());
       try {
@@ -88,13 +88,13 @@ public abstract class ProjectViewManager {
   private static boolean addUpdateUseQuerySyncSection(Project project,
                                                       BlazeImportSettings importSettings,
                                                       ProjectViewSet.ProjectViewFile projectViewFile,
-                                                      ProjectView.Builder projectView) {
+                                                      ProjectView.Builder projectView,
+                                                      QuerySyncConversionUtility querySyncConversionUtility) {
     ScalarSection<Boolean> useQuerySyncSection = ScalarSection.builder(UseQuerySyncSection.KEY)
       .set(importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC).build();
     ScalarSection<Boolean> enableCodeAnalysisSection = ScalarSection.builder(EnableCodeAnalysisOnSyncSection.KEY).set(true).build();
     Optional<Section<?>> existingUseQuerySyncSection = projectViewFile.projectView
       .getSections().stream().filter(x -> x.isSectionType(UseQuerySyncSection.KEY)).findAny();
-    TextBlockSection autoConversionIndicator = TextBlockSection.of(TextBlock.of(BaseQuerySyncConversionUtility.AUTO_CONVERSION_INDICATOR));
     if (existingUseQuerySyncSection.isEmpty()) {
       projectView.add(useQuerySyncSection);
       return true;
@@ -108,8 +108,8 @@ public abstract class ProjectViewManager {
     if (existingProjectType == BlazeImportSettings.ProjectType.ASPECT_SYNC
           && importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC) {
         existingUseQuerySyncSection.ifPresent(projectView::remove);
-        if (projectViewFile.projectView.getSections().stream().noneMatch(x -> x.equals(autoConversionIndicator))) {
-          projectView.add(autoConversionIndicator);
+        if (!querySyncConversionUtility.isConverted(projectViewFile)) {
+          projectView.add(BaseQuerySyncConversionUtility.AUTO_CONVERSION_SECTION);
         }
         projectView.add(useQuerySyncSection);
         if (projectViewFile.projectView.getSections().stream().noneMatch(x -> x.equals(enableCodeAnalysisSection))) {

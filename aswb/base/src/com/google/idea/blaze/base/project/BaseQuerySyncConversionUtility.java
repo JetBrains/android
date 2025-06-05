@@ -18,11 +18,16 @@ package com.google.idea.blaze.base.project;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.android.utils.FileUtils;
+import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
 import com.google.idea.blaze.base.projectview.ProjectView;
+import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.sections.ShardBlazeBuildsSection;
+import com.google.idea.blaze.base.projectview.section.sections.TextBlock;
+import com.google.idea.blaze.base.projectview.section.sections.TextBlockSection;
 import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.common.experiments.FeatureRolloutExperiment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -49,6 +54,8 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
   public static final FeatureRolloutExperiment AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT =
     new FeatureRolloutExperiment("aswb.auto.convert.legacy.sync.to.query.sync");
   public static final String AUTO_CONVERSION_INDICATOR = "# Auto-converted to query sync mode.";
+  public static final TextBlockSection AUTO_CONVERSION_SECTION =
+    TextBlockSection.of(TextBlock.of(BaseQuerySyncConversionUtility.AUTO_CONVERSION_INDICATOR));
   public static final String BAZEL_PROJECT_DIRECTORY = ".bazel";
   public static final String BLAZE_PROJECT_DIRECTORY = ".blaze";
   public static final String BACKUP_BAZEL_PROJECT_DIRECTORY = ".bazel_backup";
@@ -64,19 +71,33 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
   @Override
   public boolean canConvert(Path projectViewFilePath) {
     return AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled()
-           && !isAlreadyAutoConverted(projectViewFilePath)
+           && !isConverted(projectViewFilePath)
            && parseProjectFields(projectViewFilePath)
              .filter(fields -> !fields.useQuerySync && !fields.shardSync)
              .isPresent();
   }
 
-  private boolean isAlreadyAutoConverted(Path projectViewFilePath) {
+  private boolean isConverted(Path projectViewFilePath) {
     try {
       return Files.readAllLines(projectViewFilePath).contains(BaseQuerySyncConversionUtility.AUTO_CONVERSION_INDICATOR);
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
     }
+  }
+
+  @Override
+  public boolean isConverted(ProjectViewSet.ProjectViewFile projectViewFile) {
+    return projectViewFile.projectView.getSections().stream().anyMatch(x -> x.equals(AUTO_CONVERSION_SECTION));
+  }
+
+  @Override
+  public QuerySyncAutoConversionStats.Status calculateStatus(BlazeImportSettings blazeImportSettings, Path projectViewFilePath) {
+    if (isConverted(projectViewFilePath) || canConvert(projectViewFilePath)) {
+      return blazeImportSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC ?
+             QuerySyncAutoConversionStats.Status.CONVERTED : QuerySyncAutoConversionStats.Status.REVERTED;
+    }
+    return QuerySyncAutoConversionStats.Status.NOT_CONVERTED;
   }
 
   private Optional<ConversionProjectFields> parseProjectFields(Path projectViewFilePath) {

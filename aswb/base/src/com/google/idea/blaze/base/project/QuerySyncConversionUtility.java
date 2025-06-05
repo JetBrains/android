@@ -15,6 +15,9 @@
  */
 package com.google.idea.blaze.base.project;
 
+import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
+import com.google.idea.blaze.base.projectview.ProjectViewSet;
+import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import java.nio.file.Path;
 
 /**
@@ -24,4 +27,6 @@ import java.nio.file.Path;
 public interface QuerySyncConversionUtility {
   boolean canConvert(Path projectViewFilePath);
   void backupExistingProjectDirectories();
+  boolean isConverted(ProjectViewSet.ProjectViewFile projectViewFile);
+  QuerySyncAutoConversionStats.Status calculateStatus(BlazeImportSettings blazeImportSettings, Path projectViewFilePath);
 }

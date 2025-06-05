@@ -19,6 +19,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.idea.blaze.base.projectview.ProjectViewManager.migrateImportSettingsToProjectViewFile;
 
 import com.google.idea.blaze.base.async.executor.ProgressiveTaskWithProgressIndicator;
+import com.google.idea.blaze.base.logging.EventLoggingService;
+import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncAutoConversionStats;
 import com.google.idea.blaze.base.project.QuerySyncConversionUtility;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
@@ -155,6 +157,10 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
       importSettings.setProjectType(BlazeImportSettings.ProjectType.QUERY_SYNC);
       querySyncConversionUtility.backupExistingProjectDirectories();
     }
+    EventLoggingService.getInstance().log(
+      QuerySyncAutoConversionStats.builder()
+        .setStatus(querySyncConversionUtility.calculateStatus(importSettings, projectViewFilePath))
+        .build());
 
     this.importSettings.set(importSettings);
   }
@@ -224,10 +230,12 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
         ToolWindowScopeRunner.runTaskWithToolWindow(project, "Parsing project view files",
                                                     "Parsing project view files", QuerySyncManager.TaskOrigin.AUTOMATIC,
                                                     BlazeUserSettings.getInstance(), context -> {
-            final var importSettings1 = getImportSettings();
-            final var loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings1);
-            migrateImportSettingsToProjectViewFile(project, importSettings1,
-                                                   Objects.requireNonNull(loadedProjectView.getTopLevelProjectViewFile()));
+            final var importSettings = getImportSettings();
+            final var loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings);
+            migrateImportSettingsToProjectViewFile(project,
+                                                   importSettings,
+                                                   Objects.requireNonNull(loadedProjectView.getTopLevelProjectViewFile()),
+                                                   querySyncConversionUtility);
             projectViewSet.set(loadedProjectView);
           }
         ))::apply).get();
