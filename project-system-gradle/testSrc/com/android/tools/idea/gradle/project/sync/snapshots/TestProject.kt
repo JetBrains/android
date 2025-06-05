@@ -198,6 +198,11 @@ enum class TestProject(
         truncateForV2(projectRoot.resolve("settings.gradle"))
       }
     }),
+  COMPOSITE_BUILD_WITH_DEPENDENCY_SUBS(
+    TestProjectToSnapshotPaths.COMPOSITE_BUILD_WITH_DEPENDENCY_SUBS,
+    testName="compositeBuildWithDependencySubstitution",
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 },
+  ),
   NON_STANDARD_SOURCE_SETS(
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 },

@@ -213,9 +213,12 @@ class AppInspectionInspectorClient(
         viewUpdateDeferred.await()
         model.removeModificationListener(updateListener)
 
-        stats.isXr(model.isXr)
-
-        checkIfComposeSupportsXrInspection()
+        if (model.isXr) {
+          // It's important to do this check after the model is loaded, otherwise isXr is false by
+          // default.
+          stats.isXr(true)
+          checkRequiredVersionsForXr()
+        }
       }
       .recover { t ->
         val error = getOriginalError(t)
@@ -229,19 +232,39 @@ class AppInspectionInspectorClient(
   }
 
   /**
-   * A function to notify the user if the version of compose does not support xr inspection. This
-   * function must be called after the model is loaded.
+   * A function to notify the user if the version of compose and scenecore don't support xr
+   * inspection.
    */
   // TODO: unify with compose checks in ComposeLayoutInspectorClient#checkComposeVersion
-  private fun checkIfComposeSupportsXrInspection() {
-    // The minimum version of compose required to support XR
+  private suspend fun checkRequiredVersionsForXr() {
+    // The minimum version of compose required to support XR inspection.
     val minComposeVersion = "1.8.0"
-    val version = composeInspector?.composeVersion?.let { Version.parse(it) }
-    if (model.isXr && version != null && version < Version.parse(minComposeVersion)) {
+    val actualComposeVersion = composeInspector?.composeVersion?.let { Version.parse(it) }
+    if (actualComposeVersion != null && actualComposeVersion < Version.parse(minComposeVersion)) {
       val notificationId = "compose.inspection.does.not.support.xr"
       notificationModel.addNotification(
         notificationId,
         LayoutInspectorBundle.message(notificationId, minComposeVersion),
+        Status.Warning,
+      )
+    }
+
+    // The minimum version of scenecore required to support XR inspection.
+    val minScenecoreVersion = "1.0.0-alpha04"
+    val actualScenecoreVersionString =
+      findScenecoreVersion(
+        project = project,
+        appInspectionApiServices = apiServices,
+        process = process,
+      )
+    val actualScenecoreVersion = actualScenecoreVersionString?.let { Version.parse(it) }
+    if (
+      actualScenecoreVersion != null && actualScenecoreVersion < Version.parse(minScenecoreVersion)
+    ) {
+      val notificationId = "scenecore.inspection.not.supported"
+      notificationModel.addNotification(
+        notificationId,
+        LayoutInspectorBundle.message(notificationId, minScenecoreVersion),
         Status.Warning,
       )
     }

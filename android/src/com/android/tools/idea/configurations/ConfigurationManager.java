@@ -223,10 +223,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
 
     ImmutableList.Builder<Device> builder = new ImmutableList.Builder<>();
     builder.addAll(platform.getSdkData().getDeviceManager().getDevices(DeviceManager.ALL_DEVICES));
-    AdditionalDeviceService ads = AdditionalDeviceService.getInstance();
-    if (ads != null) {
-      builder.addAll(ads.getWindowSizeDevices());
-    }
+    builder.addAll(ReferenceDevice.INSTANCE.getWindowSizeDevices());
     return builder.build();
   }
 

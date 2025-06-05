@@ -22,6 +22,7 @@ import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.Versions
 import com.android.ide.common.repository.AgpVersion
+import com.android.ide.gradle.model.GradlePluginModel
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
@@ -44,6 +45,10 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
     controller.run(buildModels.flatMap { buildModel ->
       buildModel.projects.mapNotNull { gradleProject ->
         BuildAction {
+          if (controller.findModel(gradleProject, GradlePluginModel::class.java)?.hasKotlinMultiPlatform() == true) {
+            // Kotlin multiplatform projects are not supported for phased sync yet.
+            return@BuildAction null
+          }
           gradleProject to AndroidProjectData(
             controller.findModel(gradleProject, Versions::class.java)
               // TODO(b/384022658): Reconsider this check if we implement a cache between model providers to avoid fetching the models twice

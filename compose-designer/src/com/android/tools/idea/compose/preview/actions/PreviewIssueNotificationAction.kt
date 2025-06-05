@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.flags.ifEnabled
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.CommonIssueNotificationAction
 import com.android.tools.idea.preview.actions.ForceCompileAndRefreshActionForNotification
+import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
+import com.android.tools.idea.preview.pagination.actions.PaginationActionGroup
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -54,7 +58,10 @@ class PreviewIssueNotificationAction(parentDisposable: Disposable) :
  */
 class ComposeNotificationGroup(parentDisposable: Disposable) :
   DefaultActionGroup(
-    listOf(
+    listOfNotNull(
+      StudioFlags.PREVIEW_PAGINATION.ifEnabled {
+        PaginationActionGroup().visibleOnlyInDefaultPreview()
+      },
       PreviewIssueNotificationAction(parentDisposable),
       ForceCompileAndRefreshActionForNotification.getInstance(),
     )

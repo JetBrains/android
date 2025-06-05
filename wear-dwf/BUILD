@@ -23,6 +23,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/base/build-system:studio.android.sdktools.manifest-merger",
         "//tools/base/apkparser:studio.android.sdktools.binary-resources",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model",
     ],
 )
 

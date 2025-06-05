@@ -2,7 +2,7 @@
 
 load(
     ":build_dependencies_android_deps.bzl",
-    "ANDROID_IDE_INFO",
+    _ide_android_not_validated = "IDE_ANDROID",
 )
 
 # Load external dependencies of this aspect. These are loaded in a separate file and re-exported as necessary
@@ -47,6 +47,13 @@ IDE_JAVA = _validate_ide(
     ),
 )
 
+IDE_ANDROID = _validate_ide(
+    _ide_android_not_validated,
+    template = struct(
+        get_android_info = _target_rule_function,  # A function that takes a rule and returns a JavaInfo like structure (or the provider itself).
+    ),
+)
+
 IDE_KOTLIN = _validate_ide(
     _ide_kotlin_not_validated,
     template = struct(
@@ -74,11 +81,11 @@ IDE_JAVA_PROTO = _validate_ide(
 IDE_CC = _validate_ide(
     _ide_cc_not_validated,
     template = struct(
-        c_compile_action_name = "",  # An action named to be used with cc_common.get_memory_inefficient_command_line or similar.
-        cpp_compile_action_name = "",  # An action named to be used with cc_common.get_memory_inefficient_command_line or similar.
         follow_attributes = ["_cc_toolchain"],  # Additional attributes for the aspect to follow and request DependenciesInfo provider.
         toolchains_aspects = [],  # Toolchain types for the aspect to follow.
         toolchain_target = _rule_function,  # A function that takes a rule and returns a toolchain target (or a toolchain container).
+        compilation_context = _rule_function,  # A function that takes a target and returns compilation_context of target.
+        cc_toolchain_info = _rule_function,  # A function that takes a target and ctx, returns a struct that contains cc toolchain info.
     ),
 )
 
@@ -332,37 +339,9 @@ def declares_android_resources(target, ctx):
     Returns:
       True if the target has resource files and an android provider.
     """
-    if _get_android_provider(target) == None:
+    if IDE_ANDROID.get_android_info(target, ctx.rule) == None:
         return False
     return hasattr(ctx.rule.attr, "resource_files") and len(ctx.rule.attr.resource_files) > 0
-
-def _get_android_provider(target):
-    if ANDROID_IDE_INFO and ANDROID_IDE_INFO in target:
-        return target[ANDROID_IDE_INFO]
-    elif hasattr(android_common, "AndroidIdeInfo"):
-        if android_common.AndroidIdeInfo in target:
-            return target[android_common.AndroidIdeInfo]
-        else:
-            return None
-    elif hasattr(target, "android"):
-        # Backwards compatibility: supports android struct provider
-        legacy_android = getattr(target, "android")
-
-        # Transform into AndroidIdeInfo form
-        return struct(
-            aar = legacy_android.aar,
-            java_package = legacy_android.java_package,
-            manifest = legacy_android.manifest,
-            idl_source_jar = getattr(legacy_android.idl.output, "source_jar", None),
-            idl_class_jar = getattr(legacy_android.idl.output, "class_jar", None),
-            defines_android_resources = legacy_android.defines_resources,
-            idl_import_root = getattr(legacy_android.idl, "import_root", None),
-            idl_generated_java_files = getattr(legacy_android.idl, "generated_java_files", []),
-            resource_jar = legacy_android.resource_jar,
-            signed_apk = legacy_android.apk,
-            apks_under_test = legacy_android.apks_under_test,
-        )
-    return None
 
 def declares_aar_import(ctx):
     """
@@ -478,7 +457,7 @@ def _collect_own_java_artifacts(
 
     # Targets recognised as java_proto_info can have java_info dependencies.
     java_proto_info = IDE_JAVA_PROTO.get_java_proto_info(target, ctx.rule)
-    android = _get_android_provider(target)
+    android_info = IDE_ANDROID.get_android_info(target, ctx.rule)
 
     if must_build_main_artifacts:
         # For rules that we do not follow dependencies of (either because they don't
@@ -506,17 +485,17 @@ def _collect_own_java_artifacts(
                 own_ide_aar_files.append(ide_aar)
 
     else:
-        if android != None:
-            resource_package = android.java_package
+        if android_info != None:
+            resource_package = android_info.java_package
 
             if generate_aidl_classes:
                 add_base_idl_jar = False
-                idl_jar = android.idl_class_jar
+                idl_jar = android_info.idl_class_jar
                 if idl_jar != None:
                     own_jar_files.append(idl_jar)
                     add_base_idl_jar = True
 
-                generated_java_files = android.idl_generated_java_files
+                generated_java_files = android_info.idl_generated_java_files
                 if generated_java_files:
                     own_gensrc_files += generated_java_files
                     add_base_idl_jar = True
@@ -572,7 +551,7 @@ def _collect_own_java_artifacts(
                     else:
                         own_gensrc_files.append(file)
 
-    if not (java_info or kotlin_info or android or java_proto_info or own_gensrc_files or own_src_file_paths or own_srcjar_file_paths):
+    if not (java_info or kotlin_info or android_info or java_proto_info or own_gensrc_files or own_src_file_paths or own_srcjar_file_paths):
         return None
     if own_jar_files or len(own_jar_depsets) > 1:
         own_jar_depset = depset(own_jar_files, transitive = own_jar_depsets)
@@ -688,7 +667,7 @@ def _get_cc_toolchain_dependency_info(rule):
 
 def _collect_own_and_dependency_cc_info(target, rule):
     dependency_info = _get_cc_toolchain_dependency_info(rule)
-    compilation_context = target[CcInfo].compilation_context
+    compilation_context = IDE_CC.compilation_context(target)
     cc_toolchain_info = None
     if dependency_info:
         cc_toolchain_info = dependency_info.cc_toolchain_info
@@ -734,9 +713,7 @@ def _collect_dependencies_core_impl(
     cc_dep_info = None
     if CcInfo in target:
         cc_dep_info = _collect_cc_dependencies_core_impl(target, ctx)
-    cc_toolchain_dep_info = None
-    if cc_common.CcToolchainInfo in target:
-        cc_toolchain_dep_info = _collect_cc_toolchain_info(target, ctx)
+    cc_toolchain_dep_info = _collect_cc_toolchain_info(target, ctx)
     return merge_dependencies_info(target, ctx, java_dep_info, cc_dep_info, cc_toolchain_dep_info)
 
 def _collect_java_dependencies_core_impl(
@@ -791,60 +768,9 @@ def _collect_cc_dependencies_core_impl(target, ctx):
     )
 
 def _collect_cc_toolchain_info(target, ctx):
-    toolchain_info = target[cc_common.CcToolchainInfo]
-
-    cpp_fragment = ctx.fragments.cpp
-
-    # TODO(b/301235884): This logic is not quite right. `ctx` here is the context for the
-    #  cc_toolchain target itself, so the `features` and `disabled_features` were using here are
-    #  for the cc_toolchain, not the individual targets that this information will ultimately be
-    #  used for. Instead, we should attach `toolchain_info` itself to the `DependenciesInfo`
-    #  provider, and execute this logic once per top level cc target that we're building, to ensure
-    #  that the right features are used.
-    feature_config = cc_common.configure_features(
-        ctx = ctx,
-        cc_toolchain = toolchain_info,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features + [
-            # Note: module_maps appears to be necessary here to ensure the API works
-            # in all cases, and to avoid the error:
-            # Invalid toolchain configuration: Cannot find variable named 'module_name'
-            # yaqs/3227912151964319744
-            "module_maps",
-        ],
-    )
-    c_variables = cc_common.create_compile_variables(
-        feature_configuration = feature_config,
-        cc_toolchain = toolchain_info,
-        user_compile_flags = cpp_fragment.copts + cpp_fragment.conlyopts,
-    )
-    cpp_variables = cc_common.create_compile_variables(
-        feature_configuration = feature_config,
-        cc_toolchain = toolchain_info,
-        user_compile_flags = cpp_fragment.copts + cpp_fragment.cxxopts,
-    )
-    c_options = cc_common.get_memory_inefficient_command_line(
-        feature_configuration = feature_config,
-        action_name = IDE_CC.c_compile_action_name,
-        variables = c_variables,
-    )
-    cpp_options = cc_common.get_memory_inefficient_command_line(
-        feature_configuration = feature_config,
-        action_name = IDE_CC.cpp_compile_action_name,
-        variables = cpp_variables,
-    )
-    toolchain_id = str(target.label) + "%" + toolchain_info.target_gnu_system_name
-
-    cc_toolchain_info = struct(
-        id = toolchain_id,
-        compiler_executable = toolchain_info.compiler_executable,
-        cpu = toolchain_info.cpu,
-        compiler = toolchain_info.compiler,
-        target_name = toolchain_info.target_gnu_system_name,
-        built_in_include_directories = toolchain_info.built_in_include_directories,
-        c_options = c_options,
-        cpp_options = cpp_options,
-    )
+    cc_toolchain_info = IDE_CC.cc_toolchain_info(target, ctx)
+    if not cc_toolchain_info:
+        return None
 
     cc_toolchain_file_name = target.label.name + "." + cc_toolchain_info.target_name + ".txt"
     cc_toolchain_file = ctx.actions.declare_file(cc_toolchain_file_name)
@@ -856,7 +782,7 @@ def _collect_cc_toolchain_info(target, ctx):
     )
 
     return create_cc_toolchain_info(
-        cc_toolchain_info = struct(file = cc_toolchain_file, id = toolchain_id),
+        cc_toolchain_info = struct(file = cc_toolchain_file, id = cc_toolchain_info.id),
     )
 
 def _get_ide_aar_file(target, ctx):
@@ -870,11 +796,11 @@ def _get_ide_aar_file(target, ctx):
     The function builds a minimalistic .aar file that contains resources and the
     manifest only.
     """
-    android = _get_android_provider(target)
-    full_aar = android.aar
+    android_info = IDE_ANDROID.get_android_info(target, ctx.rule)
+    full_aar = android_info.aar
     if full_aar:
         resource_files = _collect_resource_files(ctx)
-        resource_map = _build_ide_aar_file_map(android.manifest, resource_files)
+        resource_map = _build_ide_aar_file_map(android_info.manifest, resource_files)
         aar = ctx.actions.declare_file(full_aar.short_path.removesuffix(".aar") + "_ide/" + full_aar.basename)
         _package_ide_aar(ctx, aar, resource_map)
         return aar

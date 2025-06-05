@@ -147,6 +147,8 @@ internal class FakeRemoteCommunicator(override val userId: String) : AbstractSer
       throw IOException(DISCONNECTED_ERROR)
     }
   }
+
+  override fun dispose() = Unit
 }
 
 internal class FakeCommunicatorProvider(

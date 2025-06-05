@@ -252,11 +252,6 @@ public final class StudioFlags {
     "When enabled, profiler will track and display events defined through developer APIs",
     false);
 
-  public static final Flag<Boolean> PROFILEABLE_BUILDS = new BooleanFlag(
-    PROFILER, "profileable.builds", "Support building profileable apps",
-    "Allow users to build apps as profileable with a supported Gradle plugin version (>7.3.0)",
-    true);
-
   public static final Flag<PowerProfilerDisplayMode> PROFILER_SYSTEM_TRACE_POWER_PROFILER_DISPLAY_MODE = new EnumFlag<>(
     PROFILER, "power.tracks", "Set display mode of power rails and battery counters in system trace UI",
     "Allows users to customize whether the power rail and battery counter tracks are shown in the system trace UI, " +
@@ -776,7 +771,7 @@ public final class StudioFlags {
     "deobfuscate",
     "Enable stack trace deobfuscation using R8 Retrace",
     "Enable stack trace deobfuscation using R8 Retrace",
-    false
+    true
   );
   //endregion
 
@@ -1228,6 +1223,10 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "use.uinput", "Use uinput module (https://kernel.org/doc/html/v4.12/input/uinput.html)",
     "Use uinput module ((https://kernel.org/doc/html/v4.12/input/uinput.html) for injecting input events",
     false);
+  public static final Flag<Boolean> DEVICE_MIRRORING_UNICODE_TYPING = new BooleanFlag(
+    DEVICE_MIRRORING, "unicode.typing", "Enable Unicode Typing",
+    "Enable typing of arbitrary Unicode characters",
+    false);
   //endregion
 
   //region Screenshot and Screen Recording
@@ -1577,16 +1576,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_GROUP_LAYOUT = new BooleanFlag(
-    COMPOSE, "preview.group.layout", "Enable organization of Compose Preview in groups",
-    "If enabled, multiple previews associated with composable will be grouped. Please invalidates file caches after " +
-    "enabling or disabling (File -> Invalidate Caches...)", true);
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_UI_CHECK_GROUP_LAYOUT = new BooleanFlag(
-    COMPOSE, "preview.uicheck.group.layout", "Enable organization of Compose Preview in UI Check",
-    "If enabled, multiple previews associated with composable will be grouped in UI Check. Please invalidates file caches after " +
-    "enabling or disabling (File -> Invalidate Caches...)", true);
-
   public static final Flag<Boolean> COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE = new BooleanFlag(
     COMPOSE, "project.uses.compose.override", "Forces the Compose project detection",
     "If enabled, the project will be treated as a Compose project, showing Previews if available and enhancing the Compose editing",
@@ -1680,13 +1669,13 @@ public final class StudioFlags {
   public static final Flag<Boolean> WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION = new BooleanFlag(
     WEAR_DECLARATIVE_WATCH_FACE, "run.configuration.enabled", "Enable run configuration for Declarative Watch Faces",
     "If enabled, the Declarative Watch Face run configuration type will be available. Changing the value of this flag requires restarting Android Studio.",
-    enabledUpTo(STABLE)
+    enabledUpTo(CANARY)
   );
 
   public static final Flag<Boolean> WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT = new BooleanFlag(
     WEAR_DECLARATIVE_WATCH_FACE, "xml.editor.support.enabled", "Enable XML editor support for Declarative Watch Faces",
     "If enabled, the editor will support Watch Face Format in XML files",
-    enabledUpTo(STABLE)
+    enabledUpTo(CANARY)
   );
 
   public static final Flag<Boolean> WATCH_FACE_STUDIO_FILE_IMPORT = new BooleanFlag(
@@ -1820,7 +1809,7 @@ public final class StudioFlags {
       "play.policy.insights.auto.update",
       "Play Policy Insights Auto Update",
       "Update Play Policy lint rule library to the latest",
-      false);
+      enabledUpTo(CANARY));
   // endregion Play Policy Insights
 
   // region Firebase Test Lab
@@ -2245,6 +2234,12 @@ public final class StudioFlags {
                     "When enabled, add Rules section to prompt library settings screen.",
                     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_PROMPT_LIBRARY_CHAT_LOOKUP_ENABLED =
+    new BooleanFlag(STUDIOBOT, "prompt.library.chat.lookup",
+                    "Show Saved Prompts in chat lookup",
+                    "When enabled, add Rules section to lookup popup.",
+                    enabledUpTo(CANARY));
+
   public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
                     "Enable Scroll to Bottom button",
@@ -2268,6 +2263,12 @@ public final class StudioFlags {
                     "Use ML model to suggest commit messages",
                     "Enables the \"Suggest Commit Message\" button in the Commit tool window",
                     true);
+
+  public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION_OVERRIDE =
+    new BooleanFlag(STUDIOBOT, "commit.message.suggestion.override",
+                    "Allow users to override prompt for suggesting commit messages",
+                    "Enables the \"Commit Message Generation\" in Prompt Library setting",
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> README_GENERATION =
     new BooleanFlag(STUDIOBOT, "readme.generation",
@@ -2377,7 +2378,8 @@ public final class StudioFlags {
   public static final Flag<Boolean> STUDIOBOT_INCLUDE_GRADLE_PROJECT_STRUCTURE_TOOLS_BY_DEFAULT =
     new BooleanFlag(STUDIOBOT, "include.gradle.project.structure.tools.by.default",
                     "Enable using Gradle project structure Agent tools by default",
-                    "When enabled, a set of tools allowing the agent to query for the Gradle project structure will be included by default.", false);
+                    "When enabled, a set of tools allowing the agent to query for the Gradle project structure will be included by default.",
+                    enabledUpTo(DEV));
 
   public static final Flag<Boolean> GEMINI_AGENT_MODE =
     new BooleanFlag(STUDIOBOT, "agent.mode",
@@ -2388,6 +2390,14 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "version.upgrade.agent",
                     "Enable Gemini Version Upgrade Agent.",
                     "Enables the agent that helps with upgrading dependencies to newer versions.", enabledUpTo(DEV));
+
+  public enum CodeIndexingMode {NONE, BM25}
+
+  public static final EnumFlag<CodeIndexingMode> GEMINI_INDEX_CODEBASE =
+    new EnumFlag<>(STUDIOBOT, "codebase.indexing.mode",
+                   "Codebase Indexing Mode",
+                   "Index the codebase to allow searching using natural language",
+                   CodeIndexingMode.NONE);
 
   public enum DasherSupportMode {
     /**
@@ -2477,7 +2487,7 @@ public final class StudioFlags {
       "enable",
       "Enable Backup/Restore feature",
       "Enable Backup/Restore feature",
-      enabledUpTo(CANARY));
+      true);
 
   public static final Flag<Integer> BACKUP_GMSCORE_MIN_VERSION =
     new IntFlag(
@@ -2574,21 +2584,21 @@ public final class StudioFlags {
     "first.run.migrated.wizard.enabled",
     "Migrated First Run Wizard Enabled",
     "Show the migrated version of the welcome wizard when Studio first starts",
-    enabledUpTo(CANARY)
+    enabledUpTo(STABLE)
   );
   public static final Flag<Boolean> SDK_SETUP_MIGRATED_WIZARD_ENABLED = new BooleanFlag(
     WIZARD_MIGRATION,
     "sdk.setup.migrated.wizard.enabled",
     "Migrated SDK Setup Wizard Enabled",
     "Show the migrated version of the SDK setup wizard",
-    enabledUpTo(CANARY)
+    enabledUpTo(STABLE)
   );
   public static final Flag<Boolean> AEHD_CONFIGURATION_MIGRATED_WIZARD_ENABLED = new BooleanFlag(
     WIZARD_MIGRATION,
     "aehd.configuration.migrated.wizard.enabled",
     "Migrated AEHD Configuration Wizard Enabled",
     "Show the migrated version fo the AEHD configuration wizard",
-    enabledUpTo(CANARY)
+    enabledUpTo(STABLE)
   );
   // endregion WIZARD_MIGRATION
 

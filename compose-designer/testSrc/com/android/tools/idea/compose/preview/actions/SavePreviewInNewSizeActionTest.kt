@@ -33,11 +33,15 @@ import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.NopComposePreviewManager
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.compose.preview.resize.ResizePanel
+import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
@@ -53,6 +57,11 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.ComposeProjectRule
@@ -242,10 +251,83 @@ class SavePreviewInNewSizeActionTest {
       .isEqualTo(
         """
           @Preview(
-              name = "MyPreview",
+              name = "200x100dp",
               group = "MyGroup",
               showSystemUi = true,
               device = "spec:width=200dp,height=100dp,dpi=160,orientation=landscape"
+          )
+        """
+          .trimIndent()
+      )
+  }
+
+  @Test
+  fun `add new annotation, no custom device`() = runTest {
+    @Language("kotlin")
+    val composeTest =
+      projectRule.fixture.addFileToProject(
+        "src/Test.kt",
+        """
+                import androidx.compose.ui.tooling.preview.Preview
+                import androidx.compose.runtime.Composable
+
+                @Preview(name = "MyPreview", group = "MyGroup", showSystemUi = true)
+                @Composable
+                fun MyComposable() {
+                }
+                """
+          .trimIndent(),
+      )
+
+    val previewElement =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+          projectRule.project,
+          composeTest.virtualFile,
+        )
+        .first()
+    modeManager.setMode(PreviewMode.Focus(previewElement))
+    val originalAnnotation = previewElement.previewElementDefinition!!.element as KtAnnotationEntry
+
+    val configuration = createConfiguration(500, 600)
+
+    val newDevice = device(100, 300, ScreenOrientation.LANDSCAPE, "Pixel_9")
+
+    configuration.setDevice(newDevice, true)
+
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) =
+            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        }
+      )
+    `when`(model.configuration).thenReturn(configuration)
+
+    val action = SavePreviewInNewSizeAction()
+    val event = TestActionEvent.createTestEvent(getDataContext())
+
+    action.actionPerformed(event)
+
+    val previewElements =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+        projectRule.project,
+        composeTest.virtualFile,
+      )
+
+    assertThat(previewElements.size).isEqualTo(2)
+    val newAnnotation =
+      previewElements
+        .map { (it.previewElementDefinition!!.element!! as KtAnnotationEntry) }
+        .find { it.text != originalAnnotation.text }!!
+
+    assertThat(newAnnotation.text)
+      .isEqualTo(
+        """
+          @Preview(
+              name = "Pixel 9",
+              group = "MyGroup",
+              showSystemUi = true,
+              device = "spec:width=300dp,height=100dp,dpi=160,orientation=landscape"
           )
         """
           .trimIndent()
@@ -319,7 +401,7 @@ class SavePreviewInNewSizeActionTest {
       .isEqualTo(
         """
           @Preview(
-              name = "MyPreview",
+              name = "100x200dp",
               group = "MyGroup",
               showBackground = true,
               widthDp = 100,
@@ -470,7 +552,7 @@ class SavePreviewInNewSizeActionTest {
       .isEqualTo(
         """
         @Preview(
-            name = "phone",
+            name = "845x360dp",
             device = "spec:width=360dp,height=640dp,dpi=480",
             widthDp = 845,
             heightDp = 360
@@ -489,7 +571,7 @@ class SavePreviewInNewSizeActionTest {
       annotation class DevicePreviews
 
       @Preview(
-          name = "phone",
+          name = "845x360dp",
           device = "spec:width=360dp,height=640dp,dpi=480",
           widthDp = 845,
           heightDp = 360
@@ -502,6 +584,88 @@ class SavePreviewInNewSizeActionTest {
         .trimIndent()
 
     assertThat(newAnnotation.containingFile.text).isEqualTo(expectedContent)
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
+  fun `actionPerformed switches focus to new preview after save`() = runTest {
+    @Language("kotlin")
+    val composeTest =
+      projectRule.fixture.addFileToProject(
+        "src/Test.kt",
+        """
+                import androidx.compose.ui.tooling.preview.Preview
+                import androidx.compose.runtime.Composable
+
+                @Preview(name = "MyPreview", group = "MyGroup")
+                @Composable
+                fun MyComposable() {
+                }
+                """
+          .trimIndent(),
+      )
+
+    val previewElement =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+          projectRule.project,
+          composeTest.virtualFile,
+        )
+        .first()
+
+    val mockFlowManager = mock<PreviewFlowManager<PsiComposePreviewElement>>()
+    val previewElementFlow = MutableStateFlow(FlowableCollection.Present(listOf(previewElement)))
+    `when`(mockFlowManager.allPreviewElementsFlow).thenReturn(previewElementFlow.asStateFlow())
+    modeManager.setMode(PreviewMode.Focus(previewElement))
+
+    val modeBeforeAction = modeManager.mode.value
+
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) =
+            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        }
+      )
+    val configuration = createConfiguration(100, 200)
+    `when`(model.configuration).thenReturn(configuration)
+
+    val previewManager = NopComposePreviewManager()
+    Disposer.register(projectRule.fixture.testRootDisposable, previewManager)
+    val testDataContext =
+      SimpleDataContext.builder()
+        .setParent(getDataContext())
+        .add(PreviewFlowManager.KEY, mockFlowManager)
+        .add(COMPOSE_PREVIEW_MANAGER, previewManager)
+        .build()
+    val event = TestActionEvent.createTestEvent(testDataContext)
+    val action = SavePreviewInNewSizeAction(StandardTestDispatcher(testScheduler))
+
+    // Act
+    // This will call setUpSwitchingToNewPreview, which launches a coroutine that waits
+    // for the next flow emission.
+    action.actionPerformed(event)
+
+    // Assert (Part 1 - before the new preview appears in the flow)
+    // The mode should not have changed yet.
+    assertThat(modeManager.mode.value).isEqualTo(modeBeforeAction)
+
+    // Act (Part 2 - simulate the file refresh that finds the new preview)
+    val previewElements =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+        projectRule.project,
+        composeTest.virtualFile,
+      )
+    assertThat(previewElements.size).isEqualTo(2)
+    previewElementFlow.value = FlowableCollection.Present(previewElements)
+    advanceUntilIdle()
+
+    // Assert (Part 2 - after new preview appears)
+    // Assert the final state of the real modeManager.
+    val finalMode = modeManager.mode.value
+    assertThat(finalMode).isInstanceOf(PreviewMode.Focus::class.java)
+    val focusMode = finalMode as PreviewMode.Focus
+    assertThat(focusMode.selected!!.displaySettings.parameterName).isEqualTo("100x200dp")
+    Disposer.dispose(previewManager)
   }
 
   fun KtAnnotationEntry.getValueForArgument(name: String): String? {
@@ -523,12 +687,17 @@ class SavePreviewInNewSizeActionTest {
     return configuration
   }
 
-  private fun device(width: Int, height: Int, orientation: ScreenOrientation): Device =
+  private fun device(
+    width: Int,
+    height: Int,
+    orientation: ScreenOrientation,
+    id: String = Configuration.CUSTOM_DEVICE_ID,
+  ): Device =
     Device.Builder()
       .apply {
         setTagId("")
-        setName("Custom")
-        setId(Configuration.CUSTOM_DEVICE_ID)
+        setName(id.replace("_", " "))
+        setId(id)
         setManufacturer("")
         addSoftware(Software())
         addState(

@@ -45,6 +45,7 @@ import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.regex.Pattern
 import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -222,8 +223,10 @@ class WearPairingManager(
           }
           try {
             updateListAndForwardState()
-          } catch (ex: Throwable) {
-            LOG.warn(ex)
+          } catch (e: CancellationException) {
+            throw e
+          } catch (e: Throwable) {
+            LOG.warn(e)
           }
         }
       }

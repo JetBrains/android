@@ -121,7 +121,7 @@ class PreviewAnnotationRoundTripTest {
     // Create a configuration that matches the dimensions of the preview element
     val configuration = createConfiguration(width = 200, height = 300)
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "MySimplePreview")
 
     // The generated text should match the original, possibly with reordered parameters
     // and default values omitted. For this simple case, it should be identical.
@@ -176,7 +176,7 @@ class PreviewAnnotationRoundTripTest {
         orientation = ScreenOrientation.PORTRAIT,
       )
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "MyDevicePreview")
 
     // Corrected expected string: it should preserve the original device spec AND add
     // widthDp/heightDp
@@ -231,7 +231,8 @@ class PreviewAnnotationRoundTripTest {
     // valid)
     val configuration = createConfiguration(width = 100, height = 200)
 
-    val generatedText = toPreviewAnnotationText(smallFontPreviewElement, configuration)
+    val generatedText =
+      toPreviewAnnotationText(smallFontPreviewElement, configuration, "small font")
 
     // The generated text should represent the "small font" preview with default size parameters
     assertThat(generatedText)
@@ -289,7 +290,7 @@ class PreviewAnnotationRoundTripTest {
     // valid)
     val configuration = createConfiguration(width = 500, height = 500)
 
-    val generatedText = toPreviewAnnotationText(previewElement, configuration)
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "FullParams")
 
     assertThat(generatedText)
       .isEqualTo(
@@ -352,7 +353,8 @@ class PreviewAnnotationRoundTripTest {
           orientation = ScreenOrientation.PORTRAIT,
         )
 
-      val generatedText = toPreviewAnnotationText(previewElement, configuration)
+      val generatedText =
+        toPreviewAnnotationText(previewElement, configuration, "DeviceWithCustomSize")
 
       // Expected: original device spec + new widthDp/heightDp
       assertThat(generatedText)

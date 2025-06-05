@@ -137,6 +137,9 @@ abstract class SyncedProjectTest(
   fun testCompositeBuild() = testProject(TestProject.COMPOSITE_BUILD)
 
   @Test
+  fun testCompositeBuildWithDependencySubs() = testProject(TestProject.COMPOSITE_BUILD_WITH_DEPENDENCY_SUBS)
+
+  @Test
   fun testNonStandardSourceSets() = testProject(TestProject.NON_STANDARD_SOURCE_SETS)
 
   @Test

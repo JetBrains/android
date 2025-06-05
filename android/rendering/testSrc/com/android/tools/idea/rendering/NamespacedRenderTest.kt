@@ -15,58 +15,70 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.RenderTestUtil.checkRendering
 import com.android.tools.idea.rendering.RenderTestUtil.withRenderTask
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-class NamespacedRenderTest : AndroidGradleTestCase() {
-  lateinit var facet : AndroidFacet
+class NamespacedRenderTest {
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
-  override fun setUp() {
-    super.setUp()
-    RenderTestUtil.beforeRenderTestCase()
-    loadProject(TestProjectPaths.NAMESPACES)
-    facet = getModule("app").getModuleSystem().getProductionAndroidModule()!!.androidFacet!!
+  @get:Rule val renderRule = RenderTestRule()
+
+  private val project: Project
+    get() = projectRule.project
+
+  private val facet: AndroidFacet
+    get() = projectRule.findGradleModule(":app")!!.androidFacet!!
+
+  @Before
+  fun setUp() {
+    projectRule.loadProject(TestProjectPaths.NAMESPACES)
+    waitUntilIndexesAreReady(project)
   }
 
-  override fun tearDown() {
-    try {
-      RenderTestUtil.afterRenderTestCase()
-    } finally {
-      super.tearDown()
-    }
-  }
-
+  @Test
   fun testSimpleStrings() {
     checkRendering(
       facet,
       project.baseDir.findFileByRelativePath("app/src/main/res/layout/simple_strings.xml")!!,
-      getTestDataPath() + "/layouts/namespaced/simple_strings.png"
+      projectRule.resolveTestDataPath("/layouts/namespaced/simple_strings.png").path,
     )
   }
 
+  @Test
   fun testAttrsFromLib() {
     withRenderTask(
       facet,
       project.baseDir.findFileByRelativePath("app/src/main/res/layout/attrs_from_lib.xml")!!,
-      "@style/AttrsFromLib"
+      "@style/AttrsFromLib",
     ) {
-      checkRendering(it, AndroidTestBase.getTestDataPath() + "/layouts/namespaced/attrs_from_lib.png")
+      checkRendering(
+        it,
+        AndroidTestBase.getTestDataPath() + "/layouts/namespaced/attrs_from_lib.png",
+      )
     }
   }
 
+  @Test
   fun testParentFromLib() {
     withRenderTask(
       facet,
       project.baseDir.findFileByRelativePath("app/src/main/res/layout/parent_from_lib.xml")!!,
-      "@style/ParentFromLib"
+      "@style/ParentFromLib",
     ) {
-      checkRendering(it, AndroidTestBase.getTestDataPath() + "/layouts/namespaced/parent_from_lib.png")
+      checkRendering(
+        it,
+        AndroidTestBase.getTestDataPath() + "/layouts/namespaced/parent_from_lib.png",
+      )
     }
   }
 }

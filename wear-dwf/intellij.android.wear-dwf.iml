@@ -22,5 +22,6 @@
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
+    <orderEntry type="module" module-name="intellij.android.jps.model" />
   </component>
 </module>

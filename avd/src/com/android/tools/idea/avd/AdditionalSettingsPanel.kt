@@ -22,11 +22,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import com.android.resources.ScreenOrientation
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.CameraLocation
 import com.android.sdklib.internal.avd.AvdCamera
@@ -37,7 +37,6 @@ import com.android.tools.idea.avd.StorageCapacityFieldState.LessThanMin
 import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
 import com.android.tools.idea.avd.StorageCapacityFieldState.Result
 import com.android.tools.idea.avd.StorageCapacityFieldState.Valid
-import com.android.tools.idea.flags.StudioFlags
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toImmutableList
@@ -51,7 +50,6 @@ internal fun AdditionalSettingsPanel(
   state: ConfigureDevicePanelState,
   modifier: Modifier = Modifier,
 ) {
-  val hasPlayStore = state.hasPlayStore()
   val device = state.device
   Column(modifier, verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
     Row {
@@ -70,12 +68,7 @@ internal fun AdditionalSettingsPanel(
     NetworkGroup(device)
     StartupGroup(device)
 
-    StorageGroup(
-      device = device,
-      state = state.storageGroupState,
-      hasPlayStore = hasPlayStore,
-      postMvpFeaturesEnabled = StudioFlags.POST_MVP_VIRTUAL_DEVICE_DIALOG_FEATURES_ENABLED.get(),
-    )
+    StorageGroup(device = device, state = state.storageGroupState)
 
     EmulatedPerformanceGroup(
       device = device,
@@ -202,20 +195,24 @@ private fun StartupGroup(device: VirtualDevice) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Startup")
 
-    Row {
-      Text("Orientation", Modifier.alignByBaseline().padding(end = Padding.SMALL))
+    val orientations =
+      remember(device) { device.deviceProfile.allStates.mapTo(HashSet()) { it.orientation } }
+    if (orientations.size > 1) {
+      Row {
+        Text("Orientation", Modifier.alignByBaseline().padding(end = Padding.SMALL))
 
-      Dropdown(
-        Modifier.alignByBaseline(),
-        menuContent = {
-          ORIENTATIONS.forEach {
-            selectableItem(device.orientation == it, onClick = { device.orientation = it }) {
-              Text(it.shortDisplayValue)
+        Dropdown(
+          Modifier.alignByBaseline(),
+          menuContent = {
+            orientations.forEach {
+              selectableItem(device.orientation == it, onClick = { device.orientation = it }) {
+                Text(it.shortDisplayValue)
+              }
             }
-          }
-        },
-      ) {
-        Text(device.orientation.shortDisplayValue)
+          },
+        ) {
+          Text(device.orientation.shortDisplayValue)
+        }
       }
     }
 
@@ -242,9 +239,6 @@ private fun StartupGroup(device: VirtualDevice) {
     }
   }
 }
-
-private val ORIENTATIONS =
-  listOf(ScreenOrientation.PORTRAIT, ScreenOrientation.LANDSCAPE).toImmutableList()
 
 private val BOOTS = enumValues<Boot>().asIterable().toImmutableList()
 

@@ -95,13 +95,6 @@ internal class RestoreAppAction(
               project.showDialog(message("error.device.not.supported"))
               return@withContext false
             }
-            @Suppress("AssignedValueIsNeverRead")
-            reporter.onStep(Step(++step, steps, "Checking apps..."))
-            val isCompatible = actionHelper.checkCompatibleApps(project, serialNumber)
-            if (!isCompatible) {
-              project.showDialog(message("error.applications.not.installed"))
-              return@withContext false
-            }
             return@withContext true
           }
         }

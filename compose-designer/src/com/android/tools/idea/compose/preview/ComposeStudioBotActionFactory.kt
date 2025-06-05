@@ -21,7 +21,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 interface ComposeStudioBotActionFactory {
   fun createPreviewGenerator(): AnAction?
 
-  fun createSendPreviewAction(): AnAction
+  fun transformPreviewAction(): AnAction?
 
   companion object {
     val EP_NAME: ExtensionPointName<ComposeStudioBotActionFactory> =

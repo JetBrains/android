@@ -484,6 +484,7 @@ Android Studio Preview.app/Contents/lib/modules/intellij.platform.inline.complet
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.foundation.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.ideLafBridge.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.core.jar
+Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.autolink.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.gfmAlerts.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.gfmStrikethrough.jar
 Android Studio Preview.app/Contents/lib/modules/intellij.platform.jewel.markdown.extensions.gfmTables.jar
@@ -3042,6 +3043,7 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/libfeedback_java_proto.ja
 Android Studio Preview.app/Contents/plugins/gemini/lib/libgoogle_auth_intellij_lib.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/libv1internal_java_rest.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/lucene-queryparser-9.12.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/proto-models-1.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/wire-runtime-jvm-5.3.1.jar
 Android Studio Preview.app/Contents/plugins/gemini/resources/journeys/images/clipart/cursor_large.png

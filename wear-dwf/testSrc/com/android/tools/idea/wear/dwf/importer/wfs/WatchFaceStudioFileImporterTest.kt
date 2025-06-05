@@ -17,9 +17,13 @@ package com.android.tools.idea.wear.dwf.importer.wfs
 
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfiguration
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.dwf.importer.wfs.WFSImportResult.Error.Type.UNSUPPORTED_FILE_EXTENSION
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.RunManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -30,7 +34,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class WatchFaceStudioFileImporterTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.withAndroidModel()
+  @get:Rule val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder())
 
   private val fixture
     get() = projectRule.fixture
@@ -219,5 +223,26 @@ class WatchFaceStudioFileImporterTest {
     val result = importer.import(invalidFile.virtualFile.toNioPath())
 
     assertThat(result).isEqualTo(WFSImportResult.Error(UNSUPPORTED_FILE_EXTENSION))
+  }
+
+  @Test
+  fun `the watchface's run configuration is added`() = runTest {
+    Dispatchers.Default
+    val importer =
+      WatchFaceStudioFileImporter.getInstanceForTest(
+        project = projectRule.project,
+        defaultDispatcher = StandardTestDispatcher(testScheduler),
+        ioDispatcher = StandardTestDispatcher(testScheduler),
+      )
+
+    val result = importer.import(testDataPath.resolve("import/aab/example.aab"))
+
+    assertThat(result).isEqualTo(WFSImportResult.Success)
+    val watchFaceRunConfiguration =
+      RunManager.getInstance(projectRule.project).allConfigurationsList.find {
+        it is AndroidDeclarativeWatchFaceConfiguration
+      }
+    assertThat(watchFaceRunConfiguration).isNotNull()
+    assertThat(watchFaceRunConfiguration!!.name).isEqualTo("Camping")
   }
 }

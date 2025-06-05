@@ -44,7 +44,7 @@ class AndroidBuildScriptsGroupNodeTest {
 
   @Test
   fun rootProjectOnly() {
-    val setting_gradle = projectRule.fixture.addFileToProject("settings.gradle", "")
+    val setting_gradle = projectRule.fixture.addFileToProject("settings.gradle", "include('app')")
     val build_gradle = projectRule.fixture.addFileToProject("build.gradle", "")
     val app_build_gradle = projectRule.fixture.addFileToProject("app/build.gradle", "")
     val gradle_wrapper_gradle_wrapper_properties = projectRule.fixture.addFileToProject("gradle/wrapper/gradle-wrapper.properties", "")
@@ -78,7 +78,7 @@ class AndroidBuildScriptsGroupNodeTest {
   @Test
   fun appProject() {
     overrideShowBuildFilesInModule = false
-    val setting_gradle = projectRule.fixture.addFileToProject("settings.gradle", "")
+    val setting_gradle = projectRule.fixture.addFileToProject("settings.gradle", "include('app')")
     val build_gradle = projectRule.fixture.addFileToProject("build.gradle", "")
     val app_build_gradle = projectRule.fixture.addFileToProject("app/build.gradle", "")
     val app_proguard_rules_pro = projectRule.fixture.addFileToProject("app/proguard-rules.pro", "")
@@ -122,7 +122,7 @@ class AndroidBuildScriptsGroupNodeTest {
   @Test
   fun appProjectWithBuildScripts() {
     overrideShowBuildFilesInModule = true
-    val setting_gradle = projectRule.fixture.addFileToProject("settings.gradle", "")
+    val setting_gradle = projectRule.fixture.addFileToProject("settings.gradle", "include('app')")
     val build_gradle = projectRule.fixture.addFileToProject("build.gradle", "")
     val app_build_gradle = projectRule.fixture.addFileToProject("app/build.gradle", "")
     val app_proguard_rules_pro = projectRule.fixture.addFileToProject("app/proguard-rules.pro", "")
@@ -167,7 +167,7 @@ class AndroidBuildScriptsGroupNodeTest {
 
   @Test
   fun addingFile() {
-    val setting_gradle = projectRule.fixture.addFileToProject("settings.gradle", "")
+    val setting_gradle = projectRule.fixture.addFileToProject("settings.gradle", "include('app')")
     val build_gradle = projectRule.fixture.addFileToProject("build.gradle", "")
     projectRule.setupProjectFrom(rootModuleBuilder)
 

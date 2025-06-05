@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.apk.viewer;
 
+import static com.android.SdkConstants.EXT_DEX;
 import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
 import static com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt.IS_PAGE_ALIGN_ENABLED;
 import static com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil.withChecksDisabledForSupplier;
 
-import com.android.SdkConstants;
 import com.android.tools.apk.analyzer.ApkSizeCalculator;
 import com.android.tools.apk.analyzer.Archive;
 import com.android.tools.apk.analyzer.ArchiveContext;
@@ -345,8 +345,9 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
         allDex = false;
         break;
       }
-      Path fileName = path.getData().getPath().getFileName();
-      if (fileName == null || !fileName.toString().endsWith(SdkConstants.EXT_DEX)){
+      Path dataPath = path.getData().getPath();
+      Path fileName = dataPath.getFileName();
+      if (fileName == null || Files.isDirectory(dataPath) || !fileName.toString().endsWith("." + EXT_DEX)){
         allDex = false;
         break;
       }

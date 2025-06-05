@@ -1116,6 +1116,34 @@ internal class DeviceViewTest {
   }
 
   @Test
+  fun testXrMouseInput() {
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558),
+                                     additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,xr"))
+    createDeviceView(200, 300)
+    waitForFrame()
+
+    fakeUi.mouse.moveTo(50, 100)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(643, 642, 0)), MotionEventMessage.ACTION_HOVER_ENTER, 0, 0, 0, true))
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(643, 642, 0)), MotionEventMessage.ACTION_HOVER_MOVE, 0, 0, 0, true))
+
+    fakeUi.mouse.press(50, 100)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(643, 642, 0)), MotionEventMessage.ACTION_HOVER_EXIT, 0, 0, 0, true))
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+      MotionEventMessage(listOf(MotionEventMessage.Pointer(643, 642, 0)), MotionEventMessage.ACTION_DOWN, 1, 1, 0, true))
+
+    fakeUi.mouse.dragTo(60, 150)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(771, 1282, 0)), MotionEventMessage.ACTION_MOVE, 1, 0, 0, true))
+
+    fakeUi.mouse.release()
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(771, 1282, 0)), MotionEventMessage.ACTION_UP, 0, 1, 0, true))
+  }
+
+  @Test
   fun testXrZoom() {
     device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558),
                                      additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,xr"))

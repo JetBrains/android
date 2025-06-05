@@ -83,6 +83,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
         "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
+        "//tools/adt/idea/artwork:intellij.android.artwork",
     ],
     test_friends = ["//tools/adt/idea/preview-designer:intellij.android.preview-designer"],
     test_srcs = ["testSrc"],

@@ -368,7 +368,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       ndkModuleModel = maybeCreateNdkModuleModel(ndkModuleName, rootModulePath!!, androidModels)
     }
     val gradleSettingsFile = findGradleSettingsFile(rootModulePath!!)
-    val hasArtifactsOrNoRootSettingsFile = !(gradleSettingsFile.isFile && !hasArtifacts(externalProject))
+    val hasArtifactsOrNoRootSettingsFile = hasArtifacts(externalProject) || !gradleSettingsFile.isFile
     if (hasArtifactsOrNoRootSettingsFile || androidModel != null) {
       gradleModel = createGradleModuleModel(
         moduleName,

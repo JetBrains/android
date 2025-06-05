@@ -19,14 +19,25 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModel
 import com.android.tools.idea.gradle.structure.model.PsModel
+import com.android.tools.idea.gradle.structure.model.getHolderModuleByGradlePath
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.intellij.pom.java.LanguageLevel
+import org.jetbrains.kotlin.config.IKotlinFacetSettings
+import org.jetbrains.kotlin.idea.facet.KotlinFacet
+import org.jetbrains.kotlin.platform.jvm.JdkPlatform
 
-data class AndroidModuleResolvedModels(val android: IdeAndroidProject?, val ndk: NdkModel?)
+data class AndroidModuleResolvedModels(val android: IdeAndroidProject?, val ndk: NdkModel?, val kotlin: IKotlinFacetSettings?)
 object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidModuleResolvedModels, AndroidModel> {
   override fun getResolved(model: PsAndroidModule): AndroidModuleResolvedModels =
-    AndroidModuleResolvedModels(android = model.resolvedModel?.androidProject, model.resolvedNativeModel?.ndkModel)
+    AndroidModuleResolvedModels(
+      android = model.resolvedModel?.androidProject,
+      ndk = model.resolvedNativeModel?.ndkModel,
+      kotlin = model.parent.ideProject.getHolderModuleByGradlePath(model.gradlePath)?.getMainModule()?.let { module ->
+        KotlinFacet.get(module)?.configuration?.settings
+      }
+    )
 
   override fun getParsed(model: PsAndroidModule): AndroidModel? = model.parsedModel?.android()
 
@@ -98,6 +109,18 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidModule
     knownValuesGetter = ::languageLevels
   )
 
+  val kotlinJvmTarget: SimpleProperty<PsAndroidModule, LanguageLevel> = property(
+    "Kotlin JVM Target",
+    preferredVariableName = { "kotlinJvmTarget" },
+    resolvedValueGetter = { LanguageLevel.parse(kotlin?.targetPlatform?.filterIsInstance<JdkPlatform>()?.firstOrNull()?.targetVersion?.description) },
+    parsedPropertyGetter = { kotlinOptions().jvmTarget() },
+    getter = { asLanguageLevel() },
+    setter = { setLanguageLevel(it) },
+    parser = ::parseLanguageLevel,
+    formatter = ::formatLanguageLevel,
+    knownValuesGetter = ::languageLevels
+  )
+
   val viewBindingEnabled: SimpleProperty<PsAndroidModule, Boolean> = property(
     "Enable View Binding",
     preferredVariableName = { "viewBindingEnabled" },
@@ -135,6 +158,6 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidModule
     model.buildTypes + model.productFlavors + model.flavorDimensions + model.signingConfigs + model.dependencies.items + model.defaultConfig
 
   override val properties: Collection<ModelProperty<PsAndroidModule, *, *, *>> =
-    listOf(compileSdkVersion, buildToolsVersion, ndkVersion, sourceCompatibility, targetCompatibility, viewBindingEnabled,
-           includeDependenciesInfoInApk, includeDependenciesInfoInBundle)
+    listOf(compileSdkVersion, buildToolsVersion, ndkVersion, sourceCompatibility, targetCompatibility, kotlinJvmTarget,
+           viewBindingEnabled, includeDependenciesInfoInApk, includeDependenciesInfoInBundle)
 }

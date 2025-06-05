@@ -34,7 +34,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
-import java.util.ArrayList;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,7 +67,7 @@ public class MultiDexKeepReference extends PsiReferenceBase<MultiDexKeepClassNam
 
   @NotNull
   @Override
-  public Object[] getVariants() {
+  public Object @NotNull [] getVariants() {
     Module module = ModuleUtilCore.findModuleForPsiElement(myElement);
     if (module == null) {
       return ArrayUtil.EMPTY_OBJECT_ARRAY;
@@ -81,14 +81,16 @@ public class MultiDexKeepReference extends PsiReferenceBase<MultiDexKeepClassNam
     GlobalSearchScope scope =
       myElement.getResolveScope().intersectWith(GlobalSearchScope.notScope(new JdkScope(module.getProject(), jdkOrderEntry)));
 
-    ArrayList<LookupElement> result = new ArrayList<>();
-    AllClassesSearch.search(scope, myElement.getProject()).forEach(psiClass -> {
-      String qualifiedName = JvmClassUtil.getJvmClassName(psiClass);
-      if (qualifiedName != null) {
-        result.add(JavaLookupElementBuilder.forClass(psiClass, qualifiedName.replace(".", "/").concat(".class")));
-      }
-    });
+    return AllClassesSearch.search(scope, myElement.getProject())
+      .mapping(psiClass -> {
+        String qualifiedName = JvmClassUtil.getJvmClassName(psiClass);
+        if (qualifiedName == null) {
+          return null;
+        }
 
-    return result.toArray();
+        return (LookupElement)JavaLookupElementBuilder.forClass(psiClass, qualifiedName.replace(".", "/").concat(".class"));
+      })
+      .filtering(Objects::nonNull)
+      .toArray(LookupElement.EMPTY_ARRAY);
   }
 }

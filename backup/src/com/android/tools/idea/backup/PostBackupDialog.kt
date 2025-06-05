@@ -163,7 +163,8 @@ internal class PostBackupDialog(private val project: Project, private val backup
 
   private fun RunnerAndConfigurationSettings.isApplicable(applicationId: String): Boolean {
     val configuration = configuration as? AndroidRunConfiguration ?: return false
-    return configuration.applicationIdProvider?.packageName == applicationId
+    return !configuration.isComposePreview() &&
+      configuration.applicationIdProvider?.packageName == applicationId
   }
 
   private class RunConfigSettingRenderer : ListCellRenderer<RunnerAndConfigurationSettings?> {
@@ -182,3 +183,7 @@ internal class PostBackupDialog(private val project: Project, private val backup
     }
   }
 }
+
+// See `ComposePreviewRunConfiguration`
+private fun AndroidRunConfiguration.isComposePreview() =
+  isLaunchingActivity("androidx.compose.ui.tooling.PreviewActivity")

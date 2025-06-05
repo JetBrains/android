@@ -17,7 +17,7 @@ package com.android.tools.profilers.taskbased.common.constants.strings
 
 import com.android.tools.leakcanarylib.data.LeakingStatus
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 
 object TaskBasedUxStrings {
@@ -189,32 +189,32 @@ object TaskBasedUxStrings {
       ProfilerTaskType.LIVE_VIEW, ProfilerTaskType.LEAKCANARY, ProfilerTaskType.UNSPECIFIED -> ""
     }
 
-  fun getStartTaskErrorMessage(taskStartError: StarTaskSelectionErrorCode) =
+  fun getStartTaskErrorMessage(taskStartError: StartTaskSelectionErrorCode) =
     when (taskStartError) {
-      StarTaskSelectionErrorCode.INVALID_DEVICE -> "No valid device is selected"
-      StarTaskSelectionErrorCode.INVALID_PROCESS -> "No valid process is selected"
-      StarTaskSelectionErrorCode.INVALID_TASK -> "No valid task is selected"
-      StarTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK -> "Tasks configured to run at process start require " +
+      StartTaskSelectionErrorCode.INVALID_DEVICE -> "No valid device is selected"
+      StartTaskSelectionErrorCode.INVALID_PROCESS -> "No valid process is selected"
+      StartTaskSelectionErrorCode.INVALID_TASK -> "No valid task is selected"
+      StartTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK -> "Tasks configured to run at process start require " +
                                                                                     "your app's process to be selected"
 
-      StarTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP -> "The selected task does not support 'Start profiler task from process " +
+      StartTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP -> "The selected task does not support 'Start profiler task from process " +
                                                                 "start'"
 
-      StarTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN -> "The API level is too low to 'Start profiler task from " +
+      StartTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN -> "The API level is too low to 'Start profiler task from " +
                                                                                 "process start'"
 
-      StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN -> "The API level is too low to 'Start profiler task from now'"
-      StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_DEAD_PROCESS -> "'Start profiler task from now' requires a running process"
-      StarTaskSelectionErrorCode.DEVICE_SELECTION_IS_OFFLINE -> "The selected device is offline"
-      StarTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS -> "'Start profiler task from now' requires a running debuggable " +
+      StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN -> "The API level is too low to 'Start profiler task from now'"
+      StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_DEAD_PROCESS -> "'Start profiler task from now' requires a running process"
+      StartTaskSelectionErrorCode.DEVICE_SELECTION_IS_OFFLINE -> "The selected device is offline"
+      StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS -> "'Start profiler task from now' requires a running debuggable " +
                                                                      "process"
 
-      StarTaskSelectionErrorCode.NO_STARTING_POINT_SELECTED -> "No task starting point selected"
-      StarTaskSelectionErrorCode.GENERAL_ERROR -> "This task cannot be run in this configuration"
+      StartTaskSelectionErrorCode.NO_STARTING_POINT_SELECTED -> "No task starting point selected"
+      StartTaskSelectionErrorCode.GENERAL_ERROR -> "This task cannot be run in this configuration"
     }
 
   fun getStartTaskErrorNotificationText(taskStartError: StartTaskSelectionError): String {
-    val errorMessage = getStartTaskErrorMessage(taskStartError.starTaskSelectionErrorCode)
+    val errorMessage = getStartTaskErrorMessage(taskStartError.startTaskSelectionErrorCode)
     if (taskStartError.actionableInfo == null) {
       return errorMessage
     }

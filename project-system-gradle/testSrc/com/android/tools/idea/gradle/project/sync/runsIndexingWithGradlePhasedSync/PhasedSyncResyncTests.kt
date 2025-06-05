@@ -53,6 +53,10 @@ private fun getProjectSpecificResyncIssues(testProject: TestProject) = when(test
   TestProject.SIMPLE_APPLICATION_VIA_SYMLINK -> setOf(
     "/RootProjectPath"
   )
+  // TODO(b/384022658): These projects have test fixture source sets and they are not handled yet.
+  TestProject.TEST_FIXTURES, TestProject.TEST_STATIC_DIR -> setOf(
+    "/LINKED_ANDROID_MODULE_GROUP",
+  )
   else -> emptySet()
 }
 

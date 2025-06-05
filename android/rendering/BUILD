@@ -46,6 +46,7 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
+        "noci:studio-win",  # TODO(b/421871812): flaky timeouts on Windows
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],

@@ -100,7 +100,7 @@ class PreviewPickerValuesProviderTest {
     // Find 'Night' separator
     var nightModeIndex = uiModeValues.indexOfLast { it is HeaderEnumValue }
     assertEquals("Night", (uiModeValues[nightModeIndex] as HeaderEnumValue).header)
-    assertEquals("Normal", uiModeValues[++nightModeIndex].display)
+    assertEquals("Normal (night)", uiModeValues[++nightModeIndex].display)
 
     val deviceValues = valuesProvider.getValuesProvider("Device")!!.invoke()
     assertEquals(
@@ -169,7 +169,7 @@ class PreviewPickerValuesProviderTest {
     // Find 'Night' separator
     var nightModeIndex = uiModeValues.indexOfLast { it is HeaderEnumValue }
     assertEquals("Night", (uiModeValues[nightModeIndex] as HeaderEnumValue).header)
-    assertEquals("Normal", uiModeValues[++nightModeIndex].display)
+    assertEquals("Normal (night)", uiModeValues[++nightModeIndex].display)
 
     val deviceEnumValues = valuesProvider.getValuesProvider("Device")!!.invoke()
     val deviceHeaders = deviceEnumValues.filterIsInstance<HeaderEnumValue>()

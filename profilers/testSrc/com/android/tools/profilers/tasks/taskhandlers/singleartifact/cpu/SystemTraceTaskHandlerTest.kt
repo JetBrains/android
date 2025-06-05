@@ -36,7 +36,7 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
@@ -347,8 +347,8 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     myProfilers.taskHomeTabModel.processListModel.onDeviceSelection(mDevice)
     var mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(mDevice, false)
     assertNotNull(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(mDevice, process))
-    assertEquals(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(mDevice, process)!!.starTaskSelectionErrorCode,
-                 StarTaskSelectionErrorCode.INVALID_DEVICE)
+    assertEquals(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(mDevice, process)!!.startTaskSelectionErrorCode,
+                 StartTaskSelectionErrorCode.INVALID_DEVICE)
     assertEquals(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(mDevice, process)!!.actionableInfo,
                  "No task configuration was found for API 23 device")
     val nDevice = createDevice(AndroidVersion.VersionCodes.N)
@@ -373,8 +373,8 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     val lDevice = createDevice(AndroidVersion.VersionCodes.LOLLIPOP)
     var mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(lDevice, true)
     assertNotNull(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(lDevice, process))
-    assertEquals(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(lDevice, process)!!.starTaskSelectionErrorCode,
-                 StarTaskSelectionErrorCode.INVALID_DEVICE)
+    assertEquals(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(lDevice, process)!!.startTaskSelectionErrorCode,
+                 StartTaskSelectionErrorCode.INVALID_DEVICE)
     assertEquals(mySystemTraceTaskHandlerMock.checkSupportForDeviceAndProcess(lDevice, process)!!.actionableInfo,
                  "No task configuration was found for API 21 device")
     val mDevice = createDevice(AndroidVersion.VersionCodes.M)
@@ -398,15 +398,15 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     // Explicitly set the device to be used to simulate reading device selection from main toolbar.
     selectDevice(nDevice)
     assertNotNull(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(nDevice, process))
-    assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(nDevice, process)!!.starTaskSelectionErrorCode,
-                 StarTaskSelectionErrorCode.INVALID_DEVICE)
+    assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(nDevice, process)!!.startTaskSelectionErrorCode,
+                 StartTaskSelectionErrorCode.INVALID_DEVICE)
     assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(nDevice, process)!!.actionableInfo,
                  "No task configuration was found for API 24 device")
     val oDevice = createDevice(25, "arm", isVirtual = true)
     selectDevice(oDevice)
     assertNotNull(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(oDevice, process))
-    assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(oDevice, process)!!.starTaskSelectionErrorCode,
-                 StarTaskSelectionErrorCode.INVALID_DEVICE)
+    assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(oDevice, process)!!.startTaskSelectionErrorCode,
+                 StartTaskSelectionErrorCode.INVALID_DEVICE)
     assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(oDevice, process)!!.actionableInfo,
                  "No task configuration was found for API 25 device")
   }
@@ -432,8 +432,8 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     // Api 23 devices should not be supported by either ATrace or Perfetto.
     val mDevice = createDevice(23, "arm")
     assertNotNull(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(mDevice, process))
-    assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(mDevice, process)!!.starTaskSelectionErrorCode,
-                 StarTaskSelectionErrorCode.INVALID_DEVICE)
+    assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(mDevice, process)!!.startTaskSelectionErrorCode,
+                 StartTaskSelectionErrorCode.INVALID_DEVICE)
     assertEquals(mySystemTraceTaskHandler.checkSupportForDeviceAndProcess(mDevice, process)!!.actionableInfo,
                  "No task configuration was found for API 23 device")
   }

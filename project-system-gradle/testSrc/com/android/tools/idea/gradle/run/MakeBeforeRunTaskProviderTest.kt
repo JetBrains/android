@@ -430,27 +430,21 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
   }
 
   fun testProfilingMode() {
-    StudioFlags.PROFILEABLE_BUILDS.override(true)
-    try {
-      setUpTestProject()
-      whenever(myDevice.version).thenReturn(AndroidVersion(23, "N"))
-      whenever(myDevice.appPreferredAbi).thenReturn(null)
+    setUpTestProject()
+    whenever(myDevice.version).thenReturn(AndroidVersion(23, "N"))
+    whenever(myDevice.appPreferredAbi).thenReturn(null)
 
-      val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration,
+    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration,
                                                                    targetDeviceSpec(myDevice),
                                                                    deviceSpecs(myDevice),
                                                                    ProfilingMode.PROFILEABLE)
-      assertThat(arguments).contains("-Pandroid.profilingMode=profileable")
+    assertThat(arguments).contains("-Pandroid.profilingMode=profileable")
 
-      val argsWithoutProfilingMode = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration,
+    val argsWithoutProfilingMode = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration,
                                                                                   targetDeviceSpec(myDevice),
                                                                                   deviceSpecs(myDevice),
                                                                                   ProfilingMode.NOT_SET)
-      assertThat(argsWithoutProfilingMode).containsNoneOf("-Pandroid.profilingMode=profileable", "Pandroid.profilingMode=debuggable")
-    }
-    finally {
-      StudioFlags.PROFILEABLE_BUILDS.clearOverride()
-    }
+    assertThat(argsWithoutProfilingMode).containsNoneOf("-Pandroid.profilingMode=profileable", "Pandroid.profilingMode=debuggable")
   }
 
   fun testSdkRuntimeDeviceSpecIncludedInCurrentAgp() {

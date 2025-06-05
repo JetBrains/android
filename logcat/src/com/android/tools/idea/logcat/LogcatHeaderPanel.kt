@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.devices.DeviceComboBox
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
@@ -26,6 +25,7 @@ import com.android.tools.idea.logcat.filters.FilterTextField.FilterUpdated
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
@@ -40,6 +40,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -59,7 +60,7 @@ internal class LogcatHeaderPanel(
   private val filterTextField =
     FilterTextField(project, logcatPresenter, filterParser, filter, filterMatchCase)
   private val helpIcon: JLabel = JLabel(AllIcons.General.ContextHelp)
-  private val scope = AndroidCoroutineScope(logcatPresenter)
+  private val scope = logcatPresenter.createCoroutineScope()
 
   init {
     filterTextField.font = Font.getFont(Font.MONOSPACED)
@@ -85,7 +86,7 @@ internal class LogcatHeaderPanel(
     }
 
     filterTextField.onFilterUpdate(BUFFER_RELOAD_DELAY) {
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         logcatPresenter.applyFilter(filterParser.parse(it.filter, it.matchCase))
       }
     }

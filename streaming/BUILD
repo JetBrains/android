@@ -58,6 +58,9 @@ iml_module(
         "emulator": {
             "test_filter": "com.android.tools.idea.streaming.emulator",
         },
+        "uisettings": {
+            "test_filter": "com.android.tools.idea.streaming.uisettings",
+        },
         "other": {},
     },
     test_class = "com.android.tools.idea.streaming.StreamingTestSuite",

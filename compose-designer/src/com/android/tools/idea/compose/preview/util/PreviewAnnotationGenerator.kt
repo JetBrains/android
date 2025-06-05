@@ -32,7 +32,8 @@ import java.util.Locale as JavaUtilLocale
  * centralizes the logic to convert pixel dimensions (from deviceSize()) to DP.
  */
 internal fun getDimensionsInDp(configuration: Configuration): Pair<Int, Int> {
-  val deviceState = configuration.deviceState!!
+  val deviceState =
+    configuration.deviceState ?: error("Can't create device spec without device state")
   val screen = deviceState.hardware.screen
   val dpi = screen.pixelDensity.dpiValue
 
@@ -105,13 +106,15 @@ internal fun createDeviceSpec(configuration: Configuration): String {
 
 /**
  * Converts the given [ConfigurablePreviewElement]'s display settings and configuration into a
- * `@Preview` annotation string, incorporating the current configuration's dimensions.
+ * `@Preview` annotation string, incorporating the current configuration's dimensions and a new
+ * [name].
  *
  * Parameters are only added if their value is different from their default.
  */
 internal fun toPreviewAnnotationText(
   previewElement: ComposePreviewElementInstance<*>,
   configuration: Configuration,
+  name: String,
 ): String {
   val displaySettings = previewElement.displaySettings
   val previewConfig = previewElement.configuration
@@ -119,22 +122,12 @@ internal fun toPreviewAnnotationText(
   val (currentWidthDp, currentHeightDp) = getDimensionsInDp(configuration)
   val showDecorations = displaySettings.showDecoration
 
-  // Heuristic to get the original 'name' parameter, stripping the PreviewParameterProvider suffix.
-  // The suffix is typically " - <paramName> <index>" (e.g., " - userNewsResources 0")
-  val originalNameFromParameter = displaySettings.parameterName?.substringBefore(" - ")?.trim()
-  val nameToUseInAnnotation =
-    originalNameFromParameter.takeIf { !it.isNullOrBlank() } ?: displaySettings.name
-
   return buildString {
     append("@${COMPOSE_PREVIEW_ANNOTATION_FQN.substringAfterLast('.')}(\n")
 
     val params = mutableListOf<String>()
 
-    // 1. Name and Group
-    // Use the determined nameToUseInAnnotation. Only add if it's not null or blank.
-    if (nameToUseInAnnotation.isNotBlank()) {
-      params.add("$PARAMETER_NAME = \"$nameToUseInAnnotation\"")
-    }
+    params.add("$PARAMETER_NAME = \"$name\"")
     if (!displaySettings.group.isNullOrBlank()) {
       params.add("$PARAMETER_GROUP = \"${displaySettings.group}\"")
     }

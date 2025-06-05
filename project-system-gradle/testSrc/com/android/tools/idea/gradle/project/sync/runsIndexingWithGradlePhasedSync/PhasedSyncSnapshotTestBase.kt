@@ -21,9 +21,11 @@ import com.android.testutils.TestUtils.getSdk
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.dump
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.nameProperties
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
+import com.intellij.openapi.externalSystem.util.Order
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
@@ -36,27 +38,14 @@ import java.io.File
 
 abstract class PhasedSyncSnapshotTestBase {
 
-  lateinit var intermediateDump: ModuleDumpWithType
-  lateinit var isAndroidByPath:  Map<File, Boolean>
+  private val modelDumpSyncContributor = ModelDumpSyncContributor()
+  internal val intermediateDump get() = modelDumpSyncContributor.intermediateDump
+  internal val isAndroidByPath get() = modelDumpSyncContributor.isAndroidByPath
 
 
   @Suppress("UnstableApiUsage")
   fun setupPhasedSyncIntermediateStateCollector(disposable: Disposable) {
-    val testSyncContributor = object : GradleSyncContributor {
-
-      override suspend fun onModelFetchCompleted(context: ProjectResolverContext,
-                                                 storage: MutableEntityStorage) {
-        isAndroidByPath = context.allBuilds.flatMap { buildModel ->
-          buildModel.projects.map { projectModel ->
-            val isAndroidProject = context.getProjectModel(projectModel, Versions::class.java) != null
-            projectModel.projectDirectory to isAndroidProject
-          }
-        }.toMap()
-
-        intermediateDump = context.project().dumpModules(isAndroidByPath)
-      }
-    }
-    GradleSyncContributor.EP_NAME.point.registerExtension(testSyncContributor, disposable)
+    GradleSyncContributor.EP_NAME.point.registerExtension(modelDumpSyncContributor, disposable)
   }
 
   companion object {
@@ -191,34 +180,57 @@ private fun ModuleDumpWithType.includeByModuleName(names: List<String>) = copy (
   }
 )
 
-fun getProjectSpecificIssues(testProject: TestProject) = when(testProject) {
-  // TODO(b/384022658): KMP projects are currently ignored by phased sync, except for when there is no Android target configured.
-  TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
-  TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND -> setOf(
+fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.template) {
+  TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+  TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES -> setOf(
+    // TODO(b/384022658): Linked android module group is still set for KMP holder modules by full sync, but not phased sync
+    "LINKED_ANDROID_MODULE_GROUP",
+    // TODO(b/384022658): KMP projects are currently ignored by phased sync, except for when there is no Android target configured.
     "</>src</>jvmMain",
     "</>src</>jvmTest"
-  )
-  // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
-  TestProject.KOTLIN_KAPT,
-  TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
-    "</>kaptKotlin</>",
-    "</>kapt</>"
-  )
-  // TODO(b/384022658): When switching from debug to release, the orphaned androidTest module isn't removed as in full sync
-  TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
-    "MODULE (MultiFlavor.app.androidTest)",
-  )
-  // TODO(b/384022658): Full sync merges some content roots before populating ending up with a slightly different structure.
-  // See GradleProjectResolver#mergeSourceSetContentRoots. This can be fixed using ContentRootIndex and doing similar merging,
-  // but currently it's not visible to us.
-  TestProject.TEST_STATIC_DIR,
-  // TODO(b/384022658): There are inconsistencies when the source set root (and the manifest) is outside project directory.
-  // It's highly likely this will also be fixed when merging source roots (see above TODO)
-  TestProject.NON_STANDARD_SOURCE_SETS,
-  // TODO(b/384022658): There are inconsistencies when the app is defined in the root Gradle project as opposed to its own project,
-  // It's highly likely this will also be fixed when merging source roots (see above TODO)
-  TestProject.MAIN_IN_ROOT,-> setOf(
-    "/CONENT_ENTRY" // Yes typo
-  )
-  else -> emptySet()
+  ) else -> when(testProject) {
+    // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
+    TestProject.KOTLIN_KAPT,
+    TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
+      "</>kaptKotlin</>",
+      "</>kapt</>"
+    )
+    // TODO(b/384022658): When switching from debug to release, the orphaned androidTest module isn't removed as in full sync
+    TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
+      "MODULE (MultiFlavor.app.androidTest)",
+    )
+    // TODO(b/384022658): Full sync merges some content roots before populating ending up with a slightly different structure.
+    // See GradleProjectResolver#mergeSourceSetContentRoots. This can be fixed using ContentRootIndex and doing similar merging,
+    // but currently it's not visible to us.
+    TestProject.TEST_STATIC_DIR,
+      // TODO(b/384022658): There are inconsistencies when the source set root (and the manifest) is outside project directory.
+      // It's highly likely this will also be fixed when merging source roots (see above TODO)
+    TestProject.NON_STANDARD_SOURCE_SETS,
+      // TODO(b/384022658): There are inconsistencies when the app is defined in the root Gradle project as opposed to its own project,
+      // It's highly likely this will also be fixed when merging source roots (see above TODO)
+    TestProject.MAIN_IN_ROOT,-> setOf(
+      "/CONENT_ENTRY" // Yes typo
+    )
+    else -> emptySet()
+  }
+}
+
+
+@Suppress("UnstableApiUsage")
+@Order(Int.MAX_VALUE)
+internal class ModelDumpSyncContributor: GradleSyncContributor {
+  lateinit var isAndroidByPath:  Map<File, Boolean>
+  lateinit var intermediateDump: ModuleDumpWithType
+
+  override suspend fun onModelFetchCompleted(context: ProjectResolverContext,
+                                             storage: MutableEntityStorage) {
+    isAndroidByPath = context.allBuilds.flatMap { buildModel ->
+      buildModel.projects.map { projectModel ->
+        val isAndroidProject = context.getProjectModel(projectModel, Versions::class.java) != null
+        projectModel.projectDirectory to isAndroidProject
+      }
+    }.toMap()
+
+    intermediateDump = context.project().dumpModules(isAndroidByPath)
+  }
 }

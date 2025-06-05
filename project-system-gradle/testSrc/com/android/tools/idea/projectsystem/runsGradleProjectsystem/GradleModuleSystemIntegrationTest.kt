@@ -94,6 +94,8 @@ class GradleModuleSystemIntegrationTest {
 
       // Verify that getRegisteredDependency gets a existing dependency correctly.
       val appCompat = GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
+      assertThat(moduleSystem.hasRegisteredDependency(appCompat)).isTrue()
+      assertThat(moduleSystem.hasRegisteredDependency(appCompat.getModule())).isTrue()
       val foundDependency = moduleSystem.getRegisteredDependency(appCompat)
       assertThat(foundDependency).isNotNull()
       assertThat(foundDependency?.dependency?.module).isEqualTo(appCompat.getModule())

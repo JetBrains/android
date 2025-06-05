@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,7 +32,10 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +50,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.IntUiPaletteDefaults
+import kotlin.math.abs
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.foundation.Stroke
 import org.jetbrains.jewel.foundation.modifier.border
@@ -64,37 +74,32 @@ fun Carousel(
   val gapWidth = 8.dp
   val canNavigate = itemCount > maxVisibleItems
   val coroutineScope = rememberCoroutineScope()
+  val mostInViewIndex by rememberMostInViewItemIndex(listState, itemCount)
 
   val initialWidth =
     if (itemWidth != null) {
       if (itemCount >= maxVisibleItems) {
         itemWidth * maxVisibleItems + gapWidth
-      }
-      else {
+      } else {
         itemWidth
       }
-    }
-    else {
+    } else {
       0.dp
     }
   var carouselWidth by
-  remember(initialWidth.value.toInt()) { mutableIntStateOf(initialWidth.value.toInt()) }
+    remember(initialWidth.value.toInt()) { mutableIntStateOf(initialWidth.value.toInt()) }
 
   val resolvedItemWidth =
     itemWidth
-    ?: with(LocalDensity.current) {
-      if (itemCount >= maxVisibleItems) {
-        ((carouselWidth.toDp() - (if (maxVisibleItems > 1) gapWidth else 0.dp)) / maxVisibleItems)
+      ?: with(LocalDensity.current) {
+        if (itemCount >= maxVisibleItems) {
+          ((carouselWidth.toDp() - (if (maxVisibleItems > 1) gapWidth else 0.dp)) / maxVisibleItems)
+        } else {
+          carouselWidth.toDp()
+        }
       }
-      else {
-        carouselWidth.toDp()
-      }
-    }
 
-  Row(
-    verticalAlignment = Alignment.CenterVertically,
-    modifier = modifier.padding(horizontal = 8.dp),
-  ) {
+  Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.padding(8.dp)) {
     if (canNavigate) {
       // Left navigation button
       CarouselArrow(
@@ -105,28 +110,55 @@ fun Carousel(
           coroutineScope.launch {
             listState.animateScrollToItem((listState.firstVisibleItemIndex - 1).coerceAtLeast(0))
           }
-        }
+        },
       )
     }
 
-    val rowModifier =
+    val contentModifier =
       if (itemWidth != null) {
         Modifier.width(carouselWidth.dp)
-      }
-      else {
+      } else {
         Modifier.weight(1f).onSizeChanged { size -> carouselWidth = size.width }
       }
-    LazyRow(
-      state = listState,
-      modifier = rowModifier,
-      horizontalArrangement = Arrangement.spacedBy(gapWidth),
-    ) {
-      items(count = itemCount) { index ->
-        Box(
-          modifier = Modifier.width(resolvedItemWidth).fillMaxHeight(),
-          contentAlignment = Alignment.Center,
+    Column(modifier = contentModifier) {
+      LazyRow(
+        state = listState,
+        modifier = Modifier.weight(1f),
+        horizontalArrangement = Arrangement.spacedBy(gapWidth),
+      ) {
+        items(count = itemCount) { index ->
+          Box(
+            modifier = Modifier.width(resolvedItemWidth).fillMaxHeight(),
+            contentAlignment = Alignment.Center,
+          ) {
+            itemContent(index)
+          }
+        }
+      }
+
+      if (itemCount > 1) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+          modifier = Modifier.align(Alignment.CenterHorizontally),
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-          itemContent(index)
+          repeat(itemCount) { index ->
+            val isSelected = mostInViewIndex == index
+            val borderColor =
+              rememberColor(IntUiPaletteDefaults.Dark.Gray11, IntUiPaletteDefaults.Light.Gray8)
+            Box(
+              modifier =
+                Modifier.size(6.dp)
+                  .border(
+                    width = 1.dp,
+                    color = borderColor,
+                    shape = RoundedCornerShape(size = 8.dp),
+                  )
+                  .clip(CircleShape)
+                  .background(color = if (isSelected) borderColor else Color.Transparent)
+                  .clickable { coroutineScope.launch { listState.animateScrollToItem(index) } }
+            )
+          }
         }
       }
     }
@@ -143,31 +175,66 @@ fun Carousel(
               (listState.firstVisibleItemIndex + 1).coerceAtMost(itemCount - 1)
             )
           }
-        }
+        },
       )
     }
   }
 }
 
 @Composable
-private fun CarouselArrow(iconKey: IntelliJIconKey,
-                          contentDescription: String,
-                          enabled: Boolean,
-                          onClick: () -> Unit) {
-  val enabledTintColor = rememberColor(IntUiPaletteDefaults.Dark.Gray7, IntUiPaletteDefaults.Light.Gray7)
-  val disabledTintColor = rememberColor(IntUiPaletteDefaults.Dark.Gray3, IntUiPaletteDefaults.Light.Gray12)
+private fun rememberMostInViewItemIndex(listState: LazyListState, itemCount: Int): State<Int> {
+  if (itemCount == 0) {
+    return remember { mutableIntStateOf(-1) }
+  }
+
+  return remember(listState, itemCount) {
+    derivedStateOf {
+      val layoutInfo = listState.layoutInfo
+      val visibleItemsInfo = layoutInfo.visibleItemsInfo
+
+      if (visibleItemsInfo.isEmpty()) {
+        // If no items are currently visible in layoutInfo (e.g., during initial composition
+        // or if list is empty), fall back to the firstVisibleItemIndex, coerced to valid range
+        listState.firstVisibleItemIndex.coerceIn(0, itemCount - 1)
+      } else {
+        val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
+
+        // Find the item whose center is closest to the viewport center
+        val closestItem =
+          visibleItemsInfo.minByOrNull { itemInfo ->
+            val itemCenter = itemInfo.offset + itemInfo.size / 2
+            abs(itemCenter - viewportCenter)
+          }
+
+        closestItem?.index ?: listState.firstVisibleItemIndex.coerceIn(0, itemCount - 1)
+      }
+    }
+  }
+}
+
+@Composable
+private fun CarouselArrow(
+  iconKey: IntelliJIconKey,
+  contentDescription: String,
+  enabled: Boolean,
+  onClick: () -> Unit,
+) {
+  val enabledTintColor =
+    rememberColor(IntUiPaletteDefaults.Dark.Gray11, IntUiPaletteDefaults.Light.Gray7)
+  val disabledTintColor =
+    rememberColor(IntUiPaletteDefaults.Dark.Gray3, IntUiPaletteDefaults.Light.Gray12)
   val tintColor = if (enabled) enabledTintColor else disabledTintColor
 
   IconButton(
-    modifier = Modifier
-      .size(24.dp)
-      .clip(CircleShape)
-      .border(
-        alignment = Stroke.Alignment.Inside,
-        width = 1.dp,
-        color = rememberColor(IntUiPaletteDefaults.Dark.Gray3, IntUiPaletteDefaults.Light.Gray12),
-        shape = CircleShape,
-      ),
+    modifier =
+      Modifier.size(24.dp)
+        .clip(CircleShape)
+        .border(
+          alignment = Stroke.Alignment.Inside,
+          width = 1.dp,
+          color = rememberColor(IntUiPaletteDefaults.Dark.Gray3, IntUiPaletteDefaults.Light.Gray12),
+          shape = CircleShape,
+        ),
     onClick = { onClick() },
     enabled = enabled,
   ) {

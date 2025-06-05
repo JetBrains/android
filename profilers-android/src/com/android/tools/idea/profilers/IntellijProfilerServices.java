@@ -473,11 +473,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isProfileableBuildsEnabled() {
-      return StudioFlags.PROFILEABLE_BUILDS.get();
-    }
-
-    @Override
     public boolean isTestingModeEnabled() {
       return StudioFlags.PROFILER_TESTING_MODE.get();
     }

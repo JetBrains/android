@@ -236,6 +236,7 @@ class LogcatMainPanelTest {
         "-",
         "Split Panels",
         "  Splitter Action",
+        "Load Proguard Mappings...",
         "-",
         "Take Screenshot",
         "Record Screen",

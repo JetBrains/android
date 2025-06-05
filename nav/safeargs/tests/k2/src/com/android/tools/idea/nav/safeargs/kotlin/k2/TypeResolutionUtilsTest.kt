@@ -17,6 +17,9 @@ package com.android.tools.idea.nav.safeargs.kotlin.k2
 
 import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.google.common.truth.Truth.assertThat
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.junit.Test
 
 class TypeResolutionUtilsTest {
@@ -83,6 +86,38 @@ class TypeResolutionUtilsTest {
     assertThat(resolve(type = ".Baz[]")).isEqualTo("kotlin.Array<foo.bar.Baz>")
     assertThat(resolve(type = ".Baz", nullable = "true")).isEqualTo("foo.bar.Baz?")
     assertThat(resolve(type = ".Baz", defaultValue = "@null")).isEqualTo("foo.bar.Baz?")
+  }
+
+  @Test
+  fun escapeKeywords() {
+    assertThat("in".escapeKeywords()).isEqualTo("`in`")
+    assertThat("foo".escapeKeywords()).isEqualTo("foo")
+  }
+
+  @Test
+  fun escapeFqNameComponents() {
+    assertThat("foo.bar.baz".escapeFqNameComponents()).isEqualTo("foo.bar.baz")
+    assertThat("foo.typealias.baz".escapeFqNameComponents()).isEqualTo("foo.`typealias`.baz")
+  }
+
+  @Test
+  fun escapeName() {
+    assertThat(Name.identifier("foo").toEscapedString()).isEqualTo("foo")
+    assertThat(Name.identifier("for").toEscapedString()).isEqualTo("`for`")
+  }
+
+  @Test
+  fun escapeFqName() {
+    assertThat(FqName("foo.bar.baz").toEscapedString()).isEqualTo("foo.bar.baz")
+    assertThat(FqName("foo.null.baz").toEscapedString()).isEqualTo("foo.`null`.baz")
+  }
+
+  @Test
+  fun escapeClassId() {
+    assertThat(ClassId.fromString("foo/bar/baz.quux").toEscapedString())
+      .isEqualTo("foo.bar.baz.quux")
+    assertThat(ClassId.fromString("true/false/val.var").toEscapedString())
+      .isEqualTo("`true`.`false`.`val`.`var`")
   }
 
   companion object {

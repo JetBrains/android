@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.MultiReceiver
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
+import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
@@ -41,19 +42,19 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Disposer
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.async
 import kotlinx.coroutines.joinAll
-import java.util.concurrent.TimeUnit
 
 /**
- * The minimum version required for the `com.google.android.wearable.app.DEBUG_SURFACE` broadcast receiver
- * running on the device to support setting a declarative watch face.
+ * The minimum version required for the `com.google.android.wearable.app.DEBUG_SURFACE` broadcast
+ * receiver running on the device to support setting a declarative watch face.
  */
 private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 4
 
 /**
- * ADB Shell command that sets a declarative watch face on a device. The application ID of the declarative
- * watch face must be concatenated at the end of the command.
+ * ADB Shell command that sets a declarative watch face on a device. The application ID of the
+ * declarative watch face must be concatenated at the end of the command.
  */
 private const val SET_DECLARATIVE_WATCH_FACE =
   "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --es watchFaceId" // + appId
@@ -84,7 +85,10 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     val applicationId = applicationIdProvider.packageName
     val devices = getDevices(environment, deviceFutures, indicator)
-    RunStats.from(environment).setPackage(applicationId)
+    RunStats.from(environment).apply {
+      setPackage(applicationId)
+      setAppComponentType(ComponentType.DECLARATIVE_WATCH_FACE)
+    }
     val console = createConsole()
     val processHandler =
       AndroidProcessHandler(applicationId, getStopWatchFaceCallback(console, isDebug = false))

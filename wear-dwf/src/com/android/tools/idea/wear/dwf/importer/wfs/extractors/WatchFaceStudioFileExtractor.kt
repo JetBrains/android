@@ -33,14 +33,25 @@ interface WatchFaceStudioFileExtractor {
  *
  * @see WatchFaceStudioFileExtractor
  */
-sealed class ExtractedItem {
-  data class Manifest(val content: String) : ExtractedItem()
+sealed interface ExtractedItem {
+  data class Manifest(val content: String) : ExtractedItem
 
-  data class StringResource(val name: String, val filePath: Path, val value: String) :
-    ExtractedItem()
+  sealed interface Resource : ExtractedItem {
+    val name: String
+    val filePath: Path
+  }
 
-  data class BinaryResource(val name: String, val filePath: Path, val binaryContent: ByteArray) :
-    ExtractedItem() {
+  data class StringResource(
+    override val name: String,
+    override val filePath: Path,
+    val value: String,
+  ) : Resource
+
+  data class BinaryResource(
+    override val name: String,
+    override val filePath: Path,
+    val binaryContent: ByteArray,
+  ) : Resource {
     // https://www.jetbrains.com/help/inspectopedia/ArrayInDataClass.html
     override fun equals(other: Any?): Boolean {
       if (this === other) return true
@@ -63,5 +74,9 @@ sealed class ExtractedItem {
     }
   }
 
-  data class TextResource(val name: String, val filePath: Path, val text: String) : ExtractedItem()
+  data class TextResource(
+    override val name: String,
+    override val filePath: Path,
+    val text: String,
+  ) : Resource
 }

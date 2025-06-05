@@ -17,6 +17,7 @@ package com.android.tools.idea.nav.safeargs.kotlin.k2
 
 import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
+import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
@@ -551,6 +552,68 @@ class DirectionsClassResolveExtensionTest(
       assertThat(symbol.render(RENDERER))
         .isEqualTo(
           "fun actionFragment1ToFragment2($argumentBody): androidx.navigation.NavDirections"
+        )
+    }
+  }
+
+  @Test
+  @SafeArgsRule.PackageName("in.test.package")
+  fun handlesKeywordsInNames() {
+    addNavXml(
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+          <fragment
+              android:id="@+id/fragment1"
+              android:name=".Fragment1"
+              android:label="Fragment1">
+            <action
+                android:id="@+id/object"
+                app:destination="@+id/fragment2">
+              <argument
+                  android:name="class"
+                  app:argType=".ArgEnum"/>
+              <argument
+                  android:name="interface"
+                  app:argType=".ArgEnum[]"/>
+              <argument
+                  android:name="default"
+                  app:argType="string"
+                  android:defaultValue="foo&#xA;`If you can see this, escaping has failed`: Nothing?,"/>
+            </action>
+          </fragment>
+          <fragment
+              android:id="@+id/fragment2"
+              android:name=".Fragment2"
+              android:label="Fragment2">
+          </fragment>
+        </navigation>
+      """
+        .trimIndent()
+    )
+
+    analyzeFileContent(
+      """
+        package `in`.test.`package`
+
+        val x = Fragment1Directions::${caret}`object`
+      """
+        .trimIndent()
+    ) { symbol: KaNamedFunctionSymbol ->
+      assertThat(symbol.name.asString()).isEqualTo("object")
+
+      val parametersByName = getValueParameterNamesAndTypes(symbol)
+      assertThat(parametersByName)
+        .containsExactlyEntriesIn(
+          mapOf(
+            "class" to "`in`.test.`package`.ArgEnum",
+            "interface" to "kotlin.Array<`in`.test.`package`.ArgEnum>",
+            "default" to "kotlin.String",
+          )
         )
     }
   }

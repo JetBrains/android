@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatching
-import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapNull
 import org.gradle.tooling.BuildController
 import java.util.Collections
 
@@ -147,9 +146,8 @@ internal class VariantDiscovery(
     // Fetch the kotlin dependencies for the successfully fetched modules
     actionRunner.runActions(
         results
-        .filterIsInstance<ModelResult<SyncVariantResultSuccess>>()
         .mapNotNull {
-          it.ignoreExceptionsAndGet()?.let { fetchKotlinModelsAction(it) }
+          (it.ignoreExceptionsAndGet() as? SyncVariantResultSuccess)?.let { fetchKotlinModelsAction(it) }
         }
     )
 
@@ -211,9 +209,9 @@ internal class VariantDiscovery(
           val ideVariant: IdeVariantWithPostProcessor =
             module
               .variantFetcher(controller, androidProjectPathResolver, module, this@toFetchVariantDependenciesAction)
-              .mapNull { error("Resolved variant '${variant}' does not exist.") }
               .recordAndGet()
-            ?: return@create SyncVariantResultFailure(this@toFetchVariantDependenciesAction, module)
+            ?: error("Resolved variant '${variant}' does not exist.")
+
 
           val variantName = ideVariant.name
           val abiToRequest: String? = chooseAbiToRequest(module, variantName, abi)
@@ -312,17 +310,46 @@ internal class VariantDiscovery(
           it.buildAllRuntimeClasspaths(addAdditionalArtifactsInModel = true)
       }
 
-      projectGraph!!.resolvedVariants.mapNotNull { (projectPath, variantName) ->
-        val moduleId = Modules.createUniqueModuleId(parentModule.gradleProject.projectIdentifier.buildIdentifier.rootDir, projectPath)
+      @Suppress("DEPRECATION") // Have to be backwards compatible here
+      val modulesIdsByVariantName = if (parentModule.modelVersions[ModelFeature.HAS_BUILD_AWARE_PROJECT_GRAPH]) {
+        projectGraph.resolvedVariantsWithProjectInfo!!.mapNotNull { (projectInfo, variantName) ->
+          val projectPath = projectInfo.projectPath
+          val buildId = parentModule.buildPathMap[projectInfo.buildTreePath] ?: error(
+            "Expected android module not found in build map! Build id: ${projectInfo.buildId} Path: $projectPath")
+
+          val discoveredModule = androidProjectPathResolver.resolve(buildId, projectPath) ?: error(
+            "Expected android module not found! Build id: ${buildId.asString} Path: $projectPath")
+          Modules.createUniqueModuleId(discoveredModule.gradleProject) to variantName
+        }
+      } else {
+        // Initial implementation of the project graph was missing the build identifier for the project paths, so just assuming same project
+        // with the parent module. This is known not to work properly with composite builds and is fixed with a newer iteration.
+        projectGraph.resolvedVariants!!.mapNotNull { (projectPath, variantName) ->
+          val moduleId = Modules.createUniqueModuleId(parentModule.gradleProject.projectIdentifier.buildIdentifier.rootDir, projectPath)
+          if (androidModulesById.contains(moduleId)) {
+            moduleId to variantName
+          } else {
+            // As a workaround, try to find a build with matching project path if the originally returned one doesn't exist
+            // This might be wrong initially, but then is reconciled by the full dependency fetch later
+            parentModule.buildPathMap.values.firstNotNullOfOrNull {
+              androidProjectPathResolver.resolve(it, projectPath)
+            }?.let {
+              Modules.createUniqueModuleId(it.gradleProject) to variantName
+            }
+          }
+        }
+      }
+
+      modulesIdsByVariantName.mapNotNull { (moduleId, variantName) ->
         check(androidModulesById.contains(moduleId)) { "Expected android module not found! $moduleId" }
         ModuleConfiguration(
-          moduleId,
-          variantName,
-          chooseAbiToRequest(parentModule, variant, abi) ?: abi, // using parent's abi values
-          isRoot = false
-        ).takeIf { it.shouldVisit() }
-      }
-  }, fetchesV2Models = true)
+            moduleId,
+            variantName,
+            chooseAbiToRequest(parentModule, variant, abi) ?: abi, // using parent's abi values
+            isRoot = false
+          ).takeIf { it.shouldVisit() }
+        }
+     }, fetchesV2Models = true)
 
   /**
    * After the dependencies are fetched and processed, this will traverse the dependencies of the given module, in depth-first order.
@@ -442,8 +469,7 @@ internal class VariantDiscovery(
           .map { it.value }
           .filterIsInstance<FetchedVariantResult.Finished>()
           .map { it.result }
-          .filterIsInstance<ModelResult<SyncVariantResultSuccess>>()
-          .mapNotNull { it.ignoreExceptionsAndGet()?.ideVariant?.variant }
+          .mapNotNull { (it.ignoreExceptionsAndGet() as? SyncVariantResultSuccess)?.ideVariant?.variant }
           .toList()
           .getDefaultVariantFromIdeModels(multiVariantData.buildTypes, multiVariantData.productFlavors)
       defaultVariant?.let { moduleId to it }

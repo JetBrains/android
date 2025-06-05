@@ -451,6 +451,7 @@ filegroup(
         "//tools/vendor/google/ml/aiplugin/core:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/core:gemini_plugin_proto",
+        "//tools/vendor/google/ml/aiplugin/mcp/client:mcp-kotlin-sdk",
         "//tools/vendor/google/url-assistant:urlassistant_proto",
     ],
     visibility = ["//visibility:public"],

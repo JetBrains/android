@@ -18,22 +18,26 @@ package com.android.tools.idea.preview.actions
 import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.SceneViewIssueNodeVisitor
+import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.project.Project
 import icons.StudioIcons
 
 /** [AnAction] that can be used to show an icon according to the [PreviewViewModelStatus]. */
-class PreviewStatusIcon : AnAction() {
+class PreviewStatusIcon : DumbAwareAction() {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    val previewViewModelStatus = e.getData(PREVIEW_VIEW_MODEL_STATUS)
+    val previewStatus = e.getData(PREVIEW_VIEW_MODEL_STATUS) ?: return
+    val project = e.project ?: return
     e.presentation.apply {
-      if (hasSceneViewErrors(e.dataContext) && previewViewModelStatus?.isRefreshing == false) {
+      if (hasSceneViewErrors(e.dataContext) && !isLoading(project, previewStatus)) {
         isVisible = true
         isEnabled = true
         icon = StudioIcons.Common.WARNING
@@ -45,6 +49,9 @@ class PreviewStatusIcon : AnAction() {
       }
     }
   }
+
+  private fun isLoading(project: Project, previewStatus: PreviewViewModelStatus): Boolean =
+    previewStatus.isRefreshing || project.fastPreviewManager.isCompiling
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return

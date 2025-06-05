@@ -437,7 +437,7 @@ android-studio/jbr/release
 android-studio/lib/annotations.jar
 android-studio/lib/app.jar
 android-studio/lib/bouncy-castle.jar
-android-studio/lib/build-marker-AI-251.25410.109.2512.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-251.26094.121.2512.__BUILD_NUMBER__
 android-studio/lib/external-system-rt.jar
 android-studio/lib/externalProcess-rt.jar
 android-studio/lib/forms_rt.jar
@@ -484,6 +484,7 @@ android-studio/lib/modules/intellij.platform.inline.completion.jar
 android-studio/lib/modules/intellij.platform.jewel.foundation.jar
 android-studio/lib/modules/intellij.platform.jewel.ideLafBridge.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.core.jar
+android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.autolink.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmAlerts.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmStrikethrough.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmTables.jar
@@ -3033,6 +3034,7 @@ android-studio/plugins/gemini/lib/libfeedback_java_proto.jar
 android-studio/plugins/gemini/lib/libgoogle_auth_intellij_lib.jar
 android-studio/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 android-studio/plugins/gemini/lib/libv1internal_java_rest.jar
+android-studio/plugins/gemini/lib/lucene-queryparser-9.12.0.jar
 android-studio/plugins/gemini/lib/proto-models-1.0.jar
 android-studio/plugins/gemini/lib/wire-runtime-jvm-5.3.1.jar
 android-studio/plugins/gemini/resources/journeys/images/clipart/cursor_large.png

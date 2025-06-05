@@ -45,10 +45,7 @@
         serviceImplementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerAnalyticsTrackerImpl" />
     <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
                     serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
+    <postStartupActivity implementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerProjectActivity"/>
   </extensions>
-
-  <projectListeners>
-    <listener class="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerProjectListener" topic="com.intellij.openapi.project.ProjectManagerListener"/>
-  </projectListeners>
 
 </idea-plugin>

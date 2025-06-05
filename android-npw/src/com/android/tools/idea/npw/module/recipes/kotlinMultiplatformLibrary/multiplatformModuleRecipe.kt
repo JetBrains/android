@@ -69,13 +69,14 @@ private fun RecipeExecutor.generateModule(
   addPlugin(
     "org.jetbrains.kotlin.multiplatform",
     "org.jetbrains.kotlin:kotlin-gradle-plugin",
-    projectData.kotlinVersion.toString(),
+    projectData.kotlinVersion,
   )
   addPlugin(
     "com.android.kotlin.multiplatform.library",
-    "org.jetbrains.kotlin:kotlin-gradle-plugin",
+    "com.android.tools.build:gradle",
     projectData.agpVersion.toString(),
   )
+  addPlugin("com.android.lint", "com.android.tools.build:gradle", projectData.agpVersion.toString())
 
   save(manifestXml, data.manifestDir.resolve(SdkConstants.FN_ANDROID_MANIFEST_XML))
   save(gitignore(), data.rootDir.resolve(".gitignore"))

@@ -22,7 +22,7 @@ import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.HeapDumpTaskArgs
 
@@ -64,7 +64,7 @@ class HeapDumpTaskHandler(sessionsManager: SessionsManager) : MemoryTaskHandler(
       return null
     }
 
-    return StartTaskSelectionError(StarTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
+    return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
   }
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) = artifact is HprofSessionArtifact

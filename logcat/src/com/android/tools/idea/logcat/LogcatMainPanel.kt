@@ -21,7 +21,7 @@ import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.LoadLogcatFile
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.PauseLogcat
@@ -294,7 +294,7 @@ constructor(
   private val noLogsBanner = WarningNotificationPanel()
   private val document = editor.document
   private val documentAppender = DocumentAppender(project, document, logcatSettings.bufferSize)
-  private val coroutineScope = AndroidCoroutineScope(this)
+  private val coroutineScope = createCoroutineScope()
 
   override var formattingOptions: FormattingOptions = state.getFormattingOptions()
     set(value) {

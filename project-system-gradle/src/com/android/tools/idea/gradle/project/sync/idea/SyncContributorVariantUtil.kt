@@ -19,28 +19,19 @@ import com.android.builder.model.v2.ide.AndroidArtifact
 import com.android.builder.model.v2.ide.BasicArtifact
 import com.android.builder.model.v2.ide.JavaArtifact
 import com.android.builder.model.v2.ide.SourceProvider
-import com.android.builder.model.v2.models.AndroidDsl
-import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
 import com.android.tools.idea.gradle.project.sync.Modules
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
-import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.convertArtifactName
 import com.android.tools.idea.gradle.project.sync.getDefaultVariant
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import org.jetbrains.plugins.gradle.model.GradleLightProject
 
 /** Returns all source sets (main and for a selected variant) for a given gradle project. */
-internal fun SyncContributorGradleProjectContext.getAllSourceSetsFromModels(): List<SourceSetData> {
-  val variantName = getVariantName(
-    syncOptions,
-    projectModel,
-    basicAndroidProject,
-    androidDsl
-  ) ?: return emptyList()
+internal fun SyncContributorAndroidProjectContext.getAllSourceSetsFromModels(): List<SourceSetData> {
+  val variantName = getVariantName() ?: return emptyList()
 
   val (buildType, flavors) = basicAndroidProject.variants
     .singleOrNull { it.name == variantName }
@@ -53,7 +44,7 @@ internal fun SyncContributorGradleProjectContext.getAllSourceSetsFromModels(): L
 
 
 @Suppress("DEPRECATION") // Need to be backwards compatible here
-internal fun SyncContributorGradleProjectContext.getSourceSetDataForBasicAndroidProject(
+internal fun SyncContributorAndroidProjectContext.getSourceSetDataForBasicAndroidProject(
   variantName: String,
   buildTypeForVariant: String?,
   productFlavorsForVariant: List<String>): List<SourceSetData> {
@@ -114,7 +105,7 @@ internal fun SyncContributorGradleProjectContext.getSourceSetDataForBasicAndroid
 }
 
 @Suppress("DEPRECATION") // Need to be backwards compatible here
-internal fun SyncContributorGradleProjectContext.getSourceSetDataForAndroidProject(selectedVariantName: String): List<SourceSetData>{
+internal fun SyncContributorAndroidProjectContext.getSourceSetDataForAndroidProject(selectedVariantName: String): List<SourceSetData>{
   val sourceSets = mutableListOf<SourceSetData>()
 
   androidProject.variants
@@ -141,21 +132,16 @@ internal fun SyncContributorGradleProjectContext.getSourceSetDataForAndroidProje
   return sourceSets
 }
 
-internal fun getVariantName(
-  syncOptions: SyncActionOptions,
-  gradleProject: GradleLightProject,
-  basicAndroidProject: BasicAndroidProject,
-  androidDsl: AndroidDsl
-): String? =
+internal fun SyncContributorAndroidProjectContext.getVariantName(): String? =
   when (syncOptions) {
     is SingleVariantSyncActionOptions ->
-      syncOptions.switchVariantRequest.takeIf { it?.moduleId == gradleProject.moduleId() }?.variantName // newly user-selected variant
-      ?: syncOptions.selectedVariants.getSelectedVariant(gradleProject.moduleId()) // variants selected by the last sync
+      // newly user-selected variant
+      syncOptions.switchVariantRequest.takeIf { it?.moduleId == projectModel.moduleId() }?.variantName
+      // variants selected by the last sync, only if it still exists
+      ?: syncOptions.selectedVariants.getSelectedVariant(projectModel.moduleId()).takeIf { basicAndroidProject.variants.map { it.name }.contains(it) }
     else -> null
-  } ?: basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors) // default variant
-
-
-
+  } // default variant as specified by the build script
+  ?: basicAndroidProject.variants.toList().getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors) // default variant
 
 private fun createSourceSetDataForSourceProvider(name: IdeArtifactName,
                                                  provider: SourceProvider,
@@ -180,9 +166,8 @@ private fun createSourceSetDataForSourceProvider(name: IdeArtifactName,
         emptySet()
                                            ) - sourceDirectories // exclude source directories in case they are shared
 
-  val sourceSetName = name.toWellKnownSourceSet().sourceSetName
-  return  listOf(
-    sourceSetName to mapOf(
+  return listOf(
+    name to mapOf(
       (if (isProduction) ExternalSystemSourceType.SOURCE else ExternalSystemSourceType.TEST)
         to sourceDirectories,
       (if (isProduction) ExternalSystemSourceType.RESOURCE else ExternalSystemSourceType.TEST_RESOURCE)
@@ -192,23 +177,21 @@ private fun createSourceSetDataForSourceProvider(name: IdeArtifactName,
 }
 
 private fun createSourceSetDataForAndroidArtifact(name: IdeArtifactName, artifact: AndroidArtifact, isProduction: Boolean): List<SourceSetData> {
-  val sourceSetName = name.toWellKnownSourceSet().sourceSetName
   return artifact.generatedSourceFolders.map {
-    sourceSetName to mapOf(
-      (if (isProduction) ExternalSystemSourceType.SOURCE else ExternalSystemSourceType.TEST) to setOf(it)
+    name to mapOf(
+      (if (isProduction) ExternalSystemSourceType.SOURCE_GENERATED else ExternalSystemSourceType.TEST_GENERATED) to setOf(it)
     )
   } + artifact.generatedResourceFolders.map {
-    sourceSetName to mapOf(
-      (if (isProduction) ExternalSystemSourceType.RESOURCE else ExternalSystemSourceType.TEST_RESOURCE) to setOf(it)
+    name to mapOf(
+      (if (isProduction) ExternalSystemSourceType.RESOURCE_GENERATED else ExternalSystemSourceType.TEST_RESOURCE_GENERATED) to setOf(it)
     )
   }
 }
 
 private fun createSourceSetDataForTestJavaArtifact(name: IdeArtifactName, artifact: JavaArtifact): List<SourceSetData> {
-  val sourceSetName = name.toWellKnownSourceSet().sourceSetName
   return artifact.generatedSourceFolders.map {
-    sourceSetName to mapOf(
-      ExternalSystemSourceType.TEST to setOf(it)
+    name to mapOf(
+      ExternalSystemSourceType.TEST_GENERATED to setOf(it)
     )
   }
 }

@@ -86,11 +86,14 @@ internal class ArgsClassResolveExtensionFile(
     get() = destinationXmlTag
 
   override fun StringBuilder.buildClassBody() {
-    appendLine("data class ${classId.shortClassName}(")
+    appendLine("data class ${classId.shortClassName.toEscapedString()}(")
     for (arg in resolvedArguments) {
-      append("  val ${arg.name.toCamelCase()}: ${arg.resolveKotlinType(navInfo.packageName)}")
-      if (arg.defaultValue != null) {
-        appendLine(" = TODO(),  // ${arg.defaultValue}")
+      append(
+        "  val ${arg.name.toCamelCase().escapeKeywords()}: ${arg.resolveKotlinType(navInfo.packageName)}"
+      )
+      val defaultValue = arg.defaultValue
+      if (defaultValue != null) {
+        appendLine(" = TODO(),  // ${defaultValue.escapeNewlinesForComment()}")
       } else {
         appendLine(",")
       }
@@ -104,12 +107,12 @@ internal class ArgsClassResolveExtensionFile(
     appendLine("  companion object {")
     appendLine("    @kotlin.jvm.JvmStatic")
     appendLine(
-      "    fun fromBundle(bundle: android.os.Bundle): ${classId.asFqNameString()} = TODO()"
+      "    fun fromBundle(bundle: android.os.Bundle): ${classId.toEscapedString()} = TODO()"
     )
     if (navInfo.navVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
       appendLine("    @kotlin.jvm.JvmStatic")
       appendLine(
-        "    fun fromSavedStateHandle(handle: androidx.lifecycle.SavedStateHandle): ${classId.asFqNameString()} = TODO()"
+        "    fun fromSavedStateHandle(handle: androidx.lifecycle.SavedStateHandle): ${classId.toEscapedString()} = TODO()"
       )
     }
     appendLine("  }")

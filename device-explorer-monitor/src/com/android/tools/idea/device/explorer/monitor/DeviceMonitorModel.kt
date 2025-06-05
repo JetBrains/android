@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
-import com.android.adblib.ConnectedDevice
 import com.android.annotations.concurrency.UiThread
+import com.android.ddmlib.IDevice
 import com.android.tools.idea.backup.BackupManager
 import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
+import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
 import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorTableModel
@@ -27,55 +28,63 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @UiThread
 class DeviceMonitorModel @NonInjectable constructor(
   private val processService: DeviceProcessService,
   private val packageNamesProvider: ProjectApplicationIdsProvider) {
-  private val logger = thisLogger()
-  private var activeDevice: ConnectedDevice? = null
-  private var allProcesses: List<ProcessInfo> = listOf()
+  private var activeDevice: AdbDevice? = null
+  private val activeDeviceMutex = Mutex()
   val tableModel = DeviceMonitorTableModel()
   val isPackageFilterActive = MutableStateFlow(DeviceExplorerSettings.getInstance().isPackageFilterActive)
   val isApplicationIdsEmpty = MutableStateFlow(true)
 
-  constructor(project: Project, processService: DeviceProcessService) : this(processService,
-                                                                             ProjectApplicationIdsProvider.getInstance(project))
+  constructor(project: Project, processService: DeviceProcessService) : this(processService, ProjectApplicationIdsProvider.getInstance(project))
 
-  fun setPackageFilter(isActive: Boolean) {
+  suspend fun setPackageFilter(isActive: Boolean) {
     if (isPackageFilterActive.value != isActive) {
       isPackageFilterActive.value = isActive
       refreshCurrentProcessList()
     }
   }
 
-  fun projectApplicationIdListChanged() {
+  suspend fun projectApplicationIdListChanged() {
     isApplicationIdsEmpty.value = packageNamesProvider.getPackageNames().isEmpty()
     refreshCurrentProcessList()
   }
 
-  fun setAllProcesses(allProcesses: List<ProcessInfo>) {
-    this.allProcesses = allProcesses
-    refreshCurrentProcessList()
-  }
-
-  fun setActiveDevice(connectedDevice: ConnectedDevice?) {
-    activeDevice = connectedDevice
-  }
-
-  private fun refreshCurrentProcessList() {
-    if (allProcesses.isEmpty()) {
-      tableModel.clearProcesses()
+  suspend fun activeDeviceChanged(device: IDevice?) {
+    if (device != null) {
+      if (activeDevice?.device != device) {
+        activeDeviceMutex.withLock {
+          activeDevice = AdbDevice(device)
+        }
+        refreshCurrentDeviceProcessList()
+      }
     } else {
-      logger.debug("$activeDevice: Process list updated to ${allProcesses.size} processes")
-      tableModel.updateProcessRows(filterProcessList(allProcesses))
+      activeDeviceMutex.withLock {
+        activeDevice = null
+      }
+      tableModel.clearProcesses()
     }
+  }
+
+  suspend fun refreshProcessListForDevice(device: IDevice) {
+    if (activeDevice?.device == device) {
+      refreshCurrentProcessList()
+    }
+  }
+
+  suspend fun refreshCurrentProcessList() {
+    refreshCurrentDeviceProcessList()
   }
 
   suspend fun killNodesInvoked(rows: IntArray) {
     invokeOnProcessInfo(rows) { processInfo ->
       activeDevice?.let {
-        processService.killProcess(processInfo, it)
+        processService.killProcess(processInfo, it.device)
       }
     }
   }
@@ -83,7 +92,7 @@ class DeviceMonitorModel @NonInjectable constructor(
   suspend fun forceStopNodesInvoked(rows: IntArray) {
     invokeOnProcessInfo(rows) { processInfo ->
       activeDevice?.let {
-        processService.forceStopProcess(processInfo, it)
+        processService.forceStopProcess(processInfo, it.device)
       }
     }
   }
@@ -91,7 +100,7 @@ class DeviceMonitorModel @NonInjectable constructor(
   suspend fun debugNodesInvoked(project: Project, rows: IntArray) {
     invokeOnProcessInfo(rows) { processInfo ->
       activeDevice?.let {
-        processService.debugProcess(project, processInfo, it)
+        processService.debugProcess(project, processInfo, it.device)
       }
     }
   }
@@ -100,21 +109,30 @@ class DeviceMonitorModel @NonInjectable constructor(
     val adbDevice = activeDevice ?: return
     assert(rows.size == 1)
     val processInfo = tableModel.getValueForRow(rows.first())
-    processService.backupApplication(project, processInfo, adbDevice)
+    processService.backupApplication(project, processInfo, adbDevice.device)
   }
 
   fun restoreApplication(project: Project, rows: IntArray) {
     val adbDevice = activeDevice ?: return
     assert(rows.size == 1)
     val backupFile = BackupManager.getInstance(project).chooseRestoreFile() ?: return
-
-    processService.restoreApplication(project, adbDevice, backupFile)
+    processService.restoreApplication(project, adbDevice.device, backupFile)
   }
 
   private suspend fun invokeOnProcessInfo(rows: IntArray, block: suspend (ProcessInfo) -> Unit) {
     rows.forEach { row ->
       val processInfo = tableModel.getValueForRow(row)
       block(processInfo)
+    }
+  }
+
+  private suspend fun refreshCurrentDeviceProcessList() {
+    activeDeviceMutex.withLock {
+      activeDevice?.let {
+        val processList = filterProcessList(processService.fetchProcessList(it))
+        thisLogger().debug("$it: Process list updated to ${processList.size} processes")
+        tableModel.updateProcessRows(processList)
+      }
     }
   }
 
@@ -126,8 +144,7 @@ class DeviceMonitorModel @NonInjectable constructor(
     val filteredList = mutableListOf<ProcessInfo>()
     val projectPackages = packageNamesProvider.getPackageNames()
     for (process in list) {
-      val packageName = process.packageName
-      if (projectPackages.contains(packageName)) {
+      if (projectPackages.contains(process.packageName)) {
         filteredList.add(process)
       }
     }

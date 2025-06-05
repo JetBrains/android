@@ -180,6 +180,7 @@ class DetailsPanelHeader(
   fun clear() {
     titleLabel.icon = null
     titleLabel.text = null
+    titleLabel.isVisible = false
     titleVariantSeparatorPanel.isVisible = false
     countsPanel.isVisible = false
     variantPanel.isVisible = false
@@ -196,6 +197,7 @@ class DetailsPanelHeader(
     }
     titleLabel.putUserData(KEY, Pair(model.className, model.methodName))
     titleLabel.text = generateTitleLabelText(model.className, model.methodName)
+    titleLabel.isVisible = true
   }
 
   private fun generateTitleLabelText(className: String, methodName: String): String {

@@ -24,7 +24,6 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.instantapp.InstantApps
 import com.android.tools.idea.model.MergedManifestModificationTracker
-import com.android.tools.idea.project.coroutines.runReadActionInSmartModeWithIndexes
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -47,6 +46,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -327,15 +327,15 @@ class AndroidRunConfigurations {
   }
 
   private suspend fun extractWearComponentsNonCached(module: Module): List<WearComponent> {
-    return module.project.runReadActionInSmartModeWithIndexes {
+    return smartReadAction(module.project) {
       val manifests = module.getModuleSystem()
         .getMergedManifestContributors().let {
           val primaryManifest = it.primaryManifest
             ?.let { file -> AndroidUtils.loadDomElement(module, file, Manifest::class.java) }
-            ?: return@runReadActionInSmartModeWithIndexes emptyList()
+            ?: return@smartReadAction emptyList()
 
           if (!isWatchFeatureRequired(primaryManifest)) {
-            return@runReadActionInSmartModeWithIndexes emptyList()
+            return@smartReadAction emptyList()
           }
 
           val libraryManifests = it.libraryManifests.mapNotNull { file ->

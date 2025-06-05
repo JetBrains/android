@@ -16,36 +16,25 @@
 package com.android.tools.idea.debuggers.coroutine
 
 import com.android.tools.idea.execution.common.AndroidSessionInfo
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManagerListener
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.XDebuggerManagerListener
+import org.jetbrains.android.AndroidStartupManager.ProjectDisposableScope
 import org.jetbrains.kotlin.idea.debugger.coroutine.DebuggerConnection
 
 /**
  * Class responsible for setting up the coroutine debugger panel
  */
-class CoroutineDebuggerProjectListener : ProjectManagerListener {
-  private var associatedProject: Project? = null
-
-  override fun projectOpened(project: Project) {
+class CoroutineDebuggerProjectActivity : ProjectActivity{
+  override suspend fun execute(project: Project) {
     if (!FlagController.isCoroutineDebuggerEnabled) {
       return
     }
-
-    // multiple projects can be opened at the same time, which causes multiple ProjectManagerListeners to be created.
-    // ProjectManagerListeners#projectOpened is called on every listener every time a project is opened.
-    // by checking this flag we prevent the same listener to register the execution listener multiple times.
-    if (associatedProject != null) {
-      return
-    }
-    associatedProject = project
-
-    val connection = project.messageBus.connect(project)
-
-    val executionListener = CoroutineDebuggerListener(project)
-    connection.subscribe(XDebuggerManager.TOPIC, executionListener)
+    val connection = project.messageBus.connect(project.service<ProjectDisposableScope>())
+    connection.subscribe(XDebuggerManager.TOPIC, CoroutineDebuggerListener(project))
   }
 }
 

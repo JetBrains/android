@@ -17,22 +17,29 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ShellCommandOutput
+import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.run.AndroidDeclarativeWatchFaceProgramRunner
 import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfigurationType
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.RunEvent
 import com.intellij.execution.Executor
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import java.nio.file.Path
+import org.junit.Rule
 import org.junit.Test
 
 class AndroidDeclarativeWatchFaceConfigurationExecutorTest :
   AndroidConfigurationExecutorBaseTest() {
+
+  @get:Rule val usageTrackerRule = UsageTrackerRule()
 
   private val checkVersion =
     "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version"
@@ -129,6 +136,16 @@ class AndroidDeclarativeWatchFaceConfigurationExecutorTest :
     // Verify that a logcat window for the watch face runtime application is shown
     assertThat(shownLogcatDeviceInfo?.serialNumber).isEqualTo(device.serialNumber)
     assertThat(shownLogcatAppId).isEqualTo("com.google.wear.watchface.runtime")
+
+    // Verify that the app component type is set in the run event
+    RunStats.from(env).success()
+    val runEvent =
+      usageTrackerRule.usages
+        .find { it.studioEvent.kind == AndroidStudioEvent.EventKind.RUN_EVENT }
+        ?.studioEvent
+        ?.runEvent
+    assertThat(runEvent).isNotNull()
+    assertThat(runEvent?.appComponentType).isEqualTo(RunEvent.AppComponent.DECLARATIVE_WATCH_FACE)
   }
 
   @Test

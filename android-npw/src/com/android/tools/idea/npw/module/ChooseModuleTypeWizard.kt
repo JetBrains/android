@@ -84,6 +84,7 @@ class ChooseModuleTypeWizard(
       null, // URL
       DialogWrapper.IdeModalityType.IDE,
       ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL,
+      false,
     )
   }
 

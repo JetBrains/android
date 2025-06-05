@@ -21,19 +21,15 @@ import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.flags.StudioFlags
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 
-@RunWith(JUnit4::class)
 class PreviewFlowPaginatorTest {
   @get:Rule val flagRule = FlagRule(StudioFlags.PREVIEW_PAGINATION, true)
 
@@ -45,6 +41,10 @@ class PreviewFlowPaginatorTest {
     val currentPageContent: MutableStateFlow<FlowableCollection<Int>> =
       MutableStateFlow(FlowableCollection.Uninitialized)
     val previewFlowPaginator = PreviewFlowPaginator(content)
+
+    // backgroundScope is used because this test is not testing the lifecycle of the flow nor
+    // its collection. Instead, it only tests its correctness.
+    // See backgroundScope documentation for more details.
     backgroundScope.launch {
       previewFlowPaginator.currentPageFlow.collectLatest { currentPageContent.value = it }
     }
@@ -52,27 +52,30 @@ class PreviewFlowPaginatorTest {
     content.value = FlowableCollection.Present(listOf(1, 2, 3, 4, 5))
 
     previewFlowPaginator.pageSize = 1
-    advanceTimeBy(1.seconds)
+    // runCurrent is used instead of advanceUntilIdle() because the scheduler is considered idle
+    // if no foreground tasks are pending (i.e. tasks in the backgroundScope don't affect).
+    // See backgroundScope documentation for more details.
+    runCurrent()
     assertEquals(listOf(1), currentPageContent.value.asCollection())
 
     previewFlowPaginator.pageSize = 2
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(1, 2), currentPageContent.value.asCollection())
 
     previewFlowPaginator.pageSize = 3
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(1, 2, 3), currentPageContent.value.asCollection())
 
     previewFlowPaginator.pageSize = 4
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(1, 2, 3, 4), currentPageContent.value.asCollection())
 
     previewFlowPaginator.pageSize = 5
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(1, 2, 3, 4, 5), currentPageContent.value.asCollection())
 
     previewFlowPaginator.pageSize = 6
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(1, 2, 3, 4, 5), currentPageContent.value.asCollection())
   }
 
@@ -90,27 +93,27 @@ class PreviewFlowPaginatorTest {
     content.value = FlowableCollection.Present(listOf(1, 2, 3, 4, 5))
 
     previewFlowPaginator.pageSize = 1
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(1), currentPageContent.value.asCollection())
 
     previewFlowPaginator.selectedPage = 4
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(5), currentPageContent.value.asCollection())
 
     previewFlowPaginator.selectedPage = 3
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(4), currentPageContent.value.asCollection())
 
     previewFlowPaginator.selectedPage = 2
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(3), currentPageContent.value.asCollection())
 
     previewFlowPaginator.selectedPage = 1
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(2), currentPageContent.value.asCollection())
 
     previewFlowPaginator.selectedPage = 0
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(1), currentPageContent.value.asCollection())
   }
 
@@ -129,11 +132,11 @@ class PreviewFlowPaginatorTest {
 
     previewFlowPaginator.pageSize = 1
     previewFlowPaginator.selectedPage = 3
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(4), currentPageContent.value.asCollection())
 
     previewFlowPaginator.pageSize = 3
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(4, 5), currentPageContent.value.asCollection())
     assertEquals(1, previewFlowPaginator.selectedPage)
   }
@@ -154,19 +157,19 @@ class PreviewFlowPaginatorTest {
 
     previewFlowPaginator.pageSize = 3
     content.value = FlowableCollection.Present(listOf(1, 2, 3))
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(1, 2, 3), currentPageContent.value.asCollection())
 
     content.value = FlowableCollection.Present(listOf(4, 3, 2, 1))
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(4, 3, 2), currentPageContent.value.asCollection())
 
     content.value = FlowableCollection.Present(listOf(5))
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(5), currentPageContent.value.asCollection())
 
     content.value = FlowableCollection.Present(listOf(123, 4, 56, 789, 1011, 12, 13))
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(listOf(123, 4, 56), currentPageContent.value.asCollection())
   }
 
@@ -182,15 +185,15 @@ class PreviewFlowPaginatorTest {
       previewFlowPaginator.currentPageFlow.collectLatest { currentPageContent.value = it }
     }
 
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(FlowableCollection.Uninitialized, currentPageContent.value)
 
     content.value = FlowableCollection.Present(emptyList())
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertNotEquals(FlowableCollection.Uninitialized, currentPageContent.value)
 
     content.value = FlowableCollection.Uninitialized
-    advanceTimeBy(1.seconds)
+    runCurrent()
     assertEquals(FlowableCollection.Uninitialized, currentPageContent.value)
   }
 }

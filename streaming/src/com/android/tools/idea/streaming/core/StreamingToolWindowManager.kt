@@ -677,28 +677,18 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun showToolWindowName() {
     if (StudioFlags.RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME.get()) {
-      findTopLevelDecorator(toolWindow.decorator)?.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, null)
+      toolWindow.decorator.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, null)
+      toolWindow.component.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, null) // Workaround for IDEA-373768.
       toolWindow.updateContentUi()
     }
   }
 
   private fun hideToolWindowName() {
     if (StudioFlags.RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME.get()) {
-      findTopLevelDecorator(toolWindow.decorator)?.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "true")
+      toolWindow.decorator.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "true")
+      toolWindow.component.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "true") // Workaround for IDEA-373768.
       toolWindow.updateContentUi()
     }
-  }
-
-  private fun findTopLevelDecorator(component: Component): InternalDecorator? {
-    var candidate: InternalDecorator? = null
-    var parent: Component? = component
-    while (parent != null) {
-      if (parent is InternalDecorator) {
-        candidate = parent
-      }
-      parent = parent.parent
-    }
-    return candidate
   }
 
   @AnyThread

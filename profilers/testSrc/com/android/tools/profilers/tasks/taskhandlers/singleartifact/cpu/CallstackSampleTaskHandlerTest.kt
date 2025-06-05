@@ -34,7 +34,7 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
@@ -284,8 +284,8 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
     val process = createProcess(true)
     val nDevice = createDevice(AndroidVersion.VersionCodes.N)
     assertNotNull(myCallstackSampleTaskHandler.checkSupportForDeviceAndProcess(nDevice, process))
-    assertEquals(myCallstackSampleTaskHandler.checkSupportForDeviceAndProcess(nDevice, process)!!.starTaskSelectionErrorCode,
-                 StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN)
+    assertEquals(myCallstackSampleTaskHandler.checkSupportForDeviceAndProcess(nDevice, process)!!.startTaskSelectionErrorCode,
+                 StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN)
     val oDevice = createDevice(AndroidVersion.VersionCodes.O)
     assertNull(myCallstackSampleTaskHandler.checkSupportForDeviceAndProcess(oDevice, process))
     val pDevice = createDevice(AndroidVersion.VersionCodes.P)

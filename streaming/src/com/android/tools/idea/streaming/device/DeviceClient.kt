@@ -119,6 +119,7 @@ internal const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
 internal const val STREAM_AUDIO = 0x04
 internal const val USE_UINPUT = 0x08
 internal const val DEVICE_IS_XR = 0x10 // TODO: Remove when b/406870742 is fixed.
+internal const val UNICODE_TYPING = 0x20
 /** Maximum cumulative length of agent messages to remember. */
 private const val MAX_TOTAL_AGENT_MESSAGE_LENGTH = 10_000
 private const val MAX_ERROR_MESSAGE_AGE_MILLIS = 1000L
@@ -416,7 +417,8 @@ class DeviceClient(
                 (if (isAudioStreamingEnabled()) STREAM_AUDIO else 0) or
                 (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0) or
                 (if (StudioFlags.DEVICE_MIRRORING_USE_UINPUT.get()) USE_UINPUT else 0) or
-                (if (deviceConfig.deviceType == DeviceType.XR) DEVICE_IS_XR else 0) // Workaround for b/406870742 and b/408280128.
+                (if (deviceConfig.deviceType == DeviceType.XR) DEVICE_IS_XR else 0) or // Workaround for b/406870742 and b/408280128.
+                (if (StudioFlags.DEVICE_MIRRORING_UNICODE_TYPING.get()) UNICODE_TYPING else 0)
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
     val maxBitRate = calculateMaxBitRate()
     val maxBitRateArg = if (maxBitRate > 0) " --max_bit_rate=$maxBitRate" else ""

@@ -712,6 +712,7 @@ studio_plugin(
     libs = [
         "//prebuilts/tools/common/m2:libgoogle_auth_transitive_deps",
         "//prebuilts/tools/common/m2:wire-runtime-jvm-5.3.1",
+        "//tools/adt/idea/.idea/libraries:lucene",
         "//tools/vendor/google/ml/aiplugin/android/journeys:proto-models-1.0",
         "//tools/vendor/google/ml/aiplugin/cloudcode-core:libgoogle_auth_intellij_lib",
         "//tools/vendor/google/ml/aiplugin/cloudcode-core:libfeedback_java_proto",
@@ -736,6 +737,7 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/android-plugin:aiplugin.android-plugin",
             "//tools/vendor/google/ml/aiplugin/android-plugin/descriptor:aiplugin.android-plugin.descriptor",
             "//tools/vendor/google/ml/aiplugin/lang/kotlin:aiplugin.lang.kotlin",
+            "//tools/vendor/google/ml/aiplugin/rag/indexer:aiplugin.rag.indexer",
             "//tools/vendor/google/ml/aiplugin/sdkcompat:aiplugin.sdkcompat",
             "//tools/vendor/google/ml/aiplugin/cloudcode-core:aiplugin.cloudcode-core",
             "//tools/vendor/google/ml/aiplugin/ij-platform:aiplugin.ij-platform",
@@ -1065,6 +1067,7 @@ iml_module(
         "//tools/adt/idea/studio:studio-sdk-all-plugins",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/vendor/google/ml/aiplugin/mcp/server:aiplugin.mcp.server",
     ],
 )
 
@@ -1268,6 +1271,7 @@ iml_module(
         "@intellij//:intellij.platform.jewel.foundation",
         "@intellij//:intellij.platform.jewel.ideLafBridge",
         "@intellij//:intellij.platform.jewel.markdown.core",
+        "@intellij//:intellij.platform.jewel.markdown.extensions.autolink",
         "@intellij//:intellij.platform.jewel.markdown.extensions.gfmAlerts",
         "@intellij//:intellij.platform.jewel.markdown.extensions.gfmStrikethrough",
         "@intellij//:intellij.platform.jewel.markdown.extensions.gfmTables",

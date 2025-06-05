@@ -161,6 +161,17 @@ class ApkEditorTest {
   }
 
   @Test
+  fun selectDexFolder_createsEmptyPanel() {
+    val apkEditor = apkEditor("/app-benchmark.aab")
+    // Select XML node first
+    apkEditor.getEditor<FileEditorComponent>(apkEditor.getNode("/base/res/layout/activity_main.xml"))
+
+    val editor = apkEditor.getEditor<ApkFileEditorComponent>(apkEditor.getNode("/base/dex"))
+
+    assertThat(editor).isInstanceOf(EmptyPanel::class.java)
+  }
+
+  @Test
   fun selectDex_createsDexEditor() {
     val apkEditor = apkEditor("/test-app.apk")
 

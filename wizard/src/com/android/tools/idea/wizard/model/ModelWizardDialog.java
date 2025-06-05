@@ -93,9 +93,10 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
                            @Nullable Project project,
                            @Nullable URL helpUrl,
                            @NotNull IdeModalityType modalityType,
-                           @NotNull CancellationPolicy cancellationPolicy) {
+                           @NotNull CancellationPolicy cancellationPolicy,
+                           boolean undecorated) {
     super(project, true, modalityType);
-    init(wizard, title, customLayout, helpUrl, cancellationPolicy);
+    init(wizard, title, customLayout, helpUrl, cancellationPolicy, undecorated);
   }
 
   public ModelWizardDialog(@NotNull ModelWizard wizard,
@@ -103,22 +104,24 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
                            @NotNull Component parent,
                            @Nullable CustomLayout customLayout,
                            @Nullable URL helpUrl,
-                           @NotNull CancellationPolicy cancellationPolicy) {
+                           @NotNull CancellationPolicy cancellationPolicy,
+                           boolean undecorated) {
     super(parent, true);
-    init(wizard, title, customLayout, helpUrl, cancellationPolicy);
+    init(wizard, title, customLayout, helpUrl, cancellationPolicy, undecorated);
   }
 
   private void init(@NotNull ModelWizard wizard,
                     @NotNull String title,
                     @Nullable CustomLayout customLayout,
                     @Nullable URL helpUrl,
-                    @NotNull CancellationPolicy cancellationPolicy) {
+                    @NotNull CancellationPolicy cancellationPolicy,
+                    boolean undecorated) {
     myCustomLayout = customLayout;
     myHelpUrl = helpUrl;
     myCancellationPolicy = cancellationPolicy;
     setTitle(title);
     setModelWizard(wizard);
-
+    setUndecorated(undecorated);
 
     init();
 

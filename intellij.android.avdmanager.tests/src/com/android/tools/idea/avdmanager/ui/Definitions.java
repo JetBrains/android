@@ -48,7 +48,7 @@ final class Definitions {
 
   @NotNull
   static Device mockXrDefinition() {
-    return mockDefinition("android-xr", null, "XR Device", "xr_device");
+    return mockDefinition("android-xr", null, "XR Headset", "xr_headset_device");
   }
 
   @NotNull

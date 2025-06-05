@@ -582,17 +582,17 @@ internal class DeviceView(
     if (!isConnected) {
       return
     }
+    val isMouse = deviceConfig.deviceType == DeviceType.XR || isHardwareInputEnabled()
     val buttonState =
-        (if (modifiers and BUTTON1_DOWN_MASK != 0 && isHardwareInputEnabled()) MotionEventMessage.BUTTON_PRIMARY else 0) or
+        (if (modifiers and BUTTON1_DOWN_MASK != 0 && isMouse) MotionEventMessage.BUTTON_PRIMARY else 0) or
         (if (modifiers and BUTTON2_DOWN_MASK != 0) MotionEventMessage.BUTTON_TERTIARY else 0) or
         (if (modifiers and BUTTON3_DOWN_MASK != 0) MotionEventMessage.BUTTON_SECONDARY else 0)
     val androidActionButton = when (button) {
-      MouseEvent.BUTTON1 -> if (isHardwareInputEnabled()) MotionEventMessage.BUTTON_PRIMARY else 0
+      MouseEvent.BUTTON1 -> if (isMouse) MotionEventMessage.BUTTON_PRIMARY else 0
       MouseEvent.BUTTON2 -> MotionEventMessage.BUTTON_TERTIARY
       MouseEvent.BUTTON3 -> MotionEventMessage.BUTTON_SECONDARY
       else -> 0
     }
-    val isMouse = isHardwareInputEnabled()
     val message = when {
       multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(point), action, 0, 0, displayId, isMouse)
       action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
