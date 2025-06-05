@@ -5,12 +5,12 @@ plugins {
 
 android {
   namespace = "com.example.kotlingradle"
-  compileSdk = 33
+  compileSdk { version = release(33) }
 
   defaultConfig {
     applicationId = "com.example.kotlingradle"
-    minSdk = 24
-    targetSdk = 33
+    minSdk { version = release(24) }
+    targetSdk { version = release(33) }
     versionCode = 1
     versionName = "1.0"
   }
