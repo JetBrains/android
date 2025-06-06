@@ -1,0 +1,67 @@
+{
+  "options": {
+    "hasObfuscationDictionary": false,
+    "hasClassObfuscationDictionary": false,
+    "hasPackageObfuscationDictionary": false,
+    "keepAttributes": {
+      "isAnnotationDefaultKept": true,
+      "isEnclosingMethodKept": true,
+      "isExceptionsKept": false,
+      "isInnerClassesKept": true,
+      "isLocalVariableTableKept": false,
+      "isLocalVariableTypeTableKept": false,
+      "isMethodParametersKept": false,
+      "isPermittedSubclassesKept": false,
+      "isRuntimeInvisibleAnnotationsKept": true,
+      "isRuntimeInvisibleParameterAnnotationsKept": true,
+      "isRuntimeInvisibleTypeAnnotationsKept": true,
+      "isRuntimeVisibleAnnotationsKept": true,
+      "isRuntimeVisibleParameterAnnotationsKept": true,
+      "isRuntimeVisibleTypeAnnotationsKept": true,
+      "isSignatureKept": true,
+      "isSourceDebugExtensionKept": false,
+      "isSourceDirKept": false,
+      "isSourceFileKept": false,
+      "isStackMapTableKept": false
+    },
+    "isAccessModificationEnabled": true,
+    "isFlattenPackageHierarchyEnabled": false,
+    "isObfuscationEnabled": true,
+    "isOptimizationsEnabled": true,
+    "isProGuardCompatibilityModeEnabled": false,
+    "isProtoLiteOptimizationEnabled": false,
+    "isRepackageClassesEnabled": false,
+    "isShrinkingEnabled": true,
+    "apiModeling": {},
+    "minApiLevel": "21",
+    "isDebugModeEnabled": false
+  },
+  "baselineProfileRewriting": {},
+  "compilation": {
+    "buildTimeNs": 10498675083,
+    "numberOfThreads": 16
+  },
+  "dexFiles": [
+    {
+      "checksum": "89fa1858c798749f05ba343a02d07c0cb88b22d43b734d07d95939721a66636d",
+      "startup": false
+    }
+  ],
+  "stats": {
+    "noObfuscationPercentage": 8.6,
+    "noOptimizationPercentage": 10.98,
+    "noShrinkingPercentage": 10.38
+  },
+  "featureSplits": {
+    "featureSplits": [
+      {
+        "dexFiles": []
+      }
+    ],
+    "isolatedSplits": false
+  },
+  "resourceOptimization": {
+    "isOptimizedShrinkingEnabled": false
+  },
+  "version": "8.10.13-dev"
+}
