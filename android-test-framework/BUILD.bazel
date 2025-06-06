@@ -79,6 +79,7 @@ jvm_library(
     "//plugins/kotlin/highlighting/highlighting-k1:kotlin-highlighting-k1",
     "@lib//:mockito-kotlin",
     "@lib//:kotlinc-kotlin-scripting-compiler-impl",
+    "//plugins/kotlin/base/scripting.k1",
   ]
 )
 

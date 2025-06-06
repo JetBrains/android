@@ -220,7 +220,7 @@ import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.core.script.SCRIPT_DEFINITIONS_SOURCES
-import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
+import org.jetbrains.kotlin.idea.core.script.k1.dependencies.KotlinScriptWorkspaceFileIndexContributor
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
