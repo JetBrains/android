@@ -6,7 +6,6 @@ import com.android.SdkConstants.VIEW_MERGE
 import com.android.SdkConstants.VIEW_TAG
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.imports.MavenClassRegistryManager
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemDescriptor
@@ -54,8 +53,6 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
       return ProblemDescriptor.EMPTY_ARRAY
     }
     val facet = AndroidFacet.getInstance(file) ?: return ProblemDescriptor.EMPTY_ARRAY
-    if (!facet.module.getModuleSystem().canRegisterDependency())
-      return ProblemDescriptor.EMPTY_ARRAY
 
     if (isRelevantFile(facet, file)) {
       val visitor = MyVisitor(manager, isOnTheFly)

@@ -19,7 +19,10 @@ package org.jetbrains.android.dom.inspections
 
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.imports.AndroidMavenImportFix
+import com.android.tools.idea.imports.AndroidMavenImportToken
 import com.android.tools.idea.imports.MavenClassRegistry
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
@@ -32,6 +35,8 @@ internal fun MavenClassRegistry.collectFixesFromMavenClassRegistry(
   completionFileType: FileType?,
 ): List<LocalQuickFix> {
   val useAndroidX = project.isAndroidx()
+  if (project.getProjectSystem().getTokenOrNull(AndroidMavenImportToken.EP_NAME) == null)
+    return listOf()
 
   return findLibraryData(className, null, useAndroidX, completionFileType).map {
     val resolvedArtifact =
