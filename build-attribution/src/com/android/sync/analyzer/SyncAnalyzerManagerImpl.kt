@@ -37,9 +37,8 @@ import com.intellij.openapi.util.Disposer
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.model.build.BuildEnvironment
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionContext
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelperExtension
-import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.util.concurrent.ConcurrentHashMap
 
 
@@ -110,17 +109,13 @@ class SyncAnalyzerDataManager(val project: Project) : Disposable {
 
 class SyncAnalyzerExecutionHelperExtension : GradleExecutionHelperExtension {
 
-  override fun prepareForExecution(id: ExternalSystemTaskId,
-                                   operation: LongRunningOperation,
-                                   settings: GradleExecutionSettings,
-                                   buildEnvironment: BuildEnvironment?) {
+  override fun configureOperation(operation: LongRunningOperation, context: GradleExecutionContext) {
     // Note: this method is called separately for buildSrc and project itself with the same `id` but with different operations.
     // This means we need to set up listener multiple times but with the same data accumulators.
-    if (id.projectSystemId != GradleProjectSystemUtil.GRADLE_SYSTEM_ID) return
-    if (id.type != ExternalSystemTaskType.RESOLVE_PROJECT) return
-    val project = id.findProject() ?: return
+    if (context.taskId.projectSystemId != GradleProjectSystemUtil.GRADLE_SYSTEM_ID) return
+    if (context.taskId.type != ExternalSystemTaskType.RESOLVE_PROJECT) return
 
-    val syncData = project.service<SyncAnalyzerDataManager>().getDataForTaskIfExists(id)
+    val syncData = context.project.service<SyncAnalyzerDataManager>().getDataForTaskIfExists(context.taskId)
     if (syncData != null) {
       val downloadEventsProcessor = DownloadsAnalyzer.DownloadEventsProcessor(syncData.downloadsStatsAccumulator, syncData.downloadsInfoDataModel)
 
