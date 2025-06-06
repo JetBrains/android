@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.GoogleMavenArtifactId
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -58,30 +56,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
     finally {
       super.tearDown()
     }
-  }
-
-  fun testRegisterDependencyCoordinate() {
-    val coordinate = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
-    val dependency = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getDependency("+")
-    gradleModuleSystem.registerDependency(coordinate, DependencyType.IMPLEMENTATION)
-    Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
-      .addDependencies(myModule, listOf(dependency), "implementation")
-  }
-
-  fun testRegisterDebugDependencyCoordinate() {
-    val coordinate = GoogleMavenArtifactId.COMPOSE_TOOLING.getCoordinate("+")
-    val dependency = GoogleMavenArtifactId.COMPOSE_TOOLING.getDependency("+")
-    gradleModuleSystem.registerDependency(coordinate, DependencyType.DEBUG_IMPLEMENTATION)
-    Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
-      .addDependencies(myModule, listOf(dependency), "debugImplementation")
-  }
-
-  fun testRegisterAnnotationProcessorDependencyCoordinate() {
-    val coordinate = GoogleMavenArtifactId.ROOM_COMPILER.getCoordinate("+")
-    val dependency = GoogleMavenArtifactId.ROOM_COMPILER.getDependency("+")
-    gradleModuleSystem.registerDependency(coordinate, DependencyType.ANNOTATION_PROCESSOR)
-    Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
-      .addDependencies(myModule, listOf(dependency), "annotationProcessor")
   }
 
   fun testRegisterDependencyDependency() {

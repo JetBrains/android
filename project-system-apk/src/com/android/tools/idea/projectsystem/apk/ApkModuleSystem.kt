@@ -40,9 +40,6 @@ class ApkModuleSystem(override val module: Module): AndroidModuleSystem {
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
     delegate.getModuleTemplates(targetDirectory)
 
-  override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) =
-    throw UnsupportedOperationException("Cannot register dependencies in ApkModuleSystem")
-
   override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope =
     delegate.getResolveScope(scopeType)
 

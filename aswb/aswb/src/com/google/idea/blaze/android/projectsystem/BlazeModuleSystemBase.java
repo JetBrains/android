@@ -218,11 +218,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem, Registering
   }
 
   @Override
-  public void registerDependency(GradleCoordinate coordinate, DependencyType type) {
-    doRegisterDependency(type);
-  }
-
-  @Override
   public void registerDependency(BlazeRegisteredDependencyId id, DependencyType type) {
     // TODO: maybe do something different if this id is an -Unknown- vs -Target-
     doRegisterDependency(type);
