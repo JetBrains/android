@@ -157,7 +157,6 @@ internal class UiSettingsPanel(
         }.visibleIf(model.permissionMonitoringDisabled.not())
       }
     })
-//    updateBackground()
   }
 
   /**
