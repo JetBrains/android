@@ -21,6 +21,7 @@ import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.liveedit.ui.DeviceGetter
+import com.android.tools.idea.editors.liveedit.ui.LiveEditDeviceMap
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -67,12 +68,12 @@ internal class LiveEditIssueNotificationActionTest {
       .build()
 
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
-    LiveEditIssueNotificationAction.deviceMap[projectRule.project] = object : DeviceGetter {
-      override fun serial(dataContext: DataContext): String? {
+    LiveEditDeviceMap.deviceMap[projectRule.project] = object : DeviceGetter {
+      override fun serial(dataContext: DataContext): String {
         return "serial"
       }
 
-      override fun device(dataContext: DataContext): IDevice? {
+      override fun device(dataContext: DataContext): IDevice {
         return device
       }
 

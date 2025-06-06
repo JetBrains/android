@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.actions
 
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.device.actions.getDeviceClient
@@ -37,6 +38,9 @@ internal abstract class StreamingAction(
   override fun getDelegate(event: AnActionEvent): AnAction =
       delegates[if (getEmulatorController(event) == null) 1 else 0]
 }
+
+fun getNotificationHolderPanel(event: AnActionEvent): NotificationHolderPanel? =
+    getDisplayView(event)?.findNotificationHolderPanel()
 
 internal fun getDisplayView(event: AnActionEvent): AbstractDisplayView? =
     event.getData(DISPLAY_VIEW_KEY)

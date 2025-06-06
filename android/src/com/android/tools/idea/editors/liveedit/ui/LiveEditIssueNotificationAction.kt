@@ -28,6 +28,7 @@ import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
@@ -36,6 +37,7 @@ import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -69,14 +71,14 @@ internal fun getStatusInfo(project: Project, dataContext: DataContext): LiveEdit
       return LiveEditStatus.Disabled
     }
 
-    val insetDevices = LiveEditIssueNotificationAction.deviceMap[project]?.devices()?.let { HashSet<IDevice>(it) } ?: Collections.emptySet()
+    val insetDevices = LiveEditDeviceMap.deviceMap[project]?.devices()?.let { HashSet<IDevice>(it) } ?: Collections.emptySet()
     return liveEditService.devices()
       .filter { it !in insetDevices }
       .map { liveEditService.editStatus(it) }
       .fold(LiveEditStatus.Disabled, LiveEditStatus::merge)
   }
   else {
-    val device = LiveEditIssueNotificationAction.deviceMap[project]?.device(dataContext) ?: return LiveEditStatus.Disabled
+    val device = LiveEditDeviceMap.deviceMap[project]?.device(dataContext) ?: return LiveEditStatus.Disabled
     return liveEditService.editStatus(device)
   }
 }
@@ -144,10 +146,22 @@ private fun defaultCreateInformationPopup(
 /**
  * An interface to exposed to external modules to implement in order to receive device serials and IDevices associated with those serials.
  */
-interface DeviceGetter {
+internal interface DeviceGetter {
   fun serial(dataContext: DataContext): String?
   fun device(dataContext: DataContext): IDevice?
   fun devices(): List<IDevice>
+}
+
+internal object LiveEditDeviceMap {
+  val deviceMap = HashMap<Project, DeviceGetter>()
+
+  fun registerProject(project: Project, deviceGetter: DeviceGetter) {
+    deviceMap[project] = deviceGetter
+  }
+
+  fun unregisterProject(project: Project) {
+    deviceMap.remove(project)
+  }
 }
 
 /**
@@ -157,21 +171,7 @@ interface DeviceGetter {
  * - State of Live Edit or preview out of date if Live Edit is disabled
  * - Syntax errors
  */
-class LiveEditIssueNotificationAction(
-  createInformationPopup: (Project, DataContext) -> InformationPopup? =
-    ::defaultCreateInformationPopup
-) : IssueNotificationAction(::getStatusInfo, createInformationPopup) {
-  companion object {
-    val deviceMap = HashMap<Project, DeviceGetter>()
-
-    fun registerProject(project: Project, deviceGetter: DeviceGetter) {
-      deviceMap[project] = deviceGetter
-    }
-
-    fun unregisterProject(project: Project) {
-      deviceMap.remove(project)
-    }
-  }
+class LiveEditIssueNotificationAction : IssueNotificationAction(::getStatusInfo, ::defaultCreateInformationPopup) {
 
   override fun margins(): Insets {
     return JBUI.insets(2)
@@ -185,12 +185,7 @@ class LiveEditIssueNotificationAction(
   @UiThread
   override fun shouldSimplify(status: IdeStatus, dataContext: DataContext): Boolean {
     val toolWindowId = dataContext.getData(PlatformDataKeys.TOOL_WINDOW)
-
-    if (toolWindowId != null && toolWindowId.id == RUNNING_DEVICES_TOOL_WINDOW_ID) {
-      return status.shouldSimplify
-    } else {
-      return false
-    }
+    return toolWindowId?.id == RUNNING_DEVICES_TOOL_WINDOW_ID && status.shouldSimplify
   }
 
   override fun getDisposableParentForPopup(e: AnActionEvent): Disposable? {
@@ -218,7 +213,7 @@ private fun shouldHideImpl(status: IdeStatus, dataContext: DataContext): Boolean
     } else {
       try {
         it.get()
-      } catch (e: Exception) {
+      } catch (_: Exception) {
         null
       }
     }
@@ -243,4 +238,13 @@ class LiveEditNotificationGroup :
   DefaultActionGroup(
     "Live Edit Notification Actions",
     listOf(LiveEditIssueNotificationAction(), RedeployAction(), Separator.getInstance()),
-  ), RightAlignedToolbarAction
+  ), RightAlignedToolbarAction {
+
+  override fun update(event: AnActionEvent) {
+    val toolWindow = event.getData(PlatformDataKeys.TOOL_WINDOW)
+    event.presentation.isEnabledAndVisible =
+        toolWindow?.id != RUNNING_DEVICES_TOOL_WINDOW_ID || !StudioFlags.LIVE_EDIT_COMPACT_STATUS_BUTTON.get()
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+}
