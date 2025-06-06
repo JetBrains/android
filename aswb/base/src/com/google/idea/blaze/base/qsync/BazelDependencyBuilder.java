@@ -93,6 +93,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -443,9 +444,52 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       BlazeContext context, ImmutableMap<Path, ByteSource> invocationFiles)
       throws IOException, BuildException {
     for (Map.Entry<Path, ByteSource> e : invocationFiles.entrySet()) {
-      Path absolutePath = workspaceRoot.path().resolve(e.getKey());
-      Files.createDirectories(absolutePath.getParent());
-      Files.copy(e.getValue().openStream(), absolutePath, StandardCopyOption.REPLACE_EXISTING);
+      copyInvocationFile(e.getKey(), e.getValue());
+    }
+  }
+
+  private void copyInvocationFile(Path path, ByteSource content) throws IOException, BuildException {
+    IOException lastException = null;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      Path absolutePath = workspaceRoot.path().resolve(path);
+      try {
+        Files.createDirectories(absolutePath.getParent());
+      }
+      catch (IOException ex) {
+        logger.warn("Failed to create directory " + absolutePath.getParent(), ex);
+        continue;
+      }
+      try {
+        if (Files.exists(absolutePath) && Arrays.equals(Files.readAllBytes(absolutePath), content.read())) {
+          continue;
+        }
+      }
+      catch (IOException ex) {
+        logger.warn("Failed to read " + absolutePath, ex);
+      }
+      try {
+        Files.deleteIfExists(absolutePath);
+      }
+      catch (IOException ex) {
+        logger.warn("Failed to delete " + absolutePath, ex);
+      }
+      try {
+        // Wait a little after deleting if not the first attempt.
+        Thread.sleep(100 * attempt);
+        Files.copy(content.openStream(), absolutePath, StandardCopyOption.REPLACE_EXISTING);
+      }
+      catch (IOException ex) {
+        logger.warn("Failed to copy to " + absolutePath, ex);
+        lastException = ex;
+        continue;
+      }
+      catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      break;
+    }
+    if (lastException != null) {
+      throw new BuildException(lastException);
     }
   }
 
