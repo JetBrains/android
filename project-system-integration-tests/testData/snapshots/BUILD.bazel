@@ -1,0 +1,29 @@
+""" data for testing the project snapshotter in production Studio """
+
+load("//tools/base/bazel:maven.bzl", "maven_repository")
+
+filegroup(
+    name = "sample-project",
+    srcs = glob(["sample-project/**"]),
+    visibility = ["//visibility:public"],
+)
+
+maven_repository(
+    name = "sample-project_repo",
+    # keep sorted: for buildifier
+    artifacts = [
+        "@maven//:com.android.application.com.android.application.gradle.plugin_8.1.0",
+        "@maven//:com.android.databinding.adapters_8.1.0",
+        "@maven//:com.android.databinding.viewbinding_8.1.0",
+        "@maven//:com.android.library.com.android.library.gradle.plugin_8.1.0",
+        "@maven//:com.android.tools.build.aapt2_8.1.0-10154469",
+        "@maven//:com.android.tools.build.gradle_8.1.0",
+        "@maven//:com.android.tools.lint.lint-gradle_31.1.0",
+        "@maven//:com.google.android.material.material_1.10.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
+    ],
+    visibility = ["//visibility:public"],
+)

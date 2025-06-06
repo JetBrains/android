@@ -148,6 +148,23 @@ iml_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.GradleTokensTest",
 )
 
+iml_test(
+    name = "SnapshotActionTest",
+    timeout = "long",
+    data = [
+        "//tools/adt/idea/project-system-integration-tests/testData/snapshots:sample-project",
+        "//tools/adt/idea/project-system-integration-tests/testData/snapshots:sample-project_repo",
+        INTEGRATION_TEST_GRADLE_VERSION,
+    ],
+    jvm_flags = ["-Didea.skip.indices.initialization=true"],
+    module = ":intellij.android.projectSystem.integration.tests",
+    tags_linux = ["block-network"],
+    # Commented out due to b/242358149
+    # tags_mac = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.projectsystem.gradle.SnapshotActionTest",
+)
+
 maven_repository(
     name = "sdkindexproject_deps",
     # keep sorted: for buildifier

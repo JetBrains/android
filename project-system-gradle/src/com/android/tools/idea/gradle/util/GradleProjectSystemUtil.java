@@ -64,6 +64,7 @@ import com.android.utils.BuildScriptUtil;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -828,6 +829,10 @@ public class GradleProjectSystemUtil {
       }
     }
 
+    if (!repoPaths.isEmpty()) {
+      Logger.getInstance(EmbeddedDistributionPaths.class)
+        .info("Found custom repo paths " + Joiner.on(File.pathSeparatorChar).join(repoPaths));
+    }
     return ImmutableList.copyOf(repoPaths);
   }
 
