@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.adblib.testing.FakeAdbDeviceServices
+import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.LoggedUsage
@@ -424,7 +425,7 @@ class EmulatorUiSettingsControllerTest {
       val event = usages[index].studioEvent
       assertThat(event.kind).isEqualTo(EventKind.UI_DEVICE_SETTINGS_EVENT)
       assertThat(event.deviceInfo.deviceType).isEqualTo(LOCAL_EMULATOR)
-      assertThat(event.deviceInfo.buildApiLevelFull).isEqualTo("33")
+      assertThat(event.deviceInfo.buildApiLevelFull).isEqualTo("${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}.0")
       assertThat(event.uiDeviceSettingsEvent.operation).isEqualTo(expected)
     }
     assertThat(usages).hasSize(operations.size)

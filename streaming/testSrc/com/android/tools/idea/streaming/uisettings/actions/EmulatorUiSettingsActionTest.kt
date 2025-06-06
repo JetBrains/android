@@ -85,8 +85,8 @@ class EmulatorUiSettingsActionTest {
   }
 
   @Test
-  fun testActionOnApi32Emulator() {
-    val controller = uiRule.getControllerOf(uiRule.createAndStartEmulator(api = 32))
+  fun testActionOnEmulatorWithApi32() {
+    val controller = uiRule.controller
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
     val event = createTestMouseEvent(action, controller, view)
@@ -97,7 +97,7 @@ class EmulatorUiSettingsActionTest {
   @Test
   fun testActiveAction() {
     simulateDarkTheme(false)
-    val controller = uiRule.getControllerOf(uiRule.emulator)
+    val controller = uiRule.controller
     val view = createEmulatorView(controller).apply { size = Dimension(600, 800) }
     val action = EmulatorUiSettingsAction()
     val event = createTestMouseEvent(action, controller, view)
@@ -111,7 +111,7 @@ class EmulatorUiSettingsActionTest {
 
   @Test
   fun testHasResetLink() {
-    val controller = uiRule.getControllerOf(uiRule.emulator)
+    val controller = uiRule.controller
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
     val event = createTestMouseEvent(action, controller, view)
@@ -121,8 +121,8 @@ class EmulatorUiSettingsActionTest {
   }
 
   @Test
-  fun testWearControls() {
-    val controller = uiRule.getControllerOf(uiRule.createAndStartWatchEmulator())
+  fun testControlsForWear() {
+    val controller = uiRule.controller
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
     val event = createTestMouseEvent(action, controller, view)
@@ -143,7 +143,7 @@ class EmulatorUiSettingsActionTest {
   @Test
   fun testDialogClosesWhenDialogLosesFocus() {
     simulateDarkTheme(false)
-    val controller = uiRule.getControllerOf(uiRule.emulator)
+    val controller = uiRule.controller
     val view = createEmulatorView(controller)
     val action = EmulatorUiSettingsAction()
     val event = createTestMouseEvent(action, controller, view)
@@ -161,7 +161,7 @@ class EmulatorUiSettingsActionTest {
     Disposer.register(testRootDisposable, parentDisposable)
 
     simulateDarkTheme(false)
-    val controller = uiRule.getControllerOf(uiRule.emulator)
+    val controller = uiRule.controller
     val view = createEmulatorView(controller, parentDisposable)
     val action = EmulatorUiSettingsAction()
     val event = createTestMouseEvent(action, controller, view)
@@ -178,7 +178,7 @@ class EmulatorUiSettingsActionTest {
   @Test
   fun testDialogIsMovable() {
     simulateDarkTheme(false)
-    val controller = uiRule.getControllerOf(uiRule.emulator)
+    val controller = uiRule.controller
     val view = createEmulatorView(controller).apply { size = Dimension(600, 800) }
     val action = EmulatorUiSettingsAction()
     val event = createTestMouseEvent(action, controller, view)

@@ -20,6 +20,8 @@ import com.android.adblib.testing.FakeAdbDeviceServices
 import com.android.adblib.testing.FakeAdbSession
 import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
@@ -31,9 +33,11 @@ import com.intellij.testFramework.ProjectRule
 import com.jetbrains.rd.util.forEachReversed
 import kotlinx.coroutines.runBlocking
 import org.junit.rules.ExternalResource
+import org.junit.rules.TestName
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import java.nio.file.Path
 import kotlin.time.Duration.Companion.seconds
 
 const val DEFAULT_FONT_SCALE = 100
@@ -42,6 +46,8 @@ const val DEFAULT_DENSITY = 480
 const val CUSTOM_DENSITY = 560
 const val APPLICATION_ID1 = "com.example.test.app1"
 const val APPLICATION_ID2 = "com.example.test.app2"
+
+private val API_REGEX = "(.+)Api(\\d+)$".toRegex()
 
 /**
  * Supplies fakes for UI settings tests
@@ -54,6 +60,7 @@ class UiSettingsRule : ExternalResource() {
       else -> null
     }
   }
+  private val nameRule = TestName()
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
   private val adbServiceRule = ProjectServiceRule(projectRule, AdbLibService::class.java, TestAdbLibService(FakeAdbSession()))
@@ -72,6 +79,7 @@ class UiSettingsRule : ExternalResource() {
     get() = adb.shellV2Requests.map { it.command }
 
   val emulator: FakeEmulator by lazy { createAndStartEmulator() }
+  val controller: EmulatorController by lazy { getControllerOf(emulator) }
   val emulatorDeviceSelector: DeviceSelector by lazy { DeviceSelector.fromSerialNumber(emulator.serialNumber) }
   val emulatorConfiguration: EmulatorConfiguration by lazy { EmulatorConfiguration.readAvdDefinition(emulator.avdId, emulator.avdFolder)!! }
 
@@ -132,8 +140,10 @@ class UiSettingsRule : ExternalResource() {
                               formatAccessibilityServices(talkBackOn = false, selectToSpeakOn))
   }
 
-  fun createAndStartEmulator(api: Int = 33): FakeEmulator {
-    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
+  private fun createAndStartEmulator(): FakeEmulator {
+    val api = getApiLevelFromTestName()
+    val deviceType = getDeviceTypeFromTestName()
+    val avdFolder = createAvdFolder(deviceType, api)
     val emulator = emulatorRule.newEmulator(avdFolder)
     emulator.start()
     val emulatorController = getControllerOf(emulator)
@@ -141,16 +151,16 @@ class UiSettingsRule : ExternalResource() {
     return emulator
   }
 
-  fun createAndStartWatchEmulator(api: Int = 33): FakeEmulator {
-    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
-    val emulator = emulatorRule.newEmulator(avdFolder)
-    emulator.start()
-    val emulatorController = getControllerOf(emulator)
-    waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    return emulator
+  private fun createAvdFolder(deviceType: DeviceType, api: Int = 33): Path {
+    return when (deviceType) {
+      DeviceType.WEAR -> FakeEmulator.createWatchAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
+      DeviceType.AUTOMOTIVE -> FakeEmulator.createAutomotiveAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
+      DeviceType.XR -> FakeEmulator.createXrAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
+      else -> FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
+    }
   }
 
-  fun getControllerOf(emulator: FakeEmulator): EmulatorController {
+  private fun getControllerOf(emulator: FakeEmulator): EmulatorController {
     val catalog = RunningEmulatorCatalog.getInstance()
     val emulators = runBlocking { catalog.updateNow().await() }
     val emulatorController = emulators.single { emulator.serialNumber == it.emulatorId.serialNumber }
@@ -164,8 +174,49 @@ class UiSettingsRule : ExternalResource() {
     else -> "null"
   }
 
+  /**
+   * A test can specify the device type by adding it to the end of the test method name before the API level.
+   *
+   * Examples:
+   * - @Test fun testSomethingWear()
+   * - @Test fun testAnotherWearApi33()
+   */
+  private fun getDeviceTypeFromTestName(): DeviceType {
+      val name = nameRule.methodName
+      val match = API_REGEX.matchEntire(name)
+      val methodNameWithoutApiLevel = match?.groupValues[1] ?: name
+      return when {
+        methodNameWithoutApiLevel.endsWith("Wear") -> DeviceType.WEAR
+        methodNameWithoutApiLevel.endsWith("Tv") -> DeviceType.TV
+        methodNameWithoutApiLevel.endsWith("Automotive") -> DeviceType.AUTOMOTIVE
+        methodNameWithoutApiLevel.endsWith("Desktop") -> DeviceType.DESKTOP
+        methodNameWithoutApiLevel.endsWith("Xr") -> DeviceType.XR
+        else -> DeviceType.HANDHELD
+      }
+    }
+
+  /**
+   * A test can specify the API level by adding it to the end of the test method name.
+   *
+   * Examples:
+   * - @Test fun testSomethingApi33()
+   * - @Test fun testAnotherApi36()
+   */
+  private fun getApiLevelFromTestName(): Int {
+      val match = API_REGEX.matchEntire(nameRule.methodName)
+      match?.groupValues[2]?.toIntOrNull()?.let { return it }
+      return when (getDeviceTypeFromTestName()) {
+        DeviceType.WEAR -> SdkVersionInfo.HIGHEST_KNOWN_API_WEAR
+        DeviceType.TV -> SdkVersionInfo.HIGHEST_KNOWN_API_TV
+        DeviceType.AUTOMOTIVE -> SdkVersionInfo.HIGHEST_KNOWN_API_AUTO
+        DeviceType.DESKTOP -> SdkVersionInfo.HIGHEST_KNOWN_API_DESKTOP
+        DeviceType.XR -> SdkVersionInfo.HIGHEST_KNOWN_API_XR
+        else -> SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+      }
+    }
+
   override fun apply(base: Statement, description: Description): Statement =
-    apply(base, description, projectRule, emulatorRule, adbServiceRule, appServiceRule)
+    apply(base, description, nameRule, projectRule, emulatorRule, adbServiceRule, appServiceRule)
 
   private fun apply(base: Statement, description: Description, vararg rules: TestRule): Statement {
     var statement = super.apply(base, description)
