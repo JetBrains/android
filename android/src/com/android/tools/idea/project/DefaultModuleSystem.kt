@@ -87,8 +87,6 @@ class DefaultModuleSystem(override val module: Module) :
 
   override val moduleClassFileFinder: ClassFileFinder = ProductionModuleClassFileFinder(module)
 
-  override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) = Unit
-
   override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? = null
 
   override fun getResourceModuleDependencies() = AndroidDependenciesCache.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)

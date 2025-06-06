@@ -125,10 +125,7 @@ class SearchItemHandlerTest(
     if (dependencies.isNotEmpty()) {
       val moduleSystem = projectSystem.getModuleSystem(rule.module)
       for (dependency in dependencies) {
-        moduleSystem.registerDependency(
-          dependency.getCoordinate("+"),
-          DependencyType.IMPLEMENTATION,
-        )
+        moduleSystem.registerDependency(dependency, DependencyType.IMPLEMENTATION)
       }
       runInEdtAndWait {
         ProjectSystemService.getInstance(rule.project).replaceProjectSystemForTests(projectSystem)

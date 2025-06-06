@@ -316,11 +316,6 @@ class GradleModuleSystem(
     registerDependencies(listOf(dependency.dependency), type)
   }
 
-  override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
-    val dependencies = Collections.singletonList(coordinate.toDependency())
-    registerDependencies(dependencies, type)
-  }
-
   private val DependencyType.configurationName get() = when(this) {
       DependencyType.ANNOTATION_PROCESSOR -> "annotationProcessor"
       DependencyType.DEBUG_IMPLEMENTATION -> "debugImplementation"

@@ -115,17 +115,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
     this as? RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>
 
   /**
-   * Register a requested dependency of the given type with the build system.  Note that the requested dependency
-   * won't be available (a.k.a. resolved) until the next sync. To ensure the dependency is resolved and available
-   * for use, sync the project after calling this function.  This method throws [DependencyManagementException] for
-   * any errors that occur when adding the dependency.
-   *
-   * **Note**: This function will perform a write action.
-   */
-  @Throws(DependencyManagementException::class)
-  fun registerDependency(coordinate: GradleCoordinate, type: DependencyType)
-
-  /**
    * Returns the resolved libraries that this module depends on.
    * <p>
    * **Note**: This function will not acquire read/write locks during its operation.
@@ -376,7 +365,7 @@ data class ManifestOverrides(
   fun resolvePlaceholders(string: String) = string.replace(PLACEHOLDER_REGEX) { placeholders[it.groupValues[1]].orEmpty() }
 }
 
-/** Types of dependencies that [AndroidModuleSystem.registerDependency] can add */
+/** Types of dependencies that [RegisteringModuleSystem.registerDependency] can add */
 enum class DependencyType {
   IMPLEMENTATION,
   DEBUG_IMPLEMENTATION,

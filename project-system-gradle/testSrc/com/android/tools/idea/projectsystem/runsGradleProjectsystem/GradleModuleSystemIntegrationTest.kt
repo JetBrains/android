@@ -70,15 +70,13 @@ class GradleModuleSystemIntegrationTest {
   fun testRegisterDependency() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-      val moduleSystem = project.findAppModule().getModuleSystem()
+      val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
       val dependencyManager = GradleDependencyManager.getInstance(project)
-      val dummyCoordinate = GradleCoordinate("a", "b", "+")
-      val dummyDependency = Dependency.parse(dummyCoordinate.toString())
-      val anotherDummyCoordinate = GradleCoordinate("hello", "world", "1.2.3")
-      val anotherDummyDependency = Dependency.parse(anotherDummyCoordinate.toString())
+      val dummyDependency = Dependency.parse("a:b:+")
+      val anotherDummyDependency = Dependency.parse("hello:world:1.2.3")
 
-      moduleSystem.registerDependency(dummyCoordinate, DependencyType.IMPLEMENTATION)
-      moduleSystem.registerDependency(anotherDummyCoordinate, DependencyType.IMPLEMENTATION)
+      moduleSystem.registerDependency(dummyDependency, DependencyType.IMPLEMENTATION)
+      moduleSystem.registerDependency(anotherDummyDependency, DependencyType.IMPLEMENTATION)
 
       assertThat(
         dependencyManager.findMissingDependencies(project.findAppModule(), listOf(dummyDependency, anotherDummyDependency))

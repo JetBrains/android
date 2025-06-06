@@ -124,7 +124,8 @@ public class BazelModuleSystemTest extends BlazeTestCase {
     assertThat(buildFile).isNotNull();
     when(psiFile.getVirtualFile()).thenReturn(buildFile);
 
-    BazelModuleSystem.create(module).registerDependency(APP_COMPAT_V7, DependencyType.IMPLEMENTATION);
+    BlazeRegisteredDependencyId id = new BlazeTargetRegisteredDependencyId(TargetKey.forPlainTarget(Label.create("//third_party/java/androidx/appcompat:appcompat")));
+    BazelModuleSystem.create(module).registerDependency(id, DependencyType.IMPLEMENTATION);
 
     ArgumentCaptor<OpenFileDescriptor> descriptorCaptor =
         ArgumentCaptor.forClass(OpenFileDescriptor.class);
@@ -139,6 +140,7 @@ public class BazelModuleSystemTest extends BlazeTestCase {
 
   @Test
   public void testAddWellKnownMavenArtifactIdDependencyWithBuildTargetPsi() throws Exception {
+    registerExtensionPoint(MavenArtifactLocator.EP_NAME, MavenArtifactLocator.class);
     PsiElement buildTargetPsi = mock(PsiElement.class);
     PsiFile psiFile = mock(PsiFile.class);
 
@@ -152,8 +154,7 @@ public class BazelModuleSystemTest extends BlazeTestCase {
     assertThat(buildFile).isNotNull();
     when(psiFile.getVirtualFile()).thenReturn(buildFile);
 
-    BlazeRegisteredDependencyId id = new BlazeTargetRegisteredDependencyId(TargetKey.forPlainTarget(Label.create("//third_party/java/androidx/appcompat:appcompat")));
-    BazelModuleSystem.create(module).registerDependency(id, DependencyType.IMPLEMENTATION);
+    BazelModuleSystem.create(module).registerDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, DependencyType.IMPLEMENTATION);
 
     ArgumentCaptor<OpenFileDescriptor> descriptorCaptor =
         ArgumentCaptor.forClass(OpenFileDescriptor.class);
@@ -176,7 +177,8 @@ public class BazelModuleSystemTest extends BlazeTestCase {
         VirtualFileSystemProvider.getInstance().getSystem().findFileByPath("/foo/BUILD");
     assertThat(buildFile).isNotNull();
 
-    BazelModuleSystem.create(module).registerDependency(APP_COMPAT_V7, DependencyType.IMPLEMENTATION);
+    BlazeRegisteredDependencyId id = new BlazeTargetRegisteredDependencyId(TargetKey.forPlainTarget(Label.create("//third_party/java/androidx/appcompat:appcompat")));
+    BazelModuleSystem.create(module).registerDependency(id, DependencyType.IMPLEMENTATION);
 
     verify(FileEditorManager.getInstance(project)).openFile(buildFile, true);
     verifyNoMoreInteractions(FileEditorManager.getInstance(project));
@@ -184,6 +186,7 @@ public class BazelModuleSystemTest extends BlazeTestCase {
 
   @Test
   public void testAddWellKnownArtifactIdDependencyWithoutBuildTargetPsi() throws Exception {
+    registerExtensionPoint(MavenArtifactLocator.EP_NAME, MavenArtifactLocator.class);
     // Can't find PSI for the target.
     when(BuildReferenceManager.getInstance(project).resolveLabel(Label.create("//foo:bar")))
         .thenReturn(null);
@@ -192,8 +195,7 @@ public class BazelModuleSystemTest extends BlazeTestCase {
         VirtualFileSystemProvider.getInstance().getSystem().findFileByPath("/foo/BUILD");
     assertThat(buildFile).isNotNull();
 
-    BlazeRegisteredDependencyId id = new BlazeTargetRegisteredDependencyId(TargetKey.forPlainTarget(Label.create("//third_party/java/androidx/appcompat:appcompat")));
-    BazelModuleSystem.create(module).registerDependency(id, DependencyType.IMPLEMENTATION);
+    BazelModuleSystem.create(module).registerDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, DependencyType.IMPLEMENTATION);
 
     verify(FileEditorManager.getInstance(project)).openFile(buildFile, true);
     verifyNoMoreInteractions(FileEditorManager.getInstance(project));
