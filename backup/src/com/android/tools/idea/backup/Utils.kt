@@ -20,26 +20,11 @@ import com.android.backup.BackupProgressListener.Step
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.util.progress.SequentialProgressReporter
 import java.nio.file.Path
 import kotlin.io.path.pathString
-import kotlin.io.path.relativeToOrSelf
-
-internal fun Path.relativeToProject(project: Project): Path {
-  val relative = relativeToOrSelf(Path.of(project.basePath!!))
-  return if (relative.startsWith("..")) this else relative
-}
-
-internal fun Path.absoluteInProject(project: Project): Path {
-  val projectDir = project.guessProjectDir()!!.toNioPath()
-  return when {
-    isAbsolute -> this
-    else -> projectDir.resolve(this)
-  }
-}
 
 internal fun Path.isValid(): Boolean {
   val fileSystem = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL)
