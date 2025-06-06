@@ -97,7 +97,7 @@ class AndroidTestSuiteViewAdaptor(private val runConfiguration: RunConfiguration
             id = id,
             methodName = xml.testName,
             className = xml.testClassName.substringAfterLast("."),
-            packageName = xml.testClassName.substringBeforeLast("."),
+            packageName = if (xml.testClassName.contains(".")) xml.testClassName.substringBeforeLast(".") else "",
             result = AndroidTestCaseResult.IN_PROGRESS
           )
         }

@@ -131,7 +131,7 @@ class AndroidTestSuiteViewAdaptorTest {
         id = "1.3",
         methodName = "Open the navigation drawer",
         className = "my_first_journey",
-        packageName = "my_first_journey",
+        packageName = "",
         result = AndroidTestCaseResult.IN_PROGRESS,
       )
     verify(testSuiteView, times(1))
@@ -180,7 +180,7 @@ class AndroidTestSuiteViewAdaptorTest {
         id = "1.4",
         methodName = "Click on the first entry",
         className = "my_first_journey",
-        packageName = "my_first_journey",
+        packageName = "",
         result = AndroidTestCaseResult.IN_PROGRESS,
       )
     verify(testSuiteView, times(1))
@@ -282,7 +282,7 @@ class AndroidTestSuiteViewAdaptorTest {
         id = "1.6",
         methodName = "Open the navigation drawer",
         className = "my_second_journey",
-        packageName = "my_second_journey",
+        packageName = "",
         result = AndroidTestCaseResult.IN_PROGRESS,
       )
 
@@ -443,7 +443,7 @@ class AndroidTestSuiteViewAdaptorTest {
     )
 
     val testCase =
-      AndroidTestCase("1.3", "step_one", "failing_journey", "failing_journey", AndroidTestCaseResult.IN_PROGRESS)
+      AndroidTestCase("1.3", "step_one", "failing_journey", "", AndroidTestCaseResult.IN_PROGRESS)
     verify(testSuiteView).onTestCaseStarted(device, testSuite.copy(testCaseCount = 1), testCase)
 
     // End Journey action (failed)
@@ -662,7 +662,7 @@ class AndroidTestSuiteViewAdaptorTest {
         id = "1.3",
         methodName = "Open the navigation drawer",
         className = "my_first_journey",
-        packageName = "my_first_journey",
+        packageName = "",
         result = AndroidTestCaseResult.IN_PROGRESS,
       )
     verify(testSuiteView, times(1))
@@ -711,7 +711,7 @@ class AndroidTestSuiteViewAdaptorTest {
         id = "1.5",
         methodName = "Open the navigation drawer",
         className = "my_first_journey",
-        packageName = "my_first_journey",
+        packageName = "",
         result = AndroidTestCaseResult.IN_PROGRESS,
       )
     verify(testSuiteView, times(1))
