@@ -479,6 +479,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       val platform = getInstance(facet.module.getMainModule())
       if (platform != null) {
         buildSdk = platform.apiLevel
+        buildSdkLevel = platform.apiVersion.androidApiLevel
       }
     }
 
