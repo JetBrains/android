@@ -46,7 +46,6 @@ class KotlinCompilationErrorIntegrationTest : BuildOutputIntegrationTestBase() {
   fun testBrokenCompilationWithoutStacktrace() = testBrokenCompilation(false)
 
   @Test
-  @Ignore("b/278800524") // it currently generates extra messages from stacktrace, need to be addressed separately
   fun testBrokenCompilationWithStacktrace() = testBrokenCompilation(true)
 
   private fun testBrokenCompilation(withStacktrace: Boolean) {

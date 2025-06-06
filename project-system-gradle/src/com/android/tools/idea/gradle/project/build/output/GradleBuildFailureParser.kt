@@ -162,7 +162,23 @@ abstract class GradleBuildFailureParser(
     parentId: Any,
     errorText: String,
     messageConsumer: Consumer<in BuildEvent>
-  ) = Unit
+  ) {
+    // In GradleBuildScriptErrorParser in case of single failure parsing is just aborted
+    // giving chance to other compilation parsers to parse the following lines.
+    // However, this is wrong to do, there are two reasons:
+    // - In case of multi-failure compilation errors message is only one of the parsed failures.
+    // - In case of single-failure if it was run with stacktrace javac will generate junk messages from it.
+    // Instead, take this message text and run compilation parsers on it giving them the chance.
+    // For now there seems to be one parser that is supposed to parse messages from failures.
+    // If there is a need to add more, this function should become more like BuildOutputInstantReaderImpl
+    // runnable iterating over all parsers.
+    val parser by lazy { FilteringGradleCompilationReportParser() }
+    val reader = LinesBuildOutputInstantReader(errorText, parentId)
+    while (true) {
+      val line = reader.readLine() ?: return
+      if(parser.parse(line, reader, messageConsumer)) return
+    }
+  }
 
   private fun checkUnresolvedDependencyError(reason: String, description: String, parentId: Any): BuildEvent? {
     val noCachedVersionPrefix = "No cached version of "

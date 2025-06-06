@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.intellij.build.events.BuildEvent
+import com.intellij.build.events.DuplicateMessageAware
+import com.intellij.build.events.impl.FileMessageEventImpl
+import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
 import com.intellij.build.output.JavacOutputParser
@@ -56,7 +59,17 @@ class FilteringGradleCompilationReportParser : BuildOutputParser {
       if (JavaLanguageLevelDeprecationOutputParser.notSupportedMessagePattern.matcher(event.message).matches()) {
         return@Consumer
       }
-      messageConsumer.accept(event)
+      // Convert generated events to DuplicateMessageAware. Compilation errors are already parsed from tasks output normally,
+      // so lines in final failure message are most likely a duplication.
+      when (event) {
+        is FileMessageEventImpl -> messageConsumer.accept(
+          object : FileMessageEventImpl(event.parentId!!, event.kind, event.group, event.message, event.description, event.filePosition), DuplicateMessageAware {}
+        )
+        is MessageEventImpl -> messageConsumer.accept(
+          object : MessageEventImpl(event.parentId!!, event.kind, event.group, event.message, event.description), DuplicateMessageAware {}
+        )
+        else -> messageConsumer.accept(event)
+      }
     }
     return myCompilationParser.parse(line, reader, wrappedConsumer)
   }
