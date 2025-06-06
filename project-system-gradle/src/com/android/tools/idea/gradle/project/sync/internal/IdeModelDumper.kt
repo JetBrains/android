@@ -64,6 +64,7 @@ import com.android.tools.idea.projectsystem.gradle.isHolderModule
 import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -894,6 +895,7 @@ class DumpProjectIdeModelAction : InternalDumpAction("IDE Models") {
     outputFile.writeText(dump)
     FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!), true)
     VfsUtil.markDirtyAndRefresh(true, false, false, outputFile)
-    println("Dumped to: file://$outputFile")
+    Logger.getInstance(DumpProjectIdeModelAction::class.java)
+      .info("Android IDE models dumped to file: " + outputFile.toURI().toURL())
   }
 }

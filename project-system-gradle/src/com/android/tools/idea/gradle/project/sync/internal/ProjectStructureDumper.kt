@@ -34,6 +34,7 @@ import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManager
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManagerImpl
@@ -543,7 +544,8 @@ class DumpProjectAction : InternalDumpAction("Structure") {
     outputFile.writeText(dump)
     FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!), true)
     VfsUtil.markDirtyAndRefresh(true, false, false, outputFile)
-    println("Dumped to: file://$outputFile")
+    Logger.getInstance(DumpProjectAction::class.java)
+      .info("Project structure dumped to file: " + outputFile.toURI().toURL())
   }
 }
 
