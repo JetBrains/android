@@ -725,4 +725,109 @@ class MavenClassRegistryTest {
     assertThat(mavenClassRegistry.isPackageIndexed("foo.bar.baz")).isTrue()
     assertThat(mavenClassRegistry.isPackageIndexed("other")).isFalse()
   }
+
+  @Test
+  fun kmpArtifactMap() {
+    repositoryIndexContents =
+      """
+        {
+          "Index": [
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity",
+              "version": "1.1.0",
+              "ktxTargets": [],
+              "fqcns": [],
+              "ktlfns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-android",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-desktop",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-jvmstubs",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-linuxx64stubs",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-unknownsuffix",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.artifact.without.base",
+              "artifactId": "foo-desktop",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.different.version",
+              "artifactId": "foo",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.different.version",
+              "artifactId": "foo-desktop",
+              "version": "1.2.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            }
+          ]
+        }
+      """
+        .trimIndent()
+
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
+
+    assertThat(mavenClassRegistry.lookup.kmpArtifactMap)
+      .containsExactlyEntriesIn(
+        mapOf(
+          "androidx.activity:activity-android" to "androidx.activity:activity",
+          "androidx.activity:activity-desktop" to "androidx.activity:activity",
+          "androidx.activity:activity-jvmstubs" to "androidx.activity:activity",
+          "androidx.activity:activity-linuxx64stubs" to "androidx.activity:activity",
+          "androidx.different.version:foo-desktop" to null,
+        )
+      )
+  }
 }

@@ -30,6 +30,9 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.name.FqName
 
+private val KOTLIN_ARTIFACT_PLATFORM_SUFFIXES =
+  Regex("-(android|desktop|jvmstubs|linuxx64stubs)$", RegexOption.IGNORE_CASE)
+
 /**
  * Registry contains [lookup] extracted by reading indices from [GMavenIndexRepository].
  *
@@ -216,10 +219,12 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
         mutableListOf()
       val ktxMap: MutableMap<String, String> = mutableMapOf()
       val coordinateList: MutableList<Coordinate> = mutableListOf()
+      val allIndexData: MutableList<GMavenArtifactIndex> = mutableListOf()
 
       reader.beginArray()
       while (reader.hasNext()) {
         val indexData = readGMavenIndex(reader)
+        allIndexData.add(indexData)
 
         // Get class names and their associated libraries.
         classNames.addAll(indexData.getClassSimpleNamesWithLibraries())
@@ -238,7 +243,34 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
       val classNameMap = classNames.groupBy({ it.first }, { it.second })
       val topLevelFunctionsMap = topLevelFunctions.groupBy({ it.first }, { it.second })
 
-      return LookupData(classNameMap, topLevelFunctionsMap, ktxMap, coordinateList)
+      val kmpArtifactMap = allIndexData.toKmpArtifactMap()
+      return LookupData(classNameMap, topLevelFunctionsMap, ktxMap, kmpArtifactMap, coordinateList)
+    }
+
+    private fun List<GMavenArtifactIndex>.toKmpArtifactMap(): Map<String, String?> {
+      val artifactToVersionMap = this.associate { "${it.groupId}:${it.artifactId}" to it.version }
+
+      val candidateArtifacts =
+        artifactToVersionMap.keys.filter { KOTLIN_ARTIFACT_PLATFORM_SUFFIXES.containsMatchIn(it) }
+
+      return buildMap {
+        for (candidateArtifact in candidateArtifacts) {
+          val candidateVersion = requireNotNull(artifactToVersionMap[candidateArtifact])
+          val baseArtifact = candidateArtifact.substringBeforeLast('-')
+
+          // Only do a replacement if the base artifact exists in some form.
+          if (baseArtifact in artifactToVersionMap) {
+            if (candidateVersion == artifactToVersionMap[baseArtifact]) {
+              // When the versions match, we want to do a replacement.
+              put(candidateArtifact, baseArtifact)
+            } else {
+              // When the versions don't match, we want to drop the platform-specific
+              // recommendation.
+              put(candidateArtifact, null)
+            }
+          }
+        }
+      }
     }
 
     @Throws(IOException::class)
@@ -375,9 +407,14 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     val topLevelFunctionsMap: Map<FunctionSpecifier, List<LibraryImportData>>,
     /** A map from non-KTX libraries to the associated KTX libraries. */
     val ktxMap: Map<String, String>,
-
-    /** A list of Google Maven [MavenClassRegistry.Coordinate]. */
-    val coordinateList: List<MavenClassRegistry.Coordinate>,
+    /**
+     * A map from platform-specific artifacts to general artifacts, eg
+     * "androidx.compose.ui:ui-android" to "androidx.compose.ui:ui". If the value is null, then the
+     * artifact shouldn't be used for KMP purposes.
+     */
+    val kmpArtifactMap: Map<String, String?>,
+    /** A list of Google Maven [Coordinate]. */
+    val coordinateList: List<Coordinate>,
   ) {
     /**
      * A map from simple names (irrespective of receiver) to corresponding [LibraryImportData]
@@ -389,7 +426,7 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
       }
 
     companion object {
-      @JvmStatic val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyList())
+      @JvmStatic val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyMap(), emptyList())
     }
   }
 }
