@@ -76,7 +76,18 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
     lastProjectProtoSnapshot = newProjectProtoSnapshot
   }
 
-  data class ModuleData(val name: String) {
+  data class ProjectData(
+    val modules: List<ModuleData>,
+    val libraries: List<LibraryData>,
+  ) {
+    companion object
+  }
+
+  data class ModuleData(
+    val name: String,
+    val dependencies: List<String>,
+    val contentRoots: List<ContentRootData>,
+  ) {
     companion object
   }
 
@@ -84,15 +95,6 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
     val name: String,
     val jarUrls: List<String>,
     val sourceUrls: List<String>,
-  ) {
-    companion object
-  }
-
-  data class SourceRootData(
-    val url: String,
-    val rootTypeId: SourceRootTypeId,
-    val isGenerated: Boolean,
-    val packagePrefix: String,
   ) {
     companion object
   }
@@ -105,10 +107,11 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
     companion object
   }
 
-  data class ProjectData(
-    val modules: Map<String, ModuleData>,
-    val libraries: Map<String, LibraryData>,
-    val contentRoots: Map<String, ContentRootData>,
+  data class SourceRootData(
+    val url: String,
+    val rootTypeId: SourceRootTypeId,
+    val isGenerated: Boolean,
+    val packagePrefix: String,
   ) {
     companion object
   }
@@ -138,10 +141,12 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
       return UrlUtil.pathToIdeaUrl(projectPathResolver.resolve(sourceFolderProjectPath))
     }
 
-    fun ModuleData.Companion.from(module: ProjectProto.Module): ModuleData {
-      return ModuleData(
-        name = module.name,
-      )
+    fun ModuleData.Companion.from(
+      module: ProjectProto.Module,
+      dependencies: List<String>,
+      contentRoots: List<ContentRootData>,
+    ): ModuleData {
+      return ModuleData(name = module.name, dependencies = dependencies, contentRoots = contentRoots)
     }
 
     fun LibraryData.Companion.from(library: ProjectProto.Library): LibraryData {
@@ -195,7 +200,7 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
     fun ProjectData.Companion.from(project: ProjectProto.Project): ProjectData {
       val libraries = when (projectStructureExperiment.value) {
         ProjectStructure.LIBRARY_PER_TARGET ->
-          project.libraryList.map { LibraryData.from(it) }.associateBy { it.name }
+          project.libraryList.map { LibraryData.from(it) }
 
         ProjectStructure.SHARDED_LIBRARY -> let {
           val shards = libraryShardsExperiment.value.toULong()
@@ -204,21 +209,15 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
             .map {
               LibraryData.from("Lib ${it.key}", it.value)
             }
-            .associateBy { it.name }
         }
       }
-      if (project.modulesCount != 1) {
-        context.output(
-          PrintOutput.error("ERROR: Expected exactly one module in project, but found " + project.modulesCount))
-        error("Expected exactly one module in project, but found " + project.modulesCount)
-      }
-      val contentRoots = project.getModules(0).contentEntriesList.map {
-        ContentRootData.from(it.root, sources = it.sourcesList, excludes = it.excludesList)
-      }.associateBy { it.url }
       return ProjectData(
-        modules = project.modulesList.map { ModuleData.from(it) }.associateBy { it.name },
+        modules = project.modulesList.map {
+          ModuleData.from(it, libraries.map { it.name }, it.contentEntriesList.map {
+            ContentRootData.from(it.root, sources = it.sourcesList, excludes = it.excludesList)
+          })
+        },
         libraries = libraries,
-        contentRoots = contentRoots,
       )
     }
   }
@@ -254,50 +253,52 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
       { it is BazelEntitySource || it is JpsProjectFileEntitySource },
       MutableEntityStorage.create().apply {
         val libraries = projectData.libraries.map {
-          val lib = it.value
           addEntity(LibraryEntity(
-            name = lib.name,
+            name = it.name,
             tableId = LibraryTableId.ProjectLibraryTableId,
-            roots = lib.jarUrls.map {
+            roots = it.jarUrls.map {
               LibraryRoot(
                 url = virtualFileUrlManager.getOrCreateFromUrl(it), type = LibraryRootTypeId.COMPILED)
-            } + lib.sourceUrls.map {
+            } + it.sourceUrls.map {
               LibraryRoot(
                 url = virtualFileUrlManager.getOrCreateFromUrl(it), type = LibraryRootTypeId.SOURCES)
             },
             entitySource = BazelEntitySource
           ))
-        }
-        val dependencies =
-          listOf(ModuleSourceDependency, InheritedSdkDependency) +
-          libraries.map {
-            LibraryDependency(library = it.symbolicId, exported = false, scope = DependencyScope.COMPILE)
-          }
-        addEntity(
-          ModuleEntity(name = WORKSPACE_MODULE_NAME, dependencies = dependencies, entitySource = BazelEntitySource) {
-            this.contentRoots = projectData.contentRoots.map {
-              val entry = it.value
-              ContentRootEntity(
-                url = virtualFileUrlManager.getOrCreateFromUrl(entry.url),
-                excludedPatterns = entry.excludedPatterns,
-                entitySource = BazelEntitySource
-              ) {
-                this.sourceRoots = entry.sourceRoots.map {
-                  SourceRootEntity(
-                    url = virtualFileUrlManager.getOrCreateFromUrl(it.url),
-                    rootTypeId = it.rootTypeId,
-                    entitySource = BazelEntitySource
-                  ) {
-                    this.javaSourceRoots += JavaSourceRootPropertiesEntity(
-                      generated = it.isGenerated,
-                      packagePrefix = it.packagePrefix,
+        }.associateBy { it.name }
+
+        for (module in projectData.modules) {
+          val dependencies = listOf(ModuleSourceDependency, InheritedSdkDependency) +
+                             module.dependencies.map {
+                               LibraryDependency(libraries[it]?.symbolicId ?: error("Unresolved library dependency: $it"),
+                                                 exported = false,
+                                                 scope = DependencyScope.COMPILE)
+                             }
+          addEntity(
+            ModuleEntity(name = WORKSPACE_MODULE_NAME, dependencies = dependencies, entitySource = BazelEntitySource) {
+              this.contentRoots = module.contentRoots.map {
+                ContentRootEntity(
+                  url = virtualFileUrlManager.getOrCreateFromUrl(it.url),
+                  excludedPatterns = it.excludedPatterns,
+                  entitySource = BazelEntitySource
+                ) {
+                  this.sourceRoots = it.sourceRoots.map {
+                    SourceRootEntity(
+                      url = virtualFileUrlManager.getOrCreateFromUrl(it.url),
+                      rootTypeId = it.rootTypeId,
                       entitySource = BazelEntitySource
-                    )
+                    ) {
+                      this.javaSourceRoots += JavaSourceRootPropertiesEntity(
+                        generated = it.isGenerated,
+                        packagePrefix = it.packagePrefix,
+                        entitySource = BazelEntitySource
+                      )
+                    }
                   }
                 }
               }
-            }
-          })
+            })
+        }
       }
     )
   }
