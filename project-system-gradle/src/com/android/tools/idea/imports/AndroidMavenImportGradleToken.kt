@@ -16,12 +16,14 @@
 package com.android.tools.idea.imports
 
 import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.gradle.Module as GradleModule
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.projectsystem.gradle.getGradlePluginVersion
 import com.intellij.openapi.module.Module
-import com.android.ide.common.gradle.Module as GradleModule
 
 class AndroidMavenImportGradleToken : AndroidMavenImportToken<GradleProjectSystem>, GradleToken {
   override fun dependsOn(projectSystem: GradleProjectSystem, module: Module, artifact: String): Boolean {
@@ -41,5 +43,13 @@ class AndroidMavenImportGradleToken : AndroidMavenImportToken<GradleProjectSyste
       else -> Dependency.parse("$artifact:$version")
     }
     moduleSystem.registerDependency(dependency, type)
+  }
+
+  override fun shouldMapKmpArtifacts(module: Module): Boolean {
+    val gradlePluginVersion = module.getGradlePluginVersion() ?: return false
+
+    // The fix for b/343735749 is in AGP 8.4.0, so starting with that version we can refer to KMP
+    // dependencies by the base artifact.
+    return gradlePluginVersion >= AgpVersion(8, 4)
   }
 }

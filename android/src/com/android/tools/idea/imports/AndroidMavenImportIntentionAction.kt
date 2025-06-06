@@ -150,6 +150,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
             text,
             receiverType,
             element.containingFile?.fileType,
+            module,
           )
         )
       } ?: return false
@@ -211,6 +212,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
               text,
               receiverType,
               element.containingFile?.fileType,
+              module,
             )
           )
         } ?: return
@@ -519,11 +521,12 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       text: String,
       receiverType: String?,
       completionFileType: FileType?,
+      module: Module,
     ): Collection<MavenClassRegistry.LibraryImportData> {
       if (receiverType == ALL_RECEIVER_TYPES) {
-        return registry.findLibraryDataAnyReceiver(text, useAndroidX, completionFileType)
+        return registry.findLibraryDataAnyReceiver(text, useAndroidX, completionFileType, module)
       }
-      return registry.findLibraryData(text, receiverType, useAndroidX, completionFileType)
+      return registry.findLibraryData(text, receiverType, useAndroidX, completionFileType, module)
     }
 
     private fun resolveArtifact(

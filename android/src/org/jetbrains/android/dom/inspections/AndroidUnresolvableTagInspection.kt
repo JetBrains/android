@@ -55,7 +55,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
     val facet = AndroidFacet.getInstance(file) ?: return ProblemDescriptor.EMPTY_ARRAY
 
     if (isRelevantFile(facet, file)) {
-      val visitor = MyVisitor(manager, isOnTheFly)
+      val visitor = MyVisitor(manager, isOnTheFly, facet)
       file.accept(visitor)
       return visitor.myResult.toTypedArray()
     }
@@ -73,6 +73,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
   private class MyVisitor(
     private val myInspectionManager: InspectionManager,
     private val myOnTheFly: Boolean,
+    private val facet: AndroidFacet,
   ) : XmlRecursiveElementVisitor() {
     val myResult: MutableList<ProblemDescriptor> = ArrayList()
 
@@ -95,6 +96,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
             ?.collectFixesFromMavenClassRegistry(
               className,
               tag.project,
+              facet.module,
               tag.containingFile?.fileType,
             ) ?: emptyList()
         getTagNameRange(tag)?.let {

@@ -19,9 +19,12 @@ import com.android.tools.idea.imports.MavenClassRegistry.LibraryImportData
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.DependencyType.ANNOTATION_PROCESSOR
 import com.android.tools.idea.projectsystem.DependencyType.DEBUG_IMPLEMENTATION
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.google.gson.stream.JsonReader
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.module.Module
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -56,8 +59,9 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     receiverType: String?,
     useAndroidX: Boolean,
     completionFileType: FileType?,
+    module: Module,
   ): Collection<LibraryImportData> =
-    findLibraryDataInternal(name, receiverType, false, useAndroidX, completionFileType)
+    findLibraryDataInternal(name, receiverType, false, useAndroidX, completionFileType, module)
 
   /**
    * Given an unresolved name, returns the likely collection of [LibraryImportData] objects for the
@@ -71,8 +75,9 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     name: String,
     useAndroidX: Boolean,
     completionFileType: FileType?,
+    module: Module,
   ): Collection<LibraryImportData> =
-    findLibraryDataInternal(name, null, true, useAndroidX, completionFileType)
+    findLibraryDataInternal(name, null, true, useAndroidX, completionFileType, module)
 
   private fun findLibraryDataInternal(
     name: String,
@@ -80,12 +85,19 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     anyReceiver: Boolean,
     useAndroidX: Boolean,
     completionFileType: FileType?,
+    module: Module,
   ): Collection<LibraryImportData> {
     // We only support projects that set android.useAndroidX=true.
     if (!useAndroidX) return emptyList()
 
     val shortName = name.substringAfterLast('.', missingDelimiterValue = name)
     val packageName = name.substringBeforeLast('.', missingDelimiterValue = "")
+
+    val shouldMap =
+      module.project
+        .getProjectSystem()
+        .getTokenOrNull(AndroidMavenImportToken.EP_NAME)
+        ?.shouldMapKmpArtifacts(module) ?: false
 
     val foundArtifacts =
       buildList {
@@ -102,7 +114,7 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
           }
         }
         .mapNotNull { data ->
-          if (data.artifact in lookup.kmpArtifactMap) {
+          if (shouldMap && data.artifact in lookup.kmpArtifactMap) {
             // If the artifact is in the map, then we either replace it or drop it.
             val baseArtifact = lookup.kmpArtifactMap[data.artifact]
             baseArtifact?.let { data.copy(artifact = it) }

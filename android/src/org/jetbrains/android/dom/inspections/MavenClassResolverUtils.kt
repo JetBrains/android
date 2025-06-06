@@ -25,6 +25,7 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.refactoring.isAndroidx
 
@@ -32,13 +33,14 @@ import org.jetbrains.android.refactoring.isAndroidx
 internal fun MavenClassRegistry.collectFixesFromMavenClassRegistry(
   className: String,
   project: Project,
+  module: Module,
   completionFileType: FileType?,
 ): List<LocalQuickFix> {
   val useAndroidX = project.isAndroidx()
   if (project.getProjectSystem().getTokenOrNull(AndroidMavenImportToken.EP_NAME) == null)
     return listOf()
 
-  return findLibraryData(className, null, useAndroidX, completionFileType).map {
+  return findLibraryData(className, null, useAndroidX, completionFileType, module).map {
     val resolvedArtifact =
       if (useAndroidX) AndroidxNameUtils.getCoordinateMapping(it.artifact) else it.artifact
     AndroidMavenImportFix(this, className, resolvedArtifact, it.version)

@@ -18,7 +18,10 @@ package com.android.tools.idea.imports
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.imports.MavenClassRegistry.LibraryImportData
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ExtensionTestUtil
 import java.io.InputStream
 import java.nio.charset.StandardCharsets.UTF_8
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -28,10 +31,17 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.utils.mapToSetOrEmpty
 import org.junit.Assert.assertThrows
+import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 /** Tests for [MavenClassRegistry]. */
 class MavenClassRegistryTest {
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  private val module by lazy { projectRule.module }
+
   private var repositoryIndexContents = ""
 
   private fun getIndexByteStream(): InputStream = repositoryIndexContents.byteInputStream(UTF_8)
@@ -844,6 +854,16 @@ class MavenClassRegistryTest {
 
   @Test
   fun findLibraryData() {
+    val mockAndroidMavenImportToken: AndroidMavenImportToken<AndroidProjectSystem> = mock {
+      on { isApplicable(any()) } doReturn true
+      on { shouldMapKmpArtifacts(any()) } doReturn true
+    }
+    ExtensionTestUtil.maskExtensions(
+      AndroidMavenImportToken.EP_NAME,
+      listOf(mockAndroidMavenImportToken),
+      projectRule.testRootDisposable,
+    )
+
     repositoryIndexContents =
       // language=json
       """
@@ -899,7 +919,7 @@ class MavenClassRegistryTest {
 
     val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
 
-    val classInBase = mavenClassRegistry.findLibraryData("ClassInBase", null, true, null)
+    val classInBase = mavenClassRegistry.findLibraryData("ClassInBase", null, true, null, module)
     assertThat(classInBase)
       .containsExactly(
         LibraryImportData(
@@ -910,7 +930,8 @@ class MavenClassRegistryTest {
         )
       )
 
-    val classInAndroid = mavenClassRegistry.findLibraryData("ClassInAndroid", null, true, null)
+    val classInAndroid =
+      mavenClassRegistry.findLibraryData("ClassInAndroid", null, true, null, module)
     assertThat(classInAndroid)
       .containsExactly(
         LibraryImportData(
@@ -922,7 +943,7 @@ class MavenClassRegistryTest {
       )
 
     val classInBothPlatforms =
-      mavenClassRegistry.findLibraryData("ClassInBothPlatforms", null, true, null)
+      mavenClassRegistry.findLibraryData("ClassInBothPlatforms", null, true, null, module)
     assertThat(classInBothPlatforms)
       .containsExactly(
         LibraryImportData(
@@ -933,7 +954,8 @@ class MavenClassRegistryTest {
         )
       )
 
-    val classInTwoGroups = mavenClassRegistry.findLibraryData("ClassInTwoGroups", null, true, null)
+    val classInTwoGroups =
+      mavenClassRegistry.findLibraryData("ClassInTwoGroups", null, true, null, module)
     assertThat(classInTwoGroups)
       .containsExactly(
         LibraryImportData(
@@ -951,8 +973,159 @@ class MavenClassRegistryTest {
       )
 
     assertThat(
-        mavenClassRegistry.findLibraryData("ClassInDesktopWithDifferentVersion", null, true, null)
+        mavenClassRegistry.findLibraryData(
+          "ClassInDesktopWithDifferentVersion",
+          null,
+          true,
+          null,
+          module,
+        )
       )
       .isEmpty()
+  }
+
+  @Test
+  fun findLibraryDataWithoutKmpMapping() {
+    val mockAndroidMavenImportToken: AndroidMavenImportToken<AndroidProjectSystem> = mock {
+      on { isApplicable(any()) } doReturn true
+      on { shouldMapKmpArtifacts(any()) } doReturn false
+    }
+    ExtensionTestUtil.maskExtensions(
+      AndroidMavenImportToken.EP_NAME,
+      listOf(mockAndroidMavenImportToken),
+      projectRule.testRootDisposable,
+    )
+
+    repositoryIndexContents =
+      // language=json
+      """
+        {
+          "Index": [
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity",
+              "version": "1.1.0",
+              "ktxTargets": [],
+              "fqcns": [
+                "androidx.activity.ClassInBase",
+                "androidx.activity.ClassInBothPlatforms",
+                "androidx.activity.ClassInTwoGroups"
+              ],
+              "ktlfns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-android",
+              "version": "1.1.0",
+              "ktxTargets": [],
+              "fqcns": [
+                "androidx.activity.ClassInAndroid",
+                "androidx.activity.ClassInBothPlatforms"
+              ],
+              "ktlfns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-desktop",
+              "version": "0.9.0",
+              "ktxTargets": [],
+              "fqcns": [
+                "androidx.activity.ClassInDesktopWithDifferentVersion"
+              ],
+              "ktlfns": []
+            },
+            {
+              "groupId": "androidx.foo",
+              "artifactId": "foo",
+              "version": "1.1.0",
+              "ktxTargets": [],
+              "fqcns": [
+                "androidx.foo.ClassInTwoGroups"
+              ],
+              "ktlfns": []
+            }
+          ]
+        }
+      """
+        .trimIndent()
+
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
+
+    val classInBase = mavenClassRegistry.findLibraryData("ClassInBase", null, true, null, module)
+    assertThat(classInBase)
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity",
+          "androidx.activity.ClassInBase",
+          "androidx.activity",
+          "1.1.0",
+        )
+      )
+
+    val classInAndroid =
+      mavenClassRegistry.findLibraryData("ClassInAndroid", null, true, null, module)
+    assertThat(classInAndroid)
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity-android",
+          "androidx.activity.ClassInAndroid",
+          "androidx.activity",
+          "1.1.0",
+        )
+      )
+
+    val classInBothPlatforms =
+      mavenClassRegistry.findLibraryData("ClassInBothPlatforms", null, true, null, module)
+    assertThat(classInBothPlatforms)
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity",
+          "androidx.activity.ClassInBothPlatforms",
+          "androidx.activity",
+          "1.1.0",
+        ),
+        LibraryImportData(
+          "androidx.activity:activity-android",
+          "androidx.activity.ClassInBothPlatforms",
+          "androidx.activity",
+          "1.1.0",
+        ),
+      )
+
+    val classInTwoGroups =
+      mavenClassRegistry.findLibraryData("ClassInTwoGroups", null, true, null, module)
+    assertThat(classInTwoGroups)
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity",
+          "androidx.activity.ClassInTwoGroups",
+          "androidx.activity",
+          "1.1.0",
+        ),
+        LibraryImportData(
+          "androidx.foo:foo",
+          "androidx.foo.ClassInTwoGroups",
+          "androidx.foo",
+          "1.1.0",
+        ),
+      )
+
+    assertThat(
+        mavenClassRegistry.findLibraryData(
+          "ClassInDesktopWithDifferentVersion",
+          null,
+          true,
+          null,
+          module,
+        )
+      )
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity-desktop",
+          "androidx.activity.ClassInDesktopWithDifferentVersion",
+          "androidx.activity",
+          "0.9.0",
+        )
+      )
   }
 }

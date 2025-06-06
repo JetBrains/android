@@ -632,6 +632,10 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
 
     @NotNull
     private LocalQuickFix[] collectFixesFromMavenClassRegistry(@NotNull String className, @NotNull Project project) {
+      if (myModule == null) {
+        return LocalQuickFix.EMPTY_ARRAY;
+      }
+
       PsiFile containingFile = myElement.getContainingFile();
 
       MavenClassRegistry registry = MavenClassRegistryManager.getInstance().tryGetMavenClassRegistry();
@@ -644,6 +648,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
           registry,
           className,
           project,
+          myModule,
           containingFile != null ? containingFile.getFileType() : null
         );
 

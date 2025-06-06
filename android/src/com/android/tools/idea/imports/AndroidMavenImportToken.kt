@@ -38,6 +38,13 @@ interface AndroidMavenImportToken<P : AndroidProjectSystem> : Token {
     type: DependencyType = IMPLEMENTATION,
   )
 
+  /**
+   * Indicates whether platform-specific dependencies can be referred to by their base version. Eg
+   * "androidx.compose.animation:animation-core-desktop" ->
+   * "androidx.compose.animation:animation-core"
+   */
+  fun shouldMapKmpArtifacts(module: Module): Boolean
+
   companion object {
     val EP_NAME =
       ExtensionPointName<AndroidMavenImportToken<AndroidProjectSystem>>(
