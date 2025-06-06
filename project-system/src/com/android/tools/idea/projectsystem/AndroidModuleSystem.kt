@@ -132,10 +132,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getRegisteringModuleSystem(): RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>? =
     this as? RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>
 
-  /** Whether this module system supports adding dependencies of the given type via [registerDependency] */
-  fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION) =
-    getRegisteringModuleSystem() != null
-
   /**
    * Register a requested dependency of the given type with the build system.  Note that the requested dependency
    * won't be available (a.k.a. resolved) until the next sync. To ensure the dependency is resolved and available

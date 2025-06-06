@@ -169,11 +169,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem, Registering
     return BlazeAndroidModuleTemplate.getTemplates(module, targetDirectory);
   }
 
-  @Override
-  public boolean canRegisterDependency(DependencyType type) {
-    return false;
-  }
-
   private void doRegisterDependency(DependencyType type) {
     if (type != DependencyType.IMPLEMENTATION) {
       throw new UnsupportedOperationException("Unsupported dependency type in Blaze: " + type);

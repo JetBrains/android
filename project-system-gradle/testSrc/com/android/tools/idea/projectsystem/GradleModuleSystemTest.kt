@@ -63,7 +63,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
   fun testRegisterDependencyCoordinate() {
     val coordinate = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
     val dependency = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getDependency("+")
-    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.IMPLEMENTATION)).isTrue()
     gradleModuleSystem.registerDependency(coordinate, DependencyType.IMPLEMENTATION)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
       .addDependencies(myModule, listOf(dependency), "implementation")
@@ -72,7 +71,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
   fun testRegisterDebugDependencyCoordinate() {
     val coordinate = GoogleMavenArtifactId.COMPOSE_TOOLING.getCoordinate("+")
     val dependency = GoogleMavenArtifactId.COMPOSE_TOOLING.getDependency("+")
-    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.DEBUG_IMPLEMENTATION)).isTrue()
     gradleModuleSystem.registerDependency(coordinate, DependencyType.DEBUG_IMPLEMENTATION)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
       .addDependencies(myModule, listOf(dependency), "debugImplementation")
@@ -81,7 +79,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
   fun testRegisterAnnotationProcessorDependencyCoordinate() {
     val coordinate = GoogleMavenArtifactId.ROOM_COMPILER.getCoordinate("+")
     val dependency = GoogleMavenArtifactId.ROOM_COMPILER.getDependency("+")
-    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR)).isTrue()
     gradleModuleSystem.registerDependency(coordinate, DependencyType.ANNOTATION_PROCESSOR)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
       .addDependencies(myModule, listOf(dependency), "annotationProcessor")
@@ -89,7 +86,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
   fun testRegisterDependencyDependency() {
     val dependency = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getDependency("+")
-    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.IMPLEMENTATION)).isTrue()
     gradleModuleSystem.registerDependency(dependency, DependencyType.IMPLEMENTATION)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
       .addDependencies(myModule, listOf(dependency), "implementation")
@@ -97,7 +93,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
   fun testRegisterDebugDependencyDependency() {
     val dependency = GoogleMavenArtifactId.COMPOSE_TOOLING.getDependency("+")
-    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.DEBUG_IMPLEMENTATION)).isTrue()
     gradleModuleSystem.registerDependency(dependency, DependencyType.DEBUG_IMPLEMENTATION)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
       .addDependencies(myModule, listOf(dependency), "debugImplementation")
@@ -105,7 +100,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
   fun testRegisterAnnotationProcessorDependencyDependency() {
     val dependency = GoogleMavenArtifactId.ROOM_COMPILER.getDependency("+")
-    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR)).isTrue()
     gradleModuleSystem.registerDependency(dependency, DependencyType.ANNOTATION_PROCESSOR)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
       .addDependencies(myModule, listOf(dependency), "annotationProcessor")
@@ -114,7 +108,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
   fun testRegisterDependencyId() {
     val id = gradleModuleSystem.getRegisteredDependencyId(GoogleMavenArtifactId.CONSTRAINT_LAYOUT)
     val dependency = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getDependency("+")
-    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.IMPLEMENTATION)).isTrue()
     gradleModuleSystem.registerDependency(id, DependencyType.IMPLEMENTATION)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
       .addDependencies(myModule, listOf(dependency), "implementation")
@@ -123,7 +116,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
   fun testRegisterDebugDependencyId() {
     val id = gradleModuleSystem.getRegisteredDependencyId(GoogleMavenArtifactId.COMPOSE_TOOLING)
     val dependency = GoogleMavenArtifactId.COMPOSE_TOOLING.getDependency("+")
-    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.DEBUG_IMPLEMENTATION)).isTrue()
     gradleModuleSystem.registerDependency(id, DependencyType.DEBUG_IMPLEMENTATION)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
       .addDependencies(myModule, listOf(dependency), "debugImplementation")
@@ -132,7 +124,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
   fun testRegisterAnnotationProcessorDependencyId() {
     val id = gradleModuleSystem.getRegisteredDependencyId(GoogleMavenArtifactId.ROOM_COMPILER)
     val dependency = GoogleMavenArtifactId.ROOM_COMPILER.getDependency("+")
-    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR)).isTrue()
     gradleModuleSystem.registerDependency(id, DependencyType.ANNOTATION_PROCESSOR)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
       .addDependencies(myModule, listOf(dependency), "annotationProcessor")
@@ -141,7 +132,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
   fun testRegisterDependencyVersionedId() {
     val dependency = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getDependency("1.2.3")
     val id = gradleModuleSystem.getRegisteredDependencyId(dependency)
-    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.IMPLEMENTATION)).isTrue()
     gradleModuleSystem.registerDependency(id, DependencyType.IMPLEMENTATION)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
       .addDependencies(myModule, listOf(dependency), "implementation")
@@ -150,7 +140,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
   fun testRegisterDebugDependencyVersionedId() {
     val dependency = GoogleMavenArtifactId.COMPOSE_TOOLING.getDependency("4.5.6")
     val id = gradleModuleSystem.getRegisteredDependencyId(dependency)
-    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.DEBUG_IMPLEMENTATION)).isTrue()
     gradleModuleSystem.registerDependency(id, DependencyType.DEBUG_IMPLEMENTATION)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
       .addDependencies(myModule, listOf(dependency), "debugImplementation")
@@ -159,7 +148,6 @@ class GradleModuleSystemTest : AndroidTestCase() {
   fun testRegisterAnnotationProcessorDependencyVersionedId() {
     val dependency = GoogleMavenArtifactId.ROOM_COMPILER.getDependency("7.8.9")
     val id = gradleModuleSystem.getRegisteredDependencyId(dependency)
-    assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR)).isTrue()
     gradleModuleSystem.registerDependency(id, DependencyType.ANNOTATION_PROCESSOR)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
       .addDependencies(myModule, listOf(dependency), "annotationProcessor")
