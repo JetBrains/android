@@ -19,10 +19,31 @@ import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsum
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleJdkSettingsQuickfix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
+import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
 class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
   private val daemonContextMismatchIssueChecker = DaemonContextMismatchIssueChecker()
+
+  fun testCheckIssueWithErrorForGradlePost_8_8() {
+    val errorMessage = """
+      The newly created daemon process has a different context than expected.
+      It won't be possible to reconnect to this daemon. Context mismatch: 
+      JVM is incompatible.
+      Wanted: DefaultDaemonContext[uid=null,javaHome=/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home,daemonRegistryDir=/Users/Nikem/.gradle/daemon,pid=555]
+      Actual: DefaultDaemonContext[uid=0f3a0315-c1e6-44d6-962d-9a604d59a158,javaHome=/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home/jre,daemonRegistryDir=/Users/Nikem/.gradle/daemon,pid=568]
+      """.trimIndent()
+    val expectedNotificationMessage = "Expecting: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home' but was: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home/jre'."
+
+    val issueData = GradleIssueData(projectFolderPath.path, Throwable(errorMessage), null, null)
+    val buildIssue = daemonContextMismatchIssueChecker.check(issueData)
+
+    assertThat(buildIssue).isNotNull()
+    assertThat(buildIssue!!.description).contains(expectedNotificationMessage)
+    // Verify quickFix
+    assertThat(buildIssue.quickFixes.size).isEqualTo(1)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenGradleJdkSettingsQuickfix::class.java)
+  }
 
   fun testCheckIssueWithErrorFromBugReport() {
     val errorMessage = """
@@ -65,6 +86,17 @@ class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
   }
 
   fun testCheckIssueHandled() {
+    assertThat(
+      daemonContextMismatchIssueChecker.consumeBuildOutputFailureMessage(
+        "Build failed with Exception",
+        "Build failed with Exception: The newly created daemon process has a different context than expected. \n" +
+        "what went wrong: \nJVM is incompatible.\n Please check your build files.",
+        null,
+        null,
+        "",
+        TestMessageEventConsumer()
+      )).isEqualTo(true)
+    // Test for Gradle version before 8.8
     assertThat(
       daemonContextMismatchIssueChecker.consumeBuildOutputFailureMessage(
         "Build failed with Exception",

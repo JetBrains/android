@@ -27,29 +27,37 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.function.Consumer
 
+/**
+ * This checker only produces issue for only of possible DaemonContextMismatch errors, the one related
+ * to jdk mismatch. Other cases (see [org.gradle.launcher.daemon.context.DaemonCompatibilitySpec.whyUnsatisfied])
+ * remain uncovered by this issue checker.
+ */
 class DaemonContextMismatchIssueChecker : GradleIssueChecker {
   private val JAVA_HOME = "javaHome="
   private val ERROR_DAEMON = "The newly created daemon process has a different context than expected."
+  private val JVM_IS_INCOMPATIBLE = "JVM is incompatible."
   private val JAVA_HOME_DIFFERENT = "Java home is different."
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     val messageLines = message.lines()
-    if (messageLines[0].isBlank() ||
-        !messageLines[0].contains(ERROR_DAEMON) || messageLines.size <= 3 || messageLines[2] != JAVA_HOME_DIFFERENT) return null
+    if (messageLines[0].isBlank() || messageLines.size <= 3) return null
+    if (messageLines[0].contains(ERROR_DAEMON) && (messageLines[2] == JVM_IS_INCOMPATIBLE || messageLines[2] == JAVA_HOME_DIFFERENT)) {
+      val expectedAndActual = parseExpectedAndActualJavaHome(message) ?: return null
+      if (expectedAndActual.isEmpty()) return null
 
-    val expectedAndActual = parseExpectedAndActualJavaHome(message) ?: return null
-    if (expectedAndActual.isEmpty()) return null
+      // Log metrics.
+      SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.DAEMON_CONTEXT_MISMATCH)
+      return BuildIssueComposer(messageLines[2]).apply {
+        addDescriptionOnNewLine(expectedAndActual)
+        startNewParagraph()
+        addDescriptionOnNewLine("Please configure the JDK to match the expected one.")
+        startNewParagraph()
+        addQuickFix("Open JDK Settings", OpenGradleJdkSettingsQuickfix())
+      }.composeBuildIssue()
+    }
 
-    // Log metrics.
-    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.DAEMON_CONTEXT_MISMATCH)
-    return BuildIssueComposer(messageLines[2]).apply {
-      addDescriptionOnNewLine(expectedAndActual)
-      startNewParagraph()
-      addDescriptionOnNewLine("Please configure the JDK to match the expected one.")
-      startNewParagraph()
-      addQuickFix("Open JDK Settings", OpenGradleJdkSettingsQuickfix())
-    }.composeBuildIssue()
+    return null
   }
 
   override fun consumeBuildOutputFailureMessage(message: String,
@@ -59,7 +67,8 @@ class DaemonContextMismatchIssueChecker : GradleIssueChecker {
                                                 parentEventId: Any,
                                                 messageConsumer: Consumer<in BuildEvent>): Boolean {
     val failureLines = failureCause.lines()
-    return failureLines[0].contains(ERROR_DAEMON) && failureLines.size > 3 && failureLines[2] == JAVA_HOME_DIFFERENT
+    return failureLines[0].contains(ERROR_DAEMON) && failureLines.size > 3
+           && (failureLines[2] == JVM_IS_INCOMPATIBLE || failureLines[2] == JAVA_HOME_DIFFERENT)
   }
 
   private fun parseExpectedAndActualJavaHome(message: String): String? {
