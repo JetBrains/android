@@ -45,6 +45,7 @@ class ProjectDumper(
   private val additionalRoots: Map<String, File> = emptyMap(),
   private val projectJdk: Sdk? = null,
   internal val ignoreModuleFileAndType : Boolean = false,
+  internal val ignoreTasks: Boolean = false,
 ) {
   private val gradleCache: File = getGradleCacheLocation()
   private val userM2: File = getUserM2Location()

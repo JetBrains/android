@@ -83,7 +83,7 @@ private fun Module.getGradleBuildIdentityPath(): String? {
 
   return CachedValuesManager.getManager(this.project).getCachedValue(this) {
     CachedValueProvider.Result.create(
-      computeValue(), ProjectRootModificationTracker.getInstance(this.project)
+      computeValue(), ProjectSyncModificationTracker.getInstance(this.project)
     )
   }
 }

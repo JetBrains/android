@@ -101,8 +101,8 @@ data class PhasedSyncSnapshotConsistencyTestDef(
     val fullDump = project.dumpModules(isAndroidByPath)
 
     Truth.assertWithMessage("Comparing intermediate phased sync state to full sync without dependencies")
-      .that(intermediateDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule().join())
-      .isEqualTo(fullDump.filterOutExpectedInconsistencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule().filterToPhasedSyncModules().join())
+      .that(intermediateDump.filterOutDependencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule().join())
+      .isEqualTo(fullDump.filterOutDependencies().filterOutKnownConsistencyIssues(testProject).filterOutRootModule().filterToPhasedSyncModules().join())
   }
 
 
