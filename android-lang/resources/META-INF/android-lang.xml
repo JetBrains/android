@@ -121,6 +121,15 @@
                      implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InnerClassSeparatorInspection"
                      displayName="Invalid separator between class and inner class"/>
 
+    <localInspection groupPath="Android"
+                     groupName="Shrinker"
+                     language="SHRINKER_CONFIG"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     shortName="ExpensiveKeepRuleInspection"
+                     implementationClass="com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspection"
+                     displayName="An inspection that identifies expensive keep rules"/>
+
     <lang.foldingBuilder language="SHRINKER_CONFIG" implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8CustomFoldingBuilder"/>
 
     <lang.inspectionSuppressor
