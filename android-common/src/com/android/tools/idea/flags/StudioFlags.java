@@ -2242,9 +2242,9 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
-                    "Enable Scroll to Bottom button",
-                    "When enabled, the chat will show a Scroll to Bottom button as needed.",
-                    enabledUpTo(CANARY));
+                    "Enable AutoScroll Button",
+                    "When enabled, the chat will show a button on the timeline to toggle auto-scrolling.",
+                    enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_RESPONSE_CANCELLATION_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.response.cancellation.enabled",
