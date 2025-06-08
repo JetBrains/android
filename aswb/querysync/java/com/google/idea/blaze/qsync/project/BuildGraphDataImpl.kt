@@ -58,6 +58,7 @@ data class BuildGraphDataImpl(
 
   override fun getProjectTarget(label: Label): ProjectTarget? = storage.targetMap[label]
   override fun allSupportedTargets(): Collection<Label> = storage.allSupportedTargets
+  override fun allLoadedTargets(): Collection<Label> = storage.targetMap.keys
 
   /**
    * Returns a [Label] representing the given path in the workspace with the current build packages. The file does not need to exist.
@@ -514,6 +515,9 @@ data class BuildGraphDataImpl(
 
   override val externalDependencyCount: Int
     get() = storage.projectDeps.size
+
+  override val projectSupportedTargetCountForStatsOnly: Int
+    get() = allSupportedTargets().size
 
   override val targetMapSizeForStatsOnly: Int
     get() = storage.targetMap.size

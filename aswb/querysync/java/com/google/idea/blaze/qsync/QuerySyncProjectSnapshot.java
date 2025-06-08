@@ -106,9 +106,8 @@ public abstract class QuerySyncProjectSnapshot {
   }
 
   /** Returns mapping of targets to {@link BuildTarget} */
-  @Nullable
-  public Collection<Label> getAllTargets() {
-    return graph().allSupportedTargets();
+  public Collection<Label> getAllLoadedTargets() {
+    return graph().allLoadedTargets();
   }
 
   @Memoized

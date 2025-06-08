@@ -55,6 +55,13 @@ interface BuildGraphData {
   fun allSupportedTargets(): Collection<Label>
 
   /**
+   * All loaded targets. This is a superset of all supported targets and should be used for code completion only.
+   *
+   * Note, this is not the full list of of all targets in the project view.
+   */
+  fun allLoadedTargets(): Collection<Label>
+
+  /**
    * Returns the project target info for the given label, if it is supported and built (code analysis enabled).
    */
   fun getProjectTarget(label: Label): ProjectTarget?
@@ -171,6 +178,11 @@ interface BuildGraphData {
    * Returns the number of external dependencies of the project for the purpose of stats reporting.
    */
   val externalDependencyCount: Int
+
+  /**
+   * Returns the number of supported targets of the project for the purpose of stats reporting.
+   */
+  val projectSupportedTargetCountForStatsOnly: Int
 
   /**
    * Returns an approximate size of the project's target map for the purpose of stats reporting.

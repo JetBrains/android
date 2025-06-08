@@ -48,7 +48,7 @@ public class ProjectStatsLogger {
                       projectViewSet.listScalarItems(ImportSection.KEY).stream()
                           .map(WorkspacePath::asPath)
                           .collect(toImmutableSet()))
-                  .setProjectTargetCount(instance.graph().allSupportedTargets().size())
+                  .setProjectTargetCount(instance.graph().getProjectSupportedTargetCountForStatsOnly())
                   .setExternalDependencyCount(instance.graph().getExternalDependencyCount());
               scope
                   .getDependenciesInfoStatsBuilder()
