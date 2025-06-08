@@ -17,9 +17,9 @@
 package com.android.tools.idea
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
-import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import com.android.tools.testlib.Emulator
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit

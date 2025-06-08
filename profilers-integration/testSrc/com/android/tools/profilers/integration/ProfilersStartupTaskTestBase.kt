@@ -16,7 +16,6 @@
 package com.android.tools.profilers.integration
 
 import com.android.tools.asdriver.tests.AndroidStudio
-import com.android.tools.asdriver.tests.Emulator
 
 /**
  * This is the base test class for all Profiler Startup tests. This class verifies the functionality of the startup task-based profiling

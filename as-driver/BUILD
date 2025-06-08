@@ -79,9 +79,11 @@ iml_module(
         "//tools/base/perf-logger:studio.perf-logger",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/as-driver:librunfiles",
+        "//tools/base/testlib:studio.android.sdktools.testlib",
     ],
     test_srcs = ["utils/testSrc"],
     visibility = ["//visibility:public"],
+    exports = ["//tools/base/testlib:studio.android.sdktools.testlib"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/tools/common/m2:junit-4.12",
@@ -107,6 +109,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/as-driver:as-driver.utils",
         "@intellij//:intellij-sdk",
+        "//tools/base/testlib:studio.android.sdktools.testlib",
     ],
     test_srcs = ["integration/testSrc"],
     visibility = ["//visibility:public"],

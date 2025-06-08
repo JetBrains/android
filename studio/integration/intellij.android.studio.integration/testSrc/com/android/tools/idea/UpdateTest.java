@@ -20,14 +20,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.asdriver.tests.AndroidSdk;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.AndroidSystem;
 import com.android.tools.asdriver.tests.ComponentMatchersBuilder;
-import com.android.tools.asdriver.tests.Display;
 import com.android.tools.asdriver.tests.FileServer;
-import com.android.tools.asdriver.tests.TestFileSystem;
+import com.android.tools.testlib.AndroidSdk;
+import com.android.tools.testlib.Display;
+import com.android.tools.testlib.TestFileSystem;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.IOException;
 import java.net.URI;

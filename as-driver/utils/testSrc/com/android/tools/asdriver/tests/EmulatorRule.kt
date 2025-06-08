@@ -15,6 +15,8 @@
  */
 package com.android.tools.asdriver.tests
 
+import com.android.tools.testlib.Adb
+import com.android.tools.testlib.Emulator
 import com.android.utils.withResources
 import org.junit.rules.TestRule
 import org.junit.runner.Description

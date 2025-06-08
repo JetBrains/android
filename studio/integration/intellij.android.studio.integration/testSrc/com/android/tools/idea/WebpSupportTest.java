@@ -19,8 +19,8 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
-import com.android.tools.asdriver.tests.Display;
-import com.android.tools.asdriver.tests.TestFileSystem;
+import com.android.tools.testlib.Display;
+import com.android.tools.testlib.TestFileSystem;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;

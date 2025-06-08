@@ -16,8 +16,8 @@
 package com.android.tools.idea
 
 import com.android.tools.asdriver.tests.AndroidStudioInstallation
-import com.android.tools.asdriver.tests.Display
-import com.android.tools.asdriver.tests.TestFileSystem
+import com.android.tools.testlib.Display
+import com.android.tools.testlib.TestFileSystem
 import com.android.utils.withResources
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule

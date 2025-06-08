@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.integration.sessionbased
 
-import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.profilers.integration.ProfilersTestBase
 import org.junit.Test
 
