@@ -55,6 +55,8 @@ jvm_library(
     "//plugins/gradle",
     "//plugins/gradle/tooling-extension-impl:toolingExtension-impl",
     "//platform/analysis-api:analysis",
+    "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
     "//platform/core-api:core",
     "//platform/core-ui",
     "//platform/editor-ui-api:editor-ui",

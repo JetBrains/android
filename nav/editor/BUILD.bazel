@@ -40,6 +40,7 @@ jvm_library(
     "//java/java-impl:impl",
     "//java/java-psi-api:psi",
     "//platform/analysis-api:analysis",
+    "//platform/util/concurrency",
     "//platform/core-api:core",
     "//platform/core-impl",
     "//platform/core-ui",

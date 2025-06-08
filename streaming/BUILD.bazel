@@ -38,6 +38,7 @@ jvm_library(
     "//android/project-system",
     "//android/render-resources",
     "//platform/analysis-api:analysis",
+    "//platform/util/concurrency",
     "//platform/editor-ui-api:editor-ui",
     "//platform/platform-api:ide",
     "//platform/core-ui",

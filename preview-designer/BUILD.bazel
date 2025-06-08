@@ -24,6 +24,7 @@ jvm_library(
     "@lib//:kotlinc-kotlin-compiler-ir-provided",
     "//android/adt-ui",
     "//android/artwork",
+    "//platform/util/concurrency",
     "//platform/ide-core-impl",
     "//android/android-common:common",
     "//android/android:core",

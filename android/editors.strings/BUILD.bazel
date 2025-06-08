@@ -24,6 +24,8 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "//android/android-test-framework:testFramework_test_lib",
     "//platform/analysis-api:analysis",
+    "//platform/util/concurrency",
+    "//platform/util/concurrency:concurrency_test_lib",
     "//platform/editor-ui-api:editor-ui",
     "//platform/util",
     "//platform/platform-api:ide",
