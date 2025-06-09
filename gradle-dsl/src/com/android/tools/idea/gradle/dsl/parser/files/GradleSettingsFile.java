@@ -72,8 +72,9 @@ public class GradleSettingsFile extends GradleScriptFile {
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   @Override
+  @NotNull
   public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
-    GradleDslNameConverter.Kind kind
+    @NotNull GradleDslNameConverter.Kind kind
   ) {
     if(kind == GradleDslNameConverter.Kind.DECLARATIVE)
       return CHILD_PROPERTIES_DECLARATIVE_MAP;

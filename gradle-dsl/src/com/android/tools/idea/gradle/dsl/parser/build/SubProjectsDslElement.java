@@ -29,9 +29,10 @@ public class SubProjectsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<SubProjectsDslElement> SUBPROJECTS =
     new PropertiesElementDescription<>("subprojects", SubProjectsDslElement.class, SubProjectsDslElement::new);
 
+  @NotNull
   @Override
-  public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
-    GradleDslNameConverter.Kind kind
+  public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
+    @NotNull GradleDslNameConverter.Kind kind
   ) {
     return GradleBlockModelMap.getElementMap(GradleBuildFile.class, kind);
   }

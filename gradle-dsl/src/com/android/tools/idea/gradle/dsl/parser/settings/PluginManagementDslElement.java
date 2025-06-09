@@ -39,7 +39,7 @@ public class PluginManagementDslElement extends GradleDslBlockElement {
 
   @Override
   public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
-    GradleDslNameConverter.Kind kind
+    @NotNull GradleDslNameConverter.Kind kind
   ) {
     return CHILD_PROPERTIES_ELEMENT_MAP;
   }

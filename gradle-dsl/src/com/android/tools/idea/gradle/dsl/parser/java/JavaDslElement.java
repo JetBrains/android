@@ -38,7 +38,7 @@ public class JavaDslElement extends BaseCompileOptionsDslElement {
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   @Override
-  public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(Kind kind) {
+  public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(@NotNull Kind kind) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
 

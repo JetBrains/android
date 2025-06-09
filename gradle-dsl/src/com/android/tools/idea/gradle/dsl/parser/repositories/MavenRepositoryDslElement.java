@@ -72,8 +72,9 @@ public class MavenRepositoryDslElement extends GradleDslBlockElement {
   }).collect(toImmutableMap(data -> (String)data[0], data -> (PropertiesElementDescription)data[1]));
 
   @Override
+  @NotNull
   public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
-    GradleDslNameConverter.Kind kind
+    @NotNull GradleDslNameConverter.Kind kind
   ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }
