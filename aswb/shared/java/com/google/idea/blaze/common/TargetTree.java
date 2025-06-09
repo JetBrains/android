@@ -38,7 +38,7 @@ import java.util.Optional;
  * <p>This class uses a tree to store the set of targets so that finding all the child targets of a
  * given directory is fast.
  */
-public class TargetTree extends AbstractCollection<Label> {
+public class TargetTree {
 
   public static final TargetTree EMPTY = new TargetTree(Node.EMPTY);
   private static final Joiner PATH_JOINER = Joiner.on('/');
@@ -54,34 +54,39 @@ public class TargetTree extends AbstractCollection<Label> {
     return Builder.root();
   }
 
+  public Collection<Label> getTargets() {
+    return new AbstractCollection<>() {
+      @Override
+      public Iterator<Label> iterator() {
+        return LabelIterator.ofAllSubpackageTargets(root);
+      }
+
+      @Override
+      public int size() {
+        return root.size();
+      }
+
+      @Override
+      public boolean isEmpty() {
+        return root.isEmpty();
+      }
+    };
+  }
+
   /** Returns the set of labels at the given path, excluding any labels in child packages. */
-  public Collection<Label> get(Path packagePath) {
+  public Collection<Label> getDirectTargets(Path packagePath) {
     return root.find(packagePath.iterator())
         .map(LabelIterator::ofDirectTargets)
         .map(ImmutableSet::copyOf)
         .orElse(ImmutableSet.of());
   }
 
-  @Override
-  public Iterator<Label> iterator() {
-    return LabelIterator.ofAllSubpackageTargets(root);
-  }
-
-  @Override
-  public int size() {
-    return root.size();
-  }
-
-  @Override
-  public boolean isEmpty() {
-    return root.isEmpty();
-  }
-
-  public TargetTree getSubpackages(Path pkg) {
+  public Collection<Label> getSubpackages(Path pkg) {
     return root.find(pkg.iterator())
         .map(node -> Node.forPath(pkg, node))
         .map(TargetTree::new)
-        .orElse(TargetTree.EMPTY);
+        .orElse(TargetTree.EMPTY)
+        .getTargets();
   }
 
   private static class LabelIterator implements Iterator<Label> {
@@ -206,8 +211,16 @@ public class TargetTree extends AbstractCollection<Label> {
     }
   }
 
+  public static TargetTree create(Collection<Label> targets) {
+    final var builder = builder();
+    for (Label target : targets) {
+      builder.add(target);
+    }
+    return builder.build();
+  }
+
   /** Builder for {@link TargetTree}. */
-  public static class Builder {
+  private static class Builder {
     private final String name;
     private final ImmutableSet.Builder<String> content;
     private final Map<String, Builder> children = Maps.newHashMap();
@@ -241,7 +254,7 @@ public class TargetTree extends AbstractCollection<Label> {
     }
 
     @CanIgnoreReturnValue
-    public Builder add(Iterator<Path> pkg, String targetName) {
+    private Builder add(Iterator<Path> pkg, String targetName) {
       if (!pkg.hasNext()) {
         content.add(targetName);
         return this;

@@ -57,7 +57,7 @@ data class BuildGraphDataImpl(
   override fun packages(): PackageSet = packages
 
   override fun getProjectTarget(label: Label): ProjectTarget? = storage.targetMap[label]
-  override fun allSupportedTargets(): Collection<Label> = storage.allSupportedTargets
+  override fun allSupportedTargets(): Collection<Label> = storage.allSupportedTargets.targets
   override fun allLoadedTargets(): Collection<Label> = storage.targetMap.keys
 
   /**
@@ -252,7 +252,7 @@ data class BuildGraphDataImpl(
       targetMap: Map<Label, ProjectTarget>,
       projectDeps: Set<Label>,
       allSupportedTargetLabels: Set<Label>
-    ) : this(sourceFileLabels, targetMap, projectDeps, getTargetTree(allSupportedTargetLabels))
+    ) : this(sourceFileLabels, targetMap, projectDeps, TargetTree.create(allSupportedTargetLabels))
 
     /**
      * Builder for [BuildGraphDataImpl].
@@ -325,13 +325,6 @@ data class BuildGraphDataImpl(
     }
 
     companion object {
-      private fun getTargetTree(allTargets: Set<Label>): TargetTree {
-        val treeBuilder = TargetTree.builder()
-        for (target in allTargets) {
-          treeBuilder.add(target)
-        }
-        return treeBuilder.build()
-      }
 
       fun builder(): Builder {
         return Builder()
@@ -458,10 +451,10 @@ data class BuildGraphDataImpl(
     // TODO: support Bazel.
     if (workspaceRelativePath.endsWith("BUILD")) {
       val packagePath = workspaceRelativePath.parent
-      return targetGroup(storage.allSupportedTargets[packagePath].orEmpty())
+      return targetGroup(storage.allSupportedTargets.getDirectTargets(packagePath).orEmpty())
     } else {
       val targets = storage.allSupportedTargets.getSubpackages(workspaceRelativePath)
-      if (!targets.isEmpty()) {
+      if (targets.isNotEmpty()) {
         // this will only be non-empty for directories
         return targetGroup(targets)
       }

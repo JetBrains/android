@@ -29,46 +29,46 @@ public class TargetTreeTest {
   @Test
   public void test_size() {
     TargetTree tt = TargetTree.EMPTY;
-    assertThat(tt.size()).isEqualTo(0);
+    assertThat(tt.getTargets().size()).isEqualTo(0);
 
-    tt = TargetTree.Builder.root().add(Label.of("//a/b/c:c")).add(Label.of("//a/b/d:d")).build();
-    assertThat(tt.size()).isEqualTo(2);
+    tt = TargetTree.create(ImmutableList.of(Label.of("//a/b/c:c"), Label.of("//a/b/d:d")));
+    assertThat(tt.getTargets().size()).isEqualTo(2);
 
-    tt = TargetTree.Builder.root().add(Label.of("//a/b/c:c")).add(Label.of("//a/b/c:d")).build();
-    assertThat(tt.size()).isEqualTo(2);
+    tt = TargetTree.create(ImmutableList.of(Label.of("//a/b/c:c"), Label.of("//a/b/c:d")));
+    assertThat(tt.getTargets().size()).isEqualTo(2);
   }
 
   @Test
   public void test_isEmpty() {
     TargetTree tt = TargetTree.EMPTY;
-    assertThat(tt.isEmpty()).isTrue();
+    assertThat(tt.getTargets().isEmpty()).isTrue();
 
-    tt = TargetTree.Builder.root().add(Label.of("//a/b:b")).build();
-    assertThat(tt.isEmpty()).isFalse();
+    tt = TargetTree.create(ImmutableList.of(Label.of("//a/b:b")));
+    assertThat(tt.getTargets().isEmpty()).isFalse();
   }
 
   @Test
-  public void test_get() {
+  public void test_getDirectTargets() {
     TargetTree tt =
-        TargetTree.Builder.root()
-            .add(Label.of("//a/b:b"))
-            .add(Label.of("//a/b/c:c"))
-            .add(Label.of("//a/b/c:e"))
-            .add(Label.of("//a/b/c/d:d"))
-            .build();
-    assertThat(tt.get(Path.of("a/b/c")))
+        TargetTree.create(ImmutableList.of(
+            Label.of("//a/b:b"),
+            Label.of("//a/b/c:c"),
+            Label.of("//a/b/c:e"),
+            Label.of("//a/b/c/d:d")
+        ));
+    assertThat(tt.getDirectTargets(Path.of("a/b/c")))
         .containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/c:e"));
   }
 
   @Test
   public void test_getSubpackages_selfAndChildren() {
     TargetTree tt =
-        TargetTree.Builder.root()
-            .add(Label.of("//a/b:b"))
-            .add(Label.of("//a/b/c:c"))
-            .add(Label.of("//a/b/d:d"))
-            .add(Label.of("//z/y/z:z"))
-            .build();
+        TargetTree.create(ImmutableList.of(
+            Label.of("//a/b:b"),
+            Label.of("//a/b/c:c"),
+            Label.of("//a/b/d:d"),
+            Label.of("//z/y/z:z")
+        ));
     assertThat(tt.getSubpackages(Path.of("a/b")))
       .containsExactly(Label.of("//a/b:b"), Label.of("//a/b/c:c"), Label.of("//a/b/d:d"));
   }
@@ -76,11 +76,11 @@ public class TargetTreeTest {
   @Test
   public void test_getSubpackages_directChildren() {
     TargetTree tt =
-        TargetTree.Builder.root()
-            .add(Label.of("//a/b/c:c"))
-            .add(Label.of("//a/b/d:d"))
-            .add(Label.of("//x/y/z:z"))
-            .build();
+      TargetTree.create(ImmutableList.of(
+            Label.of("//a/b/c:c"),
+            Label.of("//a/b/d:d"),
+            Label.of("//x/y/z:z")
+      ));
     assertThat(tt.getSubpackages(Path.of("a/b")))
         .containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"));
   }
@@ -88,12 +88,12 @@ public class TargetTreeTest {
   @Test
   public void test_getSubpackages_indirectChildren() {
     TargetTree tt =
-        TargetTree.Builder.root()
-            .add(Label.of("//a/b/c:c"))
-            .add(Label.of("//a/b/d:d"))
-            .add(Label.of("//a/b/k/l/m:n"))
-            .add(Label.of("//x/y/z:z"))
-            .build();
+      TargetTree.create(ImmutableList.of(
+            Label.of("//a/b/c:c"),
+            Label.of("//a/b/d:d"),
+            Label.of("//a/b/k/l/m:n"),
+            Label.of("//x/y/z:z")
+      ));
     assertThat(tt.getSubpackages(Path.of("a")))
         .containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"), Label.of("//a/b/k/l/m:n"));
   }
@@ -101,24 +101,24 @@ public class TargetTreeTest {
   @Test
   public void test_getSubpackages_none() {
     TargetTree tt =
-        TargetTree.Builder.root()
-            .add(Label.of("//a/b/c:c"))
-            .add(Label.of("//a/b/d:d"))
-            .add(Label.of("//x/y/z:z"))
-            .build();
+      TargetTree.create(ImmutableList.of(
+            Label.of("//a/b/c:c"),
+            Label.of("//a/b/d:d"),
+            Label.of("//x/y/z:z")
+      ));
     assertThat(tt.getSubpackages(Path.of("b")).isEmpty()).isTrue();
   }
 
   @Test
   public void test_getSubpackages_subTree() {
     TargetTree tt =
-        TargetTree.Builder.root()
-            .add(Label.of("//a/b/c:c"))
-            .add(Label.of("//a/b/d:d"))
-            .add(Label.of("//a/b/c/d:d"))
-            .add(Label.of("//a/b/c/e:e"))
-            .add(Label.of("//x/y/z:z"))
-            .build();
+      TargetTree.create(ImmutableList.of(
+            Label.of("//a/b/c:c"),
+            Label.of("//a/b/d:d"),
+            Label.of("//a/b/c/d:d"),
+            Label.of("//a/b/c/e:e"),
+            Label.of("//x/y/z:z")
+      ));
     assertThat(tt.getSubpackages(Path.of("a/b")))
         .containsExactly(
             Label.of("//a/b/c:c"),
@@ -130,14 +130,14 @@ public class TargetTreeTest {
   @Test
   public void test_iterator() {
     TargetTree tt =
-        TargetTree.Builder.root()
-            .add(Label.of("//a/b/c:c"))
-            .add(Label.of("//a/b/d:d"))
-            .add(Label.of("//a/b/c/d:d"))
-            .add(Label.of("//a/b/c/e:e"))
-            .add(Label.of("//x/y/z:z"))
-            .build();
-    assertThat(ImmutableList.copyOf(tt))
+      TargetTree.create(ImmutableList.of(
+            Label.of("//a/b/c:c"),
+            Label.of("//a/b/d:d"),
+            Label.of("//a/b/c/d:d"),
+            Label.of("//a/b/c/e:e"),
+            Label.of("//x/y/z:z")
+      ));
+    assertThat(ImmutableList.copyOf(tt.getTargets()))
         .containsExactly(
             Label.of("//a/b/c:c"),
             Label.of("//a/b/d:d"),
@@ -148,7 +148,7 @@ public class TargetTreeTest {
 
   @Test
   public void test_iterator_empty() {
-    TargetTree tt = TargetTree.Builder.root().build();
-    assertThat(ImmutableList.copyOf(tt)).isEmpty();
+    TargetTree tt = TargetTree.create(ImmutableList.of());
+    assertThat(ImmutableList.copyOf(tt.getTargets())).isEmpty();
   }
 }
