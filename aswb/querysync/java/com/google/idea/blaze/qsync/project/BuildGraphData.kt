@@ -50,11 +50,6 @@ interface BuildGraphData {
   fun sourceFileToLabel(sourceFile: Path): Label?
 
   /**
-   * All supported targets.
-   */
-  fun allSupportedTargets(): Collection<Label>
-
-  /**
    * All loaded targets. This is a superset of all supported targets and should be used for code completion only.
    *
    * Note, this is not the full list of of all targets in the project view.
@@ -170,6 +165,11 @@ interface BuildGraphData {
    * Calculates the [RequestedTargets] for a project target.
    */
   fun computeRequestedTargets(projectTargets: Collection<Label>): RequestedTargets
+
+  /**
+   * Calculates the [RequestedTargets] for the whole project.
+   */
+  fun computeWholeProjectTargets(): RequestedTargets
 
   /** Output stats about the the project to the context (and thus normally to the console).  */
   fun outputStats(context: Context<*>)

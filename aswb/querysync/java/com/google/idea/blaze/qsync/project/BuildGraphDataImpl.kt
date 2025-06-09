@@ -57,7 +57,6 @@ data class BuildGraphDataImpl(
   override fun packages(): PackageSet = packages
 
   override fun getProjectTarget(label: Label): ProjectTarget? = storage.targetMap[label]
-  override fun allSupportedTargets(): Collection<Label> = storage.allSupportedTargets.getTargets()
   override fun allLoadedTargets(): Collection<Label> = storage.targetMap.keys
 
   /**
@@ -528,6 +527,10 @@ data class BuildGraphDataImpl(
     val filteredProjectTargets = filterRedundantTargets(projectTargets)
     val externalDeps = getExternalDependencies(filteredProjectTargets)
     return RequestedTargets(filteredProjectTargets, externalDeps)
+  }
+
+  override fun computeWholeProjectTargets(): RequestedTargets {
+    return computeRequestedTargets(storage.allSupportedTargets.getTargets())
   }
 
   override fun outputStats(context: Context<*>) {
