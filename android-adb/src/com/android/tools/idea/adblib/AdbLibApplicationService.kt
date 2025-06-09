@@ -28,6 +28,7 @@ import com.android.adblib.tools.debugging.processinventory.server.ProcessInvento
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.DdmPreferences
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
+import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.application.subscribe
@@ -39,13 +40,17 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.components.serviceIfCreated
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.startup.StartupActivity
 import java.time.Duration
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -113,8 +118,10 @@ class AdbLibApplicationService : Disposable {
 
   private class Configuration(
     host: AndroidAdbSessionHost,
-    adbFileLocationTracker: AdbFileLocationTracker,
+    private val adbFileLocationTracker: AdbFileLocationTracker,
   ) : Disposable {
+    private val logger = thisLogger()
+
     val adbServerConfiguration =
       MutableStateFlow(
         AdbServerConfiguration(
@@ -140,8 +147,17 @@ class AdbLibApplicationService : Disposable {
      * [AdbChannel].
      */
     val channelProvider =
-      adbServerController?.channelProvider
-        ?: AndroidAdbServerChannelProvider(host, adbFileLocationTracker)
+      adbServerController?.let { controller ->
+        object : AdbServerChannelProvider {
+          override suspend fun createChannel(timeout: Long, unit: TimeUnit): AdbChannel {
+            return host.timeProvider.withErrorTimeout(timeout, unit) {
+              ensureAndroidDebugBridgeStarted(adbFileLocationTracker)
+              controller.waitIsStarted()
+              controller.channelProvider.createChannel(timeout, unit)
+            }
+          }
+        }
+      } ?: AndroidAdbServerChannelProvider(host, adbFileLocationTracker)
 
     /** A [AdbSession] customized to work in the Android plugin. */
     val session =
@@ -191,6 +207,28 @@ class AdbLibApplicationService : Disposable {
         it.close()
       }
       session.scope.coroutineContext[Job]?.join()
+    }
+
+    private fun ensureAndroidDebugBridgeStarted(adbFileLocationTracker: AdbFileLocationTracker) {
+      val bridge = AndroidDebugBridge.getBridge()
+      if (bridge == null || !bridge.isConnected()) {
+        // If android `AndroidDebugBridge` is not connected call
+        // `AdbService.getInstance().getDebugBridge` which will trigger createBridge call.
+        // Start asynchronously to prevent circular dependency between `AdbLibAndroidDebugBridge`
+        // and `AdbServerController`
+        session.scope.launch {
+          val adbLibFile =
+            try {
+              adbFileLocationTracker.get()
+            } catch (e: Exception) {
+              // Suppress exceptions caused by a missing adb file.
+              logger.warn("Failed to retrieve adb file location", e)
+              null
+            }
+
+          adbLibFile?.let { AdbService.getInstance().getDebugBridge(it).await() }
+        }
+      }
     }
   }
 
