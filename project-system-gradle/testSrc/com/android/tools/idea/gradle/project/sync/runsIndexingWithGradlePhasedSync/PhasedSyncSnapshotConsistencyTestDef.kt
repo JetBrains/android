@@ -31,11 +31,6 @@ private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
   "/FACET (Android-Gradle)",
   "/FACET (Kotlin)",
 
-  // TODO(b/384022658): JDK related
-  "/JDK",
-  // This should be nested under JDK, but isn't by mistake I think, so need to add it here explicitly
-  "/*isInherited",
-
   // TODO(b/384022658): External module options related
   "/ExternalModuleGroup",
   "/ExternalModuleVersion",
@@ -54,15 +49,23 @@ private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
 )
 
 
+// Additional issues with java/kmp modules, as we only operate on Android modules
 private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES_FOR_NON_ANDROID_MODULES =
   PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES +
   // TODO(b/384022658): There are dependency related issues with non-android modules
   DEPENDENCY_RELATED_PROPERTIES + setOf(
-    // TODO(b/384022658): Content root watching related, these are not set up properly for java/kmp modules yet
+    // TODO(b/384022658): Content root watching related
     "/WATCHED_SOURCE_FOLDER",
     "/WATCHED_RESOURCE_FOLDER",
     "/WATCHED_TEST_SOURCE_FOLDER",
     "/WATCHED_TEST_RESOURCE_FOLDER",
+
+    // TODO(b/384022658): JDK related
+    "/JDK",
+    // This should be nested under JDK, but isn't by mistake I think, so need to add it here explicitly
+    "/*isInherited",
+
+    // Individual issues
     "/COMPILER_MODULE_EXTENSION",
   )
 

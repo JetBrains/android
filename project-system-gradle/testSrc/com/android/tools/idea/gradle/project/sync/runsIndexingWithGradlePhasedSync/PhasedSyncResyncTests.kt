@@ -36,11 +36,6 @@ private val PROPERTIES_WITH_KNOWN_RESYNC_ISSUES = setOf(
   "/ExternalModuleVersion",
   "/LinkedProjectId",
 
-  // TODO(b/384022658): JDK related
-  "/JDK",
-  // This should be nested under JDK, but isn't by mistake I think, so need to add it here explicitly
-  "/*isInherited",
-
   // TODO(b/384022658)
   "/Classes",
 

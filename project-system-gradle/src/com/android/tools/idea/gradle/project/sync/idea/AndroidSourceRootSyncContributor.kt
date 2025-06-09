@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.sync.convert
 import com.android.tools.idea.gradle.project.sync.idea.entities.AndroidGradleSourceSetEntitySource
 import com.android.tools.idea.projectsystem.gradle.LINKED_ANDROID_GRADLE_MODULE_GROUP
 import com.android.tools.idea.projectsystem.gradle.LinkedAndroidGradleModuleGroup
+import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import com.intellij.java.workspace.entities.JavaModuleSettingsEntity
 import com.intellij.java.workspace.entities.JavaResourceRootPropertiesEntity
@@ -56,6 +57,8 @@ import com.intellij.platform.workspace.jps.entities.InheritedSdkDependency
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleId
 import com.intellij.platform.workspace.jps.entities.ModuleSourceDependency
+import com.intellij.platform.workspace.jps.entities.SdkDependency
+import com.intellij.platform.workspace.jps.entities.SdkId
 import com.intellij.platform.workspace.jps.entities.SourceRootEntity
 import com.intellij.platform.workspace.jps.entities.SourceRootTypeId
 import com.intellij.platform.workspace.jps.entities.exModuleOptions
@@ -69,6 +72,7 @@ import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_RESOURCE_ROOT
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_SOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_RESOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_ROOT_ENTITY_TYPE_ID
+import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.jps.model.java.JavaResourceRootType
 import org.jetbrains.jps.model.java.JavaSourceRootType
@@ -135,6 +139,11 @@ internal class SyncContributorAndroidProjectContext(
   // TODO(b/410774404): HAS_SCREENSHOT_TESTS_SUPPORT is not the best name for even though it's what indicates the availability in the
   // new fields. Consider renaming.
   val useContainer: Boolean = versions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]
+  val sdk: SdkDependency?  =
+    AndroidSdks.getInstance().findSuitableAndroidSdk(androidDsl.compileTarget)?.let {
+      SdkDependency(SdkId(it.name, AndroidSdkType.SDK_NAME))
+    }
+
 
   private val holderModuleEntityNullable: ModuleEntity? = storage.resolve(ModuleId(resolveModuleName()))
   // This is structured this way to make sure consumers don't have to worry about nullability.
@@ -244,11 +253,10 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
         val sourceSetModuleEntitiesByArtifact = getAllSourceSetModuleEntities()
         if (sourceSetModuleEntitiesByArtifact.isEmpty()) return@flatMap emptyList()
         val sourceSetModules = sourceSetModuleEntitiesByArtifact.values
-        val androidModuleGroup = getModuleGroup(sourceSetModuleEntitiesByArtifact)
 
-        // Setup the javaSettings for the holder module. This does not set any compiler output paths as the holder modules don't have any.
         updatedEntities.modifyModuleEntity(holderModuleEntity) {
           setJavaSettingsForHolderModule(this)
+          setSdkForHolderModule(this)
         }
         linkModuleGroup(sourceSetModuleEntitiesByArtifact)
 
@@ -274,6 +282,12 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
     }
     return allAndroidContexts to updatedEntities
   }
+}
+
+private fun SyncContributorAndroidProjectContext.setSdkForHolderModule(holderModuleEntity: ModuleEntity.Builder) {
+  // Remove the existing SDK and replace it with the Android SDK (if it exists, otherwise just inherit the SDK)
+  holderModuleEntity.dependencies.removeAll { it is InheritedSdkDependency || it is SdkDependency }
+  holderModuleEntity.dependencies += sdk ?: InheritedSdkDependency
 }
 
 // helpers
@@ -346,9 +360,12 @@ internal fun SyncContributorProjectContext.createModuleEntity(
   entitySource = entitySource,
   name = name,
   dependencies = listOf(
-    InheritedSdkDependency,
     ModuleSourceDependency
-  )
+  ) + if (this is SyncContributorAndroidProjectContext && sdk != null) {
+    sdk
+  } else {
+    InheritedSdkDependency
+  }
 ) {
   // Annotate the module with external system info (with gradle path, external system type, etc.)
   exModuleOptions = createModuleOptionsEntity(entitySource)
