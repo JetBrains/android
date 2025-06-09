@@ -61,6 +61,8 @@ import com.intellij.platform.workspace.jps.entities.SourceRootTypeId
 import com.intellij.platform.workspace.jps.entities.exModuleOptions
 import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.platform.workspace.storage.EntitySource
+import com.intellij.platform.workspace.storage.EntityStorage
+import com.intellij.platform.workspace.storage.ImmutableEntityStorage
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.impl.url.toVirtualFileUrl
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_RESOURCE_ROOT_ENTITY_TYPE_ID
@@ -116,7 +118,7 @@ internal open class SyncContributorProjectContext(
 internal class SyncContributorAndroidProjectContext(
   context: ProjectResolverContext,
   project: Project,
-  storage: MutableEntityStorage,
+  storage: EntityStorage,
   buildModel: GradleLightBuild,
   projectModel: GradleLightProject,
   val syncOptions: SyncActionOptions,
@@ -135,6 +137,7 @@ internal class SyncContributorAndroidProjectContext(
   val useContainer: Boolean = versions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]
 
   private val holderModuleEntityNullable: ModuleEntity? = storage.resolve(ModuleId(resolveModuleName()))
+  // This is structured this way to make sure consumers don't have to worry about nullability.
   val holderModuleEntity: ModuleEntity by lazy { checkNotNull(holderModuleEntityNullable) { "Holder module can't be null!" } }
   // TODO(b/384022658): Spaces in module names are causing issues, fix them to  be consistent with data services too.
   val isValidContext = holderModuleEntityNullable != null && !resolveModuleName().contains("\\s".toRegex())
@@ -156,10 +159,10 @@ internal class SyncContributorAndroidProjectContext(
   companion object {
     internal fun create(context: ProjectResolverContext,
                         project: Project,
-                        storage: MutableEntityStorage,
+                        storage: EntityStorage,
                         syncOptions: SyncActionOptions,
                         buildModel: GradleLightBuild,
-                          projectModel: GradleLightProject): SyncContributorAndroidProjectContext? {
+                        projectModel: GradleLightProject): SyncContributorAndroidProjectContext? {
       return SyncContributorAndroidProjectContext(
           context,
           project,
@@ -186,7 +189,10 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
     performModuleActionsFromPreviousPhase(context.project())
     if (context.isPhasedSyncEnabled) {
       if (phase == GradleModelFetchPhase.PROJECT_SOURCE_SET_PHASE) {
-        val allContexts = configureModulesForSourceSets(context, storage)
+        val (allContexts, updatedEntities) = configureModulesForSourceSets(context, storage.toSnapshot())
+        val knownHolderModuleEntitySources = allContexts.map { it.holderModuleEntity.entitySource }
+        // Only replace the android related source sets
+        storage.replaceBySource({ it is AndroidGradleSourceSetEntitySource || it in knownHolderModuleEntitySources }, updatedEntities)
         moduleActionsFromPreviousPhase = allContexts.flatMap { it.moduleActions.entries }.associate { it.key to it.value }
       }
     }
@@ -219,14 +225,14 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
   }
 
 
+  /** Returns all Android contexts used and the updated entity storage. */
   private suspend fun configureModulesForSourceSets(
     context: ProjectResolverContext,
-    storage: MutableEntityStorage): List<SyncContributorAndroidProjectContext> {
+    storage: ImmutableEntityStorage): Pair<List<SyncContributorAndroidProjectContext>, EntityStorage> {
     val project = context.project()
     val syncOptions = context.getSyncOptions(project)
 
-    val existingSourceSetEntities = MutableEntityStorage.from(storage.toSnapshot())
-    val knownHolderModuleEntitySources = mutableSetOf<EntitySource>()
+    val updatedEntities = MutableEntityStorage.from(storage)
     val allAndroidContexts = context.allBuilds.flatMap { buildModel ->
       buildModel.projects.mapNotNull { projectModel ->
         checkCanceled()
@@ -239,10 +245,9 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
         if (sourceSetModuleEntitiesByArtifact.isEmpty()) return@flatMap emptyList()
         val sourceSetModules = sourceSetModuleEntitiesByArtifact.values
         val androidModuleGroup = getModuleGroup(sourceSetModuleEntitiesByArtifact)
-        knownHolderModuleEntitySources += holderModuleEntity.entitySource
 
         // Setup the javaSettings for the holder module. This does not set any compiler output paths as the holder modules don't have any.
-        existingSourceSetEntities.modifyModuleEntity(holderModuleEntity) {
+        updatedEntities.modifyModuleEntity(holderModuleEntity) {
           this.javaSettings = JavaModuleSettingsEntity(inheritedCompilerOutput = false,
                                                        excludeOutput = context.isDelegatedBuild,
                                                        // TODO(b/384022658): projectEntitySource? should be used here.
@@ -261,12 +266,12 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
 
     newModuleEntities.forEach { newModuleEntity ->
       // Create or update the entity after doing all the mutations
-      val existingEntity = existingSourceSetEntities.resolve(ModuleId(newModuleEntity.name))
+      val existingEntity = updatedEntities.resolve(ModuleId(newModuleEntity.name))
       if (existingEntity == null) {
-        existingSourceSetEntities addEntity newModuleEntity
+        updatedEntities addEntity newModuleEntity
       }
       else {
-        existingSourceSetEntities.modifyModuleEntity(existingEntity) {
+        updatedEntities.modifyModuleEntity(existingEntity) {
           this.entitySource = newModuleEntity.entitySource
           this.contentRoots = newModuleEntity.contentRoots
           this.exModuleOptions = newModuleEntity.exModuleOptions
@@ -275,10 +280,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
         }
       }
     }
-
-    // Only replace the android related source sets
-    storage.replaceBySource({ it is AndroidGradleSourceSetEntitySource || it in knownHolderModuleEntitySources }, existingSourceSetEntities)
-    return allAndroidContexts
+    return allAndroidContexts to updatedEntities
   }
 }
 
