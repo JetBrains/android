@@ -80,6 +80,7 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
   }
 
   private val myChangeOrientationButton: CommonButton = CommonButton(AllIcons.Actions.PreviewDetailsVertically).apply {
+    toolTipText = "Change Orientation"
     addActionListener {
       when (controller.orientation) {
         AndroidTestSuiteViewController.Orientation.VERTICAL -> {
@@ -95,6 +96,7 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
   }
 
   @get:VisibleForTesting val closeButton: CommonButton = CommonButton(StudioIcons.Common.CLOSE).apply {
+    toolTipText = "Close"
     addActionListener(ActionListener { listener.onAndroidTestSuiteDetailsViewCloseButtonClicked() })
   }
 
