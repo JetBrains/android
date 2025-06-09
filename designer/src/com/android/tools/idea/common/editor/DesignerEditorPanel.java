@@ -33,6 +33,8 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.editors.notifications.NotificationPanel;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
@@ -207,7 +209,11 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
     toolbarAndNotification.add(myNotificationPanel, BorderLayout.SOUTH);
     myContentPanel.add(toolbarAndNotification, BorderLayout.NORTH);
 
-    myWorkBench.setLoadingText("Loading...");
+    if (shouldRecommendSyncing()) {
+      initNeleModelWhenSmart();
+    } else {
+      myWorkBench.setLoadingText("Loading...");
+    }
 
     myState = defaultEditorPanelState;
     mySurface.getAnalyticsManager().setEditorModeWithoutTracking(myState);
@@ -262,6 +268,13 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
       myState = state;
       onStateChange();
     }
+  }
+
+  private boolean shouldRecommendSyncing() {
+    ProjectSystemSyncManager syncManager = ProjectSystemService.getInstance(myProject).getProjectSystem().getSyncManager();
+    boolean syncResultUnknown = syncManager.getLastSyncResult() == ProjectSystemSyncManager.SyncResult.UNKNOWN;
+    boolean syncInProgress = syncManager.isSyncInProgress();
+    return syncResultUnknown && !syncInProgress;
   }
 
   private void onStateChange() {
