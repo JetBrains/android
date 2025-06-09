@@ -24,7 +24,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.isRootAggregationResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
-import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.DetailsViewDeviceSelectorListView.DetailsViewDeviceSelectorListViewListener
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings
@@ -39,6 +38,7 @@ import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.SideBorder
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.NonOpaquePanel
+import com.intellij.util.IJSwingUtilities
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import icons.StudioIcons
@@ -120,12 +120,26 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
       override fun onDeviceSelected(selectedDevice: AndroidDevice) {
         this@AndroidTestSuiteDetailsView.selectedDevice = selectedDevice
         reloadAndroidTestResults()
-        myComponentsSplitter.secondComponent = contentView.rootPanel
+
+        val deviceSpecificConsoleView = this@AndroidTestSuiteDetailsView.contentView.rootPanel
+        if (myComponentsSplitter.secondComponent != deviceSpecificConsoleView) {
+          myComponentsSplitter.secondComponent = deviceSpecificConsoleView
+
+          // The theme may have changed while the component has been detached
+          // from the hierarchy
+          IJSwingUtilities.updateComponentTreeUI(deviceSpecificConsoleView)
+        }
       }
 
       @UiThread
       override fun onRawOutputSelected() {
-        myComponentsSplitter.secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
+        if (myComponentsSplitter.secondComponent != myRawTestLogConsoleViewWithVerticalToolbar) {
+          myComponentsSplitter.secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
+
+          // The theme may have changed while the component has been detached
+          // from the hierarchy
+          IJSwingUtilities.updateComponentTreeUI(myRawTestLogConsoleViewWithVerticalToolbar)
+        }
       }
     })
 
