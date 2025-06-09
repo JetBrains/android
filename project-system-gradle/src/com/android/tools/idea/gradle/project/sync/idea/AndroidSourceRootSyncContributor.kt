@@ -248,18 +248,10 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
 
         // Setup the javaSettings for the holder module. This does not set any compiler output paths as the holder modules don't have any.
         updatedEntities.modifyModuleEntity(holderModuleEntity) {
-          this.javaSettings = JavaModuleSettingsEntity(inheritedCompilerOutput = false,
-                                                       excludeOutput = context.isDelegatedBuild,
-                                                       // TODO(b/384022658): projectEntitySource? should be used here.
-                                                       entitySource = holderModuleEntity.entitySource)
+          setJavaSettingsForHolderModule(this)
         }
-        val linkedModuleNames = sourceSetModules.map { it.name } + holderModuleEntity.name
-        registerModuleActions(linkedModuleNames.associate {
-          it.to { moduleInstance ->
-            moduleInstance.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, androidModuleGroup)
-          }
-        }
-        )
+        linkModuleGroup(sourceSetModuleEntitiesByArtifact)
+
         sourceSetModules
       }
     }
@@ -306,6 +298,20 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities()
   }
 }
 
+private fun SyncContributorAndroidProjectContext.linkModuleGroup(
+  sourceSetModules: Map<IdeArtifactName, ModuleEntity.Builder>
+) {
+  val androidModuleGroup = getModuleGroup(sourceSetModules)
+  val linkedModuleNames = sourceSetModules.values.map { it.name } + holderModuleEntity.name
+  registerModuleActions(linkedModuleNames.associateWith {
+    { moduleInstance ->
+      moduleInstance.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, androidModuleGroup)
+    }
+  }
+  )
+}
+
+
 private fun SyncContributorAndroidProjectContext.getModuleGroup(
   sourceSetModules: Map<IdeArtifactName, ModuleEntity.Builder>
 ): LinkedAndroidGradleModuleGroup {
@@ -319,6 +325,18 @@ private fun SyncContributorAndroidProjectContext.getModuleGroup(
     sourceSetModules[IdeArtifactName.SCREENSHOT_TEST]?.let { modulePointerManager.create(it.name) }
   )
 }
+
+
+/** Set up the javaSettings for the holder module. This does not set any compiler output paths as the holder modules don't have any. */
+private fun SyncContributorAndroidProjectContext.setJavaSettingsForHolderModule(
+  holderModuleEntity: ModuleEntity.Builder
+) {
+  holderModuleEntity.javaSettings = JavaModuleSettingsEntity(
+    inheritedCompilerOutput = false,
+    excludeOutput = context.isDelegatedBuild,
+    entitySource = projectEntitySource)
+}
+
 
 // entity creation
 internal fun SyncContributorProjectContext.createModuleEntity(
