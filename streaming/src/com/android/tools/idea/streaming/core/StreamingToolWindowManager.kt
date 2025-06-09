@@ -196,7 +196,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private val recentDisconnections = buildCache<String, ActivationLevel>(AUTO_RECONNECTION_TIMEOUT)
   /** Links pending AVD starts to the content managers that requested them. Keyed by AVD IDs. */
   private val recentAvdStartRequesters = buildCache<String, ContentManager>(ATTENTION_REQUEST_EXPIRATION)
-  /** Links pending remote device mirroring starts to the content managers that requested them. Keyed by AVD IDs. */
+  /** Links pending remote device mirroring starts to the content managers that requested them. */
   private val recentRemoteDeviceRequesters = buildWeakCache<DeviceHandle, ContentManager>(REMOTE_DEVICE_REQUEST_EXPIRATION)
 
   private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
