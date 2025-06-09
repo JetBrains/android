@@ -93,11 +93,20 @@ import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleProj
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.nio.file.Path
-import kotlin.io.path.absolutePathString
 
 // Need the source type to be nullable because of how AndroidManifest is handled.
 internal typealias SourceSetData = Pair<IdeArtifactName, Map<out ExternalSystemSourceType?, Set<File>>>
 internal typealias ModuleAction = (Module) -> Unit
+
+/** This class is used to keep track of */
+private data class SourceSetUpdateResult(
+  /** Represents list of module actions by name. Mutable because actions are removed as they are performed. */
+  val allModuleActions: Map<String, MutableList<ModuleAction>>,
+
+  /** To be used with [MutableEntityStorage.replaceBySource], to make sure we only update relevant entities. */
+  val updatedStorage: EntityStorage,
+  val knownEntitySources: Set<EntitySource>
+)
 
 internal open class SyncContributorProjectContext(
   val context: ProjectResolverContext,
@@ -150,8 +159,14 @@ internal class SyncContributorAndroidProjectContext(
   private val holderModuleEntityNullable: ModuleEntity? = storage.resolve(ModuleId(resolveModuleName()))
   // This is structured this way to make sure consumers don't have to worry about nullability.
   val holderModuleEntity: ModuleEntity by lazy { checkNotNull(holderModuleEntityNullable) { "Holder module can't be null!" } }
-  // TODO(b/384022658): Spaces in module names are causing issues, fix them to  be consistent with data services too.
-  val isValidContext = holderModuleEntityNullable != null && !resolveModuleName().contains("\\s".toRegex())
+
+  val isValidContext = holderModuleEntityNullable != null
+                       // TODO(b/384022658): Spaces in module names are causing issues, fix them to  be consistent with data services too.
+                       && !resolveModuleName().contains("\\s".toRegex())
+                       // TODO(b/384022658): We don't behave well in the unlikely event when there is a rename that ends up with a holder
+                       // module with the same name as one of the existing source set modules (i.e. from app to app.main). This needs to be
+                       // handled separately in the platform
+                       && holderModuleEntity.entitySource !is AndroidGradleSourceSetEntitySource
 
   val contentRootIndex = GradleContentRootIndex()
 
@@ -200,11 +215,10 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
     performModuleActionsFromPreviousPhase(context.project())
     if (context.isPhasedSyncEnabled) {
       if (phase == GradleModelFetchPhase.PROJECT_SOURCE_SET_PHASE) {
-        val (allContexts, updatedEntities) = configureModulesForSourceSets(context, storage.toSnapshot())
-        val knownHolderModuleEntitySources = allContexts.map { it.holderModuleEntity.entitySource }
+        val result = configureModulesForSourceSets(context, storage.toSnapshot())
         // Only replace the android related source sets
-        storage.replaceBySource({ it is AndroidGradleSourceSetEntitySource || it in knownHolderModuleEntitySources }, updatedEntities)
-        moduleActionsFromPreviousPhase = allContexts.flatMap { it.moduleActions.entries }.associate { it.key to it.value }
+        storage.replaceBySource({ it in result.knownEntitySources }, result.updatedStorage)
+        moduleActionsFromPreviousPhase = result.allModuleActions
       }
     }
   }
@@ -227,7 +241,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
     if (moduleActionsFromPreviousPhase != null) {
       val modulesByName = project.modules.associateBy { it.name }
       // This is fine, it will not be modified as we're being executed in a single-threaded context
-      moduleActionsFromPreviousPhase!!.forEach { moduleName, actions ->
+      moduleActionsFromPreviousPhase!!.forEach { (moduleName, actions) ->
         val module = checkNotNull(modulesByName[moduleName]) { "No module found for module with registered actions!" }
         actions.forEach { it(module) }
       }
@@ -236,10 +250,17 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
   }
 
 
-  /** Returns all Android contexts used and the updated entity storage. */
+  /**
+   * Duplicates the existing entity storage and mutates it by
+   * - adding new module entities to it for source sets (or mutating the already existing ones where relevant)
+   * - modifiying the holder module entities
+   *
+   * Returns a [SourceSetUpdateResult] instance holding info about the mutated state, to be used with [MutableEntityStorage.replaceBySource]
+   */
   private suspend fun configureModulesForSourceSets(
     context: ProjectResolverContext,
-    storage: ImmutableEntityStorage): Pair<List<SyncContributorAndroidProjectContext>, EntityStorage> {
+    storage: ImmutableEntityStorage
+  ): SourceSetUpdateResult {
     val project = context.project()
     val syncOptions = context.getSyncOptions(project)
 
@@ -269,6 +290,12 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
         sourceSetModules
       }
     }
+    val knownSourceSetEntitySources = newModuleEntities.map { it.entitySource }.toSet()
+    // Remove orphaned modules. It is important here to first remove then add below to make sure replacement operations work correctly.
+    val removedModules = removeOrphanedModules(allAndroidContexts, knownSourceSetEntitySources, updatedEntities)
+    val removedModuleNames = removedModules.map { it.name }.toSet()
+
+
     newModuleEntities.forEach { newModuleEntity ->
       // Create or update the entity after doing all the mutations
       val existingEntity = updatedEntities.resolve(ModuleId(newModuleEntity.name))
@@ -285,7 +312,16 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
         }
       }
     }
-    return allAndroidContexts to updatedEntities
+
+    return SourceSetUpdateResult(
+      allModuleActions = allAndroidContexts.flatMap { it.moduleActions.entries }.associate { it.key to it.value }.filterKeys {
+        it !in removedModuleNames
+      },
+      updatedEntities,
+      knownSourceSetEntitySources +
+      removedModules.map { it.entitySource } +
+      allAndroidContexts.map { it.holderModuleEntity.entitySource }.toSet()
+    )
   }
 }
 
@@ -351,6 +387,30 @@ private fun SyncContributorAndroidProjectContext.getModuleGroup(
   )
 }
 
+/** Removes the source sets modules that don't exist anymore and returns the removed module entities. */
+private fun removeOrphanedModules(
+  allAndroidContexts: List<SyncContributorAndroidProjectContext>,
+  knownSourceSetEntitySources: Set<EntitySource>,
+  updatedEntities: MutableEntityStorage,
+): List<ModuleEntity> {
+  val existingEntitiesByProjectSource = updatedEntities.entities(ModuleEntity::class.java).groupBy { entity ->
+    when(entity.entitySource) {
+      is AndroidGradleSourceSetEntitySource -> (entity.entitySource as AndroidGradleSourceSetEntitySource).projectEntitySource
+      else -> null
+    }
+  }
+
+  return allAndroidContexts.flatMap {
+    // For each project, find the entities that are not known to it anymore and remove them.
+    with(it) {
+      existingEntitiesByProjectSource[projectEntitySource]?.filter {
+        it.entitySource !in knownSourceSetEntitySources
+      }.orEmpty().onEach {
+        updatedEntities.removeEntity(it)
+      }
+    }
+  }
+}
 
 /** Set up the javaSettings for the holder module. This does not set any compiler output paths as the holder modules don't have any. */
 private fun SyncContributorAndroidProjectContext.setJavaSettingsForHolderModule(

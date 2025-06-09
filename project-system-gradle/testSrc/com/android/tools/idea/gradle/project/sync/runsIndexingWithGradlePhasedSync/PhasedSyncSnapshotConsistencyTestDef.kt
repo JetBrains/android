@@ -80,8 +80,6 @@ fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.templa
     )
 
     TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
-      // TODO(b/384022658): When switching from debug to release, the orphaned androidTest module isn't removed as in full sync
-      "MODULE (MultiFlavor.app.androidTest)",
       // This is stored in the facet but does actually change correctly when switching, so we need to ignore it here.
       "/SelectedBuildVariant"
     )
