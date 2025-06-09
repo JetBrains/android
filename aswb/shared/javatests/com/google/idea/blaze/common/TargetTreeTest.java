@@ -70,7 +70,7 @@ public class TargetTreeTest {
             .add(Label.of("//z/y/z:z"))
             .build();
     assertThat(tt.getSubpackages(Path.of("a/b")))
-        .containsExactly(Label.of("//a/b:b"), Label.of("//a/b/c:c"), Label.of("//a/b/d:d"));
+      .containsExactly(Label.of("//a/b:b"), Label.of("//a/b/c:c"), Label.of("//a/b/d:d"));
   }
 
   @Test
@@ -91,10 +91,11 @@ public class TargetTreeTest {
         TargetTree.Builder.root()
             .add(Label.of("//a/b/c:c"))
             .add(Label.of("//a/b/d:d"))
+            .add(Label.of("//a/b/k/l/m:n"))
             .add(Label.of("//x/y/z:z"))
             .build();
     assertThat(tt.getSubpackages(Path.of("a")))
-        .containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"));
+        .containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"), Label.of("//a/b/k/l/m:n"));
   }
 
   @Test
