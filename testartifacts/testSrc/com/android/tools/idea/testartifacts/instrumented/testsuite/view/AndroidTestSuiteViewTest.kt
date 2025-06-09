@@ -729,6 +729,41 @@ class AndroidTestSuiteViewTest {
     ).inOrder()
   }
 
+  @Test
+  fun importExportActionButtonsAreNotShownForNonAndroidTestRunConfiguration() {
+    val nonAndroidTestRunConfiguration = mock<RunConfiguration>()
+    val view =
+      AndroidTestSuiteView(
+        disposableRule.disposable,
+        projectRule.project,
+        null,
+        runConfiguration = nonAndroidTestRunConfiguration,
+      )
+
+    for (toolbar in UIUtil.uiTraverser(view.component).filter(ActionToolbar::class.java)) {
+      PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
+    }
+
+    val actionButtons =
+      UIUtil.uiTraverser(view.component)
+        .filter(ActionButton::class.java)
+        .filter(ActionButton::isFocusable)
+        .map { it.action.templateText }
+        .filterNotNull()
+        .toList()
+
+    assertThat(actionButtons)
+      .containsExactly(
+        "Show passed tests",
+        "Show skipped tests",
+        "Expand All",
+        "Collapse All",
+        "Previous Occurrence",
+        "Next Occurrence",
+      )
+      .inOrder()
+  }
+
   // Regression tests for b/172088812 where the apply-code-changes action causes
   // onTestSuiteScheduled(device) callback method to be called more than once.
   @Test
