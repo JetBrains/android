@@ -199,17 +199,11 @@ fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.templa
     TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
       "MODULE (MultiFlavor.app.androidTest)",
     )
-    // TODO(b/384022658): Full sync merges some content roots before populating ending up with a slightly different structure.
-    // See GradleProjectResolver#mergeSourceSetContentRoots. This can be fixed using ContentRootIndex and doing similar merging,
-    // but currently it's not visible to us.
-    TestProject.TEST_STATIC_DIR,
-      // TODO(b/384022658): There are inconsistencies when the source set root (and the manifest) is outside project directory.
-      // It's highly likely this will also be fixed when merging source roots (see above TODO)
-    TestProject.NON_STANDARD_SOURCE_SETS,
-      // TODO(b/384022658): There are inconsistencies when the app is defined in the root Gradle project as opposed to its own project,
-      // It's highly likely this will also be fixed when merging source roots (see above TODO)
-    TestProject.MAIN_IN_ROOT,-> setOf(
-      "/CONENT_ENTRY" // Yes typo
+    TestProject.MAIN_IN_ROOT -> setOf(
+      // This is incorrectly populated as a content root(!) in old sync
+      "project</>app</>AndroidManifest.xml",
+      // This is incorrectly missing from the old sync content roots
+      "project</>app</>src</>debug"
     )
     else -> emptySet()
   }

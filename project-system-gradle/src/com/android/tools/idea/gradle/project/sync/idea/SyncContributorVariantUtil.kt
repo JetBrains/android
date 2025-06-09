@@ -42,8 +42,10 @@ internal fun SyncContributorAndroidProjectContext.getAllSourceSetsFromModels(): 
     .let { (it?.buildType) to it?.productFlavors.orEmpty() }
 
   // TODO(b/384022658): Handle test fixtures and any other potentially relevant sources
-  return getSourceSetDataForBasicAndroidProject(variantName, buildType, flavors) +
-         getSourceSetDataForAndroidProject(variantName)
+  return (
+    getSourceSetDataForBasicAndroidProject(variantName, buildType, flavors) +
+    getSourceSetDataForAndroidProject(variantName)
+  ).onEach { addSourceSetToIndex(it) }
 }
 
 
@@ -160,7 +162,7 @@ internal fun SyncContributorAndroidProjectContext.getSelectedVariantArtifact(sou
   }
 }
 
-private fun createSourceSetDataForSourceProvider(name: IdeArtifactName,
+private fun SyncContributorAndroidProjectContext.createSourceSetDataForSourceProvider(name: IdeArtifactName,
                                                  provider: SourceProvider,
                                                  isProduction: Boolean,
                                                  versions: ModelVersions): List<SourceSetData> {
@@ -189,7 +191,7 @@ private fun createSourceSetDataForSourceProvider(name: IdeArtifactName,
         to sourceDirectories,
       (if (isProduction) ExternalSystemSourceType.RESOURCE else ExternalSystemSourceType.TEST_RESOURCE)
         to resourceDirectories,
-    ) +  provider.manifestFile?.parentFile?.let { mapOf(null to setOf(it)) }.orEmpty()
+    ) +  provider.manifestFile?.parentFile?.takeUnless { it.path == projectModel.projectDirectory.path }?.let { mapOf(null to setOf(it)) }.orEmpty()
   )
 }
 

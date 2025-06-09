@@ -46,6 +46,7 @@ import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
+import com.intellij.openapi.util.io.CanonicalPathPrefixTree
 import com.intellij.openapi.vfs.VfsUtilCore.pathToUrl
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
@@ -73,6 +74,7 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.GradleLightBuild
 import org.jetbrains.plugins.gradle.model.GradleLightProject
+import org.jetbrains.plugins.gradle.service.project.GradleContentRootIndex
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.service.syncAction.GradleSyncContributor
@@ -82,7 +84,8 @@ import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleLink
 import org.jetbrains.plugins.gradle.service.syncContributor.entitites.GradleProjectEntitySource
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
-import kotlin.io.path.absolute
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 // Need the source type to be nullable because of how AndroidManifest is handled.
 internal typealias SourceSetData = Pair<IdeArtifactName, Map<out ExternalSystemSourceType?, Set<File>>>
@@ -136,6 +139,8 @@ internal class SyncContributorAndroidProjectContext(
   // TODO(b/384022658): Spaces in module names are causing issues, fix them to  be consistent with data services too.
   val isValidContext = holderModuleEntityNullable != null && !resolveModuleName().contains("\\s".toRegex())
 
+  val contentRootIndex = GradleContentRootIndex()
+
   val moduleActions = mutableMapOf<String, MutableList<ModuleAction>>()
 
   fun registerModuleAction(moduleName: String, action: ModuleAction) {
@@ -147,8 +152,6 @@ internal class SyncContributorAndroidProjectContext(
       registerModuleAction(moduleName, action)
     }
   }
-
-  fun unregisterModuleActions(moduleName: String) = moduleActions.remove(moduleName)
 
   companion object {
     internal fun create(context: ProjectResolverContext,
@@ -287,44 +290,18 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities()
   val projectModuleName = resolveModuleName()
   val moduleEntitiesMap = mutableMapOf<String, ModuleEntity.Builder>()
 
-  val (sourceSets, ignoredSourceSets) = allSourceSets.map  { (sourceSetArtifactName, typeToDirsMap) ->
+  return allSourceSets.associate  { (sourceSetArtifactName, typeToDirsMap) ->
     // For each source set in the project, create entity source and the actual entities.
     val sourceSetName = sourceSetArtifactName.toWellKnownSourceSet().sourceSetName
     val entitySource = AndroidGradleSourceSetEntitySource(projectEntitySource, sourceSetName)
     val moduleName = "$projectModuleName.$sourceSetName"
     val newModuleEntity = findOrCreateModuleEntity(moduleName, entitySource, moduleEntitiesMap)
 
-    // Create the content root and associate it with the module
-    val contentRootEntity = createContentRootEntity(moduleName, entitySource, typeToDirsMap)
-
-    newModuleEntity.contentRoots += contentRootEntity
+    // Create the content roots and associate it with the module
+    newModuleEntity.contentRoots += createContentRootEntities(moduleName, entitySource, typeToDirsMap)
     newModuleEntity.javaSettings = createJavaModuleSettingsEntity(entitySource, sourceSetArtifactName)
     sourceSetArtifactName to newModuleEntity
-  }.partition { (_, module) ->
-    // In some scenarios (for instance KMP), we end up with duplicate content roots, so ignoring those modules completely for now
-    // TODO(b/384022658): It's possible this will not be an issue if we start merging source roots as it's being done in the platform side
-    // using ContentRootIndex. That's left to later as it's not visible to us yet.
-    module.contentRoots.hasNoDuplicates()
   }
-  ignoredSourceSets.forEach { (_, module) ->
-    // Unregister any module actions that might have been previously registered, as we won't be creating any modules for these
-    unregisterModuleActions(module.name)
-  }
-  return sourceSets.toMap()
-}
-
-private fun List<ContentRootEntity.Builder>.hasNoDuplicates() = this.distinctBy { it.url }.size == this.size
-
-private fun findCommonAncestor(file1: File, file2: File) : File {
-  val path1 = file1.toPath().absolute().normalize()
-  val path2 = file2.toPath().absolute().normalize()
-  if (path1.root != path2.root) return File("/")
-
-  @Suppress("PathAsIterable") // Yes, I actually want to iterate the parts of the paths
-  return path1.zip(path2).fold(path1.root) {  acc, (part1, part2) ->
-    if (part1 != part2) return@fold acc
-    acc.resolve(part1)
-  }.toFile()
 }
 
 private fun SyncContributorAndroidProjectContext.getModuleGroup(
@@ -385,13 +362,30 @@ private fun SyncContributorAndroidProjectContext.findOrCreateModuleEntity(
   }
 }
 
-private fun SyncContributorAndroidProjectContext.createContentRootEntity(
+private fun SyncContributorAndroidProjectContext.createContentRootEntities(
   moduleName: String,
   entitySource: EntitySource,
   typeToDirsMap: Map<out ExternalSystemSourceType?, Set<File>>
-): ContentRootEntity.Builder {
-  val contentRootUrl = typeToDirsMap.values.flatten().reduce { acc, file -> findCommonAncestor(acc, file) }
+): List<ContentRootEntity.Builder> {
+  val contentRootEntities = CanonicalPathPrefixTree.createMap<Path>()
 
+  return resolveContentRoots(typeToDirsMap).onEach {
+    contentRootEntities[it.toFile().toVirtualFileUrl().url] = it
+  }.map { contentRootUrl ->
+    createContentRootEntity(moduleName, entitySource, contentRootUrl.toFile(), typeToDirsMap.mapValues { (_, files) ->
+      files.filter {
+        contentRootUrl == contentRootEntities.getAncestorValues(it.toVirtualFileUrl().url).last()
+      }.toSet()
+    })
+  }
+}
+
+private fun SyncContributorAndroidProjectContext.createContentRootEntity(
+  moduleName: String,
+  entitySource: EntitySource,
+  contentRootUrl: File,
+  typeToDirsMap: Map<out ExternalSystemSourceType?, Set<File>>
+): ContentRootEntity.Builder {
   return ContentRootEntity(
       entitySource = entitySource,
       url = contentRootUrl.toVirtualFileUrl(),
