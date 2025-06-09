@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.idea.gradle.project.SyncDueMessageKt.SYNC_DUE_DIALOG_SHOWN;
-import static com.android.tools.idea.gradle.project.SyncDueMessageKt.SYNC_DUE_SNOOZED_SETTING;
+import static com.android.tools.idea.gradle.project.SyncDueMessageKt.SYNC_DUE_SNOOZED_SETTING_AT_DATE;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.ExperimentalConfigurable;
@@ -192,7 +192,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
    * Clears snooze and first dialog flags that are used by Optional Auto Sync feature.
    */
   private void clearAutoSyncVariables() {
-    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_SNOOZED_SETTING);
+    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_SNOOZED_SETTING_AT_DATE);
     PropertiesComponent.getInstance().unsetValue(SYNC_DUE_DIALOG_SHOWN);
   }
 

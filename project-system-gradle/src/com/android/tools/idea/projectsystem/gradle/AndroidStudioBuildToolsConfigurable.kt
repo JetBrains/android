@@ -18,7 +18,7 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI
 import com.android.tools.idea.gradle.project.SYNC_DUE_DIALOG_SHOWN
-import com.android.tools.idea.gradle.project.SYNC_DUE_SNOOZED_SETTING
+import com.android.tools.idea.gradle.project.SYNC_DUE_SNOOZED_SETTING_AT_DATE
 import com.android.tools.idea.gradle.project.SyncDueMessage
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
 import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore
@@ -131,7 +131,7 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
    * Clears snooze and first dialog flags that are used by Optional Auto Sync feature.
    */
   private fun clearAutoSyncVariables() {
-    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_SNOOZED_SETTING)
+    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_SNOOZED_SETTING_AT_DATE)
     PropertiesComponent.getInstance().unsetValue(SYNC_DUE_DIALOG_SHOWN)
   }
 }

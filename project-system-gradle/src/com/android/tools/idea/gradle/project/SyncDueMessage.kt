@@ -53,17 +53,22 @@ import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.openapi.util.NlsContexts
 import org.jetbrains.android.util.AndroidBundle
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @VisibleForTesting
 const val SYNC_DUE_BUT_AUTO_SYNC_DISABLED_ID = "Syncing project is recommended"
 
-const val SYNC_DUE_SNOOZED_SETTING = "gradle.settings.autoSync.notification.snoozed"
+const val SYNC_DUE_SNOOZED_SETTING_AT_DATE = "gradle.settings.autoSync.notification.snoozed.date"
 const val SYNC_DUE_DIALOG_SHOWN = "gradle.settings.autoSync.dialog.shown"
-const val SNOOZED_DURATION_MILLIS = 30 * 60 * 1000
 
 object SyncDueMessage {
 
   private val LOG = Logger.getInstance(SyncDueMessage::class.java)
+
+  @VisibleForTesting
+  var timeProvider: () -> Long = { System.currentTimeMillis() }
 
   /**
    * Checks if Sync Due messages are snoozed, and chooses between dialog and notification
@@ -229,13 +234,21 @@ object SyncDueMessage {
     PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
   }
 
+  /**
+   * Checks if a snooze is currently active for today.
+   * @return `true` if notifications were snoozed on the current day; `false` otherwise (e.g., if snoozed yesterday or earlier).
+   */
   private fun isSnoozed(): Boolean {
-    val snoozedAt = PropertiesComponent.getInstance().getValue(SYNC_DUE_SNOOZED_SETTING)
-    return !snoozedAt.isNullOrBlank() && (System.currentTimeMillis() - snoozedAt.toLong()) < SNOOZED_DURATION_MILLIS
+    val snoozedDateMark = PropertiesComponent.getInstance().getValue(SYNC_DUE_SNOOZED_SETTING_AT_DATE) ?: return false
+    val today = timeProvider.invoke().formatDateAtDefaultTimezone()
+    return snoozedDateMark == today
   }
 
-  private fun snooze() {
-    PropertiesComponent.getInstance().setValue(SYNC_DUE_SNOOZED_SETTING, System.currentTimeMillis().toString())
+  @VisibleForTesting
+  fun snooze() {
+    // Storing DD-MM-YYYY allows to not couple snooze setting to timezone.
+    val formattedToday = timeProvider.invoke().formatDateAtDefaultTimezone()
+    PropertiesComponent.getInstance().setValue(SYNC_DUE_SNOOZED_SETTING_AT_DATE, formattedToday)
   }
 
   private fun trackAutoSyncEnabled(changeSource: ChangeSource) {
@@ -262,5 +275,13 @@ object SyncDueMessage {
             .build()
         )
     )
+  }
+
+  /**
+   * Converts time (millis) into DD-MM-YYYY format.
+   */
+  private fun Long.formatDateAtDefaultTimezone(): String {
+    val dateTime = Instant.ofEpochMilli(this).atZone(ZoneId.systemDefault())
+    return DateTimeFormatter.ISO_LOCAL_DATE.format(dateTime)
   }
 }
