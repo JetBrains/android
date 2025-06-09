@@ -137,8 +137,7 @@ tasks.register("runFailingTasks") {
         assertThat(output).doesNotContain("BUILD FAILED")
       }
       bowStateDump["root > [Task :app:failingTask2]"].let { output ->
-        // TODO (b/414343360): broken until fix is ready in the platform's GradleOutputDispatcherFactory code
-        //assertThat(output).doesNotContain("BUILD FAILED")
+        assertThat(output).doesNotContain("BUILD FAILED")
       }
     }
   }
@@ -258,8 +257,7 @@ tasks.register("runFailingTasks") {
         assertThat(output).doesNotContain("BUILD FAILED")
       }
       bowStateDump["root > [Task :app:failingTask3]"].let { output ->
-        // TODO (b/414343360): broken until fix is ready in the platform's GradleOutputDispatcherFactory code
-        //assertThat(output).doesNotContain("BUILD FAILED")
+        assertThat(output).doesNotContain("BUILD FAILED")
       }
     }
   }

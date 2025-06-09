@@ -40,8 +40,6 @@ import java.util.function.Consumer
 
 class BuildOutputParserManager(private val project: Project) {
 
-  private val tasksEventIds: MutableMap<String, Any> = ConcurrentHashMap()
-
   fun getBuildOutputParsers(buildId: ExternalSystemTaskId): List<BuildOutputParser> {
     val failureHandlers = listOf(
       DeprecatedJavaLanguageLevelFailureHandler(),
@@ -64,40 +62,6 @@ class BuildOutputParserManager(private val project: Project) {
       GradleBuildSingleFailureParser(failureHandlers)
     )
     return buildOutputParsers.map { BuildOutputParserWrapper(it, buildId) }
-      .map { FixingParentIdParserWrapper(buildId, it) }
-  }
-
-  // Temporal fix until we properly support this case handling in GradleOutputDispatcherFactory
-  // TODO (b/414343360): remove once fix is ready in the platform code
-  private inner class FixingParentIdParserWrapper(val buildId: ExternalSystemTaskId, val parser: BuildOutputParser) : BuildOutputParser {
-    var needFixId = false
-    override fun parse(line: String,
-                       reader: BuildOutputInstantReader,
-                       messageConsumer: Consumer<in BuildEvent>?): Boolean {
-      if (line.startsWith("FAILURE: Build completed with ")) {
-        needFixId = true
-      }
-      val fixedReader = reader.takeUnless { needFixId && it.parentEventId != buildId } ?:
-        object : BuildOutputInstantReader {
-          override fun getParentEventId(): Any = buildId
-          override fun readLine(): @NlsSafe String? = reader.readLine()
-          override fun pushBack() = reader.pushBack()
-          override fun pushBack(numberOfLines: Int) = reader.pushBack(numberOfLines)
-        }
-      return parser.parse(line, fixedReader) { event ->
-        var buildEvent = event
-        if (needFixId) {
-          val parentId = buildEvent.parentId
-          if (parentId != buildId && parentId is String) {
-            val taskEventId = tasksEventIds[parentId]
-            if (taskEventId != null) {
-              buildEvent = BuildEventInvocationHandler.wrap(event, taskEventId)
-            }
-          }
-        }
-        messageConsumer?.accept(buildEvent)
-      }
-    }
   }
 
   fun onBuildStart(externalSystemTaskId: ExternalSystemTaskId) {
@@ -120,17 +84,7 @@ class BuildOutputParserManager(private val project: Project) {
     }
     project.getService(BuildViewManager::class.java).apply {
       addListener(errorsListener, disposable)
-      addListener(object : BuildProgressListener {
-        override fun onEvent(buildId: Any, event: BuildEvent) {
-          if (buildId != externalSystemTaskId) return
-          if (event is StartEvent) {
-            val eventId = event.id
-            tasksEventIds[event.message] = eventId
-          }
-        }
-      }, disposable)
     }
-    Disposer.register(disposable) { tasksEventIds.clear() }
   }
 }
 

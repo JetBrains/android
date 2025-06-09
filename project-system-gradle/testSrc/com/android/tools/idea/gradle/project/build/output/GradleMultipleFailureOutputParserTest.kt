@@ -170,7 +170,7 @@ BUILD FAILED in 251ms
         isDuplicateMessageAware = true,
         group = "Other Messages",
         kind= MessageEvent.Kind.ERROR,
-        parentId = taskId,
+        parentId = "testId",
         filePosition = "$buildGradle:62:1-62:1",
         description = """
           Build file '$buildGradle' line: 62
