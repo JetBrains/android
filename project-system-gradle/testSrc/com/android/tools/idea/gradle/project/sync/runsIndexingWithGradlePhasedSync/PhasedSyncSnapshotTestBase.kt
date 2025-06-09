@@ -116,9 +116,10 @@ fun ModuleDumpWithType.join() : String = entries.joinToString(separator = "\n")
 fun ModuleDumpWithType.filterOutRootModule() = excludeByModuleName(rootModuleNames)
 fun ModuleDumpWithType.filterToPhasedSyncModules() = includeByModuleName(phasedSyncModuleNames)
 
-fun ModuleDumpWithType.filterOutDependencies() = copy(
+fun ModuleDumpWithType.filterOutExpectedInconsistencies() = copy(
   entries = entries.filter { line ->
-    DEPENDENCY_RELATED_PROPERTIES.none { line.contains(it) }
+    DEPENDENCY_RELATED_PROPERTIES.none { line.contains(it) } && // We don't set up dependencies in phased sync
+    !line.contains("BUILD_TASKS") // We don't set up tasks in phased sync
   }
 )
 
@@ -143,8 +144,7 @@ private fun Project.dumpAllModuleEntries() : Sequence<String> {
   val dumper = ProjectDumper(
     androidSdk = getSdk().toFile(),
     devBuildHome = TestUtils.getWorkspaceRoot().toFile(),
-    projectJdk = ProjectRootManager.getInstance(this).projectSdk,
-    ignoreTasks = true, // We have to ignore tasks explicitly because they cache some values too early leading to issues.
+    projectJdk = ProjectRootManager.getInstance(this).projectSdk
   )
 
   modules.sortedBy { it.name }.forEach {

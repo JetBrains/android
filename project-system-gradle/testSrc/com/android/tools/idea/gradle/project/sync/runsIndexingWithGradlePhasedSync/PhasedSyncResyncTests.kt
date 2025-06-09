@@ -57,6 +57,10 @@ private fun getProjectSpecificResyncIssues(testProject: TestProject) = when(test
   TestProject.TEST_FIXTURES, TestProject.TEST_STATIC_DIR -> setOf(
     "/LINKED_ANDROID_MODULE_GROUP",
   )
+  TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE -> setOf(
+    // TODO(b/384022658): We don't set up tasks in phased sync, although it shouldn't really affect a re-sync, it does for this project.
+    "BUILD_TASKS"
+  )
   else -> emptySet()
 }
 
