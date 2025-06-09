@@ -107,6 +107,8 @@ import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingParameters
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.android.tools.idea.ui.screenshot.ScreenshotParameters
+import com.android.tools.idea.util.absoluteInProject
+import com.android.tools.idea.util.relativeToProject
 import com.android.tools.r8.retrace.InvalidMappingFileException
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
@@ -170,6 +172,7 @@ import javax.swing.GroupLayout
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.io.path.exists
 import kotlin.io.path.pathString
 import kotlin.math.max
 import kotlinx.coroutines.Dispatchers
@@ -295,6 +298,7 @@ constructor(
   private val document = editor.document
   private val documentAppender = DocumentAppender(project, document, logcatSettings.bufferSize)
   private val coroutineScope = createCoroutineScope()
+  @VisibleForTesting var proguardPath: Path? = null
 
   override var formattingOptions: FormattingOptions = state.getFormattingOptions()
     set(value) {
@@ -556,7 +560,15 @@ constructor(
       }
     }
 
-    state?.file?.let { deviceComboBox.addOrSelectFile(Path.of(it)) }
+    if (state?.file != null) {
+      deviceComboBox.addOrSelectFile(Path.of(state.file))
+    }
+    if (state?.proguardFile != null) {
+      val path = Path.of(state.proguardFile).absoluteInProject(project)
+      if (path.exists()) {
+        setProguardMapping(path)
+      }
+    }
   }
 
   private fun getPopupActionGroup(actions: Array<AnAction>): ActionGroup {
@@ -658,6 +670,7 @@ constructor(
         filter = headerPanel.filter,
         filterMatchCase = headerPanel.filterMatchCase,
         isSoftWrap = isSoftWrapEnabled(),
+        proguardFile = proguardPath?.relativeToProject(project)?.pathString,
       )
     )
   }
@@ -802,6 +815,7 @@ constructor(
     try {
       messageFormatter.setProguardMap(path)
       reloadMessages()
+      proguardPath = path
     } catch (e: InvalidMappingFileException) {
       DialogBuilder()
         .title(CommonBundle.message("dialog.error.title"))

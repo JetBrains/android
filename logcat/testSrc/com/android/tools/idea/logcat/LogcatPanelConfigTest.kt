@@ -89,6 +89,7 @@ class LogcatPanelConfigTest {
           filter = "tag:ActivityManager ",
           isSoftWrap = false,
           filterMatchCase = false,
+          proguardFile = null,
         )
       )
   }
@@ -123,4 +124,14 @@ private fun logcatPanelConfig(
   filter: String = "",
   filterMatchCase: Boolean = false,
   isSoftWrap: Boolean = false,
-) = LogcatPanelConfig(device, file, formattingConfig, filter, filterMatchCase, isSoftWrap)
+  proguardFile: String? = null,
+) =
+  LogcatPanelConfig(
+    device,
+    file,
+    formattingConfig,
+    filter,
+    filterMatchCase,
+    isSoftWrap,
+    proguardFile,
+  )

@@ -70,6 +70,7 @@ import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.ProjectServiceRule
+import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.android.tools.idea.testing.TestLoggerRule
 import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
@@ -117,6 +118,8 @@ import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
+import kotlin.io.path.pathString
+import kotlin.io.path.writeText
 import kotlinx.coroutines.runBlocking
 import org.junit.Ignore
 import org.junit.Rule
@@ -140,6 +143,7 @@ class LogcatMainPanelTest {
   private val fakeLogcatService = FakeLogcatService()
   private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
   private val fakeProcessNameMonitor = FakeProcessNameMonitor()
+  private val temporaryDirectoryRule = TemporaryDirectoryRule()
 
   @get:Rule
   val rule =
@@ -167,6 +171,7 @@ class LogcatMainPanelTest {
       popupRule,
       usageTrackerRule,
       disposableRule,
+      temporaryDirectoryRule,
       TestLoggerRule(),
     )
 
@@ -604,6 +609,8 @@ class LogcatMainPanelTest {
   @RunsInEdt
   @Test
   fun appliesState() {
+    val proguardFile = temporaryDirectoryRule.newPath("foo.txt")
+    proguardFile.writeText("")
     val logcatMainPanel =
       logcatMainPanel(
         state =
@@ -614,6 +621,7 @@ class LogcatMainPanelTest {
             filter = "foo",
             filterMatchCase = true,
             isSoftWrap = true,
+            proguardFile = proguardFile.pathString,
           )
       )
 
@@ -624,6 +632,7 @@ class LogcatMainPanelTest {
     assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("foo")
     assertThat(logcatMainPanel.headerPanel.filterMatchCase).isTrue()
     assertThat(logcatMainPanel.isSoftWrapEnabled()).isTrue()
+    assertThat(logcatMainPanel.proguardPath?.pathString).isEqualTo(proguardFile.pathString)
   }
 
   @RunsInEdt
@@ -945,6 +954,7 @@ class LogcatMainPanelTest {
           "filter",
           filterMatchCase = true,
           isSoftWrap = false,
+          proguardFile = null,
         ),
       logcatSettings = AndroidLogcatSettings(bufferSize = 1000),
     )
@@ -992,6 +1002,7 @@ class LogcatMainPanelTest {
           "filter",
           filterMatchCase = true,
           isSoftWrap = false,
+          proguardFile = null,
         ),
       logcatSettings = AndroidLogcatSettings(bufferSize = 1000),
     )
@@ -1466,6 +1477,7 @@ class LogcatMainPanelTest {
         filter = filter,
         filterMatchCase = false,
         isSoftWrap = false,
+        proguardFile = null,
       ),
     logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings(),
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
