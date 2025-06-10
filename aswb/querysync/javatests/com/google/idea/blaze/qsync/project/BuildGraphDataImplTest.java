@@ -31,7 +31,6 @@ import com.google.idea.blaze.qsync.testdata.TestData;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -53,63 +52,62 @@ public class BuildGraphDataImplTest {
   @Test
   public void pathToLabel() {
     BuildGraphDataImpl.Storage.Builder builder = BuildGraphDataImpl.builder();
-    builder.sourceFileLabelsBuilder()
-      .add(Label.of("//:BUILD"))
-      .add(Label.of("//nested:BUILD"))
-      .add(Label.of("//nested:file.txt"))
-      .add(Label.of("//nested/inner:BUILD"))
-      .add(Label.of("//nested/inner:deep/file.txt"));
 
-    builder.allTargetLabelsBuilder()
-      .add(Label.of("//:target"))
-      .add(Label.of("//nested:nested"))
-      .add(Label.of("//nested/inner:inner"));
+    builder
+      .addSourceFileLabel((Label.of("//:BUILD")))
+      .addSourceFileLabel(Label.of("//nested:BUILD"))
+      .addSourceFileLabel(Label.of("//nested:file.txt"))
+      .addSourceFileLabel(Label.of("//nested/inner:BUILD"))
+      .addSourceFileLabel(Label.of("//nested/inner:deep/file.txt"));
 
-    builder.projectDeps(ImmutableSet.of());
-    BuildGraphData graph = builder.build();
-    expect.that(graph.pathToLabel(Path.of("abc.txt"))).isEqualTo(Optional.of(Label.of("//:abc.txt")));
-    expect.that(graph.pathToLabel(Path.of("BUILD"))).isEqualTo(Optional.of(Label.of("//:BUILD")));
-    expect.that(graph.pathToLabel(Path.of("nested/abc.txt"))).isEqualTo(Optional.of(Label.of("//nested:abc.txt")));
-    expect.that(graph.pathToLabel(Path.of("nested/file.txt"))).isEqualTo(Optional.of(Label.of("//nested:file.txt")));
-    expect.that(graph.pathToLabel(Path.of("nested/BUILD"))).isEqualTo(Optional.of(Label.of("//nested:BUILD")));
-    expect.that(graph.pathToLabel(Path.of("nested/inner/abc.txt"))).isEqualTo(Optional.of(Label.of("//nested/inner:abc.txt")));
-    expect.that(graph.pathToLabel(Path.of("nested/inner/deep/file.txt"))).isEqualTo(Optional.of(Label.of("//nested/inner:deep/file.txt")));
-    expect.that(graph.pathToLabel(Path.of("nested/inner/BUILD"))).isEqualTo(Optional.of(Label.of("//nested/inner:BUILD")));
-    expect.that(graph.pathToLabel(Path.of("other/abc.txt"))).isEqualTo(Optional.of(Label.of("//:other/abc.txt")));
-    expect.that(graph.pathToLabel(Path.of("other/BUILD"))).isEqualTo(Optional.of(Label.of("//:other/BUILD")));
-    expect.that(graph.pathToLabel(Path.of("other/inner/abc.txt"))).isEqualTo(Optional.of(Label.of("//:other/inner/abc.txt")));
-    expect.that(graph.pathToLabel(Path.of("other/inner/BUILD"))).isEqualTo(Optional.of(Label.of("//:other/inner/BUILD")));
+    builder
+      .addSupportedTargetLabel(Label.of("//:target"))
+      .addSupportedTargetLabel(Label.of("//nested:nested"))
+      .addSupportedTargetLabel(Label.of("//nested/inner:inner"));
+
+    BuildGraphData graph = builder.build(ImmutableSet.of());
+    expect.that(graph.pathToLabel(Path.of("abc.txt"))).isEqualTo(Label.of("//:abc.txt"));
+    expect.that(graph.pathToLabel(Path.of("BUILD"))).isEqualTo(Label.of("//:BUILD"));
+    expect.that(graph.pathToLabel(Path.of("nested/abc.txt"))).isEqualTo(Label.of("//nested:abc.txt"));
+    expect.that(graph.pathToLabel(Path.of("nested/file.txt"))).isEqualTo(Label.of("//nested:file.txt"));
+    expect.that(graph.pathToLabel(Path.of("nested/BUILD"))).isEqualTo(Label.of("//nested:BUILD"));
+    expect.that(graph.pathToLabel(Path.of("nested/inner/abc.txt"))).isEqualTo(Label.of("//nested/inner:abc.txt"));
+    expect.that(graph.pathToLabel(Path.of("nested/inner/deep/file.txt"))).isEqualTo(Label.of("//nested/inner:deep/file.txt"));
+    expect.that(graph.pathToLabel(Path.of("nested/inner/BUILD"))).isEqualTo(Label.of("//nested/inner:BUILD"));
+    expect.that(graph.pathToLabel(Path.of("other/abc.txt"))).isEqualTo(Label.of("//:other/abc.txt"));
+    expect.that(graph.pathToLabel(Path.of("other/BUILD"))).isEqualTo(Label.of("//:other/BUILD"));
+    expect.that(graph.pathToLabel(Path.of("other/inner/abc.txt"))).isEqualTo(Label.of("//:other/inner/abc.txt"));
+    expect.that(graph.pathToLabel(Path.of("other/inner/BUILD"))).isEqualTo(Label.of("//:other/inner/BUILD"));
   }
 
   @Test
   public void sourceFileToLabel() {
     BuildGraphDataImpl.Storage.Builder builder = BuildGraphDataImpl.builder();
-    builder.sourceFileLabelsBuilder()
-      .add(Label.of("//:BUILD"))
-      .add(Label.of("//nested:BUILD"))
-      .add(Label.of("//nested:file.txt"))
-      .add(Label.of("//nested/inner:BUILD"))
-      .add(Label.of("//nested/inner:deep/file.txt"));
+    builder
+      .addSourceFileLabel(Label.of("//:BUILD"))
+      .addSourceFileLabel(Label.of("//nested:BUILD"))
+      .addSourceFileLabel(Label.of("//nested:file.txt"))
+      .addSourceFileLabel(Label.of("//nested/inner:BUILD"))
+      .addSourceFileLabel(Label.of("//nested/inner:deep/file.txt"));
 
-    builder.allTargetLabelsBuilder()
-      .add(Label.of("//:target"))
-      .add(Label.of("//nested:nested"))
-      .add(Label.of("//nested/inner:inner"));
+    builder
+      .addSupportedTargetLabel(Label.of("//:target"))
+      .addSupportedTargetLabel(Label.of("//nested:nested"))
+      .addSupportedTargetLabel(Label.of("//nested/inner:inner"));
 
-    builder.projectDeps(ImmutableSet.of());
-    BuildGraphData graph = builder.build();
-    expect.that(graph.sourceFileToLabel(Path.of("abc.txt"))).isEqualTo(Optional.empty());
-    expect.that(graph.sourceFileToLabel(Path.of("BUILD"))).isEqualTo(Optional.of(Label.of("//:BUILD")));
-    expect.that(graph.sourceFileToLabel(Path.of("nested/abc.txt"))).isEqualTo(Optional.empty());
-    expect.that(graph.sourceFileToLabel(Path.of("nested/file.txt"))).isEqualTo(Optional.of(Label.of("//nested:file.txt")));
-    expect.that(graph.sourceFileToLabel(Path.of("nested/BUILD"))).isEqualTo(Optional.of(Label.of("//nested:BUILD")));
-    expect.that(graph.sourceFileToLabel(Path.of("nested/inner/abc.txt"))).isEqualTo(Optional.empty());
-    expect.that(graph.sourceFileToLabel(Path.of("nested/inner/deep/file.txt"))).isEqualTo(Optional.of(Label.of("//nested/inner:deep/file.txt")));
-    expect.that(graph.sourceFileToLabel(Path.of("nested/inner/BUILD"))).isEqualTo(Optional.of(Label.of("//nested/inner:BUILD")));
-    expect.that(graph.sourceFileToLabel(Path.of("other/abc.txt"))).isEqualTo(Optional.empty());
-    expect.that(graph.sourceFileToLabel(Path.of("other/BUILD"))).isEqualTo(Optional.empty());
-    expect.that(graph.sourceFileToLabel(Path.of("other/inner/abc.txt"))).isEqualTo(Optional.empty());
-    expect.that(graph.sourceFileToLabel(Path.of("other/inner/BUILD"))).isEqualTo(Optional.empty());
+    BuildGraphData graph = builder.build(ImmutableSet.of());
+    expect.that(graph.sourceFileToLabel(Path.of("abc.txt"))).isNull();
+    expect.that(graph.sourceFileToLabel(Path.of("BUILD"))).isEqualTo(Label.of("//:BUILD"));
+    expect.that(graph.sourceFileToLabel(Path.of("nested/abc.txt"))).isNull();
+    expect.that(graph.sourceFileToLabel(Path.of("nested/file.txt"))).isEqualTo(Label.of("//nested:file.txt"));
+    expect.that(graph.sourceFileToLabel(Path.of("nested/BUILD"))).isEqualTo(Label.of("//nested:BUILD"));
+    expect.that(graph.sourceFileToLabel(Path.of("nested/inner/abc.txt"))).isNull();
+    expect.that(graph.sourceFileToLabel(Path.of("nested/inner/deep/file.txt"))).isEqualTo(Label.of("//nested/inner:deep/file.txt"));
+    expect.that(graph.sourceFileToLabel(Path.of("nested/inner/BUILD"))).isEqualTo(Label.of("//nested/inner:BUILD"));
+    expect.that(graph.sourceFileToLabel(Path.of("other/abc.txt"))).isNull();
+    expect.that(graph.sourceFileToLabel(Path.of("other/BUILD"))).isNull();
+    expect.that(graph.sourceFileToLabel(Path.of("other/inner/abc.txt"))).isNull();
+    expect.that(graph.sourceFileToLabel(Path.of("other/inner/BUILD"))).isNull();
   }
 
   @Test
@@ -120,9 +118,9 @@ public class BuildGraphDataImplTest {
                 NOOP_CONTEXT,
                 ImmutableSet.of())
             .parseForTesting();
-    assertThat(graph.allTargets())
+    assertThat(graph.allSupportedTargets())
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/nodeps:nodeps"));
-    assertThat(graph.storage().sourceFileLabels())
+    assertThat(graph.storage.getSourceFileLabels())
         .containsExactly(
             Label.of("//" + TESTDATA_ROOT + "/nodeps:TestClassNoDeps.java"),
                      Label.of("//" + TESTDATA_ROOT + "/nodeps:BUILD"));
@@ -159,7 +157,7 @@ public class BuildGraphDataImplTest {
                 ImmutableSet.of())
             .parseForTesting();
     // Sanity check:
-    assertThat(graph.storage().sourceFileLabels())
+    assertThat(graph.storage.getSourceFileLabels())
         .contains(Label.of("//" + TESTDATA_ROOT + "/nodeps:TestClassNoDeps.java"));
     assertThat(
             graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("internaldep:internaldep")))))
@@ -175,7 +173,7 @@ public class BuildGraphDataImplTest {
                 ImmutableSet.of())
             .parseForTesting();
     // Sanity check:
-    assertThat(graph.storage().sourceFileLabels())
+    assertThat(graph.storage.getSourceFileLabels())
         .contains(Label.of("//" + TESTDATA_ROOT + "/externaldep:TestClassExternalDep.java"));
     assertThat(
             graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("transitivedep:transitivedep")))))
@@ -281,7 +279,7 @@ public class BuildGraphDataImplTest {
                 NOOP_CONTEXT,
                 ImmutableSet.of())
             .parseForTesting();
-    assertThat(graph.allTargets())
+    assertThat(graph.allSupportedTargets())
         .containsExactly(
             Label.of("//" + TESTDATA_ROOT + "/multitarget:nodeps"),
             Label.of("//" + TESTDATA_ROOT + "/multitarget:externaldep"));
@@ -319,7 +317,7 @@ public class BuildGraphDataImplTest {
         new BlazeQueryParser(
                 getQuerySummary(TestData.ANDROID_LIB_QUERY), NOOP_CONTEXT, ImmutableSet.of())
             .parseForTesting();
-    assertThat(graph.storage().sourceFileLabels())
+    assertThat(graph.storage.getSourceFileLabels())
         .containsExactly(
             Label.of("//" + TESTDATA_ROOT + "/android:TestAndroidClass.java"),
             Label.of("//" + TESTDATA_ROOT + "/android:BUILD"),
@@ -332,7 +330,7 @@ public class BuildGraphDataImplTest {
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/android:android"));
     assertThat(graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("android:android")))))
         .isEmpty();
-    assertThat(graph.storage().projectDeps()).isEmpty();
+    assertThat(graph.storage.getProjectDeps()).isEmpty();
   }
 
   @Test
@@ -343,7 +341,7 @@ public class BuildGraphDataImplTest {
                 NOOP_CONTEXT,
                 ImmutableSet.of())
             .parseForTesting();
-    assertThat(graph.storage().sourceFileLabels())
+    assertThat(graph.storage.getSourceFileLabels())
       .containsExactly(
         Label.of("//" + TESTDATA_ROOT + "/aidl:TestAndroidAidlClass.java"),
         Label.of("//" + TESTDATA_ROOT + "/aidl:TestAidlService.aidl"),
@@ -352,7 +350,7 @@ public class BuildGraphDataImplTest {
         .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"));
     assertThat(graph.getAndroidSourceFiles())
         .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"));
-    assertThat(graph.storage().projectDeps()).containsExactly(Label.of("//" + TESTDATA_ROOT + "/aidl:aidl"));
+    assertThat(graph.storage.getProjectDeps()).containsExactly(Label.of("//" + TESTDATA_ROOT + "/aidl:aidl"));
     assertThat(graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("aidl:aidl")))))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/aidl:aidl"));
   }
@@ -365,7 +363,7 @@ public class BuildGraphDataImplTest {
             .parseForTesting();
     Path sourceFile = TESTDATA_ROOT.resolve("filegroup/TestFileGroupSource.java");
     Path subgroupSourceFile = TESTDATA_ROOT.resolve("filegroup/TestSubFileGroupSource.java");
-    assertThat(graph.storage().projectDeps()).containsExactly(Label.of("@@maven//:com.google.guava.guava"));
+    assertThat(graph.storage.getProjectDeps()).containsExactly(Label.of("@@maven//:com.google.guava.guava"));
     assertThat(graph.getJavaSourceFiles()).containsExactly(sourceFile, subgroupSourceFile);
     assertThat(graph.getSourceFileOwners(sourceFile))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/filegroup:filegroup"));
@@ -381,7 +379,7 @@ public class BuildGraphDataImplTest {
         new BlazeQueryParser(
                 getQuerySummary(TestData.CC_LIBRARY_QUERY), NOOP_CONTEXT, ImmutableSet.of())
             .parseForTesting();
-    assertThat(graph.storage().sourceFileLabels())
+    assertThat(graph.storage.getSourceFileLabels())
         .containsExactly(
             Label.of("//" + TESTDATA_ROOT + "/cc:TestClass.cc"),
             Label.of("//" + TESTDATA_ROOT + "/cc:TestClass.h"),

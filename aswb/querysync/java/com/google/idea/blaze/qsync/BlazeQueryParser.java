@@ -16,7 +16,6 @@
 package com.google.idea.blaze.qsync;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 
 import com.android.annotations.TestOnly;
@@ -145,8 +144,7 @@ public class BlazeQueryParser {
     for (Map.Entry<Label, QueryData.SourceFile> sourceFileEntry :
         query.getSourceFilesMap().entrySet()) {
       if (sourceFileEntry.getKey().getWorkspaceName().isEmpty()) {
-        graphBuilder
-            .sourceFileLabelsBuilder().add(sourceFileEntry.getKey());
+        graphBuilder.addSourceFileLabel(sourceFileEntry.getKey());
       } else {
         context.output(
             new PrintOutput(
@@ -185,7 +183,7 @@ public class BlazeQueryParser {
         addProjectTargetsToBuildIfGenerated(target.label(), thisSource);
       }
 
-      graphBuilder.targetMapBuilder().put(ruleEntry.getKey(), target);
+      graphBuilder.addTarget(ruleEntry.getKey(), target);
     }
     int nTargets = query.getRulesCount();
 
@@ -201,7 +199,7 @@ public class BlazeQueryParser {
     long elapsedMs = (System.nanoTime() - now) / 1000000L;
     context.output(PrintOutput.log("%-10d Targets (%d ms):", nTargets, elapsedMs));
 
-    BuildGraphDataImpl graph = graphBuilder.projectDeps(projectDeps).build();
+    BuildGraphDataImpl graph = graphBuilder.build(projectDeps);
 
     graph.outputStats(context);
     context.output(PrintOutput.log("%-10d Dependencies", javaDeps.size()));
@@ -220,7 +218,7 @@ public class BlazeQueryParser {
 
   private void visitJavaRule(
       Label label, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
-    graphBuilder.allTargetLabelsBuilder().add(label);
+    graphBuilder.addSupportedTargetLabel(label);
     targetBuilder.languagesBuilder().add(QuerySyncLanguage.JVM);
     targetBuilder
         .sourceLabelsBuilder()
@@ -248,7 +246,7 @@ public class BlazeQueryParser {
   }
 
   private void visitCcRule(Label label, QueryData.Rule rule, ProjectTarget.Builder targetBuilder) {
-    graphBuilder.allTargetLabelsBuilder().add(label);
+    graphBuilder.addSupportedTargetLabel(label);
     targetBuilder.languagesBuilder().add(QuerySyncLanguage.CC);
     targetBuilder.coptsBuilder().addAll(rule.copts());
     targetBuilder

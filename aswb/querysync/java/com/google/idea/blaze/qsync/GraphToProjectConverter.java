@@ -489,8 +489,8 @@ public class GraphToProjectConverter {
     ImmutableMap<Path, ImmutableMap<Path, String>> javaSourceRoots =
         calculateJavaRootSources(graph.getJavaSourceFiles(), graph.packages());
     ImmutableMultimap<Path, Path> rootToNonJavaSource =
-        nonJavaSourceFolders(
-            graph.getSourceFilesByRuleKindAndType(not(RuleKinds::isJava), SourceType.all()));
+      nonJavaSourceFolders(
+        graph.getSourceFilesByRuleKindAndType(t -> !RuleKinds.isJava(t), SourceType.all()));
     ImmutableSet<Path> androidResDirs;
     // Note: according to:
     //  https://developer.android.com/guide/topics/resources/providing-resources

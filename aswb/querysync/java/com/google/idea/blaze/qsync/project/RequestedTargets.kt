@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.qsync.project;
+package com.google.idea.blaze.qsync.project
 
-import com.google.common.collect.ImmutableSet;
-import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.common.Label
 
 /**
  * A data structure that describes what targets should be requested to be built and what targets
  * (including transitive ones) are expected to be built as a result.
  */
-public record RequestedTargets(ImmutableSet<Label> buildTargets, ImmutableSet<Label> expectedDependencyTargets) {}
+@JvmRecord
+data class RequestedTargets(
+  val buildTargets: Set<Label>,
+  val expectedDependencyTargets: Set<Label>
+)
