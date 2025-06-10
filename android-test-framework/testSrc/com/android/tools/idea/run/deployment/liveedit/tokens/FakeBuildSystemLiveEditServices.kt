@@ -22,7 +22,7 @@ import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices.ApplicationLiveEditServicesForTests
 import com.intellij.openapi.Disposable
 import com.intellij.testFramework.ExtensionTestUtil
-import com.intellij.util.asSafely
+import com.intellij.openapi.module.Module
 
 class FakeBuildSystemLiveEditServices : BuildSystemLiveEditServices<AndroidProjectSystem, ApplicationProjectContext> {
   var testApplicationLiveEditServices: ApplicationLiveEditServices? = null
@@ -44,6 +44,10 @@ class FakeBuildSystemLiveEditServices : BuildSystemLiveEditServices<AndroidProje
       else -> error("Unexpected application project context: $applicationProjectContext")
     }
   }
+
+  override fun disqualifyingBytecodeTransformation (
+    module: Module
+  ): BuildSystemBytecodeTransformation? = null
 
   /**
    * Registers this fake implementation for the lifespan of [parentDisposable] for all project systems.
