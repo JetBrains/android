@@ -94,9 +94,7 @@ import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.never
-import org.mockito.Mockito.`when`
 import org.mockito.invocation.InvocationOnMock
-import org.mockito.kotlin.KInvocationOnMock
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.atLeastOnce
@@ -145,7 +143,7 @@ class WelcomeScreenWizardTest {
 
     sdkPath = FileUtil.createTempDirectory("sdk", null)
     mockFirstRunWizardDefaults = mockStatic(FirstRunWizardDefaults::class.java, CALLS_REAL_METHODS)
-    `when`(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL))
+    whenever(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL))
       .thenReturn(sdkPath)
 
     mockAndroidSdkHandler = mockStatic(AndroidSdkHandler::class.java, CALLS_REAL_METHODS)
@@ -191,7 +189,7 @@ class WelcomeScreenWizardTest {
 
   @Test
   fun welcomeStep_showsWelcomeBackMessageForExistingUsers() {
-    `when`(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL))
+    whenever(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL))
       .thenReturn(getExistingSdkPath())
     val fakeUi = createWizard(FirstRunWizardMode.NEW_INSTALL)
 
@@ -278,7 +276,7 @@ class WelcomeScreenWizardTest {
   @Test
   fun sdkComponentsStep_sdkPathPointsToExistingSdk() {
     val existingSdkPath = getExistingSdkPath()
-    `when`(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL))
+    whenever(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL))
       .thenReturn(existingSdkPath)
     val fakeUi = createWizard(FirstRunWizardMode.NEW_INSTALL)
     navigateToSdkComponentsStep(fakeUi)
@@ -322,7 +320,7 @@ class WelcomeScreenWizardTest {
   @Test
   fun sdkComponentsStep_sdkPathChanged() {
     val existingSdkPath = getExistingSdkPath()
-    `when`(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL))
+    whenever(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL))
       .thenReturn(existingSdkPath)
 
     val fakeUi = createWizard(FirstRunWizardMode.NEW_INSTALL)
@@ -344,14 +342,12 @@ class WelcomeScreenWizardTest {
     val nextButton = checkNotNull(fakeUi.findComponent<JButton> { it.text.contains("Next") })
 
     val canContinueLoading = CompletableFuture<Boolean>()
-    whenever(
-        fakeRepoManager.loadSynchronously(any(), anyOrNull(), any(), any(), any(), any(), any())
-      )
-      .doAnswer { kInvocationOnMock: KInvocationOnMock ->
+    doAnswer {
         canContinueLoading.get()
-        kInvocationOnMock.callRealMethod()
-        null
+        it.callRealMethod()
       }
+      .whenever(fakeRepoManager)
+      .loadSynchronously(any(), anyOrNull(), any(), any(), any(), any(), any())
 
     // Change path
     sdkPathLabel.text = sdkPath.absolutePath
@@ -497,7 +493,7 @@ class WelcomeScreenWizardTest {
   fun progressStep_notShownIfSdkPathIsReadOnly() {
     mockStatic(Files::class.java, CALLS_REAL_METHODS).use {
       val readOnlySdk = FileUtil.createTempDirectory("readonly", null)
-      `when`(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL))
+      whenever(FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.NEW_INSTALL))
         .thenReturn(readOnlySdk)
       whenever(Files.isWritable(readOnlySdk.toPath())).thenReturn(false)
 
