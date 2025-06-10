@@ -50,6 +50,8 @@ def target_factory(actual, *, meta):
     Returns:
         [`TargetSubject`] object
     """
+    if actual == None:
+        return subjects_str_factory(actual = actual, meta = meta)
     self = struct(actual = actual, meta = meta)
     public = struct(
         equals = lambda *a, **k: _target_label_equals(self, *a, **k),
