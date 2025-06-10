@@ -56,6 +56,7 @@ import java.awt.FlowLayout
 import java.awt.Point
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
+import java.util.Objects
 import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.SwingConstants
@@ -127,9 +128,13 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
   private val resizePanelUiUpdaterListener = ConfigurationListener { flags ->
     if ((flags and ConfigurationListener.CFG_DEVICE) != 0) {
       if (currentConfiguration != null) {
-        hasBeenResized = true
+        // Check if the current device or state differs from the original snapshot,
+        // indicating that the preview has been resized.
+        hasBeenResized =
+          !Objects.equals(currentConfiguration?.device, originalDeviceSnapshot) ||
+            !Objects.equals(currentConfiguration?.deviceState, originalDeviceStateSnapshot)
         val panelWasHidden = !isVisible
-        if (panelWasHidden) {
+        if (panelWasHidden && hasBeenResized) {
           isVisible = true
         }
       }
