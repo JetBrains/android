@@ -406,7 +406,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   private fun insert(type: ElementType): InsertHandler<LookupElement?> = InsertHandler { context: InsertionContext, _: LookupElement ->
     val editor = context.editor
     val document = editor.document
-    val file = editor.virtualFile.toPsiFile(context.project)
+    val file = editor.virtualFile?.toPsiFile(context.project)
     val offset = editor.caretModel.offset
     val element = file?.findElementAt(offset)
     context.commitDocument()
@@ -453,7 +453,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
 
   private fun insertAssignmentValue(type: ElementType): InsertHandler<LookupElement?> = InsertHandler { context: InsertionContext, _: LookupElement ->
     context.editor.run {
-      val file = virtualFile.toPsiFile(context.project)
+      val file = virtualFile?.toPsiFile(context.project)
       val element = file?.findElementAt(caretModel.offset)
       context.commitDocument()
       when (type) {
@@ -477,7 +477,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
                           schemas: BuildDeclarativeSchemas): InsertHandler<LookupElement?> = InsertHandler { context: InsertionContext, item: LookupElement ->
     val editor = context.editor
     val document = editor.document
-    val file = editor.virtualFile.toPsiFile(context.project)
+    val file = editor.virtualFile?.toPsiFile(context.project)
     val offset = editor.caretModel.offset
     val element = file?.findElementAt(offset)
     context.commitDocument()
