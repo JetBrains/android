@@ -329,6 +329,7 @@ PROJECT                       : withGradleMetadata
     LIBRARY_TABLE
         LIBRARY                       : Gradle: org.gradle.sample:library:1.1
             *CLASSES                      : jar://<PROJECT>/repo/org/gradle/sample/library/1.1/library-1.1.jar!/
+            *SOURCES                      : jar://<PROJECT>/repo/org/gradle/sample/library/1.1/library-1.1-sources.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
