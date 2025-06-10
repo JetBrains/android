@@ -35,6 +35,7 @@ def _aspect_impl(target, ctx):
 build_dependencies_deps_aspect = aspect(
     implementation = _aspect_impl,
     attr_aspects = ["deps"],
+    fragments = ["cpp"],
 )
 
 TargetInfo = provider("The language sepecific information for a target. When that lang_info is not applied to the target, it will be None.", fields = ["label", "deps", "java_info", "kotlin_info", "java_proto_info", "toolchain_target", "compilation_context", "cc_toolchain_info", "android_info"])
