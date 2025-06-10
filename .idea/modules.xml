@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/plugin/altlang-lsp4ij.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/plugin/altlang-lsp4ij.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/redhat-developer/lsp4ij/lsp4ij.iml" filepath="$PROJECT_DIR$/../../vendor/redhat-developer/lsp4ij/lsp4ij.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/adb-proxy/adb-proxy.iml" filepath="$PROJECT_DIR$/../../base/adb-proxy/adb-proxy.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core/aiplugin.agents.agents-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core/aiplugin.agents.agents-core.iml" />
