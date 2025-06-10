@@ -99,14 +99,12 @@ object SyncDueMessage {
     AndroidBundle.message("gradle.settings.autoSync.due.message", ApplicationNamesInfo.getInstance().fullProductName),
     NotificationType.WARNING,
   ) {
-    private var actionSelected = false
-
     init {
       NotificationsConfiguration.getNotificationsConfiguration().setDisplayType(SYNC_DUE_BUT_AUTO_SYNC_DISABLED_ID,
                                                                                 NotificationDisplayType.STICKY_BALLOON)
       addAction(object : AnAction(AndroidBundle.message("gradle.settings.autoSync.due.action.sync")) {
         override fun actionPerformed(e: AnActionEvent) {
-          actionSelected = true
+          expire()
           trackSuppressedSync(type = IndicatorType.NOTIFICATION, action = UserAction.SINGLE_SYNC)
           requestProjectSync(project)
           ActivityTracker.getInstance().inc()
@@ -115,7 +113,7 @@ object SyncDueMessage {
       })
       addAction(object : AnAction(AndroidBundle.message("gradle.settings.autoSync.due.action.enableAutoSync")) {
         override fun actionPerformed(e: AnActionEvent) {
-          actionSelected = true
+          expire()
           trackSuppressedSync(type = IndicatorType.NOTIFICATION, action = UserAction.ENABLE_AUTO_SYNC)
           trackAutoSyncEnabled(changeSource = ChangeSource.NOTIFICATION)
           AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Default
@@ -126,7 +124,7 @@ object SyncDueMessage {
       })
       addAction(object : AnAction(AndroidBundle.message("gradle.settings.autoSync.due.action.snooze")) {
         override fun actionPerformed(e: AnActionEvent) {
-          actionSelected = true
+          expire()
           trackSuppressedSync(type = IndicatorType.NOTIFICATION, action = UserAction.SNOOZE)
           snooze()
           hideBalloon()
@@ -139,8 +137,7 @@ object SyncDueMessage {
       balloon.addListener(object : JBPopupListener {
         override fun onClosed(event: LightweightWindowEvent) {
           super.onClosed(event)
-          expire()
-          if (actionSelected) return
+          hideBalloon()
           trackSuppressedSync(type = IndicatorType.NOTIFICATION, action = UserAction.CLOSED)
         }
       })
