@@ -50,7 +50,6 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.prefetch.FetchExecutor;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
@@ -72,7 +71,6 @@ import com.google.idea.blaze.qsync.deps.OutputInfo;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcCompilationInfo;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
-import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.StringExperiment;
 import com.google.protobuf.Message;
@@ -94,6 +92,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -182,7 +181,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   }
 
   @Override
-  public OutputInfo build(BlazeContext context, Set<Label> buildTargets, DependencyBuildRequest request, Set<QuerySyncLanguage> languages)
+  public OutputInfo build(BlazeContext context, Set<Label> buildTargets, Collection<OutputGroup> outputGroups)
     throws IOException, BuildException {
     try (final var ignoredLock =
         ApplicationManager.getApplication()
@@ -193,7 +192,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
             "The IDE has been upgraded in the background. Bazel build aspect files maybe"
                 + " incompatible. Please restart the IDE.");
       }
-      final var buildDependenciesBazelInvocationInfo = getInvocationInfo(context, buildTargets, request, languages);
+      final var buildDependenciesBazelInvocationInfo = getInvocationInfo(context, buildTargets, outputGroups);
       prepareInvocationFiles(
           context, buildDependenciesBazelInvocationInfo.invocationWorkspaceFiles());
 
@@ -230,9 +229,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
 
   @VisibleForTesting
   public BuildDependenciesBazelInvocationInfo getInvocationInfo(BlazeContext context,
-                                                                Set<Label> buildTargets,
-                                                                DependencyBuildRequest request,
-                                                                Set<QuerySyncLanguage> languages) {
+                                                                Set<Label> buildTargets, Collection<OutputGroup> outputGroups) {
     ImmutableList<String> includes =
         projectDefinition.projectIncludes().stream()
             .map(path -> "//" + path)
@@ -253,7 +250,6 @@ public class BazelDependencyBuilder implements DependencyBuilder {
             buildGeneratedSrcJars.getValue());
 
     InvocationFiles invocationFiles = getInvocationFiles(buildTargets, parameters);
-    var outputGroups = request.getOutputGroups(languages);
 
     ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     // TODO This is not SYNC_CONTEXT, but also not OTHER_CONTEXT, we need to decide what kind
@@ -282,7 +278,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     querySyncFlags.add("--noexperimental_run_validations");
     querySyncFlags.add("--keep_going");
     querySyncFlags.addAll(
-        outputGroups.stream()
+      outputGroups.stream()
             .map(g -> "--output_groups=" + g.outputGroupName())
             .collect(toImmutableList()));
 

@@ -99,8 +99,7 @@ public class DependencyTrackerImpl implements DependencyTracker {
         builder.build(
             context,
             requestedTargets.buildTargets(),
-            request,
-            snapshot.graph().getTargetLanguages(requestedTargets.buildTargets()));
+            request.getOutputGroups(snapshot.graph().getTargetLanguages(requestedTargets.buildTargets())));
     reportErrorsAndWarnings(context, snapshot, outputInfo);
 
     artifactTracker.update(requestedTargets.expectedDependencyTargets(), outputInfo, context);

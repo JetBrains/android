@@ -76,7 +76,7 @@ public interface DependencyTracker {
       return new DependencyBuildRequest(RequestType.FILE_PREVIEWS, ImmutableSet.copyOf(targets));
     }
 
-    Collection<OutputGroup> getOutputGroups(Collection<QuerySyncLanguage> languages) {
+    public Collection<OutputGroup> getOutputGroups(Collection<QuerySyncLanguage> languages) {
       var outputGroups = languages.stream()
         .mapMulti(DependencyBuildRequest::languageToOutputGroups)
         .collect(Collectors.toCollection(() -> EnumSet.noneOf(OutputGroup.class)));
