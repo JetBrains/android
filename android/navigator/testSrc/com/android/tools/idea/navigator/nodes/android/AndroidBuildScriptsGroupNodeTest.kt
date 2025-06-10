@@ -159,8 +159,8 @@ class AndroidBuildScriptsGroupNodeTest {
     val appNode = AndroidModuleNode(project, appModule, ViewSettings.DEFAULT)
     val expectedChildrenApp = """
       build.gradle (Module :app)
-      proguard-rules.pro (ProGuard Rules for ":app")
-      consumer-proguard-rules.pro (ProGuard Rules for ":app")
+      proguard-rules.pro
+      consumer-proguard-rules.pro
     """.trimIndent()
     assertEquals(expectedChildrenApp, appNode.children.joinToString(separator = "\n") { it?.toTestString(null) ?: "<null>" })
   }

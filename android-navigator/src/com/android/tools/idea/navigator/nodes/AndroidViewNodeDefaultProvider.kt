@@ -36,6 +36,7 @@ import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
+import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -115,7 +116,13 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
       getBuildFiles(module).forEach {
         val psiFile = psiManager.findFile(it.file)
         if (psiFile != null && (!showInProjectBuildScriptsGroup(psiFile))) {
-          result.add(AndroidBuildScriptNode(project, psiFile, settings, it.displayName, it.groupOrder))
+          val qualifier = if (it.file.fileType == FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")) {
+            // Do not add "(Proguard Rules for 'module')" hint text when proguard file is shown in module
+            null
+          } else {
+            it.displayName
+          }
+          result.add(AndroidBuildScriptNode(project, psiFile, settings, qualifier, it.groupOrder))
         }
       }
     }
