@@ -28,7 +28,7 @@ public class TargetTreeTest {
 
   @Test
   public void test_size() {
-    TargetTree tt = TargetTree.EMPTY;
+    TargetTree tt = TargetTreeImpl.EMPTY;
     assertThat(tt.getTargets().size()).isEqualTo(0);
 
     tt = TargetTree.create(ImmutableList.of(Label.of("//a/b/c:c"), Label.of("//a/b/d:d")));
@@ -40,7 +40,7 @@ public class TargetTreeTest {
 
   @Test
   public void test_isEmpty() {
-    TargetTree tt = TargetTree.EMPTY;
+    TargetTree tt = TargetTreeImpl.EMPTY;
     assertThat(tt.getTargets().isEmpty()).isTrue();
 
     tt = TargetTree.create(ImmutableList.of(Label.of("//a/b:b")));
