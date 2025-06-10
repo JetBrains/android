@@ -725,7 +725,6 @@ studio_plugin(
         "//tools/vendor/google/ml/aiplugin/core:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/core:gemini_plugin_proto",
-        "//tools/vendor/google/ml:aiplugin.login.sdkcompat",
     ],
     modules = {
         "aiplugin.jar": [
@@ -744,6 +743,7 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/sdkcompat:aiplugin.sdkcompat",
             "//tools/vendor/google/ml/aiplugin/cloudcode-core:aiplugin.cloudcode-core",
             "//tools/vendor/google/ml/aiplugin/ij-platform:aiplugin.ij-platform",
+            "//tools/vendor/google/ml:aiplugin.login.sdkcompat",
         ],
     },
     resources = {
@@ -768,11 +768,13 @@ studio_plugin(
     name = "com.android.altlang.soong",
     directory = "soong-plugin",
     libs = [
-        "//tools/vendor/google/alt-lang/soong/parser-prereqs:soong-parser-prereqs",
         "//tools/vendor/google/alt-lang/soong/plugin:libblueprint-lexer-parser",
     ],
     modules = {
-        "soong-plugin.jar": ["//tools/vendor/google/alt-lang/soong/plugin:soong-plugin"],
+        "soong-plugin.jar": [
+            "//tools/vendor/google/alt-lang/soong/parser-prereqs:soong-parser-prereqs",
+            "//tools/vendor/google/alt-lang/soong/plugin:soong-plugin",
+        ],
     },
     visibility = ["//visibility:public"],
 )

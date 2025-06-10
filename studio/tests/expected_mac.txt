@@ -3033,8 +3033,6 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/aida_grpc.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_proto.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_protobuf.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aiplugin.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/aiplugin.login.sdkcompat.main.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/aiplugin.login.sdkcompat.main_test.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/annotation-jvm-1.7.1.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/gemini.so.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/gemini_plugin_proto.jar

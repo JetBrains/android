@@ -22,14 +22,17 @@ intellij_plugin(
     directory = "asdriver.plugin",
     libs = [
         "wrapper_class_file",
-        "//tools/adt/idea/bleak:intellij.android.bleak",
-        "//tools/adt/idea/bleak-config:intellij.android.bleak-config",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
-        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
     ],
-    modules = {"asdriver-plugin.jar": [":as-driver.plugin"]},
+    modules = {
+        "asdriver-plugin.jar": [
+            "//tools/adt/idea/bleak-config:intellij.android.bleak-config",
+            "//tools/adt/idea/bleak:intellij.android.bleak",
+            ":as-driver.plugin",
+        ],
+    },
     platforms = [
         "studio-sdk",
     ],
@@ -137,7 +140,6 @@ iml_module(
         "//tools/adt/idea/bleak:intellij.android.bleak",
         "//tools/adt/idea/bleak-config:intellij.android.bleak-config",
         "@intellij//:com.jetbrains.performancePlugin",
-        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
     ],
 )
 

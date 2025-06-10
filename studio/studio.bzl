@@ -267,6 +267,8 @@ def _studio_plugin_impl(ctx):
     plugin_files_win = _studio_plugin_os(ctx, WIN, plugin_jars, plugin_dir)
 
     for lib in ctx.attr.libs:
+        if ImlModuleInfo in lib:
+            fail(lib.label.name + " is a module, yet it is listed under libs")
         if PluginInfo in lib:
             fail("Plugin dependencies should be in the deps attribute, not in libs")
 
