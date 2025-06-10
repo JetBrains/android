@@ -31,11 +31,14 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Path
+import com.intellij.openapi.module.Module
 
 interface BuildSystemLiveEditServices<P : AndroidProjectSystem, C: ApplicationProjectContext> : Token {
   fun isApplicable(applicationProjectContext: ApplicationProjectContext): Boolean
 
   fun getApplicationServices(applicationProjectContext: C): ApplicationLiveEditServices
+
+  fun disqualifyingBytecodeTransformation(module: Module): BuildSystemBytecodeTransformation?
 
   companion object {
     val EP_NAME =
@@ -69,6 +72,8 @@ interface BuildSystemLiveEditServices<P : AndroidProjectSystem, C: ApplicationPr
     }
   }
 }
+
+class BuildSystemBytecodeTransformation(val buildHasTransformation: Boolean, val transformationPoints: List<String>)
 
 sealed interface DesugarConfigs {
   class NotKnown(val message: String?): DesugarConfigs

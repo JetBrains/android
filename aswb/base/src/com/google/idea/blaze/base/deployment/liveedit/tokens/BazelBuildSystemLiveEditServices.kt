@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.deployment.liveedit.tokens
 
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
+import com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemBytecodeTransformation
 import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemLiveEditServices
@@ -25,6 +26,7 @@ import com.google.idea.blaze.android.projectsystem.BazelToken
 import com.google.idea.blaze.android.run.BazelApplicationProjectContext
 import com.google.idea.blaze.base.settings.Blaze
 import com.google.idea.blaze.base.settings.BlazeImportSettings
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
@@ -58,4 +60,5 @@ class BazelBuildSystemLiveEditServices :
       override fun getDesugarConfigs() = DesugarConfigs.NotKnown("Desugar config not supported in ASWB")
     }
   }
+  override fun disqualifyingBytecodeTransformation(module: Module): BuildSystemBytecodeTransformation? = null
 }
