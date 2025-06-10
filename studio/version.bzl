@@ -3,5 +3,5 @@ visibility(["//tools/adt/idea/studio", "//tools/vendor/google/asfp/studio", "//t
 
 STUDIO_CODENAME = "Narwhal"
 STUDIO_VERSION = "RC"
-STUDIO_MICRO_PATCH = "1.11"
-STUDIO_RELEASE_NUMBER = 1
+STUDIO_MICRO_PATCH = "1.12"
+STUDIO_RELEASE_NUMBER = 2
