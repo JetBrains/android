@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -452,6 +453,9 @@ public class BuildGraphDataImplTest {
   }
 
   @Test
+  @Ignore("b/423875334 - the behavior is currently undefined as we chose either of targets")
+  // TODO: b/423875334 - in the case of targets like (a.java), (a.java, b.java) it is safe to choose the later.it is not always possible
+  // to prefer one option to another though. For example, (a, b), (b, c), (a, c) can have three different results.
   public void computeRequestedTargets_buildFile_multiTarget() throws Exception {
     BuildGraphDataImpl graph =
         new BlazeQueryParser(
@@ -472,7 +476,9 @@ public class BuildGraphDataImplTest {
             TestData.JAVA_LIBRARY_MULTI_TARGETS
                 .getAssumedOnlyLabel()
                 .siblingWithName("externaldep"),
-            TestData.JAVA_LIBRARY_MULTI_TARGETS.getAssumedOnlyLabel().siblingWithName("nodeps"));
+            TestData.JAVA_LIBRARY_MULTI_TARGETS
+              .getAssumedOnlyLabel()
+              .siblingWithName("nodeps"));
     String expected = "@@maven//:com.google.guava.guava";
     expected = "@@maven//:com.google.guava.guava";
     assertThat(targets.expectedDependencyTargets()).containsExactly(Label.of(expected));

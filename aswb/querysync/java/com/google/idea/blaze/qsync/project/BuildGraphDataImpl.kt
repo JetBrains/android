@@ -28,6 +28,7 @@ import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.common.RuleKinds
 import com.google.idea.blaze.common.TargetTree
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Location.Companion.Location
+import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
 import com.google.idea.blaze.qsync.project.TargetsToBuild.Companion.forUnknownSourceFile
 import com.google.idea.blaze.qsync.project.TargetsToBuild.Companion.targetGroup
 import com.google.idea.blaze.qsync.query.PackageSet
@@ -223,7 +224,7 @@ data class BuildGraphDataImpl(
 
   override fun getTargetSources(
     target: Label,
-    vararg types: ProjectTarget.SourceType,
+    vararg types: SourceType,
   ): Set<Path> {
     val sourceLabels = storage.targetMap[target]?.sourceLabels() ?: return emptySet()
     return types
@@ -379,17 +380,17 @@ data class BuildGraphDataImpl(
 
   /** Returns a list of all the java source files of the project, relative to the workspace root.  */
   override fun getJavaSourceFiles(): List<Path> {
-    return getSourceFilesByRuleKindAndType(RuleKinds::isJava, ProjectTarget.SourceType.REGULAR)
+    return getSourceFilesByRuleKindAndType(RuleKinds::isJava, SourceType.REGULAR)
   }
 
   override fun getSourceFilesByRuleKindAndType(
-    ruleKindPredicate: (String) -> Boolean, vararg sourceTypes: ProjectTarget.SourceType
+    ruleKindPredicate: (String) -> Boolean, vararg sourceTypes: SourceType
   ): List<Path> {
     return pathListFromSourceFileLabelsOnly(sourcesByRuleKindAndType(ruleKindPredicate, *sourceTypes))
   }
 
   private fun sourcesByRuleKindAndType(
-    ruleKindPredicate: (String) -> Boolean, vararg sourceTypes: ProjectTarget.SourceType,
+    ruleKindPredicate: (String) -> Boolean, vararg sourceTypes: SourceType,
   ): Set<Label> {
     return storage.targetMap.values.asSequence()
       .filter { ruleKindPredicate(it.kind()) }
@@ -413,10 +414,10 @@ data class BuildGraphDataImpl(
    * workspace root.
    */
   override fun getAndroidSourceFiles(): List<Path> =
-    getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, ProjectTarget.SourceType.REGULAR)
+    getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, SourceType.REGULAR)
 
   override fun getAndroidResourceFiles(): List<Path> =
-    getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, ProjectTarget.SourceType.ANDROID_RESOURCES)
+    getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, SourceType.ANDROID_RESOURCES)
 
   /** Returns a list of custom_package fields that used by current project.  */
   override fun getAllCustomPackages(): Set<String> {
@@ -523,9 +524,34 @@ data class BuildGraphDataImpl(
    * given.
    */
   override fun computeRequestedTargets(projectTargets: Collection<Label>): RequestedTargets {
-    val filteredProjectTargets = filterRedundantTargets(projectTargets)
+    val filteredProjectTargets = filterRedundantTargets(filterContributingTargets(projectTargets))
     val externalDeps = getExternalDependencies(filteredProjectTargets)
     return RequestedTargets(filteredProjectTargets, externalDeps)
+  }
+
+  private fun filterContributingTargets(projectTargets: Collection<Label>): Collection<Label> {
+    return buildSet {
+      val seenSources = mutableSetOf<Label>()
+      projectTargets.forEach { label ->
+        val target = storage.targetMap[label]
+                     ?: let {
+                       add(label); // Unknown target requested so let's just return it.
+                       return@forEach
+                     }
+        var newSourceFileAdded = false
+        target.sourceLabels().asMap().entries.forEach { (kind, labels) ->
+          if (kind !in SUPPORTED_SOURCE_TYPES) return@forEach
+          labels.forEach { label ->
+            if (seenSources.add(label)) {
+              newSourceFileAdded = true
+            }
+          }
+        }
+        if (newSourceFileAdded) {
+          add(label)
+        }
+      }
+    }
   }
 
   override fun computeWholeProjectTargets(): RequestedTargets {
@@ -610,3 +636,5 @@ data class BuildGraphDataImpl(
     }
   }
 }
+
+private val SUPPORTED_SOURCE_TYPES = setOf(SourceType.REGULAR, SourceType.ANDROID_RESOURCES, SourceType.ANDROID_MANIFEST)
