@@ -89,12 +89,12 @@ class ScreenRecorderAction : DumbAwareAction(
 
   @UiThread
   private fun startRecordingAsync(
-    options: DeviceScreenRecordingSettings,
-    params: ScreenRecordingParameters,
-    displayId: Int,
-    displayInfoProvider: DisplayInfoProvider?,
-    avdFolder: Path?,
-    project: Project) {
+      options: DeviceScreenRecordingSettings,
+      params: ScreenRecordingParameters,
+      displayId: Int,
+      displayInfoProvider: DisplayInfoProvider?,
+      avdFolder: Path?,
+      project: Project) {
     val adbSession: AdbSession = AdbLibApplicationService.instance.session
     val serialNumber = params.serialNumber
     recordingInProgress.add(serialNumber)
