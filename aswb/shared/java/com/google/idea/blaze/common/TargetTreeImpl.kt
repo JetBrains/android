@@ -59,6 +59,9 @@ class TargetTreeImpl private constructor(private val root: Node) : TargetTree {
       .orEmpty()
   }
 
+  override val targetCountForStatsOnly: Int
+    get() = this.root.size()
+
   private class LabelIterator(private val nodes: Iterator<Node>) : Iterator<Label> {
     private var currentNode: Node? = null
     private var targetNames: Iterator<String>

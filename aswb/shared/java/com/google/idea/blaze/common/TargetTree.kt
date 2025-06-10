@@ -33,6 +33,13 @@ interface TargetTree {
    */
   fun getSubpackages(pkg: Path): Collection<Label>
 
+  /**
+   * The number of synced supported targets.
+   *
+   * It should only be used for stats logging as it may be inaccurate.
+   */
+  val targetCountForStatsOnly: Int
+
   companion object {
     @JvmStatic
     fun create(targets: Collection<Label>): TargetTree {

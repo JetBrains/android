@@ -510,7 +510,7 @@ data class BuildGraphDataImpl(
     get() = storage.projectDeps.size
 
   override val projectSupportedTargetCountForStatsOnly: Int
-    get() = allSupportedTargets().size
+    get() = storage.allSupportedTargets.targetCountForStatsOnly
 
   override val targetMapSizeForStatsOnly: Int
     get() = storage.targetMap.size
