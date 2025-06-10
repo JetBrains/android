@@ -13,28 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.common;
+package com.google.idea.blaze.common
 
-import java.nio.file.Path;
-import java.util.Collection;
+import java.nio.file.Path
 
-public interface TargetTree {
-  static TargetTree create(Collection<Label> targets) {
-    return TargetTreeImpl.create(targets);
-  }
-
+interface TargetTree {
   /**
    * Returns all targets in the target tree.
    */
-  Collection<Label> getTargets();
+  fun getTargets(): Collection<Label>
 
   /**
    * Returns targets directly under the tree root package.
    */
-  Collection<Label> getDirectTargets(Path packagePath);
+  fun getDirectTargets(packagePath: Path): Collection<Label>
 
   /**
-   * Returns a subtree rooted at the given path.
+   * Returns targets of a subtree rooted at the given path.
    */
-  Collection<Label> getSubpackages(Path pkg);
+  fun getSubpackages(pkg: Path): Collection<Label>
+
+  companion object {
+    @JvmStatic
+    fun create(targets: Collection<Label>): TargetTree {
+      return TargetTreeImpl.create(targets)
+    }
+  }
 }

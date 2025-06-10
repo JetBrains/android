@@ -57,7 +57,7 @@ data class BuildGraphDataImpl(
   override fun packages(): PackageSet = packages
 
   override fun getProjectTarget(label: Label): ProjectTarget? = storage.targetMap[label]
-  override fun allSupportedTargets(): Collection<Label> = storage.allSupportedTargets.targets
+  override fun allSupportedTargets(): Collection<Label> = storage.allSupportedTargets.getTargets()
   override fun allLoadedTargets(): Collection<Label> = storage.targetMap.keys
 
   /**
@@ -451,7 +451,7 @@ data class BuildGraphDataImpl(
     // TODO: support Bazel.
     if (workspaceRelativePath.endsWith("BUILD")) {
       val packagePath = workspaceRelativePath.parent
-      return targetGroup(storage.allSupportedTargets.getDirectTargets(packagePath).orEmpty())
+      return targetGroup(storage.allSupportedTargets.getDirectTargets(packagePath))
     } else {
       val targets = storage.allSupportedTargets.getSubpackages(workspaceRelativePath)
       if (targets.isNotEmpty()) {
