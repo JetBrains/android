@@ -150,7 +150,7 @@ class TargetTreeTest {
           Label.of("//x/y/z:z")
         )
       )
-    Truth.assertThat(tt.getTargets().toList())
+    Truth.assertThat(tt.getSubpackages(Path.of("")).toList())
       .containsExactly(
         Label.of("//a/b/c:c"),
         Label.of("//a/b/d:d"),
@@ -163,6 +163,6 @@ class TargetTreeTest {
   @Test
   fun test_iterator_empty() {
     val tt = create(listOf())
-    Truth.assertThat(tt.getTargets().toList()).isEmpty()
+    Truth.assertThat(tt.getSubpackages(Path.of("")).toList()).isEmpty()
   }
 }

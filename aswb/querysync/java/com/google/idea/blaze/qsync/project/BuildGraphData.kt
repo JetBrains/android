@@ -140,14 +140,13 @@ interface BuildGraphData {
   /**
    * Returns the list of project targets related to the given workspace file.
    *
-   * @param context Context
    * @param workspaceRelativePath Workspace relative file path to find targets for. This may be a
    * source file, directory or BUILD file.
    * @return Corresponding project targets. For a source file, this is the targets that build that
    * file. For a BUILD file, it's the set or targets defined in that file. For a directory, it's
    * the set of all targets defined in all build packages within the directory (recursively).
    */
-  fun getProjectTargets(context: Context<*>, workspaceRelativePath: Path): TargetsToBuild
+  fun getProjectTargets(workspaceRelativePath: Path): TargetsToBuild
 
   /**
    * Returns the set of [target languages][ProjectTarget.languages] for a set of project

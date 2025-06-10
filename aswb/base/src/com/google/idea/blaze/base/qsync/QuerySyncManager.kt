@@ -560,7 +560,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     //   DependencyTracker.getProjectTargets are now lost. They should probably be reported via
     //   an exception, or inside TargetsToBuild, so that the UI layer can decide how to display
     //   the messages.
-    return loadedProject!!.getProjectTargets(BlazeContext.create(), workspaceRelativePaths)
+    return loadedProject!!.getProjectTargets(workspaceRelativePaths)
   }
 
   @CanIgnoreReturnValue

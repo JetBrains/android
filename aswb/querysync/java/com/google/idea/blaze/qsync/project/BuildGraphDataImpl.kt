@@ -443,7 +443,6 @@ data class BuildGraphDataImpl(
    * the set of all targets defined in all build packages within the directory (recursively).
    */
   override fun getProjectTargets(
-    context: Context<*>,
     workspaceRelativePath: Path
   ): TargetsToBuild {
     // TODO: relativize here.

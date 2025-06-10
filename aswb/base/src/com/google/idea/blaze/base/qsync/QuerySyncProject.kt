@@ -152,13 +152,12 @@ class QuerySyncProject(
    * the set of all targets defined in all build packages within the directory (recursively).
    */
   fun getProjectTargets(
-    context: BlazeContext,
     workspaceRelativePaths: Collection<Path>,
   ): Set<TargetsToBuild> {
     return snapshotHolder()
       ?.let { snapshot ->
         workspaceRelativePaths
-          .map { path -> snapshot.graph().getProjectTargets(context, path) }
+          .map { path -> snapshot.graph().getProjectTargets(path) }
           .toSet()
       }.orEmpty()
   }
@@ -223,7 +222,7 @@ class QuerySyncProject(
   }
 
   fun canEnableAnalysisFor(workspacePath: Path): Boolean {
-    return getProjectTargets(BlazeContext.create(), listOf(workspacePath)).isNotEmpty()
+    return getProjectTargets(listOf(workspacePath)).isNotEmpty()
   }
 
   fun isReadyForAnalysis(path: Path): Boolean {

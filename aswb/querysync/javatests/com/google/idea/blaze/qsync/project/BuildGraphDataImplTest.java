@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import org.junit.Rule;
 import org.junit.Test;
@@ -442,7 +441,6 @@ public class BuildGraphDataImplTest {
         graph.computeRequestedTargets(
             graph
                 .getProjectTargets(
-                    NOOP_CONTEXT,
                     TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY
                         .getOnlySourcePath()
                         .resolve(Path.of("TestClassExternalDep.java")))
@@ -465,7 +463,6 @@ public class BuildGraphDataImplTest {
         graph.computeRequestedTargets(
             graph
                 .getProjectTargets(
-                    NOOP_CONTEXT,
                     TestData.JAVA_LIBRARY_MULTI_TARGETS
                         .getOnlySourcePath()
                         .resolve(Path.of("BUILD")))
@@ -493,7 +490,6 @@ public class BuildGraphDataImplTest {
         graph.computeRequestedTargets(
             graph
                 .getProjectTargets(
-                    NOOP_CONTEXT,
                     TestData.JAVA_LIBRARY_NESTED_PACKAGE
                         .getOnlySourcePath()
                         .resolve(Path.of("BUILD")))
@@ -516,7 +512,7 @@ public class BuildGraphDataImplTest {
         graph.computeRequestedTargets(
             graph
                 .getProjectTargets(
-                    NOOP_CONTEXT, TestData.JAVA_LIBRARY_NESTED_PACKAGE.getOnlySourcePath())
+                    TestData.JAVA_LIBRARY_NESTED_PACKAGE.getOnlySourcePath())
                 .getUnambiguousTargets());
     assertThat(targets.buildTargets())
         .containsExactly(
@@ -540,7 +536,6 @@ public class BuildGraphDataImplTest {
         graph.computeRequestedTargets(
             graph
                 .getProjectTargets(
-                    NOOP_CONTEXT,
                     TestData.CC_EXTERNAL_DEP_QUERY.getOnlySourcePath().resolve("TestClass.cc"))
                 .getUnambiguousTargets());
     assertThat(targets.buildTargets())
