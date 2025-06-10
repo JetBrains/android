@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.common
 
-import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth
 import com.google.idea.blaze.common.TargetTree.Companion.create
 import java.nio.file.Path

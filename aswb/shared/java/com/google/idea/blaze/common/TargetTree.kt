@@ -27,7 +27,7 @@ interface TargetTree {
   /**
    * Returns targets directly under the tree root package.
    */
-  fun getDirectTargets(packagePath: Path): Sequence<Label>
+  fun getDirectTargets(pkg: Path): Sequence<Label>
 
   /**
    * Returns targets of a subtree rooted at the given path.
