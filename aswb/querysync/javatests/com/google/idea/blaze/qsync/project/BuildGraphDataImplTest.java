@@ -118,7 +118,7 @@ public class BuildGraphDataImplTest {
                 NOOP_CONTEXT,
                 ImmutableSet.of())
             .parseForTesting();
-    assertThat(graph.storage.getAllSupportedTargets().getTargets())
+    assertThat(ImmutableList.copyOf(graph.storage.getAllSupportedTargets().getTargets().iterator()))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/nodeps:nodeps"));
     assertThat(graph.storage.getSourceFileLabels())
         .containsExactly(
@@ -279,7 +279,7 @@ public class BuildGraphDataImplTest {
                 NOOP_CONTEXT,
                 ImmutableSet.of())
             .parseForTesting();
-    assertThat(graph.storage.getAllSupportedTargets().getTargets())
+    assertThat(ImmutableList.copyOf(graph.storage.getAllSupportedTargets().getTargets().iterator()))
         .containsExactly(
             Label.of("//" + TESTDATA_ROOT + "/multitarget:nodeps"),
             Label.of("//" + TESTDATA_ROOT + "/multitarget:externaldep"));

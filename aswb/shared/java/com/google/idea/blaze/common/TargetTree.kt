@@ -18,20 +18,21 @@ package com.google.idea.blaze.common
 import java.nio.file.Path
 
 interface TargetTree {
+
   /**
    * Returns all targets in the target tree.
    */
-  fun getTargets(): Collection<Label>
+  fun getTargets(): Sequence<Label>
 
   /**
    * Returns targets directly under the tree root package.
    */
-  fun getDirectTargets(packagePath: Path): Collection<Label>
+  fun getDirectTargets(packagePath: Path): Sequence<Label>
 
   /**
    * Returns targets of a subtree rooted at the given path.
    */
-  fun getSubpackages(pkg: Path): Collection<Label>
+  fun getSubpackages(pkg: Path): Sequence<Label>
 
   /**
    * The number of synced supported targets.

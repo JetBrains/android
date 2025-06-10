@@ -34,29 +34,24 @@ import java.nio.file.Path
  * given directory is fast.
  */
 class TargetTreeImpl private constructor(private val root: Node) : TargetTree {
-  override fun getTargets(): Collection<Label> {
-    return object : AbstractCollection<Label>() {
-      override fun iterator(): Iterator<Label> = LabelIterator.Companion.ofAllSubpackageTargets(root)
-      override val size: Int get() = root.size()
-      override fun isEmpty(): Boolean = root.isEmpty
-    }
-  }
+  override fun getTargets(): Sequence<Label> = LabelIterator.Companion.ofAllSubpackageTargets(root).asSequence()
 
   /** Returns the set of labels at the given path, excluding any labels in child packages.  */
-  override fun getDirectTargets(packagePath: Path): Collection<Label> {
+  override fun getDirectTargets(packagePath: Path): Sequence<Label> {
     return root.find(packagePath.iterator())
       ?.let { LabelIterator.Companion.ofDirectTargets(it) }
-      ?.let { ImmutableSet.copyOf(it) }
+      ?.asSequence()
       .orEmpty()
   }
 
-  override fun getSubpackages(pkg: Path): Collection<Label> {
+  override fun getSubpackages(pkg: Path): Sequence<Label> {
     return root
       .find(pkg.iterator())
       ?.let { Node.Companion.forPath(pkg, it) }
       ?.let { TargetTreeImpl(it) }
       ?.getTargets()
       .orEmpty()
+      .asSequence()
   }
 
   override val targetCountForStatsOnly: Int

@@ -450,9 +450,9 @@ data class BuildGraphDataImpl(
     // TODO: support Bazel.
     if (workspaceRelativePath.endsWith("BUILD")) {
       val packagePath = workspaceRelativePath.parent
-      return targetGroup(storage.allSupportedTargets.getDirectTargets(packagePath))
+      return targetGroup(storage.allSupportedTargets.getDirectTargets(packagePath).toList())
     } else {
-      val targets = storage.allSupportedTargets.getSubpackages(workspaceRelativePath)
+      val targets = storage.allSupportedTargets.getSubpackages(workspaceRelativePath).toList()
       if (targets.isNotEmpty()) {
         // this will only be non-empty for directories
         return targetGroup(targets)
@@ -530,7 +530,7 @@ data class BuildGraphDataImpl(
   }
 
   override fun computeWholeProjectTargets(): RequestedTargets {
-    return computeRequestedTargets(storage.allSupportedTargets.getTargets())
+    return computeRequestedTargets(storage.allSupportedTargets.getTargets().toList())
   }
 
   override fun outputStats(context: Context<*>) {

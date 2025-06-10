@@ -28,22 +28,22 @@ class TargetTreeTest {
   @Test
   fun test_size() {
     var tt: TargetTree = TargetTreeImpl.EMPTY
-    Truth.assertThat(tt.getTargets().size).isEqualTo(0)
+    Truth.assertThat(tt.getTargets().toList().size).isEqualTo(0)
 
     tt = create(listOf(Label.of("//a/b/c:c"), Label.of("//a/b/d:d")))
-    Truth.assertThat(tt.getTargets().size).isEqualTo(2)
+    Truth.assertThat(tt.getTargets().toList().size).isEqualTo(2)
 
     tt = create(listOf(Label.of("//a/b/c:c"), Label.of("//a/b/c:d")))
-    Truth.assertThat(tt.getTargets().size).isEqualTo(2)
+    Truth.assertThat(tt.getTargets().toList().size).isEqualTo(2)
   }
 
   @Test
   fun test_isEmpty() {
     var tt: TargetTree = TargetTreeImpl.EMPTY
-    Truth.assertThat(tt.getTargets().isEmpty()).isTrue()
+    Truth.assertThat(tt.getTargets().toList().isEmpty()).isTrue()
 
     tt = create(listOf(Label.of("//a/b:b")))
-    Truth.assertThat(tt.getTargets().isEmpty()).isFalse()
+    Truth.assertThat(tt.getTargets().toList().isEmpty()).isFalse()
   }
 
   @Test
@@ -57,7 +57,7 @@ class TargetTreeTest {
           Label.of("//a/b/c/d:d")
         )
       )
-    Truth.assertThat(tt.getDirectTargets(Path.of("a/b/c")))
+    Truth.assertThat(tt.getDirectTargets(Path.of("a/b/c")).toList())
       .containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/c:e"))
   }
 
@@ -72,7 +72,7 @@ class TargetTreeTest {
           Label.of("//z/y/z:z")
         )
       )
-    Truth.assertThat(tt.getSubpackages(Path.of("a/b")))
+    Truth.assertThat(tt.getSubpackages(Path.of("a/b")).toList())
       .containsExactly(Label.of("//a/b:b"), Label.of("//a/b/c:c"), Label.of("//a/b/d:d"))
   }
 
@@ -86,7 +86,7 @@ class TargetTreeTest {
           Label.of("//x/y/z:z")
         )
       )
-    Truth.assertThat(tt.getSubpackages(Path.of("a/b")))
+    Truth.assertThat(tt.getSubpackages(Path.of("a/b")).toList())
       .containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"))
   }
 
@@ -101,7 +101,7 @@ class TargetTreeTest {
           Label.of("//x/y/z:z")
         )
       )
-    Truth.assertThat(tt.getSubpackages(Path.of("a")))
+    Truth.assertThat(tt.getSubpackages(Path.of("a")).toList())
       .containsExactly(Label.of("//a/b/c:c"), Label.of("//a/b/d:d"), Label.of("//a/b/k/l/m:n"))
   }
 
@@ -115,7 +115,7 @@ class TargetTreeTest {
           Label.of("//x/y/z:z")
         )
       )
-    Truth.assertThat(tt.getSubpackages(Path.of("b")).isEmpty()).isTrue()
+    Truth.assertThat(tt.getSubpackages(Path.of("b")).toList().isEmpty()).isTrue()
   }
 
   @Test
@@ -130,7 +130,7 @@ class TargetTreeTest {
           Label.of("//x/y/z:z")
         )
       )
-    Truth.assertThat(tt.getSubpackages(Path.of("a/b")))
+    Truth.assertThat(tt.getSubpackages(Path.of("a/b")).toList())
       .containsExactly(
         Label.of("//a/b/c:c"),
         Label.of("//a/b/d:d"),
@@ -151,7 +151,7 @@ class TargetTreeTest {
           Label.of("//x/y/z:z")
         )
       )
-    Truth.assertThat(ImmutableList.copyOf<Label>(tt.getTargets()))
+    Truth.assertThat(tt.getTargets().toList())
       .containsExactly(
         Label.of("//a/b/c:c"),
         Label.of("//a/b/d:d"),
@@ -164,6 +164,6 @@ class TargetTreeTest {
   @Test
   fun test_iterator_empty() {
     val tt = create(listOf())
-    Truth.assertThat(ImmutableList.copyOf<Label>(tt.getTargets())).isEmpty()
+    Truth.assertThat(tt.getTargets().toList()).isEmpty()
   }
 }
