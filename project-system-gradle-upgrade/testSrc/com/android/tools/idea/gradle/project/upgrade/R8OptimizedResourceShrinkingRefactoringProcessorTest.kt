@@ -28,57 +28,57 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 @RunsInEdt
-class R8OptimizedShrinkingRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
+class R8OptimizedResourceShrinkingRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   override val projectRule = AndroidProjectRule.onDisk()
 
   @Test
   fun `Read More Url is correct`() {
     val project = projectRule.project
-    val processor = R8OptimizedShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
-    assertEquals("https://developer.android.com/r/tools/upgrade-assistant/r8-optimized-shrinking", processor.getReadMoreUrl())
+    val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
+    assertEquals("https://developer.android.com/r/tools/upgrade-assistant/r8-optimized-resource-shrinking", processor.getReadMoreUrl())
   }
 
   @Test
   fun `Property file created when not present`() {
     val project = projectRule.project
-    val processor = R8OptimizedShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
+    val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     assertThat(project.findGradleProperties()).isNull()
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.optimizedShrinking=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.optimizedResourceShrinking=false")
   }
 
   @Test
   fun `Property added when not present`() {
     val project = projectRule.project
     projectRule.fixture.addFileToProject("gradle.properties", "")
-    val processor = R8OptimizedShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).doesNotContain("android.r8.optimizedShrinking=false")
+    val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).doesNotContain("android.r8.optimizedResourceShrinking=false")
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.optimizedShrinking=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.optimizedResourceShrinking=false")
   }
 
   @Test
   fun `Property kept if present and is false`() {
     val project = projectRule.project
-    projectRule.fixture.addFileToProject("gradle.properties", "android.r8.optimizedShrinking=false")
-    val processor = R8OptimizedShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
+    projectRule.fixture.addFileToProject("gradle.properties", "android.r8.optimizedResourceShrinking=false")
+    val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.optimizedShrinking=false")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.optimizedResourceShrinking=false")
   }
 
   @Test
   fun `Property kept if present and is true`() {
     val project = projectRule.project
-    projectRule.fixture.addFileToProject("gradle.properties", "android.r8.optimizedShrinking=true")
-    val processor = R8OptimizedShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
+    projectRule.fixture.addFileToProject("gradle.properties", "android.r8.optimizedResourceShrinking=true")
+    val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
     processor.run()
-    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.optimizedShrinking=true")
+    assertThat(VfsUtilCore.loadText(project.findGradleProperties()!!.also { it.refresh(false, false) })).contains("android.r8.optimizedResourceShrinking=true")
   }
 
   @Test
   fun `Refactoring enabled for 9_0_0-alpha01`() {
     val project = projectRule.project
-    val processor = R8OptimizedShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0-alpha01"))
+    val processor = R8OptimizedResourceShrinkingDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0-alpha01"))
     assertTrue(processor.isEnabled)
   }
 

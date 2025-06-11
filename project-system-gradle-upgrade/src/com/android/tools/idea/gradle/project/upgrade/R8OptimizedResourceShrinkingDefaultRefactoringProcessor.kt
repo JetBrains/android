@@ -21,24 +21,24 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
 
 /**
- * Starting with AGP 9.0, the default value of android.r8.optimizedShrinking is now true. This refactoring adds the property if it
+ * Starting with AGP 9.0, the default value of android.r8.optimizedResourceShrinking is now true. This refactoring adds the property if it
  * was not defined and sets it to false when upgrading from a version lower than 9.0.0-alpha01
  */
-class R8OptimizedShrinkingDefaultRefactoringProcessor: AbstractBooleanPropertyDefaultRefactoringProcessor {
+class R8OptimizedResourceShrinkingDefaultRefactoringProcessor: AbstractBooleanPropertyDefaultRefactoringProcessor {
   constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override val propertyKey = "android.r8.optimizedShrinking"
+  override val propertyKey = "android.r8.optimizedResourceShrinking"
   override val oldDefault = false
-  override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.USE_R8_OPTIMIZED_SHRINKING_DEFAULT
-  override val insertPropertyText = AndroidBundle.message("project.upgrade.useR8OptimizedShrinking.enable.usageType")!!
-  override val tooltip = AndroidBundle.message("project.upgrade.useR8OptimizedShrinking.tooltipText")!!
-  override val usageViewHeader = AndroidBundle.message("project.upgrade.useR8OptimizedShrinking.usageView.header")!!
+  override val upgradeEventKind = UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.USE_R8_OPTIMIZED_RESOURCE_SHRINKING_DEFAULT
+  override val insertPropertyText = AndroidBundle.message("project.upgrade.useR8OptimizedResourceShrinking.enable.usageType")!!
+  override val tooltip = AndroidBundle.message("project.upgrade.useR8OptimizedResourceShrinking.tooltipText")!!
+  override val usageViewHeader = AndroidBundle.message("project.upgrade.useR8OptimizedResourceShrinking.usageView.header")!!
   override val necessityInfo = PointNecessity(DEFAULT_CHANGED)
-  override fun getRefactoringId() = "com.android.tools.agp.upgrade.useR8OptimizedShrinking"
-  override fun getCommandName() = AndroidBundle.message("project.upgrade.useR8OptimizedShrinking.commandName")!!
-  override val readMoreUrlRedirect: ReadMoreUrlRedirect? = ReadMoreUrlRedirect("r8-optimized-shrinking")
-  override fun getShortDescription() = AndroidBundle.message("project.upgrade.useR8OptimizedShrinking.shortDescription")!!
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.useR8OptimizedResourceShrinking"
+  override fun getCommandName() = AndroidBundle.message("project.upgrade.useR8OptimizedResourceShrinking.commandName")!!
+  override val readMoreUrlRedirect: ReadMoreUrlRedirect? = ReadMoreUrlRedirect("r8-optimized-resource-shrinking")
+  override fun getShortDescription() = AndroidBundle.message("project.upgrade.useR8OptimizedResourceShrinking.shortDescription")!!
 
   companion object {
     val DEFAULT_CHANGED = AgpVersion.parse("9.0.0-alpha01")

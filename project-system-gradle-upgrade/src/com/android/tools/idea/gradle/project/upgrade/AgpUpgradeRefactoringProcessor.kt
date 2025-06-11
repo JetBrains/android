@@ -310,7 +310,7 @@ class AgpUpgradeRefactoringProcessor(
     BlockUnifiedTestPlatformProcessor(this),
     R8StrictFullModeForKeepRulesDefaultRefactoringProcessor(this),
     BlockR8IntegratedResourceShrinkingProcessor(this),
-    R8OptimizedShrinkingDefaultRefactoringProcessor(this),
+    R8OptimizedResourceShrinkingDefaultRefactoringProcessor(this),
     AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
     AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(this),
     RemoveImplementationPropertiesRefactoringProcessor(this),
@@ -319,7 +319,7 @@ class AgpUpgradeRefactoringProcessor(
     // AGP 10.x
     BlockMinifyLocalDependenciesLibrariesProcessor(this),
     BlockR8StrictFullModeForKeepRulesProcessor(this),
-    BlockR8OptimizedShrinkingProcessor(this)
+    BlockR8OptimizedResourceShrinkingProcessor(this)
   )
 
   val targets = mutableListOf<PsiElement>()
