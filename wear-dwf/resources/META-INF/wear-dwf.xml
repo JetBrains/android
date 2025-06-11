@@ -23,6 +23,12 @@
     <completion.contributor language="XML" implementationClass="com.android.tools.idea.wear.dwf.dom.raw.RawWatchFaceComplicationDataSourceCompletionContributor" />
 
     <notificationGroup id="Wear Declarative Watch Faces" displayType="BALLOON"/>
+
+    <localInspection language="XML" bundle="messages.AndroidBundle"
+                     implementationClass="com.android.tools.idea.wear.dwf.inspections.UnknownWFFVersionInspection"
+                     enabledByDefault="true"
+                     groupKey="android.inspections.group.name"
+                     displayName="Unknown Watch Face Format version" />
   </extensions>
   <actions>
     <action id="ImportWatchFaceStudioFileAction"
