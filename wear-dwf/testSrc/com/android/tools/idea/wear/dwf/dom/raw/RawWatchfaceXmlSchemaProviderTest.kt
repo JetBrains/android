@@ -134,7 +134,7 @@ class RawWatchfaceXmlSchemaProviderTest {
   fun `test unrecognised attributes is highlighted as an error`() {
     addManifestWithWFFVersion("1")
 
-    domRule.testHighlighting("watch_face_highlight_urecognised_attribute.xml")
+    domRule.testHighlighting("watch_face_highlight_unrecognised_attribute.xml")
   }
 
   @Test
