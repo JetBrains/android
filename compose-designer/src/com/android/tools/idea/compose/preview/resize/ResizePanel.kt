@@ -46,7 +46,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
-import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
@@ -56,10 +55,13 @@ import java.awt.FlowLayout
 import java.awt.Point
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
+import java.text.NumberFormat
 import java.util.Objects
 import javax.swing.Icon
 import javax.swing.JButton
+import javax.swing.JFormattedTextField
 import javax.swing.SwingConstants
+import javax.swing.text.NumberFormatter
 import kotlin.math.roundToInt
 import org.jetbrains.annotations.TestOnly
 
@@ -88,9 +90,9 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
    * - closeButton:       A button to hide this ResizePanel and revert the preview to its original device/state.
    */
   private val devicePickerButton: JButton
-  private val widthTextField: JBTextField
+  private val widthTextField: JFormattedTextField
   private val xLabel: JBLabel
-  private val heightTextField: JBTextField
+  private val heightTextField: JFormattedTextField
   private val unitLabel: JBLabel
   private val closeButton: JButton
 
@@ -154,9 +156,13 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     flowingComponentsPanel.isOpaque = false
 
     devicePickerButton = setupDevicePickerButton()
-    widthTextField = JBTextField()
+
+    val formatter = NumberFormatter(NumberFormat.getIntegerInstance())
+    formatter.minimum = 1
+    widthTextField = JFormattedTextField(formatter)
+    heightTextField = JFormattedTextField(formatter)
+
     xLabel = JBLabel("x")
-    heightTextField = JBTextField()
     unitLabel = JBLabel(SdkConstants.UNIT_DP)
     closeButton = getCloseButton()
 
@@ -298,7 +304,7 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
    *
    * @param module The [Module] context used to retrieve the available devices.
    * @return A [List] of [DropDownListItem]s, structured with headers for each device group and
-   *   device items within those groups. Returns an empty list if [module] is null.
+   *   device items within those groups. Returns an empty list if [module] null.
    */
   private fun buildBasePopupListItems(module: Module?): List<DropDownListItem> {
     val popupItems = mutableListOf<DropDownListItem>()
