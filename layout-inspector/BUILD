@@ -236,6 +236,20 @@ iml_test(
     test_class = "com.android.tools.idea.layoutinspector.EmbeddedLayoutInspectorIntegrationTest",
 )
 
+iml_test(
+    name = "OnDeviceRenderingIntegrationTest",
+    timeout = "long",
+    data = layout_inspector_view_data,
+    module = ":intellij.android.layout-inspector.integration",
+    tags = ["studio-e2e-test"],
+    tags_linux = ["block-network"],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.layoutinspector.OnDeviceRenderingIntegrationTest",
+)
+
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.layout-inspector.gradle",
