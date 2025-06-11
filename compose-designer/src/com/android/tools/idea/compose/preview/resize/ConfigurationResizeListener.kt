@@ -19,7 +19,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.common.util.updateLayoutParams
 import com.android.tools.idea.common.util.updateLayoutParamsToWrapContent
-import com.android.tools.idea.compose.preview.util.deviceSize
+import com.android.tools.idea.compose.preview.util.deviceSizePx
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.intellij.openapi.Disposable
@@ -54,14 +54,14 @@ class ConfigurationResizeListener(
 
   private val scope = CoroutineScope(defaultDispatcher + CoroutineName(javaClass.simpleName))
 
-  private val deviceSizeChangedFlow = MutableStateFlow<Dimension>(configuration.deviceSize())
+  private val deviceSizeChangedFlow = MutableStateFlow(configuration.deviceSizePx())
 
   init {
     Disposer.register(sceneManager, this)
     scope.launch {
-      deviceSizeChangedFlow.drop(1).collectLatest { newDeviceSize ->
+      deviceSizeChangedFlow.drop(1).collectLatest { (width, height) ->
         try {
-          requestRender(newDeviceSize)
+          requestRender(Dimension(width, height))
         } catch (e: CancellationException) {
           throw e
         } catch (e: Exception) {
@@ -73,7 +73,7 @@ class ConfigurationResizeListener(
 
   override fun changed(changeType: Int): Boolean {
     if (changeType and ConfigurationListener.CFG_DEVICE != 0) {
-      deviceSizeChangedFlow.value = configuration.deviceSize()
+      deviceSizeChangedFlow.value = configuration.deviceSizePx()
     }
     return true
   }

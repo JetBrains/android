@@ -251,7 +251,7 @@ class SavePreviewInNewSizeActionTest {
       .isEqualTo(
         """
           @Preview(
-              name = "200x100dp",
+              name = "200dp x 100dp",
               group = "MyGroup",
               showSystemUi = true,
               device = "spec:width=200dp,height=100dp,dpi=160,orientation=landscape"
@@ -401,7 +401,7 @@ class SavePreviewInNewSizeActionTest {
       .isEqualTo(
         """
           @Preview(
-              name = "100x200dp",
+              name = "100dp x 200dp",
               group = "MyGroup",
               showBackground = true,
               widthDp = 100,
@@ -552,7 +552,7 @@ class SavePreviewInNewSizeActionTest {
       .isEqualTo(
         """
         @Preview(
-            name = "845x360dp",
+            name = "845dp x 360dp",
             device = "spec:width=360dp,height=640dp,dpi=480",
             widthDp = 845,
             heightDp = 360
@@ -571,7 +571,7 @@ class SavePreviewInNewSizeActionTest {
       annotation class DevicePreviews
 
       @Preview(
-          name = "845x360dp",
+          name = "845dp x 360dp",
           device = "spec:width=360dp,height=640dp,dpi=480",
           widthDp = 845,
           heightDp = 360
@@ -664,7 +664,7 @@ class SavePreviewInNewSizeActionTest {
     val finalMode = modeManager.mode.value
     assertThat(finalMode).isInstanceOf(PreviewMode.Focus::class.java)
     val focusMode = finalMode as PreviewMode.Focus
-    assertThat(focusMode.selected!!.displaySettings.parameterName).isEqualTo("100x200dp")
+    assertThat(focusMode.selected!!.displaySettings.parameterName).isEqualTo("100dp x 200dp")
     Disposer.dispose(previewManager)
   }
 

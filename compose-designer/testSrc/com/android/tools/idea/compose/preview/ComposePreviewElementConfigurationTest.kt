@@ -266,8 +266,13 @@ class ComposePreviewElementConfigurationTest {
           defaultDeviceProvider = { deviceWithCustomDensity },
         )
         val screenSize = configuration.device!!.getScreenSize(ScreenOrientation.PORTRAIT)!!
+        // The PreviewConfiguration provides width=123 (dp) and height=234 (dp).
+        // The deviceWithCustomDensity has a density of 440dpi.
+        // Default density is 160dpi.
+        // Width in px = round(123dp * 440dpi / 160dpi) = round(123 * 2.75) = round(338.25) = 338.
         assertEquals(338, screenSize.width)
-        assertEquals(643, screenSize.height)
+        // Height in px = round(234dp * 440dpi / 160dpi) = round(234 * 2.75) = round(643.5) = 644.
+        assertEquals(644, screenSize.height)
       }
   }
 
