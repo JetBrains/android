@@ -32,7 +32,9 @@ import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.UNDEFINED_API_LEVEL
 import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.android.tools.preview.UNSET_UI_MODE_VALUE
+import com.android.tools.preview.config.DEFAULT_DEVICE_ID
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.TruthJUnit.assume
 import kotlinx.coroutines.test.runTest
 import org.jetbrains.android.compose.ComposeProjectRule
 import org.junit.Rule
@@ -419,6 +421,59 @@ class PreviewAnnotationGeneratorTest {
             widthDp = 845,
             heightDp = 360
         )
+      """
+          .trimIndent()
+      )
+  }
+
+  private fun createConfigurationForDevice(deviceId: String): Configuration {
+    val manager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
+    val device =
+      manager.devices.find { it.id == deviceId }
+        ?: error("Device '$deviceId' not found in available devices")
+    val configuration = Configuration.create(manager, FolderConfiguration())
+    configuration.setEffectiveDevice(device, device.defaultState)
+    return configuration
+  }
+
+  @Test
+  fun `toPreviewAnnotationText with known non-default device generates deviceId`() = runTest {
+    val knownNonDefaultDevice = "pixel_3"
+
+    assume().that(knownNonDefaultDevice).isNotEqualTo(DEFAULT_DEVICE_ID)
+
+    val configuration = createConfigurationForDevice(knownNonDefaultDevice)
+    val previewElement = createPreviewElement(name = "KnownDevicePreview")
+
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "KnownDevicePreview")
+
+    assertThat(generatedText)
+      .isEqualTo(
+        """
+      @Preview(
+          name = "KnownDevicePreview",
+          device = "id:pixel_3"
+      )
+      """
+          .trimIndent()
+      )
+  }
+
+  @Test
+  fun `toPreviewAnnotationText with default device omits device parameter`() = runTest {
+    val configuration = createConfigurationForDevice(DEFAULT_DEVICE_ID)
+    val previewElement = createPreviewElement(name = "DefaultDevicePreview")
+
+    val generatedText =
+      toPreviewAnnotationText(previewElement, configuration, "DefaultDevicePreview")
+
+    // For the default device, no device specifier is needed.
+    assertThat(generatedText)
+      .isEqualTo(
+        """
+      @Preview(
+          name = "DefaultDevicePreview"
+      )
       """
           .trimIndent()
       )

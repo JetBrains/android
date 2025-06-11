@@ -327,7 +327,7 @@ class SavePreviewInNewSizeActionTest {
               name = "Pixel 9",
               group = "MyGroup",
               showSystemUi = true,
-              device = "spec:width=300dp,height=100dp,dpi=160,orientation=landscape"
+              device = "id:Pixel_9"
           )
         """
           .trimIndent()
