@@ -725,6 +725,7 @@ studio_plugin(
         "//tools/vendor/google/ml/aiplugin/core:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/core:gemini_plugin_proto",
+        "//tools/vendor/google/ml/aiplugin/mcp/client:mcp-kotlin-sdk",
     ],
     modules = {
         "aiplugin.jar": [
@@ -739,6 +740,7 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/android-plugin:aiplugin.android-plugin",
             "//tools/vendor/google/ml/aiplugin/android-plugin/descriptor:aiplugin.android-plugin.descriptor",
             "//tools/vendor/google/ml/aiplugin/lang/kotlin:aiplugin.lang.kotlin",
+            "//tools/vendor/google/ml/aiplugin/mcp/client:aiplugin.mcp.client",
             "//tools/vendor/google/ml/aiplugin/rag/indexer:aiplugin.rag.indexer",
             "//tools/vendor/google/ml/aiplugin/sdkcompat:aiplugin.sdkcompat",
             "//tools/vendor/google/ml/aiplugin/cloudcode-core:aiplugin.cloudcode-core",

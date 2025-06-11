@@ -3035,6 +3035,7 @@ android-studio/plugins/gemini/lib/libgoogle_auth_intellij_lib.jar
 android-studio/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 android-studio/plugins/gemini/lib/libv1internal_java_rest.jar
 android-studio/plugins/gemini/lib/lucene-queryparser-9.12.0.jar
+android-studio/plugins/gemini/lib/mcp-kotlin-sdk.jar
 android-studio/plugins/gemini/lib/proto-models-1.0.jar
 android-studio/plugins/gemini/lib/sqlite-jdbc-3.43.0.0.jar
 android-studio/plugins/gemini/lib/wire-runtime-jvm-5.3.1.jar
