@@ -106,7 +106,8 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.VisibleForTesting;
 
 /** An object that knows how to build dependencies for given targets */
-public class BazelDependencyBuilder implements DependencyBuilder {
+public class BazelDependencyBuilder implements DependencyBuilder, BazelDependencyBuilderPublicForTests {
+
   private static final Logger logger = Logger.getInstance(BazelDependencyBuilder.class);
 
   private static final BoolExperiment buildGeneratedSrcJars =
@@ -228,6 +229,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   }
 
   @VisibleForTesting
+  @Override
   public BuildDependenciesBazelInvocationInfo getInvocationInfo(BlazeContext context,
                                                                 Set<Label> buildTargets, Collection<OutputGroup> outputGroups) {
     ImmutableList<String> includes =
@@ -425,6 +427,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   }
 
   @VisibleForTesting
+  @Override
   public Path getBundledAspectPath(String filename) {
     return getBundledAspectPath("aspect", filename);
   }
@@ -436,8 +439,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
    * the name of the aspect within that file. For example, {@code //package:aspect.bzl}.
    */
   @VisibleForTesting
+  @Override
   public void prepareInvocationFiles(
-      BlazeContext context, ImmutableMap<Path, ByteSource> invocationFiles)
+    BlazeContext context, ImmutableMap<Path, ByteSource> invocationFiles)
       throws IOException, BuildException {
     for (Map.Entry<Path, ByteSource> e : invocationFiles.entrySet()) {
       copyInvocationFile(e.getKey(), e.getValue());
