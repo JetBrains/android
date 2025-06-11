@@ -1068,8 +1068,8 @@ class ComposePreviewRepresentation(
             surface.notifyZoomToFit()
           }
         }
-        updateResizePanel()
       }
+      updateResizePanel()
     }
   }
 
