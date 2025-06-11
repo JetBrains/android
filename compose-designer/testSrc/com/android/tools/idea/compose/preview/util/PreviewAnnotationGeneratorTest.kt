@@ -354,7 +354,7 @@ class PreviewAnnotationGeneratorTest {
       )
 
     val generatedText = toPreviewAnnotationText(previewElement, configuration, "DevicePortrait")
-    // 500px at 480dpi -> 500 * (160/480) = 166.66 -> 166dp (int truncation)
+    // 500px at 480dpi -> 500 * (160/480) = 166.66 -> 167dp (int truncation)
     // 1000px at 480dpi -> 1000 * (160/480) = 333.33 -> 333dp (int truncation)
     assertThat(generatedText)
       .isEqualTo(
@@ -362,7 +362,7 @@ class PreviewAnnotationGeneratorTest {
         @Preview(
             name = "DevicePortrait",
             showSystemUi = true,
-            device = "spec:width=166dp,height=333dp,dpi=480,orientation=portrait"
+            device = "spec:width=167dp,height=333dp,dpi=480,orientation=portrait"
         )
       """
           .trimIndent()

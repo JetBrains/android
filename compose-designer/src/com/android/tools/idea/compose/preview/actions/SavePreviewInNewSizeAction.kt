@@ -21,7 +21,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.getDimensionsInDp
+import com.android.tools.idea.compose.preview.util.deviceSizeDp
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.util.toPreviewAnnotationText
 import com.android.tools.idea.concurrency.asCollection
@@ -73,7 +73,7 @@ class SavePreviewInNewSizeAction(val dispatcher: CoroutineDispatcher = Dispatche
     val previewMethod = previewElement.previewBody?.element?.parent as? KtFunction ?: return
     val deviceState = configuration.deviceState ?: error("Device state should not be null")
 
-    val (widthDp, heightDp) = getDimensionsInDp(configuration)
+    val (widthDp, heightDp) = configuration.deviceSizeDp()
     val mode =
       if (showDecorations) ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE
       else ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE
@@ -118,10 +118,10 @@ class SavePreviewInNewSizeAction(val dispatcher: CoroutineDispatcher = Dispatche
       e.dataContext.getData(RESIZE_PANEL_INSTANCE_KEY)?.hasBeenResized == true
 
     if (e.presentation.isEnabledAndVisible) {
-      val (widthDp, heightDp) = getDimensionsInDp(configuration)
-      e.presentation.text = message("action.save.preview.current.size.title", widthDp, heightDp)
+      e.presentation.text =
+        message("action.save.preview.current.size.title", createNewName(configuration))
       e.presentation.description =
-        message("action.save.preview.current.size.description", widthDp, heightDp)
+        message("action.save.preview.current.size.description", createNewName(configuration))
       e.presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true)
     }
   }
@@ -184,7 +184,7 @@ private fun createNewName(configuration: Configuration): String {
   if (targetDevice.id != Configuration.CUSTOM_DEVICE_ID) {
     return targetDevice.displayName
   }
-  val (widthDp, heightDp) = getDimensionsInDp(configuration)
+  val (widthDp, heightDp) = configuration.deviceSizeDp()
 
-  return "${widthDp}x${heightDp}dp"
+  return "${widthDp}dp x ${heightDp}dp"
 }

@@ -17,7 +17,6 @@ package com.android.tools.preview
 
 import com.android.annotations.TestOnly
 import com.android.ide.common.resources.Locale
-import com.android.resources.Density
 import com.android.resources.UiMode
 import com.android.sdklib.AndroidDpCoordinate
 import com.android.sdklib.IAndroidTarget
@@ -25,6 +24,7 @@ import com.android.sdklib.devices.Device
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.Wallpaper
 import com.android.tools.configurations.updateScreenSize
+import com.android.tools.preview.config.ConversionUtil
 import com.android.tools.preview.config.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.preview.config.DeviceConfig
 import com.android.tools.preview.config.Navigation
@@ -211,14 +211,9 @@ private fun PreviewConfiguration.applyTo(
     // device itself.
     // This is to match the intuition that those sizes always determine the size of the composable.
     renderConfiguration.device?.let { device ->
-      // The PX are converted to DP by multiplying it by the dpiFactor that is the ratio of the
-      // current dpi vs the default dpi (160).
-      val dpiFactor = 1.0 * renderConfiguration.density.dpiValue / Density.DEFAULT_DENSITY
-      renderConfiguration.updateScreenSize(
-        (it.width * dpiFactor).toInt(),
-        (it.height * dpiFactor).toInt(),
-        device,
-      )
+      val xDimension = ConversionUtil.dpToPx(it.width, renderConfiguration.density.dpiValue)
+      val yDimension = ConversionUtil.dpToPx(it.height, renderConfiguration.density.dpiValue)
+      renderConfiguration.updateScreenSize(xDimension, yDimension, device)
     }
   }
 
