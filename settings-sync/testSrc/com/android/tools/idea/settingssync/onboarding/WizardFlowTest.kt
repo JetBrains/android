@@ -18,6 +18,7 @@ package com.android.tools.idea.settingssync.onboarding
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.isDisplayed
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -39,6 +40,7 @@ import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.PreferredUser
 import com.google.gct.login2.ui.onboarding.compose.GoogleSignInWizard
 import com.google.gct.wizard.FakeController
+import com.google.gct.wizard.NavigationState
 import com.google.gct.wizard.WizardPage
 import com.google.gct.wizard.WizardState
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.BACKUP_AND_SYNC_EVENT
@@ -141,12 +143,14 @@ class WizardFlowTest {
     state: WizardState,
     expectedInitialPage: WizardPage,
     scope: CoroutineScope,
-  ) {
+  ): FakeController {
     val controller = FakeController(pages, state, scope)
     waitForCondition(1.seconds) { controller.currentPage != null }
     assertThat(controller.currentPage).isEqualTo(expectedInitialPage)
 
     composeTestRule.setContent { controller.CurrentComposablePage() }
+
+    return controller
   }
 
   // This covers the onboarding flow: step3 only
@@ -442,6 +446,33 @@ class WizardFlowTest {
         )
       )
     }
+  }
+
+  // This covers the onboarding flow: step1 -> retry -> step3
+  @Test
+  fun `retry and recover`() {
+    // Prepare
+    communicator.isConnected = false
+    val activeSyncUser = "active_sync_user@test.com"
+
+    SettingsSyncSettings.getInstance().syncEnabled = true
+    SettingsSyncLocalSettings.getInstance().userId = activeSyncUser
+    val wizardState =
+      WizardState().apply {
+        // Make sure we won't skip the page
+        getOrCreateState { GoogleSignInWizard.SignInState() }
+          .apply { signedInUser = PreferredUser.User(email = USER_EMAIL) }
+      }
+    val controller = initWizard(pages, wizardState, expectedInitialPage = step1, scope)
+    composeTestRule.onNodeWithText("Next").assertIsDisplayed().performClick()
+    waitForCondition(1.seconds) { controller.navigationState is NavigationState.Error }
+
+    // Action
+    communicator.isConnected = true
+    composeTestRule.onNodeWithText("Retry").assertExists().assertIsEnabled().performClick()
+
+    waitForCondition(1.seconds) { controller.navigationState is NavigationState.Ready }
+    assertThat(controller.currentPage).isEqualTo(step3)
   }
 
   private fun List<CheckboxNode>.toLocallyStoredState(syncEnabled: Boolean): State {

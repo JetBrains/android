@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.google.gct.login2.ui.onboarding.compose.InnerWizardContentPage
+import com.google.gct.wizard.RetryableException
 import com.google.gct.wizard.WizardDialogController
 import com.google.gct.wizard.WizardPage
 import com.google.gct.wizard.WizardPageControl
@@ -35,7 +36,6 @@ import com.google.gct.wizard.WizardState
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.application.ex.ApplicationInfoEx
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.settingsSync.core.SettingsSyncBundle
 import com.intellij.settingsSync.core.SettingsSyncStateHolder
 import com.intellij.settingsSync.core.UpdateResult
@@ -101,12 +101,11 @@ internal class PushOrPullStepPage : WizardPage() {
             UpdateResult.FileDeletedFromServer -> false
             is UpdateResult.Success -> true
             is UpdateResult.Error -> {
-              thisLogger()
-                .warn(
+              throw RetryableException(
+                message =
                   SettingsSyncBundle.message("notification.title.update.error") +
-                    "(${cloudStatus.message})"
-                )
-              false
+                    ": ${cloudStatus.message}"
+              )
             }
           }
         }
