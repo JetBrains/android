@@ -107,17 +107,21 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
     return false
   }
 
+  /**
+   * Gets a user's cloud sync status, prioritizing a valid result from the local cache.
+   *
+   * On a cache miss (or if the cached result is an error), this function triggers a network request
+   * to fetch the latest status, but only if [allowFetchIfCacheMiss] is `true`.
+   */
   suspend fun getCloudStatus(userEmail: String, allowFetchIfCacheMiss: Boolean): UpdateResult? {
+    val cached = cloudStatusCache[userEmail]
+    if (cached != null && cached !is UpdateResult.Error) return cached
+
+    if (allowFetchIfCacheMiss) {
+      cloudStatusCache[userEmail] = checkCloudUpdates(userEmail, PROVIDER_CODE_GOOGLE)
+    }
+
     return cloudStatusCache[userEmail]
-      ?: run {
-        if (allowFetchIfCacheMiss) {
-          checkCloudUpdates(userEmail, PROVIDER_CODE_GOOGLE).also {
-            cloudStatusCache[userEmail] = it
-          }
-        } else {
-          null
-        }
-      }
   }
 
   override fun WizardState.handleFinished() {
