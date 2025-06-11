@@ -56,7 +56,6 @@ class PropertyCurveTest {
 
     val propertyCurveOne =
       PropertyCurve.create(
-          0,
           SupportedAnimationManager.FrozenState(false),
           property,
           InspectorLayout.timelineHeaderHeightScaled(),
@@ -70,7 +69,6 @@ class PropertyCurveTest {
 
     val propertyCurveTwo =
       PropertyCurve.create(
-          0,
           SupportedAnimationManager.FrozenState(false),
           property,
           InspectorLayout.timelineHeaderHeightScaled() + propertyCurveOne.height,

@@ -22,10 +22,8 @@ import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.preview.animation.timeline.TransitionCurve
-import com.android.tools.idea.preview.animation.timeline.getOffsetForValue
 import com.intellij.ui.tabs.TabInfo
 import javax.swing.JComponent
-import kotlin.math.max
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -36,8 +34,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Manages supported animation types that can be opened in tabs, frozen, or offset within a timeline
- * or their state can be changed for the sake of inspection.
+ * Manages supported animation types that can be opened in tabs or frozen within a timeline, or
+ * their state can be changed for the sake of inspection.
  *
  * This abstract class provides the foundation for handling animations within the context of a
  * timeline panel, playback controls, and a tabbed interface. It manages animation state, timeline
@@ -86,11 +84,6 @@ abstract class SupportedAnimationManager(
 
   /** Animation [Transition]. Could be empty for unsupported or not yet loaded transitions. */
   private var currentTransition = Transition()
-    set(value) {
-      field = value
-      // If transition has changed, reset it offset.
-      offset.value = 0
-    }
 
   /** Callback when [animatedPropertiesAtCurrentTime] has been changed. */
   private var animatedPropertiesChangedCallback: (List<AnimationUnit.TimelineUnit>) -> Unit = {}
@@ -119,7 +112,7 @@ abstract class SupportedAnimationManager(
     AnimationTab(rootComponent, playbackControls, animationState.changeStateActions, freezeAction)
   }
   override val timelineMaximumMs: Int
-    get() = currentTransition.endMillis?.let { max(it + offset.value, it) } ?: 0
+    get() = currentTransition.endMillis ?: 0
 
   override fun createTimelineElement(
     parent: JComponent,
@@ -127,23 +120,15 @@ abstract class SupportedAnimationManager(
     forIndividualTab: Boolean,
     positionProxy: PositionProxy,
   ): TimelineElement {
-    val offsetPx = getOffsetForValue(offset.value, positionProxy)
     val timelineElement =
       if (card.expanded.value || forIndividualTab) {
         val curve =
-          TransitionCurve.create(
-            offsetPx,
-            frozenState.value,
-            currentTransition,
-            minY,
-            positionProxy,
-          )
+          TransitionCurve.create(frozenState.value, currentTransition, minY, positionProxy)
         animatedPropertiesChangedCallback = { curve.timelineUnits = it }
         curve.timelineUnits = animatedPropertiesAtCurrentTime
         curve
       } else
         TimelineLine(
-            offsetPx,
             frozenState.value,
             currentTransition.startMillis?.let { positionProxy.xPositionForValue(it) }
               ?: (positionProxy.minimumXPosition()),
@@ -155,23 +140,12 @@ abstract class SupportedAnimationManager(
             card.expandedSize = TransitionCurve.expectedHeight(currentTransition)
             card.setDuration(currentTransition.duration)
           }
-
-    timelineElement.setNewOffsetCallback {
-      offset.value = timelineElement.getValueForOffset(it, positionProxy)
-    }
     return timelineElement
   }
 
-  private fun TimelineElement.getValueForOffset(offsetPx: Int, positionProxy: PositionProxy) =
-    if (offsetPx >= 0)
-      positionProxy.valueForXPosition(minX + offsetPx) - positionProxy.valueForXPosition(minX)
-    else positionProxy.valueForXPosition(maxX + offsetPx) - positionProxy.valueForXPosition(maxX)
-
   protected abstract fun loadTransitionFromLibrary(): Transition
 
-  /**
-   * Load transition for current animation state.
-   */
+  /** Load transition for current animation state. */
   private suspend fun loadTransition(longTimeout: Boolean = false) {
     executeInRenderSession(longTimeout) { currentTransition = loadTransitionFromLibrary() }
   }
@@ -221,12 +195,6 @@ abstract class SupportedAnimationManager(
     scope.launch { animationState.state.collect { syncState() } }
     scope.launch { frozenState.collect { updateTimelineElementsCallback() } }
     scope.launch { card.expanded.collect { updateTimelineElementsCallback() } }
-    scope.launch {
-      offset.collect {
-        loadAnimatedPropertiesAtCurrentTime(false)
-        updateTimelineElementsCallback()
-      }
-    }
   }
 
   private suspend fun syncState() {

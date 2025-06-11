@@ -25,14 +25,12 @@ import com.intellij.openapi.util.Disposer
 /** Curves for all properties of [Transition]. */
 class TransitionCurve
 private constructor(
-  offsetPx: Int,
   frozenState: SupportedAnimationManager.FrozenState,
   private val propertyCurves: List<PropertyCurve>,
-) : ParentTimelineElement(offsetPx, frozenState, propertyCurves) {
+) : ParentTimelineElement(frozenState, propertyCurves) {
 
   companion object {
     fun create(
-      offsetPx: Int,
       frozenState: SupportedAnimationManager.FrozenState,
       transition: Transition,
       rowMinY: Int,
@@ -51,12 +49,11 @@ private constructor(
         }
       val curves =
         properties.filterNotNull().mapIndexed { index, it ->
-          val curve =
-            PropertyCurve.create(offsetPx, frozenState, it, currentMinY, index, positionProxy)
+          val curve = PropertyCurve.create(frozenState, it, currentMinY, index, positionProxy)
           currentMinY += curve.heightScaled()
           curve
         }
-      return TransitionCurve(offsetPx, frozenState, curves).also {
+      return TransitionCurve(frozenState, curves).also {
         curves.forEach { curve -> Disposer.register(it, curve) }
       }
     }

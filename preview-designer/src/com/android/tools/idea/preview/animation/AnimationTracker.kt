@@ -38,8 +38,6 @@ interface AnimationTracker {
 
   fun clickAnimationInspectorTimeline()
 
-  fun dragAnimationInspectorTimeline()
-
   fun expandAnimationCard()
 
   fun collapseAnimationCard()
@@ -47,10 +45,6 @@ interface AnimationTracker {
   fun openAnimationInTab()
 
   fun closeAnimationTab()
-
-  fun resetTimeline()
-
-  fun dragTimelineLine()
 
   fun lockAnimation()
 

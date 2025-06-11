@@ -26,15 +26,13 @@ import java.awt.Point
 /** Curves for all components of [AnimatedProperty]. */
 class PropertyCurve
 private constructor(
-  offsetPx: Int,
   frozenState: SupportedAnimationManager.FrozenState,
   private val property: AnimatedProperty<Double>,
   private val componentCurves: List<ComponentCurve>,
-) : ParentTimelineElement(offsetPx, frozenState, componentCurves) {
+) : ParentTimelineElement(frozenState, componentCurves) {
 
   companion object {
     fun create(
-      offsetPx: Int,
       frozenState: SupportedAnimationManager.FrozenState,
       property: AnimatedProperty<Double>,
       rowMinY: Int,
@@ -44,7 +42,6 @@ private constructor(
       val curves =
         List(property.components.size) { componentId ->
             ComponentCurve.create(
-              offsetPx,
               frozenState,
               property,
               componentId,
@@ -54,7 +51,7 @@ private constructor(
             )
           }
           .toList()
-      return PropertyCurve(offsetPx, frozenState, property, curves)
+      return PropertyCurve(frozenState, property, curves)
     }
   }
 

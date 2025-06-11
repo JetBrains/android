@@ -109,12 +109,7 @@ abstract class AnimationPreview<T : AnimationManager>(
    */
   @VisibleForTesting
   val tabbedPane = AnimationTabs(project, this).apply { addListener(TabChangeListener()) }
-  private val bottomPanel =
-    BottomPanel(rootComponent, tracker).apply {
-      addResetListener {
-        animations.filterIsInstance<SupportedAnimationManager>().forEach { it.offset.value = 0 }
-      }
-    }
+  private val bottomPanel = BottomPanel(rootComponent)
 
   /** Loading panel displayed when the preview has no animations subscribed. */
   private val noAnimationsPanel =

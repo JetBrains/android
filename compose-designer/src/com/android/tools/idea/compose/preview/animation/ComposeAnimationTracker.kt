@@ -68,9 +68,6 @@ class ComposeAnimationTracker(private val eventLogger: AnimationToolingUsageTrac
   override fun clickAnimationInspectorTimeline() =
     logEvent(ComposeAnimationToolingEventType.CLICK_ANIMATION_INSPECTOR_TIMELINE)
 
-  override fun dragAnimationInspectorTimeline() =
-    logEvent(ComposeAnimationToolingEventType.DRAG_ANIMATION_INSPECTOR_TIMELINE)
-
   override fun expandAnimationCard() =
     logEvent(ComposeAnimationToolingEventType.EXPAND_ANIMATION_CARD)
 
@@ -85,10 +82,6 @@ class ComposeAnimationTracker(private val eventLogger: AnimationToolingUsageTrac
   override fun lockAnimation() = logEvent(ComposeAnimationToolingEventType.LOCK_ANIMATION)
 
   override fun unlockAnimation() = logEvent(ComposeAnimationToolingEventType.UNLOCK_ANIMATION)
-
-  override fun resetTimeline() = logEvent(ComposeAnimationToolingEventType.RESET_TIMELINE)
-
-  override fun dragTimelineLine() = logEvent(ComposeAnimationToolingEventType.DRAG_TIMELINE_LINE)
 
   override fun openPicker() = logEvent(ComposeAnimationToolingEventType.OPEN_PICKER)
 }

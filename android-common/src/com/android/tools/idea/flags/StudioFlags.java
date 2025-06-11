@@ -1576,13 +1576,6 @@ public final class StudioFlags {
     30
   );
 
-  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG = new BooleanFlag(
-    COMPOSE, "preview.animation.coordination.drag",
-    "Enable animation dragging in timeline for Animation Inspector",
-    "If enabled, animation dragging will be available in Animation Inspector timeline.",
-    false
-  );
-
   public static final Flag<Boolean> COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE = new BooleanFlag(
     COMPOSE, "project.uses.compose.override", "Forces the Compose project detection",
     "If enabled, the project will be treated as a Compose project, showing Previews if available and enhancing the Compose editing",
