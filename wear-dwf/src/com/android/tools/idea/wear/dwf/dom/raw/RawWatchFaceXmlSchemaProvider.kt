@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.wear.dwf.dom.raw
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.wear.wff.WFFVersion
 import com.android.tools.wear.wff.WFFVersionExtractor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.FileUtil
@@ -34,14 +37,23 @@ class RawWatchfaceXmlSchemaProvider(
 
   override fun getSchema(url: @NonNls String, module: Module?, baseFile: PsiFile): XmlFile? {
     val manifestDocument =
-      module?.let { MergedManifestManager.getMergedManifestSupplier(module).now?.document } ?: return null
-    val schemaVersion = wffVersionExtractor.extractFromManifest(manifestDocument) ?: return null
+      module?.let { MergedManifestManager.getMergedManifestSupplier(module).now?.document }
+    val schemaVersion =
+      manifestDocument?.let { wffVersionExtractor.extractFromManifest(manifestDocument) }
+        ?: getFallbackVersion(module)
     return XmlUtil.findXmlFile(
       baseFile,
       VfsUtilCore.urlToPath(
         VfsUtilCore.toIdeaUrl(FileUtil.unquote(schemaVersion.schemaUrl.toExternalForm()), false)
       ),
     )
+  }
+
+  private fun getFallbackVersion(module: Module?): WFFVersion {
+    val model = module?.let { AndroidModel.get(module) } ?: return WFFVersion.WFFVersion1
+    return if (model.minSdkVersion.isAtLeast(AndroidVersion.VersionCodes.UPSIDE_DOWN_CAKE))
+      WFFVersion.WFFVersion2
+    else WFFVersion.WFFVersion1
   }
 
   override fun isAvailable(file: XmlFile) =
