@@ -6,6 +6,12 @@ load("//tools/adt/idea/studio/rules:app-icon.bzl", "app_icon")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load(":version.bzl", "STUDIO_CODENAME", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
 
+package(
+    default_package_metadata = [
+        "//build/bazel/licenses:Android-Apache-2.0",
+    ],
+)
+
 app_icon(
     name = "nightly-icon",
     icns = "nightly/studio.icns",
@@ -805,6 +811,7 @@ android_studio(
     files_win = {
         "safemode/win/studio_safe.bat": "bin/studio_safe.bat",
     },
+    generate_package_metadata = True,
     jre = "//prebuilts/studio/jdk:jdk-bundle",
     platform = "@intellij//:intellij-sdk",
     plugins = [

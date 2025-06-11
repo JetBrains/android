@@ -1,6 +1,8 @@
 """This file contains Bazel build rules for the Android Studio release distribution"""
 
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("//build/bazel/rules/gathering:prebuilt_package_metadata.bzl", "prebuilt_package_metadata")
+load("//build/bazel/rules/gathering:write_package_metadata.bzl", "write_package_metadata")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "AppIconInfo", "replace_app_icon")
 load("//tools/base/bazel:bazel.bzl", "ImlModuleInfo")
 load("//tools/base/bazel:expand_template.bzl", "expand_template_ex")
@@ -1084,6 +1086,8 @@ _android_studio = rule(
 # Builds a distribution of android studio.
 # Args:
 #       platform: A studio_data target with the per-platform filegroups
+#       generate_package_metadata: If true, a write_package_metadata target will
+#                                  be created.
 #       jre: If include a target with the jre to bundle in.
 #       plugins: A list of plugins to be bundled
 #       modules: A dictionary (see studio_plugin) with modules bundled at top level
@@ -1127,7 +1131,14 @@ _android_studio = rule(
 # before patch 12. In such a case, the release_number would be 3.
 def android_studio(
         name,
+        plugins,
+        generate_package_metadata = False,
         **kwargs):
+    if generate_package_metadata:
+        write_package_metadata(
+            name = name + "-metadata",
+            deps = plugins,
+        )
     _android_studio(
         name = name,
         compress = is_release(),
@@ -1138,6 +1149,7 @@ def android_studio(
             "@platforms//os:windows": WIN.name,
             "//conditions:default": "",
         }),
+        plugins = plugins,
         **kwargs
     )
 
@@ -1408,6 +1420,11 @@ def intellij_platform(
       src: the root directory
       spec: a map of bundled plugins and associated jars
     """
+    prebuilt_package_metadata(
+        name = name + "_prebuilt_metadata",
+        third_party_dependencies = "AI/linux/android-studio/license/third-party-libraries.json",
+    )
+
     jvm_import(
         name = name + "_jars",
         jars = select({
@@ -1427,6 +1444,9 @@ def intellij_platform(
         exports = [":" + name + "_jars"],
         compress = is_release(),
         mac_bundle_name = spec.mac_bundle_name,
+        package_metadata = [
+            ":" + name + "_prebuilt_metadata",
+        ],
         studio_data = name + ".data",
         visibility = ["@intellij//:__subpackages__"],
         # Local linux sandbox does not support spaces in names, so we exclude some files
