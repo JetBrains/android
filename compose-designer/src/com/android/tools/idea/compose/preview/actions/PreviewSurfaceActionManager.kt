@@ -65,7 +65,9 @@ internal class PreviewSurfaceActionManager(
     // Add action to transform UI with AI
     if (StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.get()) {
       ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {
-        it.transformPreviewAction()?.let { action -> actionGroup.add(action) }
+        it.transformPreviewAction()?.let { action ->
+          actionGroup.add(action.visibleOnlyInStaticPreview())
+        }
       }
     }
 
