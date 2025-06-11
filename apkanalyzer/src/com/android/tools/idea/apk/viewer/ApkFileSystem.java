@@ -96,13 +96,13 @@ public class ApkFileSystem extends ArchiveFileSystem {
   @Nullable
   @Override
   public VirtualFile findFileByPath(@NotNull @NonNls String path) {
-    return VfsImplUtil.findFileByPath(this, path);
+    return findFileByPath(this, path);
   }
 
   @Nullable
   @Override
   public VirtualFile findFileByPathIfCached(@NotNull @NonNls String path) {
-    return VfsImplUtil.findFileByPathIfCached(this, path);
+    return findFileByPathIfCached(this, path);
   }
 
   @Nullable
