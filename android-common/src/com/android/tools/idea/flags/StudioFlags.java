@@ -1044,7 +1044,7 @@ public final class StudioFlags {
     "Enables phased sync",
     "Enables the new sync mode where the models are streamed back to IDE as they become available in phases. These APIs also" +
     " allow direct interaction with the workspace model via new APIs",
-    enabledUpTo(DEV)
+    enabledUpTo(CANARY)
   );
 
   public static final Flag<Boolean> PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED = new BooleanFlag(
@@ -1055,7 +1055,7 @@ public final class StudioFlags {
     "populated by the data services. To enable this a 'bridge data service' is used to completely remove entities set up by phased sync. " +
     "However we've done extensive feasibility work to make sure we don't actually need this replacement behaviour, meaning we can disable " +
     "this behaviour completely. This flag is a fail-safe to make sure we can switch this behaviour back to platform's default, if needed.",
-    enabledUpTo(DEV)
+    enabledUpTo(CANARY)
   );
   //endregion
 
