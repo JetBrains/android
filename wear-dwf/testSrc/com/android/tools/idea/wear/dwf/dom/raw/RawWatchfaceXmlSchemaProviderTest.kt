@@ -18,12 +18,18 @@ package com.android.tools.idea.wear.dwf.dom.raw
 import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FD_RES_RAW
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.model.TestAndroidModel
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidDomRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.flags.overrideForTest
+import com.android.tools.idea.util.androidFacet
 import com.intellij.psi.xml.XmlFile
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -36,10 +42,20 @@ import org.junit.rules.RuleChain
 private const val RES_RAW_FOLDER = "${FD_RES}/${FD_RES_RAW}"
 
 class RawWatchfaceXmlSchemaProviderTest {
-  private val projectRule = AndroidProjectRule.inMemory().initAndroid(true)
+
+  private val projectRule =
+    AndroidProjectRule.withAndroidModel(
+      createAndroidProjectBuilderForDefaultTestProjectStructure().withMinSdk({ 33 })
+    )
+
   private val domRule = AndroidDomRule(RES_RAW_FOLDER) { projectRule.fixture }
 
   @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(domRule)
+
+  private val mainModule
+    get() =
+      projectRule.module.getModuleSystem().getProductionAndroidModule()
+        ?: error("expected main module to exist")
 
   @Before
   fun setup() {
@@ -151,10 +167,43 @@ class RawWatchfaceXmlSchemaProviderTest {
     domRule.testHighlighting("watch_face_highlight_feature_used_with_correct_version.xml")
   }
 
+  @Test
+  fun `test the provider falls back to WFF version 1 when the manifest is empty`() {
+    projectRule.fixture.addFileToProject(FN_ANDROID_MANIFEST_XML, "")
+
+    domRule.testCompletion(
+      "watch_face_completion_metadata_tag.xml",
+      "watch_face_completion_metadata_tag_after.xml",
+    )
+  }
+
+  @Test
+  fun `test the provider falls back to WFF version 1 when the version is invalid with minSdk 33`() {
+    addManifestWithWFFVersion("invalid")
+
+    domRule.testCompletion(
+      "watch_face_completion_metadata_tag.xml",
+      "watch_face_completion_metadata_tag_after.xml",
+    )
+  }
+
+  @Test
+  fun `test the provider falls back to WFF version 2 when the version is invalid with minSdk 34`() {
+    val facet = mainModule.androidFacet ?: error("expected AndroidFacet")
+    AndroidModel.set(facet, TestAndroidModel(minSdkVersion = AndroidVersion.fromString("34")))
+    addManifestWithWFFVersion("invalid")
+
+    // The tag should be autocompleted as it's part of the version 2 features
+    domRule.testCompletion(
+      "watch_face_completion_flavor_tag.xml",
+      "watch_face_completion_flavor_tag_after_version_2.xml",
+    )
+  }
+
   private fun addManifestWithWFFVersion(version: String) {
     projectRule.fixture.addFileToProject(FN_ANDROID_MANIFEST_XML, manifestWithWFFVersion(version))
     // create the manifest snapshot
-    MergedManifestManager.getMergedManifest(projectRule.module).get()
+    MergedManifestManager.getMergedManifest(mainModule).get()
   }
 }
 
