@@ -114,11 +114,12 @@ class VariablesTable private constructor(
   private val psProject: PsProject,
   private val variablesTreeModel: VariablesTableModel,
   private val validationResultsKeeper: ValidationResultsKeeper,
+  private val parentDisposable: Disposable
 ) :
   TreeTable(variablesTreeModel) {
 
   constructor (project: Project, context: PsContext, psProject: PsProject, parentDisposable: Disposable, validationResultsKeeper: ValidationResultsKeeper) :
-    this(project, context, psProject, createTreeModel(ProjectShadowNode(psProject), parentDisposable), validationResultsKeeper)
+    this(project, context, psProject, createTreeModel(ProjectShadowNode(psProject), parentDisposable), validationResultsKeeper, parentDisposable)
 
   private val iconGap = JBUI.scale(2)
   private val editorInsets = JBUI.insets(1, 2)
@@ -505,7 +506,7 @@ class VariablesTable private constructor(
         is VariablesBaseNode -> node.validateNameOnEditing(textBox.text)
         else -> null
       }
-      val validator = ComponentValidator(project).withValidator { ->
+      val validator = ComponentValidator(parentDisposable).withValidator { ->
          val message = validatorFunction?.invoke(textBox.text)
          message?.let { ValidationInfo(it, textBox) }
       }.installOn(textBox)
@@ -557,7 +558,7 @@ class VariablesTable private constructor(
         }
 
         else -> null
-      }?.let { PropertyEditorValidator(project, it) }
+      }?.let { PropertyEditorValidator(parentDisposable, it) }
 
       val editor = uiProperty.createEditor(context, psProject, null, variable, enterHandlingProxyCellEditor, validator)
 

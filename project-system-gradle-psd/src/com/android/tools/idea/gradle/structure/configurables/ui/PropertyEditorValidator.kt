@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentValidator
 import com.intellij.openapi.ui.ValidationInfo
@@ -29,11 +30,11 @@ import javax.swing.text.JTextComponent
  * validationFunction takes sting to validate and returns null if input is correct or validation message otherwise
  */
 class PropertyEditorValidator(
-  private val project: Project,
+  private val disposable: Disposable,
   private val validationFunction: ((String) -> String?)
 ) {
   fun installValidation(component: JTextComponent) {
-    ComponentValidator(project).withValidator { ->
+    ComponentValidator(disposable).withValidator { ->
       val message = validationFunction.invoke(component.text)
       message?.let { ValidationInfo(it, component) }
     }.installOn(component)
