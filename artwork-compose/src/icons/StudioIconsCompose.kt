@@ -154,6 +154,7 @@ object StudioIconsCompose {
       val FreezeAnimation: IntelliJIconKey = IntelliJIconKey("/studio/icons/compose/toolbar/freeze-animation.svg", "/studio/icons/compose/toolbar/freeze-animation.svg", StudioIconsCompose.javaClass) // 16x16
       val InspectPreview: IntelliJIconKey = IntelliJIconKey("/studio/icons/compose/toolbar/inspect-preview.svg", "/studio/icons/compose/toolbar/inspect-preview.svg", StudioIconsCompose.javaClass) // 16x16
       val InteractivePreview: IntelliJIconKey = IntelliJIconKey("/studio/icons/compose/toolbar/interactive-preview.svg", "/studio/icons/compose/toolbar/interactive-preview.svg", StudioIconsCompose.javaClass) // 16x16
+      val ResizeToolbar: IntelliJIconKey = IntelliJIconKey("/studio/icons/compose/toolbar/resize-toolbar.svg", "/studio/icons/compose/toolbar/resize-toolbar.svg", StudioIconsCompose.javaClass) // 16x16
       val RunConfiguration: IntelliJIconKey = IntelliJIconKey("/studio/icons/compose/toolbar/run-configuration.svg", "/studio/icons/compose/toolbar/run-configuration.svg", StudioIconsCompose.javaClass) // 16x16
       val RunOnDevice: IntelliJIconKey = IntelliJIconKey("/studio/icons/compose/toolbar/run-on-device.svg", "/studio/icons/compose/toolbar/run-on-device.svg", StudioIconsCompose.javaClass) // 16x16
       val StopInteractiveMode: IntelliJIconKey = IntelliJIconKey("/studio/icons/compose/toolbar/stop-interactive-mode.svg", "/studio/icons/compose/toolbar/stop-interactive-mode.svg", StudioIconsCompose.javaClass) // 16x16
