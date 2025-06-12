@@ -46,7 +46,7 @@ class StudioDeprecationChecker : ProjectActivity {
   private val notificationGroup: NotificationGroup
     get() =
       NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_NAME)
-        ?: throw RuntimeException("NotificationGroup not found")
+      ?: throw RuntimeException("NotificationGroup not found")
 
   override suspend fun execute(project: Project) {
     val deprecationData =
@@ -54,18 +54,19 @@ class StudioDeprecationChecker : ProjectActivity {
     if (deprecationData.isSupported()) return
 
     if (deprecationData.isDeprecated()) {
-      if (deprecationData.date == null) {
+      val date = deprecationData.date
+      if (date == null) {
         thisLogger().warn("Deprecation date not provided")
         return
       }
-      if (checkDateDiff(deprecationData.date)) {
+      if (checkDateDiff(date)) {
         thisLogger()
           .info(
             "Skip showing deprecation notification because diff is more than $SHOW_NOTIFICATION_THRESHOLD days"
           )
         return
       }
-      if (hasShownForDate(deprecationData.date)) {
+      if (hasShownForDate(date)) {
         thisLogger()
           .info("Skip showing deprecation notification because notification already shown")
         return
