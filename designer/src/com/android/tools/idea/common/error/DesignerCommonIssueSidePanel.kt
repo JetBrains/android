@@ -18,12 +18,9 @@ package com.android.tools.idea.common.error
 import com.android.tools.idea.rendering.errors.ui.MessageTip
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
-import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.EditorKind
-import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -33,7 +30,6 @@ import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.profile.codeInspection.ui.DescriptionEditorPane
 import com.intellij.profile.codeInspection.ui.readHTML
-import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
@@ -46,6 +42,7 @@ import java.awt.BorderLayout
 import java.awt.Font
 import java.io.File
 import javax.swing.BoxLayout
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
@@ -56,17 +53,12 @@ import javax.swing.event.HyperlinkListener
 class DesignerCommonIssueSidePanel(private val project: Project, parentDisposable: Disposable) :
   JPanel(BorderLayout()), Disposable {
 
-  private val splitter: OnePixelSplitter = OnePixelSplitter(true, 0.5f, 0.1f, 0.9f)
-
   private val fileToEditorMap = mutableMapOf<VirtualFile, Editor>()
+
+  var issueDetailPanel: JComponent? = null
 
   init {
     Disposer.register(parentDisposable, this)
-    splitter.firstComponent = null
-    splitter.secondComponent = null
-    splitter.setResizeEnabled(true)
-    add(splitter, BorderLayout.CENTER)
-
     project.messageBus
       .connect(this)
       .subscribe(
@@ -86,43 +78,10 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
    * false otherwise.
    */
   fun loadIssueNode(issueNode: DesignerCommonIssueNode?): Boolean {
-    splitter.firstComponent =
+    issueDetailPanel =
       (issueNode as? IssueNode)?.let { node -> DesignerCommonIssueDetailPanel(project, node.issue) }
-
-    if (issueNode == null) {
-      splitter.secondComponent = null
-      return false
-    }
-    val editor = issueNode.getVirtualFile()?.let { getEditor(it) }
-    if (editor != null) {
-      editor.setBorder(JBUI.Borders.empty())
-      val navigable = issueNode.getNavigatable()
-      if (navigable is OpenFileDescriptor) {
-        navigable.navigateIn(editor)
-      }
-    }
-    splitter.secondComponent = editor?.component
-
-    return splitter.firstComponent != null || splitter.secondComponent != null
-  }
-
-  private fun getEditor(file: VirtualFile): Editor? {
-    val editor = fileToEditorMap[file]
-    if (editor != null) {
-      return editor
-    }
-    val document = ProblemsView.getDocument(project, file) ?: return null
-    val newEditor =
-      (EditorFactory.getInstance().createViewer(document, project, EditorKind.PREVIEW) as EditorEx)
-        .apply {
-          setCaretEnabled(false)
-          isEmbeddedIntoDialogWrapper = true
-          contentComponent.isOpaque = false
-          setBorder(JBUI.Borders.empty())
-          settings.setGutterIconsShown(false)
-        }
-    fileToEditorMap[file] = newEditor
-    return newEditor
+    issueDetailPanel?.let { add(it, BorderLayout.CENTER) }
+    return issueDetailPanel != null
   }
 
   override fun dispose() {
@@ -132,9 +91,7 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
     fileToEditorMap.clear()
   }
 
-  @TestOnly fun hasFirstComponent() = splitter.firstComponent != null
-
-  @TestOnly fun hasSecondComponent() = splitter.secondComponent != null
+  @TestOnly fun hasIssueDetailComponent() = issueDetailPanel != null
 }
 
 /** The side panel to show the details of issue detail in [DesignerCommonIssuePanel]. */
