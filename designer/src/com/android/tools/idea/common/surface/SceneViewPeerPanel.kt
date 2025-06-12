@@ -32,7 +32,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
-import com.intellij.util.ui.JBInsets
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -105,10 +105,10 @@ class SceneViewPeerPanel(
 
       override fun getMargin(scale: Double): Insets {
         val margin =
-          JBInsets(
+          Insets(
             /* top */ sceneViewTopPanel.preferredSize.height,
             /* left */ sceneViewLeftPanel.preferredSize.width,
-            /* bottom */ BOTTOM_BORDER_HEIGHT,
+            /* bottom */ JBUIScale.scale(BOTTOM_BORDER_HEIGHT),
             /* right */ sceneViewRightPanel.preferredSize.width,
           )
 
