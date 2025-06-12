@@ -115,7 +115,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/sdk-common/android.sdktools.sdk-common.iml" filepath="$PROJECT_DIR$/../../base/sdk-common/android.sdktools.sdk-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/sdk-common/gradle/android.sdktools.sdk-common.gradle.iml" filepath="$PROJECT_DIR$/../../base/sdk-common/gradle/android.sdktools.sdk-common.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/sdklib/android.sdktools.sdklib.iml" filepath="$PROJECT_DIR$/../../base/sdklib/android.sdktools.sdklib.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../base/testlib/android.sdktools.testlib.iml" filepath="$PROJECT_DIR$/../../base/testlib/android.sdktools.testlib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../emulator/testlib/android.sdktools.testlib.iml" filepath="$PROJECT_DIR$/../../emulator/testlib/android.sdktools.testlib.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/testutils/android.sdktools.testutils.iml" filepath="$PROJECT_DIR$/../../base/testutils/android.sdktools.testutils.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/threading-agent/android.sdktools.threading-agent.iml" filepath="$PROJECT_DIR$/../../base/threading-agent/android.sdktools.threading-agent.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/threading-agent-callback/android.sdktools.threading-agent-callback.iml" filepath="$PROJECT_DIR$/../../base/threading-agent-callback/android.sdktools.threading-agent-callback.iml" />
