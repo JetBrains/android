@@ -6,7 +6,6 @@ iml_module(
     # do not sort: must match IML order
     srcs = ["src"],
     iml_files = ["intellij.android.gradle.declarative.lang.sync.iml"],
-    jvm_target = "8",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
