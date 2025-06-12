@@ -53,7 +53,7 @@ import com.intellij.openapi.util.text.StringUtil
  */
 fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
   try {
-    return getModuleSystem().getResolvedDependency(artifactId) != null
+    return getModuleSystem().hasResolvedDependency(artifactId)
   }
   catch (e: DependencyManagementException) {
     Logger.getInstance(this.javaClass.name).warn(e.message)
