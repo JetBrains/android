@@ -111,17 +111,6 @@ private fun Component.isComponentForAction(action: AnAction): Boolean =
 private fun AnAction.isEquivalentTo(action: AnAction): Boolean =
     this === action || (this is StreamingAction && mayDelegate(action))
 
-internal inline fun <reified T : Component> Component.findContainingComponent(): T? {
-  var component = parent
-  while (component != null) {
-    if (component is T) {
-      return component
-    }
-    component = component.parent
-  }
-  return null
-}
-
 // TODO(b/289230363): use DeviceHandle.state.properties.icon, since it is the source of truth for device icons.
 internal val AvdInfo.icon: Icon
   get() {
