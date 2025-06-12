@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.ui.getParentOfType
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
@@ -265,7 +266,7 @@ abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
   }
 
   private fun findNotificationHolderPanel() =
-      primaryDisplayView?.findContainingComponent<NotificationHolderPanel>()
+      primaryDisplayView?.getParentOfType<NotificationHolderPanel>()
 
   internal interface UiState
 }

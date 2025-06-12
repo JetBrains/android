@@ -42,6 +42,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.getParentOfType
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBPanel
@@ -254,9 +255,9 @@ abstract class AbstractDisplayView(
     disconnectedStatePanel.hidePanel()
   }
 
-  private fun findLoadingPanel(): StreamingLoadingPanel? = findContainingComponent()
+  private fun findLoadingPanel(): StreamingLoadingPanel? = getParentOfType<StreamingLoadingPanel>()
 
-  internal fun findNotificationHolderPanel(): NotificationHolderPanel? = findContainingComponent()
+  internal fun findNotificationHolderPanel(): NotificationHolderPanel? = getParentOfType<NotificationHolderPanel>()
 
   /**
    * Rounds the given value down to an integer if it is above 1, or to the nearest multiple of
