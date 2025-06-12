@@ -160,6 +160,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon FREEZE_ANIMATION = load("studio/icons/compose/toolbar/freeze-animation.svg", 1843961285, 2);
       /** 16x16 */ public static final @NotNull Icon INSPECT_PREVIEW = load("studio/icons/compose/toolbar/inspect-preview.svg", 887731842, 2);
       /** 16x16 */ public static final @NotNull Icon INTERACTIVE_PREVIEW = load("studio/icons/compose/toolbar/interactive-preview.svg", -80714528, 2);
+      /** 16x16 */ public static final @NotNull Icon RESIZE_TOOLBAR = load("studio/icons/compose/toolbar/resize-toolbar.svg", -1039811101, 2);
       /** 16x16 */ public static final @NotNull Icon RUN_CONFIGURATION = load("studio/icons/compose/toolbar/run-configuration.svg", 132385743, 2);
       /** 16x16 */ public static final @NotNull Icon RUN_ON_DEVICE = load("studio/icons/compose/toolbar/run-on-device.svg", -1676031994, 2);
       /** 16x16 */ public static final @NotNull Icon STOP_INTERACTIVE_MODE = load("studio/icons/compose/toolbar/stop-interactive-mode.svg", -1098006907, 2);
