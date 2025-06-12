@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -50,6 +51,8 @@ class SceneViewTopPanel(
   private val labelPanel: JComponent,
 ) : JPanel(BorderLayout()) {
 
+  private val toolbar: JComponent?
+
   init {
     border = JBUI.Borders.emptyBottom(TOP_BAR_BOTTOM_MARGIN)
     isOpaque = false
@@ -67,7 +70,7 @@ class SceneViewTopPanel(
       statusIcon.isVisible = true
     }
     add(labelPanel, BorderLayout.CENTER)
-    val toolbar =
+    toolbar =
       toolbarActions
         .takeIf { it.isNotEmpty() }
         ?.let {
@@ -92,8 +95,16 @@ class SceneViewTopPanel(
         toolbar?.minimumSize?.height ?: 0,
       )
     minimumSize = Dimension(minWidth, minHeight)
-    preferredSize = toolbar?.let { Dimension(minWidth, minHeight) }
   }
+
+  /**
+   * Returns the scaled [preferredSize] as defined during class initialization. This guarantees
+   * correct scaling of the component's size, preventing clipping of its children when Accessibility
+   * Zoom or Presentation Mode features are enabled.
+   */
+  override fun getPreferredSize(): Dimension =
+    if (toolbar != null) JBDimension(minimumSize.width, minimumSize.height)
+    else super.getPreferredSize()
 
   private fun createToolbar(
     actions: List<AnAction>,
