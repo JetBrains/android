@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.doubleClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performTouchInput
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.JourneyActionArtifacts
+import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
+import org.mockito.kotlin.inOrder
 
 class JourneysResultsViewTest {
 
@@ -32,9 +39,7 @@ class JourneysResultsViewTest {
   @Test
   fun journeyTextArtifactsAreDisplayed() {
     // TODO(414800489): Fix on Windows
-    if (System.getProperty("os.name").startsWith("Windows")) {
-      return
-    }
+    Assume.assumeFalse(System.getProperty("os.name").startsWith("Windows"))
 
     val artifact = JourneyActionArtifacts("Performed an action", "This is a test", "")
     composeTestRule.setContent {
@@ -58,9 +63,7 @@ class JourneysResultsViewTest {
   @Test
   fun errorIconIsDisplayedWhenScreenshotArtifactDoesntExist() {
     // TODO(414800489): Fix on Windows
-    if (System.getProperty("os.name").startsWith("Windows")) {
-      return
-    }
+    Assume.assumeFalse(System.getProperty("os.name").startsWith("Windows"))
 
     val artifact = JourneyActionArtifacts("Performed an action", "This is a test", "path_to_image_that_doesnt_exist.png")
     composeTestRule.setContent {
@@ -76,6 +79,50 @@ class JourneysResultsViewTest {
     composeTestRule
       .onNodeWithTag("ScreenshotError", useUnmergedTree = true)
       .assertIsDisplayed()
+  }
+
+  @Test
+  fun onImageDoubleClickedUsesMostRecentCallback() {
+    // TODO(414800489): Fix on Windows
+    Assume.assumeFalse(System.getProperty("os.name").startsWith("Windows"))
+
+    val initialCallback: () -> Unit = mock()
+    val updatedCallback: () -> Unit = mock()
+    val currentCallbackState = mutableStateOf(initialCallback)
+    val invalidScreenshotPath = "invalid/path/for/double_click_test.png"
+    composeTestRule.setContent {
+      JourneysResultsView(
+        artifact = JourneyActionArtifacts("Performed an action", "This is a test", screenshotImage = invalidScreenshotPath),
+        index = 0,
+        numEntries = 1,
+        onImageDoubleClicked = currentCallbackState.value
+      )
+    }
+
+    val clickableNode = composeTestRule.onNodeWithTag("ScreenshotError", useUnmergedTree = true)
+    clickableNode.assertIsDisplayed()
+
+    // Double-click on the screenshot
+    clickableNode.performTouchInput {
+      doubleClick()
+    }
+    composeTestRule.waitForIdle()
+
+    // Update the callback
+    currentCallbackState.value = updatedCallback
+    composeTestRule.waitForIdle()
+
+    // Double-click on the screenshot
+    clickableNode.performTouchInput {
+      doubleClick()
+    }
+    composeTestRule.waitForIdle()
+
+    // Verify the both callbacks were invoked
+    inOrder(initialCallback, updatedCallback) {
+      verify(initialCallback, times(1)).invoke()
+      verify(updatedCallback, times(1)).invoke()
+    }
   }
 
   // TODO(414753403): Write more tests
