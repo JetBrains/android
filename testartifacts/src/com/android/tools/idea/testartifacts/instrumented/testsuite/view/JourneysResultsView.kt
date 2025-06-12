@@ -19,7 +19,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -40,7 +40,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,7 +47,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextStyle
@@ -59,7 +57,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.JourneyActionArtifacts
 import icons.StudioIconsCompose
-import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -69,6 +66,7 @@ import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
+import java.io.File
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -197,28 +195,14 @@ fun DoubleClickableWrapper(
 ) {
   val interactionSource = remember { MutableInteractionSource() }
   val isHovered by interactionSource.collectIsHoveredAsState()
-  var lastClickTime by remember { mutableLongStateOf(0L) }
-  val doubleClickTimeout = 300L
   Box(
     modifier =
       modifier
-        .pointerInput(Unit) {
-          awaitPointerEventScope {
-            while (true) {
-              val event = awaitPointerEvent(PointerEventPass.Initial)
-              val currentTime = System.currentTimeMillis()
-              if (event.changes.any { it.pressed }) {
-                if (currentTime - lastClickTime < doubleClickTimeout) {
-                  onDoubleClick()
-                  lastClickTime = 0L
-                } else {
-                  lastClickTime = currentTime
-                }
-              }
-            }
-          }
+        .pointerInput(onDoubleClick) {
+          detectTapGestures(
+            onDoubleTap = { onDoubleClick() },
+          )
         }
-        .clickable(enabled = false) {}
         .hoverable(interactionSource = interactionSource)
   ) {
     content()
