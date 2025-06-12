@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.files
 
 import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.devices.Device.DeviceSerializer
 import com.android.tools.idea.logcat.files.LogcatFileData.Metadata
 import com.android.tools.idea.logcat.files.LogcatFileIo.LogcatFileType.BUGREPORT
 import com.android.tools.idea.logcat.files.LogcatFileIo.LogcatFileType.BUGREPORT_ZIP
@@ -54,7 +55,11 @@ private val FIREBASE_REGEX = "^$TIMESTAMP: $LEVEL/$TAG_FIREBASE\\($PID\\): $MESS
 private val BUGREPORT_FILE_REGEX =
   "^========================================================$".toRegex()
 
-private val gson = GsonBuilder().setPrettyPrinting().create()
+private val gson =
+  GsonBuilder()
+    .registerTypeAdapter(Device::class.java, DeviceSerializer())
+    .setPrettyPrinting()
+    .create()
 
 /** Contains functions to read and write a Logcat file */
 internal class LogcatFileIo(private val zoneId: ZoneId = ZoneId.systemDefault()) {
