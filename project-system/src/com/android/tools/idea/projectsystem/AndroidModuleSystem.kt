@@ -111,6 +111,13 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): GradleCoordinate? =
     getResolvedDependency(id.getCoordinate("+"), scope)
 
+  @Throws(DependencyManagementException::class)
+  fun hasResolvedDependency(id: WellKnownMavenArtifactId) = hasResolvedDependency(id, DependencyScopeType.MAIN)
+
+  @Throws(DependencyManagementException::class)
+  fun hasResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): Boolean =
+    getResolvedDependency(id, scope) != null
+
   fun getRegisteringModuleSystem(): RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>? =
     this as? RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>
 

@@ -544,10 +544,10 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
     }
 
     private fun dependsOn(id: GoogleMavenArtifactId, moduleSystem: AndroidModuleSystem): Boolean? {
-      if (moduleSystem.getResolvedDependency(id) != null) return true
+      if (moduleSystem.hasResolvedDependency(id)) return true
       androidxIdOf(id)
         .takeIf { it != id }
-        ?.let { if (moduleSystem.getResolvedDependency(it) != null) return true }
+        ?.let { if (moduleSystem.hasResolvedDependency(it)) return true }
       return null
     }
 

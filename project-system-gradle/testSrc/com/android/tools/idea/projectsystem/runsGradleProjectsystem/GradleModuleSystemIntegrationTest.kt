@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.projectsystem.runsGradleProjectsystem
 
-import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
 import com.android.SdkConstants.SUPPORT_LIB_GROUP_ID
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.Module
 import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.WellKnownMavenArtifactId
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
@@ -183,12 +183,11 @@ class GradleModuleSystemIntegrationTest {
     preparedProject.open { project ->
       verifyProjectDependsOnWildcardAppCompat(project)
 
+      val moduleSystem = project.findAppModule().getModuleSystem()
       // appcompat-v7 is a dependency with an AAR.
-      assertThat(
-        project.findAppModule().getModuleSystem().getResolvedDependency(
-          GradleCoordinate("com.android.support", "appcompat-v7", "+")
-        )
-      ).isNotNull()
+      assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getCoordinate("+"))).isNotNull()
+      assertThat(moduleSystem.hasResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7)).isTrue()
+      assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7)).isNotNull()
     }
   }
 
@@ -198,12 +197,11 @@ class GradleModuleSystemIntegrationTest {
     preparedProject.open { project ->
       verifyProjectDependsOnGuava(project)
 
+      val moduleSystem = project.findAppModule().getModuleSystem()
       // guava is a dependency with a JAR.
-      assertThat(
-        project.findAppModule().getModuleSystem().getResolvedDependency(
-          GradleCoordinate("com.google.guava", "guava", "+")
-        )
-      ).isNotNull()
+      assertThat(moduleSystem.getResolvedDependency(WellKnownMavenArtifactId.GUAVA_GUAVA.getCoordinate("+"))).isNotNull()
+      assertThat(moduleSystem.hasResolvedDependency(WellKnownMavenArtifactId.GUAVA_GUAVA)).isTrue()
+      assertThat(moduleSystem.getResolvedDependency(WellKnownMavenArtifactId.GUAVA_GUAVA)).isNotNull()
     }
   }
 
