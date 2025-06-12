@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.actions
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
+import com.android.tools.idea.logcat.devices.Device.PhysicalDevice
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
@@ -44,7 +45,7 @@ class ClearLogcatActionTest {
 
   @Test
   fun update_notEmptyAndAttached() {
-    fakeLogcatPresenter.attachedDevice = mock()
+    fakeLogcatPresenter.attachedDevice = mock<PhysicalDevice>()
     fakeLogcatPresenter.messageBatches.add(listOf(logcatMessage(message = "message")))
     val event = testEvent(fakeLogcatPresenter)
     val action = ClearLogcatAction()
@@ -68,7 +69,7 @@ class ClearLogcatActionTest {
 
   @Test
   fun update_isEmptyAndAttached() {
-    fakeLogcatPresenter.attachedDevice = mock()
+    fakeLogcatPresenter.attachedDevice = mock<PhysicalDevice>()
     fakeLogcatPresenter.appendMessage("not-empty")
     fakeLogcatPresenter.clearMessageView()
     val event = testEvent(fakeLogcatPresenter)

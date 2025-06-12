@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.devices.Device.DeviceSerializer
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.util.LOGGER
 import com.google.gson.Gson
@@ -64,7 +65,7 @@ internal data class LogcatPanelConfig(
     fun fromJson(json: String?): LogcatPanelConfig? {
       return try {
         gson.fromJson(json, LogcatPanelConfig::class.java)?.normalize()
-      } catch (e: JsonSyntaxException) {
+      } catch (_: JsonSyntaxException) {
         LOGGER.warn("Invalid state JSON string: '$json'")
         null
       }
@@ -133,4 +134,5 @@ internal data class LogcatPanelConfig(
 private val gson =
   GsonBuilder()
     .registerTypeAdapter(FormattingConfig::class.java, FormattingConfig.Serializer())
+    .registerTypeAdapter(Device::class.java, DeviceSerializer())
     .create()

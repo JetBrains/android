@@ -310,7 +310,7 @@ class TerminateAppActionsTest {
       connectDevice(
           device.serialNumber,
           "manufacturer",
-          device.model,
+          "model",
           device.release,
           device.apiLevel,
           USB,

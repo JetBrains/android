@@ -16,9 +16,11 @@
 package com.android.tools.idea.logcat
 
 import com.android.sdklib.AndroidApiLevel
-import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.DeviceType.HANDHELD
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.devices.Device.EmulatorDevice
+import com.android.tools.idea.logcat.devices.Device.PhysicalDevice
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.messages.TagFormat
@@ -65,6 +67,104 @@ class LogcatPanelConfigTest {
   }
 
   @Test
+  fun physicalDevice() {
+    val state =
+      """
+      {
+        'device': {
+          'physicalDevice': {
+            'serialNumber':'51181FDAS003BA',
+            'isOnline':false,
+            'release':'16',
+            'apiLevel':{'majorVersion':36,'minorVersion':0},
+            'featureLevel':37,
+            'manufacturer':'Google',
+            'model':'Pixel 9 Pro XL',
+            'type':'HANDHELD'
+          }
+        },
+        'formattingConfig': {
+          'preset': 'STANDARD'
+        },
+        'filter': 'tag:ActivityManager ',
+        'isSoftWrap': false
+      }"""
+        .trimIndent()
+
+    assertThat(LogcatPanelConfig.fromJson(state))
+      .isEqualTo(
+        LogcatPanelConfig(
+          device =
+            PhysicalDevice(
+              "51181FDAS003BA",
+              isOnline = false,
+              release = "16",
+              AndroidApiLevel(36),
+              featureLevel = 37,
+              manufacturer = "Google",
+              model = "Pixel 9 Pro XL",
+              type = HANDHELD,
+            ),
+          file = null,
+          formattingConfig = FormattingConfig.Preset(STANDARD),
+          filter = "tag:ActivityManager ",
+          isSoftWrap = false,
+          filterMatchCase = false,
+          proguardFile = null,
+        )
+      )
+  }
+
+  @Test
+  fun emulatorDevice() {
+    val state =
+      """
+      {
+        'device': {
+          'emulatorDevice':{
+            'serialNumber':'emulator-5554',
+            'isOnline':false,
+            'release':'16',
+            'apiLevel':{'majorVersion':36,'minorVersion':0},
+            'featureLevel':36,
+            'avdName':'Pixel 8',
+            'avdPath':'/home/aalbert/.android/avd/Pixel_8.avd',
+            'type':'HANDHELD'
+          }
+        },
+        'formattingConfig': {
+          'preset': 'STANDARD'
+        },
+        'filter': 'tag:ActivityManager ',
+        'isSoftWrap': false
+      }"""
+        .trimIndent()
+
+    assertThat(LogcatPanelConfig.fromJson(state))
+      .isEqualTo(
+        LogcatPanelConfig(
+          device =
+            EmulatorDevice(
+              "emulator-5554",
+              isOnline = false,
+              release = "16",
+              AndroidApiLevel(36),
+              featureLevel = 36,
+              avdName = "Pixel 8",
+              avdPath = "/home/aalbert/.android/avd/Pixel_8.avd",
+              type = HANDHELD,
+            ),
+          file = null,
+          formattingConfig = FormattingConfig.Preset(STANDARD),
+          filter = "tag:ActivityManager ",
+          isSoftWrap = false,
+          filterMatchCase = false,
+          proguardFile = null,
+        )
+      )
+  }
+
+  @Test
   fun badDevice() {
     val state =
       """
@@ -97,16 +197,15 @@ class LogcatPanelConfigTest {
   @Test
   fun deviceRoundtrip() {
     val device =
-      Device(
-        deviceId = "id",
-        name = "name",
+      PhysicalDevice(
         serialNumber = "serial",
         isOnline = true,
         release = "Release",
         apiLevel = AndroidApiLevel(77, 7),
         featureLevel = 35,
+        manufacturer = "Manufacturer",
         model = "Model",
-        type = DeviceType.HANDHELD,
+        type = HANDHELD,
       )
     val config = logcatPanelConfig(device = device)
 

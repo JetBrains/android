@@ -18,7 +18,6 @@ package com.android.tools.idea.logcat
 import com.android.annotations.concurrency.UiThread
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.sdklib.AndroidApiLevel
-import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.createCoroutineScope
@@ -105,7 +104,6 @@ import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingParameters
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
-import com.android.tools.idea.ui.screenshot.ScreenshotParameters
 import com.android.tools.idea.util.absoluteInProject
 import com.android.tools.idea.util.relativeToProject
 import com.android.tools.r8.retrace.InvalidMappingFileException
@@ -928,10 +926,8 @@ constructor(
   override fun uiDataSnapshot(sink: DataSink) {
     val device = connectedDevice.get()
     sink[LOGCAT_PRESENTER_ACTION] = this
-    sink[ScreenshotAction.SCREENSHOT_PARAMETERS_KEY] =
-      device?.let {
-        ScreenshotParameters(it.serialNumber, it.type ?: DeviceType.HANDHELD, it.model)
-      }
+    sink[ScreenshotAction.SCREENSHOT_PARAMETERS_KEY] = device?.getScreenshotParameters()
+
     sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] =
       device?.let {
         ScreenRecordingParameters(
