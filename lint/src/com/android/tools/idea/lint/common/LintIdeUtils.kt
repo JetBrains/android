@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.android.tools.lint.client.api.JarFileIssueRegistry
 import com.android.tools.lint.detector.api.Context
 import com.android.tools.lint.detector.api.Incident
+import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.LintFix
 import com.android.tools.lint.detector.api.LintFix.DataMap
 import com.android.tools.lint.detector.api.LintFix.LintFixGroup
+import com.android.tools.lint.detector.api.Scope
+import com.intellij.analysis.AnalysisScope
+import com.intellij.codeInspection.ex.InspectionProfileImpl
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
@@ -132,5 +139,36 @@ fun getAndRemoveMapFix(fix: LintFix?): Pair<LintFix?, DataMap?> {
     }
     is DataMap -> null to fix
     else -> fix to null
+  }
+}
+
+/**
+ * For when you need to read/write an inspection profile, but the third party issues you want to
+ * refer to are not yet registered because Lint has not yet run from within the IDE (the user did
+ * not open a file, nor run Inspect Code...).
+ */
+fun forceRegisterThirdPartyIssues(project: Project, profile: InspectionProfileImpl) {
+  val enabledIssues = emptySet<Issue>()
+  val client =
+    LintIdeSupport.get()
+      .createBatchClient(
+        LintBatchResult(project, emptyMap(), AnalysisScope(project), enabledIssues, null)
+      )
+  try {
+    val modules = ModuleManager.getInstance(project).modules.toList()
+    val request = LintIdeRequest(client, project, emptyList(), modules, false)
+    request.setScope(Scope.EMPTY)
+    val lintDriver = client.createDriver(request)
+
+    lintDriver.analyze()
+
+    // In analyze(), LintDriver's registry is updated to include all discovered third party issues.
+    // We can now access these issues. Below, we make sure they are registered.
+    val thirdPartyIssues = lintDriver.registry.issues.filter { it.registry is JarFileIssueRegistry }
+
+    // Ensure all third party issues are registered in profile.
+    AndroidLintInspectionBase.ensureInspectionsRegistered(project, thirdPartyIssues, profile)
+  } finally {
+    Disposer.dispose(client)
   }
 }
