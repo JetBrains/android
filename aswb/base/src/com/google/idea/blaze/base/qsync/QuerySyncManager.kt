@@ -254,7 +254,7 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
       syncStatsScope(context) { context ->
         syncQueryData(context, result.existingPostQuerySyncData)
       }
-      autoEnableCodeAnalysis(context)
+      autoEnableCodeAnalysis(context, startup = true)
     }
 
   @CanIgnoreReturnValue
@@ -459,9 +459,12 @@ class QuerySyncManager @VisibleForTesting @NonInjectable constructor(
     lastQueryInstant = queryInstant
   }
 
-  private fun autoEnableCodeAnalysis(context: BlazeContext) {
+  private fun autoEnableCodeAnalysis(context: BlazeContext, startup: Boolean = false) {
     val project = loadedProject ?: return
-    if (project.projectViewSet.getScalarValue(EnableCodeAnalysisOnSyncSection.KEY).getOrDefault(false)) {
+    val enableCodeAnalysisOnSyncEnabled = project.projectViewSet.getScalarValue(EnableCodeAnalysisOnSyncSection.KEY).getOrDefault(false)
+    // Checking the state of the tracker directly as the snapshot has not been yet updated.
+    val codeAnalysisHasBeenEnabled = this.loadedProject?.artifactTracker?.stateSnapshot?.targets()?.isNotEmpty() ?: false
+    if (enableCodeAnalysisOnSyncEnabled && !(codeAnalysisHasBeenEnabled && startup)) {
       project.buildDependencies(context, DependencyTracker.DependencyBuildRequest.wholeProject())
     }
   }
