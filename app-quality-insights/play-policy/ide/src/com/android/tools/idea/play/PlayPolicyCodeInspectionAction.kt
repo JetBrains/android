@@ -16,6 +16,7 @@
 package com.android.tools.idea.play
 
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
+import com.android.tools.idea.lint.common.forceRegisterThirdPartyIssues
 import com.intellij.analysis.AnalysisScope
 import com.intellij.analysis.BaseAnalysisActionDialog
 import com.intellij.codeInspection.actions.CodeInspectionAction
@@ -39,7 +40,8 @@ import javax.swing.JPanel
 class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy", "Play Policy") {
   override fun runInspections(project: Project, scope: AnalysisScope) {
     val rootProfile = InspectionProjectProfileManager.getInstance(project).currentProfile
-    val toolWrappers =
+
+    fun getToolWrappers() =
       rootProfile.tools
         .map { it.tool }
         .filter {
@@ -47,6 +49,16 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
             ?.groupPath
             ?.contentEquals(arrayOf("Android", "Lint", "Play Policy")) == true
         }
+
+    val toolWrappers =
+      getToolWrappers().ifEmpty {
+        // If the user has not yet run Lint, the Play Policy checks will not be registered as
+        // inspections in the profile. We can force this.
+        forceRegisterThirdPartyIssues(project, rootProfile)
+        // And then try again.
+        getToolWrappers()
+      }
+
     myExternalProfile =
       InspectionProfileImpl(
         "Play Policy",
