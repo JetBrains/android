@@ -44,7 +44,6 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
 
-
 private const val FADEOUT_TIME_MILLIS = 5000
 private const val TOTAL_FRAMES = 150
 
