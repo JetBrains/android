@@ -27,12 +27,12 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 private const val PROP_KEY = "com.android.tools.idea.gservices.deprecation.last.date.checked"
 
