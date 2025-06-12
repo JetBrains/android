@@ -127,7 +127,7 @@ internal class EmulatorConsoleRecordingProvider(
       }
       if (options.bitrateMbps > 0) {
         args.add("--bit-rate")
-        args.add((options.bitrateMbps * 1000000).toString())
+        args.add((options.bitrateMbps.coerceAtMost(25) * 1000000).toString())
       }
       if (options.timeLimitSec != 0) {
         args.add("--time-limit")
