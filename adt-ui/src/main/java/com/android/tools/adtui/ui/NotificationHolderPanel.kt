@@ -16,6 +16,10 @@
 package com.android.tools.adtui.ui
 
 import com.intellij.codeInsight.hint.HintUtil
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
@@ -40,11 +44,12 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
 
+
 private const val FADEOUT_TIME_MILLIS = 5000
 private const val TOTAL_FRAMES = 150
 
 /** A panel that can display notifications at the top. */
-class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPane() {
+class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPane(), UiDataProvider {
 
   private var fadeOutNotificationPopup: NotificationPopup? = null
   private var animator: Animator? = null
@@ -151,6 +156,16 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
   private fun stopFadeOutAnimation() {
     animator?.dispose()
     animator = null
+  }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[KEY] = this
+  }
+
+  companion object {
+    val KEY = DataKey.create<NotificationHolderPanel>("NotificationHolderPanel")
+
+    fun fromDataContext(event: AnActionEvent): NotificationHolderPanel? = event.getData(KEY)
   }
 
   private class NotificationPopup(val notificationPanel: EditorNotificationPanel) : BorderLayoutPanel() {

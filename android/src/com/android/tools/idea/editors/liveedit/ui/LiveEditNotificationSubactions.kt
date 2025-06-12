@@ -73,13 +73,13 @@ internal class RedeployAction :
     val project = e.project ?: return
     val status = getStatusInfo(project, e.dataContext)
     when (status.redeployMode) {
-      LiveEditStatus.Companion.RedeployMode.REFRESH -> {
+      LiveEditStatus.RedeployMode.REFRESH -> {
         invokeActionNow(e, ActionManager.getInstance().getAction("Compose.Live.Edit.Refresh"))
       }
-      LiveEditStatus.Companion.RedeployMode.RERUN -> ActionUtil.getAction("Run")?.let {
+      LiveEditStatus.RedeployMode.RERUN -> ActionUtil.getAction("Run")?.let {
         ActionUtil.invokeAction(it, e.dataContext, e.place, e.inputEvent, null)
       }
-      LiveEditStatus.Companion.RedeployMode.NONE -> {
+      LiveEditStatus.RedeployMode.NONE -> {
         // do nothing
       }
     }
@@ -89,17 +89,17 @@ internal class RedeployAction :
     val project = e.project ?: return
     val status = getStatusInfo(project, e.dataContext)
     when (status.redeployMode) {
-      LiveEditStatus.Companion.RedeployMode.REFRESH -> {
+      LiveEditStatus.RedeployMode.REFRESH -> {
         e.presentation.icon = REFRESH_BUTTON
         e.presentation.description = LiveEditBundle.message("le.status.out_of_date.description")
         e.presentation.isEnabledAndVisible = true
       }
-      LiveEditStatus.Companion.RedeployMode.RERUN -> {
+      LiveEditStatus.RedeployMode.RERUN -> {
         e.presentation.icon = AllIcons.Actions.Restart
         e.presentation.description = LiveEditBundle.message("le.build.redeploy.description")
         e.presentation.isEnabledAndVisible = true
       }
-      LiveEditStatus.Companion.RedeployMode.NONE -> {
+      LiveEditStatus.RedeployMode.NONE -> {
         e.presentation.isEnabledAndVisible = false
       }
     }

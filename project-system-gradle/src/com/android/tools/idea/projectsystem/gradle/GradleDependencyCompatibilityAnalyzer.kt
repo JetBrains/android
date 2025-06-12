@@ -107,6 +107,21 @@ class GradleDependencyCompatibilityAnalyzer(
       }
     }
 
+  fun analyzeComponentCompatibility(
+    components: List<Component>
+  ): ListenableFuture<Triple<List<Component>, List<Dependency>, String>> {
+    val dependenciesToStrings = components.map { component ->
+      val stability = component.stability
+      val upperBound = stability.expiration(component.version)
+      val range = VersionRange(Range.closedOpen(component.version, upperBound))
+      val dependency = Dependency(component.group, component.name, RichVersion.strictly(range))
+      dependency to component.toString()
+    }
+    return findVersions(dependenciesToStrings.map { it.first }).transform(MoreExecutors.directExecutor()) { results ->
+      analyzeCompatibility(dependenciesToStrings, results)
+    }
+  }
+
   fun analyzeDependencyCompatibility(
     dependencies: List<Dependency>
   ): ListenableFuture<Triple<List<Component>, List<Dependency>, String>> {

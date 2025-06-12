@@ -21,7 +21,6 @@ import com.android.testutils.TestUtils.getSdk
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.dump
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.nameProperties
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -116,9 +115,10 @@ fun ModuleDumpWithType.join() : String = entries.joinToString(separator = "\n")
 fun ModuleDumpWithType.filterOutRootModule() = excludeByModuleName(rootModuleNames)
 fun ModuleDumpWithType.filterToPhasedSyncModules() = includeByModuleName(phasedSyncModuleNames)
 
-fun ModuleDumpWithType.filterOutDependencies() = copy(
+fun ModuleDumpWithType.filterOutExpectedInconsistencies() = copy(
   entries = entries.filter { line ->
-    DEPENDENCY_RELATED_PROPERTIES.none { line.contains(it) }
+    DEPENDENCY_RELATED_PROPERTIES.none { line.contains(it) } && // We don't set up dependencies in phased sync
+    !line.contains("BUILD_TASKS") // We don't set up tasks in phased sync
   }
 )
 
@@ -143,8 +143,7 @@ private fun Project.dumpAllModuleEntries() : Sequence<String> {
   val dumper = ProjectDumper(
     androidSdk = getSdk().toFile(),
     devBuildHome = TestUtils.getWorkspaceRoot().toFile(),
-    projectJdk = ProjectRootManager.getInstance(this).projectSdk,
-    ignoreTasks = true, // We have to ignore tasks explicitly because they cache some values too early leading to issues.
+    projectJdk = ProjectRootManager.getInstance(this).projectSdk
   )
 
   modules.sortedBy { it.name }.forEach {
@@ -179,42 +178,6 @@ private fun ModuleDumpWithType.includeByModuleName(names: List<String>) = copy (
     names.any { line.contains("MODULE ($it)") }
   }
 )
-
-fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.template) {
-  TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
-  TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES -> setOf(
-    // TODO(b/384022658): Linked android module group is still set for KMP holder modules by full sync, but not phased sync
-    "LINKED_ANDROID_MODULE_GROUP",
-    // TODO(b/384022658): KMP projects are currently ignored by phased sync, except for when there is no Android target configured.
-    "</>src</>jvmMain",
-    "</>src</>jvmTest"
-  ) else -> when(testProject) {
-    // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
-    TestProject.KOTLIN_KAPT,
-    TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
-      "</>kaptKotlin</>",
-      "</>kapt</>"
-    )
-    // TODO(b/384022658): When switching from debug to release, the orphaned androidTest module isn't removed as in full sync
-    TestProject.MULTI_FLAVOR_SWITCH_VARIANT -> setOf(
-      "MODULE (MultiFlavor.app.androidTest)",
-    )
-    // TODO(b/384022658): Full sync merges some content roots before populating ending up with a slightly different structure.
-    // See GradleProjectResolver#mergeSourceSetContentRoots. This can be fixed using ContentRootIndex and doing similar merging,
-    // but currently it's not visible to us.
-    TestProject.TEST_STATIC_DIR,
-      // TODO(b/384022658): There are inconsistencies when the source set root (and the manifest) is outside project directory.
-      // It's highly likely this will also be fixed when merging source roots (see above TODO)
-    TestProject.NON_STANDARD_SOURCE_SETS,
-      // TODO(b/384022658): There are inconsistencies when the app is defined in the root Gradle project as opposed to its own project,
-      // It's highly likely this will also be fixed when merging source roots (see above TODO)
-    TestProject.MAIN_IN_ROOT,-> setOf(
-      "/CONENT_ENTRY" // Yes typo
-    )
-    else -> emptySet()
-  }
-}
-
 
 @Suppress("UnstableApiUsage")
 @Order(Int.MAX_VALUE)

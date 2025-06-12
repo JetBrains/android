@@ -98,13 +98,13 @@ internal object ISystemImages {
     // Transform callbacks from RepoManager to SystemImageLoadingEvents that are processed serially.
     return callbackFlow {
         repoManager.load(
-          1.days.inWholeMilliseconds,
-          listOf(RepoLoadedListener { trySend(LocalImagesLoaded) }),
-          listOf(RepoLoadedListener { trySend(RemoteImagesLoaded) }),
-          listOf(Runnable { trySend(Error) }),
-          StudioProgressRunner(false, "Loading Images", project),
-          StudioDownloader(),
-          StudioSettingsController.getInstance(),
+          cacheExpirationMs = 1.days.inWholeMilliseconds,
+          onLocalComplete = RepoLoadedListener { trySend(LocalImagesLoaded) },
+          onSuccess = RepoLoadedListener { trySend(RemoteImagesLoaded) },
+          onError = Runnable { trySend(Error) },
+          runner = StudioProgressRunner(false, "Loading Images", project),
+          downloader = StudioDownloader(),
+          settings = StudioSettingsController.getInstance(),
         )
 
         // At this point, we've sent local and remote images (or an error). Now just listen for

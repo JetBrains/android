@@ -49,7 +49,6 @@ class ComponentCurveTest {
 
     var componentCurve =
       ComponentCurve.create(
-        offsetPx = 0,
         SupportedAnimationManager.FrozenState(false),
         property = property,
         componentId = 0,
@@ -60,20 +59,6 @@ class ComponentCurveTest {
 
     slider.sliderUI.elements = listOf(componentCurve)
     val curveBaseLine = componentCurve.curveBaseY - 1 // Minus 1 so point is inside the curve.
-
-    val moveCallback: (Int) -> Unit = { deltaPx ->
-      componentCurve =
-        ComponentCurve.create(
-          offsetPx = componentCurve.offsetPx + deltaPx,
-          SupportedAnimationManager.FrozenState(false),
-          property = property,
-          componentId = 0,
-          rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
-          positionProxy = slider.sliderUI.positionProxy,
-          colorIndex = 0,
-        )
-      slider.sliderUI.elements = listOf(componentCurve)
-    }
 
     // No tooltips.
     ui.render() // paint() method within render() should be called to update BoxedLabel positions.
@@ -97,59 +82,5 @@ class ComponentCurveTest {
     )
     // Uncomment to preview ui.
     // ui.render() // Curve is from 0ms to 100ms
-
-    val shift50ms =
-      slider.sliderUI.positionProxy.xPositionForValue(50) -
-        slider.sliderUI.positionProxy.xPositionForValue(0)
-    componentCurve.setNewOffsetCallback(moveCallback)
-    componentCurve.setNewOffset(shift50ms)
-
-    // Point in the middle of curve baseline
-    assertTrue(
-      componentCurve.contains(
-        shift50ms + slider.sliderUI.positionProxy.xPositionForValue(50),
-        curveBaseLine,
-      )
-    )
-    // Point inside left diamond
-    assertTrue(
-      componentCurve.contains(
-        shift50ms + slider.sliderUI.positionProxy.xPositionForValue(0) - 5,
-        curveBaseLine,
-      )
-    )
-    // Point inside right diamond
-    assertTrue(
-      componentCurve.contains(
-        shift50ms + slider.sliderUI.positionProxy.xPositionForValue(100) + 5,
-        curveBaseLine,
-      )
-    )
-    // Uncomment to preview ui.
-    // ui.render() // Curve is shifted to the right and starts in 50ms
-    componentCurve.setNewOffsetCallback(moveCallback)
-    componentCurve.setNewOffset(-2 * shift50ms)
-
-    // Point in the middle of curve baseline
-    assertTrue(
-      componentCurve.contains(
-        -shift50ms + slider.sliderUI.positionProxy.xPositionForValue(50),
-        curveBaseLine,
-      )
-    )
-    // Point inside left diamond
-    assertTrue(
-      componentCurve.contains(
-        -shift50ms + slider.sliderUI.positionProxy.xPositionForValue(0) - 5,
-        curveBaseLine,
-      )
-    )
-    // Point inside right diamond
-    assertTrue(
-      componentCurve.contains(
-        -shift50ms + slider.sliderUI.positionProxy.xPositionForValue(100) + 5,
-        curveBaseLine,
-      )
-    )
   }
 }

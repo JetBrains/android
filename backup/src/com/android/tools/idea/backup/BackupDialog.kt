@@ -19,6 +19,8 @@ package com.android.tools.idea.backup
 import com.android.backup.BackupType
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.tools.idea.backup.BackupBundle.message
+import com.android.tools.idea.util.absoluteInProject
+import com.android.tools.idea.util.relativeToProject
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.PropertiesComponent

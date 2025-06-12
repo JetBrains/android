@@ -50,7 +50,6 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.prefetch.FetchExecutor;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
@@ -72,7 +71,6 @@ import com.google.idea.blaze.qsync.deps.OutputInfo;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcCompilationInfo;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
-import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.StringExperiment;
 import com.google.protobuf.Message;
@@ -93,6 +91,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -106,7 +106,8 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.VisibleForTesting;
 
 /** An object that knows how to build dependencies for given targets */
-public class BazelDependencyBuilder implements DependencyBuilder {
+public class BazelDependencyBuilder implements DependencyBuilder, BazelDependencyBuilderPublicForTests {
+
   private static final Logger logger = Logger.getInstance(BazelDependencyBuilder.class);
 
   private static final BoolExperiment buildGeneratedSrcJars =
@@ -181,7 +182,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   }
 
   @Override
-  public OutputInfo build(BlazeContext context, Set<Label> buildTargets, DependencyBuildRequest request, Set<QuerySyncLanguage> languages)
+  public OutputInfo build(BlazeContext context, Set<Label> buildTargets, Collection<OutputGroup> outputGroups)
     throws IOException, BuildException {
     try (final var ignoredLock =
         ApplicationManager.getApplication()
@@ -192,7 +193,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
             "The IDE has been upgraded in the background. Bazel build aspect files maybe"
                 + " incompatible. Please restart the IDE.");
       }
-      final var buildDependenciesBazelInvocationInfo = getInvocationInfo(context, buildTargets, request, languages);
+      final var buildDependenciesBazelInvocationInfo = getInvocationInfo(context, buildTargets, outputGroups);
       prepareInvocationFiles(
           context, buildDependenciesBazelInvocationInfo.invocationWorkspaceFiles());
 
@@ -228,10 +229,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   }
 
   @VisibleForTesting
+  @Override
   public BuildDependenciesBazelInvocationInfo getInvocationInfo(BlazeContext context,
-                                                                Set<Label> buildTargets,
-                                                                DependencyBuildRequest request,
-                                                                Set<QuerySyncLanguage> languages) {
+                                                                Set<Label> buildTargets, Collection<OutputGroup> outputGroups) {
     ImmutableList<String> includes =
         projectDefinition.projectIncludes().stream()
             .map(path -> "//" + path)
@@ -252,7 +252,6 @@ public class BazelDependencyBuilder implements DependencyBuilder {
             buildGeneratedSrcJars.getValue());
 
     InvocationFiles invocationFiles = getInvocationFiles(buildTargets, parameters);
-    var outputGroups = request.getOutputGroups(languages);
 
     ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     // TODO This is not SYNC_CONTEXT, but also not OTHER_CONTEXT, we need to decide what kind
@@ -281,7 +280,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     querySyncFlags.add("--noexperimental_run_validations");
     querySyncFlags.add("--keep_going");
     querySyncFlags.addAll(
-        outputGroups.stream()
+      outputGroups.stream()
             .map(g -> "--output_groups=" + g.outputGroupName())
             .collect(toImmutableList()));
 
@@ -428,6 +427,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   }
 
   @VisibleForTesting
+  @Override
   public Path getBundledAspectPath(String filename) {
     return getBundledAspectPath("aspect", filename);
   }
@@ -439,13 +439,57 @@ public class BazelDependencyBuilder implements DependencyBuilder {
    * the name of the aspect within that file. For example, {@code //package:aspect.bzl}.
    */
   @VisibleForTesting
+  @Override
   public void prepareInvocationFiles(
-      BlazeContext context, ImmutableMap<Path, ByteSource> invocationFiles)
+    BlazeContext context, ImmutableMap<Path, ByteSource> invocationFiles)
       throws IOException, BuildException {
     for (Map.Entry<Path, ByteSource> e : invocationFiles.entrySet()) {
-      Path absolutePath = workspaceRoot.path().resolve(e.getKey());
-      Files.createDirectories(absolutePath.getParent());
-      Files.copy(e.getValue().openStream(), absolutePath, StandardCopyOption.REPLACE_EXISTING);
+      copyInvocationFile(e.getKey(), e.getValue());
+    }
+  }
+
+  private void copyInvocationFile(Path path, ByteSource content) throws IOException, BuildException {
+    IOException lastException = null;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      Path absolutePath = workspaceRoot.path().resolve(path);
+      try {
+        Files.createDirectories(absolutePath.getParent());
+      }
+      catch (IOException ex) {
+        logger.warn("Failed to create directory " + absolutePath.getParent(), ex);
+        continue;
+      }
+      try {
+        if (Files.exists(absolutePath) && Arrays.equals(Files.readAllBytes(absolutePath), content.read())) {
+          continue;
+        }
+      }
+      catch (IOException ex) {
+        logger.warn("Failed to read " + absolutePath, ex);
+      }
+      try {
+        Files.deleteIfExists(absolutePath);
+      }
+      catch (IOException ex) {
+        logger.warn("Failed to delete " + absolutePath, ex);
+      }
+      try {
+        // Wait a little after deleting if not the first attempt.
+        Thread.sleep(100 * attempt);
+        Files.copy(content.openStream(), absolutePath, StandardCopyOption.REPLACE_EXISTING);
+      }
+      catch (IOException ex) {
+        logger.warn("Failed to copy to " + absolutePath, ex);
+        lastException = ex;
+        continue;
+      }
+      catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      break;
+    }
+    if (lastException != null) {
+      throw new BuildException(lastException);
     }
   }
 

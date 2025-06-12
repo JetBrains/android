@@ -49,6 +49,8 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
 import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
+import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
+import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
@@ -58,6 +60,8 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl.Companion.wellKnownOrCreate
+import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
+import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
@@ -363,6 +367,58 @@ class KotlinModelConverter {
     }
   }
 
+  private fun createDefaultConfigForKmp(): IdeProductFlavorImpl {
+    return  IdeProductFlavorImpl(
+      name = "",
+      applicationIdSuffix = null,
+      versionNameSuffix = null,
+      resValues = emptyMap(),
+      proguardFiles = emptyList(),
+      consumerProguardFiles = emptyList(),
+      manifestPlaceholders = emptyMap(),
+      multiDexEnabled = null,
+      dimension = null,
+      applicationId = null,
+      versionCode = null,
+      versionName = null,
+      minSdkVersion = null,
+      targetSdkVersion = null,
+      maxSdkVersion = null,
+      testApplicationId = null,
+      testInstrumentationRunner = null,
+      testInstrumentationRunnerArguments = emptyMap(),
+      testHandleProfiling = null,
+      testFunctionalTest = null,
+      resourceConfigurations = emptyList(),
+      vectorDrawables = null,
+      isDefault = null
+    )
+  }
+
+  private fun createBuildTypeForKmp(mainAndroidCompilation: AndroidCompilation): IdeBuildTypeContainerImpl {
+    return IdeBuildTypeContainerImpl(
+      buildType = IdeBuildTypeImpl(
+        name = "", // matches the "" build type set for IdeVariantCoreImpl.buildType
+        resValues = mapOf(),
+        proguardFiles = listOf(),
+        consumerProguardFiles = listOf(),
+        manifestPlaceholders = mapOf(),
+        applicationIdSuffix = null,
+        versionNameSuffix = null,
+        multiDexEnabled = null,
+        isDebuggable = true, // for kmp we hardcode this to be always debuggable as we need at least the test components to be so
+        isJniDebuggable = false,
+        isPseudoLocalesEnabled = false,
+        isRenderscriptDebuggable = false,
+        renderscriptOptimLevel = -1,
+        isMinifyEnabled = mainAndroidCompilation.mainInfo.minificationEnabled,
+        isZipAlignEnabled = false,
+        isDefault = null
+      ),
+      sourceProvider = null,
+      extraSourceProviders = listOf())
+  }
+
   fun createGradleAndroidModelData(
     moduleName: String,
     rootModulePath: File?,
@@ -440,7 +496,11 @@ class KotlinModelConverter {
           }
         }
       ),
-      multiVariantData = null,
+      multiVariantData = IdeMultiVariantDataImpl(
+        defaultConfig = createDefaultConfigForKmp(),
+        buildTypes = listOf(createBuildTypeForKmp(mainAndroidCompilation)),
+        productFlavors = emptyList()
+      ),
       flavorDimensions = emptyList(),
       compileTarget = mainAndroidCompilation.mainInfo.compileSdkTarget,
       bootClasspath = targetInfo.bootClasspathList.map { it.absolutePath.deduplicate() },

@@ -38,6 +38,12 @@ object BuildOutputParserUtils {
     startsWith("BUILD SUCCESSFUL") ||
     startsWith("CONFIGURE SUCCESSFUL")
 
+  fun String.isCompilationFailureLine(): Boolean =
+    this.startsWith("Compilation failed") ||
+    this == "Compilation error. See log for more details" ||
+    this == "Script compilation error:" ||
+    this.contains("compiler failed")
+
   /** Extracts task name from @param [parentEventId]. */
   fun extractTaskNameFromId(parentEventId: Any): String? {
     if (parentEventId !is String) {

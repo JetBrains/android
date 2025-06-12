@@ -27,49 +27,37 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-private val PROPERTIES_WITH_KNOWN_RESYNC_ISSUES = setOf(
-    // TODO(b/384022658): Related to module sources
-  "/ORDER_ENTRY (<Module source>)",
-
-  // TODO(b/384022658): External module options related
-  "/ExternalModuleGroup",
-  "/ExternalModuleVersion",
-  "/LinkedProjectId",
-
-  // TODO(b/384022658): JDK related
-  "/JDK",
-  // This should be nested under JDK, but isn't by mistake I think, so need to add it here explicitly
-  "/*isInherited",
-
-  // TODO(b/384022658)
-  "/Classes",
-
-  // TODO(b/384022658): These are missing from full sync, should they?
-  "</>data_binding_base_class_source_out</>",
-)
-
 private fun getProjectSpecificResyncIssues(testProject: TestProject) = when(testProject) {
   // TODO(b/384022658): Symlink for the root project is not handled the same way by phased sync
   TestProject.SIMPLE_APPLICATION_VIA_SYMLINK -> setOf(
     "/RootProjectPath"
   )
-  // TODO(b/384022658): These projects have test fixture source sets and they are not handled yet.
-  TestProject.TEST_FIXTURES, TestProject.TEST_STATIC_DIR -> setOf(
-    "/LINKED_ANDROID_MODULE_GROUP",
+  TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE -> setOf(
+    // TODO(b/384022658): We don't set up tasks in phased sync, although it shouldn't really affect a re-sync, it does for this project.
+    "BUILD_TASKS",
+    // TODO(b/384022658): Not sure why
+    "MODULE (project.androidTest)/Classes"
+  )
+  TestProject.KOTLIN_KAPT,
+  TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
+    "</>kaptKotlin</>",
+    "</>kapt</>"
+  )
+  TestProject.MAIN_IN_ROOT -> setOf(
+    // This is incorrectly populated as a content root(!) in old sync
+    "project</>app</>AndroidManifest.xml",
+    // This is incorrectly missing from the old sync content roots
+    "project</>app</>src</>debug"
   )
   else -> emptySet()
 }
 
 
-fun ModuleDumpWithType.filterOutKnownResyncIssues(testProject: TestProject) = copy(
+fun ModuleDumpWithType.filterOutProjectSpecificIssues(testProject: TestProject) = copy(
    entries = entries.filter { line ->
-      (PROPERTIES_WITH_KNOWN_RESYNC_ISSUES +
-       getProjectSpecificIssues(testProject) +
-       getProjectSpecificResyncIssues(testProject)).none { line.contains(it) }
+     getProjectSpecificResyncIssues(testProject).none { line.contains(it) }
     }
   )
-
-
 
 @RunWith(Parameterized::class)
 class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTestBase() {
@@ -91,8 +79,8 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
 
 
       Truth.assertWithMessage("Comparing resync intermediate sync state to full state")
-        .that(secondIntermediateSync.filterOutKnownResyncIssues(testProject).join())
-        .isEqualTo(secondFullSync.filterOutKnownResyncIssues(testProject).join())
+        .that(secondIntermediateSync.filterOutProjectSpecificIssues(testProject).join())
+        .isEqualTo(secondFullSync.filterOutProjectSpecificIssues(testProject).join())
     }
   }
 

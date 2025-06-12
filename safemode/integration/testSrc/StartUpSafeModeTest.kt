@@ -1,6 +1,6 @@
 import com.android.tools.asdriver.tests.AndroidStudioInstallation
-import com.android.tools.asdriver.tests.Display
-import com.android.tools.asdriver.tests.TestFileSystem
+import com.android.tools.testlib.Display
+import com.android.tools.testlib.TestFileSystem
 import com.google.common.truth.Truth.assertThat
 import org.apache.commons.lang.SystemUtils
 import org.junit.Rule

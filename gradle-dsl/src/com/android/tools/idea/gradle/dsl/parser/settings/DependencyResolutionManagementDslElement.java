@@ -56,7 +56,7 @@ public class DependencyResolutionManagementDslElement extends GradleDslBlockElem
 
   @Override
   public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
-    GradleDslNameConverter.Kind kind
+    @NotNull GradleDslNameConverter.Kind kind
   ) {
     return CHILD_PROPERTIES_ELEMENT_MAP;
   }

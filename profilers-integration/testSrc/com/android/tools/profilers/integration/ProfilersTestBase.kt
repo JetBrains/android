@@ -15,12 +15,12 @@
  */
 package com.android.tools.profilers.integration
 
-import com.android.tools.asdriver.tests.Adb
+import com.android.tools.testlib.Adb
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidProjectWithoutGradle
 import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.asdriver.tests.AndroidSystem
-import com.android.tools.asdriver.tests.Emulator
+import com.android.tools.testlib.Emulator
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import org.junit.Rule

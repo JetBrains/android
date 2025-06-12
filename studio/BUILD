@@ -330,6 +330,7 @@ studio_plugin(
             "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer",
             "//tools/base/apkparser:studio.android.sdktools.binary-resources",
             "//tools/base/backup:studio.android.sdktools.backup",
+            "//tools/base/backup/bmgr-parser:studio.android.sdktools.backup.bmgr.parser",
             "//tools/base/build-analyzer/common:studio.android.build-analyzer.common",
             "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model",
             "//tools/base/build-system/builder-test-api:studio.android.sdktools.builder-test-api",
@@ -711,7 +712,9 @@ studio_plugin(
     directory = "gemini",
     libs = [
         "//prebuilts/tools/common/m2:libgoogle_auth_transitive_deps",
+        "//prebuilts/tools/common/m2:sqlite-jdbc-3.43.0.0",
         "//prebuilts/tools/common/m2:wire-runtime-jvm-5.3.1",
+        "//tools/adt/idea/.idea/libraries:kotlinx-serialization",
         "//tools/adt/idea/.idea/libraries:lucene",
         "//tools/vendor/google/ml/aiplugin/android/journeys:proto-models-1.0",
         "//tools/vendor/google/ml/aiplugin/cloudcode-core:libgoogle_auth_intellij_lib",
@@ -722,7 +725,6 @@ studio_plugin(
         "//tools/vendor/google/ml/aiplugin/core:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/core:gemini_plugin_proto",
-        "//tools/vendor/google/ml:aiplugin.login.sdkcompat",
     ],
     modules = {
         "aiplugin.jar": [
@@ -741,6 +743,7 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/sdkcompat:aiplugin.sdkcompat",
             "//tools/vendor/google/ml/aiplugin/cloudcode-core:aiplugin.cloudcode-core",
             "//tools/vendor/google/ml/aiplugin/ij-platform:aiplugin.ij-platform",
+            "//tools/vendor/google/ml:aiplugin.login.sdkcompat",
         ],
     },
     resources = {
@@ -765,11 +768,13 @@ studio_plugin(
     name = "com.android.altlang.soong",
     directory = "soong-plugin",
     libs = [
-        "//tools/vendor/google/alt-lang/soong/parser-prereqs:soong-parser-prereqs",
         "//tools/vendor/google/alt-lang/soong/plugin:libblueprint-lexer-parser",
     ],
     modules = {
-        "soong-plugin.jar": ["//tools/vendor/google/alt-lang/soong/plugin:soong-plugin"],
+        "soong-plugin.jar": [
+            "//tools/vendor/google/alt-lang/soong/parser-prereqs:soong-parser-prereqs",
+            "//tools/vendor/google/alt-lang/soong/plugin:soong-plugin",
+        ],
     },
     visibility = ["//visibility:public"],
 )

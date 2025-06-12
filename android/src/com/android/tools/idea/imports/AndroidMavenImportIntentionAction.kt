@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.imports
 
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.lint.detector.api.isKotlin
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
@@ -31,6 +31,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.GlobalUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileTypes.FileType
@@ -128,8 +129,9 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
   override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
     val module = ModuleUtil.findModuleForPsiElement(element) ?: return false
+    val projectSystem = project.getProjectSystem()
+    val token = projectSystem.getTokenOrNull(AndroidMavenImportToken.EP_NAME) ?: return false
     val moduleSystem = module.getModuleSystem()
-    if (!moduleSystem.canRegisterDependency().isSupported()) return false
 
     // TODO: b/398839232 for non-jvm modules, we currently don't support import suggestions
     if (module.multiplatformNonJvm()) {
@@ -148,13 +150,17 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
             text,
             receiverType,
             element.containingFile?.fileType,
+            module,
           )
         )
       } ?: return false
 
     val foundLibraries = resolvable.libraries
     // If we already depend on any of them, we just abort providing any suggestions as well.
-    if (foundLibraries.isEmpty() || foundLibraries.any { dependsOn(module, it.artifact) })
+    if (
+      foundLibraries.isEmpty() ||
+        foundLibraries.any { token.dependsOn(projectSystem, module, it.artifact) }
+    )
       return false
 
     // Update the text.
@@ -182,7 +188,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     // b/396483011: Since this action uses write commands and does a Gradle sync, it doesn't work
     // well with previews. Previews also don't make a ton of sense here, since the code being
     // modified is not at the same location as the cursor. To handle this, we simply don't give a
-    // preview for this actoin.
+    // preview for this action.
     return IntentionPreviewInfo.EMPTY
   }
 
@@ -206,6 +212,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
               text,
               receiverType,
               element.containingFile?.fileType,
+              module,
             )
           )
         } ?: return
@@ -226,7 +233,6 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         doImportSuggestion(
           project,
           element,
-          registry,
           suggestion.artifactToAdd,
           suggestion.version,
           suggestion.classToImport,
@@ -274,21 +280,28 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     fun doImportSuggestion(
       project: Project,
       element: PsiElement,
-      registry: MavenClassRegistry,
       artifact: String,
       artifactVersion: String?,
       importSymbol: String?,
       sync: Boolean,
     ) {
       val module = ModuleUtil.findModuleForPsiElement(element) ?: return
+      val moduleSystem = module.getModuleSystem()
 
+      fun String.toAndroidXIfNecessary() =
+        if (moduleSystem.useAndroidX) AndroidxNameUtils.getCoordinateMapping(this) else this
+
+      val extraArtifacts =
+        MavenClassRegistry.findExtraArtifacts(artifact)
+          .map { it.value to it.key }
+          .groupBy({ it.first }, { it.second.toAndroidXIfNecessary() })
       WriteCommandAction.runWriteCommandAction(project) {
         doImportSuggestionWithWriteLock(
           project,
           module,
           element,
-          registry,
           artifact,
+          extraArtifacts,
           artifactVersion,
           importSymbol,
         )
@@ -328,8 +341,8 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       project: Project,
       module: Module,
       element: PsiElement,
-      registry: MavenClassRegistry,
       artifact: String,
+      extraArtifacts: Map<DependencyType, List<String>>,
       artifactVersion: String?,
       importSymbol: String?,
     ) {
@@ -338,30 +351,21 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       if (importSymbol != null) {
         addImportStatement(project, element, importSymbol)
       }
-
-      addDependency(module, artifact, artifactVersion)
-      // Also add on an extra dependency for special cases.
-      MavenClassRegistry.findExtraArtifacts(artifact).forEach {
-        addDependency(module, it.key, artifactVersion, it.value)
+      val projectSystem = project.getProjectSystem()
+      val token = projectSystem.getTokenOrNull(AndroidMavenImportToken.EP_NAME)
+      if (token == null) {
+        // This should never happen because of checks in
+        // AndroidMavenImportIntentionAction#isAvailable
+        // and MavenClassRegistryUtils#collectFixesFromMavenClassRegistry
+        Logger.getInstance(AndroidMavenImportIntentionAction::class.java)
+          .error("Could not get applicable AndroidMavenImportToken")
+        return
       }
 
-      // Also add dependent annotation processor?
-      val moduleSystem = module.getModuleSystem()
-      if (moduleSystem.canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR).isSupported()) {
-        MavenClassRegistry.findAnnotationProcessor(artifact)?.let {
-          val annotationProcessor =
-            if (moduleSystem.useAndroidX) {
-              AndroidxNameUtils.getCoordinateMapping(it)
-            } else {
-              it
-            }
-
-          addDependency(
-            module,
-            annotationProcessor,
-            artifactVersion,
-            DependencyType.ANNOTATION_PROCESSOR,
-          )
+      token.addDependency(projectSystem, module, artifact, artifactVersion)
+      extraArtifacts.forEach { (type, artifacts) ->
+        artifacts.forEach { artifact ->
+          token.addDependency(projectSystem, module, artifact, artifactVersion, type)
         }
       }
     }
@@ -376,39 +380,6 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         syncManager.requestSyncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
       }
     }
-
-    private fun addDependency(
-      module: Module,
-      artifact: String,
-      version: String?,
-      type: DependencyType = DependencyType.IMPLEMENTATION,
-    ) {
-      val coordinate = getCoordinate(artifact, version) ?: return
-      val moduleSystem = module.getModuleSystem()
-      moduleSystem.registerDependency(coordinate, type)
-    }
-
-    private fun dependsOn(module: Module, artifact: String): Boolean {
-      // To check if we depend on an artifact, we don't particularly care which version is there,
-      // just whether the library is included at all.
-      val coordinate = getCoordinate(artifact) ?: return false
-      val moduleSystem = module.getModuleSystem()
-      // We don't care if the module is explicitly registered: a transitive dependency is fine.
-      return moduleSystem.getResolvedDependency(coordinate) != null
-    }
-
-    /**
-     * Generates a coordinate representing the specified artifact.
-     *
-     * @param artifact requested artifact
-     * @param version desired version, if any. This is expected to be in the form "2.5.1". The
-     *   version comes from [MavenClassRegistry], and represents the minimum version of a dependency
-     *   that should be added. See
-     *   [b/275602080](https://issuetracker.google.com/issues/275602080#comment6) for more details.
-     */
-    private fun getCoordinate(artifact: String, version: String? = null) =
-      if (version.isNullOrEmpty()) GradleCoordinate.parseCoordinateString("$artifact:+")
-      else GradleCoordinate.parseCoordinateString("$artifact:$version")
 
     private tailrec fun findResolvable(
       element: PsiElement,
@@ -550,11 +521,12 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       text: String,
       receiverType: String?,
       completionFileType: FileType?,
+      module: Module,
     ): Collection<MavenClassRegistry.LibraryImportData> {
       if (receiverType == ALL_RECEIVER_TYPES) {
-        return registry.findLibraryDataAnyReceiver(text, useAndroidX, completionFileType)
+        return registry.findLibraryDataAnyReceiver(text, useAndroidX, completionFileType, module)
       }
-      return registry.findLibraryData(text, receiverType, useAndroidX, completionFileType)
+      return registry.findLibraryData(text, receiverType, useAndroidX, completionFileType, module)
     }
 
     private fun resolveArtifact(

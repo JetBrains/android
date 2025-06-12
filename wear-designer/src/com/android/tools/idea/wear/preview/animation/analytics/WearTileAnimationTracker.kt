@@ -66,9 +66,6 @@ internal constructor(private val eventLogger: AnimationToolingUsageTracker) : An
   override fun clickAnimationInspectorTimeline() =
     logEvent(WearTileAnimationToolingEventType.CLICK_ANIMATION_INSPECTOR_TIMELINE)
 
-  override fun dragAnimationInspectorTimeline() =
-    logEvent(WearTileAnimationToolingEventType.DRAG_ANIMATION_INSPECTOR_TIMELINE)
-
   override fun expandAnimationCard() =
     logEvent(WearTileAnimationToolingEventType.EXPAND_ANIMATION_CARD)
 
@@ -83,10 +80,6 @@ internal constructor(private val eventLogger: AnimationToolingUsageTracker) : An
   override fun lockAnimation() = logEvent(WearTileAnimationToolingEventType.LOCK_ANIMATION)
 
   override fun unlockAnimation() = logEvent(WearTileAnimationToolingEventType.UNLOCK_ANIMATION)
-
-  override fun resetTimeline() = logEvent(WearTileAnimationToolingEventType.RESET_TIMELINE)
-
-  override fun dragTimelineLine() = logEvent(WearTileAnimationToolingEventType.DRAG_TIMELINE_LINE)
 
   override fun openPicker() = logEvent(WearTileAnimationToolingEventType.OPEN_PICKER)
 }

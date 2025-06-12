@@ -277,6 +277,8 @@ class ComposeLayoutInspectorClient(
           )
         } else {
           val projectSystem = project.getProjectSystem()
+          // We use an extension point to be able to handle different build systems, like Gradle and
+          // Blaze.
           val token = projectSystem.getTokenOrNull(GetComposeLayoutInspectorJarToken.EP_NAME)
 
           val compatibility =
@@ -290,6 +292,8 @@ class ComposeLayoutInspectorClient(
           composeVersion =
             when (token) {
               null ->
+                // The token is null when there is no build system. eg the user imported an APK or
+                // is using a plain intellij project.
                 handleCompatibilityAndComputeVersion(
                   notificationModel,
                   compatibility,
@@ -308,6 +312,8 @@ class ComposeLayoutInspectorClient(
           val appInspectorJar =
             when (token) {
               null ->
+                // The token is null when there is no build system. eg the user imported an APK or
+                // is using a plain intellij project.
                 getAppInspectorJar(
                   project,
                   composeVersion,
@@ -681,7 +687,10 @@ private suspend fun AppInspectorMessenger.sendCommand(
   return Response.parseFrom(inputStream)
 }
 
-/** Project System token to find the Compose Layout Inspector Jar file. */
+/**
+ * Project System token to find the Compose Layout Inspector Jar file. Allows us to handle different
+ * build systems, like Gradle and Blaze.
+ */
 interface GetComposeLayoutInspectorJarToken<P : AndroidProjectSystem> : Token {
   companion object {
     val EP_NAME =

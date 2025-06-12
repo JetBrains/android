@@ -48,6 +48,8 @@ import org.mockito.Mock
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.util.Calendar
+import java.util.Date
 
 /**
  * Tests for [AndroidGradleProjectStartupActivity].
@@ -63,8 +65,13 @@ class AndroidGradleProjectStartupActivityTest {
     get() = myProjectRule.project
   private val notificationRule = NotificationRule(myProjectRule)
 
+  private lateinit var calendar: Calendar
+
   @get:Rule
   val ruleChain = RuleChain(myProjectRule, notificationRule)
+
+  val syncDueNotifications: List<NotificationRule.NotificationInfo>
+    get() = notificationRule.notifications.filter { it.groupId == SYNC_DUE_BUT_AUTO_SYNC_DISABLED_ID }
 
   @Before
   fun setUp() {
@@ -84,6 +91,8 @@ class AndroidGradleProjectStartupActivityTest {
     myInfo = mock()
     myStartupActivity = AndroidGradleProjectStartupActivity()
     TestDialogManager.setTestDialog(TestDialog.NO)
+    calendar = Calendar.getInstance().apply { set(2025, 1, 1, 0, 0) }
+    SyncDueMessage.timeProvider = { calendar.toInstant().toEpochMilli() }
   }
 
   @After
@@ -198,7 +207,8 @@ class AndroidGradleProjectStartupActivityTest {
       runBlocking { myStartupActivity.execute(myProject) }
     }
     catch (e: Exception) {
-      assertThat(e.message).isEqualTo("Some of the Android Studio features using Gradle require syncing so it has up-to-date information about your project. Sync the project to ensure the best Android Studio experience. You can snooze sync notifications for this session.")
+      assertThat(e.message).isEqualTo(
+        "Some of the Android Studio features using Gradle require syncing so it has up-to-date information about your project. Sync the project to ensure the best Android Studio experience. You can snooze sync notifications for this session.")
     }
   }
 
@@ -219,6 +229,59 @@ class AndroidGradleProjectStartupActivityTest {
     assertWithMessage("Should show a notification").that(notification).isNotNull()
     assertWithMessage("Should offer three notification actions")
       .that(notification?.actions?.map { it.templatePresentation.text }).isEqualTo(
-        listOf("Sync now", "Automatically sync this project", "Snooze"))
+        listOf("Sync now", "Automatically sync this project", "Snooze until tomorrow"))
+  }
+
+  @Test
+  @RunsInEdt
+  fun testNotificationNotShownWhenSnoozed() {
+    // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
+    if (!IdeInfo.getInstance().isAndroidStudio) return;
+    PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
+    AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
+    doReturn(true).whenever(myInfo).isBuildWithGradle
+    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
+    SyncDueMessage.snooze()
+    runBlocking { myStartupActivity.execute(myProject) }
+    assertThat(syncDueNotifications).isEmpty()
+  }
+
+  @Test
+  @RunsInEdt
+  fun testNotificationNotShownBeforeSnoozeExpires() {
+    // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
+    if (!IdeInfo.getInstance().isAndroidStudio) return;
+    PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
+    AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
+    doReturn(true).whenever(myInfo).isBuildWithGradle
+    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
+
+    moveTimeByHours(5)
+    SyncDueMessage.snooze()
+    moveTimeByHours(10)
+    runBlocking { myStartupActivity.execute(myProject) }
+    assertThat(syncDueNotifications).isEmpty()
+  }
+
+
+  @Test
+  @RunsInEdt
+  fun testNotificationShownAfterSnoozeExpires() {
+    // this test only works in AndroidStudio due to a number of isAndroidStudio checks inside AndroidGradleProjectStartupActivity
+    if (!IdeInfo.getInstance().isAndroidStudio) return;
+    PropertiesComponent.getInstance().setValue(SYNC_DUE_DIALOG_SHOWN, true)
+    AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Manual
+    doReturn(true).whenever(myInfo).isBuildWithGradle
+    myProject.replaceService(Info::class.java, myInfo, myProjectRule.testRootDisposable)
+
+    moveTimeByHours(5)
+    SyncDueMessage.snooze()
+    moveTimeByHours(19)
+    runBlocking { myStartupActivity.execute(myProject) }
+    assertThat(syncDueNotifications).isNotEmpty()
+  }
+
+  private fun moveTimeByHours(hours: Int) {
+    calendar.add(Calendar.HOUR, hours)
   }
 }

@@ -44,7 +44,7 @@ private const val LEARN_MORE_LINK =
 
 /** Label displayed in [TimelinePanel] for unsupported components. */
 class UnsupportedLabel(parent: JComponent, rowMinY: Int, minX: Int, maxX: Int) :
-  TimelineElement(0, SupportedAnimationManager.FrozenState(false), minX, maxX) {
+  TimelineElement(SupportedAnimationManager.FrozenState(false), minX, maxX) {
   private val scaleChangeListener = PropertyChangeListener { resize() }
 
   init {

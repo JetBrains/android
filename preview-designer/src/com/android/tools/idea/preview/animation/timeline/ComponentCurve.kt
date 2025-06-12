@@ -16,7 +16,6 @@
 package com.android.tools.idea.preview.animation.timeline
 
 import com.android.tools.idea.preview.animation.AnimatedProperty
-import com.android.tools.idea.preview.animation.InspectorColors
 import com.android.tools.idea.preview.animation.InspectorColors.GRAPH_COLORS
 import com.android.tools.idea.preview.animation.InspectorColors.GRAPH_COLORS_WITH_ALPHA
 import com.android.tools.idea.preview.animation.InspectorLayout
@@ -31,7 +30,6 @@ import java.awt.geom.Path2D
 
 /** Curve for one component of [AnimatedProperty]. */
 class ComponentCurve(
-  offsetPx: Int,
   frozenState: SupportedAnimationManager.FrozenState,
   val component: AnimatedProperty.AnimatedComponent<Double>,
   minX: Int,
@@ -40,7 +38,7 @@ class ComponentCurve(
   private val curve: Path2D,
   private val colorIndex: Int,
   positionProxy: PositionProxy,
-) : TimelineElement(offsetPx, frozenState, minX, maxX) {
+) : TimelineElement(frozenState, minX, maxX) {
 
   companion object {
     /**
@@ -52,7 +50,6 @@ class ComponentCurve(
      * @param colorIndex index of the color the curve should be painted
      */
     fun create(
-      offsetPx: Int,
       frozenState: SupportedAnimationManager.FrozenState,
       property: AnimatedProperty<Double>,
       componentId: Int,
@@ -101,7 +98,6 @@ class ComponentCurve(
         curve.lineTo(minX.toDouble() - zeroDurationXOffset, maxY.toDouble())
 
         return ComponentCurve(
-          offsetPx = offsetPx,
           frozenState,
           component = component,
           minX = minX,
@@ -117,10 +113,8 @@ class ComponentCurve(
   @VisibleForTesting
   val curveBaseY =
     rowMinY + InspectorLayout.timelineCurveRowHeightScaled() - InspectorLayout.curveBottomOffset()
-  private val startDiamond = Diamond(minX + offsetPx, curveBaseY, colorIndex)
-  private val endDiamond = Diamond(maxX + offsetPx, curveBaseY, colorIndex)
-  private val startDiamondNoOffset = Diamond(minX, curveBaseY, colorIndex)
-  private val endDiamondNoOffset = Diamond(maxX, curveBaseY, colorIndex)
+  private val startDiamond = Diamond(minX, curveBaseY, colorIndex)
+  private val endDiamond = Diamond(maxX, curveBaseY, colorIndex)
 
   private val boxedLabelPositionWithoutOffset =
     Point(minX + InspectorLayout.labelOffset, curveBaseY + InspectorLayout.labelOffset)
@@ -128,7 +122,7 @@ class ComponentCurve(
   /** Position from where [BoxedLabel] should be painted. */
   val boxedLabelPosition =
     Point(
-      (boxedLabelPositionWithoutOffset.x + offsetPx).coerceIn(
+      (boxedLabelPositionWithoutOffset.x).coerceIn(
         positionProxy.minimumXPosition(),
         positionProxy.maximumXPosition(),
       ),
@@ -138,7 +132,7 @@ class ComponentCurve(
   override val height: Int = InspectorLayout.TIMELINE_CURVE_ROW_HEIGHT
 
   init {
-    curve.transform(AffineTransform.getTranslateInstance(offsetPx.toDouble(), 0.0))
+    curve.transform(AffineTransform.getTranslateInstance(0.0, 0.0))
   }
 
   /** If point [x], [y] is hovering the curve. */
@@ -156,7 +150,7 @@ class ComponentCurve(
    * * (optional) dashed lines - links to the next curve diamonds
    *
    * @params colorIndex index of the color from [GRAPH_COLORS] @rowHeight total row height including
-   *   all labels, offset, etc
+   *   all labels
    */
   override fun paint(g: Graphics2D) {
     //                 ___        ___         ___
@@ -173,61 +167,19 @@ class ComponentCurve(
     //
     g.color = GRAPH_COLORS[colorIndex % GRAPH_COLORS.size]
     g.stroke = InspectorLayout.simpleStroke
-    g.drawLine(minX + offsetPx, curveBaseY, maxX + offsetPx, curveBaseY)
+    g.drawLine(minX, curveBaseY, maxX, curveBaseY)
     if (component.linkToNext) {
       g.stroke = InspectorLayout.dashedStroke
-      g.drawLine(
-        minX + offsetPx,
-        curveBaseY,
-        minX + offsetPx,
-        curveBaseY + heightScaled() - Diamond.diamondSize(),
-      )
-      g.drawLine(
-        maxX + offsetPx,
-        curveBaseY,
-        maxX + offsetPx,
-        curveBaseY + heightScaled() - Diamond.diamondSize(),
-      )
+      g.drawLine(minX, curveBaseY, minX, curveBaseY + heightScaled() - Diamond.diamondSize())
+      g.drawLine(maxX, curveBaseY, maxX, curveBaseY + heightScaled() - Diamond.diamondSize())
       g.stroke = InspectorLayout.simpleStroke
     }
     g.color = GRAPH_COLORS_WITH_ALPHA[colorIndex % GRAPH_COLORS.size]
     val prevAntiAliasHint = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING)
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     g.fill(curve)
-    if (status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered) {
-      g.color = InspectorColors.LINE_OUTLINE_COLOR_ACTIVE
-      g.draw(curve)
-    }
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, prevAntiAliasHint)
-    startDiamond.paint(
-      g,
-      status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered,
-    )
-    endDiamond.paint(
-      g,
-      status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered,
-    )
-
-    if (offsetPx != 0) {
-      g.stroke = InspectorLayout.dashedStroke
-      g.color = GRAPH_COLORS_WITH_ALPHA[colorIndex % GRAPH_COLORS.size]
-      if (offsetPx > 0) {
-        g.drawLine(
-          minX + Diamond.diamondSize() + 1,
-          curveBaseY,
-          minX + offsetPx - Diamond.diamondSize() - 1,
-          curveBaseY,
-        )
-        startDiamondNoOffset.paintOutline(g)
-      } else if (offsetPx < 0) {
-        g.drawLine(
-          maxX - Diamond.diamondSize() - 1,
-          curveBaseY,
-          maxX + offsetPx + Diamond.diamondSize() + 1,
-          curveBaseY,
-        )
-        endDiamondNoOffset.paintOutline(g)
-      }
-    }
+    startDiamond.paint(g)
+    endDiamond.paint(g)
   }
 }

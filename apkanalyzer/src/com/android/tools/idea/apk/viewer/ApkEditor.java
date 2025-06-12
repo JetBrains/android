@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.viewer;
 
 import static com.android.SdkConstants.EXT_DEX;
+import static com.android.SdkConstants.UTF_8;
 import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
 import static com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt.IS_PAGE_ALIGN_ENABLED;
 import static com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil.withChecksDisabledForSupplier;
@@ -64,6 +65,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -425,6 +427,11 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     if (archive.isBinaryXml(p, content)) {
       content = BinaryXmlParser.decodeXml(content);
       return ApkVirtualFile.create(p, content);
+    }
+
+    if (name.toString().endsWith(".json")) {
+      String text = JsonPrettyPrinter.prettyPrint(new String(content, StandardCharsets.UTF_8));
+      return ApkVirtualFile.createText(p, text);
     }
 
     if (archive.isProtoXml(p, content)) {

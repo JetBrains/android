@@ -1,3 +1,5 @@
+load("//tools/adt/idea/aswb/testing:test_defs.bzl", "aswb_test")
+
 package(
     default_visibility = [
         "//tools/adt/idea/aswb/base:__subpackages__",
@@ -29,10 +31,10 @@ java_library(
     ],
 )
 
-java_test(
+aswb_test(
     name = "TargetTreeTest",
     size = "small",
-    srcs = ["TargetTreeTest.java"],
+    srcs = ["TargetTreeTest.kt"],
     deps = [
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/third_party/java/junit",

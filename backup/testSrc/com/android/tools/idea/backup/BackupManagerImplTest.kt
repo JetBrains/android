@@ -23,6 +23,7 @@ import com.android.backup.BackupType
 import com.android.backup.BackupType.CLOUD
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
 import com.android.backup.ErrorCode
+import com.android.backup.ErrorCode.BMGR_ERROR_RESTORE
 import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
 import com.android.backup.ErrorCode.SUCCESS
 import com.android.backup.testing.BackupFileHelper
@@ -165,6 +166,69 @@ internal class BackupManagerImplTest {
     assertThat(fakeDialogFactory.dialogs).isEmpty()
     verify(mockVirtualFileManager).refreshAndFindFileByNioPath(backupFile)
     backupFile.deleteExisting()
+  }
+
+  @Test
+  fun backup_bmgrFailure(): Unit = runBlocking {
+    val backupFile =
+      project.basePath?.let { Path.of(it) }?.resolve("file.backup")
+        ?: fail("Project base path unavailable")
+    backupFile.deleteIfExists()
+    val app = "app1"
+    val adbServicesFactory =
+      FakeAdbServicesFactory(app) {
+        it.addCommandOverride(
+          Output(
+            "bmgr backupnow @pm@ app1 --non-incremental --monitor-verbose",
+            """
+                Running non-incremental backup for 2 requested packages.
+                Package @pm@ with result: Success
+                => Event{AGENT / FULL_BACKUP_CANCEL : package = com.example.empty(v1)}
+                Package com.example.empty with result: ERROR1
+                Backup finished with result: ERROR2
+              """
+              .trimIndent(),
+          )
+        )
+      }
+    val backupService = BackupService.getInstance(adbServicesFactory)
+    val backupManagerImpl =
+      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
+    val serialNumber = "serial"
+
+    createModalDialogAndInteractWithIt({
+      backupManagerImpl.showBackupDialog(
+        serialNumber,
+        app,
+        RUN_CONFIG,
+        notify = true,
+        mapOf(app to true),
+      )
+    }) { dialogWrapper ->
+      val dialog = dialogWrapper as BackupDialog
+      val fileTextField = dialog.findComponent<TextAccessor>("fileTextField")
+      fileTextField.text = "file.backup"
+      dialog.clickOk()
+    }
+
+    assertThat(usageTrackerRule.backupEvents())
+      .containsExactly(
+        backupUsageEvent(DEVICE_TO_DEVICE, RUN_CONFIG, "FULL_BACKUP_CANCEL ERROR1 ERROR2")
+      )
+    assertThat(notificationRule.notifications).isEmpty()
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(
+        DialogData(
+          "Backup Failed",
+          """
+            Failed to backup 'app1`:
+            Backup was cancelled by either the user or backup service lifecycle.
+            Backup failed for package: com.example.empty
+            Backup operation failed.
+          """
+            .trimIndent(),
+        )
+      )
   }
 
   @Test
@@ -337,6 +401,44 @@ internal class BackupManagerImplTest {
     assertThat(result).isEqualTo(Success)
     assertThat(usageTrackerRule.backupEvents())
       .containsExactly(restoreUsageEvent(RUN_CONFIG, SUCCESS))
+  }
+
+  @Test
+  fun restore_failure(): Unit = runBlocking {
+    val adbServicesFactory =
+      FakeAdbServicesFactory("com.app") {
+        it.addCommandOverride(
+          Output(
+            "bmgr restore 9bc1546914997f6c com.app --monitor-verbose",
+            """
+                => Event{BACKUP_MANAGER_POLICY / SIGNATURE_MISMATCH : package = com.app(v1)}
+                restoreFinished: -1
+              """
+              .trimIndent(),
+          )
+        )
+      }
+    val backupService = BackupService.getInstance(adbServicesFactory)
+    val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory)
+    val serialNumber = "serial"
+    val backupFile = backupFileHelper.createBackupFile("com.app", "11223344556677889900", CLOUD)
+
+    val error =
+      backupManagerImpl.restore(serialNumber, backupFile, RUN_CONFIG, notify = true)
+        as BackupResult.Error
+
+    assertThat(error.errorCode).isEqualTo(BMGR_ERROR_RESTORE)
+    assertThat(error.throwable.message)
+      .isEqualTo(
+        """
+      Failed to restore 'com.app`:
+      Signature of the app for which restore is called doesn't match the signature of the app corresponding to the backup.
+      Restore operation failed
+    """
+          .trimIndent()
+      )
+    assertThat(usageTrackerRule.backupEvents())
+      .containsExactly(restoreUsageEvent(RUN_CONFIG, "SIGNATURE_MISMATCH -1"))
   }
 
   @Test
@@ -578,10 +680,12 @@ private fun backupUsageEvent(type: BackupType, source: BackupManager.Source, res
 
 @Suppress("SameParameterValue")
 private fun restoreUsageEvent(source: BackupManager.Source, errorCode: ErrorCode) =
+  restoreUsageEvent(source, errorCode.name)
+
+@Suppress("SameParameterValue")
+private fun restoreUsageEvent(source: BackupManager.Source, result: String) =
   BackupUsageEvent.newBuilder()
-    .setRestore(
-      RestoreEvent.newBuilder().setSourceString(source.name).setResultString(errorCode.name)
-    )
+    .setRestore(RestoreEvent.newBuilder().setSourceString(source.name).setResultString(result))
     .build()
 
 private fun UsageTrackerRule.backupEvents(): List<BackupUsageEvent> =

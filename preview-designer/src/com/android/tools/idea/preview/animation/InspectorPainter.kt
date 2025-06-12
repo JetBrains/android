@@ -146,10 +146,8 @@ object InspectorPainter {
     }
 
     /** Paint diamond shape. */
-    fun paint(g: Graphics2D, hover: Boolean) {
-      g.color =
-        if (hover) InspectorColors.LINE_OUTLINE_COLOR_ACTIVE
-        else JBColor(Color.white, JBColor.border().darker())
+    fun paint(g: Graphics2D) {
+      g.color = JBColor(Color.white, JBColor.border().darker())
       g.fillPolygon(diamondOutline)
       g.color = InspectorColors.GRAPH_COLORS[colorIndex % InspectorColors.GRAPH_COLORS.size]
       g.fillPolygon(diamond)

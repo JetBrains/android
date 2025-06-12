@@ -91,7 +91,7 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
 
   @Override
   public @NotNull ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
-    GradleDslNameConverter.Kind kind
+    @NotNull GradleDslNameConverter.Kind kind
   ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }

@@ -84,7 +84,7 @@ public class DependencyTrackerImpl implements DependencyTracker {
       QuerySyncProjectSnapshot snapshot, DependencyBuildRequest request) {
     return switch (request.requestType) {
       case MULTIPLE_TARGETS -> snapshot.graph().computeRequestedTargets(request.targets);
-      case WHOLE_PROJECT -> snapshot.graph().computeRequestedTargets(snapshot.graph().allTargets());
+      case WHOLE_PROJECT -> snapshot.graph().computeWholeProjectTargets();
       case FILE_PREVIEWS -> new RequestedTargets(request.targets, ImmutableSet.of());
     };
   }
@@ -99,8 +99,7 @@ public class DependencyTrackerImpl implements DependencyTracker {
         builder.build(
             context,
             requestedTargets.buildTargets(),
-            request,
-            snapshot.graph().getTargetLanguages(requestedTargets.buildTargets()));
+            request.getOutputGroups(snapshot.graph().getTargetLanguages(requestedTargets.buildTargets())));
     reportErrorsAndWarnings(context, snapshot, outputInfo);
 
     artifactTracker.update(requestedTargets.expectedDependencyTargets(), outputInfo, context);

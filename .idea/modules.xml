@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/plugin/altlang-lsp4ij.iml" filepath="$PROJECT_DIR$/../../vendor/google/alt-lang/lsp4ij/plugin/altlang-lsp4ij.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/redhat-developer/lsp4ij/lsp4ij.iml" filepath="$PROJECT_DIR$/../../vendor/redhat-developer/lsp4ij/lsp4ij.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/adb-proxy/adb-proxy.iml" filepath="$PROJECT_DIR$/../../base/adb-proxy/adb-proxy.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core/aiplugin.agents.agents-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core/aiplugin.agents.agents-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core-tests/aiplugin.agents.agents-core-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/agents/agents-core-tests/aiplugin.agents.agents-core-tests.iml" />
@@ -12,9 +14,9 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/enterprise/aiplugin.android.enterprise.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/enterprise/aiplugin.android.enterprise.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/gradle/aiplugin.android.gradle.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/gradle/aiplugin.android.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/aiplugin.android.journeys.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/aiplugin.android.journeys.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/aiplugin.android.journeys.tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/aiplugin.android.journeys.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/gradle/aiplugin.android.journeys.gradle.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/gradle/aiplugin.android.journeys.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/gradle/aiplugin.android.journeys.gradle.tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/gradle/aiplugin.android.journeys.gradle.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/aiplugin.android.journeys.tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/android/journeys/aiplugin.android.journeys.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/cloudcode-core/aiplugin.cloudcode-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/cloudcode-core/aiplugin.cloudcode-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core-test-utils.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/core/aiplugin.core-test-utils.iml" />
@@ -114,6 +116,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/sdk-common/android.sdktools.sdk-common.iml" filepath="$PROJECT_DIR$/../../base/sdk-common/android.sdktools.sdk-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/sdk-common/gradle/android.sdktools.sdk-common.gradle.iml" filepath="$PROJECT_DIR$/../../base/sdk-common/gradle/android.sdktools.sdk-common.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/sdklib/android.sdktools.sdklib.iml" filepath="$PROJECT_DIR$/../../base/sdklib/android.sdktools.sdklib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/testlib/android.sdktools.testlib.iml" filepath="$PROJECT_DIR$/../../base/testlib/android.sdktools.testlib.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/testutils/android.sdktools.testutils.iml" filepath="$PROJECT_DIR$/../../base/testutils/android.sdktools.testutils.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/threading-agent/android.sdktools.threading-agent.iml" filepath="$PROJECT_DIR$/../../base/threading-agent/android.sdktools.threading-agent.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/threading-agent-callback/android.sdktools.threading-agent-callback.iml" filepath="$PROJECT_DIR$/../../base/threading-agent-callback/android.sdktools.threading-agent-callback.iml" />

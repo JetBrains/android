@@ -15,18 +15,18 @@
  */
 package com.google.idea.blaze.base.qsync;
 
-import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
+import com.google.idea.blaze.qsync.deps.OutputGroup;
 import com.google.idea.blaze.qsync.deps.OutputInfo;
-import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Set;
 
 /** A query sync service that knows how to build dependencies for given targets */
 public interface DependencyBuilder {
 
-  OutputInfo build(BlazeContext context, Set<Label> buildTargets, DependencyBuildRequest request, Set<QuerySyncLanguage> languages)
+  OutputInfo build(BlazeContext context, Set<Label> buildTargets, Collection<OutputGroup> outputGroups)
     throws IOException, BuildException;
 }

@@ -1068,8 +1068,8 @@ class ComposePreviewRepresentation(
             surface.notifyZoomToFit()
           }
         }
-        updateResizePanel()
       }
+      updateResizePanel()
     }
   }
 
@@ -1140,10 +1140,7 @@ class ComposePreviewRepresentation(
     // Restore
     stateManager.restoreState()
 
-    // We need to hide the panel if in focus mode to avoid the flickering b/287484743
-    if (previewModeManager.mode.value.isFocus) {
-      surface.interactionPane.isVisible = false
-    }
+    hidePanelsBeforeRender()
 
     val showingPreviewElements =
       composeWorkBench.updatePreviewsAndRefresh(
@@ -1174,6 +1171,20 @@ class ComposePreviewRepresentation(
     }
     // Restoring the surface visibility after render as it may have been hidden in focus mode.
     surface.interactionPane.isVisible = true
+  }
+
+  /**
+   * Hides the panels before rendering.
+   *
+   * We need to hide the interaction panel if in focus mode to avoid the flickering b/287484743.
+   * Also, we need to clear and hide the resize panel before rendering otherwise it will be shown
+   * during rendering as configuration can be updated.
+   */
+  private fun hidePanelsBeforeRender() {
+    if (previewModeManager.mode.value.isFocus) {
+      surface.interactionPane.isVisible = false
+    }
+    activeResizePanelInFocusMode?.clearPanelAndHidePanel()
   }
 
   private fun requestRefresh(

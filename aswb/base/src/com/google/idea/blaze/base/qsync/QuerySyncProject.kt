@@ -22,7 +22,6 @@ import com.google.common.io.ByteSource
 import com.google.common.io.MoreFiles
 import com.google.idea.blaze.base.bazel.BuildSystem
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope
-import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.projectview.ProjectViewSet
 import com.google.idea.blaze.base.scope.BlazeContext
@@ -40,7 +39,6 @@ import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.BlazeQueryParser
 import com.google.idea.blaze.qsync.ProjectBuilder
 import com.google.idea.blaze.qsync.ProjectProtoTransform
-import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
@@ -48,7 +46,6 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.TargetsToBuild
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import java.io.IOException
 import java.nio.file.Path
@@ -155,13 +152,12 @@ class QuerySyncProject(
    * the set of all targets defined in all build packages within the directory (recursively).
    */
   fun getProjectTargets(
-    context: BlazeContext,
     workspaceRelativePaths: Collection<Path>,
   ): Set<TargetsToBuild> {
     return snapshotHolder()
       ?.let { snapshot ->
         workspaceRelativePaths
-          .map { path -> snapshot.graph().getProjectTargets(context, path) }
+          .map { path -> snapshot.graph().getProjectTargets(path) }
           .toSet()
       }.orEmpty()
   }
@@ -226,7 +222,7 @@ class QuerySyncProject(
   }
 
   fun canEnableAnalysisFor(workspacePath: Path): Boolean {
-    return getProjectTargets(BlazeContext.create(), listOf(workspacePath)).isNotEmpty()
+    return getProjectTargets(listOf(workspacePath)).isNotEmpty()
   }
 
   fun isReadyForAnalysis(path: Path): Boolean {
@@ -301,9 +297,7 @@ class QuerySyncProject(
 
     // Check known source files.
     val workspaceRelative = workspaceRoot.path().relativize(absolutePath)
-    if (snapshotHolder
-        .current
-        .map { it.graph().sourceFileToLabel(workspaceRelative).isPresent }.orElse(false)) {
+    if (snapshotHolder()?.graph()?.sourceFileToLabel(workspaceRelative) != null) {
       return Optional.of<Boolean>(false)
     }
 
@@ -333,10 +327,6 @@ class QuerySyncProject(
       .map { it.graph() }
       .map { it.dependsOnAnyOf_DO_NOT_USE_BROKEN(target, deps) }
       .orElse(false)
-  }
-
-  companion object {
-    private val logger = Logger.getInstance(QuerySyncProject::class.java)
   }
 }
 

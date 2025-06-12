@@ -272,11 +272,18 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       Separator.getInstance(),
       myResultsTableView.createNavigateToPreviousFailedTestAction(),
       myResultsTableView.createNavigateToNextFailedTestAction(),
-      Separator.getInstance(),
-      ImportTestGroup(),
-      ImportTestsFromFileAction(),
-      myExportTestResultsAction
     )
+
+    // Importing/exporting of test results is currently only supported for the
+    // AndroidTestRunConfiguration run configuration
+    if (runConfiguration == null || runConfiguration is AndroidTestRunConfiguration) {
+      testFilterActionGroup.addAll(
+        Separator.getInstance(),
+        ImportTestGroup(),
+        ImportTestsFromFileAction(),
+        myExportTestResultsAction
+      )
+    }
 
     val myFocusableActionToolbar: ActionToolbar = object: ActionToolbarImpl(ActionPlaces.ANDROID_TEST_SUITE_TABLE,
                                                                             testFilterActionGroup, true) {

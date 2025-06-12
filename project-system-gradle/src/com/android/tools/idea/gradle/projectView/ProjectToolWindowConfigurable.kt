@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.projectView
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.projectView.ProjectToolWindowSettings.Companion.PROJECT_VIEW_KEY
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.options.SearchableConfigurable
@@ -34,10 +33,6 @@ class ProjectToolWindowConfigurable() : SearchableConfigurable {
   private var component: JPanel? = null
   private val projectToolSettings = ProjectToolWindowSettings.getInstance()
 
-  private var defaultProjectView = projectToolSettings.isProjectViewDefault()
-  private var initialDefaultProjectView = defaultProjectView
-  private var defaultProjectViewCheckBox: JBCheckBox? = null
-
   private var showBuildFilesInModule = projectToolSettings.showBuildFilesInModule
   private var initialShowBuildFilesInModule = showBuildFilesInModule
   private var showBuildFilesCheckBox: JBCheckBox? = null
@@ -51,8 +46,6 @@ class ProjectToolWindowConfigurable() : SearchableConfigurable {
   }
 
   override fun createComponent(): JComponent? {
-    defaultProjectView = projectToolSettings.isProjectViewDefault()
-    initialDefaultProjectView = defaultProjectView
     if (component == null) {
       component = createPanel()
     }
@@ -76,39 +69,14 @@ class ProjectToolWindowConfigurable() : SearchableConfigurable {
     else {
       showBuildFilesCheckBox = null
     }
-
-    if (StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS.get()) {
-      row {
-        val projectViewProperty = java.lang.Boolean.getBoolean(PROJECT_VIEW_KEY)
-
-        val propertyText = if (projectViewProperty) " (set via custom property)" else ""
-        defaultProjectViewCheckBox = checkBox("Set Project view as the default$propertyText")
-          .bindSelected(
-            getter = { defaultProjectView },
-            setter = { selected -> defaultProjectView = selected },
-          )
-          .onChanged { defaultProjectView = it.isSelected }
-          .component
-        defaultProjectViewCheckBox?.isSelected = defaultProjectView
-        defaultProjectViewCheckBox?.isEnabled = !projectViewProperty
-      }
-    }
-    else {
-      defaultProjectViewCheckBox = null
-    }
   }
 
   override fun isModified(): Boolean {
-    return defaultProjectView != initialDefaultProjectView || showBuildFilesInModule != initialShowBuildFilesInModule
+    return showBuildFilesInModule != initialShowBuildFilesInModule
   }
 
   override fun apply() {
     runWriteAction {
-      if (defaultProjectViewCheckBox != null) {
-        initialDefaultProjectView = defaultProjectView
-        projectToolSettings.defaultToProjectView = defaultProjectView
-      }
-
       if (showBuildFilesCheckBox != null) {
         val refreshView = initialShowBuildFilesInModule != showBuildFilesInModule
         initialShowBuildFilesInModule = showBuildFilesInModule
@@ -123,9 +91,6 @@ class ProjectToolWindowConfigurable() : SearchableConfigurable {
   }
 
   override fun reset() {
-    defaultProjectView = initialDefaultProjectView
-    defaultProjectViewCheckBox?.isSelected = defaultProjectView
-
     showBuildFilesInModule = initialShowBuildFilesInModule
     showBuildFilesCheckBox?.isSelected = showBuildFilesInModule
   }

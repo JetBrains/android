@@ -42,8 +42,6 @@ val NoopAnimationTracker =
 
     override fun clickAnimationInspectorTimeline() {}
 
-    override fun dragAnimationInspectorTimeline() {}
-
     override fun expandAnimationCard() {}
 
     override fun collapseAnimationCard() {}
@@ -51,10 +49,6 @@ val NoopAnimationTracker =
     override fun openAnimationInTab() {}
 
     override fun closeAnimationTab() {}
-
-    override fun resetTimeline() {}
-
-    override fun dragTimelineLine() {}
 
     override fun lockAnimation() {}
 

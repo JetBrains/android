@@ -132,7 +132,7 @@ public class GradleBuildFile extends GradleScriptFile {
   @NotNull
   @Override
   public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
-    GradleDslNameConverter.Kind kind
+    @NotNull GradleDslNameConverter.Kind kind
   ) {
     return GradleBlockModelMap.getElementMap(GradleBuildFile.class, kind);
   }

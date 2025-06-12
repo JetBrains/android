@@ -15,8 +15,8 @@
  */
 package com.android.tools.asdriver.tests.base;
 
-import com.android.tools.asdriver.tests.TestFileSystem;
 import com.android.tools.asdriver.tests.Workspace;
+import com.android.tools.testlib.TestFileSystem;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

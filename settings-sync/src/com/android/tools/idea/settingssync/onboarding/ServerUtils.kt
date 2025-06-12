@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.settingssync.onboarding
 
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.platform.ide.progress.ModalTaskOwner
 import com.intellij.platform.ide.progress.TaskCancellation
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
@@ -27,13 +29,19 @@ import kotlinx.coroutines.withContext
 
 internal suspend fun checkCloudUpdates(userEmail: String, providerCode: String): UpdateResult {
   return withContext(Dispatchers.IO) {
-    val communicator =
-      SettingsSyncCommunicatorProvider.PROVIDER_EP.extensionList
-        .singleOrNull { it.isAvailable() && it.providerCode == providerCode }
-        ?.createCommunicator(userEmail)
-        ?: error("Can't create $providerCode communicator for $userEmail.")
+    val parentDisposable = Disposer.newDisposable()
+    try {
+      val communicator =
+        SettingsSyncCommunicatorProvider.PROVIDER_EP.extensionList
+          .singleOrNull { it.isAvailable() && it.providerCode == providerCode }
+          ?.createCommunicator(userEmail)
+          ?.apply { (this as? Disposable)?.let { Disposer.register(parentDisposable, it) } }
+          ?: error("Can't create $providerCode communicator for $userEmail.")
 
-    communicator.receiveUpdates()
+      communicator.receiveUpdates()
+    } finally {
+      Disposer.dispose(parentDisposable)
+    }
   }
 }
 

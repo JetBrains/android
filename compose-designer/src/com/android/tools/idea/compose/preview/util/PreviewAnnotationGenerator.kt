@@ -120,7 +120,6 @@ internal fun toPreviewAnnotationText(
   val previewConfig = previewElement.configuration
 
   val (currentWidthDp, currentHeightDp) = getDimensionsInDp(configuration)
-  val showDecorations = displaySettings.showDecoration
 
   return buildString {
     append("@${COMPOSE_PREVIEW_ANNOTATION_FQN.substringAfterLast('.')}(\n")
@@ -158,17 +157,28 @@ internal fun toPreviewAnnotationText(
       params.add("$PARAMETER_SHOW_SYSTEM_UI = true")
     }
 
-    if (showDecorations) {
-      val deviceSpec = createDeviceSpec(configuration)
-      params.add("$PARAMETER_DEVICE = \"$deviceSpec\"")
-    } else {
-      if (
-        previewConfig.deviceSpec != NO_DEVICE_SPEC && previewConfig.deviceSpec != "Devices.DEFAULT"
-      ) {
-        params.add("$PARAMETER_DEVICE = \"${previewConfig.deviceSpec}\"")
+    val targetDevice = configuration.device
+    if (targetDevice != null && targetDevice.id != Configuration.CUSTOM_DEVICE_ID) {
+      // If the current configuration's device is a known, non-custom device, use its ID.
+      if (targetDevice.id != DEFAULT_DEVICE_ID) {
+        // If device is default we can omit device parameter
+        params.add("$PARAMETER_DEVICE = \"id:${targetDevice.id}\"")
       }
-      params.add("$PARAMETER_WIDTH_DP = $currentWidthDp")
-      params.add("$PARAMETER_HEIGHT_DP = $currentHeightDp")
+    } else {
+      if (displaySettings.showDecoration) {
+        val deviceSpec = createDeviceSpec(configuration)
+        params.add("$PARAMETER_DEVICE = \"$deviceSpec\"")
+      } else {
+        if (
+          previewConfig.deviceSpec != NO_DEVICE_SPEC &&
+            previewConfig.deviceSpec != "Devices.DEFAULT"
+        ) {
+          // if original configuration had device non-default spec we should update it
+          params.add("$PARAMETER_DEVICE = \"${previewConfig.deviceSpec}\"")
+        }
+        params.add("$PARAMETER_WIDTH_DP = $currentWidthDp")
+        params.add("$PARAMETER_HEIGHT_DP = $currentHeightDp")
+      }
     }
 
     params.joinTo(this, separator = ",\n    ", prefix = "    ")

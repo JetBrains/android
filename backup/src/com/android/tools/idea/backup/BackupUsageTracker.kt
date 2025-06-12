@@ -19,6 +19,7 @@ import com.android.backup.BackupResult
 import com.android.backup.BackupResult.Success
 import com.android.backup.BackupResult.WithoutAppData
 import com.android.backup.BackupType
+import com.android.backup.BmgrException
 import com.android.backup.ErrorCode
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.backup.BackupManager.Source
@@ -64,7 +65,10 @@ internal object BackupUsageTracker {
 
 private fun BackupResult.getErrorCode() =
   when (this) {
-    is BackupResult.Error -> this.errorCode.name
+    is BackupResult.Error -> this.errorCodeString()
     Success -> ErrorCode.SUCCESS.name
     WithoutAppData -> "WithoutAppData"
   }
+
+private fun BackupResult.Error.errorCodeString() =
+  (throwable.cause as? BmgrException)?.errorCodes ?: errorCode.name

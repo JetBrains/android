@@ -20,8 +20,10 @@ import com.android.tools.idea.insights.VCS_CATEGORY
 import com.android.tools.idea.insights.vcs.VcsForAppInsights
 import com.android.tools.idea.insights.vcs.createShortRevisionString
 import com.intellij.diff.DiffEditorTitleCustomizer
-import com.intellij.diff.editor.DiffRequestProcessorEditor
+import com.intellij.diff.editor.DiffEditorViewerFileEditor
+import com.intellij.diff.editor.DiffViewerVirtualFile
 import com.intellij.diff.impl.CacheDiffRequestProcessor
+import com.intellij.diff.impl.DiffEditorViewer
 import com.intellij.diff.impl.DiffRequestProcessor
 import com.intellij.diff.requests.DiffRequest
 import com.intellij.diff.requests.ErrorDiffRequest
@@ -43,11 +45,11 @@ import com.intellij.openapi.util.Pair
 import com.intellij.openapi.vcs.FilePath
 import com.intellij.openapi.vcs.changes.Change
 import com.intellij.openapi.vcs.changes.DiffPreviewProvider
-import com.intellij.openapi.vcs.changes.PreviewDiffVirtualFile
 import com.intellij.openapi.vcs.changes.actions.diff.ChangeDiffRequestProducer
 import com.intellij.openapi.vcs.history.VcsDiffUtil.createChangesWithCurrentContentForFile
 import com.intellij.ui.HyperlinkAdapter
 import com.intellij.ui.components.JBLabel
+import java.util.Objects
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
@@ -95,16 +97,15 @@ fun goToDiff(context: ContextDataForDiff, project: Project) {
 
   val fileEditor =
     FileEditorManager.getInstance(project).openFile(diffVFile, true).first()
-      as DiffRequestProcessorEditor
+      as DiffEditorViewerFileEditor
 
   // If it's the already opened file, the previously scrolled position is preserved and might not
   // be what we want. So we scroll to the desired position ourselves.
   invokeLater { fileEditor.scrollToLocation(context) }
 }
 
-private fun DiffRequestProcessorEditor.scrollToLocation(context: ContextDataForDiff) {
-  val viewer = processor.activeViewer ?: return
-  when (viewer) {
+private fun DiffEditorViewerFileEditor.scrollToLocation(context: ContextDataForDiff) {
+  when (val viewer = editorViewer) {
     is SimpleDiffViewer -> {
       viewer.currentSide = Side.LEFT
       DiffUtil.scrollEditor(viewer.getEditor(Side.LEFT), context.lineNumber - 1, true)
@@ -123,7 +124,22 @@ private fun DiffRequestProcessorEditor.scrollToLocation(context: ContextDataForD
 }
 
 class InsightsDiffVirtualFile(val provider: InsightsDiffViewProvider) :
-  PreviewDiffVirtualFile(provider)
+  DiffViewerVirtualFile(provider.insightsContext.filePath.name) {
+  override fun createViewer(project: Project): DiffEditorViewer {
+    return provider.createDiffRequestProcessor()
+  }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other == null || javaClass != other.javaClass) return false
+    val file = other as? InsightsDiffVirtualFile
+    return provider.owner == file?.provider?.owner
+  }
+
+  override fun hashCode(): Int {
+    return Objects.hash(provider.owner)
+  }
+}
 
 data class InsightsDiffViewProvider(val insightsContext: ContextDataForDiff, val project: Project) :
   DiffPreviewProvider {

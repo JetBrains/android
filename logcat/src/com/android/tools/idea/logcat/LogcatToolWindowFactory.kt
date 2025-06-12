@@ -133,6 +133,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
         filter = filter,
         filterMatchCase = false,
         isSoftWrap = false,
+        proguardFile = null,
       )
     createNewTab(this, name, LogcatPanelConfig.toJson(config))
   }
@@ -149,6 +150,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
             filter = "",
             filterMatchCase = false,
             isSoftWrap = false,
+            proguardFile = null,
           )
 
         createNewTab(

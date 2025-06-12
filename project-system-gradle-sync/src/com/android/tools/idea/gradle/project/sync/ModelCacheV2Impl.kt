@@ -716,11 +716,10 @@ internal fun modelCacheV2Impl(
   }
 
   fun convertCodeShrinker(codeShrinker: com.android.builder.model.v2.ide.CodeShrinker?): CodeShrinker? {
-    return if (codeShrinker == null) null
-    else when (codeShrinker) {
+    return when (codeShrinker) {
       com.android.builder.model.v2.ide.CodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
       com.android.builder.model.v2.ide.CodeShrinker.R8 -> CodeShrinker.R8
-      else -> throw IllegalStateException("Unknown code shrinker option: $codeShrinker")
+      null -> null
     }
   }
 

@@ -642,12 +642,12 @@ public class SdkUpdaterConfigPanel implements Disposable {
       myPlatformComponentsPanel.startLoading();
       myToolComponentsPanel.startLoading();
       myConfigurable.getRepoManager()
-        .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
+        .load(0, myLocalUpdater, myRemoteUpdater, null,
               progressRunner, myDownloader, mySettings);
     }
     else {
       myConfigurable.getRepoManager()
-        .load(0, ImmutableList.of(myLocalUpdater), null, null,
+        .load(0, myLocalUpdater, null, null,
               progressRunner, null, mySettings);
     }
   }

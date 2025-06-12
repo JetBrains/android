@@ -30,19 +30,17 @@ import java.awt.RenderingHints
 /**
  * The animation line in [TimelinePanel].
  *
- * @param offsetPx offset in px made in inspector temporary by user
  * @param minX left position of the line - center of the left circle.
  * @param maxX right position of the line - center of the right circle.
  * @param rowMinY minimum y when row with animation line start.
  * @param positionProxy [PositionProxy] for the slider. @
  */
 class TimelineLine(
-  offsetPx: Int,
   frozenState: SupportedAnimationManager.FrozenState,
   minX: Int,
   maxX: Int,
   rowMinY: Int,
-) : TimelineElement(offsetPx, frozenState, minX, maxX) {
+) : TimelineElement(frozenState, minX, maxX) {
 
   /** Middle of the row. */
   private val middleY = rowMinY + timelineLineRowHeightScaled() / 2
@@ -58,7 +56,7 @@ class TimelineLine(
   override var height: Int = InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
   override fun contains(x: Int, y: Int): Boolean {
-    return x in rectNoOffset.x + offsetPx..rectNoOffset.maxX.toInt() + offsetPx &&
+    return x in rectNoOffset.x + 0..rectNoOffset.maxX.toInt() &&
       y in rectNoOffset.y..rectNoOffset.maxY.toInt()
   }
 
@@ -68,43 +66,11 @@ class TimelineLine(
   override fun paint(g: Graphics2D) {
     (g.create() as Graphics2D).apply {
       setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-      if (offsetPx != 0) {
-        color = InspectorColors.LINE_COLOR
-        stroke = InspectorLayout.dashedStroke
-        drawRoundRect(
-          rectNoOffset.x,
-          rectNoOffset.y + outlinePaddingScaled(),
-          rectNoOffset.width,
-          rectNoOffset.height - 2 * outlinePaddingScaled(),
-          lineHeightScaled() + 2 * outlinePaddingScaled(),
-          lineHeightScaled() + 2 * outlinePaddingScaled(),
-        )
-        stroke = InspectorLayout.simpleStroke
-      }
-      val yOffset = if (status == TimelineElementStatus.Dragged) -2 else 0
-      val rect =
-        Rectangle(
-          rectNoOffset.x + offsetPx,
-          rectNoOffset.y + yOffset,
-          rectNoOffset.width,
-          rectNoOffset.height,
-        )
-      if (status == TimelineElementStatus.Dragged || status == TimelineElementStatus.Hovered) {
-        color = InspectorColors.LINE_OUTLINE_COLOR_ACTIVE
-        stroke = InspectorLayout.simpleStroke
-        drawRoundRect(
-          rect.x - outlinePaddingScaled(),
-          rect.y - outlinePaddingScaled(),
-          rect.width + 2 * outlinePaddingScaled(),
-          rect.height + 2 * outlinePaddingScaled(),
-          lineHeightScaled() + 2 * outlinePaddingScaled(),
-          lineHeightScaled() + 2 * outlinePaddingScaled(),
-        )
-      }
+      val rect = Rectangle(rectNoOffset.x, rectNoOffset.y, rectNoOffset.width, rectNoOffset.height)
       color = InspectorColors.LINE_COLOR
       fillRoundRect(rect.x, rect.y, rect.width, rect.height, lineHeightScaled(), lineHeightScaled())
-      paintCircle(this, minX + offsetPx, middleY + yOffset)
-      paintCircle(this, maxX + offsetPx, middleY + yOffset)
+      paintCircle(this, minX, middleY)
+      paintCircle(this, maxX, middleY)
     }
   }
 

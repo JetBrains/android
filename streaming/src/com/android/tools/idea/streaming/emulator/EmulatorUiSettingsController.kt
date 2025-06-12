@@ -98,9 +98,7 @@ internal const val FACTORY_RESET_COMMAND_FOR_WEAR =
   "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
   "settings put system font_scale 1; " +
   "setprop debug.layout false; " +
-  "service call activity $SYSPROPS_TRANSACTION; " +
-  "cmd overlay enable $GESTURES_OVERLAY; " +
-  "cmd overlay disable $THREE_BUTTON_OVERLAY; " // Parameters: applicationId
+  "service call activity $SYSPROPS_TRANSACTION; "  // Parameters: applicationId
 
 internal const val FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO =
   "cmd uimode night no; " +
@@ -109,9 +107,7 @@ internal const val FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO =
   "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
   "settings put system font_scale 1; " +
   "setprop debug.layout false; " +
-  "service call activity $SYSPROPS_TRANSACTION; " +
-  "cmd overlay enable $GESTURES_OVERLAY; " +
-  "cmd overlay disable $THREE_BUTTON_OVERLAY; " // Parameters: applicationId
+  "service call activity $SYSPROPS_TRANSACTION; " // Parameters: applicationId
 
 internal const val FACTORY_RESET_COMMAND =
   "cmd uimode night no; " +
@@ -392,14 +388,15 @@ internal class EmulatorUiSettingsController(
 
   private fun updateResetButton() {
     var isDefault = lastLocaleTag.isEmpty() && !lastTalkBack && lastFontScale == FontScale.NORMAL.percent &&
-                    !lastDebugLayout && lastGestureNavigation
+                    !lastDebugLayout
     val extraChecks = when (deviceType) {
       DeviceType.WEAR -> true
       DeviceType.TV,
       DeviceType.AUTOMOTIVE -> !lastDarkMode
       else -> !lastDarkMode &&
               !lastSelectToSpeak &&
-              lastDensity == readPhysicalDensity
+              lastDensity == readPhysicalDensity &&
+              lastGestureNavigation
     }
     isDefault = isDefault && extraChecks
     model.differentFromDefault.setFromController(!isDefault)

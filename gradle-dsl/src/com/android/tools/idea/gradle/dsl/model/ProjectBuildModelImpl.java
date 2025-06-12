@@ -240,7 +240,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   public @NotNull GradleVersionCatalogsModel getVersionCatalogsModel() {
     Collection<GradleVersionCatalogFile> files;
     files = getContext().getVersionCatalogFiles();
-    return new GradleVersionCatalogsModelImpl(files);
+    return new GradleVersionCatalogsModelImpl(files, myBuildModelContext);
   }
 
   private void runOverProjectTree(@NotNull Consumer<GradleDslFile> func) {

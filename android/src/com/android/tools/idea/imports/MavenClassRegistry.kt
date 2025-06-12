@@ -17,9 +17,14 @@ package com.android.tools.idea.imports
 
 import com.android.tools.idea.imports.MavenClassRegistry.LibraryImportData
 import com.android.tools.idea.projectsystem.DependencyType
+import com.android.tools.idea.projectsystem.DependencyType.ANNOTATION_PROCESSOR
+import com.android.tools.idea.projectsystem.DependencyType.DEBUG_IMPLEMENTATION
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.google.gson.stream.JsonReader
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.module.Module
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -27,6 +32,9 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.name.FqName
+
+private val KOTLIN_ARTIFACT_PLATFORM_SUFFIXES =
+  Regex("-(android|desktop|jvmstubs|linuxx64stubs)$", RegexOption.IGNORE_CASE)
 
 /**
  * Registry contains [lookup] extracted by reading indices from [GMavenIndexRepository].
@@ -51,8 +59,9 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     receiverType: String?,
     useAndroidX: Boolean,
     completionFileType: FileType?,
+    module: Module,
   ): Collection<LibraryImportData> =
-    findLibraryDataInternal(name, receiverType, false, useAndroidX, completionFileType)
+    findLibraryDataInternal(name, receiverType, false, useAndroidX, completionFileType, module)
 
   /**
    * Given an unresolved name, returns the likely collection of [LibraryImportData] objects for the
@@ -66,8 +75,9 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     name: String,
     useAndroidX: Boolean,
     completionFileType: FileType?,
+    module: Module,
   ): Collection<LibraryImportData> =
-    findLibraryDataInternal(name, null, true, useAndroidX, completionFileType)
+    findLibraryDataInternal(name, null, true, useAndroidX, completionFileType, module)
 
   private fun findLibraryDataInternal(
     name: String,
@@ -75,6 +85,7 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     anyReceiver: Boolean,
     useAndroidX: Boolean,
     completionFileType: FileType?,
+    module: Module,
   ): Collection<LibraryImportData> {
     // We only support projects that set android.useAndroidX=true.
     if (!useAndroidX) return emptyList()
@@ -82,18 +93,37 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     val shortName = name.substringAfterLast('.', missingDelimiterValue = name)
     val packageName = name.substringBeforeLast('.', missingDelimiterValue = "")
 
-    val foundArtifacts = buildList {
-      if (anyReceiver || receiverType == null) lookup.classNameMap[shortName]?.let { addAll(it) }
-      // Only suggest top-level Kotlin functions when completing in a Kotlin file.
-      if (completionFileType == KotlinFileType.INSTANCE) {
-        if (anyReceiver) {
-          lookup.topLevelFunctionsMapAllReceivers[shortName]?.let { addAll(it) }
-        } else {
-          val functionSpecifier = FunctionSpecifier(shortName, receiverType?.let(::FqName))
-          lookup.topLevelFunctionsMap[functionSpecifier]?.let { addAll(it) }
+    val shouldMap =
+      module.project
+        .getProjectSystem()
+        .getTokenOrNull(AndroidMavenImportToken.EP_NAME)
+        ?.shouldMapKmpArtifacts(module) ?: false
+
+    val foundArtifacts =
+      buildList {
+          if (anyReceiver || receiverType == null)
+            lookup.classNameMap[shortName]?.let { addAll(it) }
+          // Only suggest top-level Kotlin functions when completing in a Kotlin file.
+          if (completionFileType == KotlinFileType.INSTANCE) {
+            if (anyReceiver) {
+              lookup.topLevelFunctionsMapAllReceivers[shortName]?.let { addAll(it) }
+            } else {
+              val functionSpecifier = FunctionSpecifier(shortName, receiverType?.let(::FqName))
+              lookup.topLevelFunctionsMap[functionSpecifier]?.let { addAll(it) }
+            }
+          }
         }
-      }
-    }
+        .mapNotNull { data ->
+          if (shouldMap && data.artifact in lookup.kmpArtifactMap) {
+            // If the artifact is in the map, then we either replace it or drop it.
+            val baseArtifact = lookup.kmpArtifactMap[data.artifact]
+            baseArtifact?.let { data.copy(artifact = it) }
+          } else {
+            // For artifacts not in the map, just use the existing data.
+            data
+          }
+        }
+        .distinct()
 
     if (packageName.isEmpty()) return foundArtifacts
 
@@ -158,17 +188,6 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
       return MavenClassRegistry(lookup)
     }
 
-    /** For the given runtime artifact, if it also requires an annotation processor, provide it. */
-    fun findAnnotationProcessor(artifact: String): String? {
-      return when (artifact) {
-        "androidx.room:room-runtime",
-        "android.arch.persistence.room:runtime" -> "android.arch.persistence.room:compiler"
-        "androidx.remotecallback:remotecallback" ->
-          "androidx.remotecallback:remotecallback-processor"
-        else -> null
-      }
-    }
-
     /**
      * For the given artifact, if it also requires extra artifacts for proper functionality, provide
      * it.
@@ -181,8 +200,13 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
      */
     fun findExtraArtifacts(artifact: String): Map<String, DependencyType> {
       return when (artifact) {
+        "androidx.room:room-runtime",
+        "android.arch.persistence.room:runtime" ->
+          mapOf("android.arch.persistence.room:compiler" to ANNOTATION_PROCESSOR)
+        "androidx.remotecallback:remotecallback" ->
+          mapOf("androidx.remotecallback:remotecallback-processor" to ANNOTATION_PROCESSOR)
         "androidx.compose.ui:ui-tooling-preview" ->
-          mapOf("androidx.compose.ui:ui-tooling" to DependencyType.DEBUG_IMPLEMENTATION)
+          mapOf("androidx.compose.ui:ui-tooling" to DEBUG_IMPLEMENTATION)
         else -> emptyMap()
       }
     }
@@ -220,10 +244,12 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
         mutableListOf()
       val ktxMap: MutableMap<String, String> = mutableMapOf()
       val coordinateList: MutableList<Coordinate> = mutableListOf()
+      val allIndexData: MutableList<GMavenArtifactIndex> = mutableListOf()
 
       reader.beginArray()
       while (reader.hasNext()) {
         val indexData = readGMavenIndex(reader)
+        allIndexData.add(indexData)
 
         // Get class names and their associated libraries.
         classNames.addAll(indexData.getClassSimpleNamesWithLibraries())
@@ -242,7 +268,34 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
       val classNameMap = classNames.groupBy({ it.first }, { it.second })
       val topLevelFunctionsMap = topLevelFunctions.groupBy({ it.first }, { it.second })
 
-      return LookupData(classNameMap, topLevelFunctionsMap, ktxMap, coordinateList)
+      val kmpArtifactMap = allIndexData.toKmpArtifactMap()
+      return LookupData(classNameMap, topLevelFunctionsMap, ktxMap, kmpArtifactMap, coordinateList)
+    }
+
+    private fun List<GMavenArtifactIndex>.toKmpArtifactMap(): Map<String, String?> {
+      val artifactToVersionMap = this.associate { "${it.groupId}:${it.artifactId}" to it.version }
+
+      val candidateArtifacts =
+        artifactToVersionMap.keys.filter { KOTLIN_ARTIFACT_PLATFORM_SUFFIXES.containsMatchIn(it) }
+
+      return buildMap {
+        for (candidateArtifact in candidateArtifacts) {
+          val candidateVersion = requireNotNull(artifactToVersionMap[candidateArtifact])
+          val baseArtifact = candidateArtifact.substringBeforeLast('-')
+
+          // Only do a replacement if the base artifact exists in some form.
+          if (baseArtifact in artifactToVersionMap) {
+            if (candidateVersion == artifactToVersionMap[baseArtifact]) {
+              // When the versions match, we want to do a replacement.
+              put(candidateArtifact, baseArtifact)
+            } else {
+              // When the versions don't match, we want to drop the platform-specific
+              // recommendation.
+              put(candidateArtifact, null)
+            }
+          }
+        }
+      }
     }
 
     @Throws(IOException::class)
@@ -379,9 +432,14 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
     val topLevelFunctionsMap: Map<FunctionSpecifier, List<LibraryImportData>>,
     /** A map from non-KTX libraries to the associated KTX libraries. */
     val ktxMap: Map<String, String>,
-
-    /** A list of Google Maven [MavenClassRegistry.Coordinate]. */
-    val coordinateList: List<MavenClassRegistry.Coordinate>,
+    /**
+     * A map from platform-specific artifacts to general artifacts, eg
+     * "androidx.compose.ui:ui-android" to "androidx.compose.ui:ui". If the value is null, then the
+     * artifact shouldn't be used for KMP purposes.
+     */
+    val kmpArtifactMap: Map<String, String?>,
+    /** A list of Google Maven [Coordinate]. */
+    val coordinateList: List<Coordinate>,
   ) {
     /**
      * A map from simple names (irrespective of receiver) to corresponding [LibraryImportData]
@@ -393,7 +451,7 @@ class MavenClassRegistry private constructor(@VisibleForTesting internal val loo
       }
 
     companion object {
-      @JvmStatic val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyList())
+      @JvmStatic val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyMap(), emptyList())
     }
   }
 }

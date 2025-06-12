@@ -2782,6 +2782,8 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains:annotations:13.0
             commonTest
                 - dependency                  : :module2::module2/commonMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
             jvmMain
                 - dependency                  : :module2::module2/commonMain
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>

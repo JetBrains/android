@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.preview.animation
 
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
-import com.android.tools.idea.preview.animation.timeline.TimelineElementStatus
-import com.android.tools.idea.res.clamp
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBSlider
 import com.intellij.util.ui.JBEmptyBorder
@@ -195,12 +192,6 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   /** List of elements to display. */
   var elements: List<TimelineElement> = listOf()
 
-  /** Element currently hovered or dragged. */
-  var activeElement: TimelineElement? = null
-    private set(value) {
-      field = if (COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) value else null
-    }
-
   private fun moreThanOneTimelineElementInPanel() = elements.size > 1
 
   open fun paintElements(g: Graphics2D) {
@@ -346,78 +337,33 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
     private val tooltipAdapter = timeline.tooltip.adapter
 
-    private var isDragging = false
-
-    private var dragStartXPoint = 0
-
     override fun mousePressed(e: MouseEvent) {
       // We override the parent class behavior completely because it executes more operations than
-      // we need, being less performant than
-      // this method. Since it recalculates the geometry of all components, the resulting UI on
-      // mouse press is not what we aim for.
+      // we need, being less performant than this method. Since it recalculates the geometry of all
+      // components, the resulting UI on mouse press is not what we aim for.
       currentMouseX = e.x
-      slider.parent
-        ?.requestFocus() // Request focus to the timeline, so the selected tab actually gets the
-      // focus
-      dragStartXPoint = e.x
-      activeElement?.status = TimelineElementStatus.Dragged
-      if (activeElement == null) updateThumbLocationAndSliderValue()
+      // Request focus to the timeline, so the selected tab actually gets the focus
+      slider.parent?.requestFocus()
+      updateThumbLocationAndSliderValue()
     }
 
     override fun mouseDragged(e: MouseEvent) {
       super.mouseDragged(e)
       tooltipAdapter.mouseDragged(e)
-      val draggedElement = activeElement
-      if (draggedElement?.status == TimelineElementStatus.Dragged) {
-        val deltaPx = e.x - dragStartXPoint
-        /**
-         * Forces the final newOffsetPx value to respect at least one of the boundaries of timeline,
-         * preventing the element from moving entirely outside the allowed range.
-         */
-        val newOffsetPx =
-          clamp(
-            draggedElement.offsetPx + deltaPx,
-            timeline.sliderUI.positionProxy.minimumXPosition() - draggedElement.maxX,
-            timeline.sliderUI.positionProxy.maximumXPosition() - draggedElement.minX,
-          )
-        activeElement?.setNewOffset(newOffsetPx)
-        dragStartXPoint = e.x
-      } else {
-        updateThumbLocationAndSliderValue()
-      }
-      isDragging = true
+      updateThumbLocationAndSliderValue()
       updateTooltip(e)
       slider.repaint()
     }
 
     override fun mouseReleased(e: MouseEvent) {
       super.mouseReleased(e)
-      if (activeElement == null) {
-        if (isDragging) timeline.tracker.dragAnimationInspectorTimeline()
-        else timeline.tracker.clickAnimationInspectorTimeline()
-      } else {
-        if (isDragging) timeline.tracker.dragTimelineLine()
-        // TODO Add click event for timeline element.
-        else timeline.tracker.clickAnimationInspectorTimeline()
-      }
-
-      isDragging = false
-      if (activeElement?.status == TimelineElementStatus.Dragged) {
-        timeline.dragEndListeners.forEach { it() }
-      }
-      activeElement?.status = TimelineElementStatus.Inactive
-      activeElement = elements.firstOrNull { it.contains(e.point) }
-      activeElement?.status = TimelineElementStatus.Hovered
+      timeline.tracker.clickAnimationInspectorTimeline()
     }
 
     override fun mouseMoved(e: MouseEvent) {
       super.mouseMoved(e)
       tooltipAdapter.mouseMoved(e)
       slider.repaint()
-      if (isDragging) return
-      activeElement?.status = TimelineElementStatus.Inactive
-      activeElement = elements.firstOrNull { it.contains(e.point) }
-      activeElement?.status = TimelineElementStatus.Hovered
       updateTooltip(e)
     }
 

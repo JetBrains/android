@@ -6,7 +6,7 @@ aswb_library(
     srcs = glob(["*.java"]),
     visibility = [
         "//tools/adt/idea/aswb/querysync:__subpackages__",
-        "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__pkg__",
+        "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",
     ],
     deps = [
         ":artifact_tracker_state_java_proto",

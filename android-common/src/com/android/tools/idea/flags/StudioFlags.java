@@ -1044,7 +1044,7 @@ public final class StudioFlags {
     "Enables phased sync",
     "Enables the new sync mode where the models are streamed back to IDE as they become available in phases. These APIs also" +
     " allow direct interaction with the workspace model via new APIs",
-    enabledUpTo(DEV)
+    enabledUpTo(CANARY)
   );
 
   public static final Flag<Boolean> PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED = new BooleanFlag(
@@ -1055,7 +1055,7 @@ public final class StudioFlags {
     "populated by the data services. To enable this a 'bridge data service' is used to completely remove entities set up by phased sync. " +
     "However we've done extensive feasibility work to make sure we don't actually need this replacement behaviour, meaning we can disable " +
     "this behaviour completely. This flag is a fail-safe to make sure we can switch this behaviour back to platform's default, if needed.",
-    enabledUpTo(DEV)
+    enabledUpTo(CANARY)
   );
   //endregion
 
@@ -1116,7 +1116,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.recomposition.parent.counts", "Enable or disable recomposition parent counts",
     "When this flag is enabled, the max recomposition count among the children of a node is displayed in a separate column.",
-    enabledUpTo(CANARY));
+    true);
 
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.xr.inspection", "Enable or disable support for XR inspection",
@@ -1548,6 +1548,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> LIVE_EDIT_COMPACT_STATUS_BUTTON = new BooleanFlag(
+    COMPOSE, "deploy.live.edit.compact.status.button",
+    "LiveEdit: Use a Single Button to Display Live Edit Status in the Toolbar of the Running Devices Window",
+    "If enabled, no status text will be displayed in the toolbar of the Running Devices window",
+    enabledUpTo(CANARY)
+  );
+
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = new BooleanFlag(
     COMPOSE, "preview.debug.bounds",
     "Enable the debug bounds switch controls",
@@ -1567,13 +1574,6 @@ public final class StudioFlags {
     "Interactive Preview FPS limit",
     "Controls the maximum number of frames per second in Compose Interactive Preview",
     30
-  );
-
-  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG = new BooleanFlag(
-    COMPOSE, "preview.animation.coordination.drag",
-    "Enable animation dragging in timeline for Animation Inspector",
-    "If enabled, animation dragging will be available in Animation Inspector timeline.",
-    false
   );
 
   public static final Flag<Boolean> COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE = new BooleanFlag(
@@ -2242,9 +2242,9 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
-                    "Enable Scroll to Bottom button",
-                    "When enabled, the chat will show a Scroll to Bottom button as needed.",
-                    enabledUpTo(CANARY));
+                    "Enable AutoScroll Button",
+                    "When enabled, the chat will show a button on the timeline to toggle auto-scrolling.",
+                    enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_RESPONSE_CANCELLATION_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.response.cancellation.enabled",

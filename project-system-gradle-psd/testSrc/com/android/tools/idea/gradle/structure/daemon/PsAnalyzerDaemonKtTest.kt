@@ -75,20 +75,14 @@ class PsAnalyzerDaemonKtTest {
       private const val MESSAGE_CRITICAL_BLOCKING_WITH_NOTE = "$MESSAGE_CRITICAL_BLOCKING.<br/>\n" +
                                                               "<br/>\n" +
                                                               "<b>Note:</b> More information at <a href=\"http://www.google.com\">http://www.google.com</a>"
-      private const val MESSAGE_POLICY_USER = "test-group:test-artifact version test-version has User<br/>\n" +
-                                              "Data policy issues that will block publishing of your<br/>\n" +
-                                              "app to Play Console in the future"
-      private const val MESSAGE_POLICY_USER_BLOCKING = "<b>[Prevents app release in Google Play Console]</b><br/>\n" +
-                                                       "test-group:test-artifact version test-version has User<br/>\n" +
-                                                       "Data policy issues that will block publishing of your<br/>\n" +
-                                                       "app to Play Console"
-      private const val MESSAGE_POLICY_PERMISSIONS = "test-group:test-artifact version test-version has<br/>\n" +
-                                                     "Permissions policy issues that will block publishing of<br/>\n" +
-                                                     "your app to Play Console in the future"
-      private const val MESSAGE_POLICY_PERMISSIONS_BLOCKING = "<b>[Prevents app release in Google Play Console]</b><br/>\n" +
-                                                              "test-group:test-artifact version test-version has<br/>\n" +
-                                                              "Permissions policy issues that will block publishing of<br/>\n" +
-                                                              "your app to Play Console"
+      private const val MESSAGE_POLICY_USER_PERMISSIONS = "test-group:test-artifact version test-version has<br/>\n" +
+                                              "Permissions policy, User Data policy issues that will<br/>\n" +
+                                              "block publishing of your app to Play Console in the<br/>\n" +
+                                              "future"
+      private const val MESSAGE_POLICY_USER_PERMISSIONS_BLOCKING = "<b>[Prevents app release in Google Play Console]</b><br/>\n" +
+                                                       "test-group:test-artifact version test-version has<br/>\n" +
+                                                       "Permissions policy, User Data policy issues that will<br/>\n" +
+                                                       "block publishing of your app to Play Console"
       private const val MESSAGE_VULNERABILITY = "test-group:test-artifact version test-version has<br/>\n" +
                                                 "unspecified vulnerability issues."
       private const val MESSAGE_VULNERABILITY_BLOCKING = "test-group:test-artifact version test-version has<br/>\n" +
@@ -136,7 +130,7 @@ class PsAnalyzerDaemonKtTest {
         // Four types (without notes)
         arrayOf(false, true, true, true, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY, MESSAGE_VULNERABILITY, MESSAGE_OUTDATED, MESSAGE_CRITICAL)),
         // Two policies
-        arrayOf(false, true, false, false, true, false, false, listOf(SdkPolicy.SDK_POLICY_USER_DATA, SdkPolicy.SDK_POLICY_PERMISSIONS), listOf(MESSAGE_POLICY_USER, MESSAGE_POLICY_PERMISSIONS)),
+        arrayOf(false, true, false, false, true, false, false, listOf(SdkPolicy.SDK_POLICY_USER_DATA, SdkPolicy.SDK_POLICY_PERMISSIONS), listOf(MESSAGE_POLICY_USER_PERMISSIONS)),
         // All types (including deprecated)
         arrayOf(false, true, true, true, true, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_DEPRECATED, MESSAGE_POLICY, MESSAGE_VULNERABILITY, MESSAGE_OUTDATED, MESSAGE_CRITICAL_WITH_NOTE)),
         // Policy BLOCKING
@@ -162,7 +156,7 @@ class PsAnalyzerDaemonKtTest {
         // Four types BLOCKING (without notes)
         arrayOf(true, true, true, true, false, true, false, emptyList<SdkPolicy>(), listOf(MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING, MESSAGE_VULNERABILITY_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
         // Two policies BLOCKING
-        arrayOf(true, true, false, false, true, false, false, listOf(SdkPolicy.SDK_POLICY_USER_DATA, SdkPolicy.SDK_POLICY_PERMISSIONS), listOf(MESSAGE_POLICY_USER_BLOCKING, MESSAGE_POLICY_PERMISSIONS_BLOCKING)),
+        arrayOf(true, true, false, false, true, false, false, listOf(SdkPolicy.SDK_POLICY_USER_DATA, SdkPolicy.SDK_POLICY_PERMISSIONS), listOf(MESSAGE_POLICY_USER_PERMISSIONS_BLOCKING)),
         // All types (including deprecated) BLOCKING
         arrayOf(true, true, true, true, true, true, true, emptyList<SdkPolicy>(), listOf(MESSAGE_DEPRECATED, MESSAGE_POLICY_BLOCKING, MESSAGE_CRITICAL_BLOCKING_WITH_NOTE, MESSAGE_VULNERABILITY_BLOCKING, MESSAGE_OUTDATED_BLOCKING)),
       )

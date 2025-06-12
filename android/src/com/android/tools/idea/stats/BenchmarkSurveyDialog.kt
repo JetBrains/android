@@ -18,12 +18,11 @@ package com.android.tools.idea.stats
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBDimension
-import com.intellij.util.ui.JBUI
 import java.awt.Font
+import javax.swing.LayoutStyle
 import javax.swing.GroupLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.LayoutStyle
 
 private const val TITLE = "Take the Android Studio Survey"
 private const val TEXT_1 = "Help us improve Android Studio by taking a survey."
@@ -36,7 +35,7 @@ class BenchmarkSurveyDialog()
   : DialogWrapper(null) {
 
   private val panel = JPanel().apply {
-    preferredSize = JBDimension(100, 200)
+    preferredSize = JBDimension(300, 200)
   }
 
   init {
@@ -52,13 +51,14 @@ class BenchmarkSurveyDialog()
     val label2 = JBLabel(TEXT_2)
     val label3 = JBLabel(TEXT_3)
 
-    val groupLayout = GroupLayout(panel)
+    val groupLayout = GroupLayout(panel).apply {
+      autoCreateContainerGaps = true;
+    }
 
     val vGroup = groupLayout.createSequentialGroup()
       .addComponent(label1)
       .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
       .addComponent(label2)
-      .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
       .addComponent(label3)
     groupLayout.setVerticalGroup(vGroup)
 
@@ -81,8 +81,4 @@ class BenchmarkSurveyDialog()
   }
 
   override fun createCenterPanel(): JComponent = panel
-
-  override fun doOKAction() {
-    super.doOKAction()
-  }
 }

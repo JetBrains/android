@@ -141,13 +141,6 @@ public final class AspectSyncProjectData implements BlazeProjectData {
         com.google.idea.blaze.common.Label.of(targetInfo.label.toString()), targetInfo.kindString);
   }
 
-  @Override
-  public ImmutableList<Label> targets() {
-    return getTargetMap().targets().stream()
-        .map(it -> it.getKey().getLabel())
-        .collect(ImmutableList.toImmutableList());
-  }
-
   public ProjectTargetData getTargetData() {
     return targetData;
   }

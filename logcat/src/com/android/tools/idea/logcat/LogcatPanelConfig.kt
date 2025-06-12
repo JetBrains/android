@@ -48,6 +48,7 @@ internal data class LogcatPanelConfig(
   val filter: String,
   val filterMatchCase: Boolean,
   val isSoftWrap: Boolean,
+  val proguardFile: String?,
 ) {
 
   /**

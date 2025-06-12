@@ -237,8 +237,7 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     myJourneyScreenshotsTab.isHidden = journeyActionArtifacts.isEmpty()
 
     if (journeyActionArtifacts.isNotEmpty()) {
-      myDeviceInfoTab.isHidden = true
-      this.lastSelectedTab = myJourneyScreenshotsTab
+      tabs.select(myJourneyScreenshotsTab, false)
     }
   }
 

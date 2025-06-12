@@ -401,6 +401,35 @@ class GradleModuleSystem(
       }
   }
 
+  data class DependencyCompatibilityResult(
+    val compatible: List<Component>,
+    val incompatible: List<Dependency>,
+    val warning: String
+  )
+
+  @JvmName("analyzeGradleDependencyCompatibility")
+  fun analyzeDependencyCompatibility(dependencies: List<Dependency>): ListenableFuture<DependencyCompatibilityResult> {
+    return dependencyCompatibility.analyzeDependencyCompatibility(dependencies)
+      .transform(MoreExecutors.directExecutor()) { result ->
+        DependencyCompatibilityResult(
+          compatible = result.first,
+          incompatible = result.second,
+          warning = result.third
+        )
+      }
+  }
+
+  fun analyzeComponentCompatibility(components: List<Component>): ListenableFuture<DependencyCompatibilityResult> {
+    return dependencyCompatibility.analyzeComponentCompatibility(components)
+      .transform(MoreExecutors.directExecutor()) { result ->
+        DependencyCompatibilityResult(
+          compatible = result.first,
+          incompatible = result.second,
+          warning = result.third
+        )
+      }
+  }
+
   override fun getManifestOverrides(): ManifestOverrides {
     val facet = AndroidFacet.getInstance(module)
     val androidModel = facet?.let(GradleAndroidModel::get) ?: return ManifestOverrides()
@@ -502,7 +531,7 @@ class GradleModuleSystem(
       ScopeType.MAIN -> mainModule?.getModuleWithDependenciesAndLibrariesScope(false)
       ScopeType.UNIT_TEST -> unitTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.ANDROID_TEST -> androidTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
-      ScopeType.TEST_FIXTURES -> fixturesModule?.getModuleWithDependenciesAndLibrariesScope(false)
+      ScopeType.TEST_FIXTURES -> fixturesModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.SCREENSHOT_TEST -> screenshotTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
     } ?: GlobalSearchScope.EMPTY_SCOPE
   }

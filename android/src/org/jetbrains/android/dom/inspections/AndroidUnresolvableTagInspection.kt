@@ -6,7 +6,6 @@ import com.android.SdkConstants.VIEW_MERGE
 import com.android.SdkConstants.VIEW_TAG
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.imports.MavenClassRegistryManager
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemDescriptor
@@ -54,11 +53,9 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
       return ProblemDescriptor.EMPTY_ARRAY
     }
     val facet = AndroidFacet.getInstance(file) ?: return ProblemDescriptor.EMPTY_ARRAY
-    if (!facet.module.getModuleSystem().canRegisterDependency().isSupported())
-      return ProblemDescriptor.EMPTY_ARRAY
 
     if (isRelevantFile(facet, file)) {
-      val visitor = MyVisitor(manager, isOnTheFly)
+      val visitor = MyVisitor(manager, isOnTheFly, facet)
       file.accept(visitor)
       return visitor.myResult.toTypedArray()
     }
@@ -76,6 +73,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
   private class MyVisitor(
     private val myInspectionManager: InspectionManager,
     private val myOnTheFly: Boolean,
+    private val facet: AndroidFacet,
   ) : XmlRecursiveElementVisitor() {
     val myResult: MutableList<ProblemDescriptor> = ArrayList()
 
@@ -98,6 +96,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
             ?.collectFixesFromMavenClassRegistry(
               className,
               tag.project,
+              facet.module,
               tag.containingFile?.fileType,
             ) ?: emptyList()
         getTagNameRange(tag)?.let {

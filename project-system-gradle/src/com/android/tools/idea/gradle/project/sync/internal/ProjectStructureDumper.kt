@@ -55,6 +55,7 @@ import com.intellij.openapi.roots.InheritedJdkOrderEntry
 import com.intellij.openapi.roots.JavadocOrderRootType
 import com.intellij.openapi.roots.JdkOrderEntry
 import com.intellij.openapi.roots.LibraryOrderEntry
+import com.intellij.openapi.roots.ModuleOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleRootModel
 import com.intellij.openapi.roots.OrderEntry
@@ -174,10 +175,7 @@ fun ProjectDumper.dump(module: Module) {
         }
       }
     }
-
-    if (!ignoreTasks) {
-      dumpTasks{ arrayOf(module) }
-    }
+    dumpTasks{ arrayOf(module) }
   }
 }
 
@@ -264,6 +262,9 @@ private fun ProjectDumper.dump(orderEntry: OrderEntry) {
         nest {
           prop("Scope") { exportable.scope.takeIf { it != COMPILE }?.toString() }
           prop("IsExported") { exportable.isExported.takeIf { it }?.toString() }
+          if (exportable is ModuleOrderEntry){
+            exportable.isProductionOnTestDependency.also {  if (it == true) { prop("isProductionOnTestDependency") {it.toString()} } }
+          }
         }
       }
     }

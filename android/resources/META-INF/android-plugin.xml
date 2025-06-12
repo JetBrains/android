@@ -741,6 +741,8 @@
                     interface="com.android.tools.idea.res.ResourceClassToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.manifest.manifestClassToken"
                     interface="com.android.tools.idea.manifest.ManifestClassToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.imports.androidMavenImportToken"
+                    interface="com.android.tools.idea.imports.AndroidMavenImportToken"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.project">

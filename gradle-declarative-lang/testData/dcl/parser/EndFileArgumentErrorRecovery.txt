@@ -14,7 +14,7 @@ FILE
         PsiElement(ARGUMENT)
           PsiElement(LITERAL)
             PsiElement(DeclarativeTokenType.one_line_string_literal)('"a"')
-      PsiWhiteSpace(' ')
-      PsiErrorElement:DeclarativeTokenType.), DeclarativeTokenType., or DeclarativeTokenType.to expected, got 't'
-        PsiElement(DeclarativeTokenType.token)('t')
+        PsiWhiteSpace(' ')
+        PsiErrorElement:DeclarativeTokenType.to expected, got 't'
+          PsiElement(DeclarativeTokenType.token)('t')
       PsiElement(DeclarativeTokenType.))(')')

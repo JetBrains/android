@@ -43,7 +43,6 @@ class AndroidMavenImportFix(
     AndroidMavenImportIntentionAction.doImportSuggestion(
       project,
       element,
-      registry,
       artifact,
       version,
       importSymbol = null,

@@ -36,9 +36,9 @@ Building the ASwB plugin from this project requires some changes to the cloned r
     repo forall -c git checkout {{release_branch}}
     ```
 
-3. Modify `tools/adt/idea/aswb/platforms.bzl.OSS` to download the required version of Android Studio platform.
+3. Modify `tools/adt/idea/aswb/intellij.MODULE.bazel.OSS` to download the required version of Android Studio platform.
 
-4. Copy `tools/adt/idea/aswb/platforms.bzl.OSS` to `tools/base/intellij-bazel/platforms.bzl` to be picked up by the WORKSPACE.
+4. Copy `tools/adt/idea/aswb/intellij.MODULE.bazel.OSS` to `tools/base/intellij-bazel/intellij.MODULE.bazel` to configure the IntelliJ module.
 
 5. Create directory `tools/vendor/google/aswb/plugin_api` and copy `tools/adt/idea/aswb/plugin_api/BUILD.OSS` to `tools/vendor/google/aswb/plugin_api/BUILD` to set up the plugin API targets that the ASwB plugin depends on.
 

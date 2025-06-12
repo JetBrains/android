@@ -38,8 +38,6 @@ object InspectorColors {
   /** Outline color of the line's circle. */
   val LINE_CIRCLE_OUTLINE_COLOR = JBColor(Color.white, JBColor.background())
 
-  val LINE_OUTLINE_COLOR_ACTIVE: Color = UIUtil.getTreeSelectionBorderColor()
-
   /** List of colors for graphs. */
   val GRAPH_COLORS =
     arrayListOf(
@@ -79,9 +77,6 @@ object InspectorColors {
   /** Color of the ticks for the timeline. */
   val TIMELINE_FROZEN_TICK_COLOR =
     if (isNewUI) JBColor.background() else JBColor(Gray._223, Gray._50)
-
-  /** Color of the horizontal ticks for the timeline. */
-  val TIMELINE_HORIZONTAL_TICK_COLOR = JBColor.border()
 
   /** Color of the vertical line showing the freeze position. */
   val FREEZE_LINE_COLOR = JBColor(Gray._176, Gray._176)

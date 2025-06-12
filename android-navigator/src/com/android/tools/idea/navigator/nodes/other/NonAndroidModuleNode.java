@@ -25,6 +25,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -74,7 +75,12 @@ public class NonAndroidModuleNode extends AndroidViewModuleNode {
               || ModuleUtilCore.moduleContainsFile(module, file.getFile(), false)) {
             PsiFile psiFile = psiManager.findFile(file.getFile());
             if (psiFile != null && (!showInProjectBuildScriptsGroup(psiFile))) {
-              nodes.add(new AndroidBuildScriptNode(myProject, psiFile, getSettings(), file.getDisplayName(), file.getGroupOrder()));
+              String qualifier = file.getDisplayName();
+              if (file.getFile().getFileType() == FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")) {
+                // Do not add "(Proguard Rules for 'module')" hint text when proguard file is shown in module
+                qualifier = null;
+              }
+              nodes.add(new AndroidBuildScriptNode(myProject, psiFile, getSettings(), qualifier, file.getGroupOrder()));
             }
           }
         }

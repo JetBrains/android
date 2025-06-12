@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.backup
 
+import com.android.tools.idea.util.absoluteInProject
+import com.android.tools.idea.util.relativeToProject
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 import java.nio.file.Path

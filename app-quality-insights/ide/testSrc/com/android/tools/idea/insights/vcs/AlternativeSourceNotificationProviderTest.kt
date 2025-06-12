@@ -26,7 +26,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.ui.flatten
 import com.google.common.truth.Truth.assertThat
-import com.intellij.diff.editor.DiffRequestProcessorEditor
+import com.intellij.diff.editor.DiffEditorViewerFileEditor
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
@@ -272,8 +272,8 @@ class AlternativeSourceNotificationProviderTest {
     project: Project,
     parentDisposable: Disposable,
   ): FileEditor {
-    val processor = createProcessor(project).apply { Disposer.register(parentDisposable, this) }
-    return DiffRequestProcessorEditor(this, processor).apply {
+    val processor = createViewer(project)
+    return DiffEditorViewerFileEditor(this, processor).apply {
       Disposer.register(parentDisposable, this)
     }
   }

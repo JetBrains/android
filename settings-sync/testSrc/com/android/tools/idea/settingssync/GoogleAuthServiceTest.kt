@@ -21,6 +21,7 @@ import com.android.tools.idea.settingssync.onboarding.feature
 import com.google.common.truth.Truth.assertThat
 import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.LoginUsersRule
+import com.google.gct.login2.UserInfoEnforcedFeature
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
 import com.intellij.settingsSync.core.SettingsSyncSettings
 import com.intellij.settingsSync.core.communicator.SettingsSyncUserData
@@ -33,6 +34,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 private const val TEST_EMAIL = "test_user@gmail.com"
+private val USER_INFO = UserInfoEnforcedFeature()
 
 class GoogleAuthServiceTest {
   private val applicationRule = ApplicationRule()
@@ -51,7 +53,7 @@ class GoogleAuthServiceTest {
   fun setUp() {
     ExtensionTestUtil.maskExtensions(
       LoginFeature.Companion.EP_NAME,
-      listOf(feature),
+      listOf(feature, USER_INFO),
       disposableRule.disposable,
       false,
     )
@@ -129,12 +131,12 @@ class GoogleAuthServiceTest {
   }
 
   @Test
-  fun `get available user accounts, list all feature logged-in users`() {
+  fun `get available user accounts, list all logged-in users`() {
     // Prepare
     SettingsSyncSettings.getInstance().syncEnabled = false
     SettingsSyncLocalSettings.getInstance().userId = null
     SettingsSyncLocalSettings.getInstance().providerCode = null
-    loginUsersRule.setActiveUser(TEST_EMAIL, features = listOf(feature))
+    loginUsersRule.setActiveUser(TEST_EMAIL, features = listOf(USER_INFO))
 
     // Action
     val users = GoogleAuthService().getAvailableUserAccounts()

@@ -2326,7 +2326,9 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
     - basicVariant:               : androidMain
         testApplicationId             : com.example.kmpfirstlib.test
     BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
-    DefaultSourceProvider
+    DefaultConfig
+        ProductFlavor
+            Name                          :
         SourceProvider
             Name                          : androidMain
             Manifest                      : <ROOT>/kmpFirstLib/src/androidMain/AndroidManifest.xml
@@ -2356,6 +2358,17 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/resources [-]
                     ResDirectories                : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/res [-]
                     AssetsDirectories             : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/assets [-]
+    BuildTypes
+        BuildType
+            Name                          :
+            IsDebuggable                  : true
+            IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : -1
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : false
+        SourceProvider
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -3041,7 +3054,9 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         GenerateManifestClass         : false
     - basicVariant:               : androidMain
     BootClassPath                 : <ANDROID_SDK>/platforms/android-34/android.jar
-    DefaultSourceProvider
+    DefaultConfig
+        ProductFlavor
+            Name                          :
         SourceProvider
             Name                          : androidMain
             Manifest                      : <ROOT>/kmpSecondLib/src/androidMain/AndroidManifest.xml [-]
@@ -3050,6 +3065,17 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
             ResDirectories                : <ROOT>/kmpSecondLib/src/androidMain/res [-]
             AssetsDirectories             : <ROOT>/kmpSecondLib/src/androidMain/assets [-]
         ExtraSourceProviders
+    BuildTypes
+        BuildType
+            Name                          :
+            IsDebuggable                  : true
+            IsJniDebuggable               : false
+            IsPseudoLocalesEnabled        : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : -1
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : false
+        SourceProvider
     SigningConfigs
     VariantBuildInformation
         VariantBuildInformation

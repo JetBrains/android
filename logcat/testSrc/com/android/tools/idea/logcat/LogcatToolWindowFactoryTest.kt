@@ -138,6 +138,7 @@ class LogcatToolWindowFactoryTest {
         "filter",
         filterMatchCase = true,
         isSoftWrap = false,
+        proguardFile = null,
       )
 
     val logcatMainPanel =

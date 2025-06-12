@@ -58,7 +58,6 @@ class TransitionCurveTest {
     val transition = Transition(mutableMapOf(0 to property, 1 to property))
     val transitionCurveOne =
       TransitionCurve.create(
-          0,
           SupportedAnimationManager.FrozenState(false),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
@@ -67,7 +66,6 @@ class TransitionCurveTest {
         .apply { Disposer.register(projectRule.testRootDisposable, this) }
     val transitionCurveTwo =
       TransitionCurve.create(
-          0,
           SupportedAnimationManager.FrozenState(false),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled() + transitionCurveOne.height,
@@ -108,7 +106,6 @@ class TransitionCurveTest {
     val transition = Transition(mutableMapOf(0 to property, 1 to null, 2 to property, 3 to null))
     val transitionCurve =
       TransitionCurve.create(
-          0,
           SupportedAnimationManager.FrozenState(false),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
@@ -132,7 +129,6 @@ class TransitionCurveTest {
     val transition = Transition(mutableMapOf(0 to property, 1 to property, 2 to property))
     val transitionCurve =
       TransitionCurve.create(
-          0,
           SupportedAnimationManager.FrozenState(false),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
@@ -161,7 +157,6 @@ class TransitionCurveTest {
     val transition = Transition(mutableMapOf(0 to property, 1 to property))
     val transitionCurve =
       TransitionCurve.create(
-          0,
           SupportedAnimationManager.FrozenState(false),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
@@ -193,7 +188,6 @@ class TransitionCurveTest {
     val transition = Transition(mutableMapOf(0 to property, 1 to property))
     val transitionCurve =
       TransitionCurve.create(
-          0,
           SupportedAnimationManager.FrozenState(false),
           transition = transition,
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
@@ -231,7 +225,6 @@ class TransitionCurveTest {
 
     val transitionCurve =
       TransitionCurve.create(
-          0,
           SupportedAnimationManager.FrozenState(false),
           transition = Transition(emptyMap()),
           rowMinY = InspectorLayout.timelineHeaderHeightScaled(),

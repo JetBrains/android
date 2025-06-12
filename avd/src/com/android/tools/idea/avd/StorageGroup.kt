@@ -256,7 +256,7 @@ private fun chooseFile(parent: Component, project: Project?): Path? {
         /* chooseJarContents= */ false,
         /* chooseMultiple= */ false,
       )
-      .withExtensionFilter(".img")
+      .withExtensionFilter("img")
 
   val virtualFile = FileChooser.chooseFile(descriptor, parent, project, null) ?: return null
 

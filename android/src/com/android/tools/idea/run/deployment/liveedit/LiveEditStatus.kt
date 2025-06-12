@@ -23,14 +23,13 @@ import com.android.tools.idea.editors.liveedit.ui.SHOW_LOGCAT_ACTION_ID
 import com.android.tools.idea.run.deployment.liveedit.LiveEditBundle.message
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DEFAULT
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DISABLED
+import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DISABLED_WITH_MESSAGE
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.RECOVERABLE_ERROR
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.REFRESHING
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.REFRESH_NEEDED
-import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DISABLED_WITH_MESSAGE
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.UNRECOVERABLE_ERROR
 import com.intellij.icons.AllIcons
 import com.intellij.ui.AnimatedIcon
-import java.lang.Exception
 import javax.swing.Icon
 
 open class LiveEditStatus(
@@ -40,6 +39,7 @@ open class LiveEditStatus(
   private val mergePriority: Priority,
   /** When true, the refresh icon will be displayed next to the notification chip. */
   override val presentation: IdeStatus.Presentation? = null,
+  val notificationText: String? = null,
   val descriptionManualMode: String? = null,
   val redeployMode: RedeployMode = RedeployMode.NONE,
   val actionId: String? = null,
@@ -58,12 +58,6 @@ open class LiveEditStatus(
       UNRECOVERABLE_ERROR(6),
     }
 
-    enum class RedeployMode {
-      NONE,
-      REFRESH,
-      RERUN,
-    }
-
     val GradleSync = createErrorStatus(message("le.status.error.gradle_sync.description"))
 
     // A LiveEdit error that is not recoverable.
@@ -73,7 +67,8 @@ open class LiveEditStatus(
         AllIcons.General.Error,
         "Error",
         message,
-        UNRECOVERABLE_ERROR
+        UNRECOVERABLE_ERROR,
+        notificationText = message,
       )
     }
 
@@ -85,6 +80,7 @@ open class LiveEditStatus(
         message("le.status.out_of_date.title"),
         message,
         UNRECOVERABLE_ERROR,
+        notificationText = message,
         redeployMode = RedeployMode.RERUN,
         actionId = "Run"
       )
@@ -101,6 +97,7 @@ open class LiveEditStatus(
           name, if (message.length > 120) message.substring(0, 120) + "..." else message
         ),
         if (recoverable) RECOVERABLE_ERROR else UNRECOVERABLE_ERROR,
+        notificationText = "Live Edit recomposition error",
         redeployMode = RedeployMode.RERUN,
         actionId = SHOW_LOGCAT_ACTION_ID
       )
@@ -115,6 +112,7 @@ open class LiveEditStatus(
           "%s during recomposition status retrieval.", exception.javaClass.name
         ),
         RECOVERABLE_ERROR,
+        notificationText = "Live Edit recomposition error",
         redeployMode = RedeployMode.RERUN,
         actionId = SHOW_LOGCAT_ACTION_ID
       )
@@ -126,7 +124,8 @@ open class LiveEditStatus(
         AllIcons.General.Warning,
         "Compose Version Error",
         message,
-        UNRECOVERABLE_ERROR
+        UNRECOVERABLE_ERROR,
+        notificationText = "Live Edit: $message",
       )
     }
 
@@ -149,6 +148,7 @@ open class LiveEditStatus(
       "Error",
       "Live Edit encountered an unrecoverable error.",
       UNRECOVERABLE_ERROR,
+      notificationText = "Live Edit encountered an unrecoverable error",
       redeployMode = RedeployMode.RERUN
     )
 
@@ -158,9 +158,9 @@ open class LiveEditStatus(
       message("le.status.error.debugger_attached.title"),
       message("le.status.error.debugger_attached.description"),
       UNRECOVERABLE_ERROR,
-      shouldSimplify = true ,
+      shouldSimplify = true,
       actionId = REFRESH_ACTION_ID,
-      )
+    )
 
   object OutOfDate :
     LiveEditStatus(
@@ -231,6 +231,7 @@ open class LiveEditStatus(
       message("le.status.error.gradle_sync.title"),
       message("le.status.error.gradle_sync.description"),
       UNRECOVERABLE_ERROR,
+      notificationText = "Live Edit: Gradle sync required",
       redeployMode = RedeployMode.RERUN,
       actionId = "Android.SyncProject"
     )
@@ -240,7 +241,8 @@ open class LiveEditStatus(
       AllIcons.General.Warning,
       message("le.status.error.unsupported_version.title"),
       message("le.status.error.unsupported_version.description"),
-      UNRECOVERABLE_ERROR
+      UNRECOVERABLE_ERROR,
+      notificationText = "Live Edit: unsupported Android version",
     )
 
   object UnsupportedVersionOtherDevice :
@@ -257,4 +259,10 @@ open class LiveEditStatus(
 
   fun merge(other: LiveEditStatus) =
     if (other.mergePriority.value > mergePriority.value) other else this
+
+  enum class RedeployMode {
+    NONE,
+    REFRESH,
+    RERUN,
+  }
 }

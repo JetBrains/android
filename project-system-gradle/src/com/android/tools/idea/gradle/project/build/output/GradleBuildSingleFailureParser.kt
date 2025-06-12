@@ -36,11 +36,12 @@ class GradleBuildSingleFailureParser(failureHandlers: List<FailureDetailsHandler
 
     val parentId: Any = parsed.taskName ?: reader.parentEventId
 
-    return processErrorMessage(
+    processErrorMessage(
       parentId,
       parsed,
       messageConsumer
     )
+    return true
   }
 
   private fun parseFailureDetails(reader: BuildOutputInstantReader): ParsedFailureDetails? {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.backup
 
 import com.android.tools.idea.testing.WaitForIndexRule
+import com.android.tools.idea.util.relativeToProject
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain

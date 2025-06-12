@@ -20,7 +20,7 @@ import static org.junit.Assert.fail;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.asdriver.tests.AndroidSystem;
-import com.android.tools.asdriver.tests.Display;
+import com.android.tools.testlib.Display;
 import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
 import org.junit.Test;

@@ -52,7 +52,7 @@ public class QuerySyncSourceToTargetMap implements SourceToTargetMap {
     }
 
     Set<Label> buildTargets = new HashSet<>();
-    ImmutableSet<com.google.idea.blaze.common.Label> targetOwners = snapshot.getTargetOwners(rel);
+    Set<com.google.idea.blaze.common.Label> targetOwners = snapshot.getTargetOwners(rel);
     if (targetOwners != null) {
       targetOwners.stream().map(Label::create).forEach(buildTargets::add);
     } else {

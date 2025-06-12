@@ -18,7 +18,6 @@ package com.android.tools.idea.welcome.wizard
 import com.android.annotations.concurrency.UiThread
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.RepoManager
-import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -193,26 +192,21 @@ abstract class SdkComponentsStepController(
           localHandler
             .getRepoManager(progress)
             .loadSynchronously(
-              RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
-              null,
-              listOf(
-                RepoLoadedListener {
-                  rootNode.updateState(localHandler)
-                  coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) {
-                    stopLoading()
-                  }
+              cacheExpirationMs = RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+              onSuccess = {
+                rootNode.updateState(localHandler)
+                coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) {
+                  stopLoading()
                 }
-              ),
-              listOf(
-                Runnable {
-                  coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) {
-                    loadingError()
-                  }
+              },
+              onError = {
+                coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) {
+                  loadingError()
                 }
-              ),
-              StudioProgressRunner(false, "Finding Available SDK Components", project),
-              StudioDownloader(),
-              StudioSettingsController.getInstance(),
+              },
+              runner = StudioProgressRunner(false, "Finding Available SDK Components", project),
+              downloader = StudioDownloader(),
+              settings = StudioSettingsController.getInstance(),
             )
           coroutineScope.launch(Dispatchers.EDT + modalityState.asContextElement()) {
             reloadLicenseAgreementStep()

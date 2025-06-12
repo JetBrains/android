@@ -29,13 +29,12 @@ import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.artifacts.MockArtifactCache;
+import com.google.idea.blaze.qsync.deps.OutputGroup;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
-import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
 import com.intellij.openapi.application.ApplicationManager;
@@ -150,10 +149,8 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
     var targets = ImmutableSet.of(Label.of("//target1:target1"), Label.of("//target2:target2"));
     final var generatedTargetPatternName = Label.of(String.format("//.aswb:targets-%s.txt", dependencyBuilder.getProjectHash())).name();
 
-    final var invocationInfo = dependencyBuilder.getInvocationInfo(BlazeContext.create(),
-                                                                   targets,
-                                                                   DependencyBuildRequest.multiTarget(targets),
-                                                                   ImmutableSet.of(QuerySyncLanguage.JVM, QuerySyncLanguage.CC));
+    final var invocationInfo =
+      dependencyBuilder.getInvocationInfo(BlazeContext.create(), targets, ImmutableSet.of(OutputGroup.ARTIFACT_INFO_FILE));
     ImmutableMap<Path, ByteSource> invocationFiles =
       invocationInfo.invocationWorkspaceFiles();
     assertThat(
