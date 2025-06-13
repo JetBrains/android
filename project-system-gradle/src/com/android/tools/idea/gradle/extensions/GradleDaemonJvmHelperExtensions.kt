@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.extensions
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
@@ -24,8 +25,6 @@ import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import kotlin.io.path.Path
-
-private val DAEMON_TOOLCHAIN_CRITERIA_STABLE_VERSION: GradleVersion = GradleVersion.version("9.0")
 
 fun GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(
   rootProjectPath: @SystemIndependent String?,
@@ -55,8 +54,6 @@ fun GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(
   } ?: false
 }
 
-fun GradleDaemonJvmHelper.isDaemonJvmCriteriaStable(gradleVersion: GradleVersion) =
-  gradleVersion >= DAEMON_TOOLCHAIN_CRITERIA_STABLE_VERSION
-
 fun GradleDaemonJvmHelper.isDaemonJvmCriteriaRequiredForNewProjects(gradleVersion: GradleVersion) =
-  Registry.`is`("gradle.daemon.jvm.criteria.new.project") && isDaemonJvmCriteriaStable(gradleVersion)
+  Registry.`is`("gradle.daemon.jvm.criteria.new.project") &&
+  gradleVersion >= GradleVersion.version(StudioFlags.NPW_DAEMON_JVM_CRITERIA_REQUIRED_GRADLE_VERSION.get())
