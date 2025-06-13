@@ -27,6 +27,10 @@ import com.intellij.util.xmlb.XmlSerializerUtil
   storages = [Storage("projectToolWindow.xml", roamingType = RoamingType.LOCAL)],
 )
 class ProjectToolWindowSettings: PersistentStateComponent<ProjectToolWindowSettings> {
+  /*
+  This value is what the stored state is, but does not consider [PROJECT_VIEW_KEY], use [isProjectViewDefault] instead.
+   */
+  var defaultToProjectView = false
   var showBuildFilesInModule = false
 
   companion object {
@@ -34,6 +38,8 @@ class ProjectToolWindowSettings: PersistentStateComponent<ProjectToolWindowSetti
     fun getInstance(): ProjectToolWindowSettings {
       return ApplicationManager.getApplication().getService(ProjectToolWindowSettings::class.java)
     }
+
+    const val PROJECT_VIEW_KEY = "studio.projectview"
   }
 
   override fun getState(): ProjectToolWindowSettings {
@@ -42,5 +48,14 @@ class ProjectToolWindowSettings: PersistentStateComponent<ProjectToolWindowSetti
 
   override fun loadState(state: ProjectToolWindowSettings) {
     XmlSerializerUtil.copyBean(state, this)
+  }
+
+  /*
+  Should the Project view used by default? The result depends on custom property [PROJECT_VIEW_KEY] and the application settings.
+   */
+  fun isProjectViewDefault(): Boolean {
+    if (java.lang.Boolean.getBoolean(PROJECT_VIEW_KEY))
+      return true
+    return defaultToProjectView
   }
 }
