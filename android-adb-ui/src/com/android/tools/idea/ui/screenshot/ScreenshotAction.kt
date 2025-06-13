@@ -58,7 +58,7 @@ class ScreenshotAction : DumbAwareAction(
     val displayInfoProvider = event.getData(DISPLAY_INFO_PROVIDER_KEY)
     val serialNumber = screenshotParameters.serialNumber
 
-    val deviceName = screenshotParameters.deviceModel ?: "Unknown device"
+    val deviceName = screenshotParameters.deviceName
     val screenshotProvider =
         ShellCommandScreenshotProvider(project, serialNumber, screenshotParameters.deviceType, deviceName, displayId, displayInfoProvider)
     var disposable: Disposable? = screenshotProvider

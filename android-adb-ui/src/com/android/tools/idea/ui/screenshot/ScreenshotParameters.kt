@@ -15,20 +15,25 @@
  */
 package com.android.tools.idea.ui.screenshot
 
+import ai.grazie.annotation.TestOnly
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRound
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.devices.Device
-import com.android.sdklib.devices.DeviceManager
+import com.android.sdklib.devices.DeviceManager.DeviceCategory.DEFAULT
+import com.android.sdklib.devices.DeviceManager.DeviceCategory.USER
+import com.android.sdklib.devices.DeviceManager.DeviceCategory.VENDOR
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.device.DeviceArtDescriptor
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.SkinUtils
+import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.android.tools.sdk.DeviceManagers
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.EnumSet
+import kotlin.io.path.name
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.log2
@@ -37,37 +42,65 @@ import kotlin.math.log2
 private const val MAX_MATCH_DISTANCE_RATIO = 2.0
 private const val MIN_TABLET_DIAGONAL_SIZE = 7.0 // In inches.
 
-class ScreenshotParameters(val serialNumber: String, val deviceType: DeviceType, val deviceModel: String?) {
-
+/** Information required by [ScreenshotAction] */
+class ScreenshotParameters
+private constructor(
+  val serialNumber: String,
+  val deviceType: DeviceType,
+  val deviceName: String,
+  val framingOption: DeviceFramingOption?,
+) {
+  private var defaultFrameIndex: Int = 0
   val screenshotDecorator: ScreenshotDecorator = DeviceScreenshotDecorator()
 
-  private var defaultFrameIndex: Int = 0
-  private val skinHome: Path? = DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath()
+  /**
+   * Create a [ScreenshotParameters] with a skin defined in an AVD file
+   *
+   * @param serialNumber The serial number of the device
+   * @param deviceType The type of the device
+   * @param avdFolder The path of an AVD directory
+   */
+  constructor(
+    serialNumber: String,
+    deviceType: DeviceType,
+    avdFolder: Path,
+    avdManagerConnection: AvdManagerConnection = AvdManagerConnection.getDefaultAvdManagerConnection(),
+  ) : this(serialNumber, deviceType, getAvdProperties(avdFolder, avdManagerConnection))
+
+  /**
+   * Create a [ScreenshotParameters] with a skin derived from a device model
+   *
+   * @param serialNumber The serial number of the device
+   * @param deviceType The type of the device
+   * @param deviceModel The model of the device
+   */
+  constructor(
+    serialNumber: String,
+    deviceType: DeviceType,
+    deviceModel: String?,
+  ) : this(serialNumber, deviceType, deviceModel ?: "Unknown", framingOptionFromModel(deviceModel))
+
+  @Suppress("unused") // Incorrectly flagged as unused
+  private constructor(
+    serialNumber: String,
+    deviceType: DeviceType,
+    properties: Map<String, String>,
+  ) : this(serialNumber, deviceType, properties.getDeviceName(), properties.getFramingOption())
 
   /** Returns the list of available framing options for the given image. */
   fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption> {
-    val deviceType = screenshotImage.deviceType
-    val framingOptions = mutableListOf<DeviceFramingOption>()
-    val deviceManager = DeviceManagers.getDeviceManager(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null))
-    val devices = deviceManager.getDevices(
-        EnumSet.of(DeviceManager.DeviceCategory.USER, DeviceManager.DeviceCategory.DEFAULT, DeviceManager.DeviceCategory.VENDOR))
-    val device = deviceModel?.let { devices.find { it.displayName == deviceModel } }
-    if (device != null) {
-      val skinFolder = device.skinFolder
-      if (skinFolder != null) {
-        return listOf(DeviceFramingOption(device.displayName, skinFolder))
-      }
+    if (framingOption != null) {
+      return listOf(framingOption)
     }
-    if (device == null) {
-      val matchingSkins = findMatchingSkins(screenshotImage, devices)
-      if (matchingSkins.isNotEmpty()) {
-        val bestMatch = matchingSkins[0]
-        for (skin in matchingSkins) {
-          framingOptions.add(DeviceFramingOption(skin.displayName, skin.skinFolder))
-        }
-        framingOptions.sortBy { it.displayName }
-        defaultFrameIndex = framingOptions.indexOfFirst { it.skinFolder == bestMatch.skinFolder }
+    val framingOptions = mutableListOf<DeviceFramingOption>()
+    val matchingSkins = findMatchingSkins(screenshotImage, getDevices())
+    if (matchingSkins.isNotEmpty()) {
+      val bestMatch = matchingSkins[0]
+      for (skin in matchingSkins) {
+        framingOptions.add(DeviceFramingOption(skin.displayName, skin.skinFolder))
       }
+      framingOptions.sortBy { it.displayName }
+      defaultFrameIndex = framingOptions.indexOfFirst { it.skinFolder == bestMatch.skinFolder }
     }
     if (deviceType == DeviceType.HANDHELD || deviceType == DeviceType.AUTOMOTIVE) {
       val displaySize = screenshotImage.displaySize
@@ -76,30 +109,42 @@ class ScreenshotParameters(val serialNumber: String, val deviceType: DeviceType,
         if (deviceType == DeviceType.AUTOMOTIVE) {
           val automotive = descriptors["automotive_1024"]
           val screenSize = automotive?.getScreenSize(ScreenOrientation.LANDSCAPE)
-          if (screenSize != null &&
-              abs(screenSize.height.toDouble() / screenSize.width - displaySize.height.toDouble() / displaySize.width) < 0.01) {
+          if (
+            screenSize != null &&
+              abs(
+                screenSize.height.toDouble() / screenSize.width -
+                  displaySize.height.toDouble() / displaySize.width
+              ) < 0.01
+          ) {
             framingOptions.add(DeviceFramingOption(automotive))
           }
         }
       }
       val displayDensity = screenshotImage.displayDensity
-      val diagonalSize = displaySize?.let { hypot(it.width.toDouble(), it.height.toDouble()) / displayDensity } ?: Double.NaN
-      val deviceArtId = when {
-        deviceType == DeviceType.HANDHELD && (diagonalSize.isNaN() || diagonalSize < MIN_TABLET_DIAGONAL_SIZE) -> "phone"
-        else -> "tablet"
-      }
+      val diagonalSize =
+        displaySize?.let { hypot(it.width.toDouble(), it.height.toDouble()) / displayDensity }
+          ?: Double.NaN
+      val deviceArtId =
+        when {
+          deviceType == DeviceType.HANDHELD &&
+            (diagonalSize.isNaN() || diagonalSize < MIN_TABLET_DIAGONAL_SIZE) -> "phone"
+          else -> "tablet"
+        }
       descriptors[deviceArtId]?.let { framingOptions.add(DeviceFramingOption(it)) }
     }
     return framingOptions
   }
 
   /**
-   * Returns the index of the default framing option for the given image.
-   * The default framing option is ignored if [getFramingOptions] returned an empty list.
+   * Returns the index of the default framing option for the given image. The default framing option
+   * is ignored if [getFramingOptions] returned an empty list.
    */
   fun getDefaultFramingOption(): Int = defaultFrameIndex
 
-  private fun findMatchingSkins(screenshotImage: ScreenshotImage, devices: Collection<Device>): List<MatchingSkin> {
+  private fun findMatchingSkins(
+    screenshotImage: ScreenshotImage,
+    devices: Collection<Device>,
+  ): List<MatchingSkin> {
     val displaySize = screenshotImage.displaySize ?: return listOf()
     val w = displaySize.width.toDouble()
     val h = displaySize.height.toDouble()
@@ -131,7 +176,8 @@ class ScreenshotParameters(val serialNumber: String, val deviceType: DeviceType,
       if (screen.isRound() != screenshotImage.isRoundDisplay) {
         continue
       }
-      val skinFolder = device.skinFolder ?: continue // Not interested in approximate matches without a skin.
+      val skinFolder =
+        device.skinFolder ?: continue // Not interested in approximate matches without a skin.
       val width = screen.xDimension
       val height = screen.yDimension
       val deviceDiagonal = hypot(width.toDouble(), height.toDouble())
@@ -145,10 +191,15 @@ class ScreenshotParameters(val serialNumber: String, val deviceType: DeviceType,
   }
 
   /**
-   * Adds a new device to a list of matching devices maintaining the [MatchingSkin.matchDistance] ordering
-   * and keeping only the matches that don't differ from the best one by more than [MAX_MATCH_DISTANCE_RATIO].
+   * Adds a new device to a list of matching devices maintaining the [MatchingSkin.matchDistance]
+   * ordering and keeping only the matches that don't differ from the best one by more than
+   * [MAX_MATCH_DISTANCE_RATIO].
    */
-  private fun MutableList<MatchingSkin>.addMatch(displayName: String, skinFolder: Path, matchDistance: Double) {
+  private fun MutableList<MatchingSkin>.addMatch(
+    displayName: String,
+    skinFolder: Path,
+    matchDistance: Double,
+  ) {
     if (isNotEmpty()) {
       if (matchDistance > get(0).matchDistance * MAX_MATCH_DISTANCE_RATIO) {
         return
@@ -170,40 +221,80 @@ class ScreenshotParameters(val serialNumber: String, val deviceType: DeviceType,
     add(i, MatchingSkin(displayName, skinFolder, matchDistance))
   }
 
-  private val Device.skinFolder: Path?
-    get() {
-      var skinFolder = defaultHardware.skinFile?.toPath() ?: return null
-      if (skinFolder == SkinUtils.noSkin()) {
-        return null
-      }
-      if (!skinFolder.isAbsolute) {
-        skinFolder = skinHome?.resolve(skinFolder) ?: return null
-      }
-      if (!Files.exists(skinFolder.resolve("layout")) && !Files.exists(skinFolder.resolve("default/layout"))) {
-        return null
-      }
-      return skinFolder
-    }
+  private fun Device.isAutomotive() = tagId?.contains("automotive") ?: false
 
-  private fun Device.isAutomotive() =
-      tagId?.contains("automotive") ?: false
+  private fun Device.isTv() = tagId?.contains("android-tv") ?: false
 
-  private fun Device.isTv() =
-      tagId?.contains("android-tv") ?: false
-
-  private fun Device.isWatch() =
-      tagId?.contains("wear") ?: false
+  private fun Device.isWatch() = tagId?.contains("wear") ?: false
 
   private fun Device.isTablet(): Boolean {
     if (isAutomotive() || isTv() || !isWatch()) {
       return false
     }
     val screen = defaultHardware.screen
-    return hypot(screen.xDimension / screen.xdpi, screen.yDimension / screen.ydpi) >= MIN_TABLET_DIAGONAL_SIZE
+    return hypot(screen.xDimension / screen.xdpi, screen.yDimension / screen.ydpi) >=
+      MIN_TABLET_DIAGONAL_SIZE
   }
 
-  private fun Screen.isRound() =
-      screenRound == ScreenRound.ROUND
+  private fun Screen.isRound() = screenRound == ScreenRound.ROUND
 
-  private class MatchingSkin(val displayName: String, val skinFolder: Path, val matchDistance: Double)
+  private class MatchingSkin(
+    val displayName: String,
+    val skinFolder: Path,
+    val matchDistance: Double,
+  )
+
+  companion object {
+    private fun getAvdProperties(
+      avdFolder: Path,
+      avdManagerConnection: AvdManagerConnection,
+      ): Map<String, String> {
+      return avdManagerConnection.findAvdWithFolder(avdFolder)?.properties ?: emptyMap()
+    }
+
+    private fun Map<String, String>.getDeviceName() = getOrDefault("avd.ini.displayname", "Unknown")
+
+    private fun Map<String, String>.getFramingOption(): DeviceFramingOption? {
+      val skinPathValue = get("skin.path")
+      if (skinPathValue == null || skinPathValue == "_no_skin") {
+        return null
+      }
+      val skinPath = Path.of(skinPathValue)
+      return DeviceFramingOption(AndroidAdbUiBundle.message("screenshot.framing.option.name"), skinPath)
+    }
+
+    private fun framingOptionFromModel(deviceModel: String?): DeviceFramingOption? {
+      val device = getDevices().find { it.displayName == deviceModel } ?: return null
+      val skinFolder = device.skinFolder ?: return null
+      return DeviceFramingOption(device.displayName, skinFolder)
+    }
+
+    private fun getDevices(): Collection<Device> {
+      val deviceManager =
+        DeviceManagers.getDeviceManager(
+          AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null)
+        )
+      return deviceManager.getDevices(setOf(USER, DEFAULT, VENDOR))
+    }
+
+    private val skinHome: Path? = DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath()
+
+    private val Device.skinFolder: Path?
+      get() {
+        var skinFolder = defaultHardware.skinFile?.toPath() ?: return null
+        if (skinFolder == SkinUtils.noSkin()) {
+          return null
+        }
+        if (!skinFolder.isAbsolute) {
+          skinFolder = skinHome?.resolve(skinFolder) ?: return null
+        }
+        if (
+          !Files.exists(skinFolder.resolve("layout")) &&
+            !Files.exists(skinFolder.resolve("default/layout"))
+        ) {
+          return null
+        }
+        return skinFolder
+      }
+  }
 }

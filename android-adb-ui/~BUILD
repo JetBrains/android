@@ -63,6 +63,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/artwork:intellij.android.artwork",
         "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
     ],
     test_friends = ["//tools/adt/idea/android-adb-ui:intellij.android.adb.ui"],

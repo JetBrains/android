@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
@@ -227,8 +228,13 @@ internal class DeviceToolWindowPanel(
     sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = deviceController?.let { createScreenRecorderParameters(it) }
   }
 
-  private fun createScreenshotOptions(): ScreenshotParameters =
-      ScreenshotParameters(deviceSerialNumber, deviceConfig.deviceType, deviceConfig.deviceModel)
+  private fun createScreenshotOptions(): ScreenshotParameters {
+    val properties = deviceConfig.deviceProperties
+    return when (properties) {
+      is LocalEmulatorProperties -> ScreenshotParameters(deviceSerialNumber, deviceConfig.deviceType, properties.avdPath)
+      else -> ScreenshotParameters(deviceSerialNumber, deviceConfig.deviceType, deviceConfig.deviceModel)
+    }
+  }
 
   private fun createScreenRecorderParameters(deviceController: DeviceController): ScreenRecordingParameters =
       ScreenRecordingParameters(deviceSerialNumber, deviceClient.deviceName, deviceConfig.featureLevel, deviceController, null)
