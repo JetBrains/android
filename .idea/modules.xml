@@ -39,6 +39,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/model/api-tests/aiplugin.model.api-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/model/api-tests/aiplugin.model.api-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer/aiplugin.rag.indexer.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer/aiplugin.rag.indexer.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer-tests/aiplugin.rag.indexer-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/indexer-tests/aiplugin.rag.indexer-tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/evaluation/aiplugin.rag.evaluation.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/rag/evaluation/aiplugin.rag.evaluation.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/sdkcompat/aiplugin.sdkcompat.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/sdkcompat/aiplugin.sdkcompat.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/aiplugin/studiobot-dogfood-plugin/aiplugin.studiobot-dogfood-plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/aiplugin/studiobot-dogfood-plugin/aiplugin.studiobot-dogfood-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../analytics-library/crash/analytics-crash.iml" filepath="$PROJECT_DIR$/../../analytics-library/crash/analytics-crash.iml" />
