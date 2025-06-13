@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
@@ -61,14 +62,14 @@ import java.util.Locale
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
-class GradleAndroidModel(
+private class GradleAndroidModelImpl(
   private val data: GradleAndroidModelData,
-  val project: Project,
+  override val project: Project,
   private val ideLibraryModelResolver: IdeLibraryModelResolver
-) : AndroidModel {
-
+) : GradleAndroidDependencyModel {
+  // Need to be initialized here
   private val myBuildTypesByName: Map<String, IdeBuildTypeContainer> =
-    androidProject.multiVariantData?.buildTypes.orEmpty().associateBy {it.buildType.name }
+    androidProject.multiVariantData?.buildTypes.orEmpty().associateBy { it.buildType.name }
   private val myProductFlavorsByName: Map<String, IdeProductFlavorContainer> =
     androidProject.multiVariantData?.productFlavors.orEmpty().associateBy { it.productFlavor.name }
   private val myCachedBasicVariantsByName: Map<String, IdeBasicVariant> =
@@ -77,36 +78,38 @@ class GradleAndroidModel(
   private val myCachedResolvedVariantsByName: Map<String, IdeVariant> =
     myCachedVariantsByName.mapValues { (_, value) -> IdeVariantImpl(value, ideLibraryModelResolver) }
 
-  val agpVersion: AgpVersion = AgpVersion.parse(androidProject.agpVersion) // Fail sync if the reported version cannot be parsed.
-  val features: AndroidModelFeatures = AndroidModelFeatures(agpVersion)
-  val moduleName: String get() = data.moduleName
-  val rootDirPath: File get() = data.rootDirPath
-  val androidProject: IdeAndroidProject get() = data.androidProject
-  val declaredDependencies: IdeDeclaredDependencies get() = data.declaredDependencies
-  val selectedVariantName: String get() = data.selectedVariantName
-  val selectedBasicVariant: IdeBasicVariant get() = myCachedBasicVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
-  val selectedVariant: IdeVariant get() = myCachedResolvedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
-  val selectedVariantCore: IdeVariantCore get() = myCachedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
+  override val agpVersion: AgpVersion = AgpVersion.parse(androidProject.agpVersion) // Fail sync if the reported version cannot be parsed.
+  override val features: AndroidModelFeatures = AndroidModelFeatures(agpVersion)
+  override val moduleName: String get() = data.moduleName
+  override val rootDirPath: File get() = data.rootDirPath
+  override val androidProject: IdeAndroidProject get() = data.androidProject
+  override val declaredDependencies: IdeDeclaredDependencies get() = data.declaredDependencies
+  override val selectedVariantName: String get() = data.selectedVariantName
+  override val selectedBasicVariant: IdeBasicVariant get() = myCachedBasicVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
+  override val selectedVariant: IdeVariantCore get() = myCachedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
+  override val selectedVariantWithDependencies: IdeVariant get () = myCachedResolvedVariantsByName[selectedVariantName] ?: unknownSelectedVariant()
 
   /**
    * @return the version code associated with the merged flavor of the selected variant, or `null` if none have been set.
    */
-  val versionCode: Int? get() = selectedVariant.versionCode
-  val buildTypeNames: Set<String> get() = myBuildTypesByName.keys
-  val productFlavorNames: Set<String> get() = myProductFlavorsByName.keys
-  val productFlavorNamesByFlavorDimension: Map<String, List<String>>
+  override val versionCode: Int? get() = selectedVariant.versionCode
+  override val buildTypeNames: Set<String> get() = myBuildTypesByName.keys
+  override val productFlavorNames: Set<String> get() = myProductFlavorsByName.keys
+  override val productFlavorNamesByFlavorDimension: Map<String, List<String>>
     get() = myProductFlavorsByName
       .mapNotNull { it.value.productFlavor.dimension?.let { dimension -> dimension to it.key } }
       .sortedBy { androidProject.flavorDimensions.indexOf(it.first) }
       .groupBy({ it.first }, { it.second })
-  val filteredVariantNames: Collection<String> get() = androidProject.filteredVariantNames
-  val variants: List<IdeVariant> get() = myCachedResolvedVariantsByName.values.toList()
-  val filteredDebuggableVariants: Set<String> get() =
+  override val filteredVariantNames: Collection<String> get() = androidProject.filteredVariantNames
+  override val variants: List<IdeVariantCore> get() = myCachedVariantsByName.values.toList()
+  override val variantsWithDependencies: List<IdeVariant>
+    get() = myCachedResolvedVariantsByName.values.toList()
+  override val filteredDebuggableVariants: Set<String> get() =
     androidProject.basicVariants.mapNotNull {
       if (myBuildTypesByName[it.buildType]?.buildType?.isDebuggable == true && !it.hideInStudio ) it.name else null
     }.toSet()
-  fun findBasicVariantByName(variantName: String): IdeBasicVariant? = myCachedBasicVariantsByName[variantName]
-  fun findVariantByName(variantName: String): IdeVariant? = myCachedResolvedVariantsByName[variantName]
+  override fun findBasicVariantByName(variantName: String): IdeBasicVariant? = myCachedBasicVariantsByName[variantName]
+  override fun findVariantByName(variantName: String): IdeVariantCore? = myCachedVariantsByName[variantName]
 
   /**
    * Returns the [IdeAndroidArtifact] that should be used for instrumented testing.
@@ -114,7 +117,14 @@ class GradleAndroidModel(
    *
    * For test-only modules this is the main artifact.
    */
-  fun getArtifactForAndroidTest(): IdeAndroidArtifact? {
+  override fun getArtifactForAndroidTest(): IdeAndroidArtifact? {
+    return when (androidProject.projectType) {
+      IdeAndroidProjectType.PROJECT_TYPE_TEST -> selectedVariantWithDependencies.mainArtifact
+      else -> selectedVariantWithDependencies.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
+    }
+  }
+
+  override fun getArtifactCoreForAndroidTest(): IdeAndroidArtifactCore? {
     return when (androidProject.projectType) {
       IdeAndroidProjectType.PROJECT_TYPE_TEST -> selectedVariant.mainArtifact
       else -> selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
@@ -127,12 +137,12 @@ class GradleAndroidModel(
    *
    * For screenshot test-only modules this is the main artifact.
    */
-  fun getArtifactForScreenshotTest(): IdeJavaArtifact? {
-    return selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
+  override fun getArtifactForScreenshotTest(): IdeJavaArtifact? {
+    return selectedVariantWithDependencies.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
   }
 
-  fun getGradleConnectedTestTaskNameForSelectedVariant(): String {
-    return selectedVariantCore.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.testOptions?.instrumentedTestTaskName
+  override fun getGradleConnectedTestTaskNameForSelectedVariant(): String {
+    return selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.testOptions?.instrumentedTestTaskName
            ?: "connected${selectedVariantName.usLocaleCapitalize()}AndroidTest" // fallback for v1 models
   }
 
@@ -143,11 +153,11 @@ class GradleAndroidModel(
    * @param mode - can be "update" or "validate" for the two modes of screenshot test tasks.
    * @return The name of the Gradle screenshot test task.
    */
-  fun getGradleScreenshotTestTaskNameForSelectedVariant(mode: String): String {
+  override fun getGradleScreenshotTestTaskNameForSelectedVariant(mode: String): String {
     return "$mode${selectedVariantName.usLocaleCapitalize()}ScreenshotTest"
   }
 
-  fun getGenerateBaselineProfileTaskNameForSelectedVariant(useAllVariants: Boolean): String? {
+  override fun getGenerateBaselineProfileTaskNameForSelectedVariant(useAllVariants: Boolean): String? {
     val variant = if (useAllVariants) "" else selectedVariantName.replaceFirstChar {
       if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
     }
@@ -155,19 +165,19 @@ class GradleAndroidModel(
     return getGenerateBaselineProfileTaskName(variant, agpVersion)
   }
 
-  val selectedAndroidTestCompileDependencies: IdeDependencies? get() =
-    selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspath
+  override val selectedAndroidTestCompileDependencies: IdeDependencies? get() = getArtifactForAndroidTest()?.compileClasspath
 
-  val mainArtifact: IdeAndroidArtifact get() = selectedVariant.mainArtifact
-  val defaultSourceProvider: IdeSourceProvider? get() = androidProject.defaultSourceProvider.sourceProvider
-  val activeSourceProviders: List<IdeSourceProvider> get() = data.activeSourceProviders
-  val hostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>> get() = data.hostTestSourceProviders
-  val deviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>> get() = data.deviceTestSourceProviders
-  val testFixturesSourceProviders: List<IdeSourceProvider> get() = data.testFixturesSourceProviders
-  val allSourceProviders: List<IdeSourceProvider> get() = data.allSourceProviders
-  val allHostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>> get() = data.allHostTestSourceProviders
-  val allDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>> get() = data.allDeviceSourceProviders
-  val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
+  override val mainArtifactWithDependencies: IdeAndroidArtifact get() = selectedVariantWithDependencies.mainArtifact
+  override val defaultSourceProvider: IdeSourceProvider? get() = androidProject.defaultSourceProvider.sourceProvider
+  override val activeSourceProviders: List<IdeSourceProvider> get() = data.activeSourceProviders
+  override val hostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>> get() = data.hostTestSourceProviders
+  override val deviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>> get() = data.deviceTestSourceProviders
+  override val testFixturesSourceProviders: List<IdeSourceProvider> get() = data.testFixturesSourceProviders
+  override val allSourceProviders: List<IdeSourceProvider> get() = data.allSourceProviders
+  override val allHostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>> get() = data.allHostTestSourceProviders
+  override val allDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>> get() = data.allDeviceSourceProviders
+  override val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
+  override val mainArtifact: IdeAndroidArtifactCore get() = selectedVariant.mainArtifact
 
   /**
    * Returns the current application ID.
@@ -199,7 +209,7 @@ class GradleAndroidModel(
     return buildTypeContainer.buildType.isDebuggable
   }
 
-  fun getBuildType(variant: IdeBasicVariant): IdeBuildTypeContainer {
+  override fun getBuildType(variant: IdeBasicVariant): IdeBuildTypeContainer {
     return myBuildTypesByName[variant.buildType] ?: error("Build type ${variant.buildType} not found")
   }
 
@@ -226,7 +236,7 @@ class GradleAndroidModel(
   /**
    * Returns the JVM `targetCompatibility` for the module.
    */
-  fun getTargetLanguageLevel(): LanguageLevel? = data.getJavaTargetLanguageLevel()
+  override fun getTargetLanguageLevel(): LanguageLevel? = data.getJavaTargetLanguageLevel()
 
   /**
    * Returns the `minSdkVersion` specified by the user (in the default config or product flavors).
@@ -319,11 +329,12 @@ class GradleAndroidModel(
 
   private fun unknownSelectedVariant(): Nothing = error("Unknown selected variant: $selectedVariantName")
 
-  @VisibleForTesting
-  fun containsTheSameDataAs(that: GradleAndroidModel) = this.data == that.data
+  override fun containsTheSameDataAs(that: GradleAndroidModel) = data == (that as? GradleAndroidModelImpl)?.data
+}
 
+interface GradleAndroidModel: AndroidModel {
+  val project: Project
   companion object {
-
     @JvmStatic
     fun get(module: Module): GradleAndroidModel? = AndroidModel.get(module) as? GradleAndroidModel
 
@@ -331,13 +342,51 @@ class GradleAndroidModel(
     fun get(androidFacet: AndroidFacet): GradleAndroidModel? = AndroidModel.get(androidFacet) as? GradleAndroidModel
 
     @JvmStatic
-    fun createFactory(project: Project, libraryResolver: IdeLibraryModelResolver): (GradleAndroidModelData) -> GradleAndroidModel {
-      val models = mutableMapOf<GradleAndroidModelData, GradleAndroidModel>()
-      return fun(data: GradleAndroidModelData): GradleAndroidModel {
-        return models.computeIfAbsent(data) { GradleAndroidModel(it, project, libraryResolver) }
+    fun createFactory(project: Project, libraryResolver: IdeLibraryModelResolver): (GradleAndroidModelData) -> GradleAndroidDependencyModel {
+      val models = mutableMapOf<GradleAndroidModelData, GradleAndroidDependencyModel>()
+      return fun(data: GradleAndroidModelData): GradleAndroidDependencyModel {
+        return models.computeIfAbsent(data) { GradleAndroidModelImpl(it, project, libraryResolver) }
       }
     }
   }
+
+  val androidProject: IdeAndroidProject
+  val agpVersion: AgpVersion
+  val features: AndroidModelFeatures
+  val moduleName: String
+  val rootDirPath: File
+  val declaredDependencies: IdeDeclaredDependencies
+  val selectedVariantName: String
+  val versionCode: Int?
+  val buildTypeNames: Set<String>
+  val selectedBasicVariant: IdeBasicVariant
+  val productFlavorNames: Set<String>
+  val productFlavorNamesByFlavorDimension: Map<String, List<String>>
+  val filteredVariantNames: Collection<String>
+  val defaultSourceProvider: IdeSourceProvider?
+  val activeSourceProviders: List<IdeSourceProvider>
+  val hostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>>
+  val deviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>>
+  val testFixturesSourceProviders: List<IdeSourceProvider>
+  val allSourceProviders: List<IdeSourceProvider>
+  val allHostTestSourceProviders: Map<TestComponentType.HostTest, List<IdeSourceProvider>>
+  val allDeviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>>
+  val allTestFixturesSourceProviders: List<IdeSourceProvider>
+  fun findBasicVariantByName(variantName: String): IdeBasicVariant?
+  fun getGradleScreenshotTestTaskNameForSelectedVariant(mode: String): String
+  fun getGenerateBaselineProfileTaskNameForSelectedVariant(useAllVariants: Boolean): String?
+  fun getBuildType(variant: IdeBasicVariant): IdeBuildTypeContainer
+  fun getTargetLanguageLevel(): LanguageLevel?
+  val filteredDebuggableVariants: Set<String>
+  val selectedVariant: IdeVariantCore
+  val variants: List<IdeVariantCore>
+  fun findVariantByName(variantName: String): IdeVariantCore?
+  fun getArtifactCoreForAndroidTest(): IdeAndroidArtifactCore?
+  fun getGradleConnectedTestTaskNameForSelectedVariant(): String
+  val mainArtifact: IdeAndroidArtifactCore
+
+  @VisibleForTesting
+  fun containsTheSameDataAs(that: GradleAndroidModel): Boolean
 }
 
 @VisibleForTesting
@@ -350,4 +399,23 @@ fun classFieldsToDynamicResourceValues(classFields: Map<String, IdeClassField>):
     }
   }
   return ImmutableMap.copyOf(result)
+}
+
+
+interface GradleAndroidDependencyModel: GradleAndroidModel {
+  companion object {
+    @JvmStatic
+    fun get(module: Module): GradleAndroidDependencyModel? = AndroidModel.get(
+      module) as? GradleAndroidDependencyModel
+
+    @JvmStatic
+    fun get(androidFacet: AndroidFacet): GradleAndroidDependencyModel? = AndroidModel.get(
+      androidFacet) as? GradleAndroidDependencyModel
+  }
+  fun getArtifactForScreenshotTest(): IdeJavaArtifact?
+  val selectedAndroidTestCompileDependencies: IdeDependencies?
+  val mainArtifactWithDependencies: IdeAndroidArtifact
+  val selectedVariantWithDependencies: IdeVariant
+  val variantsWithDependencies: List<IdeVariant>
+  fun getArtifactForAndroidTest(): IdeAndroidArtifact?
 }

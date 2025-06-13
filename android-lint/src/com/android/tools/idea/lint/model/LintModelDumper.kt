@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.model
 
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.head
 import com.android.tools.idea.gradle.project.sync.internal.prop
@@ -45,7 +45,7 @@ fun ProjectDumper.dumpLintModels(project: Project) {
       .forEach { module ->
         head("MODULE") { module.name }
         nest {
-          val gradleAndroidModel = GradleAndroidModel.get(module)
+          val gradleAndroidModel = GradleAndroidDependencyModel.get(module)
           // Skip all but holders to prevent needless spam in the snapshots. All modules
           // point to the same facet.
           if (module.isHolderModule() && gradleAndroidModel != null) {
@@ -53,7 +53,7 @@ fun ProjectDumper.dumpLintModels(project: Project) {
               LintModelFactory()
                 .create(
                   gradleAndroidModel.androidProject,
-                  gradleAndroidModel.variants,
+                  gradleAndroidModel.variantsWithDependencies,
                   gradleAndroidModel.androidProject.multiVariantData!!,
                   gradleAndroidModel.rootDirPath,
                   deep = true,

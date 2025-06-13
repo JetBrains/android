@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories
@@ -52,7 +52,7 @@ class PsAndroidModule(
   override val gradlePath: String
 ) : PsModule(parent, ModuleKind.ANDROID) {
   override val descriptor by AndroidModuleDescriptors
-  var resolvedModel: GradleAndroidModel? = null; private set
+  var resolvedModel: GradleAndroidDependencyModel? = null; private set
   var resolvedNativeModel: NdkModuleModel? = null; private set
   var resolvedSyncIssues: SyncIssues? = null ; private set
   override var projectType: PsModuleType = PsModuleType.UNKNOWN; private set
@@ -80,7 +80,7 @@ class PsAndroidModule(
   fun init(
     name: String,
     parentModule: PsModule?,
-    resolvedModel: GradleAndroidModel?,
+    resolvedModel: GradleAndroidDependencyModel?,
     resolvedNativeModel: NdkModuleModel?,
     resolvedSyncIssues: SyncIssues?,
     parsedModel: GradleBuildModel?

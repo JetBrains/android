@@ -44,13 +44,13 @@ import com.android.tools.apk.analyzer.AndroidApplicationInfo;
 import com.android.tools.apk.analyzer.ArchiveContext;
 import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.idea.apk.viewer.ApkParser;
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeArtifactName;
 import com.android.tools.idea.gradle.model.IdeBasicVariant;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
-import com.android.tools.idea.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeVariantCore;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.run.PostBuildModel;
@@ -183,7 +183,7 @@ public final class GradleApkProvider implements ApkProvider {
     @NotNull AndroidVersion deviceVersion,
     boolean deviceSupportsPrivacySandbox,
     @NotNull GradleAndroidModel androidModel,
-    @NotNull IdeVariant variant,
+    @NotNull IdeVariantCore variant,
     @NotNull OutputKind outputKind)
     throws ApkProvisionException {
     List<ApkInfo> apkList = new ArrayList<>();
@@ -263,7 +263,7 @@ public final class GradleApkProvider implements ApkProvider {
             }
             else {
               // Privacy sandbox SDKs should be installed before the app itself.
-              IdeVariant baseVariant = baseAndroidModel.getSelectedVariant();
+              IdeVariantCore baseVariant = baseAndroidModel.getSelectedVariant();
               if (deviceSupportsPrivacySandbox && baseVariant.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
                 apkList.addAll(
                   getApksForPrivacySandboxSdks(
@@ -297,12 +297,12 @@ public final class GradleApkProvider implements ApkProvider {
         apkList.addAll(0, getTargetedApks(variant, deviceAbis, deviceVersion));
       }
       else {
-        IdeAndroidArtifact testArtifactInfo =
+        IdeAndroidArtifactCore testArtifactInfo =
           androidModel
             .getSelectedVariant().
             getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST).findFirst().orElse(null);
         if (testArtifactInfo != null) {
-          @NotNull IdeAndroidArtifact artifact = getAndroidTestArtifact(androidModel.getSelectedVariant());
+          @NotNull IdeAndroidArtifactCore artifact = getAndroidTestArtifact(androidModel.getSelectedVariant());
           File testApk =
             getApk(androidModel.getSelectedVariant().getName(), artifact, deviceAbis, deviceVersion , myFacet);
           String testPackageName = myApplicationIdProvider.getTestPackageName();
@@ -355,7 +355,7 @@ public final class GradleApkProvider implements ApkProvider {
   }
 
   @Nullable
-  private GenericBuiltArtifacts getGenericBuiltArtifacts(IdeAndroidArtifact artifact, AndroidFacet facet) {
+  private GenericBuiltArtifacts getGenericBuiltArtifacts(IdeAndroidArtifactCore artifact, AndroidFacet facet) {
     GradleAndroidModel androidModel = GradleAndroidModel.get(facet);
     if (androidModel == null) {
       return null;
@@ -389,7 +389,7 @@ public final class GradleApkProvider implements ApkProvider {
         if (androidFeatureModel == null) {
           return null;
         }
-        IdeVariant selectedVariant = androidFeatureModel.getSelectedVariant();
+        IdeVariantCore selectedVariant = androidFeatureModel.getSelectedVariant();
         try {
           File apk = getApk(selectedVariant.getName(), selectedVariant.getMainArtifact(), deviceAbis, deviceVersion, featureFacet
           );
@@ -414,7 +414,7 @@ public final class GradleApkProvider implements ApkProvider {
    * @return a list of ApkInfo objects for each additional runtime Apk
    */
   @NotNull
-  private static List<ApkInfo> getAdditionalApks(@NotNull IdeAndroidArtifact testArtifactInfo) {
+  private static List<ApkInfo> getAdditionalApks(@NotNull IdeAndroidArtifactCore testArtifactInfo) {
     List<ApkInfo> result = new ArrayList<>();
     for (File fileApk : testArtifactInfo.getAdditionalRuntimeApks()) {
       try {
@@ -458,7 +458,7 @@ public final class GradleApkProvider implements ApkProvider {
   @VisibleForTesting
   @NotNull
   File getApk(@NotNull String variantName,
-              @NotNull IdeAndroidArtifact artifact,
+              @NotNull IdeAndroidArtifactCore artifact,
               @NotNull List<String> deviceAbis,
               @NotNull AndroidVersion deviceVersion,
               @NotNull AndroidFacet facet) throws ApkProvisionException {
@@ -478,7 +478,7 @@ public final class GradleApkProvider implements ApkProvider {
 
   @NotNull
   private File getApkFromBuildOutputFile(@NotNull String variantName,
-                                         @NotNull IdeAndroidArtifact artifact,
+                                         @NotNull IdeAndroidArtifactCore artifact,
                                          @NotNull List<String> deviceAbis)
     throws ApkProvisionException {
     String outputFile = getOutputListingFile(artifact.getBuildInformation(), OutputType.Apk);
@@ -534,8 +534,8 @@ public final class GradleApkProvider implements ApkProvider {
   }
 
   @NotNull
-  public static IdeAndroidArtifact getAndroidTestArtifact(@NotNull IdeVariant variant) throws ApkProvisionException {
-    IdeAndroidArtifact androidTestArtifact =
+  public static IdeAndroidArtifactCore getAndroidTestArtifact(@NotNull IdeVariantCore variant) throws ApkProvisionException {
+    IdeAndroidArtifactCore androidTestArtifact =
       variant.getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST).findFirst().orElse(null);
     if (androidTestArtifact == null) {
       throw new ApkProvisionException(String.format("AndroidTest artifact is not configured in %s variant.", variant.getDisplayName()));
@@ -546,7 +546,7 @@ public final class GradleApkProvider implements ApkProvider {
   @NotNull
   @VisibleForTesting
   File getApkFromPostBuildSync(@NotNull String variantName,
-                               @NotNull IdeAndroidArtifact artifact,
+                               @NotNull IdeAndroidArtifactCore artifact,
                                @NotNull List<String> deviceAbis,
                                @NotNull AndroidVersion deviceVersion,
                                @NotNull AndroidFacet facet) throws ApkProvisionException {
@@ -620,7 +620,7 @@ public final class GradleApkProvider implements ApkProvider {
    * using the targetProjectPath and targetVariant properties in the build file.
    */
   @NotNull
-  private List<ApkInfo> getTargetedApks(@NotNull IdeVariant selectedVariant,
+  private List<ApkInfo> getTargetedApks(@NotNull IdeVariantCore selectedVariant,
                                         @NotNull List<String> deviceAbis,
                                         @NotNull AndroidVersion deviceVersion) throws ApkProvisionException {
     List<ApkInfo> targetedApks = new ArrayList<>();
@@ -653,7 +653,7 @@ public final class GradleApkProvider implements ApkProvider {
         continue;
       }
 
-      IdeVariant targetVariant = targetAndroidModel.findVariantByName(testedVariant.getTargetVariant());
+      IdeVariantCore targetVariant = targetAndroidModel.findVariantByName(testedVariant.getTargetVariant());
       IdeBasicVariant targetBasicVariant = targetAndroidModel.findBasicVariantByName(testedVariant.getTargetVariant());
       if (targetBasicVariant == null) {
         getLogger().warn("Tested variant not found. Sync might have failed.");
@@ -694,9 +694,9 @@ public final class GradleApkProvider implements ApkProvider {
     }
 
     if (isTest) {
-      IdeAndroidArtifact testArtifact = gradleAndroidModel.getArtifactForAndroidTest();
+      IdeAndroidArtifactCore testArtifact = gradleAndroidModel.getArtifactCoreForAndroidTest();
       if (testArtifact == null) {
-        IdeVariant selectedVariant = gradleAndroidModel.getSelectedVariant();
+        IdeVariantCore selectedVariant = gradleAndroidModel.getSelectedVariant();
         result.add(ValidationError.warning("Active build variant \"" + selectedVariant.getName() + "\" does not have a test artifact."));
       }
     }
@@ -818,7 +818,7 @@ public final class GradleApkProvider implements ApkProvider {
   }
 
   private static boolean isArtifactSigned(GradleAndroidModel gradleAndroidModel, boolean isTest) {
-    IdeAndroidArtifact artifact = isTest ? gradleAndroidModel.getArtifactForAndroidTest() : gradleAndroidModel.getMainArtifact();
+    IdeAndroidArtifactCore artifact = isTest ? gradleAndroidModel.getArtifactCoreForAndroidTest() : gradleAndroidModel.getSelectedVariant().getMainArtifact();
     return artifact != null && artifact.isSigned();
   }
 

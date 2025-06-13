@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.intellij.openapi.externalSystem.model.project.dependencies.ProjectDependencies
@@ -31,7 +31,7 @@ sealed class PsResolvedModuleModel {
   data class PsAndroidModuleResolvedModel(
     override val gradlePath: String,
     override val buildFile: String?,
-    val model: GradleAndroidModel,
+    val model: GradleAndroidDependencyModel,
     val nativeModel: NdkModuleModel?,
     val syncIssues: SyncIssues
   ) : PsResolvedModuleModel()

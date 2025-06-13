@@ -51,7 +51,6 @@ import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
-import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -170,7 +169,7 @@ public class GradleProjectSystemUtil {
   }
 
   /**
-   * Wrapper around {@link IdeBaseArtifact#getGeneratedSourceFolders()} that skips the aapt sources folder when light classes are used by the
+   * Wrapper around {@link IdeBaseArtifactCore#getGeneratedSourceFolders()} that skips the aapt sources folder when light classes are used by the
    * IDE.
    */
   public static Collection<File> getGeneratedSourceFoldersToUse(

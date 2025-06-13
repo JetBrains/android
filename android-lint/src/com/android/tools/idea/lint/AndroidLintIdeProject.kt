@@ -22,8 +22,7 @@ import com.android.ide.common.repository.GoogleMavenArtifactId.Companion.android
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.support.AndroidxNameUtils
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel.Companion.get
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.LintIdeProject
@@ -362,7 +361,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
         }
       } else if (AndroidModel.isRequired(facet)) {
         val androidModel = AndroidModel.get(facet)
-        if (androidModel is GradleAndroidModel) {
+        if (androidModel is GradleAndroidDependencyModel) {
           val variantName = androidModel.selectedVariantName
 
           val lintModel = getLintModuleModel(facet, shallowModel)
@@ -401,7 +400,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       facet: AndroidFacet,
       shallowModel: Boolean,
     ): Result<LintModelModule> {
-      val model = get(facet)
+      val model = GradleAndroidDependencyModel.get(facet)
       checkNotNull(model) { "GradleAndroidModel not available for $facet" }
       val builderModelProject = model.androidProject
       val multiVariantData = builderModelProject.multiVariantData
@@ -413,7 +412,13 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       val dir = File(externalProjectPath)
       val module =
         LintModelFactory()
-          .create(builderModelProject, model.variants, multiVariantData, dir, !shallowModel)
+          .create(
+            builderModelProject,
+            model.variantsWithDependencies,
+            multiVariantData,
+            dir,
+            !shallowModel,
+          )
       return Result.create(module, ProjectSyncModificationTracker.getInstance(facet.module.project))
     }
 
@@ -627,9 +632,9 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
     referenceDir: File,
     variant: LintModelVariant,
     androidFacet: AndroidFacet,
-    gradleAndroidModel: GradleAndroidModel,
+    gradleAndroidModel: GradleAndroidDependencyModel,
   ) : LintModelModuleProject(client, dir, referenceDir, variant, null) {
-    private val gradleAndroidModel: GradleAndroidModel
+    private val gradleAndroidModel: GradleAndroidDependencyModel
     private val facet: AndroidFacet
 
     /** Creates a new Project. Use one of the factory methods to create. */

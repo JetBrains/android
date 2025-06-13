@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.util.DynamicAppUtils
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -253,7 +254,7 @@ class GradleModuleSystem(
     AndroidDependenciesCache.getAllAndroidDependencies(module.getMainModule(), true).map(AndroidFacet::getModule)
 
   override fun getAndroidTestDirectResourceModuleDependencies(): List<Module> {
-    val dependencies = GradleAndroidModel.get(this.module)?.selectedAndroidTestCompileDependencies
+    val dependencies = GradleAndroidDependencyModel.get(this.module)?.selectedAndroidTestCompileDependencies
     return dependencies?.libraries?.filterIsInstance<IdeModuleLibrary>()
       ?.mapNotNull { it.getGradleProjectPath().resolveIn(this.module.project) }
       ?.toList()
@@ -275,30 +276,30 @@ class GradleModuleSystem(
   }
 
   private fun getCompileDependenciesFor(module: Module, scope: DependencyScopeType): IdeDependencies? {
-    val gradleModel = GradleAndroidModel.get(module) ?: return null
+    val gradleModel = GradleAndroidDependencyModel.get(module) ?: return null
 
     return when (scope) {
-      DependencyScopeType.MAIN -> gradleModel.selectedVariant.mainArtifact.compileClasspath
+      DependencyScopeType.MAIN -> gradleModel.selectedVariantWithDependencies.mainArtifact.compileClasspath
       DependencyScopeType.ANDROID_TEST ->
-        gradleModel.selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspath
+        gradleModel.selectedVariantWithDependencies.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspath
       DependencyScopeType.UNIT_TEST ->
-        gradleModel.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.compileClasspath
-      DependencyScopeType.TEST_FIXTURES -> gradleModel.selectedVariant.testFixturesArtifact?.compileClasspath
+        gradleModel.selectedVariantWithDependencies.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.compileClasspath
+      DependencyScopeType.TEST_FIXTURES -> gradleModel.selectedVariantWithDependencies.testFixturesArtifact?.compileClasspath
       DependencyScopeType.SCREENSHOT_TEST ->
-        gradleModel.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }?.compileClasspath
+        gradleModel.selectedVariantWithDependencies.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }?.compileClasspath
     }
   }
 
   private fun getRuntimeDependenciesFor(module: Module, scope: DependencyScopeType): Sequence<IdeDependencies> {
     fun impl(module: Module, scope: DependencyScopeType): Sequence<IdeDependencies> = sequence {
-      val gradleModel = GradleAndroidModel.get(module)
+      val gradleModel = GradleAndroidDependencyModel.get(module)
       if (gradleModel == null) {
         // TODO(b/253476264): Returning an incomplete set of dependencies is highly problematic and should be avoided.
         ClearResourceCacheAfterFirstBuild.getInstance(module.project).setIncompleteRuntimeDependencies()
         return@sequence
       }
 
-      val selectedVariant = gradleModel.selectedVariant
+      val selectedVariant = gradleModel.selectedVariantWithDependencies
       val artifact = when (scope) {
         DependencyScopeType.MAIN -> selectedVariant.mainArtifact
         DependencyScopeType.ANDROID_TEST -> selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
@@ -611,7 +612,7 @@ class GradleModuleSystem(
 
   override fun getTestLibrariesInUse(): TestLibraries? {
     val androidTestArtifact =
-      GradleAndroidModel.get(module)?.selectedVariant?.deviceTestArtifacts?.find { it.name == IdeArtifactName.ANDROID_TEST } ?: return null
+      GradleAndroidDependencyModel.get(module)?.selectedVariantWithDependencies?.deviceTestArtifacts?.find { it.name == IdeArtifactName.ANDROID_TEST } ?: return null
     return TestLibraries.newBuilder().also { recordTestLibraries(it, androidTestArtifact) }.build()
   }
 
@@ -661,7 +662,7 @@ class GradleModuleSystem(
     get() = moduleHierarchyProvider.submodules
 
   override val desugarLibraryConfigFilesKnown: Boolean
-    get() = GradleAndroidModel.get(module)?.agpVersion?.let {it >= (DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION) } ?: false
+    get() = GradleAndroidModel.get(module)?.agpVersion?.let { it >= (DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION) } ?: false
   override val desugarLibraryConfigFilesNotKnownUserMessage: String?
     get() = when {
       GradleAndroidModel.get(module) == null -> "Not supported for non-Android modules."
@@ -751,8 +752,8 @@ private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): 
   val aarManifests =
     (listOf(this) + dependencies)
       .flatMap { androidFacet ->
-        GradleAndroidModel.get(androidFacet)
-          ?.mainArtifact?.compileClasspath
+        GradleAndroidDependencyModel.get(androidFacet)
+          ?.mainArtifactWithDependencies?.compileClasspath
           ?.libraries
           ?.filterIsInstance<IdeAndroidLibrary>()
           ?.mapNotNull { it.manifestFile() }

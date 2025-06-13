@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Companion.getInstance
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -61,8 +61,8 @@ class AndroidGradleClassJarProviderTest {
       }
     }
 
-    val model = GradleAndroidModel.get(module)!!
-    val runtimeDependencies = model.mainArtifact.runtimeClasspath.all().toSet() - model.mainArtifact.compileClasspath.all().toSet()
+    val model = GradleAndroidDependencyModel.get(module)!!
+    val runtimeDependencies = model.mainArtifactWithDependencies.runtimeClasspath.all().toSet() - model.mainArtifactWithDependencies.compileClasspath.all().toSet()
     assertTrue(runtimeDependencies.isNotEmpty())
 
     val classJarProvider = AndroidGradleClassJarProvider()

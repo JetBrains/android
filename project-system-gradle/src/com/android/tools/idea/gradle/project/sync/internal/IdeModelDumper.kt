@@ -52,7 +52,7 @@ import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches
@@ -115,7 +115,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
             if (!module.isHolderModule()) return@let
             dump(it)
           }
-          GradleAndroidModel.get(module)?.let { it ->
+          GradleAndroidDependencyModel.get(module)?.let { it ->
             // Skip all but holders to prevent needless spam in the snapshots. All modules
             // point to the same facet.
             if (!module.isHolderModule()) return@let
@@ -129,7 +129,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
             // Dump all the fetched Ide variants.
             head("IdeVariants")
             nest {
-              it.variants.forEach { ideVariant ->
+              it.variantsWithDependencies.forEach { ideVariant ->
                 dump(ideVariant)
               }
             }
@@ -160,7 +160,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
   }
 }
 
-fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(gradleAndroidModel: GradleAndroidModel, projectPath: String) {
+fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(gradleAndroidModel: GradleAndroidDependencyModel, projectPath: String) {
   nest(File(projectPath), "PROJECT") {
     with(ideModelDumper(this)) {
       gradleAndroidModel.let { gradleAndroidModel ->
@@ -169,7 +169,7 @@ fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(gradleAndroidModel: Grad
         // Dump all the fetched Ide variants.
         head("IdeVariants")
         nest {
-          gradleAndroidModel.variants.forEach { ideVariant ->
+          gradleAndroidModel.variantsWithDependencies.forEach { ideVariant ->
             dump(ideVariant)
           }
         }

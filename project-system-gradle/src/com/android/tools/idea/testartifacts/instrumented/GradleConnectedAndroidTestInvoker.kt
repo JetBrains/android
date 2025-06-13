@@ -23,7 +23,7 @@ import com.android.tools.idea.Projects
 import com.android.tools.idea.flags.StudioFlags.API_OPTIMIZATION_ENABLE
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.run.ProcessedDeviceSpec
 import com.android.tools.idea.gradle.run.createTargetDeviceSpec
 import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
@@ -100,7 +100,7 @@ class GradleConnectedAndroidTestInvoker(
     devices: List<IDevice>,
     taskId: String,
     androidTestSuiteView: AndroidTestSuiteView,
-    gradleAndroidModel: GradleAndroidModel,
+    gradleAndroidModel: GradleAndroidDependencyModel,
     waitForDebugger: Boolean,
     testPackageName: String,
     testClassName: String,
@@ -350,7 +350,7 @@ class GradleConnectedAndroidTestInvoker(
     }
   }
 
-  private fun getTaskNames(gradleAndroidModel: GradleAndroidModel): List<String> {
+  private fun getTaskNames(gradleAndroidModel: GradleAndroidDependencyModel): List<String> {
     return listOf(
       moduleData.gradleIdentityPath.trimEnd(':') + ":" + gradleAndroidModel.getGradleConnectedTestTaskNameForSelectedVariant()
     )

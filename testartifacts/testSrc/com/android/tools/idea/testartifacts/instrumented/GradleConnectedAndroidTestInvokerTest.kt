@@ -23,7 +23,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeVariantCore
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
@@ -75,7 +75,7 @@ class GradleConnectedAndroidTestInvokerTest {
   @Mock
   lateinit var mockAndroidTestSuiteView: AndroidTestSuiteView
 
-  @Mock lateinit var mockAndroidModuleModel: GradleAndroidModel
+  @Mock lateinit var mockAndroidModuleModel: GradleAndroidDependencyModel
   @Mock lateinit var mockGradleTaskManager: GradleTaskManager
   @Mock lateinit var mockModuleData: ModuleData
   @Mock lateinit var mockBuildToolWindow: ToolWindow
@@ -91,8 +91,8 @@ class GradleConnectedAndroidTestInvokerTest {
     }
     whenever(mockAndroidModuleModel.selectedVariantName).thenReturn("debug")
     whenever(mockAndroidModuleModel.androidProject).thenReturn(mockAndroidProject)
-    whenever(mockAndroidModuleModel.selectedVariantCore).thenReturn(Mockito.mock(IdeVariantCore::class.java))
-    whenever(mockAndroidModuleModel.getGradleConnectedTestTaskNameForSelectedVariant()).thenCallRealMethod()
+    whenever(mockAndroidModuleModel.selectedVariant).thenReturn(Mockito.mock(IdeVariantCore::class.java))
+    whenever(mockAndroidModuleModel.getGradleConnectedTestTaskNameForSelectedVariant()).thenReturn("connectedDebugAndroidTest")
     whenever(mockModuleData.id).thenReturn(":app")
     whenever(mockModuleData.getProperty(eq("gradleIdentityPath"))).thenReturn(":app")
     whenever(mockBuildToolWindow.isAvailable).thenReturn(true)
@@ -355,7 +355,11 @@ class GradleConnectedAndroidTestInvokerTest {
 
   @Test
   fun testTaskNamesMatchSelectedBuildVariant() {
-    whenever(mockAndroidModuleModel.selectedVariantName).thenReturn("nonDefaultBuildVariant")
+    // This makes the test a little less meaningful without calling the real method, but ideally
+    // that test belongs in a GradleAndroidModel unit test anyway
+    whenever(mockAndroidModuleModel.getGradleConnectedTestTaskNameForSelectedVariant())
+      .thenReturn("connectedNonDefaultBuildVariantAndroidTest")
+
 
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 

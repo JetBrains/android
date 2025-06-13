@@ -18,7 +18,7 @@ package com.android.tools.idea.projectsystem.gradle;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeJavaArtifact;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
@@ -33,10 +33,10 @@ public class GradleClassFinderUtil {
   private GradleClassFinderUtil() {};
 
   @NotNull
-  private static Stream<File> getCompilerOutputRoots(@NotNull GradleAndroidModel model, @NotNull EnumSet<ScopeType> scopes) {
+  private static Stream<File> getCompilerOutputRoots(@NotNull GradleAndroidDependencyModel model, @NotNull EnumSet<ScopeType> scopes) {
     List<IdeBaseArtifact> artifacts = new ArrayList<>();
     if (scopes.contains(ScopeType.MAIN)) {
-      artifacts.add(model.getMainArtifact());
+      artifacts.add(model.getMainArtifactWithDependencies());
     }
     if (scopes.contains(ScopeType.ANDROID_TEST)) {
       IdeAndroidArtifact testArtifact = model.getArtifactForAndroidTest();
@@ -54,7 +54,7 @@ public class GradleClassFinderUtil {
    */
   @NotNull
   public static Stream<File> getModuleCompileOutputs(@NotNull Module module, @NotNull EnumSet<ScopeType> scopes) {
-    GradleAndroidModel androidModel = GradleAndroidModel.get(module);
+    GradleAndroidDependencyModel androidModel = GradleAndroidDependencyModel.get(module);
     if (androidModel != null) {
       return getCompilerOutputRoots(androidModel, scopes);
     }

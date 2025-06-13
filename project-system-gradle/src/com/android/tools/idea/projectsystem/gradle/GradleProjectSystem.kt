@@ -18,10 +18,9 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.execution.common.debug.utils.FacetFinder
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeJavaArtifact
+import com.android.tools.idea.gradle.model.IdeJavaArtifactCore
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -30,9 +29,6 @@ import com.android.tools.idea.gradle.run.PostBuildModel
 import com.android.tools.idea.gradle.run.PostBuildModelProvider
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGeneratedSourceFoldersToUse
-import com.android.tools.idea.gradle.util.OutputType
-import com.android.tools.idea.gradle.util.getOutputFilesFromListingFile
-import com.android.tools.idea.gradle.util.getOutputListingFile
 import com.android.tools.idea.model.ClassJarProvider
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
@@ -79,7 +75,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -365,7 +360,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     return all.getValue(this)
   }
 
-  fun IdeAndroidArtifact.toGeneratedIdeaSourceProvider(scopeType: ScopeType): IdeaSourceProvider {
+  fun IdeAndroidArtifactCore.toGeneratedIdeaSourceProvider(scopeType: ScopeType): IdeaSourceProvider {
     val sourceFolders = getGeneratedSourceFoldersToUse(this, model.androidProject)
     return IdeaSourceProviderImpl(
       scopeType,
@@ -391,7 +386,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     )
   }
 
-  fun IdeJavaArtifact.toGeneratedIdeaSourceProvider(scopeType: ScopeType): IdeaSourceProvider {
+  fun IdeJavaArtifactCore.toGeneratedIdeaSourceProvider(scopeType: ScopeType): IdeaSourceProvider {
     val sourceFolders = getGeneratedSourceFoldersToUse(this, model.androidProject)
     return IdeaSourceProviderImpl(
       scopeType,

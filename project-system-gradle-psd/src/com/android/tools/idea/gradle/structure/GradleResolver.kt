@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure
 
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
@@ -63,7 +64,7 @@ class GradleResolver {
   }
 }
 
-private fun findModel(module: GradleModuleModels, modelFactory: (GradleAndroidModelData) -> GradleAndroidModel): PsResolvedModuleModel? {
+private fun findModel(module: GradleModuleModels, modelFactory: (GradleAndroidModelData) -> GradleAndroidDependencyModel): PsResolvedModuleModel? {
   val gradleModuleModel = module.findModel(GradleModuleModel::class.java) ?: return null
   // TODO(b/149203281): Verify support for composite builds if needed here.
   val externalProject = module.findModel(ExternalProject::class.java) ?: return null

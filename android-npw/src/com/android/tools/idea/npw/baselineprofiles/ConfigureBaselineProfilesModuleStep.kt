@@ -23,6 +23,7 @@ import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.BaselineProfileUtil.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.model.AndroidManifestIndex
@@ -346,8 +347,8 @@ fun getBenchmarkLibrariesInTestModulesLessThanMinVersion(project: Project) =
     .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_TEST)
     .asSequence()
     .filter { it.androidFacet != null }
-    .mapNotNull { GradleAndroidModel.get(it) }
-    .flatMap { it.variants }
+    .mapNotNull { GradleAndroidDependencyModel.get(it) }
+    .flatMap { it.variantsWithDependencies }
     .flatMap { v -> v.mainArtifact.compileClasspath.libraries }
     .filterIsInstance<IdeArtifactLibrary>()
     .filter { it.name.startsWith(ANDROIDX_BENCHMARK_LIBRARY_GROUP) }

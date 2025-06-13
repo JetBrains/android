@@ -32,8 +32,8 @@ import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTracke
 
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask;
-import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation;
+import com.android.tools.idea.gradle.model.IdeVariantCore;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -408,7 +408,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       taskNames = getTaskNamesFromBuildInformation(GradleAndroidModel, buildVariants, targetType);
     }
     else {
-      IdeVariant selectedVariant = GradleAndroidModel.getSelectedVariant();
+      IdeVariantCore selectedVariant = GradleAndroidModel.getSelectedVariant();
       String selectedTaskName = getTaskName(selectedVariant, targetType);
       if (selectedTaskName == null) {
         getLog().warn("Could not get tasks for target " + targetType + " on variant " + selectedVariant.getName());
@@ -480,7 +480,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     return null;
   }
 
-  private static String getTaskName(IdeVariant v, TargetType targetType) {
+  private static String getTaskName(IdeVariantCore v, TargetType targetType) {
     if (targetType.equals(BUNDLE)) {
       return v.getMainArtifact().getBuildInformation().getBundleTaskName();
     }
