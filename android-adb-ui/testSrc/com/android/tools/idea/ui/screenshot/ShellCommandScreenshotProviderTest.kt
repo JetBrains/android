@@ -73,7 +73,7 @@ internal class ShellCommandScreenshotProviderTest {
     val testImage = createTestImage(1080, 600, Color.RED)
     deviceServices.configureShellV2Command(device, "screencap -p", testImage.toPngBytes(), emptyByteBuffer, 0)
     val parameters = ScreenshotParameters(serialNumber, DeviceType.HANDHELD, "Pixel 9")
-    screenshotProvider = ShellCommandScreenshotProvider(project, serialNumber, parameters.deviceType, parameters.deviceModel!!, PRIMARY_DISPLAY_ID)
+    screenshotProvider = ShellCommandScreenshotProvider(project, serialNumber, parameters.deviceType, parameters.deviceName, PRIMARY_DISPLAY_ID)
     val image = runBlocking { screenshotProvider.captureScreenshot() }
     assertImageSimilar("test image", testImage, image.image)
   }
@@ -83,7 +83,7 @@ internal class ShellCommandScreenshotProviderTest {
     val testImage = createTestImage(400, 600, Color.BLUE)
     deviceServices.configureShellV2Command(device, "screencap -p -d 4619827551948147201", testImage.toPngBytes(), emptyByteBuffer, 0)
     val parameters = ScreenshotParameters(serialNumber, DeviceType.HANDHELD, "Pixel 9")
-    screenshotProvider = ShellCommandScreenshotProvider(project, serialNumber, parameters.deviceType, parameters.deviceModel!!, 2)
+    screenshotProvider = ShellCommandScreenshotProvider(project, serialNumber, parameters.deviceType, parameters.deviceName, 2)
     val image = runBlocking { screenshotProvider.captureScreenshot() }
     assertImageSimilar("test image", testImage, image.image)
   }

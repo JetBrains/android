@@ -27,6 +27,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import java.lang.reflect.Type
+import java.nio.file.Path
 
 /** A representation of a device used by [DeviceComboBox]. */
 sealed class Device() {
@@ -105,7 +106,7 @@ sealed class Device() {
       get() = avdName
 
     override fun getScreenshotParameters() =
-      ScreenshotParameters(serialNumber, type, avdName.substringBefore(" API "))
+      ScreenshotParameters(serialNumber, type, Path.of(avdPath))
 
     override fun copy(isOnline: Boolean, apiLevel: AndroidApiLevel) =
       EmulatorDevice(
