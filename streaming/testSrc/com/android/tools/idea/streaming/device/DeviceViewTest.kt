@@ -91,7 +91,6 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestDataProvider
 import com.intellij.testFramework.assertInstanceOf
-import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ConcurrencyUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlinx.coroutines.runBlocking
@@ -108,7 +107,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.awt.Component
 import java.awt.Dimension
 import java.awt.MouseInfo
 import java.awt.Point
@@ -149,13 +147,12 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.JButton
 import javax.swing.JEditorPane
-import javax.swing.JScrollPane
 import kotlin.io.path.exists
 import kotlin.io.path.fileSize
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Tests for [DeviceView] and [DeviceClient].
+ * Tests for [DeviceView], [DeviceDisplayPanel] and [DeviceClient].
  */
 @RunsInEdt
 internal class DeviceViewTest {
@@ -1168,16 +1165,10 @@ internal class DeviceViewTest {
     // DeviceView has to be disposed before DeviceClient.
     val disposable = Disposer.newDisposable()
     Disposer.register(testRootDisposable, disposable)
-    view = DeviceView(disposable, deviceClient, agentRule.project, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION)
-    fakeUi = FakeUi(wrapInScrollPane(view, width, height), screenScale)
-  }
-
-  private fun wrapInScrollPane(view: Component, width: Int, height: Int): JScrollPane {
-    return JBScrollPane(view).apply {
-      border = null
-      isFocusable = true
-      size = Dimension(width, height)
-    }
+    val displayPanel = DeviceDisplayPanel(disposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project, false)
+    displayPanel.size = Dimension(width, height)
+    view = displayPanel.displayView
+    fakeUi = FakeUi(displayPanel, screenScale)
   }
 
   private fun assertAppearance(goldenImageName: String) {

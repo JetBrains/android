@@ -18,16 +18,16 @@ package com.android.tools.idea.streaming.uisettings.actions
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames
 import com.android.testutils.waitForCondition
-import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.findModelessDialog
-import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.DeviceClient
+import com.android.tools.idea.streaming.device.DeviceDisplayPanel
 import com.android.tools.idea.streaming.device.DeviceView
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.device.UNKNOWN_ORIENTATION
+import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.uisettings.ui.APP_LANGUAGE_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.DARK_THEME_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.DENSITY_TITLE
@@ -37,13 +37,10 @@ import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
+import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.ActionUiKind
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
@@ -56,7 +53,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import java.awt.Dimension
-import java.awt.event.MouseEvent
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JSlider
@@ -82,32 +78,23 @@ class DeviceUiSettingsActionTest {
 
   @Test
   fun testActionOnApi32Device() {
-    val action = DeviceUiSettingsAction()
     val view = connectDeviceAndCreateView(32)
-    val event = createTestKeyEvent(view)
-    action.update(event)
-    assertThat(event.presentation.isVisible).isFalse()
+    val presentation = updateAndGetActionPresentation("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
+    assertThat(presentation.isVisible).isFalse()
   }
 
   @Test
   fun testActiveAction() {
-    val action = DeviceUiSettingsAction()
     val view = connectDeviceAndCreateView()
-    val event = createTestMouseEvent(action, view)
-    action.update(event)
-    assertThat(event.presentation.isVisible).isTrue()
-
-    action.actionPerformed(event)
+    executeStreamingAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
     val dialog = waitForDialog()
     assertThat(dialog.contentPanel.findDescendant<UiSettingsPanel>()).isNotNull()
   }
 
   @Test
   fun testWearControls() {
-    val action = DeviceUiSettingsAction()
     val view = connectDeviceAndCreateView(isWear = true)
-    val event = createTestMouseEvent(action, view)
-    action.actionPerformed(event)
+    executeStreamingAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
     val dialog = waitForDialog()
     val panel = dialog.contentPanel
     assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNull()
@@ -122,12 +109,8 @@ class DeviceUiSettingsActionTest {
 
   @Test
   fun testDialogClosesWhenDialogLosesFocus() {
-    val action = DeviceUiSettingsAction()
     val view = connectDeviceAndCreateView()
-    val event = createTestKeyEvent(view)
-    action.update(event)
-    assertThat(event.presentation.isVisible).isTrue()
-    action.actionPerformed(event)
+    executeStreamingAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
     val dialog = waitForDialog()
     dialog.window.windowFocusListeners.forEach { it.windowLostFocus(mock()) }
     assertThat(dialog.isDisposed).isTrue()
@@ -135,19 +118,11 @@ class DeviceUiSettingsActionTest {
 
   @Test
   fun testDialogClosesWithParentDisposable() {
-    val parentDisposable = Disposer.newDisposable()
-    Disposer.register(testRootDisposable, parentDisposable)
-
-    val action = DeviceUiSettingsAction()
-    val view = connectDeviceAndCreateView(parentDisposable = parentDisposable)
-    val event = createTestMouseEvent(action, view)
-    action.update(event)
-    assertThat(event.presentation.isVisible).isTrue()
-
-    action.actionPerformed(event)
+    val view = connectDeviceAndCreateView()
+    executeStreamingAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
     val dialog = waitForDialog()
 
-    Disposer.dispose(parentDisposable)
+    Disposer.dispose(view)
     assertThat(dialog.isDisposed).isTrue()
   }
 
@@ -158,21 +133,7 @@ class DeviceUiSettingsActionTest {
 
   private fun findDialog() = findModelessDialog<UiSettingsDialog> { it.isShowing }
 
-  private fun createTestMouseEvent(action: AnAction, view: DeviceView): AnActionEvent {
-    val keyEvent = createTestKeyEvent(view)
-    val component = createActionButton(action)
-    val input = MouseEvent(component, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0, 10, 10, 1, false)
-    return AnActionEvent.createEvent(keyEvent.dataContext, keyEvent.presentation, ActionPlaces.TOOLBAR, ActionUiKind.TOOLBAR, input)
-  }
-
-  private fun createTestKeyEvent(view: DeviceView): AnActionEvent =
-    createTestEvent(view, project)
-
-  private fun connectDeviceAndCreateView(
-    apiLevel: Int = 33,
-    isWear: Boolean = false,
-    parentDisposable: Disposable = testRootDisposable
-  ): DeviceView {
+  private fun connectDeviceAndCreateView(apiLevel: Int = 33, isWear: Boolean = false): DeviceView {
     val device = agentRule.connectDevice(
       "Pixel 8",
       apiLevel,
@@ -180,30 +141,20 @@ class DeviceUiSettingsActionTest {
       screenDensity = 480,
       additionalDeviceProperties = if (isWear) mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "watch") else emptyMap()
     )
-    val view = createDeviceView(device, parentDisposable)
+    val view = createDeviceView(device, testRootDisposable)
     view.setBounds(0, 0, 600, 800)
-    waitForFrame(view)
+    waitForConnection(view)
     return view
   }
-
-  private fun createActionButton(action: AnAction) = ActionButton(
-    action,
-    action.templatePresentation.clone(),
-    ActionPlaces.TOOLBAR,
-    Dimension(16, 16)
-  ).apply { size = Dimension(16, 16) }
 
   private fun createDeviceView(device: FakeDevice, parentDisposable: Disposable): DeviceView {
     val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(parentDisposable, deviceClient)
-    return DeviceView(parentDisposable, deviceClient, project, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION)
+    val panel = DeviceDisplayPanel(parentDisposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project, false)
+    return panel.displayView
   }
 
-  private fun waitForFrame(view: DeviceView) {
-    val ui = FakeUi(view)
-    waitForCondition(2.seconds) {
-      ui.render()
-      view.isConnected && view.frameNumber > 0u
-    }
+  private fun waitForConnection(view: DeviceView) {
+    waitForCondition(2.seconds) { view.isConnected }
   }
 }

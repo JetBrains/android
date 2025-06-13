@@ -32,6 +32,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
+import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -985,7 +986,8 @@ class EmulatorToolWindowPanelTest {
     emulator.clearGrpcCallLog()
     val largestDisplayPanel = fakeUi.getComponent<EmulatorDisplayPanel> { it.displayId == 2 }
     var frameNumber = largestDisplayPanel.displayView.frameNumber
-    largestDisplayPanel.displayView.zoom(ZoomType.ACTUAL)
+    val zoomToActualButton = largestDisplayPanel.getDescendant<ActionButton> { it.action.templateText == "100%" }
+    fakeUi.mouseClickOn(zoomToActualButton)
     fakeUi.layoutAndDispatchEvents()
     val streamScreenshotCall4k = emulator.getNextGrpcCall(2.seconds)
     assertThat(streamScreenshotCall4k.methodName).isEqualTo("android.emulation.control.EmulatorController/streamScreenshot")

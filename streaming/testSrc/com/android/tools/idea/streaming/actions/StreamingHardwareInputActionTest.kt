@@ -23,6 +23,7 @@ import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.DeviceClient
+import com.android.tools.idea.streaming.device.DeviceDisplayPanel
 import com.android.tools.idea.streaming.device.DeviceView
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
@@ -143,14 +144,15 @@ class StreamingHardwareInputActionTest {
     val presentation = updateAndGetActionPresentation(action, view, project)
     val popup = showPopup(presentation)
     val labels = popup.content.findAllDescendants<JLabel>().toList()
-    assertThat(labels.map { extractText(it.text)})
+    assertThat(labels.map { extractText(it.text) })
         .containsExactly("Hardware Input", "Enable transparent forwarding of keyboard and mouse events to the device")
   }
 
   private fun createDeviceView(device: FakeDevice): DeviceView {
     val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(testRootDisposable, deviceClient)
-    return DeviceView(testRootDisposable, deviceClient, project, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION)
+    val panel = DeviceDisplayPanel(testRootDisposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project, false)
+    return panel.displayView
   }
 
   private fun showPopup(presentation: Presentation): FakeJBPopup<Unit> {
