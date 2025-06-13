@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.java
 
+import com.android.tools.idea.nav.safeargs.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.Parameter
 import com.android.tools.idea.nav.safeargs.extensions.checkSignaturesAndReturnType
-import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
@@ -118,7 +118,7 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
 
   @Test
   fun expectedMethodsAreCreated_AfterFromSavedStateHandleFeature() {
-    safeArgsRule.addFakeNavigationDependency(SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE)
+    safeArgsRule.setSafeArgsFeatureForVersion(SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE)
 
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
@@ -188,7 +188,7 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
 
   @Test
   fun expectedMethodsAreCreated_AfterToSavedStateHandleFeature() {
-    safeArgsRule.addFakeNavigationDependency(SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE)
+    safeArgsRule.setSafeArgsFeatureForVersion(SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE)
 
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",

@@ -16,10 +16,10 @@
 package com.android.tools.idea.nav.safeargs.psi.java
 
 import com.android.SdkConstants
+import com.android.tools.idea.nav.safeargs.SafeArgsFeature
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.module.NavEntry
 import com.android.tools.idea.nav.safeargs.module.NavInfo
-import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
 import com.intellij.psi.JavaPsiFacade
@@ -122,7 +122,7 @@ class LightArgsClass(navInfo: NavInfo, navEntry: NavEntry, destination: NavDesti
 
     // Add on version specific methods since the navigation library side is keeping introducing new
     // methods.
-    if (navInfo.navVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
+    if (navInfo.navFeatures.contains(SafeArgsFeature.FROM_SAVED_STATE_HANDLE)) {
       methods.add(
         createMethod(
             name = "fromSavedStateHandle",
@@ -135,7 +135,7 @@ class LightArgsClass(navInfo: NavInfo, navEntry: NavEntry, destination: NavDesti
 
     // Add on version specific methods since the navigation library side is keeping introducing new
     // methods.
-    if (navInfo.navVersion >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE) {
+    if (navInfo.navFeatures.contains(SafeArgsFeature.TO_SAVED_STATE_HANDLE)) {
       methods.add(
         createMethod(
           name = "toSavedStateHandle",

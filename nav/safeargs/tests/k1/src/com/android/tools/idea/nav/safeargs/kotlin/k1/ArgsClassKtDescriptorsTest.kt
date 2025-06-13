@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.nav.safeargs.kotlin.k1
 
+import com.android.tools.idea.nav.safeargs.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
@@ -127,7 +127,7 @@ class ArgsClassKtDescriptorsTest {
 
   @Test
   fun checkContributorsOfArgsClass_After_AdjustParamsWithDefaultsFix() {
-    safeArgsRule.addFakeNavigationDependency(SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
+    safeArgsRule.setSafeArgsFeatureForVersion(SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
 
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
@@ -223,7 +223,7 @@ class ArgsClassKtDescriptorsTest {
 
   @Test
   fun checkContributorsOfArgsClass_AfterToSavedStateHandleFeature() {
-    safeArgsRule.addFakeNavigationDependency(SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE)
+    safeArgsRule.setSafeArgsFeatureForVersion(SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE)
 
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
@@ -318,7 +318,7 @@ class ArgsClassKtDescriptorsTest {
 
   @Test
   fun checkContributorsOfArgsClass_AfterFromSavedStateHandleFeature() {
-    safeArgsRule.addFakeNavigationDependency(SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE)
+    safeArgsRule.setSafeArgsFeatureForVersion(SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE)
 
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",

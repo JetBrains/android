@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.java
 
+import com.android.tools.idea.nav.safeargs.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.Parameter
 import com.android.tools.idea.nav.safeargs.extensions.checkSignaturesAndReturnType
-import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
@@ -132,7 +132,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
   fun expectedMethodsAreCreated_inferredType_fromSavedStateHandle() {
     // Use version [SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE] and check the corresponding
     // methods and field.
-    safeArgsRule.addFakeNavigationDependency(SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE)
+    safeArgsRule.setSafeArgsFeatureForVersion(SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE)
 
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
@@ -193,7 +193,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
   fun expectedMethodsAreCreated_inferredType_toSavedStateHandle() {
     // Use version [SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE] and check the corresponding
     // methods and field.
-    safeArgsRule.addFakeNavigationDependency(SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE)
+    safeArgsRule.setSafeArgsFeatureForVersion(SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE)
 
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",

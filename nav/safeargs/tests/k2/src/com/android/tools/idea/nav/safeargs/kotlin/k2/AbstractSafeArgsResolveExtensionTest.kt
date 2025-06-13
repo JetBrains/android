@@ -16,9 +16,9 @@
 package com.android.tools.idea.nav.safeargs.kotlin.k2
 
 import com.android.ide.common.gradle.Version
+import com.android.tools.idea.nav.safeargs.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.testing.KotlinPluginRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat

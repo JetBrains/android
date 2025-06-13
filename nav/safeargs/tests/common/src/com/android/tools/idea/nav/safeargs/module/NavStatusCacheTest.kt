@@ -2,9 +2,9 @@
 // Apache 2.0 license.
 package com.android.tools.idea.nav.safeargs.module
 
+import com.android.tools.idea.nav.safeargs.SafeArgsFeature
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.google.common.truth.Truth.assertThat
 import java.util.EnumSet
 import org.junit.Before
@@ -112,7 +112,7 @@ class NavStatusCacheTest {
           facet = safeArgsRule.androidFacet,
           packageName = "foo.bar",
           entries = emptyList(),
-          navVersion = SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE,
+          navFeatures = setOf(SafeArgsFeature.TO_SAVED_STATE_HANDLE),
           modificationCount = modificationCount,
         )
       )
