@@ -19,6 +19,7 @@ package com.android.tools.idea.common.editor
 
 import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import java.awt.Component
 import java.awt.event.MouseEvent
@@ -39,9 +40,9 @@ fun DesignSurface<*>.showPopup(
   group: DefaultActionGroup,
   place: String,
   targetComponent: JComponent? = null,
-) {
+): ActionPopupMenu? {
   val invoker = if (event.source is Component) event.source as Component else this
-  showPopup(this, invoker, event.x, event.y, group, place, targetComponent)
+  return showPopup(this, invoker, event.x, event.y, group, place, targetComponent)
 }
 
 /**
@@ -61,9 +62,9 @@ fun showPopup(
   group: DefaultActionGroup,
   place: String,
   targetComponent: JComponent? = null,
-) {
+): ActionPopupMenu? {
   if (group.getChildren(ActionManager.getInstance()).isEmpty()) {
-    return
+    return null
   }
   val actionManager = ActionManager.getInstance()
   // TODO (b/151315668): Should the place be ActionPlaces.POPUP?
@@ -74,4 +75,5 @@ fun showPopup(
     surface?.let { popupMenu.setTargetComponent(it) }
   }
   popupMenu.component.show(invoker, x, y)
+  return popupMenu
 }
