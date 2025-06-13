@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.gradle.projectView
 
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.idea.IdeInfo
+import com.intellij.openapi.options.Configurable
+import com.intellij.openapi.options.ConfigurableProvider
 
-interface AndroidProjectViewSettings {
-  var defaultToProjectView: Boolean
-
-  companion object {
-    fun getInstance(): AndroidProjectViewSettings = ApplicationManager.getApplication().getService(AndroidProjectViewSettings::class.java)
+class ProjectToolWindowConfigurableProvider(): ConfigurableProvider() {
+  override fun createConfigurable(): Configurable? {
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      return ProjectToolWindowConfigurable()
+    }
+    return null
   }
 }
