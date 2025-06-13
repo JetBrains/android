@@ -26,9 +26,9 @@ import static junit.framework.TestCase.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore;
 import com.android.tools.idea.gradle.model.IdeArtifactName;
-import com.android.tools.idea.gradle.model.IdeJavaArtifact;
+import com.android.tools.idea.gradle.model.IdeJavaArtifactCore;
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet;
 import com.android.tools.idea.gradle.project.AndroidGradleOrderEnumeratorHandlerFactory;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
@@ -70,7 +70,7 @@ public class AndroidGradleOrderEnumeratorHandlerGradleTest {
       assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getMainArtifact().getGeneratedResourceFolders(),
                                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
 
-      IdeJavaArtifact unitTestArtifact =
+      IdeJavaArtifactCore unitTestArtifact =
         model.getSelectedVariant().getHostTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.UNIT_TEST).findFirst()
           .orElse(null);
       assertNotNull(unitTestArtifact);
@@ -83,7 +83,7 @@ public class AndroidGradleOrderEnumeratorHandlerGradleTest {
         Assert.assertTrue(intersectionMainAndUnitTest.iterator().next().endsWith("R.jar!/"));
       }
 
-      IdeAndroidArtifact androidArtifact =
+      IdeAndroidArtifactCore androidArtifact =
         model.getSelectedVariant().getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST).toList()
           .get(0);
       assertDoesntContain(
@@ -124,7 +124,7 @@ public class AndroidGradleOrderEnumeratorHandlerGradleTest {
       GradleAndroidModel model = GradleAndroidModel.get(module);
       Set<String> expected = new HashSet<>();
       // Android Test
-      IdeAndroidArtifact androidArtifact =
+      IdeAndroidArtifactCore androidArtifact =
         model.getSelectedVariant().getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST).toList()
           .get(0);
       expected.addAll(Collections2.transform(androidArtifact.getClassesFolder(), (input) -> input == null ? null : pathToIdeaUrl(input)));

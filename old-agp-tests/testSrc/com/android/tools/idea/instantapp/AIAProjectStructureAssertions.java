@@ -20,7 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeDependencies;
 import com.android.tools.idea.gradle.model.IdeModuleLibrary;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import java.util.Collection;
@@ -71,13 +71,13 @@ public class AIAProjectStructureAssertions {
                                                 @NotNull Collection<String> expectedDependencies,
                                                 IdeAndroidProjectType moduleType,
                                                 boolean isBaseFeature) {
-    GradleAndroidModel model = GradleAndroidModel.get(module);
+    GradleAndroidDependencyModel model = GradleAndroidDependencyModel.get(module);
     assertThat(module).isNotNull();
     IdeAndroidProjectType projectType = model.getAndroidProject().getProjectType();
     assertThat(projectType).named("Module type").isEqualTo(moduleType);
     assertThat(model.isBaseSplit()).named("IsBaseSplit").isEqualTo(isBaseFeature);
 
-    IdeDependencies dependencies = model.getMainArtifact().getCompileClasspath();
+    IdeDependencies dependencies = model.getMainArtifactWithDependencies().getCompileClasspath();
     List<String> libraries =
       dependencies.getLibraries().stream()
         .filter((x) -> x instanceof IdeModuleLibrary)

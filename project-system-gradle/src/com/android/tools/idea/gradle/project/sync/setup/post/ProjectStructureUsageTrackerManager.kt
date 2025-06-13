@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.model.UsedFeatureRawText
@@ -110,7 +111,7 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
     var kmpCount = 0
     val gradleLibraries: MutableList<GradleLibrary> = ArrayList()
     for (facet in project.getAndroidFacets()) {
-      val androidModel = GradleAndroidModel.get(facet)
+      val androidModel = GradleAndroidDependencyModel.get(facet)
       if (androidModel != null) {
         when (androidModel.androidProject.projectType) {
           IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> {
@@ -258,11 +259,11 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
       }
     }
 
-    private fun trackExternalDependenciesInAndroidApp(model: GradleAndroidModel): GradleLibrary {
+    private fun trackExternalDependenciesInAndroidApp(model: GradleAndroidDependencyModel): GradleLibrary {
       // Use Ref because lambda function argument to forEachVariant only works with final variables.
       val chosenVariant = Ref<IdeVariant?>()
       // We want to track the "release" variants.
-      model.variants.forEach { variant: IdeVariant ->
+      model.variantsWithDependencies.forEach { variant: IdeVariant ->
         if ("release" == variant.buildType) {
           chosenVariant.set(variant)
         }
@@ -270,7 +271,7 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
 
       // If we could not find a "release" variant, pick the selected one.
       if (chosenVariant.get() == null) {
-        chosenVariant.set(model.selectedVariant)
+        chosenVariant.set(model.selectedVariantWithDependencies)
       }
       val dependencies = chosenVariant.get()!!.mainArtifact.compileClasspath
       return GradleLibrary.newBuilder()

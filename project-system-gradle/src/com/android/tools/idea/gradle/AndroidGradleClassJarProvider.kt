@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnknownLibrary
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.model.ClassJarProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -28,9 +28,9 @@ import java.io.File
 
 class AndroidGradleClassJarProvider : ClassJarProvider {
   override fun getModuleExternalLibraries(module: Module): List<File> {
-    val gradleModule = GradleAndroidModel.get(module)
+    val gradleModule = GradleAndroidDependencyModel.get(module)
                        ?: return getExternalLibraries(module).map(VfsUtilCore::virtualToIoFile)
-    return gradleModule.mainArtifact.runtimeClasspath.libraries.flatMap { library ->
+    return gradleModule.mainArtifactWithDependencies.runtimeClasspath.libraries.flatMap { library ->
       when (library) {
         is IdeAndroidLibrary -> library.runtimeJarFiles
         is IdeJavaLibrary -> listOf(library.artifact)

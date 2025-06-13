@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run
 
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_APP
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_ATOM
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
@@ -26,7 +25,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_KO
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_TEST
 import com.android.tools.idea.gradle.model.IdeBasicVariant
-import com.android.tools.idea.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.util.DynamicAppUtils
 import com.android.tools.idea.instantapp.InstantApps
@@ -48,7 +47,7 @@ class GradleApplicationIdProvider private constructor(
   private val forTests: Boolean,
   private val androidModel: GradleAndroidModel,
   private val basicVariant: IdeBasicVariant,
-  private val variant: IdeVariant?
+  private val variant: IdeVariantCore?
 ) : ApplicationIdProvider {
 
   companion object {
@@ -58,7 +57,7 @@ class GradleApplicationIdProvider private constructor(
       forTests: Boolean,
       androidModel: GradleAndroidModel,
       basicVariant: IdeBasicVariant,
-      variant: IdeVariant
+      variant: IdeVariantCore
     ): GradleApplicationIdProvider {
       require(basicVariant.name == variant.name) { "variant.name(${variant.name}) != basicVariant.name(${basicVariant.name})" }
       return GradleApplicationIdProvider(androidFacet, forTests, androidModel, basicVariant, variant)
@@ -135,7 +134,7 @@ class GradleApplicationIdProvider private constructor(
   // Note: Even though our project is a test module project we request an application id provider for the target module which is
   //       not a test module and the return provider is supposed to be used to obtain the non-test application id only and hence
   //       we create a `GradleApplicationIdProvider` instance in `forTests = false` mode.
-  private fun getTestProjectTargetApplicationIdProvider(variant: IdeVariant): ApplicationIdProvider? {
+  private fun getTestProjectTargetApplicationIdProvider(variant: IdeVariantCore): ApplicationIdProvider? {
     val testedTargetVariant =
       variant.testedTargetVariants.singleOrNull()
         ?: return null // There is no tested variant or more than one (what should never happen currently) and then we can't get package name.

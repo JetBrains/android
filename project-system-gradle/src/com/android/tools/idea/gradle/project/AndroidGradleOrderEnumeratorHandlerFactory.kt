@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.project
 
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
+import com.android.tools.idea.gradle.model.IdeJavaArtifactCore
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
@@ -64,10 +66,10 @@ class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.
         androidModel: GradleAndroidModel,
         includeProduction: Boolean,
         includeTests: Boolean
-      ): List<IdeBaseArtifact> {
+      ): List<IdeBaseArtifactCore> {
         return listOfNotNull(
-          androidModel.mainArtifact.takeIf { includeProduction && module.isMainModule() },
-          androidModel.getArtifactForAndroidTest()?.takeIf { includeTests && module.isAndroidTestModule() },
+          androidModel.selectedVariant.mainArtifact.takeIf { includeProduction && module.isMainModule() },
+          androidModel.getArtifactCoreForAndroidTest()?.takeIf { includeTests && module.isAndroidTestModule() },
           androidModel.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.takeIf { includeTests && module.isUnitTestModule() },
           androidModel.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }?.takeIf { includeTests && module.isScreenshotTestModule() },
           androidModel.selectedVariant.testFixturesArtifact?.takeIf { includeTests && module.isTestFixturesModule() },
@@ -98,7 +100,7 @@ class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.
 
   companion object {
     private fun getAndroidCompilerOutputFolders(
-      artifacts: List<IdeBaseArtifact>
+      artifacts: List<IdeBaseArtifactCore>
     ): Sequence<String> {
       // The test artifact must be added to the classpath before the main artifact, this is so that tests pick up the correct classes
       // if multiple definitions of the same class exist in both the test and the main artifact.
@@ -107,21 +109,21 @@ class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.
         .asSequence()
         .flatMap {
           when (it) {
-            is IdeJavaArtifact -> addFoldersFromJavaArtifact(it)
-            is IdeAndroidArtifact -> addFoldersFromAndroidArtifact(it)
+            is IdeJavaArtifact, is IdeJavaArtifactCore -> addFoldersFromJavaArtifact(it as IdeJavaArtifactCore)
+            is IdeAndroidArtifact, is IdeAndroidArtifactCore -> addFoldersFromAndroidArtifact(it as IdeAndroidArtifactCore)
           }
         }
     }
 
-    private fun foldersFromBaseArtifact(artifact: IdeBaseArtifact): Sequence<String> {
+    private fun foldersFromBaseArtifact(artifact: IdeBaseArtifactCore): Sequence<String> {
       return artifact.classesFolder.asSequence().map(FilePaths::pathToIdeaUrl)
     }
 
-    private fun addFoldersFromJavaArtifact(artifact: IdeJavaArtifact): Sequence<String> {
+    private fun addFoldersFromJavaArtifact(artifact: IdeJavaArtifactCore): Sequence<String> {
       return foldersFromBaseArtifact(artifact)
     }
 
-    private fun addFoldersFromAndroidArtifact(artifact: IdeAndroidArtifact): Sequence<String> {
+    private fun addFoldersFromAndroidArtifact(artifact: IdeAndroidArtifactCore): Sequence<String> {
       return foldersFromBaseArtifact(artifact) +
         artifact.generatedResourceFolders.asSequence().map(FilePaths::pathToIdeaUrl) +
         artifact.generatedAssetFolders.asSequence().map(FilePaths::pathToIdeaUrl)

@@ -19,7 +19,7 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex
@@ -97,9 +97,9 @@ class SdkIndexIssuesSyncListener(private val coroutineScope: CoroutineScope) : G
     }
     val dependencies = project.modules
       .asSequence()
-      .map { GradleAndroidModel.get(it) }
+      .map { GradleAndroidDependencyModel.get(it) }
       .filterNotNull()
-      .map { it.mainArtifact.compileClasspath.libraries }
+      .map { it.mainArtifactWithDependencies.compileClasspath.libraries }
       .flatten()
       .filterIsInstance<IdeArtifactLibrary>()
       .mapNotNull { it.component }

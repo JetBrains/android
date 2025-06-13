@@ -22,6 +22,7 @@ import com.android.tools.idea.flags.StudioFlags.ANDROID_SDK_AND_IDE_COMPATIBILIT
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
@@ -341,7 +342,7 @@ private fun relativePath(basePath: File, file: File?): String {
   return ""
 }
 
-fun syncSelectedVariant(facet: AndroidFacet, variant: IdeVariant) {
+fun syncSelectedVariant(facet: AndroidFacet, variant: IdeVariantCore) {
   val state = facet.properties
   state.SELECTED_BUILD_VARIANT = variant.name
 }

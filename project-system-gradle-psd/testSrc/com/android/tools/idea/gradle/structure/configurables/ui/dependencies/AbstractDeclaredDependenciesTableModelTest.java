@@ -65,8 +65,10 @@ public class AbstractDeclaredDependenciesTableModelTest extends HeavyPlatformTes
       new AndroidProjectBuilder().build().invoke("name", ":name", new File("/"), new File("/name"), "7.0.0", new InternedModels(null));
     GradleAndroidModelData gradleAndroidModel = mock(GradleAndroidModelData.class);
     when(gradleAndroidModel.getAndroidProject()).thenReturn(projectModels.getAndroidProject());
+    when(gradleAndroidModel.getSelectedVariantName()).thenReturn("name");
     PsAndroidModule module = new PsAndroidModule(project, ":name");
-    module.init("name", null, new GradleAndroidModel(gradleAndroidModel, getProject(), mock(IdeLibraryModelResolver.class)), null, null,
+
+    module.init("name", null, GradleAndroidModel.createFactory(getProject(), mock(IdeLibraryModelResolver.class)).invoke(gradleAndroidModel), null, null,
                 parsedModel);
     PsContext context = mock(PsContext.class);
     when(context.getUiSettings()).thenReturn(myUISettings);

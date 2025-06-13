@@ -23,6 +23,7 @@ import com.android.tools.idea.execution.common.processhandler.AndroidProcessHand
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
@@ -161,7 +162,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
   }
 
   fun doRunGradleTask(devices: List<IDevice>, androidTestSuiteView: AndroidTestSuiteView, isDebug: Boolean) {
-    val gradleAndroidModel = requireNotNull(GradleAndroidModel.get(facet))
+    val gradleAndroidModel = requireNotNull(GradleAndroidDependencyModel.get(facet))
     val retentionConfiguration = RetentionConfiguration(
       configuration.RETENTION_ENABLED,
       configuration.RETENTION_MAX_SNAPSHOTS,

@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleBuilds
-import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
@@ -174,7 +173,7 @@ class GradleTaskFinderWorker private constructor(
           BuildMode.BUNDLE -> {
             moduleToProcess.getTasksBy {
               listOfNotNull(
-                (it as? IdeAndroidArtifact)?.buildInformation?.bundleTaskName,
+                (it as? IdeAndroidArtifactCore)?.buildInformation?.bundleTaskName,
                 it.getPrivacySandboxSdkTask(),
                 it.getPrivacySandboxSdkLegacyTask()
               ) // Don't need getAdditionalApkSplitTask for bundle deployment
@@ -187,7 +186,7 @@ class GradleTaskFinderWorker private constructor(
               tasks =
               moduleToProcess.getTasksBy {
                 listOfNotNull(
-                  (it as? IdeAndroidArtifact)?.buildInformation?.apkFromBundleTaskName,
+                  (it as? IdeAndroidArtifactCore)?.buildInformation?.apkFromBundleTaskName,
                   it.getPrivacySandboxSdkTask(),
                   it.getPrivacySandboxSdkLegacyTask()
                 ) // Don't need getAdditionalApkSplitTask for bundle deployment
@@ -240,14 +239,14 @@ class GradleTaskFinderWorker private constructor(
     }
   }
 
-  private fun IdeBaseArtifact.getPrivacySandboxSdkTask() =
-    (this as? IdeAndroidArtifact)?.privacySandboxSdkInfo?.task
+  private fun IdeBaseArtifactCore.getPrivacySandboxSdkTask() =
+    (this as? IdeAndroidArtifactCore)?.privacySandboxSdkInfo?.task
 
-  private fun IdeBaseArtifact.getAdditionalApkSplitTask() =
-    (this as? IdeAndroidArtifact)?.privacySandboxSdkInfo?.additionalApkSplitTask
+  private fun IdeBaseArtifactCore.getAdditionalApkSplitTask() =
+    (this as? IdeAndroidArtifactCore)?.privacySandboxSdkInfo?.additionalApkSplitTask
 
-  private fun IdeBaseArtifact.getPrivacySandboxSdkLegacyTask() =
-    (this as? IdeAndroidArtifact)?.privacySandboxSdkInfo?.taskLegacy
+  private fun IdeBaseArtifactCore.getPrivacySandboxSdkLegacyTask() =
+    (this as? IdeAndroidArtifactCore)?.privacySandboxSdkInfo?.taskLegacy
 
   private fun GradleProjectPath.toModuleAndMode(
     buildMode: BuildMode,
@@ -341,11 +340,11 @@ private fun getGradleJavaTaskNames(buildMode: BuildMode, module: Module): Set<St
 
 private fun ModuleAndMode.getTasksBy(
   isClean: Boolean = false,
-  by: (artifact: IdeBaseArtifact) -> List<String>
+  by: (artifact: IdeBaseArtifactCore) -> List<String>
 ): ModuleTasks {
   val tasks: Set<String> = androidModel?.selectedVariant?.let { variant ->
     val artifacts =
-      mutableListOf<IdeBaseArtifact>().apply {
+      mutableListOf<IdeBaseArtifactCore>().apply {
         addIfNotNull(variant.mainArtifact.takeIf { module.isHolderModule() || module.isMainModule() || (module.isAndroidTestModule() && expandModule) })
         addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }.takeIf { module.isUnitTestModule() || module.isHolderModule() })
         addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }.takeIf { module.isScreenshotTestModule() || module.isHolderModule() })
@@ -359,9 +358,9 @@ private fun ModuleAndMode.getTasksBy(
 
 private fun ModuleAndMode.getTaskBy(
   isClean: Boolean = false,
-  by: (artifact: IdeBaseArtifact) -> String?
+  by: (artifact: IdeBaseArtifactCore) -> String?
 ): ModuleTasks {
-  return getTasksBy(isClean, fun(artifact: IdeBaseArtifact): List<String> = listOfNotNull(by(artifact)))
+  return getTasksBy(isClean, fun(artifact: IdeBaseArtifactCore): List<String> = listOfNotNull(by(artifact)))
 }
 
 private val supportsDirectTaskInvocationInCompositeBuilds = GradleVersion.version("6.8")

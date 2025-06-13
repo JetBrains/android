@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.model
 import java.io.File
 import java.io.Serializable
 
-interface IdeBaseArtifactCore : Serializable {
+sealed interface IdeBaseArtifactCore : Serializable {
   /** Name of the artifact. This should match [ArtifactMetaData.getName].  */
   val name: IdeArtifactName
 
