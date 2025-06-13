@@ -110,7 +110,7 @@ internal class VirtualDevice(
     orientation = deviceProfile.defaultState.orientation
     internalStorage = EmulatedProperties.defaultInternalStorage(deviceProfile).toStorageCapacity()
     expandedStorage = Custom(StorageCapacity(512, StorageCapacity.Unit.MB))
-    cpuCoreCount = EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES
+    cpuCoreCount = EmulatedProperties.defaultCpuCount(deviceProfile)
     graphicsMode = GraphicsMode.AUTO
     ram = EmulatedProperties.defaultRamSize(deviceProfile).toStorageCapacity()
     vmHeapSize = EmulatedProperties.defaultVmHeapSize(deviceProfile).toStorageCapacity()

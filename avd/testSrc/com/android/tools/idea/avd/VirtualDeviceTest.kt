@@ -47,6 +47,7 @@ class VirtualDeviceTest {
 
     with(VirtualDevice(pixel8)) {
       initializeFromProfile()
+      assertThat(cpuCoreCount).isEqualTo(EmulatedProperties.defaultCpuCount(deviceProfile))
       assertThat(ram)
         .isEqualTo(EmulatedProperties.defaultRamSize(deviceProfile).toStorageCapacity())
       assertThat(vmHeapSize)
