@@ -70,6 +70,7 @@ jvm_library(
     "//android/jps-model",
     "//android/project-system",
     "@lib//:mockito-kotlin",
+    "//platform/core-api:core",
     "//jps/model-api:model",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",

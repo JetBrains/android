@@ -69,6 +69,7 @@ jvm_library(
     "//android/inspectors-common/ui:ui_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
     "//android/intellij.android.testutils:testutils_test_lib",
+    "//platform/core-api:core",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util-ex",

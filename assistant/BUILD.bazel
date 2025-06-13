@@ -73,6 +73,7 @@ jvm_library(
     "//android/observable",
     "//android/observable:observable_test_lib",
     "//android/android-test-framework:testFramework_test_lib",
+    "//platform/core-api:core",
     "//platform/platform-api:ide",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",

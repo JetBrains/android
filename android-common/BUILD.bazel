@@ -81,6 +81,7 @@ jvm_library(
     "@lib//:kotlinx-datetime-jvm",
     "@lib//:truth",
     "@lib//:mockito",
+    "//platform/core-api:core",
     "//platform/core-ui",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",

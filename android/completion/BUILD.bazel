@@ -20,6 +20,7 @@ jvm_library(
     "//android/android-test-framework:testFramework_test_lib",
     "//java/testFramework",
     "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
     "//platform/ide-core",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",

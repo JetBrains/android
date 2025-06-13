@@ -91,6 +91,7 @@ jvm_library(
     "//android/project-system",
     "//android/android-test-framework:testFramework_test_lib",
     "@lib//:junit4",
+    "//platform/core-api:core",
     "//platform/core-ui",
     "//platform/editor-ui-api:editor-ui",
     "//platform/testFramework",

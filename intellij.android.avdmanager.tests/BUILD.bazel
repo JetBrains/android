@@ -33,6 +33,7 @@ jvm_library(
     "//android/wizard-model:wizard-model_test_lib",
     "//android/android-adb:adb",
     "//android/artwork",
+    "//platform/core-api:core",
     "//platform/credential-store",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",

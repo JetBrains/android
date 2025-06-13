@@ -23,6 +23,7 @@ jvm_library(
     "@lib//:guava",
     "@lib//:gson",
     "@lib//:jetbrains-annotations",
+    "//platform/core-api:core",
     "//platform/editor-ui-api:editor-ui",
     "//platform/observable",
     "@lib//:kotlin-stdlib",

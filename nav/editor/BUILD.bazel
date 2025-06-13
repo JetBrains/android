@@ -106,6 +106,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "//java/java-impl:impl",
     "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
     "//platform/core-ui",
     "//platform/editor-ui-api:editor-ui",
     "//jps/model-api:model",
