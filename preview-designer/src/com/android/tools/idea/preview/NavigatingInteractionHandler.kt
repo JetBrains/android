@@ -37,6 +37,7 @@ import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.PreviewNavigatableWrapper
+import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -64,6 +65,8 @@ class NavigatingInteractionHandler(
 ) : NlInteractionHandler(surface) {
 
   private val scope = AndroidCoroutineScope(surface)
+
+  private var popUpComponent: ActionPopupMenu? = null
 
   override fun singleClick(mouseEvent: MouseEvent, modifiersEx: Int) {
     // When the selection capabilities are enabled and a Shift-click (single or double) happens,
@@ -143,7 +146,7 @@ class NavigatingInteractionHandler(
         ?.firstOrNull { it.sceneView == sceneView }
         ?.let { targetComponent = it }
       val actions = surface.actionManager.getPopupMenuActions(component)
-      surface.showPopup(mouseEvent, actions, "Preview", targetComponent)
+      popUpComponent = surface.showPopup(mouseEvent, actions, "Preview", targetComponent)
     } else {
       surface.selectionModel.clear()
     }
@@ -206,7 +209,7 @@ class NavigatingInteractionHandler(
     // Exiting to a popup from a point within the surface is not considered as exiting the surface.
     // This is needed to keep the hover state of a preview when interacting with its right-click
     // pop-up.
-    if (!surface.interactionPane.contains(mousePosition.x, mousePosition.y)) {
+    if (popUpComponent?.component?.isShowing != true) {
       super.mouseExited()
     }
   }
