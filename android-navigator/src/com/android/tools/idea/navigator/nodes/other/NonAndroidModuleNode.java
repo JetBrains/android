@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator.nodes.other;
 import static com.android.tools.idea.navigator.nodes.ModuleNodeUtils.showBuildFilesInModule;
 import static com.android.tools.idea.navigator.nodes.ModuleNodeUtils.showInProjectBuildScriptsGroup;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptNode;
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider;
@@ -35,6 +36,7 @@ import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,8 +78,10 @@ public class NonAndroidModuleNode extends AndroidViewModuleNode {
             PsiFile psiFile = psiManager.findFile(file.getFile());
             if (psiFile != null && (!showInProjectBuildScriptsGroup(psiFile))) {
               String qualifier = file.getDisplayName();
-              if (file.getFile().getFileType() == FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")) {
-                // Do not add "(Proguard Rules for 'module')" hint text when proguard file is shown in module
+              if (file.getFile().getFileType() == FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")
+                  || Objects.equals(file.getFile().getExtension(), SdkConstants.EXT_GRADLE)) {
+                // Do not add "(Proguard Rules for 'module')" hint text for proguard files or "('Module') hint for gradle files shown
+                // in module
                 qualifier = null;
               }
               nodes.add(new AndroidBuildScriptNode(myProject, psiFile, getSettings(), qualifier, file.getGroupOrder()));

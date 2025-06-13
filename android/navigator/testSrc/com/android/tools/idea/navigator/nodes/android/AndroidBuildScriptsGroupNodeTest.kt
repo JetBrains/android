@@ -158,7 +158,7 @@ class AndroidBuildScriptsGroupNodeTest {
     assertThat(appModule).isNotNull()
     val appNode = AndroidModuleNode(project, appModule, ViewSettings.DEFAULT)
     val expectedChildrenApp = """
-      build.gradle (Module :app)
+      build.gradle
       proguard-rules.pro
       consumer-proguard-rules.pro
     """.trimIndent()
