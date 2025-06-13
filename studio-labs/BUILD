@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/artwork:intellij.android.artwork",
         "//tools/analytics-library/tracker:analytics-tracker",
