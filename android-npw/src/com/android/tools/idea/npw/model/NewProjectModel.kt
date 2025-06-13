@@ -186,6 +186,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
           val newProject =
             GradleProjectImporter.getInstance()
               .createProject(projectName, projectBaseDirectory, useDefaultProjectAsTemplate = true)
+          GradleProjectImporter.configureNewProject(newProject)
 
           // Arguably some of these things should be in the OpenProjectTask's beforeOpen
           newProject.service<ProjectSystemService>().setProviderId(GradleProjectSystemProvider.ID)

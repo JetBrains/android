@@ -17,17 +17,12 @@ package com.android.tools.idea.gradle.project.importing
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.Projects
-import com.android.tools.idea.flags.StudioFlags.GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS
-import com.android.tools.idea.gradle.config.GradleConfigManager
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.SdkSync
-import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
-import com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.project.ANDROID_PROJECT_TYPE
-import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.ToolWindows
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.impl.OpenProjectTask
@@ -35,17 +30,14 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectTypeService
 import com.intellij.openapi.project.ex.ProjectManagerEx
-import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.roots.CompilerProjectExtension
 import com.intellij.openapi.roots.LanguageLevelProjectExtension
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
@@ -61,7 +53,6 @@ import org.jetbrains.plugins.gradle.service.project.open.setupGradleSettings
 import org.jetbrains.plugins.gradle.settings.GradleDefaultProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
 import java.io.File
 import java.io.IOException
 import java.nio.file.Path
@@ -172,7 +163,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         this.useDefaultProjectAsTemplate = useDefaultProjectAsTemplate
       }
     ) ?: throw NullPointerException("Failed to create a new project")
-    configureNewProject(newProject)
     return newProject
   }
 
@@ -192,9 +182,9 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
       ApplicationManager.getApplication().getUserData(AFTER_CREATE)?.invoke(project)
     }
 
-    @VisibleForTesting
     @JvmStatic
-    fun configureNewProject(newProject: Project) {
+    @JvmOverloads
+    fun configureNewProject(newProject: Project, configuration: GradleNewProjectConfiguration = GradleNewProjectConfiguration()) {
       val gradleSettings = GradleSettings.getInstance(newProject).also { it.setupGradleSettings() }
       val externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(File(newProject.basePath!!).canonicalPath)
       if (!gradleSettings.linkedProjectsSettings.isEmpty()) {
@@ -204,23 +194,9 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         }
       }
       val projectSettings = GradleDefaultProjectSettings.createProjectSettings(externalProjectPath)
-      if (GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS.get() || ApplicationManager.getApplication().isUnitTestMode) {
-        projectSettings.gradleJvm = USE_GRADLE_LOCAL_JAVA_HOME
-        ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
-        GradleConfigManager.initializeJavaHome(newProject, externalProjectPath)
-        val projectMigration = ProjectMigrationsPersistentState.getInstance(newProject)
-        projectMigration.migratedGradleRootsToGradleLocalJavaHome.add(externalProjectPath)
-      } else {
-        projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
-        ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
-        WriteAction.runAndWait<RuntimeException> {
-          val embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath
-          val jdkTableEntry = JdkUtils.addOrRecreateDedicatedJdkTableEntry(embeddedJdkPath.toString())
-          ProjectJdkTable.getInstance().findJdk(jdkTableEntry)?.let {
-            ProjectRootManager.getInstance(newProject).projectSdk = it
-          }
-        }
-      }
+      ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
+      GradleJdkConfigurationInitializer.getInstance().initialize(newProject, externalProjectPath, projectSettings, configuration)
+
       beforeOpen(newProject)
     }
   }

@@ -17,8 +17,9 @@ package com.android.tools.idea.gradle.project.sync.jdk.integration
 
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.importing.GradleJdkConfigurationInitializer
 import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
-
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplicationWithoutIdea
 import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
@@ -31,8 +32,10 @@ import com.android.tools.idea.testing.JdkConstants.JDK_17
 import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_VERSION
 import com.android.tools.idea.testing.JdkConstants.JDK_INVALID_PATH
 import com.google.common.truth.Expect
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
 import org.junit.After
@@ -78,6 +81,9 @@ class ImportProjectWithoutIdeaJdkIntegrationTest(private val jdkVersion: Int) {
   @After
   fun tearDown() {
     GradleDefaultJdkPathStore.jdkPath = null
+    Registry.get("gradle.daemon.jvm.criteria.new.project").resetToDefault()
+    GradleJdkConfigurationInitializer.getInstance().canInitializeDaemonJvmCriteria = false
+    StudioFlags.NPW_DAEMON_JVM_CRITERIA_REQUIRED_GRADLE_VERSION.clearOverride()
   }
 
   @Test
@@ -135,4 +141,21 @@ class ImportProjectWithoutIdeaJdkIntegrationTest(private val jdkVersion: Int) {
         expectedProjectJdkPath = JDK_17_PATH
       )
     }
+
+  @Test
+  fun `Given not configured project using Gradle version requiring Daemon Jvm criteria When import project Then was configured with compatible criteria`() {
+    Registry.get("gradle.daemon.jvm.criteria.new.project").setValue(true)
+    GradleJdkConfigurationInitializer.getInstance().canInitializeDaemonJvmCriteria = true
+    StudioFlags.NPW_DAEMON_JVM_CRITERIA_REQUIRED_GRADLE_VERSION.override("8.10")
+
+    jdkIntegrationTest.run(
+      project = SimpleApplicationWithoutIdea()
+    ) {
+      sync(
+        assertOnDiskConfig = {
+          assertGradleDaemonJvmCriteria(JDK_EMBEDDED_VERSION)
+        }
+      )
+    }
+  }
 }

@@ -27,6 +27,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
 import io.ktor.util.reflect.instanceOf
+import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
 import org.jetbrains.plugins.gradle.util.GradleBundle
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import java.io.File
@@ -123,6 +124,13 @@ class AssertOnDiskConfig(
     val gradleRootFile = projectFile.resolve(gradleRootName)
     val currentGradleLocalJavaHome = GradleConfigProperties(gradleRootFile).javaHome
     expect.that("$gradleRootName:$currentGradleLocalJavaHome").isEqualTo("$gradleRootName:$expectedJavaHome")
+  }
+
+  fun assertGradleDaemonJvmCriteria(expectedVersion: String, expectedVendor: String? = null, gradleRootName: String = "") {
+    val gradleRootFile = projectFile.resolve(gradleRootName)
+    val daemonJvmCriteriaFile = GradleDaemonJvmPropertiesFile.getProperties(gradleRootFile.toPath())
+    expect.that(daemonJvmCriteriaFile?.version?.value).isEqualTo(expectedVersion)
+    expect.that(daemonJvmCriteriaFile?.vendor?.value).isEqualTo(expectedVendor)
   }
 }
 

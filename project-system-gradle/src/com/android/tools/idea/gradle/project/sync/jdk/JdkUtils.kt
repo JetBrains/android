@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.sdk.extensions.isEqualTo
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.project.Project
@@ -183,5 +184,15 @@ object JdkUtils {
   ) {
     val projectSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(gradleRootPath)
     projectSettings?.gradleJvm = gradleJvm
+  }
+
+  fun setUpEmbeddedJdkAsProjectJdk(project: Project) {
+    WriteAction.runAndWait<RuntimeException> {
+      val embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath
+      val jdkTableEntry = addOrRecreateDedicatedJdkTableEntry(embeddedJdkPath.toString())
+      ProjectJdkTable.getInstance().findJdk(jdkTableEntry)?.let {
+        ProjectRootManager.getInstance(project).projectSdk = it
+      }
+    }
   }
 }
