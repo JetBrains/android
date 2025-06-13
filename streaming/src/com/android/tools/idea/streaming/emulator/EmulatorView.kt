@@ -74,7 +74,6 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
@@ -873,12 +872,6 @@ class EmulatorView(
       return null
     }
     return skin.findSkinButtonContaining(x - displayRect.x, y - displayRect.y)?.keyName
-  }
-
-  override fun uiDataSnapshot(sink: DataSink) {
-    super.uiDataSnapshot(sink)
-    sink[EMULATOR_VIEW_KEY] = this
-    sink[EMULATOR_CONTROLLER_KEY] = emulator
   }
 
   interface SourceFrameListener {

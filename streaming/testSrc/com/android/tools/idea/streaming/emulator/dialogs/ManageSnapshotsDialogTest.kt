@@ -39,6 +39,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
+import com.intellij.openapi.ui.getParentOfType
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -52,7 +53,6 @@ import com.intellij.ui.table.TableView
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.Timeout
@@ -76,26 +76,18 @@ import kotlin.time.Duration.Companion.seconds
  */
 @RunsInEdt
 class ManageSnapshotsDialogTest {
+
   private val emulatorViewRule = EmulatorViewRule()
   private val headlessDialogRule = HeadlessDialogRule()
   private val timeoutRule = Timeout.builder().withTimeout(60, SECONDS).withLookingForStuckThread(true).build()
 
   @get:Rule
   val ruleChain = RuleChain(timeoutRule, emulatorViewRule, EdtRule(), headlessDialogRule)
-
   @get:Rule
   val portableUiFontRule = PortableUiFontRule()
 
-  private var nullableEmulator: FakeEmulator? = null
-  private var nullableEmulatorView: EmulatorView? = null
-
-  private var emulator: FakeEmulator
-    get() = nullableEmulator ?: throw IllegalStateException()
-    set(value) { nullableEmulator = value }
-
-  private var emulatorView: EmulatorView
-    get() = nullableEmulatorView ?: throw IllegalStateException()
-    set(value) { nullableEmulatorView = value }
+  private lateinit var emulator: FakeEmulator
+  private lateinit var emulatorView: EmulatorView
 
   private val testRootDisposable
     get() = emulatorViewRule.disposable
@@ -279,11 +271,9 @@ class ManageSnapshotsDialogTest {
 
   @Test
   fun testDialogClosedWhileCreatingSnapshot() {
+    val loadingPanel = emulatorView.getParentOfType<StreamingLoadingPanel>()!!
     val loadingPanelListener = LoadingPanelListener()
-    val loadingPanel = StreamingLoadingPanel(testRootDisposable)
     loadingPanel.addListener(loadingPanelListener)
-
-    loadingPanel.add(emulatorView)
     val dialog = showManageSnapshotsDialog()
     val ui = FakeUi(dialog.rootPane)
     val table = ui.getComponent<TableView<SnapshotInfo>>()
@@ -302,11 +292,9 @@ class ManageSnapshotsDialogTest {
 
   @Test
   fun testDialogClosedWhileLoadingSnapshot() {
+    val loadingPanel = emulatorView.getParentOfType<StreamingLoadingPanel>()!!
     val loadingPanelListener = LoadingPanelListener()
-    val loadingPanel = StreamingLoadingPanel(testRootDisposable)
     loadingPanel.addListener(loadingPanelListener)
-
-    loadingPanel.add(emulatorView)
     val dialog = showManageSnapshotsDialog()
     val ui = FakeUi(dialog.rootPane)
     val table = ui.getComponent<TableView<SnapshotInfo>>()

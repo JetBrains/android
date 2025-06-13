@@ -30,12 +30,14 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DataSnapshotProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.project.Project
+import com.intellij.ui.ComponentUtil.findParentByCondition
 import java.awt.Component
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
@@ -80,15 +82,17 @@ fun createTestEvent(source: Component, project: Project? = null, place: String =
                     modifiers: Int = CTRL_DOWN_MASK, presentation: Presentation = Presentation(),
                     extra: DataSnapshotProvider? = null): AnActionEvent {
   val inputEvent = KeyEvent(source, KEY_RELEASED, System.currentTimeMillis(), modifiers, VK_E, CHAR_UNDEFINED)
-  val dataContext = CustomizedDataContext.withSnapshot(DataContext.EMPTY_CONTEXT, TestDataSnapshotProvider(source, project, extra))
+  val dataContext = createDataContext(source, extra.withProject(project))
   return AnActionEvent.createEvent(dataContext, presentation, place, ActionUiKind.NONE, inputEvent)
 }
 
-private class TestDataSnapshotProvider(
-  private val component: Component,
-  private val project: Project? = null,
-  private val extra: DataSnapshotProvider?
-) : DataSnapshotProvider {
+private fun createDataContext(component: Component, rootProvider: DataSnapshotProvider): DataContext {
+  val parent = findParentByCondition(component.parent) { it is UiDataProvider }
+  val parentContext = parent?.let { createDataContext(it, rootProvider) } ?: CustomizedDataContext.withSnapshot(EMPTY_CONTEXT, rootProvider)
+  return CustomizedDataContext.withSnapshot(parentContext, TestDataSnapshotProvider(component))
+}
+
+private class TestDataSnapshotProvider(private val component: Component) : DataSnapshotProvider {
 
   private val emulatorView
     get() = component as? EmulatorView
@@ -99,14 +103,20 @@ private class TestDataSnapshotProvider(
 
   override fun dataSnapshot(sink: DataSink) {
     sink.apply {
-      extra?.let { dataSnapshot(it) }
       (component as? UiDataProvider)?.let { uiDataSnapshot(it) }
       set(EMULATOR_CONTROLLER_KEY, emulatorView?.emulator)
       set(DEVICE_CLIENT_KEY, deviceView?.deviceClient)
       set(DEVICE_CONTROLLER_KEY, deviceView?.deviceController)
       set(SERIAL_NUMBER_KEY, displayView?.deviceSerialNumber)
-      set(CommonDataKeys.PROJECT, project)
       set(PlatformCoreDataKeys.CONTEXT_COMPONENT, component)
+    }
+  }
+}
+private fun DataSnapshotProvider?.withProject(project: Project?): DataSnapshotProvider {
+  return object : DataSnapshotProvider {
+    override fun dataSnapshot(sink: DataSink) {
+      this@withProject?.dataSnapshot(sink)
+      sink[CommonDataKeys.PROJECT] = project
     }
   }
 }

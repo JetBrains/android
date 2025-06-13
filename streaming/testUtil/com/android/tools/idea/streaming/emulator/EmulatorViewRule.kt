@@ -64,28 +64,30 @@ class EmulatorViewRule : TestRule {
   val project: Project
     get() = projectRule.project
 
-  fun newEmulatorView(avdCreator: (Path) -> Path = { path -> FakeEmulator.createPhoneAvd(path) }): EmulatorView {
+  fun newEmulatorView(avdCreator: ((Path) -> Path)? = null): EmulatorView =
+      newEmulatorDisplayPanel(avdCreator).displayView
+
+  fun newEmulatorDisplayPanel(avdCreator: ((Path) -> Path)? = null): EmulatorDisplayPanel {
     val catalog = RunningEmulatorCatalog.getInstance()
     val tempFolder = emulatorRule.avdRoot
+    val avdCreator = avdCreator ?: { path -> FakeEmulator.createPhoneAvd(path) }
     val fakeEmulator = emulatorRule.newEmulator(avdCreator(tempFolder))
     fakeEmulators[fakeEmulator.grpcPort] = fakeEmulator
     fakeEmulator.start()
     val emulators = runBlocking { catalog.updateNow().await() }
     val emulatorController = emulators.find { it.emulatorId.grpcPort == fakeEmulator.grpcPort }!!
-    val view = EmulatorView(disposable, emulatorController, project, PRIMARY_DISPLAY_ID, null, true)
+    val displayPanel = EmulatorDisplayPanel(disposable, emulatorController, project, PRIMARY_DISPLAY_ID, null, false, true)
     waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    return view
+    return displayPanel
   }
 
   fun executeAction(actionId: String, emulatorView: EmulatorView, place: String = ActionPlaces.TOOLBAR) {
     executeStreamingAction(actionId, emulatorView, projectRule.project, place)
   }
 
-  fun getFakeEmulator(emulatorView: EmulatorView): FakeEmulator {
-    return fakeEmulators[emulatorView.emulator.emulatorId.grpcPort]
-  }
+  fun getFakeEmulator(emulatorView: EmulatorView): FakeEmulator =
+      fakeEmulators[emulatorView.emulator.emulatorId.grpcPort]
 
-  override fun apply(base: Statement, description: Description): Statement {
-    return flagOverrides.apply(projectRule.apply(emulatorRule.apply(base, description), description), description)
-  }
+  override fun apply(base: Statement, description: Description): Statement =
+      flagOverrides.apply(projectRule.apply(emulatorRule.apply(base, description), description), description)
 }

@@ -84,7 +84,6 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -138,12 +137,11 @@ import java.awt.event.KeyEvent.VK_UP
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
-import javax.swing.JScrollPane
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Tests for [EmulatorView] and some emulator toolbar actions.
+ * Tests for [EmulatorView], [EmulatorDisplayPanel] and some emulator toolbar actions.
  */
 @RunsInEdt
 class EmulatorViewTest {
@@ -181,8 +179,7 @@ class EmulatorViewTest {
 
   @Test
   fun testResizingRotationAndMouseInput() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view), 2.0)
+    fakeUi = FakeUi(createEmulatorDisplayPanel(), 2.0)
     val inputEvents: MutableList<AndroidInputEvent> = mutableListOf()
     val inputListener = object: DeviceInputListener {
       override fun eventSent(event: AndroidInputEvent) {
@@ -223,9 +220,7 @@ class EmulatorViewTest {
     view.zoom(ZoomType.IN)
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
-    assertThat(shortDebugString(call.request)).isEqualTo(
-      // Available space is slightly wider on Mac due to a narrower scrollbar.
-      if (UIUtil.isRetina()) "format: RGB888 width: 427 height: 740" else "format: RGB888 width: 423 height: 740")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 740")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isTrue()
@@ -311,9 +306,7 @@ class EmulatorViewTest {
     view.zoom(ZoomType.IN)
     fakeUi.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame()
-    assertThat(shortDebugString(call.request)).isEqualTo(
-      // Available space is slightly wider on Mac due to a narrower scrollbar.
-      if (SystemInfo.isMac) "format: RGB888 width: 740 height: 360" else "format: RGB888 width: 740 height: 360")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 740 height: 363")
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToFit()).isTrue()
     emulatorViewRule.executeAction("android.device.rotate.right", view)
@@ -350,8 +343,7 @@ class EmulatorViewTest {
 
   @Test
   fun testRightClick() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view), 2.0)
+    fakeUi = FakeUi(createEmulatorDisplayPanel(), 2.0)
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
     getStreamScreenshotCallAndWaitForFrame()
@@ -367,8 +359,7 @@ class EmulatorViewTest {
 
   @Test
   fun testKeyboardInput() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view), 2.0)
+    fakeUi = FakeUi(createEmulatorDisplayPanel(), 2.0)
 
     fakeUi.keyboard.setFocus(view)
     var call: GrpcCallRecord? = null
@@ -481,8 +472,8 @@ class EmulatorViewTest {
 
   @Test
   fun testFolding() {
-    view = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
-    fakeUi = FakeUi(createScrollPane(view), 2.0)
+    val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createFoldableAvd(path) }
+    fakeUi = FakeUi(panel, 2.0)
 
     fakeUi.root.size = Dimension(200, 200)
     fakeUi.layoutAndDispatchEvents()
@@ -511,8 +502,7 @@ class EmulatorViewTest {
   /** Checks that the mouse button release event is sent when the mouse leaves the device display. */
   @Test
   fun testSwipe() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view), 1.5)
+    fakeUi = FakeUi(createEmulatorDisplayPanel(), 1.5)
 
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -531,8 +521,7 @@ class EmulatorViewTest {
 
   @Test
   fun testMultiTouch() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view), 2.0)
+    fakeUi = FakeUi(createEmulatorDisplayPanel(), 2.0)
 
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -577,7 +566,7 @@ class EmulatorViewTest {
 
   @Test
   fun testDeviceButtonActions() {
-    view = emulatorViewRule.newEmulatorView()
+    createEmulatorDisplayPanel()
 
     // Check EmulatorBackButtonAction.
     emulatorViewRule.executeAction("android.device.back.button", view, place = ActionPlaces.KEYBOARD_SHORTCUT)
@@ -596,8 +585,8 @@ class EmulatorViewTest {
 
   @Test
   fun testSkinButtons() {
-    view = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createAvdWithSkinButtons(path) }
-    fakeUi = FakeUi(createScrollPane(view), 2.0)
+    val panel = createEmulatorDisplayPanel { path: Path -> FakeEmulator.createAvdWithSkinButtons(path) }
+    fakeUi = FakeUi(panel, 2.0)
 
     // Check initial appearance.
     fakeUi.root.size = Dimension(110, 200)
@@ -615,8 +604,7 @@ class EmulatorViewTest {
 
   @Test
   fun testMouseMoveSendGrpc() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view), 1.0)
+    fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -632,8 +620,7 @@ class EmulatorViewTest {
 
   @Test
   fun testMouseMoveNotSendWhenMultiTouch() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view), 1.0)
+    fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -693,8 +680,7 @@ class EmulatorViewTest {
 
   @Test
   fun testMouseButtonFilledInGrpc() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view))
+    fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -721,8 +707,7 @@ class EmulatorViewTest {
 
   @Test
   fun testMouseDragHasPressedButton() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view))
+    fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -747,8 +732,7 @@ class EmulatorViewTest {
 
   @Test
   fun testMouseWheel() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view))
+    fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -777,8 +761,7 @@ class EmulatorViewTest {
 
   @Test
   fun testTouchpadScrolling() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view))
+    fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -805,8 +788,7 @@ class EmulatorViewTest {
 
   @Test
   fun testKeysForMnemonicsShouldNotBeConsumed() {
-    view = emulatorViewRule.newEmulatorView()
-
+    createEmulatorDisplayPanel()
     val altMPressedEvent = KeyEvent(view, KEY_PRESSED, System.nanoTime(), ALT_DOWN_MASK, VK_M, VK_M.toChar())
     KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(view, altMPressedEvent)
     assertThat(altMPressedEvent.isConsumed).isFalse()
@@ -818,7 +800,7 @@ class EmulatorViewTest {
 
   @Test
   fun testKeyPreprocessingSkippedWhenHardwareInputEnabled() {
-    view = emulatorViewRule.newEmulatorView()
+    createEmulatorDisplayPanel()
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
     assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.nanoTime(), 0, VK_M, VK_M.toChar()))).isTrue()
     assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.nanoTime(), 0, VK_SPACE, VK_SPACE.toChar()))).isTrue()
@@ -826,7 +808,7 @@ class EmulatorViewTest {
 
   @Test
   fun testKeyPreprocessingNotSkippedForActionTogglingHardwareInput() {
-    view = emulatorViewRule.newEmulatorView()
+    createEmulatorDisplayPanel()
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
     val keymapManager = KeymapManager.getInstance()
     keymapManager.activeKeymap.addShortcut("android.streaming.hardware.input", KeyboardShortcut.fromString("control shift J"))
@@ -837,8 +819,7 @@ class EmulatorViewTest {
 
   @Test
   fun testCtrlAndAlphabeticalKeysSentWhenHardwareInputEnabled() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view))
+    fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
     fakeUi.keyboard.setFocus(view)
@@ -860,9 +841,7 @@ class EmulatorViewTest {
 
   @Test
   fun testHideCameraNotificationDuringHardwareInput() {
-    view = emulatorViewRule.newEmulatorView()
-    val panel = NotificationHolderPanel(view)
-    val container = HeadlessRootPaneContainer(panel)
+    val container = HeadlessRootPaneContainer(NotificationHolderPanel(createEmulatorDisplayPanel()))
     container.rootPane.size = Dimension(200, 300)
     fakeUi = FakeUi(container.rootPane, 1.0)
 
@@ -892,9 +871,7 @@ class EmulatorViewTest {
 
   @Test
   fun testCameraNotificationHasOperatingMessageWhenHardwareInputDisabledWithShift() {
-    view = emulatorViewRule.newEmulatorView()
-    val panel = NotificationHolderPanel(view)
-    val container = HeadlessRootPaneContainer(panel)
+    val container = HeadlessRootPaneContainer(NotificationHolderPanel(createEmulatorDisplayPanel()))
     container.rootPane.size = Dimension(200, 300)
     fakeUi = FakeUi(container.rootPane, 1.0)
 
@@ -906,7 +883,7 @@ class EmulatorViewTest {
     fakeEmulator.virtualSceneCameraActive = true
 
     // Disable hardware input with shift key
-    executeStreamingAction("android.streaming.hardware.input", view, emulatorViewRule.project, modifiers=SHIFT_DOWN_MASK)
+    executeStreamingAction("android.streaming.hardware.input", view, emulatorViewRule.project, modifiers = SHIFT_DOWN_MASK)
 
     // Check if notification panel is disappeared
     waitForCondition(200, MILLISECONDS) {
@@ -919,8 +896,7 @@ class EmulatorViewTest {
 
   @Test
   fun testDisableMultiTouchDuringHardwareInput() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view), 2.0)
+    fakeUi = FakeUi(createEmulatorDisplayPanel(), 2.0)
 
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -973,8 +949,7 @@ class EmulatorViewTest {
 
   @Test
   fun testMetaKeysReleasedWhenHardwareInputDisabled() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view), 2.0)
+    fakeUi = FakeUi(createEmulatorDisplayPanel(), 2.0)
 
     // Enable hardware input.
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
@@ -995,8 +970,7 @@ class EmulatorViewTest {
 
   @Test
   fun testMetaKeysReleasedWhenLostFocusDuringHardwareInput() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view), 2.0)
+    fakeUi = FakeUi(createEmulatorDisplayPanel(), 2.0)
 
     // Enable hardware input.
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
@@ -1017,8 +991,7 @@ class EmulatorViewTest {
 
   @Test
   fun testScreenScaleChange() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view))
+    fakeUi = FakeUi(createEmulatorDisplayPanel())
 
     // Check initial appearance.
     fakeUi.root.size = Dimension(400, 600)
@@ -1033,9 +1006,8 @@ class EmulatorViewTest {
 
   @Test
   fun testLogNotifications() {
-    view = emulatorViewRule.newEmulatorView()
-    val notificationHolderPanel = NotificationHolderPanel(view)
-    fakeUi = FakeUi(createScrollPane(notificationHolderPanel), 2.0)
+    val notificationHolderPanel = NotificationHolderPanel(createEmulatorDisplayPanel())
+    fakeUi = FakeUi(notificationHolderPanel, 2.0)
 
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -1062,8 +1034,7 @@ class EmulatorViewTest {
 
   @Test
   fun testClipboardSynchronization() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view), 2.0)
+    fakeUi = FakeUi(createEmulatorDisplayPanel(), 2.0)
 
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -1090,8 +1061,7 @@ class EmulatorViewTest {
 
   @Test
   fun testMetricsCollection() {
-    view = emulatorViewRule.newEmulatorView()
-    fakeUi = FakeUi(createScrollPane(view), 2.0)
+    fakeUi = FakeUi(createEmulatorDisplayPanel(), 2.0)
 
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -1122,8 +1092,8 @@ class EmulatorViewTest {
 
   @Test
   fun testXrZoom() {
-    view = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createXrAvd(path) }
-    fakeUi = FakeUi(createScrollPane(view), 2.0)
+    val panel = createEmulatorDisplayPanel { path -> FakeEmulator.createXrAvd(path) }
+    fakeUi = FakeUi(panel, 2.0)
 
     fakeUi.root.size = Dimension(200, 300)
     fakeUi.layoutAndDispatchEvents()
@@ -1137,11 +1107,8 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("xr_head_movement_event { delta_z: $TRANSLATION_STEP_SIZE }")
   }
 
-  private fun createScrollPane(view: Component): JScrollPane {
-    return JScrollPane(view).apply {
-      border = null
-      isFocusable = true
-    }
+  private fun createEmulatorDisplayPanel(avdCreator: ((Path) -> Path)? = null): EmulatorDisplayPanel {
+    return emulatorViewRule.newEmulatorDisplayPanel(avdCreator).apply { view = displayView }
   }
 
   @Throws(TimeoutException::class)

@@ -22,6 +22,7 @@ import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
@@ -29,7 +30,7 @@ import java.awt.Dimension
 /**
  * Represents a single Emulator display.
  */
-internal class EmulatorDisplayPanel(
+class EmulatorDisplayPanel(
   disposableParent: Disposable,
   emulator: EmulatorController,
   project: Project,
@@ -60,5 +61,11 @@ internal class EmulatorDisplayPanel(
         createFloatingToolbar()
       }
     }
+  }
+
+  override fun uiDataSnapshot(sink: DataSink) {
+    super.uiDataSnapshot(sink)
+    sink[EMULATOR_VIEW_KEY] = displayView
+    sink[EMULATOR_CONTROLLER_KEY] = displayView.emulator
   }
 }
