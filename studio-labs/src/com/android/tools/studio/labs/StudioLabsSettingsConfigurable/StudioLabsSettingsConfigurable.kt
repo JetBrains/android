@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.STUDIO_LABS_EVENT
 import com.google.wireless.android.sdk.stats.StudioLabsEvent
@@ -57,6 +58,10 @@ class StudioLabsSettingsConfigurable :
   override fun createPanel(): DialogPanel {
     log(PageInteraction.OPENED)
     return panel { row { cell(StudioComposePanel { StudioLabsPanel() }) } }
+  }
+
+  override fun getHelpTopic(): String? {
+    return AndroidWebHelpProvider.HELP_PREFIX + "studio/preview/gemini/labs"
   }
 
   @Composable
