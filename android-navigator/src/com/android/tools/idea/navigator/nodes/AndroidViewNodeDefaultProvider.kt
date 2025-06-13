@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes
 
+import com.android.SdkConstants
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.hasKotlinFacet
 import com.android.tools.idea.model.AndroidModel
@@ -116,8 +117,9 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
       getBuildFiles(module).forEach {
         val psiFile = psiManager.findFile(it.file)
         if (psiFile != null && (!showInProjectBuildScriptsGroup(psiFile))) {
-          val qualifier = if (it.file.fileType == FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")) {
-            // Do not add "(Proguard Rules for 'module')" hint text when proguard file is shown in module
+          val qualifier = if (it.file.fileType == FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")
+                              || it.file.extension.equals(SdkConstants.EXT_GRADLE)) {
+            // Do not add "(Proguard Rules for 'module')" hint text for proguard files or "('Module') hint for gradle files shown in module
             null
           } else {
             it.displayName
