@@ -2689,8 +2689,8 @@ public final class StudioFlags {
       "enable",
       "Enable Benchmark Survey",
       "Enable the benchmark survey when requesting user satisfaction",
-      false);
-  // endregion Wifi 2.0
+      true);
+  // endregion Benchmark Survey
 
   // region deprecation policy
   private static final FlagGroup DEPRECATION_POLICY = new FlagGroup(FLAGS, "deprecationpolicy", "Deprecation Policy");
