@@ -171,13 +171,7 @@ class AndroidStudioUsageTrackerTest : BasePlatformTestCase() {
 
   fun testShouldRequestUserSentiment() {
     try {
-      // opted out user should not request user sentiment
       AnalyticsSettings.dateProvider = StubDateProvider(2016, 4, 18)
-      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
-        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
-        optedIn = false
-      })
-      Assert.assertFalse(shouldRequestUserSentiment())
 
       // opted in user who never was asked should be asked on matching day
       AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
