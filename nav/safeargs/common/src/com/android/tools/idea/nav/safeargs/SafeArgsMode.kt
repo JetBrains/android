@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs
 
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON
 import com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleService
 import com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectService
 import com.intellij.openapi.project.Project
@@ -33,6 +34,12 @@ enum class SafeArgsMode {
   KOTLIN,
 }
 
+enum class SafeArgsFeature {
+  FROM_SAVED_STATE_HANDLE, // 2.4.0-alpha01
+  TO_SAVED_STATE_HANDLE, // 2.4.0-alpha07
+  ADJUST_PARAMS_WITH_DEFAULTS, // 2.4.0-alpha08
+}
+
 var AndroidFacet.safeArgsMode: SafeArgsMode
   get() = SafeArgsModeModuleService.getInstance(module).safeArgsMode
   /**
@@ -43,6 +50,18 @@ var AndroidFacet.safeArgsMode: SafeArgsMode
   @TestOnly
   set(value) {
     SafeArgsModeModuleService.getInstance(module).safeArgsMode = value
+  }
+
+var AndroidFacet.safeArgsFeatures: Set<SafeArgsFeature>
+  get() = SafeArgsModeModuleService.getInstance(module).safeArgsFeatures
+  /**
+   * Allow tests to set the set of [SafeArgsFeature]s directly, for use in non-Gradle environments.
+   * (In Gradle environments, make sure that the version of [ANDROIDX_NAVIGATION_COMMON] applied to
+   * the module is appropriate for the set of desired features.)
+   */
+  @TestOnly
+  set(value) {
+    SafeArgsModeModuleService.getInstance(module).safeArgsFeatures = value
   }
 
 /**

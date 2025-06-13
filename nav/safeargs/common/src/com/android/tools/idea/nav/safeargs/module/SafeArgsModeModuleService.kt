@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.module
 
+import com.android.tools.idea.nav.safeargs.SafeArgsFeature
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectService
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
@@ -57,27 +58,41 @@ class SafeArgsModeModuleService(val module: Module) : Disposable.Default {
       }
     }
 
+  private val atomicSafeArgsFeatures: AtomicReference<Set<SafeArgsFeature>> =
+    AtomicReference(setOf())
+
+  internal var safeArgsFeatures: Set<SafeArgsFeature>
+    get() = atomicSafeArgsFeatures.get()
+    set(value) {
+      // At the moment we do not need to propagate a featuresChanged event, but if we needed
+      // to, here is where we would do that.
+      atomicSafeArgsFeatures.set(value)
+    }
+
   init {
     // As this class is a (lazily instantiated) service, it's possible the project was already
     // initialized before here, so call update immediately just in case.
-    updateSafeArgsMode()
+    updateSafeArgsInfo()
     module.project.messageBus
       .connect(this)
       .subscribe(
         PROJECT_SYSTEM_SYNC_TOPIC,
-        ProjectSystemSyncManager.SyncResultListener { updateSafeArgsMode() },
+        ProjectSystemSyncManager.SyncResultListener { updateSafeArgsInfo() },
       )
   }
 
-  private fun updateSafeArgsMode() {
+  private fun updateSafeArgsInfo() {
     val projectSystem = module.project.getProjectSystem()
     val token = projectSystem.getTokenOrNull(SafeArgsModeToken.EP_NAME)
     this.safeArgsMode = token?.getSafeArgsMode(projectSystem, module) ?: SafeArgsMode.NONE
+    this.safeArgsFeatures = token?.getSafeArgsFeatures(projectSystem, module) ?: setOf()
   }
 }
 
 interface SafeArgsModeToken<P : AndroidProjectSystem> : Token {
   fun getSafeArgsMode(projectSystem: P, module: Module): SafeArgsMode
+
+  fun getSafeArgsFeatures(projectSystem: P, module: Module): Set<SafeArgsFeature>
 
   companion object {
     val EP_NAME =

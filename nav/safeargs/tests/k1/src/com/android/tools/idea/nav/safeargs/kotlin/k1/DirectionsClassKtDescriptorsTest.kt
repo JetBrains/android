@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.nav.safeargs.kotlin.k1
 
+import com.android.tools.idea.nav.safeargs.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
@@ -115,7 +115,7 @@ class DirectionsClassKtDescriptorsTest {
 
   @Test
   fun testOverriddenArguments_After_AdjustParamsWithDefaultsFix() {
-    safeArgsRule.addFakeNavigationDependency(SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
+    safeArgsRule.setSafeArgsFeatureForVersion(SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       // language=XML

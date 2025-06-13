@@ -16,11 +16,11 @@
 package com.android.tools.idea.nav.safeargs.kotlin.k1
 
 import com.android.SdkConstants
+import com.android.tools.idea.nav.safeargs.SafeArgsFeature
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.module.NavEntry
 import com.android.tools.idea.nav.safeargs.module.NavInfo
 import com.android.tools.idea.nav.safeargs.psi.ArgumentUtils.getActionsWithResolvedArguments
-import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.findFirstMatchingElementByTraversingUp
@@ -172,7 +172,7 @@ class LightDirectionsKtClass(
                 navEntry.data,
                 navInfo.packageName,
                 adjustArgumentsWithDefaults =
-                  (navInfo.navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS),
+                  (navInfo.navFeatures.contains(SafeArgsFeature.ADJUST_PARAMS_WITH_DEFAULTS)),
               )
               .asSequence()
               .mapNotNull { action ->

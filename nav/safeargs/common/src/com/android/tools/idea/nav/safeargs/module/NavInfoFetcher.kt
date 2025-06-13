@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.nav.safeargs.module
 
-import com.android.ide.common.gradle.Version
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
+import com.android.tools.idea.nav.safeargs.SafeArgsFeature
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
 import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
 import com.android.tools.idea.nav.safeargs.project.NAVIGATION_RESOURCES_CHANGED
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesChangeListener
-import com.android.tools.idea.nav.safeargs.psi.findNavigationVersion
+import com.android.tools.idea.nav.safeargs.safeArgsFeatures
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -69,8 +69,8 @@ data class NavInfo(
   val packageName: String,
   /** A list of [NavEntry] objects, one for each navigation XML file. */
   val entries: List<NavEntry>,
-  /** The configured Jetpack Navigation version for which this [NavInfo] is valid. */
-  val navVersion: Version,
+  /** The features present in the Jetpack Navigation version for which this [NavInfo] is valid. */
+  val navFeatures: Set<SafeArgsFeature>,
   /**
    * The modification count, from the source [NavInfoFetcher], at which this [NavInfo] was valid.
    */
@@ -184,10 +184,10 @@ class NavInfoFetcher(
     val facet = androidFacetIfEnabled ?: return null
     val modulePackage = facet.getModuleSystem().getPackageName() ?: return null
 
-    // Save version and modification count _before_ reading resources - in the event of a change,
+    // Save features and modification count _before_ reading resources - in the event of a change,
     // this ensures that we don't match up the
     // current modification count with stale data.
-    val navVersion = facet.findNavigationVersion()
+    val safeArgsFeatures = facet.safeArgsFeatures
     val modificationCount = modificationCount
 
     val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
@@ -201,7 +201,7 @@ class NavInfoFetcher(
         NavEntry(facet, resource, file, data)
       }
 
-    return NavInfo(facet, modulePackage, entries, navVersion, modificationCount)
+    return NavInfo(facet, modulePackage, entries, safeArgsFeatures, modificationCount)
   }
 
   companion object {

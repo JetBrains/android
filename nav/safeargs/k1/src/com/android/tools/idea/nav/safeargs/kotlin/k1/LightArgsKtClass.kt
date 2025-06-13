@@ -16,9 +16,9 @@
 package com.android.tools.idea.nav.safeargs.kotlin.k1
 
 import com.android.SdkConstants
+import com.android.tools.idea.nav.safeargs.SafeArgsFeature
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.module.NavInfo
-import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
@@ -117,7 +117,7 @@ class LightArgsKtClass(
   private fun computePrimaryConstructor(): ClassConstructorDescriptor {
     val valueParametersProvider = { constructor: ClassConstructorDescriptor ->
       val resolvedArguments =
-        if (navInfo.navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
+        if (navInfo.navFeatures.contains(SafeArgsFeature.ADJUST_PARAMS_WITH_DEFAULTS))
           destination.arguments.sortedBy { it.defaultValue != null }
         else destination.arguments
 
@@ -218,7 +218,7 @@ class LightArgsKtClass(
               )
             )
 
-            if (navInfo.navVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
+            if (navInfo.navFeatures.contains(SafeArgsFeature.FROM_SAVED_STATE_HANDLE)) {
               val fromSavedStateHandleParametersProvider = { method: SimpleFunctionDescriptorImpl ->
                 val handleType =
                   argsClassDescriptor.builtIns.getKotlinType(
@@ -349,7 +349,7 @@ class LightArgsKtClass(
 
         // Add on version specific methods since the navigation library side is keeping introducing
         // new methods.
-        if (navInfo.navVersion >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE) {
+        if (navInfo.navFeatures.contains(SafeArgsFeature.TO_SAVED_STATE_HANDLE)) {
           methods.add(
             argsClassDescriptor.createMethod(
               name = "toSavedStateHandle",

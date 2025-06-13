@@ -16,9 +16,7 @@
 package com.android.tools.idea.nav.safeargs
 
 import com.android.ide.common.gradle.Version
-import com.android.ide.common.repository.GoogleMavenArtifactId
-import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.facet.FacetManager
 import com.intellij.testFramework.EdtRule
@@ -132,20 +130,44 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : TestRule {
   }
 
   /**
-   * Test utility for adding a fake navigation dependency to our module. This allows testing for the
-   * existence / absence of various features that are gated by a certain feature version.
+   * Test utility for setting up Safe Args Features as if for a specific [Version] of the
+   * [ANDROIDX_NAVIGATION_COMMON] artifact.
    *
    * If this is not called, it is expected that only base functionality will be provided.
    *
    * Finally, this method should be called before any light classes are generated.
    */
-  fun addFakeNavigationDependency(version: Version) {
-    val projectSystem = TestProjectSystem(module.project)
-    projectSystem.addDependency(
-      GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON,
-      module,
-      GradleVersion.parse(version.toString()),
-    )
-    projectSystem.useInTests()
+  fun setSafeArgsFeatureForVersion(version: Version) {
+    val features =
+      setOfNotNull(
+        SafeArgsFeature.FROM_SAVED_STATE_HANDLE.takeIf {
+          version >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE
+        },
+        SafeArgsFeature.TO_SAVED_STATE_HANDLE.takeIf {
+          version >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE
+        },
+        SafeArgsFeature.ADJUST_PARAMS_WITH_DEFAULTS.takeIf {
+          version >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS
+        },
+      )
+    setSafeArgsFeatures(features)
   }
+
+  /**
+   * Test utility for setting up Safe Args Features for our module. This allows testing for the
+   * existing / absence of various features. If this is not called (directly or indirectly), only
+   * base functionality will be provided.
+   *
+   * This should be called before any light classes are generated.
+   */
+  private fun setSafeArgsFeatures(features: Set<SafeArgsFeature>) {
+    androidFacet.safeArgsFeatures = features
+  }
+}
+
+object SafeArgsFeatureVersions {
+  val MINIMUM_VERSION = Version.prefixInfimum("0")
+  val FROM_SAVED_STATE_HANDLE = Version.parse("2.4.0-alpha01")
+  val TO_SAVED_STATE_HANDLE = Version.parse("2.4.0-alpha07")
+  val ADJUST_PARAMS_WITH_DEFAULTS = Version.parse("2.4.0-alpha08")
 }

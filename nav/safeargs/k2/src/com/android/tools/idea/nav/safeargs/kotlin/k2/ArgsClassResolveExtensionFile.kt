@@ -16,10 +16,10 @@
 package com.android.tools.idea.nav.safeargs.kotlin.k2
 
 import com.android.SdkConstants
+import com.android.tools.idea.nav.safeargs.SafeArgsFeature
 import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.module.NavInfo
-import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.intellij.psi.PsiElement
@@ -58,7 +58,7 @@ internal class ArgsClassResolveExtensionFile(
   private val destinationXmlTag: XmlTag?,
 ) : SafeArgsResolveExtensionFile(classId) {
   private val resolvedArguments =
-    if (navInfo.navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS) {
+    if (navInfo.navFeatures.contains(SafeArgsFeature.ADJUST_PARAMS_WITH_DEFAULTS)) {
       destination.arguments.sortedBy { it.defaultValue != null }
     } else {
       destination.arguments
@@ -100,7 +100,7 @@ internal class ArgsClassResolveExtensionFile(
     }
     appendLine(") : androidx.navigation.NavArgs {")
     appendLine("  fun toBundle(): android.os.Bundle = TODO()")
-    if (navInfo.navVersion >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE) {
+    if (navInfo.navFeatures.contains(SafeArgsFeature.TO_SAVED_STATE_HANDLE)) {
       appendLine("  fun toSavedStateHandle(): androidx.lifecycle.SavedStateHandle = TODO()")
     }
     appendLine()
@@ -109,7 +109,7 @@ internal class ArgsClassResolveExtensionFile(
     appendLine(
       "    fun fromBundle(bundle: android.os.Bundle): ${classId.toEscapedString()} = TODO()"
     )
-    if (navInfo.navVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
+    if (navInfo.navFeatures.contains(SafeArgsFeature.FROM_SAVED_STATE_HANDLE)) {
       appendLine("    @kotlin.jvm.JvmStatic")
       appendLine(
         "    fun fromSavedStateHandle(handle: androidx.lifecycle.SavedStateHandle): ${classId.toEscapedString()} = TODO()"
