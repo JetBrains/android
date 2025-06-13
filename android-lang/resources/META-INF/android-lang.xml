@@ -130,6 +130,15 @@
                      implementationClass="com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspection"
                      displayName="An inspection that identifies expensive keep rules"/>
 
+    <localInspection groupPath="Android"
+                     groupName="Shrinker"
+                     language="SHRINKER_CONFIG"
+                     enabledByDefault="true"
+                     level="ERROR"
+                     shortName="ConsumerRulesInspection"
+                     implementationClass="com.android.tools.idea.lang.proguardR8.inspections.ConsumerRulesInspection"
+                     displayName="An inspection that identifies bad global directives in consumer rules"/>
+
     <lang.foldingBuilder language="SHRINKER_CONFIG" implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8CustomFoldingBuilder"/>
 
     <lang.inspectionSuppressor
