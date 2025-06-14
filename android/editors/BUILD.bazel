@@ -31,6 +31,7 @@ jvm_library(
     "//platform/editor-ui-api:editor-ui",
     "//platform/lang-impl",
     "//java/java-psi-api:psi",
+    "//platform/projectModel-api:projectModel",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
     "//platform/util",

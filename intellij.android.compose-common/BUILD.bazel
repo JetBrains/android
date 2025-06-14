@@ -25,6 +25,7 @@ jvm_library(
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
     "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
     "//platform/util",
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/psi",

@@ -64,6 +64,7 @@ jvm_library(
     "//platform/platform-impl:ide-impl",
     "//platform/platform-impl:ide-impl_test_lib",
     "//jps/model-api:model",
+    "//platform/projectModel-api:projectModel",
     "//platform/projectModel-impl",
     "//platform/refactoring",
     "//platform/service-container",

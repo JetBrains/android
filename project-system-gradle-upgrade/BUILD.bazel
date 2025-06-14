@@ -50,6 +50,7 @@ jvm_library(
     "//platform/lang-impl",
     "//platform/lvcs-api:lvcs",
     "//platform/lvcs-impl",
+    "//platform/projectModel-api:projectModel",
     "//platform/refactoring",
     "//platform/usageView",
     "//platform/usageView-impl",

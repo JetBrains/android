@@ -44,6 +44,7 @@ jvm_library(
     "//platform/platform-util-io:ide-util-io",
     "//platform/lang-api:lang",
     "//platform/lang-impl",
+    "//platform/projectModel-api:projectModel",
     "//xml/dom-openapi:dom",
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/code-insight",
