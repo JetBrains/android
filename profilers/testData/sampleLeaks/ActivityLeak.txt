@@ -1,0 +1,70 @@
+====================================
+HEAP ANALYSIS RESULT
+====================================
+1 APPLICATION LEAKS
+
+References underlined with "~~~" are likely causes.
+Learn more at https://squ.re/leaks.
+
+61911 bytes retained by leaking objects
+Signature: 4e2c7bf153fd63845ee0ac3a82d52dd52a98d1d0
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[798]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedActivity5
+│                                 ~~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingActivity5 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingActivity5 received
+​     Activity#onDestroy() callback and Activity#mDestroyed is true)
+​     Retaining 61.9 kB in 908 objects
+​     key = e618d7d8-b668-4b0c-92d0-1cb79e5e08ae
+​     watchDurationMillis = 5650
+​     retainedDurationMillis = 650
+​     mApplication instance of androidx.multidex.MultiDexApplication
+​     mBase instance of androidx.appcompat.view.ContextThemeWrapper
+====================================
+0 LIBRARY LEAKS
+
+A Library Leak is a leak caused by a known bug in 3rd party code that you do not have control over.
+See https://square.github.io/leakcanary/fundamentals-how-leakcanary-works/#4-categorizing-leaks
+====================================
+0 UNREACHABLE OBJECTS
+
+An unreachable object is still in memory but LeakCanary could not find a strong reference path
+from GC roots.
+====================================
+METADATA
+
+Please include this in bug reports and Stack Overflow questions.
+
+Build.VERSION.SDK_INT: 31
+Build.MANUFACTURER: motorola
+LeakCanary version: 2.12
+App process name: com.example.memoryleaksample
+Class count: 26275
+Instance count: 205356
+Primitive array count: 146418
+Object array count: 30493
+Thread count: 24
+Heap total bytes: 26586432
+Bitmap count: 3
+Bitmap total bytes: 331203
+Large bitmap count: 0
+Large bitmap total bytes: 0
+Count of retained yet cleared: 1 KeyedWeakReference instances
+Stats: LruCache[maxSize=3000,hits=116639,misses=200631,hitRate=36%]
+RandomAccess[bytes=9869530,reads=200631,travel=66087509373,range=32610714,size=40252580]
+Heap dump reason: 5 retained objects, app is visible
+Analysis duration: 16234 ms
+Heap dump file path: /storage/emulated/0/Download/leakcanary-com.example.memoryleaksample/2025-06-12_16-15-08_093.hprof
+Heap dump timestamp: 1749725129130
+Heap dump duration: 2731 ms
+====================================

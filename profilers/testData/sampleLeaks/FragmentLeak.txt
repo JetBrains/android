@@ -1,0 +1,161 @@
+====================================
+HEAP ANALYSIS RESULT
+====================================
+5 APPLICATION LEAKS
+
+References underlined with "~~~" are likely causes.
+Learn more at https://squ.re/leaks.
+
+2116 bytes retained by leaking objects
+Signature: 9405a5e9b51f11ca9f781a7e87c6b753fb5aa9ab
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[803]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedFragment1
+│                                 ~~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingFragment1 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingFragment1 received
+​     Fragment#onDestroy() callback and Fragment#mFragmentManager is null)
+​     Retaining 2.1 kB in 72 objects
+​     key = 74f8a3db-ca81-4a7c-9f8a-2c329d70df91
+​     watchDurationMillis = 5631
+​     retainedDurationMillis = 626
+
+2116 bytes retained by leaking objects
+Signature: 20ce208e01b36b3a30df66c91e32dd61955a94d0
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[803]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedFragment2
+│                                 ~~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingFragment2 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingFragment2 received
+​     Fragment#onDestroy() callback and Fragment#mFragmentManager is null)
+​     Retaining 2.1 kB in 72 objects
+​     key = ef11d64f-8c2b-4932-bc81-496f09c1c7bb
+​     watchDurationMillis = 5621
+​     retainedDurationMillis = 620
+
+2116 bytes retained by leaking objects
+Signature: db1a4963a790cc5f543d30055e41ec00f86a3fb6
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[803]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedFragment3
+│                                 ~~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingFragment3 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingFragment3 received
+​     Fragment#onDestroy() callback and Fragment#mFragmentManager is null)
+​     Retaining 2.1 kB in 72 objects
+​     key = da8dfa23-fc05-4bbe-be1d-fd2e372f2f83
+​     watchDurationMillis = 5616
+​     retainedDurationMillis = 616
+
+2116 bytes retained by leaking objects
+Signature: 47d6fcd54dfa30f9146916c345e2aa554e4b7e96
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[803]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedFragment4
+│                                 ~~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingFragment4 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingFragment4 received
+​     Fragment#onDestroy() callback and Fragment#mFragmentManager is null)
+​     Retaining 2.1 kB in 72 objects
+​     key = 16369cd0-3024-42c1-90db-43d7d95da3f1
+​     watchDurationMillis = 5611
+​     retainedDurationMillis = 611
+
+2116 bytes retained by leaking objects
+Signature: 60dda04cd1f5f5c44636cd54fab42a3010a7afbb
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[803]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedFragment5
+│                                 ~~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingFragment5 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingFragment5 received
+​     Fragment#onDestroy() callback and Fragment#mFragmentManager is null)
+​     Retaining 2.1 kB in 72 objects
+​     key = af7a6d21-2160-43e0-b23c-c41b296940ca
+​     watchDurationMillis = 5607
+​     retainedDurationMillis = 606
+====================================
+0 LIBRARY LEAKS
+
+A Library Leak is a leak caused by a known bug in 3rd party code that you do not have control over.
+See https://square.github.io/leakcanary/fundamentals-how-leakcanary-works/#4-categorizing-leaks
+====================================
+0 UNREACHABLE OBJECTS
+
+An unreachable object is still in memory but LeakCanary could not find a strong reference path
+from GC roots.
+====================================
+METADATA
+
+Please include this in bug reports and Stack Overflow questions.
+
+Build.VERSION.SDK_INT: 31
+Build.MANUFACTURER: motorola
+LeakCanary version: 2.12
+App process name: com.example.memoryleaksample
+Class count: 26357
+Instance count: 205466
+Primitive array count: 146444
+Object array count: 30665
+Thread count: 24
+Heap total bytes: 26678056
+Bitmap count: 4
+Bitmap total bytes: 441604
+Large bitmap count: 0
+Large bitmap total bytes: 0
+Db 1: closed /data/user/0/com.example.memoryleaksample/databases/leaks.db
+Count of retained yet cleared: 20 KeyedWeakReference instances
+Stats: LruCache[maxSize=3000,hits=117382,misses=202384,hitRate=36%]
+RandomAccess[bytes=9972653,reads=202384,travel=66776785704,range=32682183,size=40360068]
+Heap dump reason: 5 retained objects, app is visible
+Analysis duration: 16178 ms
+Heap dump file path: /storage/emulated/0/Download/leakcanary-com.example.memoryleaksample/2025-06-12_16-23-47_353.hprof
+Heap dump timestamp: 1749725648376
+Heap dump duration: 2809 ms
+====================================
