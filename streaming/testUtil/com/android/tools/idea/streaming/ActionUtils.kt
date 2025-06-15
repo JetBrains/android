@@ -15,27 +15,19 @@
  */
 package com.android.tools.idea.streaming
 
-import com.android.tools.idea.streaming.core.AbstractDisplayView
-import com.android.tools.idea.streaming.device.DEVICE_CLIENT_KEY
-import com.android.tools.idea.streaming.device.DEVICE_CONTROLLER_KEY
-import com.android.tools.idea.streaming.device.DeviceView
-import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
-import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
-import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DataSnapshotProvider
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext.getProjectContext
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ComponentUtil.findParentByCondition
 import java.awt.Component
@@ -82,41 +74,19 @@ fun createTestEvent(source: Component, project: Project? = null, place: String =
                     modifiers: Int = CTRL_DOWN_MASK, presentation: Presentation = Presentation(),
                     extra: DataSnapshotProvider? = null): AnActionEvent {
   val inputEvent = KeyEvent(source, KEY_RELEASED, System.currentTimeMillis(), modifiers, VK_E, CHAR_UNDEFINED)
-  val dataContext = createDataContext(source, extra.withProject(project))
+  val rootContext = extra.toDataContext(project?.let { getProjectContext(it) } ?: EMPTY_CONTEXT)
+  val dataContext = createDataContext(source, rootContext)
   return AnActionEvent.createEvent(dataContext, presentation, place, ActionUiKind.NONE, inputEvent)
 }
 
-private fun createDataContext(component: Component, rootProvider: DataSnapshotProvider): DataContext {
-  val parent = findParentByCondition(component.parent) { it is UiDataProvider }
-  val parentContext = parent?.let { createDataContext(it, rootProvider) } ?: CustomizedDataContext.withSnapshot(EMPTY_CONTEXT, rootProvider)
-  return CustomizedDataContext.withSnapshot(parentContext, TestDataSnapshotProvider(component))
+private fun createDataContext(component: Component?, rootContext: DataContext): DataContext {
+  val c = findParentByCondition(component) { it is UiDataProvider } ?: return rootContext
+  val parentContext = createDataContext(c.parent, rootContext)
+  return (c as UiDataProvider).toDataSnapshotProvider().toDataContext(parentContext)
 }
 
-private class TestDataSnapshotProvider(private val component: Component) : DataSnapshotProvider {
+private fun DataSnapshotProvider?.toDataContext(parent: DataContext): DataContext =
+    this?.let { CustomizedDataContext.withSnapshot(parent, this) } ?: parent
 
-  private val emulatorView
-    get() = component as? EmulatorView
-  private val deviceView
-    get() = component as? DeviceView
-  private val displayView
-    get() = component as? AbstractDisplayView
-
-  override fun dataSnapshot(sink: DataSink) {
-    sink.apply {
-      (component as? UiDataProvider)?.let { uiDataSnapshot(it) }
-      set(EMULATOR_CONTROLLER_KEY, emulatorView?.emulator)
-      set(DEVICE_CLIENT_KEY, deviceView?.deviceClient)
-      set(DEVICE_CONTROLLER_KEY, deviceView?.deviceController)
-      set(SERIAL_NUMBER_KEY, displayView?.deviceSerialNumber)
-      set(PlatformCoreDataKeys.CONTEXT_COMPONENT, component)
-    }
-  }
-}
-private fun DataSnapshotProvider?.withProject(project: Project?): DataSnapshotProvider {
-  return object : DataSnapshotProvider {
-    override fun dataSnapshot(sink: DataSink) {
-      this@withProject?.dataSnapshot(sink)
-      sink[CommonDataKeys.PROJECT] = project
-    }
-  }
-}
+private fun UiDataProvider.toDataSnapshotProvider(): DataSnapshotProvider =
+    DataSnapshotProvider { sink -> sink.uiDataSnapshot(this@UiDataProvider) }
