@@ -1,0 +1,181 @@
+====================================
+HEAP ANALYSIS RESULT
+====================================
+5 APPLICATION LEAKS
+
+References underlined with "~~~" are likely causes.
+Learn more at https://squ.re/leaks.
+
+3899 bytes retained by leaking objects
+Signature: c7301e7e129a3ccc507fefa6bc200af3ade28798
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[841]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedFragmentView1
+│                                 ~~~~~~~~~~~~~~~~~~~
+╰→ android.view.View instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingFragment11 received
+​     Fragment#onDestroyView() callback (references to its views should be cleared to prevent leaks))
+​     Retaining 3.9 kB in 110 objects
+​     key = a95491cf-e64e-4fa7-a3a0-453324348127
+​     watchDurationMillis = 5647
+​     retainedDurationMillis = 643
+​     View not part of a window view hierarchy
+​     View.mAttachInfo is null (view detached)
+​     View.mWindowAttachCount = 1
+​     mContext instance of com.example.memoryleaksample.MainActivity with mDestroyed = false
+
+3899 bytes retained by leaking objects
+Signature: 90f8c700b2acf0db300937d6fab9df0fcb35f583
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[841]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedFragmentView2
+│                                 ~~~~~~~~~~~~~~~~~~~
+╰→ android.view.View instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingFragment12 received
+​     Fragment#onDestroyView() callback (references to its views should be cleared to prevent leaks))
+​     Retaining 3.9 kB in 110 objects
+​     key = 14203cf5-6043-47e6-9986-d8262814f981
+​     watchDurationMillis = 5624
+​     retainedDurationMillis = 623
+​     View not part of a window view hierarchy
+​     View.mAttachInfo is null (view detached)
+​     View.mWindowAttachCount = 1
+​     mContext instance of com.example.memoryleaksample.MainActivity with mDestroyed = false
+
+3899 bytes retained by leaking objects
+Signature: f5bf02403233e1bbfc740bab5fcbf47974d74ce3
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[841]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedFragmentView3
+│                                 ~~~~~~~~~~~~~~~~~~~
+╰→ android.view.View instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingFragment13 received
+​     Fragment#onDestroyView() callback (references to its views should be cleared to prevent leaks))
+​     Retaining 3.9 kB in 110 objects
+​     key = d23318ab-1856-4059-a2a6-e7419bc91bf1
+​     watchDurationMillis = 5616
+​     retainedDurationMillis = 616
+​     View not part of a window view hierarchy
+​     View.mAttachInfo is null (view detached)
+​     View.mWindowAttachCount = 1
+​     mContext instance of com.example.memoryleaksample.MainActivity with mDestroyed = false
+
+3899 bytes retained by leaking objects
+Signature: 8783c8a4ba87c97d1c887317fed2051a5d1fdeb3
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[841]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedFragmentView4
+│                                 ~~~~~~~~~~~~~~~~~~~
+╰→ android.view.View instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingFragment14 received
+​     Fragment#onDestroyView() callback (references to its views should be cleared to prevent leaks))
+​     Retaining 3.9 kB in 110 objects
+​     key = 33d0c177-00f3-4165-80d9-8bfa881b71ef
+​     watchDurationMillis = 5610
+​     retainedDurationMillis = 610
+​     View not part of a window view hierarchy
+​     View.mAttachInfo is null (view detached)
+​     View.mWindowAttachCount = 1
+​     mContext instance of com.example.memoryleaksample.MainActivity with mDestroyed = false
+
+3899 bytes retained by leaking objects
+Signature: 6a4fbc36f4604b8b415a8bcbcc09619ce5f83a52
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[841]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedFragmentView5
+│                                 ~~~~~~~~~~~~~~~~~~~
+╰→ android.view.View instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingFragment15 received
+​     Fragment#onDestroyView() callback (references to its views should be cleared to prevent leaks))
+​     Retaining 3.9 kB in 110 objects
+​     key = 0394d2e2-ee64-4515-801b-76e7ee25d433
+​     watchDurationMillis = 5605
+​     retainedDurationMillis = 605
+​     View not part of a window view hierarchy
+​     View.mAttachInfo is null (view detached)
+​     View.mWindowAttachCount = 1
+​     mContext instance of com.example.memoryleaksample.MainActivity with mDestroyed = false
+====================================
+0 LIBRARY LEAKS
+
+A Library Leak is a leak caused by a known bug in 3rd party code that you do not have control over.
+See https://square.github.io/leakcanary/fundamentals-how-leakcanary-works/#4-categorizing-leaks
+====================================
+0 UNREACHABLE OBJECTS
+
+An unreachable object is still in memory but LeakCanary could not find a strong reference path
+from GC roots.
+====================================
+METADATA
+
+Please include this in bug reports and Stack Overflow questions.
+
+Build.VERSION.SDK_INT: 31
+Build.MANUFACTURER: motorola
+LeakCanary version: 2.12
+App process name: com.example.memoryleaksample
+Class count: 26362
+Instance count: 206037
+Primitive array count: 146483
+Object array count: 30739
+Thread count: 24
+Heap total bytes: 26702545
+Bitmap count: 5
+Bitmap total bytes: 552005
+Large bitmap count: 0
+Large bitmap total bytes: 0
+Db 1: closed /data/user/0/com.example.memoryleaksample/databases/leaks.db
+Count of retained yet cleared: 15 KeyedWeakReference instances
+Stats: LruCache[maxSize=3000,hits=118165,misses=204080,hitRate=36%]
+RandomAccess[bytes=10045302,reads=204080,travel=66754463916,range=32718293,size=40396867]
+Heap dump reason: 10 retained objects, app is visible
+Analysis duration: 16253 ms
+Heap dump file path: /storage/emulated/0/Download/leakcanary-com.example.memoryleaksample/2025-06-12_16-32-10_649.hprof
+Heap dump timestamp: 1749726151813
+Heap dump duration: 2855 ms
+====================================

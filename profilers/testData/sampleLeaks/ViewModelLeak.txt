@@ -1,0 +1,159 @@
+====================================
+HEAP ANALYSIS RESULT
+====================================
+5 APPLICATION LEAKS
+
+References underlined with "~~~" are likely causes.
+Learn more at https://squ.re/leaks.
+
+185 bytes retained by leaking objects
+Signature: 51fdf315195b280b882468e3954966308250548d
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[827]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedViewModel1
+│                                 ~~~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingViewModel1 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingViewModel1 received
+​     ViewModel#onCleared() callback)
+​     Retaining 185 B in 8 objects
+​     key = 4993be2b-28f2-4a39-966c-d76f10feaeaa
+​     watchDurationMillis = 9668
+​     retainedDurationMillis = 4659
+
+185 bytes retained by leaking objects
+Signature: 39e4de9b5edadd4f79065dcf38ead18b85e830cb
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[827]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedViewModel2
+│                                 ~~~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingViewModel2 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingViewModel2 received
+​     ViewModel#onCleared() callback)
+​     Retaining 185 B in 8 objects
+​     key = 70633b6c-de72-4b67-bb8c-47d4d3c761cc
+​     watchDurationMillis = 9668
+​     retainedDurationMillis = 4659
+
+185 bytes retained by leaking objects
+Signature: 28ee58790f9a905c84d9a2cf955fe3f7e296d6f3
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[827]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedViewModel3
+│                                 ~~~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingViewModel3 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingViewModel3 received
+​     ViewModel#onCleared() callback)
+​     Retaining 185 B in 8 objects
+​     key = c73dd9d8-d924-4ea3-b096-0106a7e23b54
+​     watchDurationMillis = 9668
+​     retainedDurationMillis = 4659
+
+185 bytes retained by leaking objects
+Signature: eec6eaaf271fda021d6532b319fd2c0d6b4caf13
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[827]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedViewModel4
+│                                 ~~~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingViewModel4 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingViewModel4 received
+​     ViewModel#onCleared() callback)
+​     Retaining 185 B in 8 objects
+​     key = 5b79ac4f-21cf-4548-8847-e72ba88c4f41
+​     watchDurationMillis = 9667
+​     retainedDurationMillis = 4659
+
+185 bytes retained by leaking objects
+Signature: f81a38b15093e831b35d3a692f8667c4311d65fd
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[827]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedViewModel5
+│                                 ~~~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingViewModel5 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingViewModel5 received
+​     ViewModel#onCleared() callback)
+​     Retaining 185 B in 8 objects
+​     key = 327ec484-a504-4a68-b239-8975ff8416e1
+​     watchDurationMillis = 9667
+​     retainedDurationMillis = 4659
+====================================
+0 LIBRARY LEAKS
+
+A Library Leak is a leak caused by a known bug in 3rd party code that you do not have control over.
+See https://square.github.io/leakcanary/fundamentals-how-leakcanary-works/#4-categorizing-leaks
+====================================
+0 UNREACHABLE OBJECTS
+
+An unreachable object is still in memory but LeakCanary could not find a strong reference path
+from GC roots.
+====================================
+METADATA
+
+Please include this in bug reports and Stack Overflow questions.
+
+Build.VERSION.SDK_INT: 31
+Build.MANUFACTURER: motorola
+LeakCanary version: 2.12
+App process name: com.example.memoryleaksample
+Class count: 26363
+Instance count: 205768
+Primitive array count: 146431
+Object array count: 30739
+Thread count: 24
+Heap total bytes: 26690738
+Bitmap count: 5
+Bitmap total bytes: 552005
+Large bitmap count: 0
+Large bitmap total bytes: 0
+Stats: LruCache[maxSize=3000,hits=117461,misses=202926,hitRate=36%]
+RandomAccess[bytes=9998708,reads=202926,travel=66689279789,range=32700998,size=40379798]
+Heap dump reason: 5 retained objects, app is visible
+Analysis duration: 16200 ms
+Heap dump file path: /storage/emulated/0/Download/leakcanary-com.example.memoryleaksample/2025-06-12_16-33-14_186.hprof
+Heap dump timestamp: 1749726215202
+Heap dump duration: 2766 ms
+====================================

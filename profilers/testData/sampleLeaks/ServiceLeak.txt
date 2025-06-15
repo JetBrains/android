@@ -1,0 +1,169 @@
+====================================
+HEAP ANALYSIS RESULT
+====================================
+5 APPLICATION LEAKS
+
+References underlined with "~~~" are likely causes.
+Learn more at https://squ.re/leaks.
+
+1659 bytes retained by leaking objects
+Signature: a4c25070eb02320c3c8862e315d95e89b5f060d5
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[813]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedService1
+│                                 ~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingService1 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingService1 received
+​     Service#onDestroy() callback and Service not held by ActivityThread)
+​     Retaining 1.7 kB in 13 objects
+​     key = 4b1089d0-01b1-4c9a-b269-3cc66c8c440b
+​     watchDurationMillis = 20050
+​     retainedDurationMillis = 15044
+​     mApplication instance of androidx.multidex.MultiDexApplication
+​     mBase instance of android.app.ContextImpl
+
+1659 bytes retained by leaking objects
+Signature: 8c240ee4b5183c161cc3a18bd7efb63c370b79c9
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[813]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedService2
+│                                 ~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingService2 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingService2 received
+​     Service#onDestroy() callback and Service not held by ActivityThread)
+​     Retaining 1.7 kB in 13 objects
+​     key = 383ca403-c25a-449c-9508-79f308b2d2a6
+​     watchDurationMillis = 20034
+​     retainedDurationMillis = 15033
+​     mApplication instance of androidx.multidex.MultiDexApplication
+​     mBase instance of android.app.ContextImpl
+
+1659 bytes retained by leaking objects
+Signature: d95e408a03cccc5050c8d84ba0ca15a9220af106
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[813]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedService3
+│                                 ~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingService3 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingService3 received
+​     Service#onDestroy() callback and Service not held by ActivityThread)
+​     Retaining 1.7 kB in 13 objects
+​     key = f93838fc-4ebd-4513-92fc-3d06d0099af2
+​     watchDurationMillis = 20031
+​     retainedDurationMillis = 15030
+​     mApplication instance of androidx.multidex.MultiDexApplication
+​     mBase instance of android.app.ContextImpl
+
+1659 bytes retained by leaking objects
+Signature: e72716c3560059e21472a622de25cd79dd5e9bba
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[813]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedService4
+│                                 ~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingService4 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingService4 received
+​     Service#onDestroy() callback and Service not held by ActivityThread)
+​     Retaining 1.7 kB in 13 objects
+​     key = 210d7d32-f237-45c0-9d47-9fa017d79ee5
+​     watchDurationMillis = 20029
+​     retainedDurationMillis = 15028
+​     mApplication instance of androidx.multidex.MultiDexApplication
+​     mBase instance of android.app.ContextImpl
+
+1659 bytes retained by leaking objects
+Signature: 84a8abaa60b81fd216fac64df20a4fa5445d664e
+┬───
+│ GC Root: Local variable in native code
+│
+├─ dalvik.system.PathClassLoader instance
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking and A ClassLoader is never leaking)
+│    ↓ ClassLoader.runtimeInternalObjects
+├─ java.lang.Object[] array
+│    Leaking: NO (GlobalLeakingObject↓ is not leaking)
+│    ↓ Object[813]
+├─ com.example.memoryleaksample.GlobalLeakingObject class
+│    Leaking: NO (a class is never leaking)
+│    ↓ static GlobalLeakingObject.leakedService5
+│                                 ~~~~~~~~~~~~~~
+╰→ com.example.memoryleaksample.LeakingService5 instance
+​     Leaking: YES (ObjectWatcher was watching this because com.example.memoryleaksample.LeakingService5 received
+​     Service#onDestroy() callback and Service not held by ActivityThread)
+​     Retaining 1.7 kB in 13 objects
+​     key = 3af31386-4d54-4fb1-b6e5-ad961d189b27
+​     watchDurationMillis = 20026
+​     retainedDurationMillis = 15025
+​     mApplication instance of androidx.multidex.MultiDexApplication
+​     mBase instance of android.app.ContextImpl
+====================================
+0 LIBRARY LEAKS
+
+A Library Leak is a leak caused by a known bug in 3rd party code that you do not have control over.
+See https://square.github.io/leakcanary/fundamentals-how-leakcanary-works/#4-categorizing-leaks
+====================================
+0 UNREACHABLE OBJECTS
+
+An unreachable object is still in memory but LeakCanary could not find a strong reference path
+from GC roots.
+====================================
+METADATA
+
+Please include this in bug reports and Stack Overflow questions.
+
+Build.VERSION.SDK_INT: 31
+Build.MANUFACTURER: motorola
+LeakCanary version: 2.12
+App process name: com.example.memoryleaksample
+Class count: 26363
+Instance count: 205718
+Primitive array count: 146422
+Object array count: 30745
+Thread count: 24
+Heap total bytes: 26689038
+Bitmap count: 5
+Bitmap total bytes: 552005
+Large bitmap count: 0
+Large bitmap total bytes: 0
+Stats: LruCache[maxSize=3000,hits=117463,misses=202914,hitRate=36%]
+RandomAccess[bytes=9998245,reads=202914,travel=66703771305,range=32698331,size=40377108]
+Heap dump reason: 5 retained objects, app is visible
+Analysis duration: 16163 ms
+Heap dump file path: /storage/emulated/0/Download/leakcanary-com.example.memoryleaksample/2025-06-12_16-34-17_555.hprof
+Heap dump timestamp: 1749726278612
+Heap dump duration: 2814 ms
+====================================
