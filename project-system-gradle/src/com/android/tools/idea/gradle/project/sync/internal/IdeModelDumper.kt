@@ -55,6 +55,7 @@ import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches
@@ -123,7 +124,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
             if (!dumpAllLinkedModules && !module.isHolderModule()) return@let
             dump(it)
           }
-          GradleAndroidDependencyModel.get(module)?.let { it ->
+          GradleAndroidModel.get(module)?.let { it ->
             // Skip all but holders to prevent needless spam in the snapshots. All modules
             // point to the same facet.
             if (!dumpAllLinkedModules && !module.isHolderModule()) return@let
@@ -144,7 +145,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
                   dump(it)
                 }
               } else {
-                it.variantsWithDependencies.filter { variant ->
+                it.variants.filter { variant ->
                   dumpAllVariants || variant.name == it.selectedVariantName
                 }.forEach {
                   dump(it)
