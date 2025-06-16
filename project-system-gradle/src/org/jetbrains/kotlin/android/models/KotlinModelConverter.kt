@@ -461,93 +461,6 @@ class KotlinModelConverter {
       apkFromBundleTaskOutputListingFile = null,
     )
 
-    val androidProject = IdeAndroidProjectImpl(
-      agpVersion = targetInfo.agpVersion,
-      projectPath = IdeProjectPathImpl(
-        rootBuildId = targetInfo.rootBuildId.convertAndDeduplicate(),
-        buildId = targetInfo.buildId.convertAndDeduplicate(),
-        projectPath = targetInfo.projectPath.deduplicate()
-      ),
-      buildFolder = File(targetInfo.buildDir.absolutePath).deduplicateFile(),
-      projectType = IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM,
-      defaultSourceProvider = IdeSourceProviderContainerImpl(
-        sourceProvider = mainKotlinCompilation.declaredSourceSets.firstOrNull {
-          it.name == mainAndroidCompilation.defaultSourceSetName
-        }?.let { sourceSet ->
-          sourceSet.extras[androidSourceSetKey]?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
-        },
-        extraSourceProviders = listOf(
-          ARTIFACT_NAME_UNIT_TEST to unitTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
-            it.name == unitTestAndroidCompilation?.defaultSourceSetName
-          }?.let { sourceSet ->
-            sourceSet.extras[androidSourceSetKey]?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
-          },
-          ARTIFACT_NAME_ANDROID_TEST  to androidTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
-            it.name == androidTestAndroidCompilation?.defaultSourceSetName
-          }?.let { sourceSet ->
-            sourceSet.extras[androidSourceSetKey]?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
-          }
-        ).mapNotNull { (artifactName, sourceProvider) ->
-          sourceProvider?.let {
-            IdeExtraSourceProviderImpl(
-              artifactName = artifactName,
-              sourceProvider = sourceProvider
-            )
-          }
-        }
-      ),
-      multiVariantData = IdeMultiVariantDataImpl(
-        defaultConfig = createDefaultConfigForKmp(),
-        buildTypes = listOf(createBuildTypeForKmp(mainAndroidCompilation)),
-        productFlavors = emptyList()
-      ),
-      flavorDimensions = emptyList(),
-      compileTarget = mainAndroidCompilation.mainInfo.compileSdkTarget,
-      bootClasspath = targetInfo.bootClasspathList.map { it.absolutePath.deduplicate() },
-      signingConfigs = listOfNotNull(
-        androidTestAndroidCompilation?.instrumentedTestInfo?.signingConfig?.convert()
-      ),
-      aaptOptions = IdeAaptOptionsImpl(IdeAaptOptions.Namespacing.DISABLED),
-      lintOptions = IdeLintOptionsImpl(), // TODO(b/269755640): support lint in the IDE
-      javaCompileOptions = IdeJavaCompileOptionsImpl(
-        encoding = Charset.defaultCharset().name(),
-        sourceCompatibility = mainKotlinCompilerOptions.jvmTarget ?: "1.8",
-        targetCompatibility = mainKotlinCompilerOptions.jvmTarget ?: "1.8",
-        isCoreLibraryDesugaringEnabled = targetInfo.isCoreLibraryDesugaringEnabled,
-      ),
-      resourcePrefix = null,
-      buildToolsVersion = targetInfo.buildToolsVersion,
-      isBaseSplit = false,
-      dynamicFeatures = emptyList(),
-      viewBindingOptions = null,
-      dependenciesInfo = null,
-      groupId = targetInfo.groupId,
-      namespace = mainAndroidCompilation.mainInfo.namespace,
-      agpFlags = targetInfo.flags.convert(),
-      variantsBuildInformation = listOf(
-        IdeVariantBuildInformationImpl(
-          variantName = kotlinMultiplatformAndroidVariantName,
-          mainBuildInformation
-        )
-      ),
-      lintChecksJars = targetInfo.lintChecksJarsList.convertAndDeduplicate(),
-      testNamespace = androidTestAndroidCompilation?.instrumentedTestInfo?.namespace,
-      isKaptEnabled = false,
-      desugarLibraryConfigFiles = targetInfo.desugarLibConfigList.convertAndDeduplicate(),
-      baseFeature = null,
-      basicVariants = listOf(
-        IdeBasicVariantImpl(
-          name = kotlinMultiplatformAndroidVariantName,
-          applicationId = null,
-          testApplicationId = androidTestAndroidCompilation?.instrumentedTestInfo?.namespace,
-          buildType = null,
-          false,
-        )
-      ),
-      defaultVariantName = kotlinMultiplatformAndroidVariantName,
-      lintJar = null
-    )
-
     val mainArtifact = IdeAndroidArtifactCoreImpl(
       name = IdeArtifactName.MAIN,
       compileTaskName = mainAndroidCompilation.kotlinCompileTaskName,
@@ -679,6 +592,96 @@ class KotlinModelConverter {
       experimentalProperties = emptyMap()
     )
 
+    val variants = listOf(androidMainVariant)
+
+    val androidProject = IdeAndroidProjectImpl(
+      agpVersion = targetInfo.agpVersion,
+      projectPath = IdeProjectPathImpl(
+        rootBuildId = targetInfo.rootBuildId.convertAndDeduplicate(),
+        buildId = targetInfo.buildId.convertAndDeduplicate(),
+        projectPath = targetInfo.projectPath.deduplicate()
+      ),
+      buildFolder = File(targetInfo.buildDir.absolutePath).deduplicateFile(),
+      projectType = IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM,
+      defaultSourceProvider = IdeSourceProviderContainerImpl(
+        sourceProvider = mainKotlinCompilation.declaredSourceSets.firstOrNull {
+          it.name == mainAndroidCompilation.defaultSourceSetName
+        }?.let { sourceSet ->
+          sourceSet.extras[androidSourceSetKey]?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
+        },
+        extraSourceProviders = listOf(
+          ARTIFACT_NAME_UNIT_TEST to unitTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
+            it.name == unitTestAndroidCompilation?.defaultSourceSetName
+          }?.let { sourceSet ->
+            sourceSet.extras[androidSourceSetKey]?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
+          },
+          ARTIFACT_NAME_ANDROID_TEST  to androidTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
+            it.name == androidTestAndroidCompilation?.defaultSourceSetName
+          }?.let { sourceSet ->
+            sourceSet.extras[androidSourceSetKey]?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
+          }
+        ).mapNotNull { (artifactName, sourceProvider) ->
+          sourceProvider?.let {
+            IdeExtraSourceProviderImpl(
+              artifactName = artifactName,
+              sourceProvider = sourceProvider
+            )
+          }
+        }
+      ),
+      multiVariantData = IdeMultiVariantDataImpl(
+        defaultConfig = createDefaultConfigForKmp(),
+        buildTypes = listOf(createBuildTypeForKmp(mainAndroidCompilation)),
+        productFlavors = emptyList()
+      ),
+      flavorDimensions = emptyList(),
+      compileTarget = mainAndroidCompilation.mainInfo.compileSdkTarget,
+      bootClasspath = targetInfo.bootClasspathList.map { it.absolutePath.deduplicate() },
+      signingConfigs = listOfNotNull(
+        androidTestAndroidCompilation?.instrumentedTestInfo?.signingConfig?.convert()
+      ),
+      aaptOptions = IdeAaptOptionsImpl(IdeAaptOptions.Namespacing.DISABLED),
+      lintOptions = IdeLintOptionsImpl(), // TODO(b/269755640): support lint in the IDE
+      javaCompileOptions = IdeJavaCompileOptionsImpl(
+        encoding = Charset.defaultCharset().name(),
+        sourceCompatibility = mainKotlinCompilerOptions.jvmTarget ?: "1.8",
+        targetCompatibility = mainKotlinCompilerOptions.jvmTarget ?: "1.8",
+        isCoreLibraryDesugaringEnabled = targetInfo.isCoreLibraryDesugaringEnabled,
+      ),
+      resourcePrefix = null,
+      buildToolsVersion = targetInfo.buildToolsVersion,
+      isBaseSplit = false,
+      dynamicFeatures = emptyList(),
+      viewBindingOptions = null,
+      dependenciesInfo = null,
+      groupId = targetInfo.groupId,
+      namespace = mainAndroidCompilation.mainInfo.namespace,
+      agpFlags = targetInfo.flags.convert(),
+      variantsBuildInformation = listOf(
+        IdeVariantBuildInformationImpl(
+          variantName = kotlinMultiplatformAndroidVariantName,
+          mainBuildInformation
+        )
+      ),
+      lintChecksJars = targetInfo.lintChecksJarsList.convertAndDeduplicate(),
+      testNamespace = androidTestAndroidCompilation?.instrumentedTestInfo?.namespace,
+      isKaptEnabled = false,
+      desugarLibraryConfigFiles = targetInfo.desugarLibConfigList.convertAndDeduplicate(),
+      baseFeature = null,
+      basicVariants = listOf(
+        IdeBasicVariantImpl(
+          name = kotlinMultiplatformAndroidVariantName,
+          applicationId = null,
+          testApplicationId = androidTestAndroidCompilation?.instrumentedTestInfo?.namespace,
+          buildType = null,
+          false,
+        )
+      ),
+      defaultVariantName = kotlinMultiplatformAndroidVariantName,
+      lintJar = null,
+      coreVariants = variants
+    )
+
     return GradleAndroidModelDataImpl(
       androidSyncVersion = ourAndroidSyncVersion,
       moduleName = moduleName,
@@ -686,7 +689,7 @@ class KotlinModelConverter {
       androidProject = androidProject,
       selectedVariantName = kotlinMultiplatformAndroidVariantName,
       declaredDependencies = IdeDeclaredDependenciesImpl(mapOf()),
-      variants = listOf(androidMainVariant)
+      variants = variants
     )
   }
 }
