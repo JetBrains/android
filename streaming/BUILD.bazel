@@ -43,6 +43,7 @@ jvm_library(
     "//platform/editor-ui-api:editor-ui",
     "//platform/platform-api:ide",
     "//platform/core-ui",
+    "//jps/model-serialization",
     "//platform/util:util-ui",
     "//platform/util/jdom",
     "//platform/platform-impl/ui",
