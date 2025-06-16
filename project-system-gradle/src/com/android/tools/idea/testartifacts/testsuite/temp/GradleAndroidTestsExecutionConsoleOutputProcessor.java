@@ -22,6 +22,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.jetbrains.plugins.gradle.execution.test.runner.events.TestEventXPPXmlView;
 
 /**
@@ -38,7 +39,9 @@ public final class GradleAndroidTestsExecutionConsoleOutputProcessor {
   private static final String LOG_END = "</ijLog>";
 
   private static final Key<StringBuilder> STRING_BUFFER_KEY = new Key<>("com.android.tools.idea.testartifacts.testsuite.jetbrains.STRING_BUFFER_KEY");
-  private static final Key<AndroidTestSuiteViewAdaptor> ADAPTOR_KEY = new Key<>("com.android.tools.idea.testartifacts.testsuite.jetbrains.ADAPTOR_KEY");
+  @VisibleForTesting
+  public static final Key<TestSuiteViewAdaptor> ADAPTOR_KEY =
+    new Key<>("com.android.tools.idea.testartifacts.testsuite.jetbrains.ADAPTOR_KEY");
 
   public static void onOutput(@NotNull AndroidTestSuiteView executionConsole,
                               @NotNull String text,
@@ -47,17 +50,28 @@ public final class GradleAndroidTestsExecutionConsoleOutputProcessor {
     if (eventMessage == null) return;
 
     try {
-      var adaptor = executionConsole.getUserData(ADAPTOR_KEY);
-      if (adaptor == null) {
-        adaptor =
-          executionConsole.putUserDataIfAbsent(ADAPTOR_KEY, new AndroidTestSuiteViewAdaptor(executionConsole.getRunConfiguration()));
-      }
+      var adaptor = executionConsole.putUserDataIfAbsent(ADAPTOR_KEY, getAdaptor(executionConsole));
       var xml = new TestEventXPPXmlView(eventMessage);
       adaptor.processEvent(xml, executionConsole);
     }
     catch (NumberFormatException e) {
       LOG.error("Gradle test events parser error", e);
     }
+  }
+
+  private static TestSuiteViewAdaptor getAdaptor(@NotNull AndroidTestSuiteView executionConsole) {
+    var existing = executionConsole.getUserData(ADAPTOR_KEY);
+    if (existing != null) {
+      return existing;
+    }
+
+    var runConfiguration = executionConsole.getRunConfiguration();
+    var adaptor = TestSuiteViewAdaptorProvider.firstNonNullAdaptor(runConfiguration);
+    if (adaptor != null) {
+      return adaptor;
+    }
+
+    return new AndroidTestSuiteViewAdaptor(runConfiguration);
   }
 
   private static StringBuilder getBuffer(@NotNull AndroidTestSuiteView executionConsole) {

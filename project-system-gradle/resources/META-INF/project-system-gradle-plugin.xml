@@ -451,5 +451,12 @@
                     interface="com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.gradle.project.importing.gradleProjectImporter"
                     interface="com.android.tools.idea.gradle.project.importing.GradleProjectImporterExtension"/>
+    <!--
+      This extension point is for internal use only.
+      It will be retired once the Gradle test results console view can be customised, see
+      https://youtrack.jetbrains.com/issue/
+    -->
+    <extensionPoint qualifiedName="com.android.tools.idea.testartifacts.testsuite.temp.testSuiteViewAdaptorProvider"
+                    interface="com.android.tools.idea.testartifacts.testsuite.temp.TestSuiteViewAdaptorProvider"/>
   </extensionPoints>
 </idea-plugin>

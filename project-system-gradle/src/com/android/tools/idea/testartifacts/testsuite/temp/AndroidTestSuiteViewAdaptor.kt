@@ -58,7 +58,7 @@ import org.jetbrains.plugins.gradle.execution.test.runner.events.TestEventXPPXml
  * `deviceId` as the primary suite for reporting. Any nested or intermediate test suites are
  * effectively ignored in the final view presented by [AndroidTestSuiteView].
  */
-class AndroidTestSuiteViewAdaptor(private val runConfiguration: RunConfiguration?) {
+class AndroidTestSuiteViewAdaptor(private val runConfiguration: RunConfiguration?) : TestSuiteViewAdaptor {
   // key: ID, value: parent ID.
   val parentId: MutableMap<String, String> = mutableMapOf()
 
@@ -66,132 +66,135 @@ class AndroidTestSuiteViewAdaptor(private val runConfiguration: RunConfiguration
   val testSuiteMap: MutableMap<String, AndroidTestSuite> = mutableMapOf()
   val testCaseMap: MutableMap<String, AndroidTestCase> = mutableMapOf()
 
-  fun processEvent(xml: TestEventXPPXmlView, executionConsole: AndroidTestSuiteView) {
-    return when(TestEventType.fromValue(xml.testEventType)) {
-      TestEventType.BEFORE_SUITE -> {
-        if (xml.testParentId != "") {
-          parentId[xml.testId] = xml.testParentId
-        }
+  override fun onBeforeSuite(testIdentifier: TestSuiteViewAdaptor.TestIdentifier, executionConsole: AndroidTestSuiteView) {
+    if (testIdentifier.parentId != "") {
+      parentId[testIdentifier.id] = testIdentifier.parentId
+    }
 
-        testSuiteMap.computeIfAbsent(xml.testId) { id ->
-          AndroidTestSuite(
-            id = id,
-            name = xml.testName,
-            testCaseCount = 0,
-            result = null,
-            runConfiguration
-          )
-        }
-
-        Unit
-      }
-
-      TestEventType.BEFORE_TEST -> {
-        parentId[xml.testId] = xml.testParentId
-
-        val (rootTestSuiteId, device) = getRootTestIdAndDevice(xml) ?: return
-        val rootTestSuite = testSuiteMap.get(rootTestSuiteId) ?: return
-
-        val testCase = testCaseMap.computeIfAbsent(xml.testId) { id ->
-          AndroidTestCase(
-            id = id,
-            methodName = xml.testName,
-            className = xml.testClassName.substringAfterLast("."),
-            packageName = if (xml.testClassName.contains(".")) xml.testClassName.substringBeforeLast(".") else "",
-            result = AndroidTestCaseResult.IN_PROGRESS
-          )
-        }
-
-        rootTestSuite.testCaseCount += 1
-
-        executionConsole.onTestCaseStarted(device, rootTestSuite, testCase)
-      }
-
-      TestEventType.AFTER_TEST -> {
-        val (rootTestSuiteId, device) = getRootTestIdAndDevice(xml) ?: return
-        val rootTestSuite = testSuiteMap[rootTestSuiteId] ?: return
-
-        val testCase = testCaseMap.computeIfAbsent(xml.testId) { id ->
-          AndroidTestCase(
-            id = id,
-            methodName = xml.testName,
-            className = xml.testClassName.substringAfterLast("."),
-            packageName = xml.testClassName.substringBeforeLast(".")
-          )
-        }
-
-        val result = GradleXmlTestEventConverter.convertOperationResult(xml)
-        applyResultToTestCase(testCase, result)
-
-        executionConsole.onTestCaseFinished(device, rootTestSuite, testCase)
-      }
-
-      TestEventType.AFTER_SUITE -> {
-        val (rootTestId, device) = getRootTestIdAndDevice(xml) ?: return
-        if (rootTestId != xml.testId) {
-          return
-        }
-
-        val result = GradleXmlTestEventConverter.convertOperationResult(xml)
-
-        val rootTestSuite = testSuiteMap[rootTestId] ?: return
-        applyResultToTestSuite(rootTestSuite, result)
-
-        executionConsole.onTestSuiteFinished(device, rootTestSuite)
-      }
-
-      TestEventType.ON_OUTPUT -> {
-        val output = GradleXmlTestEventConverter.decode(xml.testEventTest.trim())
-
-        val testCase = testCaseMap[xml.testId]
-        if (testCase != null) {
-          output.lineSequence().forEach { line ->
-            if (line.startsWith("[additionalTestArtifacts]")) {
-              val (key, value) = line.substringAfter("[additionalTestArtifacts]").split("=", limit = 2) + listOf("", "")
-              testCase.additionalTestArtifacts[key] = value
-            } else if (line.isNotBlank()) {
-              testCase.logcat += line + "\n"
-            }
-          }
-        } else {
-          val contentType = if ("StdOut" == xml.testEventTestDescription) {
-            ConsoleViewContentType.NORMAL_OUTPUT
-          } else {
-            ConsoleViewContentType.ERROR_OUTPUT
-          }
-          output.lineSequence().forEach { line ->
-            if (line.startsWith("[additionalTestArtifacts]")) {
-              val (key, value) = line.substringAfter("[additionalTestArtifacts]").split("=", limit = 2) + listOf("", "")
-              if (key == "deviceId") {
-                val device = deviceMap.computeIfAbsent(xml.testId) {
-                  AndroidDevice(
-                    id = value,
-                    deviceName = value,
-                    avdName = "",
-                    deviceType = AndroidDeviceType.LOCAL_EMULATOR,
-                    version = AndroidVersion.DEFAULT
-                  )
-                }
-                val testSuite = testSuiteMap[xml.testId] ?: return
-                executionConsole.onTestSuiteScheduled(device)
-                executionConsole.onTestSuiteStarted(device, testSuite)
-              } else if (key == "deviceDisplayName") {
-                deviceMap[xml.testId]?.deviceName = value
-              }
-            } else if (line.isNotBlank()) {
-              executionConsole.print(line, contentType)
-            }
-          }
-        }
-      }
-      TestEventType.REPORT_LOCATION -> {}
-      TestEventType.CONFIGURATION_ERROR -> {}
-      TestEventType.UNKNOWN_EVENT -> {}
+    testSuiteMap.computeIfAbsent(testIdentifier.id) { id ->
+      AndroidTestSuite(
+        id = id,
+        name = testIdentifier.name,
+        testCaseCount = 0,
+        result = null,
+        runConfiguration
+      )
     }
   }
 
-  private fun getRootTestIdAndDevice(xml: TestEventXPPXmlView): Pair<String, AndroidDevice>? {
-    var id = xml.testId
+  override fun onBeforeTest(testIdentifier: TestSuiteViewAdaptor.TestIdentifier, executionConsole: AndroidTestSuiteView) {
+    parentId[testIdentifier.id] = testIdentifier.parentId
+
+    val (rootTestSuiteId, device) = getRootTestIdAndDevice(testIdentifier.id) ?: return
+    val rootTestSuite = testSuiteMap.get(rootTestSuiteId) ?: return
+
+    val testCase = testCaseMap.computeIfAbsent(testIdentifier.id) { id ->
+      val methodName = testIdentifier.name
+      val className = testIdentifier.className.substringAfterLast(".")
+      val packageName = if (testIdentifier.className.contains(".")) testIdentifier.className.substringBeforeLast(".") else ""
+      AndroidTestCase(
+        id = id,
+        methodName = methodName,
+        className = className,
+        packageName = packageName,
+        result = AndroidTestCaseResult.IN_PROGRESS,
+      )
+    }
+
+    rootTestSuite.testCaseCount += 1
+
+    executionConsole.onTestCaseStarted(device, rootTestSuite, testCase)
+  }
+
+  override fun onAfterTest(testIdentifier: TestSuiteViewAdaptor.TestIdentifier,
+                           result: OperationResult,
+                           executionConsole: AndroidTestSuiteView) {
+
+    val (rootTestSuiteId, device) = getRootTestIdAndDevice(testIdentifier.id) ?: return
+    val rootTestSuite = testSuiteMap[rootTestSuiteId] ?: return
+
+    val testCase = testCaseMap.computeIfAbsent(testIdentifier.id) { id ->
+      AndroidTestCase(
+        id = id,
+        methodName = testIdentifier.name,
+        className = testIdentifier.className.substringAfterLast("."),
+        packageName = testIdentifier.className.substringBeforeLast(".")
+      )
+    }
+
+    applyResultToTestCase(testCase, result)
+
+    executionConsole.onTestCaseFinished(device, rootTestSuite, testCase)
+  }
+
+  override fun onAfterSuite(testIdentifier: TestSuiteViewAdaptor.TestIdentifier,
+                            result: OperationResult,
+                            executionConsole: AndroidTestSuiteView) {
+
+    val (rootTestId, device) = getRootTestIdAndDevice(testIdentifier.id) ?: return
+    if (rootTestId != testIdentifier.id) {
+      return
+    }
+
+    val rootTestSuite = testSuiteMap[rootTestId] ?: return
+    applyResultToTestSuite(rootTestSuite, result)
+
+    executionConsole.onTestSuiteFinished(device, rootTestSuite)
+  }
+
+  override fun onOutput(testIdentifier: TestSuiteViewAdaptor.TestIdentifier,
+                        output: String,
+                        contentType: TestSuiteViewAdaptor.OutputContentType,
+                        executionConsole: AndroidTestSuiteView) {
+    val testCase = testCaseMap[testIdentifier.id]
+    if (testCase != null) {
+      output.lineSequence().forEach { line ->
+        if (line.startsWith("[additionalTestArtifacts]")) {
+          val (key, value) = line.substringAfter("[additionalTestArtifacts]").split("=", limit = 2) + listOf("", "")
+          testCase.additionalTestArtifacts[key] = value
+        }
+        else if (line.isNotBlank()) {
+          testCase.logcat += line + "\n"
+        }
+      }
+    }
+    else {
+      val contentType = if (contentType == TestSuiteViewAdaptor.OutputContentType.STD_OUT) {
+        ConsoleViewContentType.NORMAL_OUTPUT
+      }
+      else {
+        ConsoleViewContentType.ERROR_OUTPUT
+      }
+      output.lineSequence().forEach { line ->
+        if (line.startsWith("[additionalTestArtifacts]")) {
+          val (key, value) = line.substringAfter("[additionalTestArtifacts]").split("=", limit = 2) + listOf("", "")
+          if (key == "deviceId") {
+            val device = deviceMap.computeIfAbsent(testIdentifier.id) { id ->
+              AndroidDevice(
+                id = value,
+                deviceName = value,
+                avdName = "",
+                deviceType = AndroidDeviceType.LOCAL_EMULATOR,
+                version = AndroidVersion.DEFAULT
+              )
+            }
+            val testSuite = testSuiteMap[testIdentifier.id] ?: return
+            executionConsole.onTestSuiteScheduled(device)
+            executionConsole.onTestSuiteStarted(device, testSuite)
+          }
+          else if (key == "deviceDisplayName") {
+            deviceMap[testIdentifier.id]?.deviceName = value
+          }
+        }
+        else if (line.isNotBlank()) {
+          executionConsole.print(line, contentType)
+        }
+      }
+    }
+  }
+
+  private fun getRootTestIdAndDevice(testId: String): Pair<String, AndroidDevice>? {
+    var id = testId
     var device = deviceMap[id]
     while (device == null && id != "") {
       id = parentId[id] ?: ""

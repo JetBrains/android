@@ -19,10 +19,16 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.ProcessOutputTypes
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.AdditionalAnswers.delegatesTo
 import org.mockito.Mockito.doAnswer
@@ -30,11 +36,17 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 /**
  * Unit tests for [GradleAndroidTestsExecutionConsoleOutputProcessor].
  */
+@RunsInEdt
 class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
 
   @Test
   fun processOutput() {
@@ -69,6 +81,96 @@ class GradleAndroidTestsExecutionConsoleOutputProcessorTest {
     assertThat(testCaseResult.firstValue.additionalTestArtifacts).containsKey("PreviewScreenshot.newImagePath")
     assertThat(testResult.firstValue.testCaseCount).isEqualTo(1)
   }
+
+  @Test
+  fun processOutput_usesExtensionPointAdaptorWhenAvailable() {
+    // Register a test provider as an extension that returns mock adaptor
+    val mockRunConfiguration = mock<RunConfiguration>()
+    val mockAdaptor = mock<TestSuiteViewAdaptor>()
+    val testProvider = object : TestSuiteViewAdaptorProvider {
+      override fun getAdaptor(runConfiguration: RunConfiguration?): TestSuiteViewAdaptor? {
+        return if (runConfiguration === mockRunConfiguration) mockAdaptor else null
+      }
+    }
+
+    val ep = ExtensionPointName.create<TestSuiteViewAdaptorProvider>(TestSuiteViewAdaptorProvider.ADAPTOR_PROVIDER_EP_NAME.name)
+    ep.point.registerExtension(testProvider, projectRule.fixture.testRootDisposable)
+
+    val userDataHolder = UserDataHolderBase()
+    val mockAndroidTestSuite = mock<AndroidTestSuiteView>()
+    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder)).`when`(mockAndroidTestSuite).getUserData<Any>(any())
+    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder))
+      .`when`(mockAndroidTestSuite).putUserDataIfAbsent<Any>(any(), any())
+    whenever(mockAndroidTestSuite.runConfiguration).thenReturn(mockRunConfiguration)
+
+    GradleAndroidTestsExecutionConsoleOutputProcessor.onOutput(
+      mockAndroidTestSuite,
+      exampleIJLogMessages.first(),
+      ProcessOutputTypes.STDOUT
+    )
+
+    // Verify that the extension-provided mock adaptor was stored in UserData
+    val storedAdaptor = userDataHolder.getUserData(GradleAndroidTestsExecutionConsoleOutputProcessor.ADAPTOR_KEY)
+    assertThat(storedAdaptor).isEqualTo(mockAdaptor)
+
+    // Verify that our extension-provided mock adaptor was the one used
+    verify(mockAdaptor).processEvent(any(), any())
+  }
+
+  @Test
+  fun processOutput_usesDefaultAdaptorWhenNoProviderMatches() {
+    // Register a provider that will not match the run configuration
+    val mockRunConfiguration = mock<RunConfiguration>()
+    val nonMatchingProvider = object : TestSuiteViewAdaptorProvider {
+      override fun getAdaptor(runConfiguration: RunConfiguration?): TestSuiteViewAdaptor? {
+        return null
+      }
+    }
+
+    val ep = ExtensionPointName.create<TestSuiteViewAdaptorProvider>(TestSuiteViewAdaptorProvider.ADAPTOR_PROVIDER_EP_NAME.name)
+    ep.point.registerExtension(nonMatchingProvider, projectRule.fixture.testRootDisposable)
+
+    val userDataHolder = UserDataHolderBase()
+    val mockAndroidTestSuite = mock<AndroidTestSuiteView>()
+    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder)).`when`(mockAndroidTestSuite).getUserData<Any>(any())
+    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder))
+      .`when`(mockAndroidTestSuite).putUserDataIfAbsent<Any>(any(), any())
+    whenever(mockAndroidTestSuite.runConfiguration).thenReturn(mockRunConfiguration)
+
+    GradleAndroidTestsExecutionConsoleOutputProcessor.onOutput(
+      mockAndroidTestSuite,
+      exampleIJLogMessages.first(),
+      ProcessOutputTypes.STDOUT
+    )
+
+    // Retrieve the adaptor that was stored in UserData and verify it's the default
+    val storedAdaptor = userDataHolder.getUserData(GradleAndroidTestsExecutionConsoleOutputProcessor.ADAPTOR_KEY)
+    assertThat(storedAdaptor).isNotNull()
+    assertThat(storedAdaptor).isInstanceOf(AndroidTestSuiteViewAdaptor::class.java)
+  }
+
+  @Test
+  fun processOutput_usesCachedAdaptorIfAvailable() {
+    val mockAdaptor = mock<TestSuiteViewAdaptor>()
+    val userDataHolder = UserDataHolderBase()
+    // Pre-cache the adaptor in the user data. This simulates it being set by a previous call
+    userDataHolder.putUserData(GradleAndroidTestsExecutionConsoleOutputProcessor.ADAPTOR_KEY, mockAdaptor)
+
+    val mockAndroidTestSuite = mock<AndroidTestSuiteView>()
+    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder)).`when`(mockAndroidTestSuite).getUserData<Any>(any())
+    doAnswer(delegatesTo<UserDataHolderEx>(userDataHolder))
+      .`when`(mockAndroidTestSuite).putUserDataIfAbsent<Any>(any(), any())
+
+    GradleAndroidTestsExecutionConsoleOutputProcessor.onOutput(
+      mockAndroidTestSuite,
+      exampleIJLogMessages.first(),
+      ProcessOutputTypes.STDOUT
+    )
+
+    // Verify that our pre-cached adaptor was the one used
+    verify(mockAdaptor).processEvent(any(), any())
+  }
+
 
   private val exampleIJLogMessages = listOf(
     """
