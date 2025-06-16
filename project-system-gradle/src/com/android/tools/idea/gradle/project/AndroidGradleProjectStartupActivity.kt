@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NativeHeaderRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
@@ -369,7 +370,7 @@ private fun attachCachedModelsOrTriggerSyncBody(project: Project, gradleProjectI
       val libraries = ExternalSystemApiUtil.find(projectData, IDE_LIBRARY_TABLE)?.data
       val kmpLibraries = ExternalSystemApiUtil.find(projectData, KMP_ANDROID_LIBRARY_TABLE)?.data
       val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(libraries, kmpLibraries)
-      val modelFactory = GradleAndroidModel.createFactory(project, libraryResolver)
+      val modelFactory = GradleAndroidDependencyModel.createFactory(project, libraryResolver)
       projectData
         .modules()
         .flatMap inner@{ node ->
