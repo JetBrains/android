@@ -26,7 +26,6 @@ jvm_library(
     "@lib//:protobuf",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:guava",
-    "@lib//:xerces",
     "//android/adt-ui",
     "//android/adt-ui-model",
     "//android/artwork",
@@ -93,6 +92,7 @@ jvm_library(
     "//android/adt-ui-compose",
     "//android/ml-api",
     "//android/avd",
+    "//libraries/xerces",
   ],
   runtime_deps = [":designer_resources"],
   plugins = ["@lib//:compose-plugin"]
@@ -119,7 +119,6 @@ jvm_library(
     "@lib//:truth",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "@lib//:guava",
-    "@lib//:xerces",
     "@lib//:junit4",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
@@ -205,6 +204,7 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "//android/avd",
     "//android/avd:avd_test_lib",
+    "//libraries/xerces",
   ],
   runtime_deps = [":designer_resources"],
   plugins = ["@lib//:compose-plugin"]
