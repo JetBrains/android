@@ -21,6 +21,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
     ],
     test_jvm_flags = [
         "-Djdk.attach.allowAttachSelf=true",

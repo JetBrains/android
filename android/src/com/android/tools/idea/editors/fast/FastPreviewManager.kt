@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.editors.fast
 
-import com.android.ide.common.gradle.Version
-import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
 import com.android.tools.idea.util.toDisplayString
@@ -55,24 +52,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
-import java.io.PrintWriter
-import java.io.StringWriter
 import java.nio.file.Files
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
-
-/** Default version of the runtime to use if the dependency resolution fails when looking for the daemon. */
-private val DEFAULT_RUNTIME_VERSION = Version.parse("1.1.0-alpha02")
-
-/**
- * Converts the [Throwable] stacktrace to a string.
- */
-private fun Throwable.toLogString(): String {
-  val exceptionStackWriter = StringWriter()
-  printStackTrace(PrintWriter(exceptionStackWriter))
-
-  return exceptionStackWriter.toString()
-}
 
 /**
  * Class responsible to managing the existing daemons and avoid multiple daemons for the same version being started.
@@ -168,15 +150,6 @@ private class DaemonRegistry(
 }
 
 /**
- * Default runtime version locator that, for a given [Module], returns the version of the runtime that
- * should be used.
- */
-private fun defaultRuntimeVersionLocator(module: Module): Version =
-  module.getModuleSystem()
-    .getResolvedDependency(GoogleMavenArtifactId.COMPOSE_TOOLING)
-    ?.lowerBoundVersion ?: DEFAULT_RUNTIME_VERSION
-
-/**
  * Returns a [CompilerDaemonClient] that uses the in-process compiler. This is the same
  * compiler used by the Emulator Live Edit.
  */
@@ -220,15 +193,12 @@ private const val FAST_PREVIEW_NOTIFICATION_GROUP_ID = "Fast Preview Notificatio
  *
  * @param project [Project] this manager is working with
  * @param alternativeDaemonFactory Optional daemon factory to use if the default one should not be used. Mainly for testing.
- * @param moduleRuntimeVersionLocator A method that given a [Module] returns the [Version] of the Compose runtime that should
- *  be used. This is useful when locating the specific kotlin compiler daemon.
  * @param maxCachedRequests Maximum number of cached requests to store by this manager. If 0, caching is disabled.
  */
 @Service(Service.Level.PROJECT)
 class FastPreviewManager private constructor(
   private val project: Project,
   alternativeDaemonFactory: ((String, Project, Logger, CoroutineScope) -> CompilerDaemonClient)? = null,
-  private val moduleRuntimeVersionLocator: (Module) -> Version = ::defaultRuntimeVersionLocator,
   maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS) : Disposable {
 
   constructor(project: Project) : this(project, null)
@@ -292,12 +262,13 @@ class FastPreviewManager private constructor(
   fun stopAllDaemons() = daemonRegistry.stopAllDaemons()
 
   /**
-   * Starts the appropriate daemon for the current [Module] dependencies. If this method is not called beforehand,
+   * Starts the appropriate daemon for the current [BuildTargetReference] dependencies. If this method is not called beforehand,
    * [compileRequest] will start the daemon on the first request.
    */
-  fun preStartDaemon(module: Module) = scope.launch {
+  fun preStartDaemon(buildTargetReference: BuildTargetReference) = scope.launch {
+    val liveEditServices = buildTargetReference.getBuildSystemFilePreviewServices().getApplicationLiveEditServices(buildTargetReference)
     try {
-      daemonRegistry.getOrCreateDaemon(moduleRuntimeVersionLocator(module).toString())
+      daemonRegistry.getOrCreateDaemon(liveEditServices.getRuntimeVersionString())
     } catch(t: Throwable) {
       FastPreviewTrackerManager.getInstance(project).daemonStartFailed()
       throw t
@@ -336,8 +307,9 @@ class FastPreviewManager private constructor(
     val outputDir = Files.createTempDirectory("overlay")
     log.debug("Compiling $outputDir (id=$requestId)")
     indicator.text = "Looking for compiler daemon"
-    // TODO: solodkyy - this needs to bemoved to the new api.
-    val runtimeVersion = moduleRuntimeVersionLocator(contextBuildTargetReference.module).toString()
+    val liveEditServices = contextBuildTargetReference.getBuildSystemFilePreviewServices()
+      .getApplicationLiveEditServices(contextBuildTargetReference)
+    val runtimeVersion = liveEditServices.getRuntimeVersionString()
 
     val result = try {
       val daemon = daemonRegistry.getOrCreateDaemon(runtimeVersion)
@@ -350,8 +322,7 @@ class FastPreviewManager private constructor(
       indicator.text = "Compiling"
       try {
         daemon.compileRequest(
-          contextBuildTargetReference.getBuildSystemFilePreviewServices()
-            .getApplicationLiveEditServices(contextBuildTargetReference),
+          liveEditServices,
           files,
           contextBuildTargetReference,
           outputDir,
@@ -479,11 +450,9 @@ class FastPreviewManager private constructor(
     @TestOnly
     fun getTestInstance(project: Project,
                         daemonFactory: (String, Project, Logger, CoroutineScope) -> CompilerDaemonClient,
-                        moduleRuntimeVersionLocator: (Module) -> Version = ::defaultRuntimeVersionLocator,
                         maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS): FastPreviewManager =
       FastPreviewManager(project = project,
                          alternativeDaemonFactory = daemonFactory,
-                         moduleRuntimeVersionLocator = moduleRuntimeVersionLocator,
                          maxCachedRequests = maxCachedRequests)
 
     interface FastPreviewManagerListener {

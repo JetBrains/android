@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.tokens
 
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.ClassContent
+import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleClassFileFinder
+import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.run.deployment.liveedit.setOptions
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices.Companion.DEFAULT_RUNTIME_VERSION
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
@@ -96,4 +100,13 @@ internal class GradleApplicationLiveEditServices(private val module: Module): Ap
     } else {
       DesugarConfigs.NotKnown(module.getModuleSystem().desugarLibraryConfigFilesNotKnownUserMessage)
     }
+
+  override fun getRuntimeVersionString(): String {
+    val moduleSystem = module.getModuleSystem() as? GradleModuleSystem ?: return DEFAULT_RUNTIME_VERSION
+    val externalModule = GoogleMavenArtifactId.COMPOSE_TOOLING.getModule()
+    return when (val component = moduleSystem.getResolvedDependency(externalModule, DependencyScopeType.MAIN)) {
+      null -> DEFAULT_RUNTIME_VERSION
+      else -> component.version.toString()
+    }
+  }
 }

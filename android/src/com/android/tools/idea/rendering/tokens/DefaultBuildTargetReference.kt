@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildTargets
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices.Companion.DEFAULT_RUNTIME_VERSION
 import com.android.tools.idea.run.deployment.liveedit.tokens.DesugarConfigs
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
@@ -88,6 +89,7 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
 
       override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration = CompilerConfiguration.EMPTY
       override fun getDesugarConfigs() = DesugarConfigs.NotKnown("No Desugar config.")
+      override fun getRuntimeVersionString(): String = DEFAULT_RUNTIME_VERSION
     }
   }
 

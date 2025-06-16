@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.editors.fast
 
-import com.android.ide.common.gradle.Version
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.BuildTargetReference
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Companion.getBuildSystemFilePreviewServices
+import com.android.tools.idea.rendering.tokens.FakeBuildSystemFilePreviewServices
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
@@ -28,6 +30,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -45,7 +48,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-private val TEST_VERSION = Version.parse("0.0.1-test")
+private const val TEST_VERSION_STRING = "0.0.1-test"
 
 private object NopCompilerDaemonClient : CompilerDaemonClient {
   override val isRunning: Boolean = true
@@ -82,6 +85,8 @@ internal class FastPreviewManagerTest {
       testTracker,
       projectRule.testRootDisposable
     )
+    FakeBuildSystemFilePreviewServices(versionString = TEST_VERSION_STRING)
+      .register(projectRule.testRootDisposable)
   }
 
   @Test
@@ -92,11 +97,11 @@ internal class FastPreviewManagerTest {
       FastPreviewManager.getTestInstance(
           project,
           nopCompileDaemonFactory { createdVersions.add(it) },
-          moduleRuntimeVersionLocator = { TEST_VERSION }
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     assertTrue(createdVersions.isEmpty())
-    manager.preStartDaemon(projectRule.module)
+    val buildTargets = project.getProjectSystem().getBuildSystemFilePreviewServices().buildTargets
+    manager.preStartDaemon(buildTargets.from(projectRule.module, LightVirtualFile()))
     latch.await(1, TimeUnit.SECONDS)
     assertEquals("0.0.1-test", createdVersions.single())
   }
@@ -116,8 +121,7 @@ internal class FastPreviewManagerTest {
       FastPreviewManager.getTestInstance(
           project,
           nopCompileDaemonFactory { createdVersions.add(it) },
-          moduleRuntimeVersionLocator = { TEST_VERSION }
-        )
+       )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     assertTrue(createdVersions.isEmpty())
     // Start 10 requests to ensure only one daemon is started
@@ -141,7 +145,6 @@ internal class FastPreviewManagerTest {
       FastPreviewManager.getTestInstance(
           project,
           daemonFactory = { _, _, _, _ -> blockingDaemon },
-          moduleRuntimeVersionLocator = { TEST_VERSION }
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
 
@@ -186,7 +189,6 @@ internal class FastPreviewManagerTest {
       FastPreviewManager.getTestInstance(
           project,
           daemonFactory = { _, _, _, _ -> blockingDaemon },
-          moduleRuntimeVersionLocator = { TEST_VERSION },
           maxCachedRequests = 0
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
@@ -231,7 +233,6 @@ internal class FastPreviewManagerTest {
       FastPreviewManager.getTestInstance(
           project,
           daemonFactory = { _, _, _, _ -> blockingDaemon },
-          moduleRuntimeVersionLocator = { TEST_VERSION }
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
@@ -286,7 +287,6 @@ internal class FastPreviewManagerTest {
               }
             }
           },
-          moduleRuntimeVersionLocator = { TEST_VERSION }
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     assertTrue(compilationRequests.isEmpty())
@@ -390,7 +390,6 @@ internal class FastPreviewManagerTest {
       FastPreviewManager.getTestInstance(
           project,
           daemonFactory = { _, _, _, _ -> throw IllegalStateException("Unable to start compiler") },
-          moduleRuntimeVersionLocator = { TEST_VERSION }
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     val result = manager.compileRequest(file, BuildTargetReference.from(file)!!).first
@@ -423,7 +422,6 @@ internal class FastPreviewManagerTest {
               }
             }
           },
-          moduleRuntimeVersionLocator = { TEST_VERSION }
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     val result = manager.compileRequest(file, BuildTargetReference.from(file)!!).first
@@ -454,7 +452,6 @@ internal class FastPreviewManagerTest {
               ): CompilationResult = CompilationResult.DaemonError(-1)
             }
           },
-          moduleRuntimeVersionLocator = { TEST_VERSION }
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     val result = manager.compileRequest(file, BuildTargetReference.from(file)!!).first
@@ -468,7 +465,6 @@ internal class FastPreviewManagerTest {
       FastPreviewManager.getTestInstance(
           project,
           daemonFactory = { _, _, _, _ -> NopCompilerDaemonClient },
-          moduleRuntimeVersionLocator = { TEST_VERSION }
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     val parentDisposable = Disposer.newDisposable()
@@ -499,7 +495,6 @@ internal class FastPreviewManagerTest {
       FastPreviewManager.getTestInstance(
           project,
           daemonFactory = { _, _, _, _ -> blockingDaemon },
-          moduleRuntimeVersionLocator = { TEST_VERSION },
           maxCachedRequests = 0
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
@@ -551,7 +546,6 @@ internal class FastPreviewManagerTest {
       FastPreviewManager.getTestInstance(
           project,
           daemonFactory = { _, _, _, _ -> timeoutDaemon },
-          moduleRuntimeVersionLocator = { TEST_VERSION },
           maxCachedRequests = 0
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }

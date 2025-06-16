@@ -84,6 +84,7 @@ interface ApplicationLiveEditServices {
   fun getClassContent(file: VirtualFile, className: String): ClassContent?
   fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration
   fun getDesugarConfigs(): DesugarConfigs
+  fun getRuntimeVersionString(): String
 
   @TestOnly
   class LegacyForTests(private val project: Project): ApplicationLiveEditServices {
@@ -98,19 +99,31 @@ interface ApplicationLiveEditServices {
     }
 
     override fun getDesugarConfigs() = DesugarConfigs.NotKnown("Desugar config not set up in unit tests yet.")
+
+    override fun getRuntimeVersionString(): String = DEFAULT_RUNTIME_VERSION
   }
 
   @TestOnly
-  class ApplicationLiveEditServicesForTests(private val classFiles: Map<String, ByteArray>): ApplicationLiveEditServices {
+  class ApplicationLiveEditServicesForTests(
+    private val classFiles: Map<String, ByteArray>,
+    val versionString: String = DEFAULT_RUNTIME_VERSION,
+  ): ApplicationLiveEditServices {
     override fun getClassContent(file: VirtualFile, className: String): ClassContent? {
       return classFiles[className]?.let { ClassContent.forTests(it) }
     }
 
     override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
       return ktFile.module?.let { module -> getCompilerConfiguration(module, ktFile) }
-        ?: error("Cannot get kotlin compiler configuration for $ktFile")
+             ?: error("Cannot get kotlin compiler configuration for $ktFile")
     }
 
     override fun getDesugarConfigs() = DesugarConfigs.NotKnown("No Desugar config.")
+
+    override fun getRuntimeVersionString() = versionString
+  }
+
+  companion object {
+    /** Default version of the runtime to use if the dependency resolution fails when looking for the daemon. */
+    const val DEFAULT_RUNTIME_VERSION = "1.1.0-alpha02"
   }
 }
