@@ -39,10 +39,12 @@ import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderResult
 import com.android.tools.wear.preview.WearTilePreviewElement
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import javax.swing.JComponent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -153,6 +155,7 @@ class WearTileAnimationPreviewTest {
 
     animationPreview =
       WearTileAnimationPreview(
+        Dispatchers.EDT,
         projectRule.project,
         surface,
         wearTilePreviewElement,

@@ -117,6 +117,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -151,6 +152,7 @@ import kotlin.properties.Delegates
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
@@ -1641,6 +1643,7 @@ class ComposePreviewRepresentation(
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
   ): ComposeAnimationPreview {
     return ComposeAnimationPreview(
+        Dispatchers.EDT,
         surface.project,
         ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
         { surface.model?.let { surface.getSceneManager(it) } },

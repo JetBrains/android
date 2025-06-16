@@ -37,8 +37,10 @@ import com.android.tools.preview.PreviewElement
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.android.tools.wear.preview.WearTilePreviewElement
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
+import com.intellij.openapi.application.EDT
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
+import kotlinx.coroutines.Dispatchers
 
 private val WEAR_TILE_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
@@ -74,6 +76,7 @@ internal class WearTilePreviewRepresentation(
     val wearPreviewElement = element as? WearTilePreviewElement<*> ?: return null
 
     return WearTileAnimationPreview(
+      Dispatchers.EDT,
       project,
       surface,
       wearPreviewElement,

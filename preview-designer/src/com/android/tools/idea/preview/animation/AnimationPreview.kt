@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.uibuilder.scene.LayoutlibCallbacksConfig
@@ -41,6 +40,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
@@ -66,6 +66,7 @@ private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
  * T is subclass of AnimationManager AnimationPreview can work with.
  */
 abstract class AnimationPreview<T : AnimationManager>(
+  protected val uiContext: CoroutineContext,
   project: Project,
   @VisibleForTesting val sceneManagerProvider: () -> LayoutlibSceneManager?,
   rootComponent: JComponent,
@@ -153,7 +154,7 @@ abstract class AnimationPreview<T : AnimationManager>(
    */
   private val timeline: Timeline =
     Timeline(animationPreviewPanel, component).apply {
-      addChangeListener { scope.launch(uiThread) { bottomPanel.clockTimeMs = value } }
+      addChangeListener { scope.launch(uiContext) { bottomPanel.clockTimeMs = value } }
     }
   val clockControl = SliderClockControl(timeline)
 
@@ -195,7 +196,7 @@ abstract class AnimationPreview<T : AnimationManager>(
   /** Repaints [TimelineElement] on selected tab. */
   protected suspend fun updateTimelineElements() {
     // Call once to update all sizes as all curves / lines required it.
-    withContext(uiThread) {
+    withContext(uiContext) {
       timeline.sliderUI.elements.forEach { Disposer.dispose(it) }
       timeline.sliderUI.elements = getTimelineElements()
       timeline.revalidate()
@@ -311,7 +312,7 @@ abstract class AnimationPreview<T : AnimationManager>(
         maxDurationPerIteration.value,
       )
     scope.launch {
-      withContext(uiThread) {
+      withContext(uiContext) {
         clockControl.updateMaxDuration(max(timelineMax, MINIMUM_TIMELINE_DURATION_MS))
       }
       updateTimelineElements()
@@ -368,7 +369,7 @@ abstract class AnimationPreview<T : AnimationManager>(
     }
 
   protected suspend fun removeAnimationManager(animationManager: T) {
-    withContext(uiThread) {
+    withContext(uiContext) {
       animationManager.destroy()
       coordinationTab.removeCard(animationManager.card)
       removeAnimation(animationManager)
@@ -391,7 +392,7 @@ abstract class AnimationPreview<T : AnimationManager>(
 
   /** Adds an [AnimationManager] card to [coordinationTab]. */
   protected suspend fun addAnimationManager(animationTab: T) {
-    withContext(uiThread) {
+    withContext(uiContext) {
       val isAddingFirstTab = animations.isEmpty()
       addAnimation(animationTab)
       coordinationTab.addCard(animationTab.card)
