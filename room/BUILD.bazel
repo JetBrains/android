@@ -65,6 +65,7 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
     "//android/android-lang:lang",
+    "//platform/projectModel-api:projectModel",
     "//android/room",
     "//android/android-test-framework:testFramework",
     "//android/android-test-framework:testFramework_test_lib",
