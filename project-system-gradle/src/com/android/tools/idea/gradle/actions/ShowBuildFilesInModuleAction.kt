@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.actions
 
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.projectView.ProjectToolWindowSettings
 import com.android.tools.idea.navigator.ANDROID_VIEW_ID
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -36,6 +38,7 @@ class ShowBuildFilesInModuleAction: ToggleAction("Display Build Files In Module"
       ProjectManager.getInstance().openProjects
         .filter { !it.isDisposed }
         .forEach{ ProjectView.getInstance(it)?.refresh() }
+      trackShowBuildFileInModuleSettingChange()
     }
   }
 
@@ -55,5 +58,12 @@ class ShowBuildFilesInModuleAction: ToggleAction("Display Build Files In Module"
     }
     e.presentation.isEnabledAndVisible = showAction
     super.update(e)
+  }
+
+  private fun trackShowBuildFileInModuleSettingChange() {
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.ANDROID_VIEW_SHOW_BUILD_FILES_IN_MODULE_EVENT
+      })
   }
 }
