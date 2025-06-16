@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.gradle.actions
 
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.projectView.ProjectToolWindowSettings
 import com.android.tools.idea.navigator.ANDROID_VIEW_ID
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -81,6 +85,9 @@ class ShowBuildFilesInModuleActionTest : HeavyPlatformTestCase() {
   }
 
   fun testSettingShowBuildFilesInModuleSetting() {
+    val testUsageTracker = TestUsageTracker(VirtualTimeScheduler())
+    UsageTracker.setWriterForTest(testUsageTracker)
+
     val settings = ProjectToolWindowSettings.Companion.getInstance()
     assertFalse(settings.showBuildFilesInModule)
 
@@ -90,5 +97,10 @@ class ShowBuildFilesInModuleActionTest : HeavyPlatformTestCase() {
 
     action.setSelected(myEvent, false)
     assertFalse(settings.showBuildFilesInModule)
+
+    val statsEvents = testUsageTracker.usages.map {it.studioEvent }.filter { it.kind == AndroidStudioEvent.EventKind.ANDROID_VIEW_SHOW_BUILD_FILES_IN_MODULE_EVENT }
+    assertSize(2, statsEvents)
+
+    UsageTracker.cleanAfterTesting()
   }
 }
