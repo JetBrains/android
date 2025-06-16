@@ -52,6 +52,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.intellij.codeInsight.daemon.impl.MockWolfTheProblemSolver
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -59,9 +60,11 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
@@ -69,6 +72,7 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.registerExtension
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JLabel
@@ -347,14 +351,14 @@ class ComposePreviewViewImplTest {
   fun `empty preview state when flag is disabled`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(false)
     geminiPluginApi.contextAllowed = true
-    checkEmptyPreviewState(false)
+    checkEmptyPreviewState(showAutoGenerateAction = false, showSyntaxErrorNote = false)
   }
 
   @Test
   fun `empty preview state when context-sharing is disabled`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
     geminiPluginApi.contextAllowed = false
-    checkEmptyPreviewState(false)
+    checkEmptyPreviewState(showAutoGenerateAction = false, showSyntaxErrorNote = false)
   }
 
   @Test
@@ -362,17 +366,35 @@ class ComposePreviewViewImplTest {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
     geminiPluginApi.contextAllowed = true
     fakeStudioBotActionFactory.isNullPreviewGeneratorAction = true
-    checkEmptyPreviewState(false)
+    checkEmptyPreviewState(showAutoGenerateAction = false, showSyntaxErrorNote = false)
   }
 
   @Test
   fun `empty preview state when flag and context-sharing are enabled`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
     geminiPluginApi.contextAllowed = true
-    checkEmptyPreviewState(true)
+    checkEmptyPreviewState(showAutoGenerateAction = true, showSyntaxErrorNote = false)
   }
 
-  private fun checkEmptyPreviewState(showAutoGenerateAction: Boolean) = runBlocking {
+  @Test
+  fun `empty preview state when there are syntax errors`() {
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(false)
+    val wolfTheProblemSolver =
+      object : MockWolfTheProblemSolver() {
+        override fun hasProblemFilesBeneath(scope: Module): Boolean = true
+      }
+    projectRule.project.registerOrReplaceServiceInstance(
+      WolfTheProblemSolver::class.java,
+      wolfTheProblemSolver,
+      fixture.testRootDisposable,
+    )
+    checkEmptyPreviewState(showAutoGenerateAction = false, showSyntaxErrorNote = true)
+  }
+
+  private fun checkEmptyPreviewState(
+    showAutoGenerateAction: Boolean,
+    showSyntaxErrorNote: Boolean,
+  ) = runBlocking {
     previewView.hasRendered = true
     previewView.hasContent = false
     runBlocking { previewView.updateVisibilityAndNotifications() }
@@ -384,14 +406,16 @@ class ComposePreviewViewImplTest {
 
     retryUntilPassing(2.seconds) {
       assertEquals(
-        """
-        No preview found.
-        Add preview by annotating Composables with @Preview
-        [Using the Compose preview]
-        ${if (showAutoGenerateAction) "[Auto-generate Compose Previews for this file]" else ""}
-      """
-          .trimIndent()
-          .trim(),
+        listOfNotNull(
+            "No preview found.",
+            "Add preview by annotating Composables with @Preview.",
+            if (showSyntaxErrorNote)
+              "Note: syntax errors could cause existing previews not to be found."
+            else null,
+            "[Using the Compose preview]",
+            if (showAutoGenerateAction) "[Auto-generate Compose Previews for this file]" else null,
+          )
+          .joinToString("\n"),
         instructionPanel?.toDisplayText(),
       )
     }
