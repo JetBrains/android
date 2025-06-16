@@ -71,5 +71,16 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.settingsSync.core" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.turboComplete.languages.kotlin.k1" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.yaml.backend" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.foundation" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.ideLafBridge" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.core" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.ideLafBridgeStyling" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.ui" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.skiko" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.libraries.compose.foundation.desktop" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.autolink" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.gfmAlerts" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.gfmStrikethrough" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.jewel.markdown.extensions.gfmTables" level="project" />
   </component>
 </module>

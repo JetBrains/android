@@ -21,6 +21,17 @@
     <module name="intellij.libraries.grpc"/>
     <module name="intellij.libraries.grpc.netty.shaded"/>
     <module name="intellij.settingsSync.core"/>
+    <module name="intellij.platform.jewel.foundation"/>
+    <module name="intellij.platform.jewel.ideLafBridge"/>
+    <module name="intellij.platform.jewel.markdown.core"/>
+    <module name="intellij.platform.jewel.markdown.extensions.autolink"/>
+    <module name="intellij.platform.jewel.markdown.extensions.gfmAlerts"/>
+    <module name="intellij.platform.jewel.markdown.extensions.gfmStrikethrough"/>
+    <module name="intellij.platform.jewel.markdown.extensions.gfmTables"/>
+    <module name="intellij.platform.jewel.markdown.ideLafBridgeStyling"/>
+    <module name="intellij.platform.jewel.ui"/>
+    <module name="intellij.libraries.skiko"/>
+    <module name="intellij.libraries.compose.foundation.desktop"/>
   </dependencies>
 
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->

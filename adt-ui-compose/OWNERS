@@ -1,2 +1,7 @@
+# Gerrit will require approval for changes in this repo from the OWNERS listed.
 # Bug component: 1507286
 sebp@google.com
+jlogs@google.com
+ydbeis@google.com
+# for merges
+gharrma@google.com

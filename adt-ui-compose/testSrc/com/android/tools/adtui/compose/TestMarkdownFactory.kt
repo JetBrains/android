@@ -106,7 +106,6 @@ class TestMarkdownFactory(private val isDark: Boolean) : MarkdownFactory {
       emphasis = emphasis.merge(other.emphasis),
       strongEmphasis = strongEmphasis.merge(other.strongEmphasis),
       inlineHtml = inlineHtml.merge(other.inlineHtml),
-      renderInlineHtml = renderInlineHtml,
     )
   }
 
