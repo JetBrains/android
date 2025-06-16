@@ -27,6 +27,16 @@ import java.io.Serializable
  */
 sealed interface IdeDependenciesCoreImpl: IdeDependenciesCore, Serializable
 
+data object ThrowingIdeDependencies : IdeDependenciesCoreImpl {
+  override fun lookup(ref: Int): IdeDependencyCore  =  unexpected()
+  override val dependencies: List<IdeDependencyCore> get() = unexpected()
+
+  // Make sure the serialization always returns this singleton
+  private fun readResolve(): Any = ThrowingIdeDependencies
+  private fun unexpected(): Nothing = error("Should not be called")
+}
+
+
 data class IdeDependenciesCoreDirect(
   override val dependencies: List<IdeDependencyCore>,
 ) : IdeDependenciesCoreImpl, Serializable {
@@ -68,22 +78,5 @@ data class IdeDependenciesImpl(
 }
 
 fun throwingIdeDependencies(): IdeDependenciesCoreImpl {
-  return IdeDependenciesCoreDirect(object : List<IdeDependencyCoreImpl> {
-    override val size: Int get() = unexpected()
-    override fun get(index: Int): IdeDependencyCoreImpl = unexpected()
-    override fun indexOf(element: IdeDependencyCoreImpl): Int = unexpected()
-    override fun isEmpty(): Boolean = unexpected()
-    override fun iterator(): Iterator<IdeDependencyCoreImpl> = unexpected()
-    override fun listIterator(): ListIterator<IdeDependencyCoreImpl> = unexpected()
-    override fun listIterator(index: Int): ListIterator<IdeDependencyCoreImpl> = unexpected()
-    override fun subList(fromIndex: Int, toIndex: Int): List<IdeDependencyCoreImpl> = unexpected()
-    override fun lastIndexOf(element: IdeDependencyCoreImpl): Int = unexpected()
-    override fun containsAll(elements: Collection<IdeDependencyCoreImpl>): Boolean = unexpected()
-    override fun contains(element: IdeDependencyCoreImpl): Boolean = unexpected()
-
-    private fun unexpected(): Nothing {
-      error("Should not be called")
-    }
-
-  })
+  return ThrowingIdeDependencies
 }
