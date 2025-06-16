@@ -153,10 +153,11 @@ def collection_struct_contains_exactly(self, expecteds):
         expected = expecteds[i]
         _struct_equal(actual = actual, meta = self.meta, attrs = self.attrs, expected = expected)
 
-def subjects_depset_factory(actual, *, meta):
+def subjects_depset_exactly_factory(actual, *, meta):
     """A customized version of `DepsetFileSubject.new`
 
-    We change the behavior of contains_exactly. It will only make sure the count of list and end with file extension
+    We change the behavior of contains_exactly.
+    It expects the actual and expected value to be exactly the same (include count).
 
     Args:
         actual: ([`depset`] of [`File`]) the values to assert on.
@@ -174,17 +175,45 @@ def subjects_depset_factory(actual, *, meta):
         ), *a, **k),
     )
 
-def _collection_contains_exactly(self, expecteds):
+def subjects_depset_factory(actual, *, meta):
+    """A customized version of `DepsetFileSubject.new`
+
+    We change the behavior of contains_exactly.
+    It may not check about the length of actual file list as we may not know.
+
+    Args:
+        actual: ([`depset`] of [`File`]) the values to assert on.
+        meta: ([`ExpectMeta`]) of call chain information.
+
+    Returns:
+        [`Struct`] object.
+    """
+
+    return struct(
+        actual = actual,
+        contains_exactly = lambda *a, **k: _collection_contains_exactly(struct(
+            actual = actual,
+            meta = meta,
+        ), use_predicates = True, *a, **k),
+    )
+
+def _collection_contains_exactly(self, expecteds, use_predicates = False):
     actual = self.actual
     if type(actual) == "depset":
         actual = actual.to_list()
-    if len(actual) != len(expecteds):
+
+    # either two list should be exactly the same or predicates is used
+    # and predicates is provided in expecteds
+    if len(actual) != len(expecteds) and not (use_predicates and len(expecteds) == 1):
         self.meta.add_failure("The size of actual and expected are not the same. Actual: {}. Expected: {}".format(self.actual, expecteds), "")
         return
 
     for i in range(len(actual)):
         file = actual[i]
-        expected = expecteds[i]
+        if use_predicates and len(expecteds) == 1:
+            expected = expecteds[0]
+        else:
+            expected = expecteds[i]
         if type(file) == "File":
             _file_subject_short_path_equals_or_end_with(struct(file = file, meta = self.meta), expected)
         elif type(file) == "string":
@@ -229,22 +258,42 @@ def _file_subject_short_path_equals_or_end_with(self, path):
             return
     elif path == self.file.short_path:
         return
-    elif path.startswith("*") and self.file.short_path.endswith(path[1:]):
-        return
+    if "*" in path:
+        index = path.index("*")
+        prefix = path[0:index]
+        suffix = path[index + 1:]
+        if self.file.short_path.startswith(prefix) and self.file.short_path.endswith(suffix):
+            return
     self.meta.add_failure(
         "expected: {}".format(path),
         "actual: {}".format(self.file.short_path),
     )
 
-def subjects_str_factory(actual, *, meta):
-    """Creates a new `LabelSubject` for asserting `Label` objects.
+def subjects_collection_predicate_factory(actual, *, meta):
+    """Creates a "CollectionSubject" struct. Use predicate to check the actual content. All items must match with that predicate.
 
     Args:
-        actual: ([`Label`]) the label to check against.
+        actual: ([`collection`]) the values to assert against.
         meta: ([`ExpectMeta`]) the metadata about the call chain.
 
     Returns:
-        [`LabelSubject`].
+        [`CollectionSubject`].
+    """
+    self = struct(actual = actual, meta = meta)
+    return struct(
+        actual = actual,
+        contains_exactly = lambda *a, **k: _collection_contains_exactly(self, use_predicates = True, *a, **k),
+    )
+
+def subjects_str_factory(actual, *, meta):
+    """Creates a new `StrSubject` for asserting `string` objects.
+
+    Args:
+        actual: ([`string`]) the string to check against.
+        meta: ([`ExpectMeta`]) the metadata about the call chain.
+
+    Returns:
+        [`StrSubject`].
     """
     self = struct(actual = actual, meta = meta)
     return struct(
@@ -253,16 +302,24 @@ def subjects_str_factory(actual, *, meta):
     )
 
 def _str_subject_equals(self, other):
-    """Assert that the subject string equals the other string.
+    """Asserts that the subject string equals the other string.
+
+    It allows to use predicates to compare items.
 
     Method: StrSubject.equals
 
     Args:
         self: implicitly added.
         other: ([`str`]) the expected value it should equal.
-    """
+   """
     if self.actual == other:
         return
+    if "*" in other:
+        index = other.index("*")
+        prefix = other[0:index]
+        suffix = other[index + 1:]
+        if self.actual.startswith(prefix) and self.actual.endswith(suffix):
+            return
     self.meta.add_failure(
         "expected: {}".format(other),
         "actual: {}".format(self.actual),
