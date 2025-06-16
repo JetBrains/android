@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
+import icons.StudioIcons
 
 val RESIZE_PANEL_INSTANCE_KEY = DataKey.create<ResizePanel>("ResizePanel")
 
@@ -30,7 +31,7 @@ val RESIZE_PANEL_INSTANCE_KEY = DataKey.create<ResizePanel>("ResizePanel")
  * When performed, this action toggles the visibility of the [ResizePanel], effectively making it
  * visible as it's only actionable when the panel is hidden.
  */
-class ToggleResizePanelVisibilityAction : AnAction() {
+class ToggleResizePanelVisibilityAction : AnAction(StudioIcons.Compose.Toolbar.RESIZE_TOOLBAR) {
   override fun update(e: AnActionEvent) {
     val project = e.project
     val resizePanel = e.dataContext.getData(RESIZE_PANEL_INSTANCE_KEY)
