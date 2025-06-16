@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wear.preview.animation
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.rendering.isErrorResult
@@ -25,6 +24,7 @@ import com.android.tools.idea.wear.preview.animation.analytics.WearTileAnimation
 import com.android.tools.wear.preview.WearTilePreviewElement
 import com.intellij.openapi.project.Project
 import javax.swing.JComponent
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,12 +39,14 @@ import kotlinx.coroutines.withContext
  * @param tracker The tracker used to log events.
  */
 class WearTileAnimationPreview(
+  uiContext: CoroutineContext,
   val project: Project,
   private val surface: NlDesignSurface,
   private val wearPreviewElement: WearTilePreviewElement<*>,
   private val tracker: WearTileAnimationTracker,
 ) :
   AnimationPreview<SupportedWearTileAnimationManager>(
+    uiContext,
     project,
     sceneManagerProvider = getter@{
         val modelForElement =
@@ -103,9 +105,9 @@ class WearTileAnimationPreview(
     protoAnimations
       .filter { it.isTerminal }
       .forEach {
-        val tab = withContext(AndroidDispatchers.uiThread) { createAnimationManager(it) }
+        val tab = withContext(uiContext) { createAnimationManager(it) }
         tab.setup()
-        withContext(AndroidDispatchers.uiThread) { addAnimationManager(tab) }
+        withContext(uiContext) { addAnimationManager(tab) }
       }
     updateMaxDuration(true)
     updateTimelineElements()
@@ -116,10 +118,10 @@ class WearTileAnimationPreview(
       wearPreviewElement.tileServiceViewAdapter.collectLatest {
         val sceneManager = sceneManagerProvider()
         if (sceneManager?.renderResult?.isErrorResult() == false) {
-          withContext(AndroidDispatchers.uiThread) { hideErrorPanel() }
+          withContext(uiContext) { hideErrorPanel() }
           updateAllAnimations(it?.getAnimations() ?: emptyList())
         } else {
-          withContext(AndroidDispatchers.uiThread) {
+          withContext(uiContext) {
             showErrorPanel(message("animation.inspector.error.panel.message"))
           }
         }
