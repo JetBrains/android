@@ -252,8 +252,12 @@ sealed class AndroidSdkDocumentationTarget<T>(
     /** Returns the standard URL for the documentation for `this` [PsiClass]. */
     @JvmStatic
     protected fun PsiClass.documentationUrl(): String? {
-      val relPath = qualifiedName?.replace('.', '/') ?: return null
-      return "$DEV_SITE_ROOT/reference/$relPath.html"
+      val classHierarchy = generateSequence(this) { it.containingClass }.toList().reversed()
+      val topClass = classHierarchy.first()
+      val relClassPath = topClass.qualifiedName?.replace('.', '/') ?: return null
+      val relInnerClassPath =
+        classHierarchy.drop(1).mapNotNull(PsiClass::getName).joinToString { ".$it" }
+      return "$DEV_SITE_ROOT/reference/${relClassPath + relInnerClassPath}.html"
     }
 
     /**

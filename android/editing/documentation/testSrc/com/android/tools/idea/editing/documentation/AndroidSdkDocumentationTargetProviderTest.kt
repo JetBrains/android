@@ -42,6 +42,7 @@ import com.intellij.platform.backend.documentation.DocumentationData
 import com.intellij.platform.backend.documentation.DocumentationResult.Documentation
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiEnumConstant
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.testFramework.ExtensionTestUtil
@@ -79,14 +80,14 @@ import org.mockito.kotlin.whenever
 
 private const val TEST_DATA_DIR =
   "tools/adt/idea/android/editing/documentation/testData/androidSdkDocumentationTargetProvider"
-private const val TEXT_VIEW_DOC_URL =
-  "http://developer.android.com/reference/android/widget/TextView.html"
+private const val TEXT_VIEW_DOC_URL_PREFIX =
+  "http://developer.android.com/reference/android/widget/"
 // The contents here don't really matter.
 private const val SIMPLE_HTML = "<html><body>Yo, this is HTML.</body></html>"
 private const val JSON = "application/json"
 private const val FAKE_KEY = "amazingKey"
 private val HOST = "https://${CONTENT_SERVING.apiName}.clients6.google.com"
-private val PATH = "/v1/namespaces/prod/resources/%s/locales/en?key=%s&fields=html_body"
+private const val PATH = "/v1/namespaces/prod/resources/%s/locales/en?key=%s&fields=html_body"
 
 private fun CharSequence.collapseSpaces() =
   replace(Regex(" {2,}"), " ").replace(Regex("^ +", RegexOption.MULTILINE), "")
@@ -111,9 +112,10 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
 
   private val simpleHtmlPath by lazy { fixture.createFile("simple.html", SIMPLE_HTML).toNioPath() }
 
-  private val docUrl =
+  private val docUrl = TEXT_VIEW_DOC_URL_PREFIX + testConfig.fileName
+  private val urlWithHeaders =
     if (testConfig.useContentServingApi == ContentServingApiState.ENABLED) {
-      val uri = URI(TEXT_VIEW_DOC_URL.substringBeforeLast(".html"))
+      val uri = URI(docUrl.substringBeforeLast(".html"))
       val urlEncodedUrl = URLEncoder.encode(uri.host + uri.path, StandardCharsets.UTF_8)
       // This suffix is necessary to differentiate different post-processed versions of
       // the same source material in the cache.
@@ -122,14 +124,22 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
       val headers = mapOf("Accept" to JSON, "Content-Type" to JSON, "X-URL-Suffix" to suffix)
       UrlFileCache.UrlWithHeaders(apiUrl, headers)
     } else {
-      UrlFileCache.UrlWithHeaders(TEXT_VIEW_DOC_URL + testConfig.urlSuffix)
+      UrlFileCache.UrlWithHeaders(docUrl + testConfig.urlSuffix)
     }
 
   private val preFilteringPath by lazy {
     if (testConfig.useContentServingApi == ContentServingApiState.ENABLED) {
-      TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/TextViewJsonResponse.json")
+      if (testConfig.targetType == PsiEnumConstant::class) {
+        TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/BufferTypeJsonResponse.json")
+      } else {
+        TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/TextViewJsonResponse.json")
+      }
     } else {
-      TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/TextView.html")
+      if (testConfig.targetType == PsiEnumConstant::class) {
+        TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/TextView.BufferType.html")
+      } else {
+        TestUtils.resolveWorkspacePath("$TEST_DATA_DIR/TextView.html")
+      }
     }
   }
 
@@ -175,7 +185,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
 
   @Test
   fun checkDocumentation_fast() {
-    whenever(mockUrlFileCache.getWithStats(eq(docUrl), any(), isNull(), any()))
+    whenever(mockUrlFileCache.getWithStats(eq(urlWithHeaders), any(), isNull(), any()))
       .thenReturn(
         // This one is already completed.
         CompletableDeferred(simpleHtmlPath to FETCH_STATS)
@@ -193,7 +203,8 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
 
     // Independently check that the passed-in filter is doing the right thing.
     @Suppress("DeferredResultUnused")
-    verify(mockUrlFileCache).getWithStats(eq(docUrl), any(), isNull(), transformCaptor.capture())
+    verify(mockUrlFileCache)
+      .getWithStats(eq(urlWithHeaders), any(), isNull(), transformCaptor.capture())
 
     val filterOutput =
       FileInputStream(preFilteringPath.toFile())
@@ -226,7 +237,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
   @Test
   fun checkDocumentation_slow() {
     val completableDeferred = CompletableDeferred<Pair<Path, FetchStats>>()
-    whenever(mockUrlFileCache.getWithStats(eq(docUrl), any(), isNull(), any()))
+    whenever(mockUrlFileCache.getWithStats(eq(urlWithHeaders), any(), isNull(), any()))
       .thenReturn(completableDeferred)
 
     setUpCursor()
@@ -244,7 +255,8 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
 
     // Independently check that the passed-in filter is doing the right thing.
     @Suppress("DeferredResultUnused")
-    verify(mockUrlFileCache).getWithStats(eq(docUrl), any(), isNull(), transformCaptor.capture())
+    verify(mockUrlFileCache)
+      .getWithStats(eq(urlWithHeaders), any(), isNull(), transformCaptor.capture())
 
     val filterOutput =
       FileInputStream(preFilteringPath.toFile())
@@ -276,7 +288,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
   @Test
   fun checkDocumentationWhenServerUnavailable() {
     val completableDeferred = CompletableDeferred<Nothing>()
-    whenever(mockUrlFileCache.getWithStats(eq(docUrl), any(), isNull(), any()))
+    whenever(mockUrlFileCache.getWithStats(eq(urlWithHeaders), any(), isNull(), any()))
       .thenReturn(completableDeferred)
 
     setUpCursor()
@@ -339,6 +351,11 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
     assertThat(navigatable).isInstanceOf(testConfig.targetType.java)
     when (navigatable) {
       is PsiClass -> assertThat(navigatable.qualifiedName).isEqualTo("android.widget.TextView")
+      is PsiEnumConstant -> {
+        assertThat(navigatable.containingClass?.qualifiedName)
+          .isEqualTo("android.widget.TextView.BufferType")
+        assertThat(navigatable.name).isEqualTo("EDITABLE")
+      }
       is PsiField -> {
         assertThat(navigatable.containingClass?.qualifiedName).isEqualTo("android.widget.TextView")
         assertThat(navigatable.name).isEqualTo("AUTO_SIZE_TEXT_TYPE_NONE")
@@ -365,7 +382,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
 
   @Test
   fun noRemoteDocumentationWhenLocalSourcesArePresent() {
-    whenever(mockUrlFileCache.getWithStats(eq(docUrl), any(), isNull(), any()))
+    whenever(mockUrlFileCache.getWithStats(eq(urlWithHeaders), any(), isNull(), any()))
       .thenReturn(CompletableDeferred(postFilteringPath to FETCH_STATS))
 
     setUpCursor()
@@ -407,10 +424,12 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
 
             import android.text.TextWatcher;
             import android.widget.TextView;
+            import android.widget.TextView.BufferType;
 
             public class MyGreatClass {
               public void foo(TextView textView, TextWatcher textWatcher) {
                 int bar = TextView.AUTO_SIZE_TEXT_TYPE_NONE;
+                BufferType baz = BufferType.EDITABLE;
                 textView.addTextChangedListener(textWatcher);
               }
             }
@@ -426,10 +445,12 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
 
             import android.text.TextWatcher
             import android.widget.TextView
+            import android.widget.TextView.BufferType
 
             class MyGreatClass {
               fun foo(textView: TextView, textWatcher: TextWatcher) {
                 val bar = TextView.AUTO_SIZE_TEXT_TYPE_NONE
+                val baz = BufferType.EDITABLE
                 textView.addTextChangedListener(textWatcher)
               }
             }
@@ -452,6 +473,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
   data class TestConfig(
     val language: Language,
     val targetType: KClass<*>,
+    val fileName: String,
     val urlSuffix: String,
     val cursorWindow: String,
     val hintStrings: List<String>,
@@ -474,6 +496,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
         TestConfig(
           JavaLanguage.INSTANCE,
           PsiClass::class,
+          fileName = "TextView.html",
           urlSuffix = "",
           cursorWindow = "Text|View.",
           hintStrings = listOf("android.widget", "public", "class", "TextView"),
@@ -481,7 +504,17 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
         ),
         TestConfig(
           JavaLanguage.INSTANCE,
+          PsiEnumConstant::class,
+          fileName = "TextView.BufferType.html",
+          urlSuffix = "#EDITABLE",
+          cursorWindow = "EDIT|ABLE",
+          hintStrings = listOf("android.widget", "public", "class", "TextView.BufferType"),
+          ContentServingApiState.ENABLED,
+        ),
+        TestConfig(
+          JavaLanguage.INSTANCE,
           PsiField::class,
+          fileName = "TextView.html",
           urlSuffix = "#AUTO_SIZE_TEXT_TYPE_NONE",
           cursorWindow = "AUTO_SIZE_TE|XT_TYPE_NONE",
           hintStrings = listOf("android.widget.TextView", "AUTO_SIZE_TEXT_TYPE_NONE", "int"),
@@ -490,6 +523,7 @@ class AndroidSdkDocumentationTargetProviderTest(private val testConfig: TestConf
         TestConfig(
           JavaLanguage.INSTANCE,
           PsiMethod::class,
+          fileName = "TextView.html",
           urlSuffix = "#addTextChangedListener(android.text.TextWatcher)",
           cursorWindow = "addText|ChangedListener",
           hintStrings =
