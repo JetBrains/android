@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.IdeAaptOptions
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.model.IdeApiVersion
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toPrintableName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
@@ -33,7 +34,7 @@ import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
 import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
-import com.android.tools.idea.gradle.model.IdeJavaArtifact
+import com.android.tools.idea.gradle.model.IdeJavaArtifactCore
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
@@ -47,22 +48,22 @@ import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
 import com.android.tools.idea.gradle.model.IdeUnknownLibrary
-import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
+import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
-import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.gradle.isHolderModule
+import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.util.toIoFile
-import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -70,7 +71,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ProjectRootManager
@@ -94,17 +94,22 @@ fun ProjectDumper.dumpAndroidIdeModel(
   kotlinModels: (Module) -> KotlinGradleModel?,
   kaptModels: (Module) -> KaptGradleModel?,
   mppModels: (Module) -> KotlinMPPGradleModel?,
-  externalProjects: (Module) -> ExternalProject?
+  externalProjects: (Module) -> ExternalProject?,
+  // Only the selected variant will be dumped otherwise
+  dumpAllVariants: Boolean = true,
+  // Whether to include the project structure of the root module first as a header
+  dumpRootModuleProjectStructure: Boolean = true
 ) {
   val projectRoot = File(project.basePath!!)
   nest(projectRoot, "PROJECT") {
     with(ideModelDumper(this)) {
+      if (dumpRootModuleProjectStructure) {
       // Android Studio projects always have just one Gradle root, and thus we dump the composite build structure of the root project of a
       // build located at the root of the IDE project.
-      GradleHolderProjectPath(projectRoot.canonicalPath, ":")
-        .resolveIn(project)
-        ?.let { dump(it) }
-
+        GradleHolderProjectPath(projectRoot.canonicalPath, ":")
+          .resolveIn(project)
+          ?.let { dump(it) }
+      }
       dumpLibraryTable(project)
 
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { module ->
@@ -116,7 +121,7 @@ fun ProjectDumper.dumpAndroidIdeModel(
             if (!module.isHolderModule()) return@let
             dump(it)
           }
-          GradleAndroidDependencyModel.get(module)?.let { it ->
+          GradleAndroidModel.get(module)?.let { it ->
             // Skip all but holders to prevent needless spam in the snapshots. All modules
             // point to the same facet.
             if (!module.isHolderModule()) return@let
@@ -130,8 +135,18 @@ fun ProjectDumper.dumpAndroidIdeModel(
             // Dump all the fetched Ide variants.
             head("IdeVariants")
             nest {
-              it.variantsWithDependencies.forEach { ideVariant ->
-                dump(ideVariant)
+              if (it is GradleAndroidDependencyModel) {
+                it.variantsWithDependencies.filter { variant ->
+                  dumpAllVariants || variant.name == it.selectedVariantName
+                }.forEach {
+                  dump(it)
+                }
+              } else {
+                it.variants.filter { variant ->
+                  dumpAllVariants || variant.name == it.selectedVariantName
+                }.forEach {
+                  dump(it)
+                }
               }
             }
           }
@@ -326,7 +341,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
-    fun dump(ideVariant: IdeVariant) {
+    fun dump(ideVariant: IdeVariantCore) {
       fun String.toPrintableArtifactName() = "${this}Artifact"
 
       head("IdeVariant")
@@ -431,8 +446,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       modelDumper.dumpModel(projectDumper, "CompositeBuildMap", compositeBuildMap)
     }
 
-    private fun dump(ideAndroidArtifact: IdeAndroidArtifact) {
-      dump(ideAndroidArtifact as IdeBaseArtifact) // dump the IdeBaseArtifact part first.
+    private fun dump(ideAndroidArtifact: IdeAndroidArtifactCore) {
+      dump(ideAndroidArtifact as IdeBaseArtifactCore) // dump the IdeBaseArtifact part first.
       prop("ApplicationId") { ideAndroidArtifact.applicationId }
       prop("SigningConfigName") { ideAndroidArtifact.signingConfigName }
       prop("IsSigned") { ideAndroidArtifact.isSigned.toString() }
@@ -466,7 +481,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
-    private fun dump(ideBaseArtifact: IdeBaseArtifact) {
+    private fun dump(ideBaseArtifact: IdeBaseArtifactCore) {
       prop("Name") { ideBaseArtifact.name.toString() }
       prop("CompileTaskName") { ideBaseArtifact.compileTaskName }
       prop("AssembleTaskName") { ideBaseArtifact.assembleTaskName }
@@ -489,6 +504,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         head("MultiFlavorSourceProvider")
         nest { dump(it) }
       }
+      ideBaseArtifact as? IdeBaseArtifact ?: return
       head("Dependencies")
       nest {
         dump("compileClasspath", ideBaseArtifact.compileClasspath)
@@ -533,8 +549,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
-    private fun dump(ideJavaArtifact: IdeJavaArtifact) {
-      dump(ideJavaArtifact as IdeBaseArtifact)
+    private fun dump(ideJavaArtifact: IdeJavaArtifactCore) {
+      dump(ideJavaArtifact as IdeBaseArtifactCore)
       prop("MockablePlatformJar") { ideJavaArtifact.mockablePlatformJar?.path?.toPrintablePath() }
     }
 
