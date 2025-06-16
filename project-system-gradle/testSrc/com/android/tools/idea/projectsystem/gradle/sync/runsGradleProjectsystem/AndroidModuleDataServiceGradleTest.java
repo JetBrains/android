@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
@@ -83,7 +83,7 @@ public class AndroidModuleDataServiceGradleTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     Module appModule = TestModuleUtil.findAppModule(getProject());
 
-    GradleAndroidModel androidModel = GradleAndroidModel.get(appModule);
+    GradleAndroidDependencyModel androidModel = GradleAndroidDependencyModel.get(appModule);
     assertNotNull(androidModel);
 
     ExternalProjectInfo externalInfo =
@@ -101,7 +101,7 @@ public class AndroidModuleDataServiceGradleTest extends AndroidGradleTestCase {
     myService.importData(Collections.singletonList(androidModelNode), mock(ProjectData.class), project, myModelsProvider);
 
     assertNotNull(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME));
-    verify(myValidator).validate(same(appModule), argThat(it -> it.containsTheSameDataAs(androidModel)));
+    verify(myValidator).validate(same(appModule), argThat(it -> ((GradleAndroidDependencyModel) it).containsTheSameDataAs(androidModel)));
     verify(myValidator).fixAndReportFoundIssues();
   }
 

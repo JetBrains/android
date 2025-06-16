@@ -49,7 +49,7 @@ class GradleResolver {
             gradleProjectModels.libraries ?: return@let emptyList(),
             gradleProjectModels.kmpLibraries
           )
-          val modelFactory = GradleAndroidModel.createFactory(project, libraryResolver)
+          val modelFactory = GradleAndroidDependencyModel.createFactory(project, libraryResolver)
           gradleProjectModels.modules.mapNotNull { findModel(it, modelFactory) }
         }
     }

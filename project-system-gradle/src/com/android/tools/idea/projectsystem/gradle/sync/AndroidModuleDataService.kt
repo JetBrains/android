@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.AndroidSdkCompatibilityChecker
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
+import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.getProjectSyncRequest
@@ -147,7 +148,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       .groupBy { it.first }
       .forEach { (projectNode, nodes) ->
         val libraryResolver = createLibraryResolverFor(projectNode)
-        val modelFactory = GradleAndroidModel.createFactory(project, libraryResolver)
+        val modelFactory = GradleAndroidDependencyModel.createFactory(project, libraryResolver)
         nodes.forEach { (_, moduleNode, modelNode) ->
           importAndroidModel(modelNode, moduleNode, modelFactory)
         }
