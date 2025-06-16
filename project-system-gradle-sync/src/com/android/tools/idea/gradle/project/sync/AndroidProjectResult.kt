@@ -147,7 +147,7 @@ sealed class AndroidProjectResult {
           val basicVariantMap = basicVariants.associateBy { it.name }
 
           v2Variants.map {
-            modelCache.variantFrom(
+            modelCache.variantCoreFrom(
               androidProject = ideAndroidProject,
               basicVariant = basicVariantMap[it.name] ?: error("BasicVariant not found. Name: ${it.name}"),
               variant = it,

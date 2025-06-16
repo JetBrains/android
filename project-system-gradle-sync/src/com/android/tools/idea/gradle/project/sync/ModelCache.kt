@@ -88,7 +88,7 @@ interface ModelCache {
      * Converts V2's [BasicVariant] and [Variant] to an incomplete [IdeVariantImpl] instance which does not yet include
      * dependency information.
      */
-    fun variantFrom(
+    fun variantCoreFrom(
       androidProject: IdeAndroidProjectImpl,
       basicVariant: BasicVariant,
       variant: com.android.builder.model.v2.ide.Variant,

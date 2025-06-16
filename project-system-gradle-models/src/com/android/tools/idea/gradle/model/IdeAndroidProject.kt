@@ -48,6 +48,8 @@ interface IdeAndroidProject : Serializable {
    */
   val basicVariants: Collection<IdeBasicVariant>
 
+  val coreVariants: Collection<IdeVariantCore>
+
   /**
    * Returns a list of all the flavor dimensions, may be empty.
    *

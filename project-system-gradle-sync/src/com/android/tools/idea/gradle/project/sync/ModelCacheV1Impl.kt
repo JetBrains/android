@@ -77,6 +77,7 @@ import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.LibraryReference
+import com.android.tools.idea.gradle.model.ThrowingIdeVariantCore
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
@@ -1370,6 +1371,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
           productFlavors = productFlavorCopy,
         ),
         basicVariants = basicVariantsCopy,
+        // Nothing should read this directly in V1.
+        coreVariants = listOf(ThrowingIdeVariantCore),
         flavorDimensions = flavorDimensionCopy,
         compileTarget = project.compileTarget,
         bootClasspath = bootClasspathCopy,

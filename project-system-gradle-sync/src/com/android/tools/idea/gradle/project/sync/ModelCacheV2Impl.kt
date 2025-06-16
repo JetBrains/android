@@ -795,7 +795,7 @@ internal fun modelCacheV2Impl(
     )
   }
 
-  fun androidArtifactFrom(
+  fun androidArtifactWithDependenciesFrom(
     ownerBuildId: BuildId,
     ownerProjectPath: String,
     artifact: IdeAndroidArtifactCoreImpl,
@@ -871,7 +871,7 @@ internal fun modelCacheV2Impl(
     )
   }
 
-  fun javaArtifactFrom(
+  fun javaArtifactWithDependenciesFrom(
     buildId: BuildId,
     projectPath: String,
     artifact: IdeJavaArtifactCoreImpl,
@@ -966,19 +966,18 @@ internal fun modelCacheV2Impl(
     }
   }
 
-  fun variantFrom(
-    androidProject: IdeAndroidProjectImpl,
+  fun variantCoreFrom(
+    projectType: IdeAndroidProjectType,
+    multiVariantData: IdeMultiVariantDataImpl,
     basicVariant: BasicVariant,
     variant: Variant,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
-  ): ModelResult<IdeVariantCoreImpl> {
-    // Currently, all plugins going through the model cache v2 building will be of multi-variant type
-    val multiVariantData = androidProject.multiVariantData!!
+  ): IdeVariantCoreImpl {
     // To get merged flavors for V2, we merge flavors from default config and all the flavors.
     val mergedFlavor = mergeProductFlavorsFrom(
       multiVariantData.defaultConfig,
       multiVariantData.productFlavors.map { it.productFlavor }.filter { basicVariant.productFlavors.contains(it.name) }.toList(),
-      androidProject.projectType
+      projectType
     )
 
     val buildType = multiVariantData.buildTypes.find { it.buildType.name == basicVariant.buildType }?.buildType
@@ -996,59 +995,58 @@ internal fun modelCacheV2Impl(
     val variantName = variant.name.deduplicate()
     val fallbackDesugaredMethodsFiles = if (modelVersions[ModelFeature.HAS_DESUGARED_METHOD_FILES_PROJECT_GLOBAL]) variant.desugaredMethods else emptyList()
 
-    return ModelResult.create {
-      IdeVariantCoreImpl(
-        name = variantName,
-        displayName = variant.displayName.deduplicate(),
-        mainArtifact = androidArtifactFrom(
-          IdeArtifactName.MAIN, basicVariant.mainArtifact, variantName, legacyAndroidGradlePluginProperties,
-          fallbackDesugaredMethodsFiles, variant.mainArtifact
-        ),
-        // If AndroidArtifact isn't null, then same goes for the ArtifactDependencies.
-        hostTestArtifacts  =  hostTestArtifactsFrom(variant, basicVariant),
-        deviceTestArtifacts =  deviceTestArtifactsFrom(
-          variant,
-          basicVariant,
-          variantName,
-          fallbackDesugaredMethodsFiles,
-          legacyAndroidGradlePluginProperties
-        ),
-        testFixturesArtifact = variant.testFixturesArtifact?.let { it: AndroidArtifact ->
-          androidArtifactFrom(
-            IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, variantName, legacyAndroidGradlePluginProperties,
-            fallbackDesugaredMethodsFiles, it
-          )
-        },
-        buildType = basicVariant.buildType?.deduplicate() ?: "",
-        productFlavors = ImmutableList.copyOf(basicVariant.productFlavors.deduplicateStrings()),
-        minSdkVersion = apiVersionFrom(variant.mainArtifact.minSdkVersion),
-        targetSdkVersion = variant.mainArtifact.targetSdkVersionOverride?.let { it: ApiVersion -> apiVersionFrom(it) },
-        maxSdkVersion = variant.mainArtifact.maxSdkVersion,
-        versionCode = mergedFlavor.versionCode,
-        versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() }?.deduplicate(),
-        versionNameSuffix = versionNameSuffix?.deduplicate(),
-        instantAppCompatible = variant.isInstantAppCompatible,
-        vectorDrawablesUseSupportLibrary = mergedFlavor.vectorDrawables?.useSupportLibrary ?: false,
-        resourceConfigurations = mergedFlavor.resourceConfigurations.deduplicateStrings(),
-        testInstrumentationRunner = mergedFlavor.testInstrumentationRunner?.deduplicate(),
-        testInstrumentationRunnerArguments = mergedFlavor.testInstrumentationRunnerArguments.deduplicateStrings(),
-        testedTargetVariants = getTestedTargetVariants(variant),
-        runTestInSeparateProcess = modelVersions[ModelFeature.HAS_RUN_TEST_IN_SEPARATE_PROCESS] && variant.runTestInSeparateProcess,
-        resValues = merge({ resValues }, { resValues }, ::combineMaps),
-        proguardFiles = merge({ proguardFiles }, { proguardFiles }, ::combineSets),
-        consumerProguardFiles = merge({ consumerProguardFiles }, { consumerProguardFiles }, ::combineSets),
-        manifestPlaceholders = merge({ manifestPlaceholders }, { manifestPlaceholders }, ::combineMaps),
-        deprecatedPreMergedApplicationId = null,
-        deprecatedPreMergedTestApplicationId = null,
-        desugaredMethodsFiles = fallbackDesugaredMethodsFiles,
-        experimentalProperties = if (modelVersions[ModelFeature.HAS_EXPERIMENTAL_PROPERTIES]) {
-          variant.experimentalProperties
-        } else { emptyMap() }
-      )
-    }
+    return IdeVariantCoreImpl(
+      name = variantName,
+      displayName = variant.displayName.deduplicate(),
+      mainArtifact = androidArtifactFrom(
+        IdeArtifactName.MAIN, basicVariant.mainArtifact, variantName, legacyAndroidGradlePluginProperties,
+        fallbackDesugaredMethodsFiles, variant.mainArtifact
+      ),
+      // If AndroidArtifact isn't null, then same goes for the ArtifactDependencies.
+      hostTestArtifacts  =  hostTestArtifactsFrom(variant, basicVariant),
+      deviceTestArtifacts =  deviceTestArtifactsFrom(
+        variant,
+        basicVariant,
+        variantName,
+        fallbackDesugaredMethodsFiles,
+        legacyAndroidGradlePluginProperties
+      ),
+      testFixturesArtifact = variant.testFixturesArtifact?.let { it: AndroidArtifact ->
+        androidArtifactFrom(
+          IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, variantName, legacyAndroidGradlePluginProperties,
+          fallbackDesugaredMethodsFiles, it
+        )
+      },
+      buildType = basicVariant.buildType?.deduplicate() ?: "",
+      productFlavors = ImmutableList.copyOf(basicVariant.productFlavors.deduplicateStrings()),
+      minSdkVersion = apiVersionFrom(variant.mainArtifact.minSdkVersion),
+      targetSdkVersion = variant.mainArtifact.targetSdkVersionOverride?.let { it: ApiVersion -> apiVersionFrom(it) },
+      maxSdkVersion = variant.mainArtifact.maxSdkVersion,
+      versionCode = mergedFlavor.versionCode,
+      versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() }?.deduplicate(),
+      versionNameSuffix = versionNameSuffix?.deduplicate(),
+      instantAppCompatible = variant.isInstantAppCompatible,
+      vectorDrawablesUseSupportLibrary = mergedFlavor.vectorDrawables?.useSupportLibrary ?: false,
+      resourceConfigurations = mergedFlavor.resourceConfigurations.deduplicateStrings(),
+      testInstrumentationRunner = mergedFlavor.testInstrumentationRunner?.deduplicate(),
+      testInstrumentationRunnerArguments = mergedFlavor.testInstrumentationRunnerArguments.deduplicateStrings(),
+      testedTargetVariants = getTestedTargetVariants(variant),
+      runTestInSeparateProcess = modelVersions[ModelFeature.HAS_RUN_TEST_IN_SEPARATE_PROCESS] && variant.runTestInSeparateProcess,
+      resValues = merge({ resValues }, { resValues }, ::combineMaps),
+      proguardFiles = merge({ proguardFiles }, { proguardFiles }, ::combineSets),
+      consumerProguardFiles = merge({ consumerProguardFiles }, { consumerProguardFiles }, ::combineSets),
+      manifestPlaceholders = merge({ manifestPlaceholders }, { manifestPlaceholders }, ::combineMaps),
+      deprecatedPreMergedApplicationId = null,
+      deprecatedPreMergedTestApplicationId = null,
+      desugaredMethodsFiles = fallbackDesugaredMethodsFiles,
+      experimentalProperties = if (modelVersions[ModelFeature.HAS_EXPERIMENTAL_PROPERTIES]) {
+        variant.experimentalProperties
+      } else { emptyMap() }
+    )
+
   }
 
-  fun variantFrom(
+  fun variantWithDependenciesFrom(
     ownerBuildId: BuildId,
     ownerProjectPath: String,
     variant: IdeVariantCoreImpl,
@@ -1060,7 +1058,7 @@ internal fun modelCacheV2Impl(
     return ModelResult.create {
       val mainArtifact =
         variant.mainArtifact.let {
-          androidArtifactFrom(
+          androidArtifactWithDependenciesFrom(
             ownerBuildId = ownerBuildId,
             ownerProjectPath = ownerProjectPath,
             artifact = it,
@@ -1075,7 +1073,7 @@ internal fun modelCacheV2Impl(
 
       val hostTestArtifacts =
         variant.hostTestArtifacts.mapNotNull {
-           javaArtifactFrom(
+           javaArtifactWithDependenciesFrom(
              buildId = ownerBuildId,
              projectPath = ownerProjectPath,
              artifact = it,
@@ -1090,7 +1088,7 @@ internal fun modelCacheV2Impl(
 
       val deviceTestArtifacts =
         variant.deviceTestArtifacts.map {
-          androidArtifactFrom(
+          androidArtifactWithDependenciesFrom(
             ownerBuildId = ownerBuildId,
             ownerProjectPath = ownerProjectPath,
             artifact = it,
@@ -1106,7 +1104,7 @@ internal fun modelCacheV2Impl(
 
       val testFixturesArtifact =
         variant.testFixturesArtifact?.let {
-          androidArtifactFrom(
+          androidArtifactWithDependenciesFrom(
             ownerBuildId = ownerBuildId,
             ownerProjectPath = ownerProjectPath,
             artifact = it,
@@ -1330,6 +1328,16 @@ internal fun modelCacheV2Impl(
         variant.experimentalProperties["androidx.baselineProfile.synthetic"].equals("true", true),
       )
     }
+    val projectTypeCopy = copyProjectType(basicProject.projectType)
+    val multiVariantData = IdeMultiVariantDataImpl(
+      defaultConfig = defaultConfigCopy,
+      buildTypes = buildTypesCopy,
+      productFlavors = productFlavorCopy,
+    )
+
+    val coreVariantsCopy = project.variants.zip(basicProject.variants).map { (variantModel, basicVariant) ->
+      variantCoreFrom(projectTypeCopy, multiVariantData, basicVariant, variantModel, legacyAndroidGradlePluginProperties)
+    }
     val flavorDimensionCopy: Collection<String> = androidDsl.flavorDimensions.deduplicateStrings()
     val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(basicProject.bootClasspath.map { it.absolutePath })
     val signingConfigsCopy: Collection<IdeSigningConfigImpl> = androidDsl.signingConfigs.map { signingConfigFrom(it) }
@@ -1358,12 +1366,9 @@ internal fun modelCacheV2Impl(
           projectPath = basicProject.path,
         ),
         defaultSourceProvider = defaultConfigSourcesCopy,
-        multiVariantData = IdeMultiVariantDataImpl(
-          defaultConfig = defaultConfigCopy,
-          buildTypes = buildTypesCopy,
-          productFlavors = productFlavorCopy,
-        ),
+        multiVariantData = multiVariantData,
         basicVariants = basicVariantsCopy,
+        coreVariants = coreVariantsCopy,
         flavorDimensions = flavorDimensionCopy,
         compileTarget = androidDsl.compileTarget,
         bootClasspath = bootClasspathCopy,
@@ -1383,7 +1388,7 @@ internal fun modelCacheV2Impl(
         groupId = groupId,
         namespace = project.namespace,
         testNamespace = project.androidTestNamespace,
-        projectType = copyProjectType(basicProject.projectType),
+        projectType = projectTypeCopy,
         isBaseSplit = isBaseSplit,
         agpFlags = agpFlags,
         isKaptEnabled = false,
@@ -1396,13 +1401,16 @@ internal fun modelCacheV2Impl(
 
   return object : ModelCache.V2 {
 
-    override fun variantFrom(
+    override fun variantCoreFrom(
       androidProject: IdeAndroidProjectImpl,
       basicVariant: BasicVariant,
       variant: Variant,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
-    ): ModelResult<IdeVariantCoreImpl> =
-      variantFrom(androidProject, basicVariant, variant, legacyAndroidGradlePluginProperties)
+    ): ModelResult<IdeVariantCoreImpl> = ModelResult.create {
+      // Currently, all plugins going through the model cache v2 building will be of multi-variant type
+      variantCoreFrom(androidProject.projectType, androidProject.multiVariantData!!, basicVariant, variant,
+                      legacyAndroidGradlePluginProperties)
+    }
 
     override fun variantFrom(
       ownerBuildId: BuildId,
@@ -1413,7 +1421,7 @@ internal fun modelCacheV2Impl(
       androidProjectPathResolver: AndroidProjectPathResolver,
       buildPathMap: Map<String, BuildId>
     ): ModelResult<IdeVariantWithPostProcessor> =
-        variantFrom(
+        variantWithDependenciesFrom(
           ownerBuildId,
           ownerProjectPath,
           variant,

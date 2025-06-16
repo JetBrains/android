@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
-import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
+import com.android.tools.idea.gradle.model.IdeVariantCore
 import java.io.File
 import java.io.Serializable
 
@@ -28,6 +28,7 @@ data class IdeAndroidProjectImpl(
   override val defaultSourceProvider: IdeSourceProviderContainerImpl,
   override val multiVariantData: IdeMultiVariantDataImpl?,
   override val basicVariants: Collection<IdeBasicVariantImpl>,
+  override val coreVariants: Collection<IdeVariantCore>,
   override val flavorDimensions: Collection<String>,
   override val compileTarget: String,
   override val bootClasspath: Collection<String>,
