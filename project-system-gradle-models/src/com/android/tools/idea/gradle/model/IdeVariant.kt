@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.model
 
 import java.io.File
+import java.io.Serializable
 
 interface IdeBasicVariant {
   val name: String
@@ -131,4 +132,40 @@ interface IdeVariant : IdeVariantCore {
   override val deviceTestArtifacts: List<IdeAndroidArtifact>
   override val testFixturesArtifact: IdeAndroidArtifact?
   override val hostTestArtifacts: List<IdeJavaArtifact>
+}
+
+data object ThrowingIdeVariantCore : IdeVariantCore, Serializable {
+  override val mainArtifact get() = unexpected()
+  override val deviceTestArtifacts get() = unexpected()
+  override val testFixturesArtifact get() = unexpected()
+  override val hostTestArtifacts get() = unexpected()
+  override val minSdkVersion get() = unexpected()
+  override val targetSdkVersion get() = unexpected()
+  override val maxSdkVersion get() = unexpected()
+  override val versionCode get() = unexpected()
+  override val versionNameSuffix get() = unexpected()
+  override val versionNameWithSuffix get() = unexpected()
+  override val instantAppCompatible get() = unexpected()
+  override val vectorDrawablesUseSupportLibrary get() = unexpected()
+  override val resourceConfigurations get() = unexpected()
+  override val resValues get() = unexpected()
+  override val proguardFiles get() = unexpected()
+  override val consumerProguardFiles get() = unexpected()
+  override val manifestPlaceholders get() = unexpected()
+  override val testInstrumentationRunner get() = unexpected()
+  override val testInstrumentationRunnerArguments get() = unexpected()
+  override val testedTargetVariants get() = unexpected()
+  override val runTestInSeparateProcess get() = unexpected()
+  override val deprecatedPreMergedApplicationId get() = unexpected()
+  override val deprecatedPreMergedTestApplicationId get() = unexpected()
+  override val desugaredMethodsFiles get() = unexpected()
+  override val experimentalProperties get() = unexpected()
+  override val name get() = unexpected()
+  override val buildType get() = unexpected()
+  override val productFlavors get() = unexpected()
+  override val displayName get() = unexpected()
+
+  // Make sure the serialization always returns this singleton
+  private fun readResolve(): Any = ThrowingIdeVariantCore
+  private fun unexpected(): Nothing = error("Should not be called")
 }
