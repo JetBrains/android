@@ -24,15 +24,18 @@ import java.util.concurrent.TimeoutException
 import javax.swing.event.HyperlinkListener
 
 object ComposeRenderErrorContributor {
+
+  /**
+   * Returns true if the [Throwable] represents a failure to find a CompositionLocal. We are only
+   * catching the missing CompositionLocal errors coming from the androidx library by matching the
+   * error message they provide. If a developer provides their own error this will not catch it by
+   * design as they might want to have their own messagez. In androidx this error message is defined
+   * here: androidx/compose/ui/platform/CompositionLocals.kt, in function noLocalProvidedFor.
+   */
   private fun isCompositionLocalStackTrace(throwable: Throwable?): Boolean =
-    throwable?.let { throwable ->
-      throwable is IllegalStateException &&
-        throwable.stackTrace.any {
-          (it.methodName == "resolveCompositionLocal" ||
-            it.methodName == "CompositionLocalProvider") &&
-            it.className.startsWith("androidx.compose.runtime")
-        }
-    } ?: false
+    throwable is IllegalStateException &&
+      throwable.message?.startsWith("CompositionLocal") == true &&
+      throwable.message?.endsWith("not present") == true
 
   private fun isViewModelStackTrace(throwable: Throwable?): Boolean =
     throwable?.let { throwable ->
