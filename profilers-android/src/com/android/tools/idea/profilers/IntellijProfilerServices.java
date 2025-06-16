@@ -68,6 +68,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.AllClassesSearch;
+import com.intellij.util.Processor;
 import com.intellij.util.Query;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
@@ -141,12 +142,10 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
 
   @Override
   public Set<String> getAllProjectClasses() {
-    Query<PsiClass> query = AllClassesSearch.INSTANCE.search(ProjectScope.getProjectScope(myProject), myProject);
+    Query<PsiClass> query = AllClassesSearch.search(ProjectScope.getProjectScope(myProject), myProject);
 
     Set<String> classNames = new HashSet<>();
-    query.forEach(aClass -> {
-      classNames.add(aClass.getQualifiedName());
-    });
+    query.forEach((Processor<? super PsiClass>)aClass -> classNames.add(aClass.getQualifiedName()));
     return classNames;
   }
 
