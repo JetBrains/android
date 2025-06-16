@@ -27,6 +27,8 @@ import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
 import com.intellij.openapi.actionSystem.DataSnapshotProvider
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.openapi.actionSystem.ex.ActionUtil.performActionDumbAwareWithCallbacks
+import com.intellij.openapi.actionSystem.ex.ActionUtil.performDumbAwareUpdate
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext.getProjectContext
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ComponentUtil.findParentByCondition
@@ -50,9 +52,9 @@ fun executeStreamingAction(action: AnAction, source: Component, project: Project
                            modifiers: Int = CTRL_DOWN_MASK,
                            extra: DataSnapshotProvider? = null) {
   val event = createTestEvent(source, project, place = place, modifiers = modifiers, extra = extra)
-  action.update(event)
+  performDumbAwareUpdate(action, event, true)
   assertThat(event.presentation.isEnabledAndVisible).isTrue()
-  action.actionPerformed(event)
+  performActionDumbAwareWithCallbacks(action, event)
 }
 
 fun updateAndGetActionPresentation(actionId: String, source: Component, project: Project? = null,
@@ -66,7 +68,7 @@ fun updateAndGetActionPresentation(action: AnAction, source: Component, project:
                                    place: String = ActionPlaces.KEYBOARD_SHORTCUT,
                                    extra: DataSnapshotProvider? = null): Presentation {
   val event = createTestEvent(source, project, place, presentation = action.templatePresentation.clone(), extra = extra)
-  action.update(event)
+  performDumbAwareUpdate(action, event, false)
   return event.presentation
 }
 
