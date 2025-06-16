@@ -87,7 +87,16 @@ internal fun createDeviceSpec(configuration: Configuration): String {
  * `@Preview` annotation string, incorporating the current configuration's dimensions and a new
  * [name].
  *
+ * This function always returns the @Preview annotation with its Fully Qualified Name (i.e.,
+ * `@androidx.compose.ui.tooling.preview.Preview(...)`). Callers should be aware that they might
+ * need to use facilities like `ShortenReferencesFacility` or string manipulation if they intend to
+ * use a shorter, unqualified name for the annotation.
+ *
  * Parameters are only added if their value is different from their default.
+ *
+ * @param previewElement The [ComposePreviewElementInstance] for which to generate the annotation.
+ * @param configuration The [Configuration] containing device and display settings.
+ * @param name The desired name for the new preview.
  */
 internal fun toPreviewAnnotationText(
   previewElement: ComposePreviewElementInstance<*>,
@@ -100,7 +109,7 @@ internal fun toPreviewAnnotationText(
   val (currentWidthDp, currentHeightDp) = configuration.deviceSizeDp()
 
   return buildString {
-    append("@${COMPOSE_PREVIEW_ANNOTATION_FQN.substringAfterLast('.')}(\n")
+    append("@$COMPOSE_PREVIEW_ANNOTATION_FQN(\n")
 
     val params = mutableListOf<String>()
 

@@ -147,7 +147,7 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "BasicPreview",
             group = "MyGroup",
             widthDp = 1080,
@@ -168,7 +168,7 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "CustomSizePreview",
             widthDp = 200,
             heightDp = 300
@@ -199,7 +199,7 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "DevicePreview",
             showSystemUi = true,
             device = "spec:width=960dp,height=540dp,dpi=320,orientation=landscape"
@@ -231,7 +231,7 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "FullPreview",
             group = "AllFeatures",
             showBackground = true,
@@ -259,7 +259,7 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-      @Preview(
+      @androidx.compose.ui.tooling.preview.Preview(
           name = "ShowSystemUiPreview",
           showSystemUi = true,
           device = "spec:width=400dp,height=600dp,dpi=160,orientation=portrait"
@@ -289,7 +289,7 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "DefaultParams",
             widthDp = 100,
             heightDp = 100
@@ -312,7 +312,7 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "LandscapeComposable",
             widthDp = 1000,
             heightDp = 500
@@ -332,7 +332,7 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "PortraitComposable",
             widthDp = 500,
             heightDp = 1000
@@ -359,7 +359,7 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "DevicePortrait",
             showSystemUi = true,
             device = "spec:width=167dp,height=333dp,dpi=480,orientation=portrait"
@@ -384,7 +384,7 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "NewName",
             widthDp = 100,
             heightDp = 100
@@ -416,7 +416,7 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "NewName",
             widthDp = 845,
             heightDp = 360
@@ -450,7 +450,7 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-      @Preview(
+      @androidx.compose.ui.tooling.preview.Preview(
           name = "KnownDevicePreview",
           device = "id:pixel_3"
       )
@@ -471,7 +471,7 @@ class PreviewAnnotationGeneratorTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-      @Preview(
+      @androidx.compose.ui.tooling.preview.Preview(
           name = "DefaultDevicePreview"
       )
       """

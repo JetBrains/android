@@ -44,10 +44,10 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
-import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtImportAlias
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
 /**
@@ -96,11 +96,21 @@ class SavePreviewInNewSizeAction(val dispatcher: CoroutineDispatcher = Dispatche
       {
         val targetFile = previewMethod.containingFile as? KtFile ?: return@runWriteCommandAction
 
-        // Use KtFile.addImport to ensure the @Preview import is present
-        targetFile.addImport(FqName(COMPOSE_PREVIEW_ANNOTATION_FQN))
+        // Check if Preview is imported with an alias
+        val alias: KtImportAlias? =
+          targetFile.findAliasByFqName(FqName(COMPOSE_PREVIEW_ANNOTATION_FQN))
 
-        val newAnnotationText =
+        // If an alias exists, use it. Otherwise, use the FQN for initial creation.
+        val annotationClassName = alias?.name ?: COMPOSE_PREVIEW_ANNOTATION_FQN
+
+        // toPreviewAnnotationText already creates with FQN internally.
+        // We'll replace the FQN with the alias if one exists, or keep FQN if not.
+        val baseAnnotationParams =
           toPreviewAnnotationText(previewElement, configuration, nameForNewPreview)
+            .removePrefix("@${COMPOSE_PREVIEW_ANNOTATION_FQN}") // Remove the FQN prefix
+
+        val newAnnotationText = "@$annotationClassName$baseAnnotationParams"
+
         val newAnnotationEntry = ktPsiFactory.createAnnotationEntry(newAnnotationText)
 
         ShortenReferencesFacility.getInstance()

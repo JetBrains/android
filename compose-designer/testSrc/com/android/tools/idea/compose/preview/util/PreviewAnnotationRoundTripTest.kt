@@ -99,7 +99,7 @@ class PreviewAnnotationRoundTripTest {
       import androidx.compose.ui.tooling.preview.Preview
       import androidx.compose.runtime.Composable
 
-      @Preview(name = "MySimplePreview", widthDp = 200, heightDp = 300)
+      @androidx.compose.ui.tooling.preview.Preview(name = "MySimplePreview", widthDp = 200, heightDp = 300)
       @Composable
       fun MyComposable() {
       }
@@ -128,7 +128,7 @@ class PreviewAnnotationRoundTripTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "MySimplePreview",
             widthDp = 200,
             heightDp = 300
@@ -146,7 +146,7 @@ class PreviewAnnotationRoundTripTest {
       import androidx.compose.ui.tooling.preview.Preview
       import androidx.compose.runtime.Composable
 
-      @Preview(name = "MyDevicePreview", device = "spec:width=100dp,height=100dp,dpi=240,orientation=portrait")
+      @androidx.compose.ui.tooling.preview.Preview(name = "MyDevicePreview", device = "spec:width=100dp,height=100dp,dpi=240,orientation=portrait")
       @Composable
       fun MyComposable() {
       }
@@ -183,7 +183,7 @@ class PreviewAnnotationRoundTripTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "MyDevicePreview",
             device = "spec:width=100dp,height=100dp,dpi=240,orientation=portrait",
             widthDp = 400,
@@ -202,8 +202,8 @@ class PreviewAnnotationRoundTripTest {
       import androidx.compose.ui.tooling.preview.Preview
       import androidx.compose.runtime.Composable
 
-      @Preview(name = "small font", group = "font scales", fontScale = 0.5f)
-      @Preview(name = "large font", group = "font scales", fontScale = 1.5f)
+      @androidx.compose.ui.tooling.preview.Preview(name = "small font", group = "font scales", fontScale = 0.5f)
+      @androidx.compose.ui.tooling.preview.Preview(name = "large font", group = "font scales", fontScale = 1.5f)
       annotation class FontScalePreviews
 
       @FontScalePreviews
@@ -238,7 +238,7 @@ class PreviewAnnotationRoundTripTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "small font",
             group = "font scales",
             fontScale = 0.5f,
@@ -258,7 +258,7 @@ class PreviewAnnotationRoundTripTest {
       import androidx.compose.ui.tooling.preview.Preview
       import androidx.compose.runtime.Composable
 
-      @Preview(
+      @androidx.compose.ui.tooling.preview.Preview(
           name = "FullParams",
           group = "MyGroup",
           showBackground = true,
@@ -295,7 +295,7 @@ class PreviewAnnotationRoundTripTest {
     assertThat(generatedText)
       .isEqualTo(
         """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "FullParams",
             group = "MyGroup",
             showBackground = true,
@@ -321,7 +321,7 @@ class PreviewAnnotationRoundTripTest {
       import androidx.compose.ui.tooling.preview.Preview
       import androidx.compose.runtime.Composable
 
-      @Preview(name = "DeviceWithCustomSize", device = "spec:width=400dp,height=800dp,dpi=240,cutout=double")
+      @androidx.compose.ui.tooling.preview.Preview(name = "DeviceWithCustomSize", device = "spec:width=400dp,height=800dp,dpi=240,cutout=double")
       @Composable
       fun MyComposable() {
       }
@@ -360,7 +360,7 @@ class PreviewAnnotationRoundTripTest {
       assertThat(generatedText)
         .isEqualTo(
           """
-        @Preview(
+        @androidx.compose.ui.tooling.preview.Preview(
             name = "DeviceWithCustomSize",
             device = "spec:width=400dp,height=800dp,dpi=240,cutout=double",
             widthDp = 600,
