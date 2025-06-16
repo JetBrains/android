@@ -600,7 +600,7 @@ class MavenClassRegistryTest {
               artifact = "androidx.autofill:autofill",
               importedItemFqName = "androidx.autofill.HintConstants",
               importedItemPackageName = "androidx.autofill",
-              version = "1.1.0",
+              version = "1.3.0",
             )
           ),
         )
@@ -612,7 +612,7 @@ class MavenClassRegistryTest {
               artifact = "androidx.autofill:autofill",
               importedItemFqName = "androidx.autofill.inline.common.ImageViewStyle",
               importedItemPackageName = "androidx.autofill.inline.common",
-              version = "1.1.0",
+              version = "1.3.0",
             )
           ),
         )
