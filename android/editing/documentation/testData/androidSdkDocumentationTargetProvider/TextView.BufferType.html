@@ -1,0 +1,2502 @@
+<!doctype html>
+<html
+    lang="en"
+    dir="ltr">
+<head>
+  <meta name="google-signin-client-id" content="721724668570-nbkv1cfusk7kk4eni4pjvepaus73b13t.apps.googleusercontent.com">
+  <meta name="google-signin-scope"
+        content="profile email https://www.googleapis.com/auth/developerprofiles https://www.googleapis.com/auth/developerprofiles.award">
+  <meta property="og:site_name" content="Android Developers">
+  <meta property="og:type" content="website"><meta name="theme-color" content="#34a853"><meta charset="utf-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <link rel="manifest" href="/_pwa/android/manifest.json"
+        crossorigin="use-credentials">
+  <link rel="preconnect" href="//www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="//fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="//fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="//apis.google.com" crossorigin>
+  <link rel="preconnect" href="//www.google-analytics.com" crossorigin><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Google+Sans:400,500,600,700|Google+Sans+Text:400,400italic,500,500italic,600,600italic,700,700italic|Roboto+Mono:400,500,700&display=swap">
+  <link rel="stylesheet"
+        href="//fonts.googleapis.com/css2?family=Material+Icons&family=Material+Symbols+Outlined&display=block"><link rel="stylesheet" href="https://www.gstatic.com/devrel-devsite/prod/v31bf0d5ece3babea9777b807f088a03e9bb2225d007f11b8410e9c896eb213a6/android/css/app.css">
+
+  <link rel="stylesheet" href="https://www.gstatic.com/devrel-devsite/prod/v31bf0d5ece3babea9777b807f088a03e9bb2225d007f11b8410e9c896eb213a6/android/css/dark-theme.css" disabled>
+  <link rel="shortcut icon" href="https://www.gstatic.com/devrel-devsite/prod/v31bf0d5ece3babea9777b807f088a03e9bb2225d007f11b8410e9c896eb213a6/android/images/favicon.svg">
+  <link rel="apple-touch-icon" href="https://www.gstatic.com/devrel-devsite/prod/v31bf0d5ece3babea9777b807f088a03e9bb2225d007f11b8410e9c896eb213a6/android/images/touchicon-180.png"><link rel="canonical" href="https://developer.android.com/reference/android/widget/TextView.BufferType"><link rel="search" type="application/opensearchdescription+xml"
+                                                                                                                                                                                                                                                                                                   title="Android Developers" href="https://developer.android.com/s/opensearch.xml">
+  <link rel="alternate" hreflang="en"
+        href="https://developer.android.com/reference/android/widget/TextView.BufferType" /><link rel="alternate" hreflang="x-default" href="https://developer.android.com/reference/android/widget/TextView.BufferType" /><title>TextView.BufferType &nbsp;|&nbsp; API reference &nbsp;|&nbsp; Android Developers</title>
+
+  <meta property="og:title" content="TextView.BufferType &nbsp;|&nbsp; API reference &nbsp;|&nbsp; Android Developers"><meta property="og:url" content="https://developer.android.com/reference/android/widget/TextView.BufferType"><meta property="og:locale" content="en">
+
+
+
+
+
+
+  <link rel="stylesheet" href="/extras.css"></head>
+<body class=""
+      template="page"
+      theme="android-theme"
+      type="reference"
+
+
+      appearance
+
+      layout="docs"
+
+
+
+
+
+
+      display-toc
+      pending>
+<devsite-progress type="indeterminate" id="app-progress"></devsite-progress>
+
+<a href="#main-content" class="skip-link button">
+
+  Skip to main content
+</a>
+<section class="devsite-wrapper">
+  <devsite-cookie-notification-bar></devsite-cookie-notification-bar><devsite-header role="banner">
+
+          <div class="devsite-article-meta nocontent" role="navigation">
+
+
+            <ul class="devsite-breadcrumb-list"
+
+                aria-label="Breadcrumb">
+
+              <li class="devsite-breadcrumb-item
+             ">
+
+
+
+
+                <a href="https://developer.android.com/"
+
+                   class="devsite-breadcrumb-link gc-analytics-event"
+
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Breadcrumbs"
+
+                   data-value="1"
+
+                   track-type="globalNav"
+
+                   track-name="breadcrumb"
+
+                   track-metadata-position="1"
+
+                   track-metadata-eventdetail="Android Developers"
+
+                >
+
+                  Android Developers
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-breadcrumb-item
+             ">
+
+
+                <div class="devsite-breadcrumb-guillemet material-icons" aria-hidden="true"></div>
+
+
+
+
+                <a href="https://developer.android.com/develop"
+
+                   class="devsite-breadcrumb-link gc-analytics-event"
+
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Breadcrumbs"
+
+                   data-value="2"
+
+                   track-type="globalNav"
+
+                   track-name="breadcrumb"
+
+                   track-metadata-position="2"
+
+                   track-metadata-eventdetail=""
+
+                >
+
+                  Develop
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-breadcrumb-item
+             ">
+
+
+                <div class="devsite-breadcrumb-guillemet material-icons" aria-hidden="true"></div>
+
+
+
+
+                <a href="https://developer.android.com/reference"
+
+                   class="devsite-breadcrumb-link gc-analytics-event"
+
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Breadcrumbs"
+
+                   data-value="3"
+
+                   track-type="globalNav"
+
+                   track-name="breadcrumb"
+
+                   track-metadata-position="3"
+
+                   track-metadata-eventdetail="API reference"
+
+                >
+
+                  API reference
+
+                </a>
+
+
+              </li>
+
+            </ul>
+
+
+            <devsite-thumb-rating position="header">
+            </devsite-thumb-rating>
+
+
+          </div>
+          <div class="devsite-actions" hidden data-nosnippet><devsite-feature-tooltip
+              ack-key="AckCollectionsBookmarkTooltipDismiss"
+              analytics-category="Site-Wide Custom Events"
+              analytics-action-show="Callout Profile displayed"
+              analytics-action-close="Callout Profile dismissed"
+              analytics-label="Create Collection Callout"
+              class="devsite-page-bookmark-tooltip nocontent"
+              dismiss-button="true"
+              id="devsite-collections-dropdown"
+
+              dismiss-button-text="Dismiss"
+
+
+              close-button-text="Got it">
+
+
+
+            <devsite-bookmark></devsite-bookmark>
+
+
+            <span slot="popout-heading">
+
+      Stay organized with collections
+    </span>
+            <span slot="popout-contents">
+
+      Save and categorize content based on your preferences.
+    </span>
+          </devsite-feature-tooltip></div>
+
+
+
+
+          <devsite-toc class="devsite-nav"
+                       depth="2"
+                       devsite-toc-embedded
+          >
+          </devsite-toc>
+
+
+          <devsite-recommendations-dropdown class="nocontent"></devsite-recommendations-dropdown>
+
+          <div class="devsite-article-body clearfix
+  devsite-no-page-title">
+
+
+
+
+            <div itemscope itemtype="http://developers.google.com/ReferenceObject">
+              <!-- This DIV closes at the end of the BODY -->
+              <meta itemprop="name" content="android.widget.TextView.BufferType" />
+              <meta itemprop="path" content="API level 1" />
+
+
+
+              <div id="naMessage"></div>
+
+              <div id="api-info-block">
+                <div class="api-level">
+
+                  Added in <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 1</a>
+
+
+
+
+
+                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="sum-details-links">
+
+                  Summary:
+
+
+
+
+                  <a href="#enumconstants">Enums</a>
+
+
+
+
+
+
+
+
+
+                  &#124; <a href="#pubmethods">Methods</a>
+
+
+
+
+                  &#124; <a href="#inhmethods">Inherited Methods</a>
+
+
+                </div><!-- end sum-details-links -->
+              </div><!-- end api-info-block -->
+
+              <div id="jd-content" data-version-added="1" >
+
+                <!-- ======== START OF CLASS DATA ======== -->
+
+                <h1 class="api-title" id="textview.buffertype" data-text="TextView.BufferType" tabindex="-1">TextView.BufferType</h1>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <hr style="margin: 0">
+                <div style="display:flex; font-size:medium; justify-content:flex-end;
+     margin-bottom:40px;"
+                     class="nocontent">
+                  <div>
+
+
+
+                    <a href="/reference/kotlin/android/widget/TextView.BufferType" title="View this page in Kotlin" >Kotlin</a>
+                    <span style="padding: 0em .5em;">|</span><span style="font-weight:bold">Java</span>
+
+
+                  </div>
+                </div>
+
+
+
+
+                <p>
+                  <code class="api-signature" translate="no" dir="ltr">
+                    public
+                    static
+                    final
+
+                    enum
+                    TextView.BufferType
+                  </code>
+                  <br>
+
+
+                  <code class="api-signature" translate="no" dir="ltr">
+
+
+
+                  </code>
+
+                  <code class="api-signature" translate="no" dir="ltr">
+
+                    extends <a href="/reference/java/lang/Enum">Enum</a>&lt;<a href="/reference/android/widget/TextView.BufferType">TextView.BufferType</a>&gt;
+
+
+
+                  </code>
+
+                  <code class="api-signature" translate="no" dir="ltr">
+
+
+
+                  </code>
+
+                </p><table class="jd-inheritance-table">
+
+
+                <tr>
+
+                  <td colspan="3" class="jd-inheritance-class-cell"><a href="/reference/java/lang/Object">java.lang.Object</a>
+                  </td>
+                </tr>
+
+
+                <tr>
+
+                  <td class="jd-inheritance-space">&nbsp;&nbsp;&nbsp;&#x21b3;</td>
+
+                  <td colspan="2" class="jd-inheritance-class-cell"><a href="/reference/java/lang/Enum">java.lang.Enum</a>&lt;<a href="/reference/android/widget/TextView.BufferType">android.widget.TextView.BufferType</a>&gt;
+                  </td>
+                </tr>
+
+
+                <tr>
+
+                  <td class="jd-inheritance-space">&nbsp;</td>
+
+                  <td class="jd-inheritance-space">&nbsp;&nbsp;&nbsp;&#x21b3;</td>
+
+                  <td colspan="1" class="jd-inheritance-class-cell">android.widget.TextView.BufferType
+                  </td>
+                </tr>
+
+
+              </table>
+
+
+
+
+                <br><hr>
+
+
+                <p>Type of the text buffer that defines the characteristics of the text such as static,
+                  styleable, or editable.</p>
+
+
+
+
+
+
+
+
+
+                <h2 class="api-section" id="summary" data-text="Summary" tabindex="-1">Summary</h2>
+
+
+
+
+
+
+
+
+
+
+
+                <!-- =========== ENUM CONSTANT SUMMARY =========== -->
+                <table id="enumconstants" class="responsive constants">
+                  <tr><th colspan="2"><h3 id="enum-values" data-text="Enum values" tabindex="-1">Enum values</h3></th></tr>
+
+
+                  <tr data-version-added="1" >
+                    <td><code translate="no" dir="ltr"><a href="/reference/android/widget/TextView.BufferType">TextView.BufferType</a></code>&nbsp;</td>
+                    <td width="100%">
+                      <code translate="no" dir="ltr">EDITABLE</code>
+                      <p>&nbsp;
+
+
+                      </p>
+                    </td>
+                  </tr>
+
+
+                  <tr data-version-added="1" >
+                    <td><code translate="no" dir="ltr"><a href="/reference/android/widget/TextView.BufferType">TextView.BufferType</a></code>&nbsp;</td>
+                    <td width="100%">
+                      <code translate="no" dir="ltr">NORMAL</code>
+                      <p>&nbsp;
+
+
+                      </p>
+                    </td>
+                  </tr>
+
+
+                  <tr data-version-added="1" >
+                    <td><code translate="no" dir="ltr"><a href="/reference/android/widget/TextView.BufferType">TextView.BufferType</a></code>&nbsp;</td>
+                    <td width="100%">
+                      <code translate="no" dir="ltr">SPANNABLE</code>
+                      <p>&nbsp;
+
+
+                      </p>
+                    </td>
+                  </tr>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                  <!-- ========== METHOD SUMMARY =========== -->
+                  <table id="pubmethods" class="responsive methods">
+                    <tr><th colspan="2"><h3 id="public-methods" data-text="Public methods" tabindex="-1">Public methods</h3></th></tr>
+
+
+
+                    <tr  >
+
+
+                      <td><code translate="no" dir="ltr">
+
+
+                        static
+
+
+                        <a href="/reference/android/widget/TextView.BufferType">TextView.BufferType</a></code>
+                      </td>
+
+                      <td width="100%">
+                        <code translate="no" dir="ltr">
+                          <a href="/reference/android/widget/TextView.BufferType#valueOf(java.lang.String)">valueOf</a>(<a href="/reference/java/lang/String">String</a> name)
+                        </code>
+
+                      </td>
+                    </tr>
+
+
+                    <tr  >
+
+
+                      <td><code translate="no" dir="ltr">
+
+
+                        static
+                        final
+
+                        <a href="/reference/android/widget/TextView.BufferType">BufferType[]</a></code>
+                      </td>
+
+                      <td width="100%">
+                        <code translate="no" dir="ltr">
+                          <a href="/reference/android/widget/TextView.BufferType#values()">values</a>()
+                        </code>
+
+                      </td>
+                    </tr>
+
+
+
+                  </table>
+
+
+
+
+
+
+
+                  <!-- ========== METHOD SUMMARY =========== -->
+                  <table id="inhmethods" class="responsive methods inhtable">
+                    <tr><th><h3 id="inherited-methods" data-text="Inherited methods" tabindex="-1">Inherited methods</h3></th></tr>
+
+
+                    <tr  >
+                      <td colspan="2">
+                        <div class="expandable jd-inherited-apis">
+    <span class="expand-control">From class
+      <code translate="no" dir="ltr">
+
+          <a href="/reference/java/lang/Enum">java.lang.Enum</a>
+
+      </code>
+    </span>
+                          <table class="responsive">
+
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                <a href="/reference/java/lang/Object">Object</a></code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Enum#clone()">clone</a>()
+                                </code>
+
+                                <p>Throws CloneNotSupportedException.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                int</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Enum#compareTo(E)">compareTo</a>(<a href="/reference/android/widget/TextView.BufferType">TextView.BufferType</a> o)
+                                </code>
+
+                                <p>Compares this enum with the specified object for order.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                boolean</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Enum#equals(java.lang.Object)">equals</a>(<a href="/reference/java/lang/Object">Object</a> other)
+                                </code>
+
+                                <p>Returns true if the specified object is equal to this
+                                  enum constant.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                void</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Enum#finalize()">finalize</a>()
+                                </code>
+
+                                <p>enum classes cannot have finalize methods.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                <a href="/reference/java/lang/Class">Class</a>&lt;<a href="/reference/android/widget/TextView.BufferType">TextView.BufferType</a>&gt;</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Enum#getDeclaringClass()">getDeclaringClass</a>()
+                                </code>
+
+                                <p>Returns the Class object corresponding to this enum constant's
+                                  enum type.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                int</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Enum#hashCode()">hashCode</a>()
+                                </code>
+
+                                <p>Returns a hash code for this enum constant.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                <a href="/reference/java/lang/String">String</a></code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Enum#name()">name</a>()
+                                </code>
+
+                                <p>Returns the name of this enum constant, exactly as declared in its
+                                  enum declaration.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                int</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Enum#ordinal()">ordinal</a>()
+                                </code>
+
+                                <p>Returns the ordinal of this enumeration constant (its position
+                                  in its enum declaration, where the initial constant is assigned
+                                  an ordinal of zero).
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+
+
+                                <a href="/reference/java/lang/String">String</a></code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Enum#toString()">toString</a>()
+                                </code>
+
+                                <p>Returns the name of this enum constant, as contained in the
+                                  declaration.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+                                static
+
+                                &lt;T&nbsp;extends&nbsp;<a href="/reference/java/lang/Enum">Enum</a>&lt;T&gt;&gt;
+                                T</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Enum#valueOf(java.lang.Class<T>,%20java.lang.String)">valueOf</a>(<a href="/reference/java/lang/Class">Class</a>&lt;T&gt; enumClass, <a href="/reference/java/lang/String">String</a> name)
+                                </code>
+
+                                <p>Returns the enum constant of the specified enum class with the
+                                  specified name.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+
+                          </table>
+                        </div>
+                      </td></tr>
+
+
+
+                    <tr  >
+                      <td colspan="2">
+                        <div class="expandable jd-inherited-apis">
+    <span class="expand-control">From class
+      <code translate="no" dir="ltr">
+
+          <a href="/reference/java/lang/Object">java.lang.Object</a>
+
+      </code>
+    </span>
+                          <table class="responsive">
+
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+
+
+                                <a href="/reference/java/lang/Object">Object</a></code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Object#clone()">clone</a>()
+                                </code>
+
+                                <p>Creates and returns a copy of this object.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+
+
+                                boolean</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Object#equals(java.lang.Object)">equals</a>(<a href="/reference/java/lang/Object">Object</a> obj)
+                                </code>
+
+                                <p>Indicates whether some other object is "equal to" this one.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+
+
+                                void</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Object#finalize()">finalize</a>()
+                                </code>
+
+                                <p>Called by the garbage collector on an object when garbage collection
+                                  determines that there are no more references to the object.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                <a href="/reference/java/lang/Class">Class</a>&lt;?&gt;</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Object#getClass()">getClass</a>()
+                                </code>
+
+                                <p>Returns the runtime class of this <code translate="no" dir="ltr">Object</code>.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+
+
+                                int</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Object#hashCode()">hashCode</a>()
+                                </code>
+
+                                <p>Returns a hash code value for the object.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                void</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Object#notify()">notify</a>()
+                                </code>
+
+                                <p>Wakes up a single thread that is waiting on this object's
+                                  monitor.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                void</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Object#notifyAll()">notifyAll</a>()
+                                </code>
+
+                                <p>Wakes up all threads that are waiting on this object's monitor.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+
+
+                                <a href="/reference/java/lang/String">String</a></code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Object#toString()">toString</a>()
+                                </code>
+
+                                <p>Returns a string representation of the object.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                void</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Object#wait(long,%20int)">wait</a>(long timeoutMillis, int nanos)
+                                </code>
+
+                                <p>Causes the current thread to wait until it is awakened, typically
+                                  by being <em>notified</em> or <em>interrupted</em>, or until a
+                                  certain amount of real time has elapsed.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                void</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Object#wait(long)">wait</a>(long timeoutMillis)
+                                </code>
+
+                                <p>Causes the current thread to wait until it is awakened, typically
+                                  by being <em>notified</em> or <em>interrupted</em>, or until a
+                                  certain amount of real time has elapsed.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+
+
+
+                                final
+
+                                void</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Object#wait()">wait</a>()
+                                </code>
+
+                                <p>Causes the current thread to wait until it is awakened, typically
+                                  by being <em>notified</em> or <em>interrupted</em>.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+
+                          </table>
+                        </div>
+                      </td></tr>
+
+
+
+                    <tr  >
+                      <td colspan="2">
+                        <div class="expandable jd-inherited-apis">
+    <span class="expand-control">From interface
+      <code translate="no" dir="ltr">
+
+          <a href="/reference/java/lang/Comparable">java.lang.Comparable</a>
+
+      </code>
+    </span>
+                          <table class="responsive">
+
+
+
+                            <tr data-version-added="1" >
+
+
+                              <td><code translate="no" dir="ltr">
+                                abstract
+
+
+
+
+                                int</code>
+                              </td>
+
+                              <td width="100%">
+                                <code translate="no" dir="ltr">
+                                  <a href="/reference/java/lang/Comparable#compareTo(T)">compareTo</a>(<a href="/reference/android/widget/TextView.BufferType">TextView.BufferType</a> o)
+                                </code>
+
+                                <p>Compares this object with the specified object for order.
+
+
+                                </p>
+
+                              </td>
+                            </tr>
+
+
+
+                          </table>
+                        </div>
+                      </td></tr>
+
+
+
+
+                  </table>
+
+
+
+                  <!-- XML Attributes -->
+
+
+                  <!-- Enum Values -->
+
+
+                  <!-- ========= ENUM CONSTANTS DETAIL ======== -->
+                  <h2 class="api-section" id="enum-values_1" data-text="Enum values" tabindex="-1">Enum values</h2>
+
+
+                  <div data-version-added="1" >
+                    <h3 class="api-name" id="EDITABLE" data-text="EDITABLE" tabindex="-1">EDITABLE</h3>
+                    <div class="api-level">
+
+                      Added in <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 1</a>
+
+
+
+
+                    </div>
+                    <div></div><devsite-code><pre class="api-signature no-pretty-print" translate="no" dir="ltr" is-upgraded>
+public static final <a href="/reference/android/widget/TextView.BufferType">TextView.BufferType</a> EDITABLE</pre></devsite-code>
+
+
+
+
+                    <p></p></p>
+
+
+                  </div>
+
+                  <div data-version-added="1" >
+                    <h3 class="api-name" id="NORMAL" data-text="NORMAL" tabindex="-1">NORMAL</h3>
+                    <div class="api-level">
+
+                      Added in <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 1</a>
+
+
+
+
+                    </div>
+                    <div></div><devsite-code><pre class="api-signature no-pretty-print" translate="no" dir="ltr" is-upgraded>
+public static final <a href="/reference/android/widget/TextView.BufferType">TextView.BufferType</a> NORMAL</pre></devsite-code>
+
+
+
+
+                    <p></p></p>
+
+
+                  </div>
+
+                  <div data-version-added="1" >
+                    <h3 class="api-name" id="SPANNABLE" data-text="SPANNABLE" tabindex="-1">SPANNABLE</h3>
+                    <div class="api-level">
+
+                      Added in <a href="/guide/topics/manifest/uses-sdk-element#ApiLevels">API level 1</a>
+
+
+
+
+                    </div>
+                    <div></div><devsite-code><pre class="api-signature no-pretty-print" translate="no" dir="ltr" is-upgraded>
+public static final <a href="/reference/android/widget/TextView.BufferType">TextView.BufferType</a> SPANNABLE</pre></devsite-code>
+
+
+
+
+                    <p></p></p>
+
+
+                  </div>
+
+
+
+
+                  <!-- Constants -->
+
+
+                  <!-- Fields -->
+
+
+                  <!-- Public ctors -->
+
+
+
+                  <!-- ========= CONSTRUCTOR DETAIL ======== -->
+                  <!-- Protected ctors -->
+
+
+
+                  <!-- ========= METHOD DETAIL ======== -->
+                  <!-- Public methdos -->
+
+                  <h2 class="api-section" id="public-methods_1" data-text="Public methods" tabindex="-1">Public methods</h2>
+
+
+                  <div >
+                    <h3 class="api-name" id="valueOf(java.lang.String)" data-text="valueOf" tabindex="-1">valueOf</h3>
+                    <div class="api-level">
+                      <div>
+                      </div>
+
+
+
+                    </div>
+                    <div></div><devsite-code><pre class="api-signature no-pretty-print" translate="no" dir="ltr" is-upgraded>
+public static <a href="/reference/android/widget/TextView.BufferType">TextView.BufferType</a> valueOf (<a href="/reference/java/lang/String">String</a> name)</pre></devsite-code>
+
+
+
+
+                    <p></p></p>
+                    <table class="responsive">
+                      <tr><th colspan=2>Parameters</th></tr>
+                      <tr>
+                        <td><code translate="no" dir="ltr">name</code></td>
+                        <td width="100%">
+                          <code translate="no" dir="ltr">String</code> <!-- no parameter comment --></p></td>
+                      </tr>
+                    </table>
+                    <table class="responsive">
+                      <tr><th colspan=2>Returns</th></tr>
+                      <tr>
+                        <td><code translate="no" dir="ltr"><a href="/reference/android/widget/TextView.BufferType">TextView.BufferType</a></code></td>
+                        <td width="100%"><!-- no returns description in source --></p></td>
+                      </tr>
+                    </table>
+
+                  </div>
+
+                  <div >
+                    <h3 class="api-name" id="values()" data-text="values" tabindex="-1">values</h3>
+                    <div class="api-level">
+                      <div>
+                      </div>
+
+
+
+                    </div>
+                    <div></div><devsite-code><pre class="api-signature no-pretty-print" translate="no" dir="ltr" is-upgraded>
+public static final <a href="/reference/android/widget/TextView.BufferType">BufferType[]</a> values ()</pre></devsite-code>
+
+
+
+
+                    <p></p></p>
+                    <table class="responsive">
+                      <tr><th colspan=2>Returns</th></tr>
+                      <tr>
+                        <td><code translate="no" dir="ltr"><a href="/reference/android/widget/TextView.BufferType">BufferType[]</a></code></td>
+                        <td width="100%"><!-- no returns description in source --></p></td>
+                      </tr>
+                    </table>
+
+                  </div>
+
+
+
+
+
+                  <!-- ========= METHOD DETAIL ======== -->
+
+
+
+                  <!-- ========= END OF CLASS DATA ========= -->
+
+              </div><!-- end jd-content -->
+
+
+            </div><!-- end devsite ReferenceObject -->
+
+
+
+
+            <devsite-hats-survey class="nocontent"
+                                 hats-id="VxqvKSur40kxBYCLVTd0SSGykbno"
+                                 listnr-id="5207477"></devsite-hats-survey>
+
+          </div>
+
+
+
+          <devsite-recommendations display="in-page" hidden yield>
+          </devsite-recommendations>
+
+
+
+          <devsite-thumb-rating position="footer">
+          </devsite-thumb-rating>
+
+
+
+
+          <devsite-recommendations id="recommendations-link" yield></devsite-recommendations>
+
+
+
+          <div class="devsite-floating-action-buttons"></div></article>
+
+
+        <devsite-content-footer class="nocontent">
+          <p>Content and code samples on this page are subject to the licenses described in the <a href="/license">Content License</a>. Java and OpenJDK are trademarks or registered trademarks of Oracle and/or its affiliates.</p>
+          <p>Last updated 2025-04-17 UTC.</p>
+        </devsite-content-footer>
+
+
+        <devsite-notification
+        >
+        </devsite-notification>
+
+
+
+        <div class="devsite-content-data">
+
+
+          <template class="devsite-content-data-template">
+            [[["Easy to understand","easyToUnderstand","thumb-up"],["Solved my problem","solvedMyProblem","thumb-up"],["Other","otherUp","thumb-up"]],[["Missing the information I need","missingTheInformationINeed","thumb-down"],["Too complicated / too many steps","tooComplicatedTooManySteps","thumb-down"],["Out of date","outOfDate","thumb-down"],["Samples / code issue","samplesCodeIssue","thumb-down"],["Other","otherDown","thumb-down"]],["Last updated 2025-04-17 UTC."],[],[]]
+          </template>
+
+        </div>
+
+      </devsite-content>
+    </main>
+    <devsite-footer-promos class="devsite-footer">
+
+
+
+      <nav class="devsite-footer-promos nocontent" aria-label="Promotions">
+        <ul class="devsite-footer-promos-list">
+
+          <li class="devsite-footer-promo">
+            <a href="//x.com/AndroidDev"
+               class="devsite-footer-promo-title gc-analytics-event"
+               data-category="Site-Wide Custom Events"
+
+
+               data-label="Footer X Promo"
+            >
+
+
+              <picture>
+
+                <source class="devsite-dark-theme"
+                        srcset="https://developer.android.com/_static/android/images/logo-x_dt.svg"
+                        media="(prefers-color-scheme: dark)">
+
+                <img class="devsite-footer-promo-icon"
+                     src="/_static/android/images/logo-x.svg"
+                     loading="lazy"
+                     alt="X">
+              </picture>
+
+              <span class="devsite-footer-promo-label">
+          X
+        </span>
+            </a>
+            <div class="devsite-footer-promo-description">Follow @AndroidDev on X</div>
+          </li>
+
+          <li class="devsite-footer-promo">
+            <a href="//www.youtube.com/user/androiddevelopers"
+               class="devsite-footer-promo-title gc-analytics-event"
+               data-category="Site-Wide Custom Events"
+
+
+               data-label="Footer YouTube Promo"
+            >
+
+
+              <picture>
+
+                <source class="devsite-dark-theme"
+                        srcset="https://developer.android.com/_static/android/images/logo-youtube_dt.svg"
+                        media="(prefers-color-scheme: dark)">
+
+                <img class="devsite-footer-promo-icon"
+                     src="//www.gstatic.com/images/icons/material/product/2x/youtube_48dp.png"
+                     loading="lazy"
+                     alt="YouTube">
+              </picture>
+
+              <span class="devsite-footer-promo-label">
+          YouTube
+        </span>
+            </a>
+            <div class="devsite-footer-promo-description">Check out Android Developers on YouTube</div>
+          </li>
+
+          <li class="devsite-footer-promo">
+            <a href="//www.linkedin.com/showcase/androiddev"
+               class="devsite-footer-promo-title gc-analytics-event"
+               data-category="Site-Wide Custom Events"
+
+
+               data-label="Footer LinkedIn Promo"
+            >
+
+
+              <picture>
+
+                <source class="devsite-dark-theme"
+                        srcset="https://developer.android.com/_static/android/images/logo-linkedin_dt.svg"
+                        media="(prefers-color-scheme: dark)">
+
+                <img class="devsite-footer-promo-icon"
+                     src="/_static/android/images/logo-linkedin.svg"
+                     loading="lazy"
+                     alt="LinkedIn">
+              </picture>
+
+              <span class="devsite-footer-promo-label">
+          LinkedIn
+        </span>
+            </a>
+            <div class="devsite-footer-promo-description">Connect with the Android Developers community on LinkedIn</div>
+          </li>
+
+        </ul>
+      </nav>
+
+
+    </devsite-footer-promos>
+    <devsite-footer-linkboxes class="devsite-footer">
+
+
+      <nav class="devsite-footer-linkboxes nocontent" aria-label="Footer links">
+
+        <ul class="devsite-footer-linkboxes-list">
+
+          <li class="devsite-footer-linkbox ">
+            <h3 class="devsite-footer-linkbox-heading no-link">More Android</h3>
+            <ul class="devsite-footer-linkbox-list">
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="//www.android.com"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 1)"
+                >
+
+
+                  Android
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="//www.android.com/enterprise/"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 2)"
+                >
+
+
+                  Android for Enterprise
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="//www.android.com/security-center/"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 3)"
+                >
+
+
+                  Security
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="//source.android.com"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 4)"
+                >
+
+
+                  Source
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/news"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 5)"
+                >
+
+
+                  News
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="//android-developers.googleblog.com/"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 6)"
+                >
+
+
+                  Blog
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/podcasts"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 7)"
+                >
+
+
+
+
+
+                  Podcasts
+
+                </a>
+
+
+              </li>
+
+            </ul>
+          </li>
+
+          <li class="devsite-footer-linkbox ">
+            <h3 class="devsite-footer-linkbox-heading no-link">Discover</h3>
+            <ul class="devsite-footer-linkbox-list">
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/games"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 1)"
+                >
+
+
+                  Gaming
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/ml"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 2)"
+                >
+
+
+                  Machine Learning
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/health-and-fitness"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 3)"
+                >
+
+
+                  Health & Fitness
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/media"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 4)"
+                >
+
+
+                  Camera & Media
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/privacy"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 5)"
+                >
+
+
+                  Privacy
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/training/connectivity/5g"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 6)"
+                >
+
+
+
+
+
+                  5G
+
+                </a>
+
+
+              </li>
+
+            </ul>
+          </li>
+
+          <li class="devsite-footer-linkbox ">
+            <h3 class="devsite-footer-linkbox-heading no-link">Android Devices</h3>
+            <ul class="devsite-footer-linkbox-list">
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/large-screens"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 1)"
+                >
+
+
+                  Large screens
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/wear"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 2)"
+                >
+
+
+                  Wear OS
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/chrome-os"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 3)"
+                >
+
+
+                  ChromeOS devices
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/cars"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 4)"
+                >
+
+
+                  Android for cars
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/tv"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 5)"
+                >
+
+
+
+
+
+                  Android TV
+
+                </a>
+
+
+              </li>
+
+            </ul>
+          </li>
+
+          <li class="devsite-footer-linkbox ">
+            <h3 class="devsite-footer-linkbox-heading no-link">Releases</h3>
+            <ul class="devsite-footer-linkbox-list">
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/about/versions/15"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 1)"
+                >
+
+
+                  Android 15
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/about/versions/14"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 2)"
+                >
+
+
+                  Android 14
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/about/versions/13"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 3)"
+                >
+
+
+                  Android 13
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/about/versions/12"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 4)"
+                >
+
+
+                  Android 12
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/about/versions/11"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 5)"
+                >
+
+
+                  Android 11
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/about/versions/10"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 6)"
+                >
+
+
+                  Android 10
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/about/versions/pie"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 7)"
+                >
+
+
+
+
+
+                  Pie
+
+                </a>
+
+
+              </li>
+
+            </ul>
+          </li>
+
+          <li class="devsite-footer-linkbox ">
+            <h3 class="devsite-footer-linkbox-heading no-link">Documentation and Downloads</h3>
+            <ul class="devsite-footer-linkbox-list">
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/studio/intro"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 1)"
+                >
+
+
+                  Android Studio guide
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/guide"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 2)"
+                >
+
+
+                  Developers guides
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/reference"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 3)"
+                >
+
+
+                  API reference
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/studio"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 4)"
+                >
+
+
+                  Download Studio
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="/ndk"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 5)"
+                >
+
+
+
+
+
+                  Android NDK
+
+                </a>
+
+
+              </li>
+
+            </ul>
+          </li>
+
+          <li class="devsite-footer-linkbox ">
+            <h3 class="devsite-footer-linkbox-heading no-link">Support</h3>
+            <ul class="devsite-footer-linkbox-list">
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="//issuetracker.google.com/issues/new?component=190923&amp;template=841312"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 1)"
+                >
+
+
+                  Report platform bug
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="//issuetracker.google.com/issues/new?component=192697"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 2)"
+                >
+
+
+                  Report documentation bug
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="//support.google.com/googleplay/android-developer"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 3)"
+                >
+
+
+                  Google Play support
+
+                </a>
+
+
+              </li>
+
+              <li class="devsite-footer-linkbox-item">
+
+                <a href="https://g.co/userresearch/androiddeveloperfooter"
+                   class="devsite-footer-linkbox-link gc-analytics-event"
+                   data-category="Site-Wide Custom Events"
+
+                   data-label="Footer Link (index 4)"
+                >
+
+
+
+
+
+                  Join research studies
+
+                </a>
+
+
+              </li>
+
+            </ul>
+          </li>
+
+        </ul>
+
+      </nav>
+
+    </devsite-footer-linkboxes>
+    <devsite-footer-utility class="devsite-footer">
+
+
+
+      <div class="devsite-footer-utility nocontent">
+
+
+        <nav class="devsite-footer-sites" aria-label="Other Google Developers websites">
+          <a href="https://developers.google.com/"
+             class="devsite-footer-sites-logo-link gc-analytics-event"
+             data-category="Site-Wide Custom Events"
+             data-label="Footer Google Developers Link">
+            <picture>
+
+              <source srcset="https://www.gstatic.com/devrel-devsite/prod/v31bf0d5ece3babea9777b807f088a03e9bb2225d007f11b8410e9c896eb213a6/android/images/lockup-google-for-developers-dark-theme.svg"
+                      media="(prefers-color-scheme: none)"
+                      class="devsite-dark-theme">
+
+              <img class="devsite-footer-sites-logo"
+                   src="https://www.gstatic.com/devrel-devsite/prod/v31bf0d5ece3babea9777b807f088a03e9bb2225d007f11b8410e9c896eb213a6/android/images/lockup-google-for-developers.svg"
+                   loading="lazy"
+                   alt="Google Developers">
+            </picture>
+          </a>
+          <ul class="devsite-footer-sites-list">
+
+            <li class="devsite-footer-sites-item">
+              <a href="//developer.android.com"
+                 class="devsite-footer-sites-link
+                  gc-analytics-event"
+                 data-category="Site-Wide Custom Events"
+
+                 data-label="Footer Android Link"
+
+              >
+                Android
+              </a>
+            </li>
+
+            <li class="devsite-footer-sites-item">
+              <a href="//developer.chrome.com/home"
+                 class="devsite-footer-sites-link
+                  gc-analytics-event"
+                 data-category="Site-Wide Custom Events"
+
+                 data-label="Footer Chrome Link"
+
+              >
+                Chrome
+              </a>
+            </li>
+
+            <li class="devsite-footer-sites-item">
+              <a href="//firebase.google.com"
+                 class="devsite-footer-sites-link
+                  gc-analytics-event"
+                 data-category="Site-Wide Custom Events"
+
+                 data-label="Footer Firebase Link"
+
+              >
+                Firebase
+              </a>
+            </li>
+
+            <li class="devsite-footer-sites-item">
+              <a href="//cloud.google.com"
+                 class="devsite-footer-sites-link
+                  gc-analytics-event"
+                 data-category="Site-Wide Custom Events"
+
+                 data-label="Footer Google Cloud Platform Link"
+
+              >
+                Google Cloud Platform
+              </a>
+            </li>
+
+            <li class="devsite-footer-sites-item">
+              <a href="//developers.google.com/products/"
+                 class="devsite-footer-sites-link
+                  gc-analytics-event"
+                 data-category="Site-Wide Custom Events"
+
+                 data-label="Footer All products Link"
+
+              >
+                All products
+              </a>
+            </li>
+
+          </ul>
+        </nav>
+
+
+
+        <nav class="devsite-footer-utility-links" aria-label="Utility links">
+
+          <ul class="devsite-footer-utility-list">
+
+            <li class="devsite-footer-utility-item
+                 ">
+
+
+              <a class="devsite-footer-utility-link gc-analytics-event"
+                 href="//policies.google.com/privacy"
+                 data-category="Site-Wide Custom Events"
+                 data-label="Footer Privacy link"
+              >
+                Privacy
+              </a>
+
+            </li>
+
+            <li class="devsite-footer-utility-item
+                 ">
+
+
+              <a class="devsite-footer-utility-link gc-analytics-event"
+                 href="/license"
+                 data-category="Site-Wide Custom Events"
+                 data-label="Footer License link"
+              >
+                License
+              </a>
+
+            </li>
+
+            <li class="devsite-footer-utility-item
+                 ">
+
+
+              <a class="devsite-footer-utility-link gc-analytics-event"
+                 href="/distribute/marketing-tools/brand-guidelines"
+                 data-category="Site-Wide Custom Events"
+                 data-label="Footer Brand guidelines link"
+              >
+                Brand guidelines
+              </a>
+
+            </li>
+
+            <li class="devsite-footer-utility-item
+                 glue-cookie-notification-bar-control">
+
+
+              <a class="devsite-footer-utility-link gc-analytics-event"
+                 href="#"
+                 data-category="Site-Wide Custom Events"
+                 data-label="Footer Manage cookies link"
+
+                 aria-hidden="true"
+              >
+                Manage cookies
+              </a>
+
+            </li>
+
+            <li class="devsite-footer-utility-item
+                 devsite-footer-utility-button">
+
+              <span class="devsite-footer-utility-description">Get news and tips by email</span>
+
+
+              <a class="devsite-footer-utility-link gc-analytics-event"
+                 href="/updates"
+                 data-category="Site-Wide Custom Events"
+                 data-label="Footer Subscribe link"
+              >
+                Subscribe
+              </a>
+
+            </li>
+
+          </ul>
+
+
+          <devsite-language-selector>
+            <ul role="presentation">
+
+
+              <li role="presentation">
+                <a role="menuitem" lang="en"
+
+                   aria-current="true">English</a>
+              </li>
+
+              <li role="presentation">
+                <a role="menuitem" lang="de"
+                >Deutsch</a>
+              </li>
+
+              <li role="presentation">
+                <a role="menuitem" lang="es_419"
+                >Español – América Latina</a>
+              </li>
+
+              <li role="presentation">
+                <a role="menuitem" lang="fr"
+                >Français</a>
+              </li>
+
+              <li role="presentation">
+                <a role="menuitem" lang="id"
+                >Indonesia</a>
+              </li>
+
+              <li role="presentation">
+                <a role="menuitem" lang="pl"
+                >Polski</a>
+              </li>
+
+              <li role="presentation">
+                <a role="menuitem" lang="pt_br"
+                >Português – Brasil</a>
+              </li>
+
+              <li role="presentation">
+                <a role="menuitem" lang="vi"
+                >Tiếng Việt</a>
+              </li>
+
+              <li role="presentation">
+                <a role="menuitem" lang="zh_cn"
+                >中文 – 简体</a>
+              </li>
+
+              <li role="presentation">
+                <a role="menuitem" lang="ja"
+                >日本語</a>
+              </li>
+
+              <li role="presentation">
+                <a role="menuitem" lang="ko"
+                >한국어</a>
+              </li>
+
+            </ul>
+          </devsite-language-selector>
+
+        </nav>
+      </div>
+
+    </devsite-footer-utility>
+    <devsite-panel>
+
+    </devsite-panel>
+
+  </section></section>
+<devsite-sitemask></devsite-sitemask>
+<devsite-snackbar></devsite-snackbar>
+<devsite-tooltip ></devsite-tooltip>
+<devsite-heading-link></devsite-heading-link>
+<devsite-analytics>
+
+  <script type="application/json" analytics>[]</script>
+  <script type="application/json" tag-management>{&#34;at&#34;: &#34;True&#34;, &#34;ga4&#34;: [{&#34;id&#34;: &#34;G-QFRN08RN6E&#34;, &#34;purpose&#34;: 0}], &#34;ga4p&#34;: [{&#34;id&#34;: &#34;G-QFRN08RN6E&#34;, &#34;purpose&#34;: 0}], &#34;gtm&#34;: [{&#34;id&#34;: &#34;GTM-KMSWPCJ&#34;, &#34;purpose&#34;: 0}], &#34;parameters&#34;: {&#34;internalUser&#34;: &#34;False&#34;, &#34;language&#34;: {&#34;machineTranslated&#34;: &#34;False&#34;, &#34;requested&#34;: &#34;en&#34;, &#34;served&#34;: &#34;en&#34;}, &#34;pageType&#34;: &#34;reference&#34;, &#34;projectName&#34;: &#34;API reference&#34;, &#34;signedIn&#34;: &#34;False&#34;, &#34;tenant&#34;: &#34;android&#34;, &#34;recommendations&#34;: {&#34;sourcePage&#34;: &#34;&#34;, &#34;sourceType&#34;: 0, &#34;sourceRank&#34;: 0, &#34;sourceIdenticalDescriptions&#34;: 0, &#34;sourceTitleWords&#34;: 0, &#34;sourceDescriptionWords&#34;: 0, &#34;experiment&#34;: &#34;&#34;}, &#34;experiment&#34;: {&#34;ids&#34;: &#34;&#34;}}}</script>
+
+</devsite-analytics>
+
+<devsite-badger></devsite-badger>
+
+
+<android-fully-clickable
+    target="
+        .android-case-study .devsite-landing-row-item,
+        .android-editorial-and-updates-cards .devsite-card-content-wrapper,
+        .android-editorial-and-updates-cards .devsite-landing-row-item,
+        .android-grouped-resources .devsite-landing-row-item,
+        .android-grouped-resources-contained--primary .devsite-landing-row-item,
+        .android-grouped-resources-contained--secondary .devsite-landing-row-item,
+        .android-grouped-resources-contained--tertiary .devsite-landing-row-item,
+        .android-grouped-resources-uncontained--primary .devsite-landing-row-item,
+        .android-grouped-resources-uncontained--secondary .devsite-landing-row-item,
+        .android-grouped-resources-uncontained--tertiary .devsite-landing-row-item,
+        .android-guide-cards .devsite-landing-row-item,
+        .android-illustrated-resources-index .devsite-landing-row-item,
+        .android-illustrated-resources-primary .devsite-landing-row-item,
+        .android-illustrated-resources-secondary .devsite-landing-row-item,
+        .android-illustrated-resources-secondary-small .devsite-landing-row-item,
+        .android-illustrated-resources-tertiary .devsite-landing-row-item,
+        .android-illustrated-resources-tertiary-small .devsite-landing-row-item,
+        .android-promo .devsite-landing-row-item,
+        .android-quick-link,
+        .android-samples .devsite-card-wrapper,
+        .fully-clickable"
+    watch=".android-editorial-and-updates-cards, .android-samples, devsite-content"></android-fully-clickable>
+
+<script nonce="AMTmS6m97JxkxYJF9VP7z5Ua8CsksU">
+
+  (function(d,e,v,s,i,t,E){d['GoogleDevelopersObject']=i;
+    t=e.createElement(v);t.async=1;t.src=s;E=e.getElementsByTagName(v)[0];
+    E.parentNode.insertBefore(t,E);})(window, document, 'script',
+    'https://www.gstatic.com/devrel-devsite/prod/v31bf0d5ece3babea9777b807f088a03e9bb2225d007f11b8410e9c896eb213a6/android/js/app_loader.js', '[3,"en",null,"/js/devsite_app_module.js","https://www.gstatic.com/devrel-devsite/prod/v31bf0d5ece3babea9777b807f088a03e9bb2225d007f11b8410e9c896eb213a6","https://www.gstatic.com/devrel-devsite/prod/v31bf0d5ece3babea9777b807f088a03e9bb2225d007f11b8410e9c896eb213a6/android","https://android-dot-devsite-v2-prod.appspot.com",null,null,["/_pwa/android/manifest.json","https://www.gstatic.com/devrel-devsite/prod/v31bf0d5ece3babea9777b807f088a03e9bb2225d007f11b8410e9c896eb213a6/images/video-placeholder.svg","https://www.gstatic.com/devrel-devsite/prod/v31bf0d5ece3babea9777b807f088a03e9bb2225d007f11b8410e9c896eb213a6/android/images/favicon.svg","https://www.gstatic.com/devrel-devsite/prod/v31bf0d5ece3babea9777b807f088a03e9bb2225d007f11b8410e9c896eb213a6/android/images/lockup.png","https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700|Google+Sans+Text:400,400italic,500,500italic,600,600italic,700,700italic|Roboto+Mono:400,500,700&display=swap"],1,null,[1,6,8,12,14,17,21,25,50,52,63,70,75,76,80,87,91,92,93,97,98,100,101,102,103,104,105,107,108,109,110,112,113,117,118,120,122,124,125,126,127,129,130,131,132,133,134,135,136,138,140,141,147,148,149,151,152,156,157,158,159,161,163,164,168,169,170,179,180,182,183,186,191,193,196],"AIzaSyAP-jjEJBzmIyKR4F-3XITp8yM9T1gEEI8","AIzaSyB6xiKGDR5O3Ak2okS4rLkauxGUG7XP0hg","developer.android.com","AIzaSyAQk0fBONSGUqCNznf6Krs82Ap1-NV6J4o","AIzaSyCCxcqdrZ_7QMeLCRY20bh_SXdAYqy70KY",null,null,null,["Significatio__enable_by_tenant","MiscFeatureFlags__enable_explain_this_code","Cloud__enable_cloud_dlp_service","Profiles__enable_profile_collections","DevPro__enable_google_payments_buyflow","Cloud__enable_llm_concierge_chat","Experiments__reqs_query_experiments","Profiles__enable_dashboard_curated_recommendations","Profiles__require_profile_eligibility_for_signin","DevPro__enable_google_one_card","Analytics__enable_clearcut_logging","Concierge__enable_pushui","MiscFeatureFlags__enable_dark_theme","Profiles__enable_awarding_url","Search__enable_dynamic_content_confidential_banner","BookNav__enable_tenant_cache_key","MiscFeatureFlags__enable_project_variables","DevPro__enable_developer_subscriptions","Profiles__enable_developer_profiles_callout","Profiles__enable_release_notes_notifications","DevPro__enable_vertex_credit_card","Cloud__enable_cloud_shell_fte_user_flow","MiscFeatureFlags__emergency_css","Profiles__enable_stripe_subscription_management","MiscFeatureFlags__enable_variable_operator_index_yaml","MiscFeatureFlags__enable_framebox_badge_methods","Concierge__enable_actions_menu","Profiles__enable_complete_playlist_endpoint","MiscFeatureFlags__enable_variable_operator","Search__enable_ai_eligibility_checks","Cloud__enable_free_trial_server_call","MiscFeatureFlags__developers_footer_image","Cloud__enable_legacy_calculator_redirect","Profiles__enable_recognition_badges","Search__enable_page_map","Cloud__enable_cloud_shell","DevPro__enable_cloud_innovators_plus","Profiles__enable_page_saving","Search__enable_suggestions_from_borg","MiscFeatureFlags__gdp_dashboard_reskin_enabled","Profiles__enable_public_developer_profiles","Profiles__enable_join_program_group_endpoint","DevPro__enable_enterprise","Search__enable_ai_search_summaries","TpcFeatures__enable_unmirrored_page_left_nav","CloudShell__cloud_shell_button","CloudShell__cloud_code_overflow_menu","EngEduTelemetry__enable_engedu_telemetry","Profiles__enable_completequiz_endpoint","MiscFeatureFlags__enable_firebase_utm","DevPro__enable_firebase_workspaces_card","MiscFeatureFlags__enable_view_transitions","Cloud__enable_cloudx_experiment_ids","DevPro__enable_code_assist","Profiles__enable_completecodelab_endpoint","MiscFeatureFlags__developers_footer_dark_image","DevPro__enable_devpro_offers"],null,null,"AIzaSyBLEMok-5suZ67qRPzx0qUtbnLmyT_kCVE","https://developerscontentserving-pa.googleapis.com","AIzaSyCM4QpTRSqP5qI4Dvjt4OAScIN8sOUlO-k","https://developerscontentsearch-pa.googleapis.com",2,4,null,"https://developerprofiles-pa.googleapis.com",[3,"android","Android Developers","developer.android.com",null,"android-dot-devsite-v2-prod.appspot.com",null,null,[null,1,null,null,null,null,null,null,null,null,null,[1],null,null,null,null,null,null,[1],[1,null,null,[1,20],"/recommendations"],null,null,null,[1,null,1],[1,1,null,1,1]],null,[18,null,null,null,null,null,"/images/lockup.png","/images/touchicon-180.png",null,null,null,null,null,null,null,null,null,null,null,null,null,2,null,null,null,"/images/lockup-dark-theme.png",[]],[],null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,[6,1,14,15,20,22,23,28,29,37,43],null,[[null,null,1],[1,1]],[[null,null,null,null,null,null,null,[["G-QFRN08RN6E"],null,null,[["G-QFRN08RN6E",1]]],null,null,null,null,1],null,[[1,1],[2,2]]],null,4,null,null,null,null,null,null,null,null,null,null,null,null,null,"android.devsite.google"],null,"pk_live_5170syrHvgGVmSx9sBrnWtA5luvk9BwnVcvIi7HizpwauFG96WedXsuXh790rtij9AmGllqPtMLfhe2RSwD6Pn38V00uBCydV4m",1,1,"https://developerscontentinsights-pa.googleapis.com","AIzaSyCg-ZUslalsEbXMfIo9ZP8qufZgo3LSBDU","AIzaSyDxT0vkxnY_KeINtA4LSePJO-4MAZPMRsE","https://developers.googleapis.com"]')
+
+</script>
+
+<devsite-a11y-announce></devsite-a11y-announce>
+</body>
+</html>
