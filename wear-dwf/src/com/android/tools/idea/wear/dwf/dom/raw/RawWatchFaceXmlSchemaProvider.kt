@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.wear.dwf.analytics.DeclarativeWatchFaceUsageTracker
 import com.android.tools.wear.wff.WFFVersion
 import com.android.tools.wear.wff.WFFVersionExtractor
 import com.intellij.openapi.module.Module
@@ -38,9 +39,14 @@ class RawWatchfaceXmlSchemaProvider(
   override fun getSchema(url: @NonNls String, module: Module?, baseFile: PsiFile): XmlFile? {
     val manifestDocument =
       module?.let { MergedManifestManager.getMergedManifestSupplier(module).now?.document }
-    val schemaVersion =
+
+    val documentWFFVersion =
       manifestDocument?.let { wffVersionExtractor.extractFromManifest(manifestDocument) }
-        ?: getFallbackVersion(module)
+    val schemaVersion = documentWFFVersion ?: getFallbackVersion(module)
+
+    DeclarativeWatchFaceUsageTracker.getInstance()
+      .trackXmlSchemaUsed(schemaVersion, isFallback = documentWFFVersion == null)
+
     return XmlUtil.findXmlFile(
       baseFile,
       VfsUtilCore.urlToPath(

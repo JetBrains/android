@@ -30,7 +30,12 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.wear.dwf.analytics.DeclarativeWatchFaceUsageTracker
+import com.android.tools.wear.wff.WFFVersion.WFFVersion1
+import com.android.tools.wear.wff.WFFVersion.WFFVersion3
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.xml.XmlFile
+import com.intellij.testFramework.replaceService
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Assert.assertFalse
@@ -38,6 +43,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.atLeastOnce
+import org.mockito.kotlin.verify
 
 private const val RES_RAW_FOLDER = "${FD_RES}/${FD_RES_RAW}"
 
@@ -198,6 +206,40 @@ class RawWatchfaceXmlSchemaProviderTest {
       "watch_face_completion_flavor_tag.xml",
       "watch_face_completion_flavor_tag_after_version_2.xml",
     )
+  }
+
+  @Test
+  fun `test the provider tracks usage of the XML schema`() {
+    val mockTracker = mock<DeclarativeWatchFaceUsageTracker>()
+    ApplicationManager.getApplication()
+      .replaceService(
+        DeclarativeWatchFaceUsageTracker::class.java,
+        mockTracker,
+        projectRule.testRootDisposable,
+      )
+    addManifestWithWFFVersion("3")
+
+    domRule.testHighlighting("watch_face_completion_metadata_tag_after.xml")
+
+    verify(mockTracker, atLeastOnce()).trackXmlSchemaUsed(WFFVersion3, isFallback = false)
+  }
+
+  @Test
+  fun `test the provider tracks usage of the XML schema version fallbacks`() {
+    val mockTracker = mock<DeclarativeWatchFaceUsageTracker>()
+    ApplicationManager.getApplication()
+      .replaceService(
+        DeclarativeWatchFaceUsageTracker::class.java,
+        mockTracker,
+        projectRule.testRootDisposable,
+      )
+
+    // invalid to force use of a fallback version
+    addManifestWithWFFVersion("invalid")
+
+    domRule.testHighlighting("watch_face_completion_metadata_tag_after.xml")
+
+    verify(mockTracker, atLeastOnce()).trackXmlSchemaUsed(WFFVersion1, isFallback = true)
   }
 
   private fun addManifestWithWFFVersion(version: String) {
