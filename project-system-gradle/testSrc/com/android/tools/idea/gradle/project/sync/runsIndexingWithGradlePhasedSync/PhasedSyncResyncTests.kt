@@ -52,12 +52,43 @@ private fun getProjectSpecificResyncIssues(testProject: TestProject) = when(test
   else -> emptySet()
 }
 
+private fun getProjectSpecificIdeModelResyncIssues(testProject: TestProject) = when(testProject) {
+  TestProject.PRIVACY_SANDBOX_SDK,
+  TestProject.COMPATIBILITY_TESTS_AS_36,
+  TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML -> setOf(
+    // TODO(b/384022658): Manifest index affects these values so they fail to populate correctly in some cases
+    "/CurrentVariantReportedVersions"
+  )
+  // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
+  TestProject.KOTLIN_KAPT,
+  TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
+    "generated/source/kaptKotlin",
+  )
+  else -> emptySet()
+}
+
+private val IDE_MODELS_WITH_KNOWN_RESYNC_CONSISTENCY_ISSUES = setOf(
+  "/GradleModuleModel",
+)
+
+fun ModuleDumpWithType.filterOutKnownConsistencyIssues(): ModuleDumpWithType {
+  return copy(
+    ideModels = ideModels
+      .filter { line ->
+        (IDE_MODEL_DEPENDENCY_RELATED_PROPERTIES + // This is expected as intermediate GradleAndroidModel won't have dependencies
+         IDE_MODELS_WITH_KNOWN_RESYNC_CONSISTENCY_ISSUES).none { line.contains(it) }
+      }
+  )
+}
 
 fun ModuleDumpWithType.filterOutProjectSpecificIssues(testProject: TestProject) = copy(
-   entries = entries.filter { line ->
+  projectStructure = projectStructure.filter { line ->
      getProjectSpecificResyncIssues(testProject).none { line.contains(it) }
-    }
-  )
+    },
+  ideModels = ideModels.filter { line ->
+    getProjectSpecificIdeModelResyncIssues(testProject).none { line.contains(it) }
+  }
+)
 
 @RunWith(Parameterized::class)
 class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTestBase() {
@@ -69,18 +100,25 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
 
     val preparedProject = projectRule.prepareTestProject(testProject)
     preparedProject.open({ it.copy(expectedSyncIssues = testProject.expectedSyncIssues) }) { project: Project ->
-      val firstFullSync = project.dumpModules(isAndroidByPath)
+      val firstFullSync = project.dumpModules(knownAndroidPaths)
       project.requestSyncAndWait(ignoreSyncIssues = testProject.expectedSyncIssues, waitForIndexes = false)
-      val secondFullSync = project.dumpModules(isAndroidByPath)
+      val secondFullSync = project.dumpModules(knownAndroidPaths)
       val secondIntermediateSync = intermediateDump.copy()
-      Truth.assertWithMessage("Comparing full sync states")
-        .that(secondFullSync.join())
-        .isEqualTo(firstFullSync.join())
+      Truth.assertWithMessage("Comparing full project structures")
+        .that(secondFullSync.projectStructure())
+        .isEqualTo(firstFullSync.projectStructure())
 
+      Truth.assertWithMessage("Comparing full ide models")
+        .that(secondFullSync.ideModels())
+        .isEqualTo(firstFullSync.ideModels())
 
-      Truth.assertWithMessage("Comparing resync intermediate sync state to full state")
-        .that(secondIntermediateSync.filterOutProjectSpecificIssues(testProject).join())
-        .isEqualTo(secondFullSync.filterOutProjectSpecificIssues(testProject).join())
+      Truth.assertWithMessage("Comparing resync intermediate sync project structure to full state")
+        .that(secondIntermediateSync.filterOutProjectSpecificIssues(testProject).projectStructure())
+        .isEqualTo(secondFullSync.filterOutProjectSpecificIssues(testProject).projectStructure())
+
+      Truth.assertWithMessage("Comparing resync intermediate sync ide models to full state")
+        .that(secondIntermediateSync.filterOutKnownConsistencyIssues().filterOutProjectSpecificIssues(testProject).ideModels())
+        .isEqualTo(secondFullSync.filterOutKnownConsistencyIssues().filterOutProjectSpecificIssues(testProject).ideModels())
     }
   }
 

@@ -897,7 +897,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
 
     private fun Coordinates.toIdeCoordinates(): IdeCoordinatesImpl = IdeCoordinatesImpl(group, name, version)
-    private fun DeclaredDependencies?.toIdeDeclaredDependencies(): IdeDeclaredDependenciesImpl =
+    internal fun DeclaredDependencies?.toIdeDeclaredDependencies(): IdeDeclaredDependenciesImpl =
       IdeDeclaredDependenciesImpl(this?.configurationsToCoordinates?.map { e -> e.key to e.value.map { it.toIdeCoordinates() } }?.toMap() ?: emptyMap())
 
     private fun createGradleAndroidModel(

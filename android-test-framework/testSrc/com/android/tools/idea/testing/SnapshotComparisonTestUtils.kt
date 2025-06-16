@@ -208,7 +208,7 @@ data class ProjectViewSettings(
 
 fun Project.dumpAndroidProjectView(): String = dumpAndroidProjectView(initialState = Unit) { _, _ -> Unit }
 
-fun nameProperties(snapshotLines: Sequence<String>, attachValue: Boolean = false): Sequence<Pair<String, String>> = sequence {
+fun nameProperties(snapshotLines: Sequence<String>, attachValue: Boolean = false, skipTopLevel: Boolean = false): Sequence<Pair<String, String>> = sequence {
   val context = mutableListOf<Pair<Int, String>>()
   var previousIndentation = -1
   for (existingLine in snapshotLines) {
@@ -229,7 +229,9 @@ fun nameProperties(snapshotLines: Sequence<String>, attachValue: Boolean = false
       }
     }
     previousIndentation = indentation
-    yield(context.map { (_, line ) -> line }.joinToString(separator = "/") to existingLine)
+    if (!(skipTopLevel && indentation == 0) ) {
+      yield(context.joinToString(separator = "/") { (_, line) -> line } to existingLine)
+    }
   }
 }
 
