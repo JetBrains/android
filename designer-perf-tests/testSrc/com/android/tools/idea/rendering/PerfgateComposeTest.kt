@@ -273,7 +273,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
     val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     val fastPreviewManager = FastPreviewManager.getInstance(project)
-    fastPreviewManager.preStartDaemon(module)
+    fastPreviewManager.preStartDaemon(BuildTargetReference.from(module, mainFile))
 
     // Make one full build (required before we use FastPreviewManager
     projectRule.buildAndAssertSuccess()

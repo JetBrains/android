@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.fast
 
-import com.android.ide.common.gradle.Version
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -28,8 +27,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
-
-private val TEST_VERSION = Version.parse("0.0.1-test")
 
 class FastPreviewCompileFlowTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -55,7 +52,6 @@ class FastPreviewCompileFlowTest {
       FastPreviewManager.getTestInstance(
           project,
           daemonFactory = { _, _, _, _ -> blockingDaemon },
-          moduleRuntimeVersionLocator = { TEST_VERSION }
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     val results = mutableListOf<Boolean>()

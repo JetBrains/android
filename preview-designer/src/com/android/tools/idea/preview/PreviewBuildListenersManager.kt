@@ -84,7 +84,7 @@ class PreviewBuildListenersManager(
             // This should not happen when essentials mode is enabled.
             FastPreviewManager.getInstance(module.project).let {
               if (it.isEnabled && !PreviewEssentialsModeManager.isEssentialsModeEnabled) {
-                it.preStartDaemon(module)
+                it.preStartDaemon(buildTargetReference)
               }
             }
           }

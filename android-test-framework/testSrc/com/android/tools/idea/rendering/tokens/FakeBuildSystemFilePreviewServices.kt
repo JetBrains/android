@@ -27,6 +27,7 @@ import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Bu
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildTargets
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices.ApplicationLiveEditServicesForTests
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices.Companion.DEFAULT_RUNTIME_VERSION
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
@@ -49,6 +50,7 @@ class FakeBuildSystemFilePreviewServices(
   buildTargets: FakeBuildSystemFilePreviewServices.() -> BuildTargets = { FakeBuildTargets() },
   buildServices: FakeBuildSystemFilePreviewServices.() -> BuildServices<BuildTargetReference> = { FakeBuildServices() },
   private val classFiles: Map<String, ByteArray> = mapOf(),
+  private val versionString: String = DEFAULT_RUNTIME_VERSION
 ) : BuildSystemFilePreviewServices<AndroidProjectSystem, BuildTargetReference> {
   private val listeners: MutableList<BuildListener> = mutableListOf()
   private var lastStatus: BuildStatus = BuildStatus.UNKNOWN
@@ -67,7 +69,7 @@ class FakeBuildSystemFilePreviewServices(
   }
 
   override fun getApplicationLiveEditServices(buildTargetReference: BuildTargetReference): ApplicationLiveEditServices {
-    return ApplicationLiveEditServicesForTests(classFiles)
+    return ApplicationLiveEditServicesForTests(classFiles, versionString)
   }
 
   override fun subscribeBuildListener(project: Project, parentDisposable: Disposable, listener: BuildListener) {
