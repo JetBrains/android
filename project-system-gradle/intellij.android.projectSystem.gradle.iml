@@ -175,5 +175,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.sync" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" />
+    <orderEntry type="module" module-name="kotlin.base.scripting.k1" />
   </component>
 </module>

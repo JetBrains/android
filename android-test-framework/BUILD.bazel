@@ -64,6 +64,7 @@ jvm_library(
     "//platform/platform-impl:ide-impl",
     "//platform/platform-impl:ide-impl_test_lib",
     "//jps/model-api:model",
+    "//platform/projectModel-api:projectModel",
     "//platform/projectModel-impl",
     "//platform/refactoring",
     "//platform/service-container",
@@ -82,6 +83,7 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "@lib//:kotlinc-kotlin-scripting-compiler-impl",
     "//plugins/kotlin/base/scripting.k1",
+    "//plugins/kotlin/base/scripting.k1:scripting.k1_test_lib",
   ]
 )
 

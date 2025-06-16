@@ -84,6 +84,7 @@ jvm_library(
     "//platform/core-ui",
     "//platform/extensions",
     "//platform/ide-core",
+    "//platform/projectModel-api:projectModel",
     "//plugins/toml/core",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",

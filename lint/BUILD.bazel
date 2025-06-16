@@ -65,6 +65,7 @@ jvm_library(
     "//plugins/kotlin/base/util",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//android/gradle-declarative-lang",
+    "//xml/xml-analysis-api:analysis",
   ],
   runtime_deps = [":lint-common_resources"]
 )

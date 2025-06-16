@@ -313,6 +313,7 @@ jvm_library(
     "//xml/dom-openapi:dom",
     "//xml/xml-frontback-impl:frontback-impl",
     "//xml/xml-psi-api:psi",
+    "//xml/xml-analysis-api:analysis",
     "//plugins/kotlin/code-insight/api",
     "//android/android/editing/documentation",
     "//android/android/editing/documentation:documentation_test_lib",

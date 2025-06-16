@@ -18,6 +18,8 @@ jvm_library(
     "//android/project-system-apk:projectSystem-apk",
     "//android/project-system",
     "//android/android:core",
+    "//platform/core-api:core",
+    "//platform/projectModel-api:projectModel",
     "//platform/lang-api:lang",
   ],
   runtime_deps = [":apk_resources"]
