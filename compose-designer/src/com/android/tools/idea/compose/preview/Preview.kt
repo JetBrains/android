@@ -45,7 +45,6 @@ import com.android.tools.idea.compose.preview.uicheck.UiCheckPanelProvider
 import com.android.tools.idea.compose.preview.util.containsOffset
 import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.asCollection
@@ -441,7 +440,7 @@ class ComposePreviewRepresentation(
   override var isUiCheckFilterEnabled: Boolean by
     Delegates.observable(true) { _, oldValue, newValue ->
       if (oldValue == newValue) return@observable
-      launch(uiThread) {
+      launch(Dispatchers.EDT) {
         var hasVisiblePreviews = false
         if (newValue) {
           surface.updateSceneViewVisibilities {
@@ -561,7 +560,7 @@ class ComposePreviewRepresentation(
     val startTime = System.currentTimeMillis()
     surface.resetColorBlindMode()
     uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance, isWearPreview)
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       emptyUiCheckPanel.apply {
         isVisible = true
         // Put this panel in the DRAG_LAYER so that it hides everything in the surface,
@@ -603,7 +602,7 @@ class ComposePreviewRepresentation(
     (surface.visualLintIssueProvider as? ComposeVisualLintIssueProvider)?.onUiCheckStop()
     uiCheckFilterFlow.value = UiCheckModeFilter.Disabled()
     surface.resetColorBlindMode()
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       surface.layeredPane.remove(emptyUiCheckPanel)
       surface.updateSceneViewVisibilities { true }
     }
@@ -859,7 +858,7 @@ class ComposePreviewRepresentation(
   }
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       surface.layoutManagerSwitcher?.currentLayoutOption?.value = mode.layoutOption
     }
   }
@@ -1065,7 +1064,7 @@ class ComposePreviewRepresentation(
       // try to restore it.
       // Otherwise, we notify to surface to apply zoom-to-fit.
       if (isPreviewModeChanging.getAndSet(false)) {
-        launch(uiThread) {
+        launch(Dispatchers.EDT) {
           if (!surface.restorePreviousScale()) {
             surface.notifyZoomToFit()
           }
@@ -1161,7 +1160,7 @@ class ComposePreviewRepresentation(
 
     if (previewModeManager.mode.value.isFocus) {
       // We need to get rid of the flickering when switching tabs in focus tabs b/287484743
-      withContext(uiThread) { surface.notifyZoomToFit() }
+      withContext(Dispatchers.EDT) { surface.notifyZoomToFit() }
     }
 
     composePreviewFlowManager.updateRenderedPreviews(showingPreviewElements)
@@ -1406,7 +1405,7 @@ class ComposePreviewRepresentation(
 
     refreshJob.invokeOnCompletion {
       requestLogger.debug("Completed")
-      launch(uiThread) { Disposer.dispose(refreshProgressIndicator) }
+      launch(Dispatchers.EDT) { Disposer.dispose(refreshProgressIndicator) }
       if (it is CancellationException) {
         composeWorkBench.onRefreshCancelledByTheUser()
       } else {
@@ -1418,7 +1417,7 @@ class ComposePreviewRepresentation(
         postIssueUpdateListenerForUiCheck.activate()
       }
 
-      launch(uiThread) {
+      launch(Dispatchers.EDT) {
         if (
           !composeWorkBench.isMessageBeingDisplayed &&
             refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY
@@ -1544,7 +1543,7 @@ class ComposePreviewRepresentation(
       is PreviewMode.Default -> {
         sceneComponentProvider.enabled = true
         invalidateAndRefresh()
-        withContext(uiThread) { surface.repaint() }
+        withContext(Dispatchers.EDT) { surface.repaint() }
       }
       is PreviewMode.Interactive -> {
         startInteractivePreview(mode.selected as ComposePreviewElementInstance)
@@ -1562,7 +1561,7 @@ class ComposePreviewRepresentation(
           .newAnimationPreviewIsOpening()
         sceneComponentProvider.enabled = false
 
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           val animationPreview = createAnimationPreviewPanel(surface, psiFilePointer)
           currentAnimationPreview = animationPreview
 
@@ -1584,7 +1583,7 @@ class ComposePreviewRepresentation(
         invalidateAndRefresh()
       }
       is PreviewMode.Focus -> {
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           if (StudioFlags.COMPOSE_PREVIEW_RESIZING.get()) {
             activeResizePanelInFocusMode = ResizePanel(composeWorkBench.mainSurface)
           }
@@ -1621,7 +1620,7 @@ class ComposePreviewRepresentation(
       }
       is PreviewMode.AnimationInspection -> {
         currentAnimationPreview?.let {
-          withContext(uiThread) { Disposer.dispose(it) }
+          withContext(Dispatchers.EDT) { Disposer.dispose(it) }
           it.tracker.closeAnimationInspector()
         }
         currentAnimationPreview = null
@@ -1629,7 +1628,7 @@ class ComposePreviewRepresentation(
         requestVisibilityAndNotificationsUpdate()
       }
       is PreviewMode.Focus -> {
-        withContext(uiThread) {
+        withContext(Dispatchers.EDT) {
           composeWorkBench.focusMode = null
           Disposer.dispose(activeResizePanelInFocusMode!!)
           activeResizePanelInFocusMode = null
@@ -1681,13 +1680,13 @@ class ComposePreviewRepresentation(
       val offset = event.editor.logicalPositionToOffset(event.newPosition)
 
       lifecycleManager.executeIfActive {
-        launch(uiThread) {
+        launch(Dispatchers.EDT) {
           val filePreviewElements =
             withContext(workerThread) { composePreviewFlowManager.allPreviewElementsFlow.value }
-          // Workaround for b/238735830: The following withContext(uiThread) should not be needed
-          // but the code below ends up being executed in a worker thread under some circumstances
-          // so we need to prevent that from happening by forcing the context switch.
-          withContext(uiThread) {
+          // Workaround for b/238735830: The following withContext(Dispatchers.EDT) should not be
+          // needed but the code below ends up being executed in a worker thread under some
+          // circumstances so we need to prevent that from happening by forcing the context switch.
+          withContext(Dispatchers.EDT) {
             when (filePreviewElements) {
               is FlowableCollection.Uninitialized -> {}
               is FlowableCollection.Present -> {
