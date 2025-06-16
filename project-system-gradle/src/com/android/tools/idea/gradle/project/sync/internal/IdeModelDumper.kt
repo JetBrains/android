@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
+import com.android.tools.idea.gradle.model.IdeBytecodeTransformation
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
@@ -509,6 +510,13 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       nest {
         dump("compileClasspath", ideBaseArtifact.compileClasspath)
         dump("runtimeClasspath", ideBaseArtifact.runtimeClasspath)
+      }
+      ideBaseArtifact.bytecodeTransforms?.let { transforms ->
+        if(transforms.isNotEmpty()) {
+          prop("BytecodeTransforms") {
+            transforms.map { it.type.toString() }.sorted().joinToString(",")
+          }
+        }
       }
       val runtimeNames = ideBaseArtifact.runtimeClasspath.libraries.filterIsInstance<IdeArtifactLibrary>().map { it.name }.toSet()
       val compileTimeNames = ideBaseArtifact.compileClasspath.libraries.filterIsInstance<IdeArtifactLibrary>().map { it.name }.toSet()
