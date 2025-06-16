@@ -27,12 +27,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.SystemHealthEvent;
 import com.intellij.diagnostic.AbstractMessage;
-import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.diagnostic.KotlinCompilerCrash;
 import com.intellij.diagnostic.LogMessage;
 import com.intellij.diagnostic.ReportMessages;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.ide.plugins.PluginUtil;
 import com.intellij.idea.IdeaLogger;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -90,10 +90,13 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
     bean.setDescription(description);
     bean.setMessage(event.getMessage());
 
-    IdeaPluginDescriptor plugin = IdeErrorsDialog.getPlugin(event);
-    if (plugin != null && (!plugin.isBundled() || plugin.allowBundledUpdate())) {
-      bean.setPluginName(plugin.getName());
-      bean.setPluginVersion(plugin.getVersion());
+    var eventThrowable = event.getThrowable();
+    if (eventThrowable != null) {
+      var plugin = PluginManagerCore.getPlugin(PluginUtil.getInstance().findPluginId(eventThrowable));
+      if (plugin != null && (!plugin.isBundled() || plugin.allowBundledUpdate())) {
+        bean.setPluginName(plugin.getName());
+        bean.setPluginVersion(plugin.getVersion());
+      }
     }
 
     // Early escape (and no UI impact) if these are analytics events being pushed from the platform
