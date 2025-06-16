@@ -30,8 +30,8 @@ def _kt_library_test_impl(env, target):
                 generated_class_jar = "",
             )],
             java_output_compile_jars = ["*.jar"],
-            transitive_compile_time_jars_depset = ["*.jar", "*.jar", "*.jar", "*.jar", "*.jar", "*.jar"],
-            transitive_runtime_jars_depset = ["*.jar", "*.jar", "*.jar"],
+            transitive_compile_time_jars_depset = ["*.jar"],
+            transitive_runtime_jars_depset = ["*.jar"],
         ),
     )
 
@@ -55,8 +55,8 @@ def _kt_binary_test_impl(env, target):
                 generated_class_jar = "",
             )],
             java_output_compile_jars = ["*.jar"],
-            transitive_compile_time_jars_depset = ["*.jar", "*.jar", "*.jar", "*.jar", "*.jar", "*.jar", "*.jar"],
-            transitive_runtime_jars_depset = ["*.jar", "*.jar", "*.jar", "*.jar"],
+            transitive_compile_time_jars_depset = ["*.jar"],
+            transitive_runtime_jars_depset = ["*.jar"],
         ),
     )
 

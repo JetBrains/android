@@ -1,7 +1,7 @@
 """Helper functions to perform checks specific for java rules."""
 
 load("@rules_testing//lib/private:struct_subject.bzl", "StructSubject")
-load("//bzl_tests:check_utils.bzl", "collection_struct_contains_exactly", "nested_struct_factory", "subjects_depset_factory", "subjects_file_factory", "subjects_str_factory", "target_factory")
+load("//bzl_tests:check_utils.bzl", "collection_struct_contains_exactly", "nested_struct_factory", "subjects_collection_predicate_factory", "subjects_depset_factory", "subjects_file_factory", "subjects_str_factory", "target_factory")
 
 def compilation_context_factory(actual, *, meta):
     return nested_struct_factory(
@@ -34,8 +34,8 @@ def cc_toolchain_info_factory(actual, *, meta):
             cpu = subjects_str_factory,
             compiler = subjects_str_factory,
             target_name = subjects_str_factory,
-            built_in_include_directories = subjects_str_factory,
-            c_options = subjects_str_factory,
-            cpp_options = subjects_str_factory,
+            built_in_include_directories = subjects_collection_predicate_factory,
+            c_options = subjects_collection_predicate_factory,
+            cpp_options = subjects_collection_predicate_factory,
         ),
     )

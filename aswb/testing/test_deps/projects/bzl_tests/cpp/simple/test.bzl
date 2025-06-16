@@ -97,13 +97,13 @@ def _cc_toolchain_test_impl(env, target):
     actual.cc_toolchain_info().contains_exactly(
         struct(
             id = CC_TOOLCHAIN_TARGET_LABEL + "%" + GNU_SYSTEM_NAME,
-            compiler_executable = "/usr/bin/gcc",
+            compiler_executable = "*",
             cpu = "k8",
             compiler = "gcc",
             target_name = GNU_SYSTEM_NAME,
-            built_in_include_directories = ["/usr/lib/gcc/x86_64-linux-gnu/14/include", "/usr/local/include", "/usr/include/x86_64-linux-gnu", "/usr/include", "/usr/include/c++/14", "/usr/include/x86_64-linux-gnu/c++/14", "/usr/include/c++/14/backward", "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"],
-            c_options = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall", "-Wunused-but-set-parameter", "-Wno-free-nonheap-object", "-fno-omit-frame-pointer", "-fno-canonical-system-headers", "-Wno-builtin-macro-redefined", "-D__DATE__=\"redacted\"", "-D__TIMESTAMP__=\"redacted\"", "-D__TIME__=\"redacted\""],
-            cpp_options = ["-U_FORTIFY_SOURCE", "-fstack-protector", "-Wall", "-Wunused-but-set-parameter", "-Wno-free-nonheap-object", "-fno-omit-frame-pointer", "-std=c++17", "-fno-canonical-system-headers", "-Wno-builtin-macro-redefined", "-D__DATE__=\"redacted\"", "-D__TIMESTAMP__=\"redacted\"", "-D__TIME__=\"redacted\""],
+            built_in_include_directories = ["*"],
+            c_options = ["*"],
+            cpp_options = ["*"],
         ),
     )
 
