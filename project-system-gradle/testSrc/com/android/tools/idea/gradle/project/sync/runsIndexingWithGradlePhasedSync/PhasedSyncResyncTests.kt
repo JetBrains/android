@@ -85,6 +85,34 @@ private fun getProjectSpecificIdeModelResyncIssues(testProject: TestProject) = w
   }
 }
 
+private fun getProjectSpecificIdeModelResyncIssues(testProject: TestProject) = when(testProject) {
+  TestProject.PRIVACY_SANDBOX_SDK,
+  TestProject.COMPATIBILITY_TESTS_AS_36,
+  TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML -> setOf(
+    // TODO(b/384022658): Manifest index affects these values so they fail to populate correctly in some cases
+    "/CurrentVariantReportedVersions"
+  )
+  // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
+  TestProject.KOTLIN_KAPT,
+  TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
+    "generated/source/kaptKotlin",
+  )
+  else -> emptySet()
+}
+
+private val IDE_MODELS_WITH_KNOWN_RESYNC_CONSISTENCY_ISSUES = setOf(
+  "/GradleModuleModel",
+)
+
+fun ModuleDumpWithType.filterOutKnownConsistencyIssues(): ModuleDumpWithType {
+  return copy(
+    ideModels = ideModels
+      .filter { line ->
+        (IDE_MODEL_DEPENDENCY_RELATED_PROPERTIES + // This is expected as intermediate GradleAndroidModel won't have dependencies
+         IDE_MODELS_WITH_KNOWN_RESYNC_CONSISTENCY_ISSUES).none { line.contains(it) }
+      }
+  )
+}
 
 fun ModuleDumpWithType.filterOutProjectSpecificIssues(testProject: TestProject) = copy(
   projectStructure = projectStructure.filter { line ->

@@ -27,6 +27,11 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.io.File
 
+private val IDE_MODELS_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
+  "/GradleModuleModel",
+)
+
+
 private val PROPERTIES_WITH_KNOWN_CONSISTENCY_ISSUES = setOf(
   // TODO(b/384022658): Facet related
   "/FACET (Kotlin)",
@@ -123,6 +128,22 @@ fun getProjectSpecificIssues(testProject: TestProject) = when(testProject.templa
 
     else -> emptySet()
   }
+}
+
+private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(testProject) {
+  TestProject.PRIVACY_SANDBOX_SDK,
+  TestProject.COMPATIBILITY_TESTS_AS_36,
+  TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML -> setOf(
+    // TODO(b/384022658): Manifest index affects these values so they fail to populate correctly in some cases
+    "/CurrentVariantReportedVersions"
+  )
+  // TODO(b/384022658): Info from KaptGradleModel is missing for phased sync entities for now
+  TestProject.KOTLIN_KAPT,
+  TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
+    "generated/source/kaptKotlin",
+  )
+
+  else -> emptySet()
 }
 
 private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(testProject.template) {
