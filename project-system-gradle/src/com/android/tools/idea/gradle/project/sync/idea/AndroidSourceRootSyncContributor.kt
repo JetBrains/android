@@ -21,13 +21,21 @@ import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.Versions
+import com.android.ide.gradle.model.dependencies.DeclaredDependencies
+import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
 import com.android.tools.idea.gradle.project.sync.ModelFeature
 import com.android.tools.idea.gradle.project.sync.ModelVersions
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.convert
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.Companion.toIdeDeclaredDependencies
 import com.android.tools.idea.gradle.project.sync.idea.entities.AndroidGradleSourceSetEntitySource
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.gradle.LINKED_ANDROID_GRADLE_MODULE_GROUP
 import com.android.tools.idea.projectsystem.gradle.LinkedAndroidGradleModuleGroup
 import com.android.tools.idea.sdk.AndroidSdks
@@ -74,6 +82,7 @@ import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_RESOURCE_ROOT
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_SOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_RESOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_ROOT_ENTITY_TYPE_ID
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.jps.model.java.JavaResourceRootType
@@ -147,6 +156,9 @@ internal class SyncContributorAndroidProjectContext(
   val basicAndroidProject = context.getProjectModel(projectModel, BasicAndroidProject::class.java)!!
   val androidProject = context.getProjectModel(projectModel, AndroidProject::class.java)!!
   val androidDsl = context.getProjectModel(projectModel, AndroidDsl::class.java)!!
+  // Need to use Impl version because GradleAndroidModelData expects an immutable implementation.
+  val ideAndroidProject = context.getProjectModel(projectModel, IdeAndroidProject::class.java)!! as IdeAndroidProjectImpl
+  val ideDeclaredDependencies = context.getProjectModel(projectModel, DeclaredDependencies::class.java)!!.toIdeDeclaredDependencies()
   // TODO(b/410774404): HAS_SCREENSHOT_TESTS_SUPPORT is not the best name for even though it's what indicates the availability in the
   // new fields. Consider renaming.
   val useContainer: Boolean = versions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]
@@ -271,6 +283,12 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
         SyncContributorAndroidProjectContext.create(context, project, storage, syncOptions, buildModel, projectModel)
       }
     }
+    val featureToAppMapping = allAndroidContexts.flatMap {
+      it.ideAndroidProject.dynamicFeatures.mapNotNull { feature ->
+        (feature to it.holderModuleEntity.exModuleOptions?.linkedProjectId)
+          .takeIf { it.second != null }
+      }
+    }.toMap()
     val newModuleEntities = allAndroidContexts.flatMap {
       with(it) {
         val sourceSetModuleEntitiesByArtifact = getAllSourceSetModuleEntities()
@@ -285,7 +303,7 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
           // There seems to be a bug in workspace model implementation that requires doing this to update list of changed props
           this.facets = facets
         }
-        linkModuleGroup(sourceSetModuleEntitiesByArtifact)
+        linkModuleGroup(sourceSetModuleEntitiesByArtifact, featureToAppMapping)
 
         sourceSetModules
       }
@@ -360,13 +378,30 @@ private fun SyncContributorAndroidProjectContext.getAllSourceSetModuleEntities()
 }
 
 private fun SyncContributorAndroidProjectContext.linkModuleGroup(
-  sourceSetModules: Map<IdeArtifactName, ModuleEntity.Builder>
+  sourceSetModules: Map<IdeArtifactName, ModuleEntity.Builder>,
+  featureToAppMapping: Map<String, String?>
 ) {
+  val projectDirectory = File (holderModuleEntity.exModuleOptions?.linkedProjectPath
+                               ?: error("Can't find external path for holder module"))
+
+
   val androidModuleGroup = getModuleGroup(sourceSetModules)
   val linkedModuleNames = sourceSetModules.values.map { it.name } + holderModuleEntity.name
   registerModuleActions(linkedModuleNames.associateWith {
     { moduleInstance ->
       moduleInstance.putUserData(LINKED_ANDROID_GRADLE_MODULE_GROUP, androidModuleGroup)
+      AndroidFacet.getInstance(moduleInstance)?.let {
+        val gradleAndroidModelData = GradleAndroidModelDataImpl.create(
+          moduleInstance.name,
+          projectDirectory,
+          ideAndroidProject.copy(baseFeature = featureToAppMapping[ideAndroidProject.projectPath.projectPath]),
+          ideDeclaredDependencies,
+          ideAndroidProject.coreVariants.map { it as IdeVariantCoreImpl },
+          getVariantName() ?: error("Unknown variant!")
+        )
+
+        AndroidModel.set(it, GradleAndroidModel.create(project, gradleAndroidModelData))
+      }
     }
   }
   )

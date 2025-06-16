@@ -23,6 +23,10 @@ import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.Versions
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePluginModel
+import com.android.ide.gradle.model.GradlePropertiesModel
+import com.android.ide.gradle.model.dependencies.DeclaredDependencies
+import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.intellij.gradle.toolingExtension.modelAction.GradleModelFetchPhase
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
@@ -42,6 +46,13 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
   override fun populateModels(controller: BuildController,
                               buildModels: MutableCollection<out GradleBuild>,
                               modelConsumer: ProjectImportModelProvider.GradleModelConsumer) {
+    // .first call seems a bit silly, but it's what we do on the other side too
+    val rootBuildId = BuildId(buildModels.first().buildIdentifier.rootDir)
+    // Build root directory is used for dependency models only, not used in a meaningful way here.
+    // Apart from that, we use interned models only to intern strings.
+    val buildRootDirectory = null
+    val internedModels = InternedModels(buildRootDirectory)
+    val productionMode = SyncTestMode.PRODUCTION // We have some test only paths in former implementation, not supported here.
     controller.run(buildModels.flatMap { buildModel ->
       buildModel.projects.mapNotNull { gradleProject ->
         BuildAction {
@@ -49,13 +60,33 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
             // Kotlin multiplatform projects are not supported for phased sync yet.
             return@BuildAction null
           }
+          val versions = controller.findModel(gradleProject, Versions::class.java)
+            // TODO(b/384022658): Reconsider this check if we implement a cache between model providers to avoid fetching the models twice
+            ?.takeIf { it.isAtLeastAgp8() } ?: return@BuildAction null
+          val modelVersions = versions.convert()
+          val basicAndroidProject = controller.findModel(gradleProject, BasicAndroidProject::class.java)
+          val androidProject = controller.findModel(gradleProject, AndroidProject::class.java)
+          val androidDsl = controller.findModel(gradleProject, AndroidDsl::class.java)
+          val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncTestMode = productionMode)
+
+          val ideAndroidProject = modelCache.androidProjectFrom(
+            rootBuildId,
+            buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir),
+            basicAndroidProject,
+            androidProject,
+            modelVersions,
+            androidDsl,
+            legacyAndroidGradlePluginProperties = null, // Is this actually needed now?
+            controller.findModel(gradleProject, GradlePropertiesModel::class.java),
+            defaultVariantName = null // Is this actually needed now?
+          ).let { it.exceptions.takeIf { it.isNotEmpty() }?.first()?.let { throw it } ?: it.ignoreExceptionsAndGet()!! }
           gradleProject to AndroidProjectData(
-            controller.findModel(gradleProject, Versions::class.java)
-              // TODO(b/384022658): Reconsider this check if we implement a cache between model providers to avoid fetching the models twice
-              ?.takeIf { it.isAtLeastAgp8() } ?: return@BuildAction null,
-            controller.findModel(gradleProject, BasicAndroidProject::class.java),
-            controller.findModel(gradleProject, AndroidProject::class.java),
-            controller.findModel(gradleProject, AndroidDsl::class.java)
+            versions,
+            basicAndroidProject,
+            androidProject,
+            androidDsl,
+            controller.findModel(gradleProject, DeclaredDependencies::class.java),
+            ideAndroidProject
           )
         }
       }
@@ -65,6 +96,8 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
         modelConsumer.consumeProjectModel(gradleProject, data.basicAndroidProject, BasicAndroidProject::class.java)
         modelConsumer.consumeProjectModel(gradleProject, data.androidProject, AndroidProject::class.java)
         modelConsumer.consumeProjectModel(gradleProject, data.androidDsl, AndroidDsl::class.java)
+        modelConsumer.consumeProjectModel(gradleProject, data.declaredDependencies, DeclaredDependencies::class.java)
+        modelConsumer.consumeProjectModel(gradleProject, data.ideAndroidProject, IdeAndroidProject::class.java)
       }
   }
 }
@@ -75,5 +108,7 @@ private data class AndroidProjectData(
   val versions: Versions,
   val basicAndroidProject: BasicAndroidProject,
   val androidProject: AndroidProject,
-  val androidDsl: AndroidDsl
+  val androidDsl: AndroidDsl,
+  val declaredDependencies: DeclaredDependencies,
+  val ideAndroidProject: IdeAndroidProject,
 )
