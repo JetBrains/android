@@ -28,7 +28,8 @@ import javax.swing.JLabel
 class ComposeJButtonWrapper(con: AccessibleContext) : JButton() {
   private val context: AccessibleContext = con
   private val accessibleAction: AccessibleAction = con.accessibleAction
-  private val accessibleName: String? = con.accessibleName
+  private val accessibleName: String? = con.getAccessibleName()
+  private val accessibleDescription: String? = con.getAccessibleDescription()
 
   override fun getAccessibleContext(): AccessibleContext {
     return context
@@ -43,7 +44,7 @@ class ComposeJButtonWrapper(con: AccessibleContext) : JButton() {
   }
 
   override fun getText(): String {
-    return accessibleName ?: ""
+    return accessibleName ?: accessibleDescription ?: ""
   }
 }
 
@@ -53,7 +54,7 @@ class ComposeJButtonWrapper(con: AccessibleContext) : JButton() {
  */
 class ComposeJLabelWrapper(con: AccessibleContext) : JLabel() {
   private val context: AccessibleContext = con
-  private val accessibleName: String? = con.accessibleName
+  private val accessibleName: String? = con.getAccessibleName()
 
   override fun getAccessibleContext(): AccessibleContext {
     return context
