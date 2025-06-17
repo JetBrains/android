@@ -375,7 +375,7 @@ object AndroidStudioUsageTracker {
   @VisibleForTesting
   fun shouldRequestUserSentiment(): Boolean {
     // If showing the benchmark survey, we can also target non-opted in users
-    if (!optedIn && !showBenchmarkSurvey()) {
+    if (!optedIn && !shouldShowBenchmarkSurvey()) {
       return false
     }
 
@@ -424,7 +424,9 @@ object AndroidStudioUsageTracker {
   @OptIn(FlowPreview::class)
   fun requestUserSentiment() {
     val id = UUID.randomUUID().toString()
-    logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_SCHEDULED)
+    if (shouldShowBenchmarkSurvey()) {
+      logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_SCHEDULED)
+    }
 
     val scope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
     scope.launch(Dispatchers.EDT) {
@@ -433,11 +435,10 @@ object AndroidStudioUsageTracker {
         .first {
           val now = AnalyticsSettings.dateProvider.now()
 
-          if (showBenchmarkSurvey()) {
+          if (shouldShowBenchmarkSurvey()) {
             showBenchmarkSurveyDialog(id, now)
           }
           else {
-            logSentimentSurveyEvent(id, SentimentSurveyEvent.Type.TYPE_DISPLAYED)
             val survey = ServerFlagService.instance.getProtoOrNull(SATISFACTION_SURVEY, DEFAULT_SATISFACTION_SURVEY)
             val followupSurvey = ServerFlagService.instance.getProtoOrNull(FOLLOWUP_SURVEY, DEFAULT_SATISFACTION_SURVEY)
 
@@ -587,7 +588,7 @@ object AndroidStudioUsageTracker {
   }
 
   // Do not show the browser-based benchmark survey for ASwB
-  private fun showBenchmarkSurvey(): Boolean {
+  private fun shouldShowBenchmarkSurvey(): Boolean {
     return StudioFlags.BENCHMARK_SURVEY_ENABLED.get() && !isASwB()
   }
 
