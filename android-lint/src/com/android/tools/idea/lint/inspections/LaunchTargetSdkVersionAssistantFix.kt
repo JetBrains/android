@@ -28,8 +28,18 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
 private const val minSdkUpgradeAsstVersion = 26
-private val maxSdkUpgradeAsstVersion
-  get() = if (StudioFlags.TSDKVUA_API_35.get()) 34 else 33
+// The highest version we suggest the assistant at is the source of the latest public upgrade path
+private val maxSdkUpgradeAsstVersion: Int
+  get() {
+    val targetOfLatestUpgradePath = StudioFlags.TSDKVUA_API_NEXT.get()
+    val latestUpgradePathIsPublic = StudioFlags.TSDKVUA_API_NEXT_ENABLE.get()
+    // If the latest upgrade path isn't public then we just decrement
+    val targetOfLatestPublicUpgradePath =
+      if (latestUpgradePathIsPublic) targetOfLatestUpgradePath else targetOfLatestUpgradePath - 1
+    // Once we have the latest public target we can decrement to find the latest public source
+    val sourceOfLatestPublicUpgradePath = targetOfLatestPublicUpgradePath - 1
+    return sourceOfLatestPublicUpgradePath
+  }
 
 class LaunchTargetSdkVersionAssistantFix(fix: LintFix?) :
   DefaultLintQuickFix("Launch Android SDK Upgrade Assistant") {
