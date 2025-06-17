@@ -22,7 +22,6 @@ import com.android.tools.asdriver.tests.AndroidStudioInstallation;
 import com.android.tools.testlib.Display;
 import com.android.tools.testlib.TestFileSystem;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.SystemInfoRt;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -74,20 +73,18 @@ public class StartUpTest {
         "Android Studio Driver",
         "Android NDK Support",
         "App Links Assistant",
+        "Artifacts Repository Search",
         "C/C++ Language Support via Classic Engine",
         "CIDR Base",
         "CIDR Debugger",
-        "ClangConfig",
         "Clangd Support",
-        "Clangd-CLion Bridge",
-        "ClangFormat",
         "Code Coverage for Java",
-        "com.intellij.dev",
         "Configuration Script",
         "Copyright",
         "Eclipse Keymap",
         "EditorConfig",
         "Device Streaming",
+        "DevKit Runtime",
         "Firebase Services",
         "Firebase Testing",
         "Gemini",
@@ -98,7 +95,7 @@ public class StartUpTest {
         "GitLab",
         "Gradle",
         "Gradle Declarative Support",
-        "Gradle-Java",
+        "Gradle for Java",
         "Groovy",
         "HTML Tools",
         "IDEA CORE",
@@ -112,13 +109,9 @@ public class StartUpTest {
         "Compose Multiplatform",
         "Java Internationalization",
         "Java Stream Debugger",
-        "JetBrains Repository Search",
-        "JetBrains maven model api classes",
         "Jetpack Compose",
         "Kotlin",
-        "Machine Learning Code Completion",
         "Markdown",
-        "Maven server api classes",
         "Mercurial",
         "NetBeans Keymap",
         "Performance Testing",
@@ -132,15 +125,10 @@ public class StartUpTest {
         "TestNG",
         "TextMate Bundles",
         "Toml",
-        "Turbo Complete",
         "Visual Studio Keymap",
         "WebP Support",
         "YAML"
       ));
-
-      if (SystemInfoRt.isLinux) {
-        expectedPlugins.add("Emoji Picker");
-      }
 
       assertThat(plugins).asList().containsExactlyElementsIn(expectedPlugins);
 

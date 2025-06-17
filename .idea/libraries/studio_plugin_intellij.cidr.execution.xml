@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-com.intellij.cidr.lang.clangdBridge">
+  <library name="studio-plugin-intellij.cidr.execution">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/c-clangdBridge-plugin/lib/c-clangdBridge-plugin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/cidr-base/lib/modules/intellij.cidr.execution.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

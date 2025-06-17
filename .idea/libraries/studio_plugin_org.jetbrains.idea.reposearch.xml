@@ -1,6 +1,10 @@
 <component name="libraryTable">
   <library name="studio-plugin-org.jetbrains.idea.reposearch">
     <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/repository-search/lib/kotlinx-document-store-mvstore.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/repository-search/lib/ktor-client-logging.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/repository-search/lib/maven-model.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/repository-search/lib/package-search-api-client.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/repository-search/lib/repository-search.jar!/" />
     </CLASSES>
     <JAVADOC />

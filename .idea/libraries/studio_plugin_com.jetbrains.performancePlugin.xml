@@ -1,6 +1,8 @@
 <component name="libraryTable">
   <library name="studio-plugin-com.jetbrains.performancePlugin">
     <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/performanceTesting/lib/assertj-swing.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/performanceTesting/lib/github.oshi.core.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/performanceTesting/lib/performanceTesting.jar!/" />
     </CLASSES>
     <JAVADOC />

@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-org.jetbrains.idea.maven.model">
+  <library name="studio-plugin-intellij.platform.customization.min">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/maven-model/lib/maven-model.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.platform.customization.min.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

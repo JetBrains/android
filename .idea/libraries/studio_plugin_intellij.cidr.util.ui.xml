@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-org.jetbrains.plugins.emojipicker">
+  <library name="studio-plugin-intellij.cidr.util.ui">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/emojipicker/lib/emojipicker.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/cidr-base/lib/modules/intellij.cidr.util.ui.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

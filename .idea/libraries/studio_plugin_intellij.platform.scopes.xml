@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-com.intellij.completion.ml.ranking">
+  <library name="studio-plugin-intellij.platform.scopes">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/completionMlRanking/lib/completionMlRanking.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/lib/modules/intellij.platform.scopes.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

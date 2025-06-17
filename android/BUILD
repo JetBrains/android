@@ -129,7 +129,6 @@ iml_module(
         "//tools/adt/idea/preview-fast-compile:intellij.android.preview-fast-compile",
         "//tools/adt/idea/completion:intellij.android.completion",
         "//tools/base/backup:studio.android.sdktools.backup",
-        "@intellij//:intellij.json.split",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
         "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
     ],
