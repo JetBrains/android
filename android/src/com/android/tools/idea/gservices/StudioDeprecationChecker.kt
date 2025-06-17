@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.gservices
 
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus.DEPRECATED
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus.UNSUPPORTED
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
+import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
+import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo.DeprecationStatus
+import com.google.wireless.android.sdk.stats.StudioDeprecationNotificationEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.PropertiesComponent
@@ -46,7 +54,7 @@ class StudioDeprecationChecker : ProjectActivity {
   private val notificationGroup: NotificationGroup
     get() =
       NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_NAME)
-      ?: throw RuntimeException("NotificationGroup not found")
+        ?: throw RuntimeException("NotificationGroup not found")
 
   override suspend fun execute(project: Project) {
     val deprecationData =
@@ -87,6 +95,7 @@ class StudioDeprecationChecker : ProjectActivity {
       notification.addAction(
         NotificationAction.createSimpleExpiring("Update Android Studio") {
           UpdateChecker.updateAndShowResult(project)
+          trackEvent(deprecationData.status, updateClicked = true)
         }
       )
     }
@@ -95,6 +104,7 @@ class StudioDeprecationChecker : ProjectActivity {
       notification.addAction(
         NotificationAction.createSimple("More info") {
           BrowserUtil.browse(deprecationData.moreInfoUrl)
+          trackEvent(deprecationData.status, moreInfoClicked = true)
         }
       )
     }
@@ -105,12 +115,15 @@ class StudioDeprecationChecker : ProjectActivity {
       .whenExpired { maybeStoreDeprecationDate(deprecationData) }
       .notify(project)
 
+    trackEvent(deprecationData.status, userNotified = true)
+
     invokeLater {
       notification.balloon?.addListener(
         object : JBPopupListener {
           override fun onClosed(event: LightweightWindowEvent) {
             super.onClosed(event)
             notification.expire()
+            trackEvent(deprecationData.status, notificationDismissed = true)
           }
         }
       )
@@ -155,4 +168,40 @@ class StudioDeprecationChecker : ProjectActivity {
       isDeprecated() -> NotificationType.WARNING
       else -> throw IllegalStateException("Cannot request notification type for $this")
     }
+
+  private fun trackEvent(
+    deprStatus: DevServicesDeprecationStatus,
+    userNotified: Boolean? = null,
+    moreInfoClicked: Boolean? = null,
+    updateClicked: Boolean? = null,
+    notificationDismissed: Boolean? = null,
+  ) {
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder().apply {
+        kind = EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT
+        studioDeprecationNotificationEvent =
+          StudioDeprecationNotificationEvent.newBuilder()
+            .apply {
+              devServiceDeprecationInfo =
+                DevServiceDeprecationInfo.newBuilder()
+                  .apply {
+                    deprecationStatus =
+                      when (deprStatus) {
+                        DEPRECATED -> DeprecationStatus.DEPRECATED
+                        UNSUPPORTED -> DeprecationStatus.UNSUPPORTED
+                        else ->
+                          throw IllegalArgumentException("SUPPORTED state should not log event")
+                      }
+                    deliveryType = DevServiceDeprecationInfo.DeliveryType.NOTIFICATION
+                    userNotified?.let { this.userNotified = it }
+                    moreInfoClicked?.let { this.moreInfoClicked = it }
+                    updateClicked?.let { this.updateClicked = it }
+                    notificationDismissed?.let { deliveryDismissed = it }
+                  }
+                  .build()
+            }
+            .build()
+      }
+    )
+  }
 }

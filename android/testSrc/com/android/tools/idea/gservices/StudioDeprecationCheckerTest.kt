@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.gservices
 
+import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
@@ -27,17 +30,19 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 private const val PROP_KEY = "com.android.tools.idea.gservices.deprecation.last.date.checked"
 
 class StudioDeprecationCheckerTest {
   @get:Rule val projectRule = ProjectRule()
+  @get:Rule val usageTrackerRule = UsageTrackerRule()
+
   private val notifications: List<Notification>
     get() =
       NotificationsManager.getNotificationsManager()
@@ -184,5 +189,69 @@ class StudioDeprecationCheckerTest {
 
     checker.execute(projectRule.project)
     assertThat(notifications).isEmpty()
+  }
+
+  @Test
+  fun testEventTrackedWhenNotificationShown() = runTest {
+    deprecationData = deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED)
+    checker.execute(projectRule.project)
+    assertThat(notifications).isNotEmpty()
+
+    val shownEvent =
+      usageTrackerRule.usages.first {
+        it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT
+      }
+    with(shownEvent.studioEvent.studioDeprecationNotificationEvent.devServiceDeprecationInfo) {
+      assertThat(deprecationStatus)
+        .isEqualTo(DevServiceDeprecationInfo.DeprecationStatus.UNSUPPORTED)
+      assertThat(deliveryType).isEqualTo(DevServiceDeprecationInfo.DeliveryType.NOTIFICATION)
+      assertThat(userNotified).isTrue()
+    }
+  }
+
+  @Test
+  fun testEventTrackedWhenUpdateClicked() = runTest {
+    deprecationData = deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED)
+    checker.execute(projectRule.project)
+    assertThat(notifications).isNotEmpty()
+    val notification = notifications.first()
+    (notification.actions.first() as NotificationAction).actionPerformed(
+      TestActionEvent.createTestEvent(),
+      notification,
+    )
+
+    val updateEvent =
+      usageTrackerRule.usages.last {
+        it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT
+      }
+    with(updateEvent.studioEvent.studioDeprecationNotificationEvent.devServiceDeprecationInfo) {
+      assertThat(deprecationStatus)
+        .isEqualTo(DevServiceDeprecationInfo.DeprecationStatus.UNSUPPORTED)
+      assertThat(deliveryType).isEqualTo(DevServiceDeprecationInfo.DeliveryType.NOTIFICATION)
+      assertThat(updateClicked).isTrue()
+    }
+  }
+
+  @Test
+  fun testEventTrackedWhenMoreInfoClicked() = runTest {
+    deprecationData = deprecationData.copy(status = DevServicesDeprecationStatus.UNSUPPORTED)
+    checker.execute(projectRule.project)
+    assertThat(notifications).isNotEmpty()
+    val notification = notifications.first()
+    (notification.actions.last() as NotificationAction).actionPerformed(
+      TestActionEvent.createTestEvent(),
+      notification,
+    )
+
+    val moreInfoEvent =
+      usageTrackerRule.usages.last {
+        it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT
+      }
+    with(moreInfoEvent.studioEvent.studioDeprecationNotificationEvent.devServiceDeprecationInfo) {
+      assertThat(deprecationStatus)
+        .isEqualTo(DevServiceDeprecationInfo.DeprecationStatus.UNSUPPORTED)
+      assertThat(deliveryType).isEqualTo(DevServiceDeprecationInfo.DeliveryType.NOTIFICATION)
+      assertThat(moreInfoClicked).isTrue()
+    }
   }
 }
