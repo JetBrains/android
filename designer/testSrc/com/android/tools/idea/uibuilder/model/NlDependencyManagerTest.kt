@@ -16,16 +16,13 @@
 package com.android.tools.idea.uibuilder.model
 
 import com.android.AndroidXConstants
-import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenArtifactId
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.projectsystem.NON_PLATFORM_SUPPORT_LAYOUT_LIBS
 import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import junit.framework.TestCase
 
 open class NlDependencyManagerTest : LayoutTestCase() {
 
@@ -61,40 +58,6 @@ open class NlDependencyManagerTest : LayoutTestCase() {
     assertSameElements(
       projectSystem.getAddedDependencies(model.module).map { it.coordinate },
       depsShouldBeAdded,
-    )
-  }
-
-  fun testIdentifiesMissingDependency() {
-    TestCase.assertNull(
-      projectSystem
-        .getModuleSystem(myFacet.module)
-        .getRegisteredDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7)
-    )
-  }
-
-  fun testIdentifiesCorrectDependency() {
-    projectSystem.addDependency(
-      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7,
-      myFacet.module,
-      GradleVersion(1, 1),
-    )
-    TestCase.assertNotNull(
-      projectSystem
-        .getModuleSystem(myFacet.module)
-        .getRegisteredDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7)
-    )
-  }
-
-  fun testGetModuleDependencyVersion() {
-    projectSystem.addDependency(
-      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7,
-      myFacet.module,
-      GradleVersion(1, 1),
-    )
-    TestCase.assertEquals(
-      NlDependencyManager.getInstance()
-        .getModuleDependencyVersion(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, model.facet),
-      Version.parse("1.1"),
     )
   }
 }
