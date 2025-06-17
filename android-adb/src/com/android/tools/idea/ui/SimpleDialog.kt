@@ -112,6 +112,10 @@ class SimpleDialog(private val options: SimpleDialogOptions) {
     innerDialogWrapper.show()
   }
 
+  fun close(exitCode: Int) {
+    innerDialogWrapper.close(exitCode)
+  }
+
   private inner class DialogWrapperInner :
     DialogWrapper(options.project, options.canBeParent, options.ideModalityType) {
 

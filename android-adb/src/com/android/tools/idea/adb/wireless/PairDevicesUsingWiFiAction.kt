@@ -49,7 +49,9 @@ class PairDevicesUsingWiFiAction : AnAction(StudioIcons.Avd.PAIR_OVER_WIFI) {
       val hostFeatures = AdbLibService.getSession(project).hostServices.hostFeatures()
       withContext(Dispatchers.EDT) {
         if (hostFeatures.contains(TRACK_MDNS_SERVICE)) {
-          WifiAvailableDevicesDialog(project).showDialog()
+          val wifiPairingService =
+            WiFiPairingServiceImpl(RandomProvider(), AdbServiceWrapperAdbLibImpl(project))
+          WifiAvailableDevicesDialog(project, wifiPairingService).showDialog()
         } else {
           PairDevicesUsingWiFiService.getInstance(project)
             .createPairingDialogController()

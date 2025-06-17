@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -47,15 +48,11 @@ import com.android.adblib.MdnsTrackServiceInfo
 import com.android.sdklib.deviceprovisioner.SetChange
 import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.adtui.compose.StudioComposePanel
-import com.android.tools.idea.adb.wireless.AdbServiceWrapper
-import com.android.tools.idea.adb.wireless.AdbServiceWrapperAdbLibImpl
 import com.android.tools.idea.adb.wireless.MdnsSupportState
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService
-import com.android.tools.idea.adb.wireless.RandomProvider
 import com.android.tools.idea.adb.wireless.TrackingMdnsService
 import com.android.tools.idea.adb.wireless.Urls
 import com.android.tools.idea.adb.wireless.WiFiPairingService
-import com.android.tools.idea.adb.wireless.WiFiPairingServiceImpl
 import com.android.tools.idea.adddevicedialog.EmptyStatePanel
 import com.android.tools.idea.adddevicedialog.RowFilter
 import com.android.tools.idea.adddevicedialog.SearchBar
@@ -86,21 +83,25 @@ import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.styling.LocalLinkStyle
 
-// TODO(b/412571872) add tests
-class WifiAvailableDevicesDialog(project: Project) : Disposable {
+class WifiAvailableDevicesDialog(
+  private val project: Project,
+  private val wifiPairingService: WiFiPairingService,
+) : Disposable {
+
+  companion object {
+    internal const val SEARCH_BAR_TEST_TAG = "deviceSearchBar"
+  }
 
   private val dialog: SimpleDialog
   private val model = WifiPairableDeviceModel()
 
-  private val randomProvider = RandomProvider()
-  private val adbService: AdbServiceWrapper = AdbServiceWrapperAdbLibImpl(project)
-  private val wifiPairingService: WiFiPairingService =
-    WiFiPairingServiceImpl(randomProvider, adbService)
-
   private val panelPreferredSize: JBDimension
     get() = JBDimension(700, 600)
 
-  private val rootView: JComponent = StudioComposePanel {
+  private val rootView: JComponent = StudioComposePanel { WifiDialog() }
+
+  @Composable
+  internal fun WifiDialog() {
     val state by
       produceState<MdnsSupportState?>(null) {
         value = wifiPairingService.checkMdnsSupport()
@@ -299,7 +300,10 @@ class WifiAvailableDevicesDialog(project: Project) : Disposable {
         SearchBar(
           textState,
           filterState.description,
-          Modifier.weight(1f).padding(2.dp).focusRequester(searchFieldFocusRequester),
+          Modifier.weight(1f)
+            .padding(2.dp)
+            .focusRequester(searchFieldFocusRequester)
+            .testTag(SEARCH_BAR_TEST_TAG),
         )
       }
 
@@ -376,6 +380,10 @@ class WifiAvailableDevicesDialog(project: Project) : Disposable {
 
   fun showDialog() {
     dialog.show()
+  }
+
+  fun closeDialog(exitCode: Int = DialogWrapper.CANCEL_EXIT_CODE) {
+    dialog.close(exitCode)
   }
 
   override fun dispose() {}
