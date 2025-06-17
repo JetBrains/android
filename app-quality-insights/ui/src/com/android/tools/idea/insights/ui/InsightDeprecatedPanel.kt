@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
@@ -48,7 +49,7 @@ import kotlinx.coroutines.launch
 class InsightDeprecatedPanel(
   scope: CoroutineScope,
   project: Project,
-  data: DevServicesDeprecationData,
+  private val data: DevServicesDeprecationData,
   visibilityFlow: Flow<Boolean>,
   private val tracker: AppInsightsTracker,
 ) : JPanel(GridBagLayout()) {
@@ -71,7 +72,7 @@ class InsightDeprecatedPanel(
 
     scope.launch {
       visibilityFlow.takeTillFirst { it }.collect()
-      logEvent(userNotified = true)
+      logEvent(data.status, userNotified = true)
     }
   }
 
@@ -135,7 +136,7 @@ class InsightDeprecatedPanel(
       val button =
         JButton("Update Android Studio").apply {
           addActionListener {
-            logEvent(userClickedUpdate = true)
+            logEvent(data.status, userClickedUpdate = true)
             UpdateChecker.updateAndShowResult(project)
           }
         }
@@ -148,7 +149,7 @@ class InsightDeprecatedPanel(
         HyperlinkLabel().apply {
           setHyperlinkText("More info")
           addHyperlinkListener {
-            logEvent(userClickedMoreInfo = true)
+            logEvent(data.status, userClickedMoreInfo = true)
             BrowserUtil.browse(url)
           }
           icon = AllIcons.General.ContextHelp
@@ -157,11 +158,13 @@ class InsightDeprecatedPanel(
     }
 
   private fun logEvent(
+    deprecationStatus: DevServicesDeprecationStatus,
     userNotified: Boolean? = null,
     userClickedMoreInfo: Boolean? = null,
     userClickedUpdate: Boolean? = null,
   ) =
     tracker.logServiceDeprecated(
+      deprecationStatus,
       AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel.INSIGHTS_PANEL,
       DevServiceDeprecationInfo.DeliveryType.PANEL,
       userNotified,

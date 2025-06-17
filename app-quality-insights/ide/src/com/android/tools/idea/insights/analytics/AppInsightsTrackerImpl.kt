@@ -17,6 +17,9 @@ package com.android.tools.idea.insights.analytics
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus.DEPRECATED
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus.UNSUPPORTED
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.ai.AiInsight
@@ -26,6 +29,7 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.EventDetails
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
 import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
+import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo.DeprecationStatus
 import com.intellij.openapi.project.Project
 
 class AppInsightsTrackerImpl(
@@ -227,6 +231,7 @@ class AppInsightsTrackerImpl(
   }
 
   override fun logServiceDeprecated(
+    deprecationStatus: DevServicesDeprecationStatus,
     panel: AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel,
     deliveryType: DevServiceDeprecationInfo.DeliveryType,
     userNotified: Boolean?,
@@ -243,7 +248,12 @@ class AppInsightsTrackerImpl(
             devServiceDeprecationInfo =
               DevServiceDeprecationInfo.newBuilder()
                 .apply {
-                  deprecationStatus = DevServiceDeprecationInfo.DeprecationStatus.UNSUPPORTED
+                  this.deprecationStatus =
+                    when (deprecationStatus) {
+                      UNSUPPORTED -> DeprecationStatus.UNSUPPORTED
+                      DEPRECATED -> DeprecationStatus.DEPRECATED
+                      else -> throw IllegalArgumentException("SUPPORTED should not be logged")
+                    }
                   this.deliveryType = deliveryType
                   userNotified?.let { this.userNotified = it }
                   userClickedMoreInfo?.let { moreInfoClicked = it }

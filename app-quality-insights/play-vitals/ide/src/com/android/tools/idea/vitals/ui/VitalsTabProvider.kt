@@ -85,7 +85,9 @@ class VitalsTabProvider : AppInsightsTabProvider {
         ServiceDeprecatedBanner.create(tracker, deprecationData) {
           UpdateChecker.updateAndShowResult(project)
         }
-      tabPanel.addDeprecatedBanner(banner) { tracker.logDeprecatedEvent(userClickedDismiss = true) }
+      tabPanel.addDeprecatedBanner(banner) {
+        tracker.logDeprecatedEvent(deprecationData.status, userClickedDismiss = true)
+      }
     }
     tabPanel.setComponent(placeholderContent())
     scope.launch(AndroidDispatchers.diskIoThread) {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel
 import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
@@ -52,21 +53,23 @@ private constructor(
         deprecationData,
         {
           update()
-          tracker.logDeprecatedEvent(userClickedUpdate = true)
+          tracker.logDeprecatedEvent(deprecationData.status, userClickedUpdate = true)
         },
       ) {
-        tracker.logDeprecatedEvent(userClickedMoreInfo = true)
+        tracker.logDeprecatedEvent(deprecationData.status, userClickedMoreInfo = true)
       }
   }
 }
 
 fun AppInsightsTracker.logDeprecatedEvent(
+  deprecationStatus: DevServicesDeprecationStatus,
   userNotified: Boolean? = null,
   userClickedMoreInfo: Boolean? = null,
   userClickedUpdate: Boolean? = null,
   userClickedDismiss: Boolean? = null,
 ) =
   logServiceDeprecated(
+    deprecationStatus,
     Panel.TAB_PANEL,
     DevServiceDeprecationInfo.DeliveryType.BANNER,
     userNotified,

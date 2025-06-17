@@ -57,11 +57,20 @@ class InsightDeprecatedPanelTest {
   fun `userNotified is logged only once`() {
     createPanel()
     verify(tracker, never())
-      .logServiceDeprecated(eq(INSIGHTS_PANEL), eq(PANEL), eq(null), eq(null), eq(null), eq(null))
+      .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.UNSUPPORTED),
+        eq(INSIGHTS_PANEL),
+        eq(PANEL),
+        eq(null),
+        eq(null),
+        eq(null),
+        eq(null),
+      )
 
     insightVisibilityFlow.value = true
     verify(tracker, timeout(5000).times(1))
       .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.UNSUPPORTED),
         eq(INSIGHTS_PANEL),
         eq(PANEL),
         eq(true),
@@ -73,6 +82,7 @@ class InsightDeprecatedPanelTest {
     insightVisibilityFlow.value = false
     verify(tracker)
       .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.UNSUPPORTED),
         eq(INSIGHTS_PANEL),
         anyOrNull(),
         anyOrNull(),
@@ -84,6 +94,7 @@ class InsightDeprecatedPanelTest {
     insightVisibilityFlow.value = true
     verify(tracker)
       .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.UNSUPPORTED),
         eq(INSIGHTS_PANEL),
         anyOrNull(),
         anyOrNull(),
@@ -100,7 +111,15 @@ class InsightDeprecatedPanelTest {
     moreInfoLabel.doClick()
 
     verify(tracker)
-      .logServiceDeprecated(eq(INSIGHTS_PANEL), eq(PANEL), eq(null), eq(true), eq(null), eq(null))
+      .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.UNSUPPORTED),
+        eq(INSIGHTS_PANEL),
+        eq(PANEL),
+        eq(null),
+        eq(true),
+        eq(null),
+        eq(null),
+      )
   }
 
   @Test
@@ -110,7 +129,15 @@ class InsightDeprecatedPanelTest {
     updateLabel.doClick()
 
     verify(tracker)
-      .logServiceDeprecated(eq(INSIGHTS_PANEL), eq(PANEL), eq(null), eq(null), eq(true), eq(null))
+      .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.UNSUPPORTED),
+        eq(INSIGHTS_PANEL),
+        eq(PANEL),
+        eq(null),
+        eq(null),
+        eq(true),
+        eq(null),
+      )
   }
 
   private fun createPanel() =
