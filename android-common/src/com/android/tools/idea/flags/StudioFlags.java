@@ -2267,6 +2267,12 @@ public final class StudioFlags {
                     "When enabled, add Rules section to lookup popup.",
                     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_MCP_HOST_ENABLED =
+    new BooleanFlag(STUDIOBOT, "mcp.host.enabled",
+                    "Enable Model Context Protocol (MCP) support",
+                    "Allows the agent to use custom tools provided by Model Context Protocol (MCP) servers",
+                    enabledUpTo(CANARY));
+
   public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
                     "Enable AutoScroll Button",
