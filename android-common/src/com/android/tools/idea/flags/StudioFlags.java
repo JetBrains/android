@@ -2026,8 +2026,6 @@ public final class StudioFlags {
                     "Reset the results cache before running filters on startup", true);
   public static final Flag<Boolean> TSDKVUA_FILTERS_WIP =
     new BooleanFlag(TSDKVUA, "filters.wip", "Enable WIP relevance filters", "Enable WIP relevance filters", false);
-  public static final Flag<Boolean> TSDKVUA_API_35 =
-    new BooleanFlag(TSDKVUA, "api35", "Enable support for API 35", "Enable support for API 35", true);
   public static final Flag<Integer> TSDKVUA_API_NEXT =
     new IntFlag(TSDKVUA, "api.next", "The version of the next API", "The version of the next API", 36);
   public static final Flag<Boolean> TSDKVUA_API_NEXT_ENABLE =
