@@ -2028,6 +2028,10 @@ public final class StudioFlags {
     new BooleanFlag(TSDKVUA, "filters.wip", "Enable WIP relevance filters", "Enable WIP relevance filters", false);
   public static final Flag<Boolean> TSDKVUA_API_35 =
     new BooleanFlag(TSDKVUA, "api35", "Enable support for API 35", "Enable support for API 35", true);
+  public static final Flag<Integer> TSDKVUA_API_NEXT =
+    new IntFlag(TSDKVUA, "api.next", "The version of the next API", "The version of the next API", 36);
+  public static final Flag<Boolean> TSDKVUA_API_NEXT_ENABLE =
+    new BooleanFlag(TSDKVUA, "api.next.enable", "Enable support for the next API", "Enable support for the next API", false);
   public static final Flag<Boolean> TSDKVUA_OMG_76167 = new BooleanFlag(TSDKVUA, "omg76167", "Do NOT mitigate omg/76167",
                                                                         "Mitigating omg/76167 requires hiding part of API 35's 'secured background activity launches' step",
                                                                         false);
