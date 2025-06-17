@@ -210,6 +210,8 @@
     <listener
         class="com.google.idea.blaze.base.actions.internal.AswbDumpVfs$BulkListener"
         topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    <listener class="com.google.idea.common.experiments.ExperimentServiceAppLifecycleListener"
+              topic="com.intellij.ide.AppLifecycleListener"/>
   </applicationListeners>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -241,6 +243,9 @@
     <applicationConfigurable displayName="Query Sync" id="query.sync" parentId="com.google.idea.blaze.AswbSettings"
         provider="com.google.idea.blaze.base.qsync.settings.QuerySyncConfigurableProvider" />
 
+    <applicationService
+      serviceInterface="com.google.idea.common.experiments.ExperimentService"
+      serviceImplementation="com.google.idea.common.experiments.ExperimentServiceImpl"/>
     <applicationService serviceImplementation="com.google.idea.blaze.base.qsync.settings.QuerySyncSettings" id="QuerySyncSettings"/>
     <projectService serviceImplementation="com.google.idea.blaze.base.qsync.QuerySyncManager"/>
     <iw.actionProvider implementation="com.google.idea.blaze.base.qsync.QuerySyncInspectionWidgetActionProvider"/>
@@ -464,15 +469,7 @@
       interface="com.google.idea.blaze.base.qsync.ProjectProtoTransformProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.qsync.AnnotationProcessorOverride"
       interface="com.google.idea.blaze.base.qsync.AnnotationProcessorOverride"/>
-
   </extensionPoints>
-
-  <application-components>
-    <component>
-      <interface-class>com.google.idea.common.experiments.ExperimentService</interface-class>
-      <implementation-class>com.google.idea.common.experiments.ExperimentServiceImpl</implementation-class>
-    </component>
-  </application-components>
 
   <project-components>
     <component>

@@ -26,8 +26,10 @@ import javax.annotation.Nullable;
 public interface ExperimentService {
 
   static ExperimentService getInstance() {
-    return ApplicationManager.getApplication().getComponent(ExperimentService.class);
+    return ApplicationManager.getApplication().getService(ExperimentService.class);
   }
+
+  public void initService();
 
   /** Returns an experiment if it exists, else defaultValue */
   boolean getExperiment(Experiment experiment, boolean defaultValue);

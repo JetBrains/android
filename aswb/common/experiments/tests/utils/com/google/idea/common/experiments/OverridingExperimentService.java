@@ -58,6 +58,12 @@ public class OverridingExperimentService implements ExperimentService {
   }
 
   @Override
+  public void initService() {
+    delegate.initService();
+    overrideWithService.initService();
+  }
+
+  @Override
   public void startExperimentScope() {
     delegate.startExperimentScope();
     overrideWithService.startExperimentScope();

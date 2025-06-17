@@ -64,8 +64,7 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
     experimentService.setExperimentString(
       BazelDependencyBuilder.aspectLocation,
       getRunfilesWorkspaceRoot().toPath().resolve("tools/adt/idea/aswb").toString());
-    ServiceContainerUtil.registerComponentInstance(ApplicationManager.getApplication(), ExperimentService.class, experimentService,
-                                                   getTestRootDisposable());
+    ServiceContainerUtil.registerServiceInstance(ApplicationManager.getApplication(), ExperimentService.class, experimentService);
     BlazeProjectDataManager mockProjectDataManager =
       new MockBlazeProjectDataManager(MockBlazeProjectDataBuilder.builder(workspaceRoot).build());
     registerProjectService(BlazeProjectDataManager.class, mockProjectDataManager);

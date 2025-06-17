@@ -201,7 +201,7 @@ public class FullApkBuildStepIntegrationTest extends BlazeAndroidIntegrationTest
     // Disable remote APK fetching
     MockExperimentService mockExperimentService = new MockExperimentService();
     mockExperimentService.setExperiment(FullApkBuildStep.FETCH_REMOTE_APKS, false);
-    ServiceHelper.registerApplicationComponent(
+    ServiceHelper.registerApplicationService(
         ExperimentService.class, mockExperimentService, getTestRootDisposable());
 
     // Return fake deploy info proto and mocked deploy info data object.

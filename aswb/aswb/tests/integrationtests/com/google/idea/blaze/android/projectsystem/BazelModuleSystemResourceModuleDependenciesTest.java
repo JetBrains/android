@@ -50,7 +50,7 @@ public class BazelModuleSystemResourceModuleDependenciesTest
     MockExperimentService experimentService = new MockExperimentService();
     experimentService.setExperiment(
         BlazeModuleSystemBase.returnSimpleDirectResourceDependents, false);
-    registerApplicationComponent(ExperimentService.class, experimentService);
+    registerApplicationService(ExperimentService.class, experimentService);
   }
 
   @Test
