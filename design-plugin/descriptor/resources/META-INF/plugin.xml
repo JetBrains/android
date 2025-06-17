@@ -35,6 +35,7 @@
   </extensions>
 
   <xi:include href="/META-INF/designer.xml"/>
+  <xi:include href="/META-INF/designer-gradle.xml"/>
   <xi:include href="/META-INF/naveditor.xml"/>
   <xi:include href="/META-INF/naveditor-gradle.xml"/>
   <xi:include href="/META-INF/compose-designer.xml"/>

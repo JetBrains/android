@@ -45,6 +45,8 @@
     <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.analytics.resizeTracker"
                     interface="com.android.tools.idea.uibuilder.analytics.ResizeTracker"
                     dynamic="true" />
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.handlers.uiBuilderHandlerToken"
+                    interface="com.android.tools.idea.uibuilder.handlers.UIBuilderHandlerToken"/>
   </extensionPoints>
 
   <!-- New layout editor -->

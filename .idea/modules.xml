@@ -273,6 +273,7 @@
       <module fileurl="file://$PROJECT_DIR$/designer-perf-tests/intellij.android.designer-perf-tests.iml" filepath="$PROJECT_DIR$/designer-perf-tests/intellij.android.designer-perf-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.iml" filepath="$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.tests.iml" filepath="$PROJECT_DIR$/designer/customview/intellij.android.designer.customview.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/designer/gradle/intellij.android.designer.gradle.iml" filepath="$PROJECT_DIR$/designer/gradle/intellij.android.designer.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer/intellij.android.designer.integration.iml" filepath="$PROJECT_DIR$/designer/intellij.android.designer.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer/intellij.android.designer.tests.iml" filepath="$PROJECT_DIR$/designer/intellij.android.designer.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/intellij.android.device/intellij.android.device.iml" filepath="$PROJECT_DIR$/intellij.android.device/intellij.android.device.iml" />

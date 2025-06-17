@@ -16,28 +16,22 @@
 package com.android.tools.idea.uibuilder.handlers
 
 import com.android.SdkConstants
-import com.android.ide.common.gradle.Version
-import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlDependencyManager
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.util.XmlTagUtil
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.XmlType
 import com.android.tools.idea.uibuilder.util.MockNlComponent
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.util.Computable
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 
 class BottomAppBarHandlerTest {
   @get:Rule val androidProjectRule = AndroidProjectRule.inMemory().onEdt()
@@ -63,12 +57,11 @@ class BottomAppBarHandlerTest {
   @RunsInEdt
   @Test
   fun testOnCreate() {
-    val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val manager: NlDependencyManager = mock()
-    whenever(manager.getModuleDependencyVersion(GoogleMavenArtifactId.MATERIAL, facet))
-      .thenReturn(Version.parse("1.4.9"))
-    projectRule.replaceService(NlDependencyManager::class.java, manager)
-
+    ExtensionTestUtil.maskExtensions(
+      UIBuilderHandlerToken.EP_NAME,
+      listOf(),
+      projectRule.testRootDisposable,
+    )
     val handler = BottomAppBarHandler()
     val component =
       WriteCommandAction.runWriteCommandAction(
@@ -97,12 +90,20 @@ class BottomAppBarHandlerTest {
   @RunsInEdt
   @Test
   fun testOnCreateWithMaterial3() {
-    val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val manager: NlDependencyManager = mock()
-    whenever(manager.getModuleDependencyVersion(GoogleMavenArtifactId.MATERIAL, facet))
-      .thenReturn(Version.parse("1.5.0"))
-    projectRule.replaceService(NlDependencyManager::class.java, manager)
+    val token =
+      object : UIBuilderHandlerToken<AndroidProjectSystem> {
+        override fun isApplicable(projectSystem: AndroidProjectSystem) = true
 
+        override fun getBottomAppBarStyle(
+          projectSystem: AndroidProjectSystem,
+          newChild: NlComponent,
+        ) = null
+      }
+    ExtensionTestUtil.maskExtensions(
+      UIBuilderHandlerToken.EP_NAME,
+      listOf(token),
+      projectRule.testRootDisposable,
+    )
     val handler = BottomAppBarHandler()
     val component =
       WriteCommandAction.runWriteCommandAction(
@@ -125,14 +126,6 @@ class BottomAppBarHandlerTest {
         .trim()
         .replace("\\s+".toRegex(), " ")
     assertThat(component.tag!!.text.replace("\\s+".toRegex(), " ")).isEqualTo(expected)
-  }
-
-  private fun createViewEditor(): ViewEditor {
-    val editor: ViewEditor = mock()
-    val model: NlModel = mock()
-    whenever(model.facet).thenReturn(AndroidFacet.getInstance(projectRule.module))
-    whenever(editor.model).thenReturn(model)
-    return editor
   }
 
   private fun createComponent(text: String): NlComponent {
