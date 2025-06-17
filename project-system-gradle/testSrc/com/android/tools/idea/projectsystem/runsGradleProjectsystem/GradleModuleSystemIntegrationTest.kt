@@ -19,17 +19,17 @@ import com.android.SdkConstants.SUPPORT_LIB_GROUP_ID
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.Module
 import com.android.ide.common.gradle.RichVersion
-import com.android.ide.common.repository.GoogleMavenArtifactId
-import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.WellKnownMavenArtifactId
+import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
+import com.android.ide.common.repository.WellKnownMavenArtifactId.Companion.GUAVA_GUAVA
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.DependencyScopeType.MAIN
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
@@ -38,7 +38,9 @@ import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.containsFile
 import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.isContainedBy
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -92,7 +94,7 @@ class GradleModuleSystemIntegrationTest {
       val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
 
       // Verify that getRegisteredDependency gets a existing dependency correctly.
-      val appCompat = GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
+      val appCompat = SUPPORT_APPCOMPAT_V7
       assertThat(moduleSystem.hasRegisteredDependency(appCompat)).isTrue()
       assertThat(moduleSystem.hasRegisteredDependency(appCompat.getModule())).isTrue()
       val foundDependency = moduleSystem.getRegisteredDependency(appCompat)
@@ -107,7 +109,7 @@ class GradleModuleSystemIntegrationTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB)
     preparedProject.open { project ->
       val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
-      val appCompat = GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
+      val appCompat = SUPPORT_APPCOMPAT_V7
 
       assertThat(moduleSystem.getRegisteredDependency(appCompat.getModule())).isEqualTo(appCompat.getDependency("25.4.0"))
       assertThat(moduleSystem.hasRegisteredDependency(appCompat.getModule())).isTrue()
@@ -145,49 +147,15 @@ class GradleModuleSystemIntegrationTest {
   }
 
   @Test
-  fun testGetResolvedMatchingDependencies() {
-    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
-    preparedProject.open { project ->
-      verifyProjectDependsOnWildcardAppCompat(project)
-      val moduleSystem = project.findAppModule().getModuleSystem()
-
-      // Verify that app-compat is on version 28.0.0 so the checks below make sense.
-      assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("28.0.0")
-
-      val appCompatDependency = GradleCoordinate("com.android.support", "appcompat-v7", "+")
-      val wildcardVersionResolution = moduleSystem.getResolvedDependency(appCompatDependency)
-      assertThat(wildcardVersionResolution).isNotNull()
-      assertThat(wildcardVersionResolution!!.matches(appCompatDependency)).isTrue()
-    }
-  }
-
-  @Test
-  fun testGetResolvedNonMatchingDependencies() {
-    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
-    preparedProject.open { project ->
-      verifyProjectDependsOnWildcardAppCompat(project)
-      val moduleSystem = project.findAppModule().getModuleSystem()
-
-      // Verify that app-compat is on version 28.0.0 so the checks below make sense.
-      assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getCoordinate("+"))!!.revision).isEqualTo("28.0.0")
-
-      assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "26.+"))).isNull()
-      assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "99.9.0"))).isNull()
-      assertThat(moduleSystem.getResolvedDependency(GradleCoordinate("com.android.support", "appcompat-v7", "99.+"))).isNull()
-    }
-  }
-
-  @Test
   fun testGetResolvedAarDependencies() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
       verifyProjectDependsOnWildcardAppCompat(project)
 
-      val moduleSystem = project.findAppModule().getModuleSystem()
+      val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
       // appcompat-v7 is a dependency with an AAR.
-      assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getCoordinate("+"))).isNotNull()
-      assertThat(moduleSystem.hasResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7)).isTrue()
-      assertThat(moduleSystem.getResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7)).isNotNull()
+      assertThat(moduleSystem.hasResolvedDependency(SUPPORT_APPCOMPAT_V7)).isTrue()
+      assertThat(moduleSystem.getResolvedDependency(SUPPORT_APPCOMPAT_V7.getModule(), MAIN)?.version).isEqualTo(Version.parse("28.0.0"))
     }
   }
 
@@ -197,11 +165,10 @@ class GradleModuleSystemIntegrationTest {
     preparedProject.open { project ->
       verifyProjectDependsOnGuava(project)
 
-      val moduleSystem = project.findAppModule().getModuleSystem()
+      val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
       // guava is a dependency with a JAR.
-      assertThat(moduleSystem.getResolvedDependency(WellKnownMavenArtifactId.GUAVA_GUAVA.getCoordinate("+"))).isNotNull()
-      assertThat(moduleSystem.hasResolvedDependency(WellKnownMavenArtifactId.GUAVA_GUAVA)).isTrue()
-      assertThat(moduleSystem.getResolvedDependency(WellKnownMavenArtifactId.GUAVA_GUAVA)).isNotNull()
+      assertThat(moduleSystem.hasResolvedDependency(GUAVA_GUAVA)).isTrue()
+      assertThat(moduleSystem.getResolvedDependency(GUAVA_GUAVA.getModule(), MAIN)?.version).isEqualTo(Version.parse("19.0"))
     }
   }
 
@@ -226,7 +193,7 @@ class GradleModuleSystemIntegrationTest {
       val moduleSystem = project.findAppModule().getModuleSystem() as GradleModuleSystem
 
       // Verify that the module system returns a path.
-      assertThat(moduleSystem.getDependencyPath(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getDependency("+"))).isNotNull()
+      assertThat(moduleSystem.getDependencyPath(SUPPORT_APPCOMPAT_V7.getDependency("+"))).isNotNull()
     }
   }
 
@@ -388,32 +355,18 @@ class GradleModuleSystemIntegrationTest {
     }
   }
 
-  private fun isSameArtifact(first: GradleCoordinate?, second: GradleCoordinate?) =
-    GradleCoordinate.COMPARE_PLUS_LOWER.compare(first, second) == 0
-
-
   private fun verifyProjectDependsOnWildcardAppCompat(project: Project) {
-    // SimpleApplication should have a dependency on "com.android.support:appcompat-v7:+"
-    val appCompatArtifact = ProjectBuildModel
-      .get(project)
-      .getModuleBuildModel(project.findAppModule())
-      ?.dependencies()
-      ?.artifacts()
-      ?.find { "${it.group()}:${it.name().forceString()}" == GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.toString() }
-
-    assertThat(appCompatArtifact).isNotNull()
-    assertThat(appCompatArtifact!!.version().toString()).isEqualTo("+")
+    val projectSystem = project.getProjectSystem() as GradleProjectSystem
+    val moduleSystem = projectSystem.getModuleSystem(project.findAppModule())
+    val dependency = moduleSystem.getRegisteredDependency(SUPPORT_APPCOMPAT_V7)
+    assertThat(dependency).isNotNull()
+    assertThat(dependency?.dependency?.version).isEqualTo(RichVersion.parse("+"))
   }
 
   private fun verifyProjectDependsOnGuava(project: Project) {
-    // SimpleApplication should have a dependency on guava.
-    assertThat(
-      ProjectBuildModel
-        .get(project)
-        .getModuleBuildModel(project.findAppModule())
-        ?.dependencies()
-        ?.artifacts()
-        ?.find { "${it.group()}:${it.name().forceString()}" == "com.google.guava:guava" }
-    ).isNotNull()
+    val projectSystem = project.getProjectSystem() as GradleProjectSystem
+    val moduleSystem = projectSystem.getModuleSystem(project.findAppModule())
+    val dependency = moduleSystem.getRegisteredDependency(GUAVA_GUAVA)
+    assertThat(dependency).isNotNull()
   }
 }

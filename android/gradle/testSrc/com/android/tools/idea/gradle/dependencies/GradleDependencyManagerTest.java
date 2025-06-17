@@ -16,6 +16,10 @@
 package com.android.tools.idea.gradle.dependencies;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_ROOM_KTX;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.SUPPORT_VECTOR_DRAWABLE;
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
 import static com.android.tools.idea.imports.UtilsKt.assertBuildGradle;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
@@ -28,8 +32,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.ide.common.gradle.Dependency;
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -72,12 +74,12 @@ public class GradleDependencyManagerTest {
   @Rule
   public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
 
-  private static final Dependency APP_COMPAT_DEPENDENCY = Dependency.parse("com.android.support:appcompat-v7:+");
-  private static final Dependency RECYCLER_VIEW_DEPENDENCY = Dependency.parse("com.android.support:recyclerview-v7:+");
-  private static final Dependency EXISTING_ROOM_DEPENDENCY = Dependency.parse("androidx.room:room-ktx:2.5.0");
-  private static final Dependency ROOM_DEPENDENCY = Dependency.parse("androidx.room:room-ktx:2.5.1");
+  private static final Dependency APP_COMPAT_DEPENDENCY = SUPPORT_APPCOMPAT_V7.getDependency("+");;
+  private static final Dependency RECYCLER_VIEW_DEPENDENCY = SUPPORT_RECYCLERVIEW_V7.getDependency("+");
+  private static final Dependency EXISTING_ROOM_DEPENDENCY = ANDROIDX_ROOM_KTX.getDependency("2.5.0");
+  private static final Dependency ROOM_DEPENDENCY = ANDROIDX_ROOM_KTX.getDependency("2.5.1");
   private static final Dependency DUMMY_DEPENDENCY = Dependency.parse("dummy.group:dummy.artifact:0.0.0");
-  private static final Dependency VECTOR_DRAWABLE_DEPENDENCY = Dependency.parse("com.android.support:support-vector-drawable:+");
+  private static final Dependency VECTOR_DRAWABLE_DEPENDENCY = SUPPORT_VECTOR_DRAWABLE.getDependency("+");
 
   private static final List<Dependency> DEPENDENCIES = ImmutableList.of(APP_COMPAT_DEPENDENCY, DUMMY_DEPENDENCY);
 
@@ -211,8 +213,7 @@ public class GradleDependencyManagerTest {
 
       Module appModule = TestModuleUtil.findAppModule(project);
       // Make sure the app module depends on the vector drawable library:
-      GradleCoordinate vectorDrawableCoordinate = GradleCoordinate.parseCoordinateString(VECTOR_DRAWABLE_DEPENDENCY.toString());
-      assertNotNull(getModuleSystem(appModule).getResolvedDependency(vectorDrawableCoordinate));
+      assertTrue(getModuleSystem(appModule).hasResolvedDependency(SUPPORT_VECTOR_DRAWABLE));
 
       // Now check that the vector drawable library is NOT an explicit dependency:
       List<Dependency> vectorDrawable = Collections.singletonList(VECTOR_DRAWABLE_DEPENDENCY);
@@ -226,12 +227,12 @@ public class GradleDependencyManagerTest {
 
   private boolean isRecyclerViewRegistered(@NotNull Project project) {
     GradleModuleSystem moduleSystem = (GradleModuleSystem)getModuleSystem(TestModuleUtil.findAppModule(project));
-    return moduleSystem.hasRegisteredDependency(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7);
+    return moduleSystem.hasRegisteredDependency(SUPPORT_RECYCLERVIEW_V7);
   }
 
   private boolean isRecyclerViewResolved(@NotNull Project project) {
-    return getModuleSystem(TestModuleUtil.findAppModule(project))
-             .getResolvedDependency(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getCoordinate("+")) != null;
+    GradleModuleSystem moduleSystem = (GradleModuleSystem)getModuleSystem(TestModuleUtil.findAppModule(project));
+    return moduleSystem.hasResolvedDependency(SUPPORT_RECYCLERVIEW_V7);
   }
 
   @Test

@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.ide.common.gradle.Version
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GoogleMavenArtifactId.ESPRESSO_CORE
+import com.android.ide.common.repository.WellKnownMavenArtifactId.Companion.GUAVA_GUAVA
+import com.android.ide.common.repository.WellKnownMavenArtifactId.Companion.JUNIT_JUNIT
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
@@ -29,6 +31,7 @@ import com.android.tools.idea.projectsystem.PseudoLocalesToken
 import com.android.tools.idea.projectsystem.PseudoLocalesToken.Companion.isPseudoLocalesEnabled
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.util.androidFacet
@@ -299,36 +302,27 @@ data class GradleProjectSystemIntegrationTest(
           name = "getResolvedDependency",
           testProject = TestProject.SIMPLE_APPLICATION
         ) { project, agpVersion, expect ->
-          val module = project.gradleModule(":app")?.getModuleSystem() ?: error(":app module not found")
-          expect
-            .that(module.getResolvedDependency("com.google.guava:guava:+".gradleCoordinate, MAIN)?.lowerBoundVersion)
-            .isEqualTo("19.0".version)
-          expect
-            .that(module.getResolvedDependency("junit:junit:+".gradleCoordinate, MAIN)?.lowerBoundVersion)
-            .isNull()
-          expect
-            .that(module.getResolvedDependency("com.android.support.test.espresso:espresso-core:+".gradleCoordinate, MAIN)?.lowerBoundVersion)
-            .isNull()
+          val module = project.gradleModule(":app")?.getModuleSystem() as? GradleModuleSystem ?: error(":app module not found")
+          expect.that(module.hasResolvedDependency(GUAVA_GUAVA, MAIN)).isTrue()
+          expect.that(module.getResolvedDependency(GUAVA_GUAVA.getModule(), MAIN)?.version).isEqualTo("19.0".version)
+          expect.that(module.hasResolvedDependency(JUNIT_JUNIT, MAIN)).isFalse()
+          expect.that(module.getResolvedDependency(JUNIT_JUNIT.getModule(), MAIN)?.version).isNull()
+          expect.that(module.hasResolvedDependency(ESPRESSO_CORE, MAIN)).isFalse()
+          expect.that(module.getResolvedDependency(ESPRESSO_CORE.getModule(), MAIN)?.version).isNull()
 
-          expect
-            .that(module.getResolvedDependency("com.google.guava:guava:+".gradleCoordinate, UNIT_TEST)?.lowerBoundVersion)
-            .isEqualTo("19.0".version)
-          expect
-            .that(module.getResolvedDependency("junit:junit:+".gradleCoordinate, UNIT_TEST)?.lowerBoundVersion)
-            .isEqualTo("4.12".version)
-          expect
-            .that(module.getResolvedDependency("com.android.support.test.espresso:espresso-core:+".gradleCoordinate, UNIT_TEST)?.lowerBoundVersion)
-            .isNull()
+          expect.that(module.hasResolvedDependency(GUAVA_GUAVA, UNIT_TEST)).isTrue()
+          expect.that(module.getResolvedDependency(GUAVA_GUAVA.getModule(), UNIT_TEST)?.version).isEqualTo("19.0".version)
+          expect.that(module.hasResolvedDependency(JUNIT_JUNIT, UNIT_TEST)).isTrue()
+          expect.that(module.getResolvedDependency(JUNIT_JUNIT.getModule(), UNIT_TEST)?.version).isEqualTo("4.12".version)
+          expect.that(module.hasResolvedDependency(ESPRESSO_CORE, UNIT_TEST)).isFalse()
+          expect.that(module.getResolvedDependency(ESPRESSO_CORE.getModule(), UNIT_TEST)?.version).isNull()
 
-          expect
-            .that(module.getResolvedDependency("com.google.guava:guava:+".gradleCoordinate, ANDROID_TEST)?.lowerBoundVersion)
-            .isEqualTo("19.0".version)
-          expect
-            .that(module.getResolvedDependency("junit:junit:+".gradleCoordinate, ANDROID_TEST)?.lowerBoundVersion)
-            .isEqualTo("4.12".version)
-          expect
-            .that(module.getResolvedDependency("com.android.support.test.espresso:espresso-core:+".gradleCoordinate, ANDROID_TEST)?.lowerBoundVersion)
-            .isEqualTo("3.0.2".version)
+          expect.that(module.hasResolvedDependency(GUAVA_GUAVA, ANDROID_TEST)).isTrue()
+          expect.that(module.getResolvedDependency(GUAVA_GUAVA.getModule(), ANDROID_TEST)?.version).isEqualTo("19.0".version)
+          expect.that(module.hasResolvedDependency(JUNIT_JUNIT, ANDROID_TEST)).isTrue()
+          expect.that(module.getResolvedDependency(JUNIT_JUNIT.getModule(), ANDROID_TEST)?.version).isEqualTo("4.12".version)
+          expect.that(module.hasResolvedDependency(ESPRESSO_CORE, ANDROID_TEST)).isTrue()
+          expect.that(module.getResolvedDependency(ESPRESSO_CORE.getModule(), ANDROID_TEST)?.version).isEqualTo("3.0.2".version)
         },
       )
   }
@@ -341,10 +335,6 @@ data class GradleProjectSystemIntegrationTest(
     body(project, agpVersion, expect)
   }
 }
-
-private val String.gradleCoordinate
-  get() =
-    GradleCoordinate.parseCoordinateString(this) ?: error("Invalid gradle coordinate: $this")
 
 private val String.version get() = Version.parse(this)
 
