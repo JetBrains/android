@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.task
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.util.CommonAndroidUtil
-import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.util.Key
@@ -31,19 +30,6 @@ import java.io.File
  * Executes Gradle tasks.
  */
 class AndroidGradleTaskManager : GradleTaskManagerExtension {
-
-  @Deprecated("Use AndroidGradleTaskManager.executeTasks(String, ExternalSystemTaskId, GradleExecutionSettings, ExternalSystemTaskNotificationListener) instead")
-  @Throws(ExternalSystemException::class)
-  override fun executeTasks(
-    id: ExternalSystemTaskId,
-    taskNames: List<String>,
-    projectPath: String,
-    settings: GradleExecutionSettings?,
-    jvmParametersSetup: String?,
-    listener: ExternalSystemTaskNotificationListener,
-  ): Boolean {
-    return super.executeTasks(id, taskNames, projectPath, settings, jvmParametersSetup, listener)
-  }
 
   override fun executeTasks(
     projectPath: String,
