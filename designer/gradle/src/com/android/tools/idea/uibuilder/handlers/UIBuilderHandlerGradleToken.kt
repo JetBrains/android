@@ -22,6 +22,16 @@ import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.android.tools.idea.uibuilder.api.ViewEditor
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.AddElementType
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.AddElementType.CONSTRAINT_SET
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.AddElementType.FLOW
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.AddElementType.GROUP
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.AddElementType.HORIZONTAL_BARRIER
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.AddElementType.HORIZONTAL_GUIDELINE
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.AddElementType.LAYER
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.AddElementType.VERTICAL_BARRIER
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.AddElementType.VERTICAL_GUIDELINE
 
 class UIBuilderHandlerGradleToken : UIBuilderHandlerToken<GradleProjectSystem>, GradleToken {
   private fun hasMaterial3Dependency(moduleSystem: GradleModuleSystem) =
@@ -38,6 +48,42 @@ class UIBuilderHandlerGradleToken : UIBuilderHandlerToken<GradleProjectSystem>, 
     return when {
       hasMaterial3Dependency(moduleSystem) -> null
       else -> "Widget.MaterialComponents.BottomAppBar.Colored"
+    }
+  }
+
+  private fun constraintLayoutVersion(moduleSystem: GradleModuleSystem): Version? =
+    moduleSystem
+      .getResolvedDependency(
+        GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getModule(),
+        DependencyScopeType.MAIN,
+      )
+      ?.version
+
+  override fun showConvertToMotionLayoutComponentsAction(
+    projectSystem: GradleProjectSystem,
+    viewEditor: ViewEditor,
+  ): Boolean {
+    val version =
+      constraintLayoutVersion(projectSystem.getModuleSystem(viewEditor.model.module)) ?: return true
+    return version > Version.parse("2.0.0-beta02")
+  }
+
+  override fun showAddElementsAction(
+    projectSystem: GradleProjectSystem,
+    viewEditor: ViewEditor,
+    type: AddElementType,
+  ): Boolean {
+    val version =
+      constraintLayoutVersion(projectSystem.getModuleSystem(viewEditor.model.module)) ?: return true
+    return when (type) {
+      HORIZONTAL_GUIDELINE,
+      VERTICAL_GUIDELINE -> true
+      HORIZONTAL_BARRIER,
+      VERTICAL_BARRIER,
+      GROUP -> version > Version.parse("1.0")
+      LAYER,
+      CONSTRAINT_SET,
+      FLOW -> version > Version.parse("1.9")
     }
   }
 }

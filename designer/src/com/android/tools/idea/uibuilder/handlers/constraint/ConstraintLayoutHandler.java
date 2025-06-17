@@ -55,6 +55,9 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.AddElementType.*;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.AddElementType.HORIZONTAL_BARRIER;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.AddElementType.VERTICAL_BARRIER;
 import static icons.StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CREATE_CONSTRAINTS;
@@ -85,6 +88,8 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
@@ -102,6 +107,7 @@ import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
+import com.android.tools.idea.uibuilder.handlers.UIBuilderHandlerToken;
 import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
@@ -127,6 +133,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -154,6 +161,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -624,7 +632,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiersEx) {
       presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_SPREAD);
-      boolean show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "2.0.0-beta02");
+      Project project = editor.getModel().getProject();
+      AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+      Optional<UIBuilderHandlerToken<AndroidProjectSystem>> token = UIBuilderHandlerToken.EP_NAME
+        .getExtensionList().stream()
+        .filter(it -> it.isApplicable(projectSystem))
+        .findFirst();
+      boolean show = token.map(handlerToken -> handlerToken.showConvertToMotionLayoutComponentsAction(projectSystem, editor)).orElse(false);
       presentation.setLabel("Convert to MotionLayout");
       presentation.setVisible(show);
     }
@@ -787,19 +801,22 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     return builder.toString().substring(0, builder.length() - 1);
   }
 
+  public enum AddElementType {
+    HORIZONTAL_GUIDELINE,
+    VERTICAL_GUIDELINE,
+    HORIZONTAL_BARRIER,
+    VERTICAL_BARRIER,
+    GROUP,
+    CONSTRAINT_SET,
+    LAYER,
+    FLOW,
+  }
+
   private static class AddElementAction extends DirectViewAction {
-    public static final int HORIZONTAL_GUIDELINE = 0;
-    public static final int VERTICAL_GUIDELINE = 1;
-    public static final int HORIZONTAL_BARRIER = 2;
-    public static final int VERTICAL_BARRIER = 3;
-    public static final int GROUP = 4;
-    public static final int CONSTRAINT_SET = 5;
-    public static final int LAYER = 6;
-    public static final int FLOW = 7;
 
-    final int myType;
+    final AddElementType myType;
 
-    private AddElementAction(int type, Icon icon, String text) {
+    private AddElementAction(AddElementType type, Icon icon, String text) {
       super(icon, text);
       myType = type;
     }
@@ -1043,9 +1060,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiersEx) {
-      boolean show = true;
+      Project project = editor.getModel().getProject();
+      AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+      Optional<UIBuilderHandlerToken<AndroidProjectSystem>> token = UIBuilderHandlerToken.EP_NAME.getExtensionList().stream()
+        .filter(it -> it.isApplicable(projectSystem))
+        .findFirst();
+      boolean show = token.map(it -> it.showAddElementsAction(projectSystem, editor, myType)).orElse(true);
       if (myType == VERTICAL_BARRIER || myType == HORIZONTAL_BARRIER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.0");
         if (show) {
           int barriers = 0;
           int other = 0;
@@ -1065,19 +1086,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           }
         }
       }
-      if (myType == GROUP) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.0");
-      }
-      if (myType == CONSTRAINT_SET) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.9");
-      }
-      if (myType == LAYER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.9");
-      }
-      if (myType == FLOW) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.9");
-      }
-
       presentation.setVisible(show);
       presentation.setEnabled(true);
     }
@@ -1899,28 +1907,28 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                       "Expand Vertically"));
 
     private static final ImmutableList<ViewAction> HELPER_ACTIONS = ImmutableList.of(
-      new AddElementAction(AddElementAction.VERTICAL_GUIDELINE,
+      new AddElementAction(VERTICAL_GUIDELINE,
                            GUIDELINE_VERTICAL,
                            "Vertical Guideline"),
-      new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE,
+      new AddElementAction(HORIZONTAL_GUIDELINE,
                            StudioIcons.LayoutEditor.Toolbar.GUIDELINE_HORIZONTAL,
                            "Horizontal Guideline"),
-      new AddElementAction(AddElementAction.VERTICAL_BARRIER,
+      new AddElementAction(VERTICAL_BARRIER,
                            StudioIcons.LayoutEditor.Toolbar.BARRIER_VERTICAL,
                            ADD_VERTICAL_BARRIER),
-      new AddElementAction(AddElementAction.HORIZONTAL_BARRIER,
+      new AddElementAction(HORIZONTAL_BARRIER,
                            StudioIcons.LayoutEditor.Toolbar.BARRIER_HORIZONTAL,
                            ADD_HORIZONTAL_BARRIER),
-      new AddElementAction(AddElementAction.GROUP,
+      new AddElementAction(GROUP,
                            StudioIcons.LayoutEditor.Palette.GROUP,
                            ADD_GROUP),
-      new AddElementAction(AddElementAction.CONSTRAINT_SET,
+      new AddElementAction(CONSTRAINT_SET,
                            StudioIcons.LayoutEditor.Palette.CONSTRAINT_SET,
                            ADD_CONSTRAINTS_SET),
-      new AddElementAction(AddElementAction.LAYER,
+      new AddElementAction(LAYER,
                            StudioIcons.LayoutEditor.Palette.LAYER,
                            ADD_LAYER),
-      new AddElementAction(AddElementAction.FLOW,
+      new AddElementAction(FLOW,
                            StudioIcons.LayoutEditor.Palette.FLOW,
                            ADD_FLOW));
   }
