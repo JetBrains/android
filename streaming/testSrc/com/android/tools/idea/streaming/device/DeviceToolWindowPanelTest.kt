@@ -447,13 +447,13 @@ class DeviceToolWindowPanelTest {
 
     fakeUi.mouse.press(50, 70)
     fakeUi.mouse.dragTo(200, 70)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = 0.0, y = -0.017356513)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = 0.0, y = -0.019084575)")
     fakeUi.mouse.dragTo(200, 200)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = -0.0150423115, y = 0.0)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = -0.016539965, y = 0.0)")
     fakeUi.mouse.dragTo(200, 10) // Exit the DeviceView component.
     fakeUi.mouse.dragTo(100, 70) // Enter the DeviceView component in a different location.
     fakeUi.mouse.dragTo(150, 200)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = -0.0150423115, y = -0.0057855044)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = -0.016539965, y = -0.0063615246)")
   }
 
   @Test
@@ -475,14 +475,14 @@ class DeviceToolWindowPanelTest {
 
     fakeUi.mouse.press(50, 70)
     fakeUi.mouse.dragTo(200, 70)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = -0.022099, y = 0.0, z = 0.0)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = -0.024299234, y = 0.0, z = 0.0)")
     fakeUi.mouse.dragTo(200, 200)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.019152466, z = 0.0)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.021059336, z = 0.0)")
     fakeUi.mouse.dragTo(200, 10) // Exit the DeviceView component.
     fakeUi.mouse.dragTo(100, 70) // Enter the DeviceView component in a different location.
     fakeUi.mouse.dragTo(150, 200)
     assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo(
-        "XrTranslationMessage(x = -0.007366333, y = 0.019152466, z = 0.0)")
+        "XrTranslationMessage(x = -0.008099744, y = 0.021059336, z = 0.0)")
     fakeUi.mouse.release()
 
     // Moving forward and backward by rotating the mouse wheel.
@@ -498,7 +498,7 @@ class DeviceToolWindowPanelTest {
 
     fakeUi.mouse.press(50, 70)
     fakeUi.mouse.dragTo(100, 200)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = 0.019152466)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = 0.021059336)")
     fakeUi.mouse.release()
   }
 
@@ -600,7 +600,7 @@ class DeviceToolWindowPanelTest {
     assertThat(deviceView.scale).isWithin(0.0001).of(0.25)
     assertThat(deviceView.preferredSize).isEqualTo(Dimension(270, 570))
     val viewport = deviceView.parent as JViewport
-    assertThat(viewport.viewSize).isEqualTo(Dimension(280, 570))
+    assertThat(viewport.viewSize).isEqualTo(Dimension(310, 570))
     // Scroll to the bottom.
     val scrollPosition = Point(viewport.viewPosition.x, viewport.viewSize.height - viewport.height)
     viewport.viewPosition = scrollPosition
@@ -618,7 +618,7 @@ class DeviceToolWindowPanelTest {
 
     // Check that zoom level and scroll position are restored.
     assertThat(deviceView.scale).isWithin(0.0001).of(0.25)
-    assertThat(viewport.viewSize).isEqualTo(Dimension(280, 570))
+    assertThat(viewport.viewSize).isEqualTo(Dimension(310, 570))
     assertThat(viewport.viewPosition).isEqualTo(scrollPosition)
 
     panel.destroyContent()
@@ -732,7 +732,7 @@ class DeviceToolWindowPanelTest {
     val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(testRootDisposable, deviceClient)
     val panel = DeviceToolWindowPanel(testRootDisposable, project, device.handle, deviceClient)
-    panel.size = Dimension(280, 300)
+    panel.size = Dimension(310, 300)
     panel.zoomToolbarVisible = true
     return panel
   }
