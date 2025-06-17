@@ -1,5 +1,6 @@
 ### auto-generated section `build intellij.android.templates` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 create_kotlinc_options(
@@ -151,7 +152,7 @@ jvm_library(
   runtime_deps = [":templates_resources"]
 )
 
-jvm_test(
+jps_test(
   name = "templates_test",
   runtime_deps = [":templates_test_lib"]
 )

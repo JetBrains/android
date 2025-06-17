@@ -1,4 +1,5 @@
 ### auto-generated section `build intellij.android.inspectors-common.api-ide` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 jvm_library(
@@ -67,7 +68,7 @@ jvm_library(
   ]
 )
 
-jvm_test(
+jps_test(
   name = "api-ide_test",
   runtime_deps = [":api-ide_test_lib"]
 )

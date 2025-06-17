@@ -28,6 +28,7 @@ jvm_library(
 ### auto-generated section `build intellij.android.gradle.declarative.lang` end
 
 ### auto-generated section `build intellij.android.gradle.declarative.lang.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
@@ -60,7 +61,7 @@ jvm_library(
   runtime_deps = ["//android/gradle-declarative-lang-ide"]
 )
 
-jvm_test(
+jps_test(
   name = "gradle-declarative-lang-tests_test",
   runtime_deps = [":gradle-declarative-lang-tests_test_lib"]
 )

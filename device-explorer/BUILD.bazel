@@ -41,6 +41,7 @@ jvm_library(
 ### auto-generated section `build intellij.android.device-explorer` end
 
 ### auto-generated section `build intellij.android.device-explorer.integration.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
@@ -60,13 +61,14 @@ jvm_library(
   ]
 )
 
-jvm_test(
+jps_test(
   name = "device-explorer-integration-tests_test",
   runtime_deps = [":device-explorer-integration-tests_test_lib"]
 )
 ### auto-generated section `build intellij.android.device-explorer.integration.tests` end
 
 ### auto-generated section `build intellij.android.device-explorer.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
@@ -99,7 +101,7 @@ jvm_library(
   ]
 )
 
-jvm_test(
+jps_test(
   name = "device-explorer-tests_test",
   runtime_deps = [":device-explorer-tests_test_lib"]
 )

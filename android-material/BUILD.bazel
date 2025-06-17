@@ -24,6 +24,7 @@ jvm_library(
 ### auto-generated section `build intellij.android.android-material` end
 
 ### auto-generated section `build intellij.android.android-material.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
@@ -66,7 +67,7 @@ jvm_library(
   runtime_deps = [":android-material-tests_test_resources"]
 )
 
-jvm_test(
+jps_test(
   name = "android-material-tests_test",
   runtime_deps = [":android-material-tests_test_lib"]
 )

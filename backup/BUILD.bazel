@@ -65,6 +65,7 @@ jvm_library(
 ### auto-generated section `build intellij.android.backup.api` end
 
 ### auto-generated section `build intellij.android.backup.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
@@ -101,7 +102,7 @@ jvm_library(
   ]
 )
 
-jvm_test(
+jps_test(
   name = "backup-tests_test",
   runtime_deps = [":backup-tests_test_lib"]
 )

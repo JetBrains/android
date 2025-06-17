@@ -1,4 +1,5 @@
 ### auto-generated section `build intellij.android.designer` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
@@ -208,13 +209,14 @@ jvm_library(
   plugins = ["@lib//:compose-plugin"]
 )
 
-jvm_test(
+jps_test(
   name = "designer_test",
   runtime_deps = [":designer_test_lib"]
 )
 ### auto-generated section `build intellij.android.designer` end
 
 ### auto-generated section `build intellij.android.designer.integration` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
@@ -231,13 +233,14 @@ jvm_library(
   ]
 )
 
-jvm_test(
+jps_test(
   name = "designer-integration_test",
   runtime_deps = [":designer-integration_test_lib"]
 )
 ### auto-generated section `build intellij.android.designer.integration` end
 
 ### auto-generated section `build intellij.android.designer.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
@@ -357,7 +360,7 @@ jvm_library(
   plugins = ["@lib//:compose-plugin"]
 )
 
-jvm_test(
+jps_test(
   name = "designer-tests_test",
   runtime_deps = [":designer-tests_test_lib"]
 )

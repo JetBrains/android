@@ -1,4 +1,5 @@
 ### auto-generated section `build intellij.android.wear-whs` start
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
@@ -75,7 +76,7 @@ jvm_library(
   runtime_deps = [":wear-whs_resources"]
 )
 
-jvm_test(
+jps_test(
   name = "wear-whs_test",
   runtime_deps = [":wear-whs_test_lib"]
 )
