@@ -27,6 +27,7 @@ jvm_library(
     "//platform/editor/shared:editor",
     "//platform/editor-ui-api:editor-ui",
     "//platform/lang-api:lang",
+    "//platform/lang-core",
     "//platform/lang-impl",
     "//platform/projectModel-api:projectModel",
     "//platform/util",

@@ -31,6 +31,7 @@ jvm_library(
     "//android/project-system-gradle:projectSystem-gradle-tests_test_lib",
     "//android/backup:backup-api",
     "//platform/core-api:core",
+    "//platform/lang-core",
     "//platform/projectModel-api:projectModel",
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/idea",

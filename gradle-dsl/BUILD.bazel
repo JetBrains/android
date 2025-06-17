@@ -147,6 +147,7 @@ jvm_library(
     "//platform/extensions",
     "//platform/external-system-api:externalSystem",
     "//platform/ide-core",
+    "//platform/lang-core",
     "//platform/projectModel-api:projectModel",
     "//platform/projectModel-impl",
     "//platform/testFramework",

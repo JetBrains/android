@@ -40,6 +40,7 @@ jvm_library(
     "//platform/indexing-impl",
     "//jps/model-api:model",
     "//platform/lang-api:lang",
+    "//platform/lang-core",
     "//platform/lang-impl",
     "//platform/projectModel-api:projectModel",
     "//uast/uast-common:uast",

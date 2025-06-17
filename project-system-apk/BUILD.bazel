@@ -31,6 +31,7 @@ jvm_library(
     "//platform/ide-core-impl",
     "//platform/platform-impl:ide-impl",
     "//jps/model-api:model",
+    "//platform/lang-core",
     "//platform/projectModel-api:projectModel",
     "//platform/util",
     "//java/java-psi-api:psi",

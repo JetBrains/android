@@ -72,6 +72,7 @@ jvm_library(
     "@lib//:mockito-kotlin",
     "//platform/core-api:core",
     "//jps/model-api:model",
+    "//platform/lang-core",
     "//platform/projectModel-api:projectModel",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",

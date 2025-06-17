@@ -92,6 +92,7 @@ jvm_library(
     "//java/testFramework",
     "//platform/core-api:core",
     "//platform/ide-core",
+    "//platform/lang-core",
     "//platform/projectModel-api:projectModel",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
