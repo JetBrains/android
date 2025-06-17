@@ -99,9 +99,7 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuid
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.PERCENT;
 
 import com.android.AndroidXConstants;
-import com.android.ide.common.gradle.Version;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.configurations.Configuration;
@@ -109,7 +107,6 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -914,14 +911,6 @@ public final class ConstraintComponentUtilities {
   @AndroidCoordinate
   private static int getYfromParent(@NotNull NlComponent component) {
     return NlComponentHelperKt.getY(component) - (component.getParent() != null ? NlComponentHelperKt.getY(component.getParent()) : 0);
-  }
-
-
-  public static boolean isConstraintModelGreaterThan(@NotNull ViewEditor editor, String version) {
-    GoogleMavenArtifactId artifact = GoogleMavenArtifactId.ANDROIDX_CONSTRAINTLAYOUT;
-    Version v = NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, editor.getModel().getFacet());
-    if (v == null) return true;
-    return v.compareTo(Version.parse(version)) > 0;
   }
 
   /////////////////////////////////////////////////////////////////////////////

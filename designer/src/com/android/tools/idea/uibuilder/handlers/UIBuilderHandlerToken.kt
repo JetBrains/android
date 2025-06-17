@@ -18,10 +18,21 @@ package com.android.tools.idea.uibuilder.handlers
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.Token
+import com.android.tools.idea.uibuilder.api.ViewEditor
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.AddElementType
 import com.intellij.openapi.extensions.ExtensionPointName
 
 interface UIBuilderHandlerToken<P : AndroidProjectSystem> : Token {
   fun getBottomAppBarStyle(projectSystem: P, newChild: NlComponent): String?
+
+  fun showConvertToMotionLayoutComponentsAction(projectSystem: P, viewEditor: ViewEditor): Boolean =
+    true
+
+  fun showAddElementsAction(
+    projectSystem: P,
+    viewEditor: ViewEditor,
+    type: AddElementType,
+  ): Boolean = true
 
   companion object {
     @JvmField
