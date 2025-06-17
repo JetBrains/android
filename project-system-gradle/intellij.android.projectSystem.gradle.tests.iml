@@ -22,7 +22,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />
     <orderEntry type="library" name="studio-plugin-org.toml.lang" level="project" />
     <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />

@@ -330,8 +330,6 @@
       <module fileurl="file://$PROJECT_DIR$/inspectors-common/api-ide/intellij.android.inspectors-common.api-ide.iml" filepath="$PROJECT_DIR$/inspectors-common/api-ide/intellij.android.inspectors-common.api-ide.iml" />
       <module fileurl="file://$PROJECT_DIR$/inspectors-common/ui/intellij.android.inspectors-common.ui.iml" filepath="$PROJECT_DIR$/inspectors-common/ui/intellij.android.inspectors-common.ui.iml" />
       <module fileurl="file://$PROJECT_DIR$/jps-model/intellij.android.jps.model.iml" filepath="$PROJECT_DIR$/jps-model/intellij.android.jps.model.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android-kotlin/android-extensions-idea/intellij.android.kotlin.extensions.iml" filepath="$PROJECT_DIR$/android-kotlin/android-extensions-idea/intellij.android.kotlin.extensions.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android-kotlin/android-extensions-idea-common/intellij.android.kotlin.extensions.common.iml" filepath="$PROJECT_DIR$/android-kotlin/android-extensions-idea-common/intellij.android.kotlin.extensions.common.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-kotlin/idea-android/intellij.android.kotlin.idea.iml" filepath="$PROJECT_DIR$/android-kotlin/idea-android/intellij.android.kotlin.idea.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-kotlin/idea-android/common/intellij.android.kotlin.idea.common.iml" filepath="$PROJECT_DIR$/android-kotlin/idea-android/common/intellij.android.kotlin.idea.common.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-kotlin/idea-android/k1/intellij.android.kotlin.idea.k1.iml" filepath="$PROJECT_DIR$/android-kotlin/idea-android/k1/intellij.android.kotlin.idea.k1.iml" />

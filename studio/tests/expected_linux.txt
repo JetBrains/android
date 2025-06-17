@@ -2210,7 +2210,6 @@ android-studio/plugins/android/lib/aapt2-proto-8.1.0-10154469.jar
 android-studio/plugins/android/lib/adt-ui.jar
 android-studio/plugins/android/lib/android-base-common.jar
 android-studio/plugins/android/lib/android-common.jar
-android-studio/plugins/android/lib/android-extensions-ide.jar
 android-studio/plugins/android/lib/android-gradle.jar
 android-studio/plugins/android/lib/android-kotlin.jar
 android-studio/plugins/android/lib/android-profilers.jar

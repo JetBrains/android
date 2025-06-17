@@ -2221,7 +2221,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/aapt2-proto-8.1.0-101544
 Android Studio Preview.app/Contents/plugins/android/lib/adt-ui.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-base-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-common.jar
-Android Studio Preview.app/Contents/plugins/android/lib/android-extensions-ide.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-gradle.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-kotlin.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-profilers.jar

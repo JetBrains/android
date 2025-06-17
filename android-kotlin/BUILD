@@ -109,66 +109,6 @@ iml_module(
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.kotlin.extensions",
-    srcs = ["android-extensions-idea/src"],
-    iml_files = ["android-extensions-idea/intellij.android.kotlin.extensions.iml"],
-    resources = ["android-extensions-idea/resources"],
-    test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
-    test_data = glob([
-        "android-extensions-idea/testData/**",
-    ]) + [
-        "idea-android/testData/android/AndroidManifest.xml",
-        "//prebuilts/studio/sdk:platforms/latest",
-    ],
-    # do not sort: must match IML order
-    test_deps = [
-        "//tools/adt/idea/.idea/libraries:junit4",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.tests",
-        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
-    ],
-    test_srcs = ["android-extensions-idea/tests"],
-    test_tags = [
-        # Kotlin synthetics are deprecated and will not be supported with Kotlin K2.
-        # See https://android-developers.googleblog.com/2022/02/discontinuing-kotlin-synthetics-for-views.html
-        "no_k2",
-    ],
-    test_timeout = "long",  # These tests can be slow, especially on Mac (b/299445080).
-    visibility = ["//visibility:public"],
-    exports = ["//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common"],
-    # do not sort: must match IML order
-    deps = [
-        "@intellij//:intellij-sdk",
-        "@intellij//:com.intellij.java",
-        "//tools/adt/idea/android-common:intellij.android.common",
-        "//tools/adt/idea/android:intellij.android.core",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common",
-        "//tools/analytics-library/crash:analytics-crash",
-        "//tools/adt/idea/project-system:intellij.android.projectSystem",
-        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
-        "@intellij//:org.jetbrains.kotlin",
-    ],
-)
-
-# managed by go/iml_to_build
-iml_module(
-    name = "intellij.android.kotlin.extensions.common",
-    srcs = ["android-extensions-idea-common/src"],
-    iml_files = ["android-extensions-idea-common/intellij.android.kotlin.extensions.common.iml"],
-    jvm_target = "8",
-    kotlinc_opts = ["-opt-in=org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi"],
-    resources = ["android-extensions-idea-common/resources"],
-    visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = [
-        "@intellij//:intellij-sdk",
-        "@intellij//:com.intellij.java",
-        "@intellij//:com.intellij.gradle",
-        "@intellij//:org.jetbrains.kotlin",
-    ],
-)
-
-# managed by go/iml_to_build
-iml_module(
     name = "intellij.android.kotlin.tests",
     generate_k1_tests = True,
     iml_files = ["intellij.android.kotlin.tests.iml"],

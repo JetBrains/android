@@ -56,7 +56,6 @@
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-policy.ide" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-vitals.ide" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.plugin.descriptor" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.layout-inspector.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid.gradle" scope="RUNTIME" />

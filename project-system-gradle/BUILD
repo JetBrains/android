@@ -43,8 +43,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
         # AI Plugin access to Gradle Project System functionality
         "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle",
-        # TODO(b/316555700), Kotlin Intrinsics deprecation schedule, AndroidModuleInfoProviderImpl
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
         # TODO(b/427148033), MigrateToCatalogProcessor
         "//tools/vendor/google/ml/aiplugin/experimental:aiplugin.experimental",
         # TODO(xof): investigate
@@ -618,7 +616,6 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
     ],
     # do not sort: must match IML order
     deps = [
