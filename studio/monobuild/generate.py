@@ -293,6 +293,9 @@ def transfer_config_files(intellij: JpsProject, studio: JpsProject, outdir: Path
         "./component[@name='CompilerConfiguration']/excludeFromCompile/file",
         "./component[@name='CompilerConfiguration']/wildcardResourcePatterns/entry",
     ])
+    # The 'devkit.runtime.module.repository.jps' plugin breaks our JPS build for some reason.
+    (devkit_plugin,) = base_compiler_config.findall("./component[@name='BuildProcessPlugins']/project-library[@name='devkit.runtime.module.repository.jps']")
+    devkit_plugin.set('name', 'removed.for.monobuild')
     write_xml_file(base_compiler_config, outdir.joinpath(".idea/compiler.xml"))
 
     # Special case: .idea/vcs.xml needs to merged so that git blame works for all files.
