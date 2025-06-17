@@ -4,7 +4,7 @@ import argparse
 import sys
 from tools.adt.idea.studio import intellij
 
-def check_plugin(kind, id, files, deps, out):
+def check_plugin(kind, id, allow_bundled_updates, files, deps, out):
   if kind == "module":
     # This is a v2 module, not a plugin per se. See go/studio-v2-modules for details.
     element = intellij.load_plugin_xml(files, f"{id}.xml")
@@ -31,7 +31,7 @@ def check_plugin(kind, id, files, deps, out):
   # Disallow updates for bundled plugins. We enforce this even for JetBrains plugins, because
   # we want to guarantee compatibility between plugins, and because we want platform plugins
   # to always come from our own IntelliJ fork (which may have patches, for example).
-  if element.attrib.get("allow-bundled-update", "false") != "false" and id != "org.jetbrains.kotlin":
+  if not allow_bundled_updates and element.attrib.get("allow-bundled-update", "false") != "false" and id != "org.jetbrains.kotlin":
       print("Bundled plugin update are not allowed for plugin: %s" % id)
       sys.exit(1)
 
@@ -99,6 +99,10 @@ if __name__ == "__main__":
       required=True,
       help="Whether this is a top-level plugin, or a plugin module inside a larger host plugin")
   parser.add_argument(
+      "--allow_bundled_updates",
+      action="store_true",
+      help="Whether to allow bundled plugin updates")
+  parser.add_argument(
       "--files",
       dest="files",
       nargs="+",
@@ -119,4 +123,4 @@ if __name__ == "__main__":
       dest="out",
       help="Path to a file where to save the plugin information.")
   args = parser.parse_args()
-  check_plugin(args.kind, args.id, args.files, args.deps, args.out)
+  check_plugin(args.kind, args.id, args.allow_bundled_updates, args.files, args.deps, args.out)

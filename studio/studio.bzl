@@ -203,7 +203,7 @@ def _resource_deps(res_dirs, res, platform):
             files += [(dir + "/" + f.basename, f) for f in dep.files.to_list()]
     return files
 
-def _check_plugin(ctx, out, files, kind, id, verify_deps = None):
+def _check_plugin(ctx, out, files, kind, id, allow_bundled_updates = False, verify_deps = None):
     deps = None
     if verify_deps != None:
         deps = [dep[PluginInfo].plugin_metadata for dep in verify_deps]
@@ -213,6 +213,8 @@ def _check_plugin(ctx, out, files, kind, id, verify_deps = None):
     check_args.add_all("--files", files)
     check_args.add("--kind", kind)
     check_args.add("--id", id)
+    if allow_bundled_updates:
+        check_args.add("--allow_bundled_updates")
     if deps != None:
         check_args.add_all("--deps", deps, omit_if_empty = False)
 
@@ -1184,7 +1186,7 @@ def _intellij_plugin_import_impl(ctx):
     java_info = java_common.merge([export[JavaInfo] for export in ctx.attr.exports])
     jars = java_info.runtime_output_jars
 
-    _check_plugin(ctx, ctx.outputs.plugin_metadata, jars, ctx.attr.kind, id)
+    _check_plugin(ctx, ctx.outputs.plugin_metadata, jars, ctx.attr.kind, id, allow_bundled_updates = ctx.attr.allow_bundled_updates)
 
     return [
         java_info,
@@ -1213,6 +1215,7 @@ _intellij_plugin_import = rule(
     attrs = {
         "kind": attr.string(default = "plugin", doc = "Pass 'module' if this is a plugin module inside a larger host plugin"),
         "id": attr.string(doc = "the plugin id, if different from the target name"),
+        "allow_bundled_updates": attr.bool(doc = "whether to allow this plugin to be updated out-of-band", default = False),
         # Note: platform plugins will have no files because they are already in intellij-sdk.
         "files": attr.label_list(allow_files = True),
         "strip_prefix": attr.string(),
@@ -1398,6 +1401,7 @@ def intellij_platform_import(name, spec):
             name = name + "-plugin-%s" % plugin,
             id = plugin,
             kind = kind,
+            allow_bundled_updates = True,  # Since these plugins are outside our control.
             exports = [":" + jars_target_name],
             target_dir = "",
             visibility = ["//visibility:public"],
