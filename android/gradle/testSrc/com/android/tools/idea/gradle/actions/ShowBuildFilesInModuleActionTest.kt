@@ -22,6 +22,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.projectView.ProjectToolWindowSettings
 import com.android.tools.idea.navigator.ANDROID_VIEW_ID
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidViewShowBuildFilesInModuleEvent
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -94,9 +95,15 @@ class ShowBuildFilesInModuleActionTest : HeavyPlatformTestCase() {
     val action = ShowBuildFilesInModuleAction()
     action.setSelected(myEvent, true)
     assert(settings.showBuildFilesInModule)
+    val usage = testUsageTracker.usages.map {it.studioEvent }.first()
+    assertEquals(usage.kind, AndroidStudioEvent.EventKind.ANDROID_VIEW_SHOW_BUILD_FILES_IN_MODULE_EVENT)
+    assertEquals(usage.androidViewShowBuildFilesInModuleEvent.showBuildFilesInModule, AndroidViewShowBuildFilesInModuleEvent.ShowBuildFilesInModule.SHOW_BUILD_FILES_IN_MODULE)
 
     action.setSelected(myEvent, false)
     assertFalse(settings.showBuildFilesInModule)
+    val usage2 = testUsageTracker.usages.map {it.studioEvent }.last()
+    assertEquals(usage2.kind, AndroidStudioEvent.EventKind.ANDROID_VIEW_SHOW_BUILD_FILES_IN_MODULE_EVENT)
+    assertEquals(usage2.androidViewShowBuildFilesInModuleEvent.showBuildFilesInModule, AndroidViewShowBuildFilesInModuleEvent.ShowBuildFilesInModule.DO_NOT_SHOW_BUILD_FILES_IN_MODULE)
 
     val statsEvents = testUsageTracker.usages.map {it.studioEvent }.filter { it.kind == AndroidStudioEvent.EventKind.ANDROID_VIEW_SHOW_BUILD_FILES_IN_MODULE_EVENT }
     assertSize(2, statsEvents)

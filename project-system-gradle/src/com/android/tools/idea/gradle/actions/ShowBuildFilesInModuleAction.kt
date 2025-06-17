@@ -20,6 +20,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.projectView.ProjectToolWindowSettings
 import com.android.tools.idea.navigator.ANDROID_VIEW_ID
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidViewShowBuildFilesInModuleEvent
+import com.google.wireless.android.sdk.stats.AndroidViewShowBuildFilesInModuleEvent.ShowBuildFilesInModule
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -38,7 +40,7 @@ class ShowBuildFilesInModuleAction: ToggleAction("Display Build Files In Module"
       ProjectManager.getInstance().openProjects
         .filter { !it.isDisposed }
         .forEach{ ProjectView.getInstance(it)?.refresh() }
-      trackShowBuildFileInModuleSettingChange()
+      trackShowBuildFileInModuleSettingChange(state)
     }
   }
 
@@ -60,10 +62,14 @@ class ShowBuildFilesInModuleAction: ToggleAction("Display Build Files In Module"
     super.update(e)
   }
 
-  private fun trackShowBuildFileInModuleSettingChange() {
+  private fun trackShowBuildFileInModuleSettingChange(settingValue: Boolean) {
+    val showBuildFilesInModule = if (settingValue) ShowBuildFilesInModule.SHOW_BUILD_FILES_IN_MODULE else ShowBuildFilesInModule.DO_NOT_SHOW_BUILD_FILES_IN_MODULE
     UsageTracker.log(
-      AndroidStudioEvent.newBuilder().apply {
-        kind = AndroidStudioEvent.EventKind.ANDROID_VIEW_SHOW_BUILD_FILES_IN_MODULE_EVENT
-      })
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.ANDROID_VIEW_SHOW_BUILD_FILES_IN_MODULE_EVENT)
+        .setAndroidViewShowBuildFilesInModuleEvent(
+          AndroidViewShowBuildFilesInModuleEvent.newBuilder().apply {
+          this.showBuildFilesInModule = showBuildFilesInModule
+        }))
   }
 }
