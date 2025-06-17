@@ -34,11 +34,15 @@ import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.project.Project;
 import java.util.List;
+import java.util.Optional;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,10 +79,22 @@ public class BottomAppBarHandler extends ViewHandler {
   public boolean onCreate(@Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
-    if (!Material3UtilKt.hasMaterial3Dependency(newChild.getModel().getFacet())) {
-      // The BottomAppBar uses the Colored style in Material 2
+    Project project = newChild.getModel().getProject();
+    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+    Optional<UIBuilderHandlerToken<AndroidProjectSystem>> token =
+      UIBuilderHandlerToken.EP_NAME.getExtensionList().stream()
+        .filter(it -> it.isApplicable(projectSystem))
+        .findFirst();
+    String style;
+    if (token.isEmpty()) {
+      style = "Widget.MaterialComponents.BottomAppBar.Colored";
+    }
+    else {
+      style = token.get().getBottomAppBarStyle(projectSystem, newChild);
+    }
+    if (style != null) {
       NlWriteCommandActionUtil.run(newChild, "Setup BottomAppBar", () ->
-        newChild.setAttribute(null, ATTR_STYLE, STYLE_RESOURCE_PREFIX + "Widget.MaterialComponents.BottomAppBar.Colored")
+        newChild.setAttribute(null, ATTR_STYLE, STYLE_RESOURCE_PREFIX + style)
       );
     }
     return super.onCreate(parent, newChild, insertType);
