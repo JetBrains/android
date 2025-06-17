@@ -13,140 +13,87 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.model;
+package com.android.tools.idea.model
 
-import com.android.projectmodel.DynamicResourceValue;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.devices.Abi;
-import com.android.tools.lint.detector.api.Desugaring;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Key;
-import java.io.File;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.projectmodel.DynamicResourceValue
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.devices.Abi
+import com.android.tools.lint.detector.api.Desugaring
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.Key
+import org.jetbrains.android.facet.AndroidFacet
+import java.io.File
+import java.util.EnumSet
 
 /**
  * A common interface for Android module models.
  */
-public interface AndroidModel {
-
-  String UNINITIALIZED_APPLICATION_ID = "uninitialized.application.id";
-
-  Key<AndroidModel> KEY = Key.create(AndroidModel.class.getName());
-
-  @Nullable
-  static AndroidModel get(@NotNull AndroidFacet facet) {
-    return facet.getUserData(KEY);
-  }
-
-  @Nullable
-  static AndroidModel get(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet == null ? null : get(facet);
-  }
-
-  /**
-   * Sets the model used by this AndroidFacet. This method is meant to be called from build-system specific code that sets up the project
-   * during sync.
-   *
-   * <p>NOTE: Please consider using {@link AndroidProjectRule#withAndroidModel()} or similar methods to configure a test project before using
-   * this method.
-   */
-  static void set(@NotNull AndroidFacet facet, @Nullable AndroidModel androidModel) {
-    facet.putUserData(KEY, androidModel);
-  }
-
-  /**
-   * Returns {@code true} if {@code facet} has been configured from and is kept in sync with an external model of the project.
-   */
-  static boolean isRequired(@NotNull AndroidFacet facet) {
-    //noinspection deprecation  This is one of legitimate usages of this property.
-    return !facet.getProperties().ALLOW_USER_CONFIGURATION;
-  }
-
+interface AndroidModel {
   /**
    * @return the current application ID.
    *
-   * NOTE: Some implementations may return {@link #UNINITIALIZED_APPLICATION_ID} when unable to get the application id.
+   * NOTE: Some implementations may return [.UNINITIALIZED_APPLICATION_ID] when unable to get the application id.
    */
-  @NotNull
-  String getApplicationId();
+  val applicationId: String
 
   /**
    * @return all the application IDs of artifacts this Android module could produce.
    */
-  @NotNull
-  Set<String> getAllApplicationIds();
+  val allApplicationIds: Set<String>
 
   /**
    * @return whether the manifest package is overridden.
    * TODO: Potentially dedupe with computePackageName.
    */
-  boolean overridesManifestPackage();
+  fun overridesManifestPackage(): Boolean
 
   /**
-   * @return whether the application is debuggable, or {@code null} if not specified.
+   * @return whether the application is debuggable, or `null` if not specified.
    */
-  Boolean isDebuggable();
+  val isDebuggable: Boolean
 
   /**
    * @return the minimum supported SDK version.
-   * {@link AndroidModuleInfo#getMinSdkVersion()}
+   * [AndroidModuleInfo.getMinSdkVersion]
    */
-  @NotNull
-  AndroidVersion getMinSdkVersion();
+  val minSdkVersion: AndroidVersion
 
   /**
-   * @return the {@code minSdkVersion} that we pass to the runtime. This is normally the same as {@link #getMinSdkVersion()}, but with
-   * "preview" platforms the {@code minSdkVersion}, {@code targetSdkVersion} and {@code compileSdkVersion} are all coerced to the same
+   * @return the `minSdkVersion` that we pass to the runtime. This is normally the same as [.getMinSdkVersion], but with
+   * "preview" platforms the `minSdkVersion`, `targetSdkVersion` and `compileSdkVersion` are all coerced to the same
    * "preview" platform value. This method should be used by launch code for example or packaging code.
    */
-  @NotNull
-  AndroidVersion getRuntimeMinSdkVersion();
+  val runtimeMinSdkVersion: AndroidVersion
 
   /**
    * @return the target SDK version.
-   * {@link AndroidModuleInfo#getTargetSdkVersion()}
+   * [AndroidModuleInfo.getTargetSdkVersion]
    */
-  @Nullable
-  AndroidVersion getTargetSdkVersion();
+  val targetSdkVersion: AndroidVersion?
 
-  default @NotNull EnumSet<Abi> getSupportedAbis() { return EnumSet.allOf(Abi.class); }
+  val supportedAbis: EnumSet<Abi> get() = EnumSet.allOf<Abi>(Abi::class.java)
 
-  @NotNull
-  Namespacing getNamespacing();
+  val namespacing: Namespacing
 
-  /** @return the set of desugaring capabilities of the build system in use. */
-  @NotNull
-  Set<Desugaring> getDesugaring();
+  /** @return the set of desugaring capabilities of the build system in use.
+   */
+  val desugaring: Set<Desugaring>
 
   /**
    * @return the set of optional lint rule jars that override lint jars collected from lint model. It provides an easy to return lint rule
    * jars without creating lint model implementation. Normally null for gradle project.
    */
-  @Nullable
-  default Iterable<File> getLintRuleJarsOverride() { return null; }
+  val lintRuleJarsOverride: Iterable<File>? get() = null
 
-  /**
-   * Returns the set of build-system-provided resource values and overrides.
-   */
-  @NotNull
-  default Map<String, DynamicResourceValue> getResValues() {
-    return Collections.emptyMap();
-  }
 
-  @NotNull
-  default TestOptions getTestOptions() { return TestOptions.DEFAULT; }
+  /** Returns the set of build-system-provided resource values and overrides. */
+  val resValues: Map<String, DynamicResourceValue> get() = mapOf<String, DynamicResourceValue>()
 
-  @Nullable
-  default TestExecutionOption getTestExecutionOption() {
-    return getTestOptions().getExecutionOption();
-  }
+  val testOptions: TestOptions
+    get() = TestOptions.DEFAULT
+
+  val testExecutionOption: TestExecutionOption?
+    get() = this.testOptions.executionOption
 
   /**
    * Returns the resource prefix to use, if any. This is an optional prefix which can be set and
@@ -157,21 +104,62 @@ public interface AndroidModel {
    *
    * @return the optional resource prefix, or null if not set
    */
-  @Nullable
-  default String getResourcePrefix() { return null; }
+  val resourcePrefix: String?
+    get() = null
 
-  /**
-   * Returns true if this is the base feature split.
-   */
-  default boolean isBaseSplit() { return false; }
+  val isBaseSplit: Boolean
+    /**
+     * Returns true if this is the base feature split.
+     */
+    get() = false
 
-  /**
-   * Returns true if this variant is instant app compatible, intended to be possibly built and
-   * served in an instant app context. This is populated during sync from the project's manifest.
-   * Only application modules and dynamic feature modules will set this property.
-   *
-   * @return true if this variant is instant app compatible
-   * @since 3.3
-   */
-  default boolean isInstantAppCompatible() { return false; }
+  val isInstantAppCompatible: Boolean
+    /**
+     * Returns true if this variant is instant app compatible, intended to be possibly built and
+     * served in an instant app context. This is populated during sync from the project's manifest.
+     * Only application modules and dynamic feature modules will set this property.
+     *
+     * @return true if this variant is instant app compatible
+     * @since 3.3
+     */
+    get() = false
+
+  companion object {
+    @JvmStatic
+    fun get(facet: AndroidFacet): AndroidModel? {
+      return facet.getUserData<AndroidModel?>(KEY)
+    }
+
+    @JvmStatic
+    fun get(module: Module): AndroidModel? {
+      val facet = AndroidFacet.getInstance(module)
+      return if (facet == null) null else get(facet)
+    }
+
+    /**
+     * Sets the model used by this AndroidFacet. This method is meant to be called from build-system specific code that sets up the project
+     * during sync.
+     *
+     *
+     * NOTE: Please consider using [AndroidProjectRule.withAndroidModel] or similar methods to configure a test project before using
+     * this method.
+     */
+    @JvmStatic
+    fun set(facet: AndroidFacet, androidModel: AndroidModel?) {
+      facet.putUserData<AndroidModel?>(KEY, androidModel)
+    }
+
+    /**
+     * Returns `true` if `facet` has been configured from and is kept in sync with an external model of the project.
+     */
+    @JvmStatic
+    fun isRequired(facet: AndroidFacet): Boolean {
+      @Suppress("DEPRECATION") // This is one of legitimate usages of this property.
+      return !facet.getProperties().ALLOW_USER_CONFIGURATION
+    }
+
+    const val UNINITIALIZED_APPLICATION_ID: String = "uninitialized.application.id"
+
+    val KEY: Key<AndroidModel?> = Key.create<AndroidModel?>(AndroidModel::class.java.getName())
+  }
 }

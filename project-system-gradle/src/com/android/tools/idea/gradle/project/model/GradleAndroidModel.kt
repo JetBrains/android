@@ -157,20 +157,19 @@ private class GradleAndroidModelImpl(
    * Returns UNINITIALIZED_APPLICATION_ID in contexts that don't have an application ID, see comment on
    * [com.android.tools.idea.gradle.model.IdeAndroidArtifactCore.applicationId]
    */
-  override fun getApplicationId(): String {
-    return selectedVariant.mainArtifact.applicationId ?: AndroidModel.UNINITIALIZED_APPLICATION_ID
-  }
+  override val applicationId get() =
+    selectedVariant.mainArtifact.applicationId ?: AndroidModel.UNINITIALIZED_APPLICATION_ID
 
-  override fun getAllApplicationIds(): Set<String> {
-    return buildSet {
+  override val allApplicationIds: Set<String>
+    get() = buildSet {
       androidProject.basicVariants.forEach { variant ->
         variant.applicationId?.let { add(it) }
         variant.testApplicationId?.let { add(it) }
       }
     }
-  }
 
-  override fun isDebuggable(): Boolean {
+  override val isDebuggable: Boolean
+    get() {
     // TODO(b/288091803): Figure out if kotlin multiplatform android modules should be marked debuggable
     if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM) {
       return true
@@ -219,21 +218,24 @@ private class GradleAndroidModelImpl(
    *
    * @return the [AndroidVersion] to use for this Gradle project, or `null` if not specified.
    */
-  override fun getMinSdkVersion(): AndroidVersion = myMinSdkVersion
+  override val minSdkVersion: AndroidVersion
+    get() = myMinSdkVersion
 
-  override fun getRuntimeMinSdkVersion(): AndroidVersion {
-    val minSdkVersion = selectedVariant.minSdkVersion
-    return convertVersion(minSdkVersion, null)
-  }
+  override val runtimeMinSdkVersion: AndroidVersion
+    get() {
+      val minSdkVersion = selectedVariant.minSdkVersion
+      return convertVersion(minSdkVersion, null)
+    }
 
-  override fun getTargetSdkVersion(): AndroidVersion? {
-    val targetSdkVersion = selectedVariant.targetSdkVersion
-    return if (targetSdkVersion != null) convertVersion(targetSdkVersion, null) else null
-  }
+  override val targetSdkVersion: AndroidVersion?
+    get() {
+      val targetSdkVersion = selectedVariant.targetSdkVersion
+      return if (targetSdkVersion != null) convertVersion(targetSdkVersion, null) else null
+    }
 
-  override fun getSupportedAbis(): EnumSet<Abi> {
-    return selectedVariant.mainArtifact.abiFilters.mapNotNullTo(EnumSet.noneOf(Abi::class.java)) { Abi.getEnum(it) }
-  }
+  override val supportedAbis: EnumSet<Abi>
+    get() = selectedVariant.mainArtifact.abiFilters
+      .mapNotNullTo(EnumSet.noneOf(Abi::class.java)) { Abi.getEnum(it) }
 
   private val myOverridesManifestPackage: Boolean by lazy(LazyThreadSafetyMode.PUBLICATION) {
     var result = androidProject.multiVariantData?.defaultConfig?.applicationId != null
@@ -257,34 +259,33 @@ private class GradleAndroidModelImpl(
    */
   override fun overridesManifestPackage(): Boolean = myOverridesManifestPackage
 
-  override fun getNamespacing(): Namespacing {
-    return when (val namespacing = androidProject.aaptOptions.namespacing) {
-      IdeAaptOptions.Namespacing.DISABLED -> Namespacing.DISABLED
-      IdeAaptOptions.Namespacing.REQUIRED -> Namespacing.REQUIRED
-      else -> throw IllegalStateException("Unknown namespacing option: $namespacing")
-    }
-  }
 
-  override fun getDesugaring(): Set<Desugaring> {
-    return getGradleDesugaring(
-      agpVersion, data.getJavaSourceLanguageLevel(), androidProject.javaCompileOptions?.isCoreLibraryDesugaringEnabled == true
-    )
-  }
+  override val namespacing: Namespacing
+    get() =
+       when (androidProject.aaptOptions.namespacing) {
+         IdeAaptOptions.Namespacing.DISABLED -> Namespacing.DISABLED
+         IdeAaptOptions.Namespacing.REQUIRED -> Namespacing.REQUIRED
+       }
 
-  override fun getResValues(): Map<String, DynamicResourceValue> {
-    return classFieldsToDynamicResourceValues(selectedVariant.resValues)
-  }
+  override val desugaring: Set<Desugaring>
+    get() = getGradleDesugaring(
+        agpVersion, data.getJavaSourceLanguageLevel(), androidProject.javaCompileOptions?.isCoreLibraryDesugaringEnabled == true
+      )
 
-  override fun getTestOptions(): TestOptions {
+
+  override val resValues: Map<String, DynamicResourceValue>
+    get() = classFieldsToDynamicResourceValues(selectedVariant.resValues)
+
+  override val testOptions: TestOptions
+    get() {
     val testArtifact = selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
     val testOptions = testArtifact?.testOptions
     val executionOption: TestExecutionOption? =
-      when (val execution = testOptions?.execution) {
+      when (testOptions?.execution) {
         null -> null
         IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR -> TestExecutionOption.ANDROID_TEST_ORCHESTRATOR
         IdeTestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR -> TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR
         IdeTestOptions.Execution.HOST -> TestExecutionOption.HOST
-        else -> throw IllegalStateException("Unknown option: $execution")
       }
     val animationsDisabled = testOptions != null && testOptions.animationsDisabled
     return TestOptions(
@@ -295,9 +296,12 @@ private class GradleAndroidModelImpl(
     )
   }
 
-  override fun getResourcePrefix(): String? = androidProject.resourcePrefix
-  override fun isBaseSplit(): Boolean = androidProject.isBaseSplit
-  override fun isInstantAppCompatible(): Boolean = selectedVariant.instantAppCompatible
+  override val resourcePrefix: String?
+    get() = androidProject.resourcePrefix
+  override val isBaseSplit: Boolean
+    get() = androidProject.isBaseSplit
+  override val isInstantAppCompatible: Boolean
+    get() = selectedVariant.instantAppCompatible
 
   @VisibleForTesting
   fun containsTheSameDataAs(that: GradleAndroidModel) = data == (that as? GradleAndroidModelImpl)?.data
