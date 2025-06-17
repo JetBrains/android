@@ -39,8 +39,8 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 public class GradleDeclarativeScriptCollector implements GradleAutoReloadSettingsCollector {
   private static final Logger LOG = Logger.getInstance(GradleDeclarativeScriptCollector.class);
   @Override
-  public @NotNull List<File> collectSettingsFiles(@NotNull Project project, @NotNull GradleProjectSettings projectSettings) {
-    List<File> files = new SmartList<>();
+  public @NotNull List<Path> collectSettingsFiles(@NotNull Project project, @NotNull GradleProjectSettings projectSettings) {
+    List<Path> files = new SmartList<>();
     if (!DeclarativeIdeSupport.isEnabled()) return files;
 
     for (String modulePath : projectSettings.getModules()) {
@@ -53,7 +53,7 @@ public class GradleDeclarativeScriptCollector implements GradleAutoReloadSetting
             String fileName = path.getFileName().toString();
             if (fileName.endsWith('.' + "gradle.dcl")) {
               File file = path.toFile();
-              if (file.isFile()) files.add(file);
+              if (file.isFile()) files.add(path);
             }
             return FileVisitResult.CONTINUE;
           }

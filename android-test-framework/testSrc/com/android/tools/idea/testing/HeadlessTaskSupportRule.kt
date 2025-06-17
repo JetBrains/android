@@ -57,6 +57,7 @@ private class HeadlessTaskSupport : TaskSupport {
     title: @NlsContexts.ProgressTitle String,
     cancellation: TaskCancellation,
     suspender: TaskSuspender?,
+    visibleInStatusBar: Boolean,
     action: suspend CoroutineScope.() -> T,
   ): T = coroutineScope { action() }
 

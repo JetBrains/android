@@ -125,5 +125,5 @@ private fun withExistingFacetFromStorageOrNewBuilder(
 ) {
   storage.resolve(facetId)?.let {
     storage.modifyFacetEntity(it, facetUpdater)
-  } ?: facetUpdater(FacetEntity(facetId.name, facetId.parentId, facetId.type, entitySource))
+  } ?: facetUpdater(FacetEntity(facetId.parentId, facetId.name, facetId.type, entitySource))
 }

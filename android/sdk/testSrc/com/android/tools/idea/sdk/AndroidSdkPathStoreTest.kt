@@ -21,6 +21,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.application
+import kotlinx.coroutines.runBlocking
 import java.nio.file.Paths
 
 @Suppress("UnstableApiUsage")
@@ -93,7 +94,9 @@ internal class AndroidSdkPathStoreTest : LightPlatformTestCase() {
     }
 
     try {
-      initComponent(androidSdkPathStore, null, PluginId.findId("org.jetbrains.android")!!)
+      runBlocking {
+        initComponent(androidSdkPathStore, null, PluginId.findId("org.jetbrains.android")!!)
+      }
 
       if (initialAndroidSdkPathState != null) {
         // Save initial state and re-init component to trigger loadState method
@@ -104,7 +107,9 @@ internal class AndroidSdkPathStoreTest : LightPlatformTestCase() {
         finally {
           unloadComponent(androidSdkPathStore)
         }
-        initComponent(androidSdkPathStore, null, PluginId.findId("org.jetbrains.android")!!)
+        runBlocking {
+          initComponent(androidSdkPathStore, null, PluginId.findId("org.jetbrains.android")!!)
+        }
       }
 
       action(androidSdkPathStore)

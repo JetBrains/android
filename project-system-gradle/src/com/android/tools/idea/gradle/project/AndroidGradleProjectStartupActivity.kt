@@ -81,7 +81,7 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.platform.PlatformProjectOpenProcessor
+import com.intellij.platform.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
 import kotlinx.coroutines.CompletableDeferred
@@ -190,7 +190,7 @@ private fun subscribeToGradleSettingChanges(project: Project) {
 }
 
 private fun whenAllModulesLoaded(project: Project, callback: () -> Unit) {
-  if (project.getUserData(PlatformProjectOpenProcessor.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES) == true) {
+  if (project.getUserData(PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES) == true) {
     // All modules are loaded at this point and JpsProjectLoadingManager.jpsProjectLoaded is not triggered, so invoke callback directly.
     callback()
   } else {

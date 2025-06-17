@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.compose.StudioComposePanel
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import javax.swing.JComponent
@@ -54,7 +54,7 @@ fun OrganizationHeader(group: OrganizationGroup) {
   IconButton(
     modifier =
       Modifier.testTag("openButton")
-        .height(ActionToolbarImpl.DEFAULT_MINIMUM_BUTTON_SIZE.height.dp),
+        .height(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height.dp),
     onClick = { group.setOpened(!opened.value) },
   ) {
     Row(verticalAlignment = Alignment.CenterVertically) {

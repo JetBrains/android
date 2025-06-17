@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import ai.grazie.utils.text
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.insights.Selection

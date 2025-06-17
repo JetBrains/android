@@ -1004,10 +1004,10 @@ public class AndroidValueResourcesTest {
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     myFixture.setReadEditorMarkupModel(true);
 
-    IdentifierHighlighterPassFactory.doWithHighlightingEnabled(myProject, myFixture.getProjectDisposable(), () -> {
+    IdentifierHighlighterPassFactory.doWithIdentifierHighlightingEnabled(myProject, () -> {
       AndroidTestUtils.moveCaret(myFixture, "<string name=\"f|oo\">foo</string>");
       // Identifier highlighting has been moved out of the highlighting passes, so we need to wait for BackgroundHighlighter to be computed.
-      IdentifierHighlighterPassFactory.waitForIdentifierHighlighting();
+      IdentifierHighlighterPassFactory.waitForIdentifierHighlighting(myFixture.getEditor());
       // With new resources pipeline, all highlight usages of resources are found.
       List<HighlightInfo> highlightInfos = myFixture.doHighlighting();
       assertThat(highlightInfos).hasSize(2);
@@ -1028,7 +1028,7 @@ public class AndroidValueResourcesTest {
       catch (InterruptedException | TimeoutException ignore) {
       }
 
-      IdentifierHighlighterPassFactory.waitForIdentifierHighlighting();
+      IdentifierHighlighterPassFactory.waitForIdentifierHighlighting(myFixture.getEditor());
       highlightInfos = myFixture.doHighlighting();
       assertThat(highlightInfos).hasSize(2);
       List<Pair<HighlightSeverity, String>> severities =

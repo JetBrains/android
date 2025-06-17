@@ -362,7 +362,7 @@ constructor(
         object : ContextMenuPopupHandler() {
           override fun getActionGroup(event: EditorMouseEvent): ActionGroup =
             getPopupActionGroup(
-              splitterPopupActionGroup.getChildren(null, ActionManager.getInstance())
+              splitterPopupActionGroup.getChildren(ActionManager.getInstance())
             )
         }
       )

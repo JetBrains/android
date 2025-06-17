@@ -67,16 +67,16 @@ class ValidateEssentialPluginsAction : AnAction() {
 
     fun collectDependencies(descriptor: IdeaPluginDescriptorImpl) {
       // v1 dependencies.
-      for (dep in descriptor.pluginDependencies) {
+      for (dep in descriptor.dependencies) {
         if (!dep.isOptional) {
           plugins.add(getCanonicalPluginId(dep.pluginId))
         }
       }
       // v2 dependencies.
-      for (dep in descriptor.dependencies.plugins) {
+      for (dep in descriptor.moduleDependencies.plugins) {
         plugins.add(getCanonicalPluginId(dep.id))
       }
-      for (dep in descriptor.dependencies.modules) {
+      for (dep in descriptor.moduleDependencies.modules) {
         val moduleDescriptor = checkNotNull(pluginSet.findEnabledModule(dep.name))
         if (modules.add(dep.name)) {
           // Traverse v2 module edges recursively (until we reach actual plugins).
