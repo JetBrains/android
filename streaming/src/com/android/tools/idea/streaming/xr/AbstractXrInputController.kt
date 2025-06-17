@@ -65,6 +65,9 @@ internal abstract class AbstractXrInputController : Disposable {
       }
     }
 
+  open val isPassthroughSupported: Boolean
+    get() = true
+
   @Volatile var inputMode: XrInputMode = XrInputMode.INTERACTION
     @UiThread set(value) {
       if (field != value) {

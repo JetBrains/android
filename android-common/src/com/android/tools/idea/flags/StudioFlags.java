@@ -1238,6 +1238,11 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "unicode.typing", "Enable Unicode Typing",
     "Enable typing of arbitrary Unicode characters",
     false);
+  public static final Flag<Boolean> DEVICE_MIRRORING_XR_SIMULATED_PASSTHROUGH = new BooleanFlag(
+    DEVICE_MIRRORING, "xr.simulated.passthrough", "Enable Simulated Passthrough for XR Headsets",
+    "Enable simulated passthrough for XR headsets",
+    false);
+
   //endregion
 
   //region Screenshot and Screen Recording
