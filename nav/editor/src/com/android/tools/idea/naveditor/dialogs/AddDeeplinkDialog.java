@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.dialogs;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_AUTO_VERIFY;
 import static com.android.SdkConstants.TAG_DEEP_LINK;
+import static com.android.tools.idea.naveditor.dialogs.AddDeeplinkDialog.AddDeeplinkDialogToken.EP_NAME;
 
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
@@ -31,10 +32,15 @@ import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.EnabledProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.Token;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.NavEditorEvent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -47,6 +53,7 @@ import java.awt.Insets;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Optional;
 import javax.swing.Action;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -73,8 +80,6 @@ public class AddDeeplinkDialog extends DialogWrapper {
 
   private final BindingsManager myBindings = new BindingsManager();
   private final boolean myIsExtended;
-
-  private static final Version EXTENDED_VERSION = Version.parse("2.3.0-alpha06");
 
   public AddDeeplinkDialog(@Nullable NlComponent existing, @NotNull NlComponent parent) {
     super(false);
@@ -279,14 +284,19 @@ public class AddDeeplinkDialog extends DialogWrapper {
                                                   new Dimension(320, -1), null, 0, false));
   }
 
+  public interface AddDeeplinkDialogToken<P extends AndroidProjectSystem> extends Token {
+    ExtensionPointName<AddDeeplinkDialogToken<AndroidProjectSystem>> EP_NAME =
+      new ExtensionPointName<>("com.android.tools.idea.naveditor.dialogs.addDeeplinkDialogToken");
+
+    boolean isExtended(@NotNull P projectSystem, @NotNull NlComponent parent);
+  }
+
   private static boolean isExtended(@NotNull NlComponent parent) {
-    Version version = NlDependencyManager
-      .getInstance().getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON, parent.getModel().getFacet());
-
-    if (version == null) {
-      return true;
-    }
-
-    return version.compareTo(EXTENDED_VERSION) >= 0;
+    Project project = parent.getModel().getProject();
+    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+    Optional<AddDeeplinkDialogToken<AndroidProjectSystem>> token = EP_NAME.getExtensionList().stream()
+      .filter(it -> it.isApplicable(projectSystem))
+      .findFirst();
+    return token.map(it -> it.isExtended(projectSystem, parent)).orElse(true);
   }
 }

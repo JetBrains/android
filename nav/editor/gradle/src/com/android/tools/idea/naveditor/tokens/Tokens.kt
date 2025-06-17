@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.naveditor.tokens
 
+import com.android.ide.common.gradle.Version.Companion.parse
 import com.android.ide.common.repository.GoogleMavenArtifactId
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.naveditor.dialogs.AddDeeplinkDialog.AddDeeplinkDialogToken
 import com.android.tools.idea.naveditor.editor.AddDestinationMenuToken
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavDesignSurfaceToken
+import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.util.addDependenciesWithUiConfirmation
@@ -73,5 +77,19 @@ class GradleNavDesignSurfaceToken : NavDesignSurfaceToken<GradleProjectSystem>, 
         ModalityState.nonModal(),
       )
     return didAdd.get()
+  }
+}
+
+val EXTENDED_VERSION = parse("2.3.0-alpha06")
+
+class GradleAddDeeplinkDialogToken : AddDeeplinkDialogToken<GradleProjectSystem>, GradleToken {
+  override fun isExtended(projectSystem: GradleProjectSystem, parent: NlComponent): Boolean {
+    val module = parent.model.module
+    val moduleSystem = projectSystem.getModuleSystem(module)
+    val externalModule = GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON.getModule()
+    val component =
+      moduleSystem.getResolvedDependency(externalModule, DependencyScopeType.MAIN) ?: return true
+    val version = component.version
+    return version >= EXTENDED_VERSION
   }
 }

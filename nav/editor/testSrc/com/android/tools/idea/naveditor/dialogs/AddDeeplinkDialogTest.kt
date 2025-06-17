@@ -18,13 +18,17 @@ package com.android.tools.idea.naveditor.dialogs
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.Lookup
 import com.android.tools.adtui.stdui.LookupTest
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
+import com.android.tools.idea.naveditor.dialogs.AddDeeplinkDialog.AddDeeplinkDialogToken
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.google.wireless.android.sdk.stats.NavPropertyInfo
+import com.intellij.testFramework.ExtensionTestUtil
 import org.mockito.Mockito
 
 class AddDeeplinkDialogTest : NavTestCase() {
@@ -169,5 +173,83 @@ class AddDeeplinkDialogTest : NavTestCase() {
         "www.android.com{bar}",
         "www.android.com{baz}",
       )
+  }
+
+  fun testFieldsHiddenIfNotExtended() {
+    val token =
+      object : AddDeeplinkDialogToken<AndroidProjectSystem> {
+        override fun isApplicable(projectSystem: AndroidProjectSystem) = true
+
+        override fun isExtended(projectSystem: AndroidProjectSystem, parent: NlComponent) = false
+      }
+    ExtensionTestUtil.maskExtensions(
+      AddDeeplinkDialogToken.EP_NAME,
+      listOf(token),
+      myFixture.testRootDisposable,
+    )
+    val model = model("nav.xml") { navigation { fragment("fragment1") } }
+    AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
+      assertThat(dialog.myMimeTypeField.isVisible).isFalse()
+      assertThat(dialog.myMimeTypeLabel.isVisible).isFalse()
+      assertThat(dialog.myActionField.isVisible).isFalse()
+      assertThat(dialog.myActionLabel.isVisible).isFalse()
+    }
+  }
+
+  fun testFieldsNotHiddenIfNoToken() {
+    ExtensionTestUtil.maskExtensions(
+      AddDeeplinkDialogToken.EP_NAME,
+      listOf(),
+      myFixture.testRootDisposable,
+    )
+    val model = model("nav.xml") { navigation { fragment("fragment1") } }
+    AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
+      assertThat(dialog.myMimeTypeField.isVisible).isTrue()
+      assertThat(dialog.myMimeTypeLabel.isVisible).isTrue()
+      assertThat(dialog.myActionField.isVisible).isTrue()
+      assertThat(dialog.myActionLabel.isVisible).isTrue()
+    }
+  }
+
+  fun testFieldsNotHiddenIfNoApplicableToken() {
+    val token =
+      object : AddDeeplinkDialogToken<AndroidProjectSystem> {
+        override fun isApplicable(projectSystem: AndroidProjectSystem) = false
+
+        override fun isExtended(projectSystem: AndroidProjectSystem, parent: NlComponent) = false
+      }
+    ExtensionTestUtil.maskExtensions(
+      AddDeeplinkDialogToken.EP_NAME,
+      listOf(token),
+      myFixture.testRootDisposable,
+    )
+    val model = model("nav.xml") { navigation { fragment("fragment1") } }
+    AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
+      assertThat(dialog.myMimeTypeField.isVisible).isTrue()
+      assertThat(dialog.myMimeTypeLabel.isVisible).isTrue()
+      assertThat(dialog.myActionField.isVisible).isTrue()
+      assertThat(dialog.myActionLabel.isVisible).isTrue()
+    }
+  }
+
+  fun testFieldsNotHiddenIfExtended() {
+    val token =
+      object : AddDeeplinkDialogToken<AndroidProjectSystem> {
+        override fun isApplicable(projectSystem: AndroidProjectSystem) = true
+
+        override fun isExtended(projectSystem: AndroidProjectSystem, parent: NlComponent) = true
+      }
+    ExtensionTestUtil.maskExtensions(
+      AddDeeplinkDialogToken.EP_NAME,
+      listOf(token),
+      myFixture.testRootDisposable,
+    )
+    val model = model("nav.xml") { navigation { fragment("fragment1") } }
+    AddDeeplinkDialog(null, model.treeReader.find("fragment1")!!).runAndClose { dialog ->
+      assertThat(dialog.myMimeTypeField.isVisible).isTrue()
+      assertThat(dialog.myMimeTypeLabel.isVisible).isTrue()
+      assertThat(dialog.myActionField.isVisible).isTrue()
+      assertThat(dialog.myActionLabel.isVisible).isTrue()
+    }
   }
 }
