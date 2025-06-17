@@ -130,7 +130,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   fun testNoGradleAndroidModel() {
     // The GradleAndroidModel shouldn't be created when running from an IdeaTestCase.
     assertThat(GradleAndroidModel.get(myModule)).isNull()
-    assertThat(gradleModuleSystem.getResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getCoordinate("+"))).isNull()
+    assertThat(gradleModuleSystem.hasResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7)).isFalse()
   }
 
   fun testGetPackageName_noOverrides() {
