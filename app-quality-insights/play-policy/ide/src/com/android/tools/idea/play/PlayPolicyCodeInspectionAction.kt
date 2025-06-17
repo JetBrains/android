@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.play
 
+import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.forceRegisterThirdPartyIssues
 import com.intellij.analysis.AnalysisScope
@@ -23,16 +24,21 @@ import com.intellij.codeInspection.actions.CodeInspectionAction
 import com.intellij.codeInspection.ex.InspectionProfileImpl
 import com.intellij.codeInspection.ex.InspectionToolsSupplier
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.updateSettings.impl.UpdateChecker
+import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.AlignY
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.EmptySpacingConfiguration
+import com.intellij.ui.dsl.builder.HyperlinkEventAction
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.plus
 import com.intellij.ui.dsl.gridLayout.UnscaledGaps
+import com.intellij.ui.dsl.gridLayout.UnscaledGapsY
 import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JEditorPane
@@ -72,8 +78,49 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
     project: Project,
     dialog: BaseAnalysisActionDialog,
   ): JComponent? {
+    val deprecationData =
+      service<DevServicesDeprecationDataProvider>()
+        .getCurrentDeprecationData("aqi/policy", "Play Policy Insights")
+    if (deprecationData.isUnsupported()) {
+      dialog.isOKActionEnabled = false
+    }
+
     return panel {
       customizeSpacingConfiguration(EmptySpacingConfiguration()) {
+        if (!deprecationData.isSupported() && deprecationData.description.isNotEmpty()) {
+          row {
+              icon(
+                  if (deprecationData.isDeprecated()) AllIcons.General.Warning
+                  else AllIcons.General.Error
+                )
+                .align(AlignX.LEFT.plus(AlignY.TOP))
+                .customize(UnscaledGaps(2, 2, 2, 5))
+              panel {
+                row {
+                  text(deprecationData.description).align(Align.FILL).recalculatePreferredHeight()
+                }
+                row {
+                  if (deprecationData.showUpdateAction) {
+                    text(
+                        "<a>Update Android Studio</a>",
+                        action =
+                          HyperlinkEventAction {
+                            UpdateChecker.updateAndShowResult(project, UpdateSettings())
+                          },
+                      )
+                      .align(AlignX.LEFT + AlignY.FILL)
+                      .customize(UnscaledGaps(0, 0, 0, right = 50))
+                  }
+                  val moreInfoUrl = deprecationData.moreInfoUrl
+                  if (moreInfoUrl.isNotBlank()) {
+                    text("<a href=${moreInfoUrl}>More Info</a>").align(AlignX.LEFT + AlignY.FILL)
+                  }
+                }
+              }
+            }
+            .customize(UnscaledGapsY(0, bottom = 17))
+        }
+
         row {
           icon(AllIcons.General.Information)
             .align(AlignX.LEFT.plus(AlignY.TOP))
