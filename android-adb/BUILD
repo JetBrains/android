@@ -45,6 +45,7 @@ iml_module(
 iml_module(
     name = "intellij.android.adb.tests",
     iml_files = ["intellij.android.adb.tests.iml"],
+    kotlin_use_compose = True,
     test_agents = ["//tools/base/threading-agent:threading_agent.jar"],
     test_class = "com.android.tools.idea.adb.AndroidAdbTestSuite",
     test_data = [
@@ -53,6 +54,7 @@ iml_module(
     # do not sort: must match IML order
     test_deps = [
         "//tools/adt/idea/.idea/libraries:junit4",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver",
