@@ -454,7 +454,9 @@ public class StudioInteractionService {
         Collections.addAll(componentsToSearch, container.getComponents());
       }
       componentsFound.add(c);
-      if (c.getClass().toString().contains("Compose")) {
+      String componentClassName = c.getClass().toString();
+      // JewelComposePanel has all the same accessibility elements as its androidx.compose.ui.awt.ComposePanel pair, so lets skip it
+      if (componentClassName.contains("Compose") && !componentClassName.contains("org.jetbrains.jewel.bridge.JewelComposePanel")) {
         Set<AccessibleContext> contexts = getAllAccessibleContext(c.getAccessibleContext());
         componentsFound.addAll(getComponentsFromContext(contexts));
       }
@@ -601,7 +603,9 @@ public class StudioInteractionService {
         JLabel label = new ComposeJLabelWrapper(context);
         components.add(label);
       }
-      else if (context.getAccessibleRole() != null && context.getAccessibleRole().toString().contains("push button")) {
+      else if (context.getAccessibleRole() != null &&
+               (context.getAccessibleRole().toString().contains("push button") ||
+                context.getAccessibleRole().toString().contains("radio button"))) {
         JButton button = new ComposeJButtonWrapper(context);
         components.add(button);
       }
