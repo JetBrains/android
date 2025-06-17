@@ -25,8 +25,8 @@
     <tutorial
         key="whats-new"
         label=" What's New in Narwhal"
-        icon="preview/product-icon.svg"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/preview-release-notes/2025-1-1"
+        icon="stable/product-icon.svg"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/stable-release-notes/2025-1-1"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -82,58 +82,6 @@
           </section>
         </stepElement>
       </step>
-      <step label="Test and develop with app backup and restore">
-        <stepElement>
-          <section>
-            <![CDATA[
-            <p><a href="https://developer.android.com/identity/data/backup">Android Backup and
-            Restore</a> enables your app to back up app data and restore it either on to a new
-            device or after a fresh install. In Android Studio, you can now more easily generate a
-            backup of your app data saved to local storage and restore that data on to a test device.
-            </p>
-            <p>
-            This not only makes it much easier to test your app's support for backup and restore,
-            but also accelerates your development workflow by helping you set up a new device, or
-            install with the sample data and configurations you need to develop and debug your app.
-            </p>
-            <br>
-            <a href="https://d.android.com/r/studio-ui/ide/test-backup-restore">Learn more</a>
-            <br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Android Studio XR support available">
-        <stepElement>
-          <section>
-          <![CDATA[
-          <p>Android Studio Meerkat Feature Drop | 2024.3.2 includes support for developers building
-          immersive experiences with Jetpack XR! This release introduces tools to help you
-          experiment, deploy, and debug XR applications with greater efficiency.</p>
-          <br>
-          <ul>
-            <li><b>XR Template:</b> Kickstart your XR development with a new project template
-            specifically designed for Jetpack XR. This provides a solid foundation with code
-            to begin your XR development journey.</li>
-            <li><b>XR Emulator:</b> Test your XR applications without needing physical hardware!
-            Create a standalone XR headset emulator using the AVD Manager to preview and debug
-            your experiences in a virtual environment.</li>
-            <li><b>Layout Inspector for XR:</b> Debug and optimize your Compose UI layouts
-            within the XR environment. The Layout Inspector now supports XR applications,
-            providing insights into your app's structure and helping you identify potential
-            issues.</li>
-          </ul>
-          <br>
-          <p>Android Studio XR support is still in its early stages, and we have many more
-          exciting features planned. Please share your feedback and submit feature requests
-          to help us shape the future of XR development in Android Studio!</p>
-          <br>
-          <a href="https://d.android.com/r/studio-ui/build/studio-xr-support">Learn more</a>
-          <br>
-          ]]>
-          </section>
-        </stepElement>
-      </step>
       <step label="Compose preview generation with Gemini">
         <stepElement>
           <section>
@@ -156,27 +104,11 @@
           </section>
         </stepElement>
       </step>
-      <step label="Android Device Streaming: Partner Device Labs">
-        <stepElement>
-          <section>
-            <![CDATA[
-            <p>
-            <a href="https://d.android.com/studio/run/android-device-streaming#2P">Partner Device
-            Labs</a> expands the catalog of devices available in Android Device Streaming by
-            allowing you to connect to devices hosted by OEM partners, such as Samsung, Xiaomi,
-            Oppo, and OnePlus. To get started, click on <b>'+' > Add Remote Device</b> from
-            the Device Manager and import a device from one of the partner device labs. To enable
-            access, an Editor or Owner of your Firebase  project must enable each lab from the
-            <a href="https://console.cloud.google.com/omnilab/partner-lab">Google Cloud Console</a>.
-            ]]>
-          </section>
-        </stepElement>
-      </step>
       <footerStep label="">
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 05/16/2025</em><br>
+              <br><em>Last updated 06/17/2025</em><br>
             ]]>
           </section>
         </stepElement>
