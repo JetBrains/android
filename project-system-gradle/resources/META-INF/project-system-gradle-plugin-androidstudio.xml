@@ -124,8 +124,11 @@
       <add-to-group group-id="Android.NavBarToolBar" anchor="first"/>
       <add-to-group group-id="Android.MainToolbarRight" anchor="last"/>
     </reference>
-    <action id="ShowBuildFilesInModuleAction" class="com.android.tools.idea.gradle.actions.ShowBuildFilesInModuleAction">
-      <add-to-group group-id="ProjectView.ToolWindow.Appearance.Actions" relative-to-action="ProjectView.ShowMembers" anchor="after"/>
-    </action>
+    <group>
+      <add-to-group group-id="ProjectView.ToolWindow.Appearance.Actions" relative-to-action="ProjectView.FlattenModules" anchor="before"/>
+      <separator/>
+      <action id="ShowBuildFilesInModuleAction" class="com.android.tools.idea.gradle.actions.ShowBuildFilesInModuleAction"/>
+      <separator/>
+    </group>
   </actions>
 </idea-plugin>
