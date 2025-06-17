@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device.xr
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.getNormalizedScrollAmount
 import com.android.tools.idea.streaming.device.DeviceClient
@@ -48,6 +49,9 @@ internal class DeviceXrInputController(private val deviceClient: DeviceClient) :
   init {
     Disposer.register(deviceClient, this)
   }
+
+  override val isPassthroughSupported: Boolean
+    get() = StudioFlags.DEVICE_MIRRORING_XR_SIMULATED_PASSTHROUGH.get()
 
   override suspend fun setPassthrough(passthroughCoefficient: Float) {
     deviceClient.deviceController?.sendControlMessage(XrSetPassthroughCoefficientMessage(passthroughCoefficient))

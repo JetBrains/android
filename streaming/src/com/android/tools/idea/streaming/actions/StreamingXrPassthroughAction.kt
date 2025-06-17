@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.streaming.actions
 
-import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.streaming.xr.AbstractXrInputController.Companion.UNKNOWN_PASSTHROUGH_COEFFICIENT
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -51,8 +50,8 @@ class StreamingXrPassthroughAction : ToggleAction(), DumbAware {
   override fun update(event: AnActionEvent) {
     super.update(event)
     val presentation = event.presentation
-    presentation.isVisible = getDeviceType(event) == DeviceType.XR
-    presentation.isEnabled = isEnabled(event)
+    presentation.isVisible = getXrInputController(event)?.isPassthroughSupported == true
+    presentation.isEnabled =  presentation.isVisible && isEnabled(event)
   }
 
   private fun isEnabled(event: AnActionEvent): Boolean {

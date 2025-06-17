@@ -25,6 +25,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.actions.FloatingXrToolbarState
@@ -45,6 +46,7 @@ import com.android.tools.idea.streaming.device.xr.DeviceXrInputController
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.streaming.xr.XrInputMode
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.override
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
@@ -280,6 +282,7 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testXrToolbarActions() {
+    StudioFlags.DEVICE_MIRRORING_XR_SIMULATED_PASSTHROUGH.overrideForTest(true, testRootDisposable)
     // Move XR buttons to the Running Devices toolbar to check its appearance.
     service<FloatingXrToolbarState>()::floatingXrToolbarEnabled.override(false, testRootDisposable)
     device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558),
