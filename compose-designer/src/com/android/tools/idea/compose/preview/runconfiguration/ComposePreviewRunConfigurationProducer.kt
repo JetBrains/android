@@ -91,7 +91,7 @@ open class ComposePreviewRunConfigurationProducer :
           parameter.annotationEntries
             .firstOrNull { annotation ->
               annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN) ||
-              annotation.fqNameMatches(MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN)
+                annotation.fqNameMatches(MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN)
             }
             ?.let { previewParameter ->
               previewParameter.providerClassName()?.let { providerClass ->
@@ -154,10 +154,12 @@ private fun KtParameter.providerClassNameK2(): String? {
   allowAnalysisOnEdt {
     return analyze(this) {
       val annotatedSymbol = this@providerClassNameK2.symbol
-      val annotationClassId1 = ClassId.topLevel(FqName(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN))
-      val annotationClassId2 = ClassId.topLevel(FqName(MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN))
-      val annotation = annotatedSymbol.annotations[annotationClassId1].singleOrNull() ?:
-                       annotatedSymbol.annotations[annotationClassId2].singleOrNull()
+      val androidPreviewClassId = ClassId.topLevel(FqName(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN))
+      val kmpPreviewClassId =
+        ClassId.topLevel(FqName(MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN))
+      val annotation =
+        annotatedSymbol.annotations[androidPreviewClassId].singleOrNull()
+          ?: annotatedSymbol.annotations[kmpPreviewClassId].singleOrNull()
       annotation?.let(::findProviderClassId)?.asFqNameString()
     }
   }
