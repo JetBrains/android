@@ -48,9 +48,9 @@ aswb_test_deps_repository(
         "https://github.com/protocolbuffers/protobuf-go/archive/refs/tags/v1.36.3.tar.gz": "d15b5c42786fa47d716b1572e5ba21979dc3163121854ece5101f072d4fa95bb",
         "https://bitbucket.org/creachadair/stringset/get/344423ca24817f0ff8371b5b6ad96f9848a5c109.tar.gz": "c53d3526e766cd95c24e6e59c2e3f141c2001382f2eaab338a50e8cf8f8aa76c",
     },
-    bazel_sha256 = "a2a095d7006ea70bdfdbe90a71f99f957fee1212d4614cfcfdbe3aadae681def",
-    bazel_url = "https://github.com/bazelbuild/bazel/releases/download/8.1.1/bazel-8.1.1-linux-x86_64",
+    bazel_sha256 = "7ff2b6a675b59a791d007c526977d5262ade8fa52efc8e0d1ff9e18859909fc0",
+    bazel_url = "https://github.com/bazelbuild/bazel/releases/download/8.2.1/bazel-8.2.1-linux-x86_64",
     bcr_sha256 = "27055508caa3bbab956c28bc6e43f8d44a5a5ffb4b42a8fae78cd822c2261e46",
-    bcr_url = "https://github.com/bazelbuild/bazel-central-registry/archive/3bf0c72247bcf2f95c5146f96ca210b312e542f8.zip",
+    bcr_url = "https://github.com/bazelbuild/bazel-central-registry/archive/273df7ac4c4a72daabf72b6b4efb12ab5d002807.zip",
     projects = "tools/adt/idea/aswb/testing/test_deps/projects",
 )
