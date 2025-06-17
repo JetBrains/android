@@ -13,6 +13,7 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "@intellij//:com.intellij.modules.json",
     ],
     test_resources = ["resources"],
     test_srcs = ["testSrc"],

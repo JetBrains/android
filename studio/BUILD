@@ -457,7 +457,7 @@ studio_plugin(
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.platform.images",
         "@intellij//:com.intellij.properties",
-        "@intellij//:intellij.json.split",
+        "@intellij//:com.intellij.modules.json",
         "@intellij//:intellij.libraries.compose.foundation.desktop",
         "@intellij//:intellij.libraries.grpc",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
@@ -565,7 +565,7 @@ studio_plugin(
     deps = [
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
-        "@intellij//:intellij.json.split",
+        "@intellij//:com.intellij.modules.json",
         "@intellij//:org.jetbrains.kotlin",
     ],
 )

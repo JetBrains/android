@@ -25,6 +25,7 @@ iml_module(
         "//tools/adt/idea/codenavigation",
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/base/flags:studio.android.sdktools.flags",
+        "@intellij//:com.intellij.modules.json",
     ],
 )
 
@@ -58,6 +59,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/.idea/libraries:kotlin-test",
+        "@intellij//:com.intellij.modules.json",
     ],
     test_friends = ["//tools/adt/idea/app-inspection/inspectors/network/view:app-inspection.inspectors.network.view"],
     test_srcs = ["testSrc"],

@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common",
         "//tools/adt/idea/android-material:intellij.android.android-material",
         "//tools/adt/idea/completion:intellij.android.completion",
+        "@intellij//:com.intellij.modules.json",
     ],
 )
 
@@ -71,6 +72,7 @@ iml_module(
         "//tools/adt/idea/android-material:intellij.android.android-material",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "@intellij//:com.intellij.modules.json",
         "//tools/adt/idea/.idea/libraries:kotlin-test",
     ],
     test_friends = ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"],
