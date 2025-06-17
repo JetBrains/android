@@ -26,7 +26,7 @@ import org.jetbrains.uast.UMethod
  * [AnnotatedMethod] implementation based on [UMethod].
  *
  * @param method the [UMethod] annotated with an `@Preview` annotation
- * @param previewParameterAnnotationFqn the Fully Qualified Name of the `@PreviewParameter`
+ * @param previewParameterAnnotationFqns the set of Fully Qualified Names of the `@PreviewParameter`
  *   annotation corresponding to the `@Preview` annotation used on [method]. For example,
  *   `androidx.compose.ui.tooling.preview.PreviewParameter` for methods annotated with the Compose
  *   `@Preview`.

@@ -76,7 +76,7 @@ object ClassForNameHandler {
 
 /**
  * [ClassVisitor] that repackages certain classes with a new package name. This allows to have the same class in two separate
- * namespaces so it can
+ * namespaces so they co-exist. This is similar to applying jarjar to a library.
  */
 class RepackageTransform(delegate: ClassVisitor,
                          packagePrefixes: Collection<String>,
