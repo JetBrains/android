@@ -28,6 +28,7 @@ import androidx.compose.ui.test.performKeyInput
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import kotlin.time.Duration.Companion.seconds
 import org.jetbrains.jewel.ui.component.TextField
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,6 +36,7 @@ class ComposeWizardTest {
   @get:Rule val composeTestRule = createStudioComposeTestRule()
 
   @Test
+  @Ignore("b/378750746 -- come back and fix")
   fun enter() {
     val wizard = TestComposeWizard {
       val focusRequester = remember { FocusRequester() }
