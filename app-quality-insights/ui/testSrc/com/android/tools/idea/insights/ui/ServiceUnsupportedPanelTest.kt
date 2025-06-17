@@ -51,15 +51,32 @@ class ServiceUnsupportedPanelTest {
   fun `userNotified is logged only once`() {
     createPanel()
     verify(tracker, never())
-      .logServiceDeprecated(eq(TAB_PANEL), eq(PANEL), eq(null), eq(null), eq(null), eq(null))
+      .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.UNSUPPORTED),
+        eq(TAB_PANEL),
+        eq(PANEL),
+        eq(null),
+        eq(null),
+        eq(null),
+        eq(null),
+      )
 
     activeTabFlow.value = true
     verify(tracker, timeout(5000).times(1))
-      .logServiceDeprecated(eq(TAB_PANEL), eq(PANEL), eq(true), anyOrNull(), anyOrNull(), eq(null))
+      .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.UNSUPPORTED),
+        eq(TAB_PANEL),
+        eq(PANEL),
+        eq(true),
+        anyOrNull(),
+        anyOrNull(),
+        eq(null),
+      )
 
     activeTabFlow.value = false
     verify(tracker)
       .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.UNSUPPORTED),
         eq(TAB_PANEL),
         eq(PANEL),
         anyOrNull(),
@@ -71,6 +88,7 @@ class ServiceUnsupportedPanelTest {
     activeTabFlow.value = true
     verify(tracker)
       .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.UNSUPPORTED),
         eq(TAB_PANEL),
         eq(PANEL),
         anyOrNull(),
@@ -89,7 +107,15 @@ class ServiceUnsupportedPanelTest {
     moreInfoLabel.doClick()
 
     verify(tracker)
-      .logServiceDeprecated(eq(TAB_PANEL), eq(PANEL), eq(null), eq(true), eq(null), eq(null))
+      .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.UNSUPPORTED),
+        eq(TAB_PANEL),
+        eq(PANEL),
+        eq(null),
+        eq(true),
+        eq(null),
+        eq(null),
+      )
   }
 
   @Test
@@ -101,7 +127,15 @@ class ServiceUnsupportedPanelTest {
     updateLabel.doClick()
 
     verify(tracker)
-      .logServiceDeprecated(eq(TAB_PANEL), eq(PANEL), eq(null), eq(null), eq(true), eq(null))
+      .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.UNSUPPORTED),
+        eq(TAB_PANEL),
+        eq(PANEL),
+        eq(null),
+        eq(null),
+        eq(true),
+        eq(null),
+      )
   }
 
   private fun createPanel() =

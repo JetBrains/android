@@ -50,7 +50,16 @@ class ServiceDeprecatedBannerTest {
     val updateLabel = banner.findAllDescendants<HyperlinkLabel>().first()
     updateLabel.doClick()
 
-    verify(tracker).logServiceDeprecated(any(), eq(BANNER), eq(null), eq(null), eq(true), eq(null))
+    verify(tracker)
+      .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.DEPRECATED),
+        any(),
+        eq(BANNER),
+        eq(null),
+        eq(null),
+        eq(true),
+        eq(null),
+      )
   }
 
   @Test
@@ -59,7 +68,16 @@ class ServiceDeprecatedBannerTest {
     val moreInfoLabel = banner.findAllDescendants<HyperlinkLabel>().last()
     moreInfoLabel.doClick()
 
-    verify(tracker).logServiceDeprecated(any(), eq(BANNER), eq(null), eq(true), eq(null), eq(null))
+    verify(tracker)
+      .logServiceDeprecated(
+        eq(DevServicesDeprecationStatus.DEPRECATED),
+        any(),
+        eq(BANNER),
+        eq(null),
+        eq(true),
+        eq(null),
+        eq(null),
+      )
   }
 
   @Test
