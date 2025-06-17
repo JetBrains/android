@@ -604,21 +604,21 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
         return manifestPackage
       }
 
-      return androidModel.getApplicationId()
+      return androidModel.applicationId
     }
 
     override fun getMinSdkVersion(): AndroidVersion {
-      return androidModel.getMinSdkVersion()
+      return androidModel.minSdkVersion
     }
 
     override fun getMinSdkVersions(): ApiConstraint {
-      val version = androidModel.getMinSdkVersion()
+      val version = androidModel.minSdkVersion
       // TODO: Handle codenames better?
       return get(version.featureLevel, ExtensionSdk.ANDROID_SDK_ID)
     }
 
     override fun getTargetSdkVersion(): AndroidVersion {
-      val version = androidModel.getTargetSdkVersion()
+      val version = androidModel.targetSdkVersion
       if (version != null) {
         return version
       }

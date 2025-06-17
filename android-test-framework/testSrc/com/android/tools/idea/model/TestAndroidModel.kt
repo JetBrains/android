@@ -22,16 +22,16 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 
 open class TestAndroidModel @JvmOverloads constructor(
-  private val applicationId: String = "com.example.test",
-  private val minSdkVersion: AndroidVersion? = null,
-  private val targetSdkVersion: AndroidVersion? = null,
-  private val runtimeMinSdkVersion: AndroidVersion? = null,
-  private val allApplicationIds: Set<String> = setOf(applicationId),
-  private val overridesManifestPackage: Boolean = false,
-  private val debuggable: Boolean = false,
-  private val namespacing: Namespacing = Namespacing.DISABLED,
-  private val desugaringLevel: Set<Desugaring> = Desugaring.DEFAULT,
-  private val lintRuleJars: ImmutableList<File>? = null
+  override val applicationId: String = "com.example.test",
+  minSdkVersion: AndroidVersion? = null,
+  override val targetSdkVersion: AndroidVersion? = null,
+  runtimeMinSdkVersion: AndroidVersion? = null,
+  override val allApplicationIds: Set<String> = setOf(applicationId),
+  val overridesManifestPackage: Boolean = false,
+  override val isDebuggable: Boolean = false,
+  override val namespacing: Namespacing = Namespacing.DISABLED,
+  override val desugaring: Set<Desugaring> = Desugaring.DEFAULT,
+  override val lintRuleJarsOverride: ImmutableList<File>? = null
 ) : AndroidModel {
 
   companion object {
@@ -39,18 +39,11 @@ open class TestAndroidModel @JvmOverloads constructor(
       namespacing = Namespacing.REQUIRED
     )
     @JvmStatic fun lintRuleJars(lintRuleJars: ImmutableList<File>) = TestAndroidModel(
-      lintRuleJars = lintRuleJars
+      lintRuleJarsOverride = lintRuleJars
     )
   }
 
-  override fun getApplicationId(): String = applicationId
-  override fun getAllApplicationIds(): Set<String> = allApplicationIds
-  override fun overridesManifestPackage(): Boolean = overridesManifestPackage
-  override fun isDebuggable(): Boolean = debuggable
-  override fun getMinSdkVersion(): AndroidVersion = minSdkVersion ?: AndroidVersion(1)
-  override fun getRuntimeMinSdkVersion(): AndroidVersion = runtimeMinSdkVersion ?: AndroidVersion(1)
-  override fun getTargetSdkVersion(): AndroidVersion? = targetSdkVersion
-  override fun getNamespacing(): Namespacing = namespacing
-  override fun getDesugaring(): Set<Desugaring> = desugaringLevel
-  override fun getLintRuleJarsOverride(): MutableIterable<File>? = lintRuleJars
+  override val minSdkVersion = minSdkVersion ?: AndroidVersion(1)
+  override val runtimeMinSdkVersion = runtimeMinSdkVersion ?: AndroidVersion(1)
+  override fun overridesManifestPackage() = overridesManifestPackage
 }

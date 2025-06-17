@@ -1920,7 +1920,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     // Set desugaring level to DEFAULT which does not include java 8 desugaring.
     AndroidModel.set(
       myFacet,
-      TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaringLevel = Desugaring.DEFAULT),
+      TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaring = Desugaring.DEFAULT),
     )
 
     val highlights =
@@ -1957,7 +1957,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     // Explicitly enable full desugaring
     AndroidModel.set(
       myFacet,
-      TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaringLevel = Desugaring.FULL),
+      TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaring = Desugaring.FULL),
     )
 
     val highlights =
