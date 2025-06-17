@@ -47,7 +47,7 @@ public abstract class AbstractIntegrationTestCase {
 
     verifyRequiredPluginsEnabled();
 
-    ServiceHelper.registerApplicationComponent(
+    ServiceHelper.registerApplicationService(
         ExperimentService.class, experimentService, testFixture.getTestRootDisposable());
   }
 

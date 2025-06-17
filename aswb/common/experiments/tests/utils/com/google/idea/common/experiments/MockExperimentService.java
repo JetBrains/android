@@ -28,6 +28,9 @@ public class MockExperimentService implements ExperimentService {
   private final Map<String, Object> experiments = new HashMap<>();
 
   @Override
+  public void initService() {}
+
+  @Override
   public void startExperimentScope() {}
 
   @Override

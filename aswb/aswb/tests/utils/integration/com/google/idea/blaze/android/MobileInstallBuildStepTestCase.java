@@ -71,7 +71,7 @@ public class MobileInstallBuildStepTestCase extends BlazeAndroidIntegrationTestC
         "android_sdk_platform: android-27");
     MockSdkUtil.registerSdk(workspace, "27");
     MockExperimentService experimentService = new MockExperimentService();
-    registerApplicationComponent(ExperimentService.class, experimentService);
+    registerApplicationService(ExperimentService.class, experimentService);
     experimentService.setExperiment(new BoolExperiment("blaze.android.merge.libs", true), false);
 
     workspace.createFile(

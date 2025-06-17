@@ -20,8 +20,8 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.common.util.MorePlatformUtils;
+import com.intellij.ide.AppLifecycleListener;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.Alarm;
 import com.intellij.util.Alarm.ThreadToUse;
@@ -43,7 +43,7 @@ import kotlinx.coroutines.CoroutineScope;
  * <p>It will check system properties first, then an experiment file in the user's home directory,
  * then finally all files specified by the system property blaze.experiments.file.
  */
-public class ExperimentServiceImpl implements ApplicationComponent, ExperimentService {
+public class ExperimentServiceImpl implements ExperimentService {
 
   private static final Logger logger = Logger.getInstance(ExperimentServiceImpl.class);
 
@@ -88,7 +88,7 @@ public class ExperimentServiceImpl implements ApplicationComponent, ExperimentSe
   }
 
   @Override
-  public void initComponent() {
+  public void initService() {
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       services.forEach(ExperimentLoader::initialize);
     }

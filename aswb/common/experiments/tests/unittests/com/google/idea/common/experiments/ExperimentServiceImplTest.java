@@ -108,7 +108,7 @@ public class ExperimentServiceImplTest {
     ExperimentService experimentService =
         new ExperimentServiceImpl(DUMMY_SCOPE,
             new MapExperimentLoader("id", ENUM_EXPERIMENT.getKey(), "cc"));
-    intellij.registerApplicationComponent(ExperimentService.class, experimentService);
+    intellij.registerApplicationService(ExperimentService.class, experimentService);
     assertThat(ENUM_EXPERIMENT.getValue()).isEqualTo(TestEnum.CC);
     assertThat(experimentService.getAllQueriedExperiments())
         .containsExactly(ENUM_EXPERIMENT.getKey(), ENUM_EXPERIMENT);
@@ -119,7 +119,7 @@ public class ExperimentServiceImplTest {
     ExperimentService experimentService =
         new ExperimentServiceImpl(DUMMY_SCOPE,
             new MapExperimentLoader("id", ENUM_EXPERIMENT.getKey(), "Aa"));
-    intellij.registerApplicationComponent(ExperimentService.class, experimentService);
+    intellij.registerApplicationService(ExperimentService.class, experimentService);
     assertThat(ENUM_EXPERIMENT.getValue()).isEqualTo(TestEnum.AA);
     assertThat(experimentService.getAllQueriedExperiments())
         .containsExactly(ENUM_EXPERIMENT.getKey(), ENUM_EXPERIMENT);
@@ -130,7 +130,7 @@ public class ExperimentServiceImplTest {
     ExperimentService experimentService =
         new ExperimentServiceImpl(DUMMY_SCOPE,
             new MapExperimentLoader("id"));
-    intellij.registerApplicationComponent(ExperimentService.class, experimentService);
+    intellij.registerApplicationService(ExperimentService.class, experimentService);
     assertThat(ENUM_EXPERIMENT.getValue()).isEqualTo(TestEnum.DefaultBB);
     assertThat(experimentService.getAllQueriedExperiments())
         .containsExactly(ENUM_EXPERIMENT.getKey(), ENUM_EXPERIMENT);

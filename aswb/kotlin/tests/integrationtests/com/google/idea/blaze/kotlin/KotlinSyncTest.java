@@ -210,7 +210,7 @@ public class KotlinSyncTest extends BlazeSyncIntegrationTestCase {
   @Test
   public void testCompileJarsAreAttachedForKotlinSdkTargets() {
     MockExperimentService experimentService = new MockExperimentService();
-    registerApplicationComponent(ExperimentService.class, experimentService);
+    registerApplicationService(ExperimentService.class, experimentService);
     experimentService.setExperiment(KotlinLibrarySource.dontUseSdkIjars, true);
 
     setProjectView(

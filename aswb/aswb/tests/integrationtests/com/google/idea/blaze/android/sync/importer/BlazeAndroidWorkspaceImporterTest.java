@@ -116,7 +116,7 @@ public class BlazeAndroidWorkspaceImporterTest extends BlazeAndroidIntegrationTe
   @Before
   public void importerSetUp() {
     experimentService = new MockExperimentService();
-    registerApplicationComponent(ExperimentService.class, experimentService);
+    registerApplicationService(ExperimentService.class, experimentService);
 
     BlazeImportSettingsManager.getInstance(getProject()).setImportSettings(DUMMY_IMPORT_SETTINGS);
 
