@@ -63,8 +63,9 @@ private const val MODULE_PREFIX = "Module: "
 private val MIN_FIELD_SIZE = JBUI.scale(40)
 private val PREF_FIELD_SIZE = JBUI.scale(125)
 private val MAX_FIELD_SIZE = JBUI.scale(150)
-private val BUTTON_SIZE = JBUI.size(20)
+private val BUTTON_SIZE = JBUI.size(22)
 private val GAP_SIZE = JBUI.scale(10)
+private val ACTION_BUTTON_BORDER = JBUI.Borders.empty(1, 2)
 private val ACTION_BTN_SIZE get() = JBUI.scale(32)
 
 /**
@@ -94,13 +95,13 @@ class ResourceExplorerToolbar private constructor(
       .addComponent(searchAction, MIN_FIELD_SIZE, PREF_FIELD_SIZE, Int.MAX_VALUE)
       .addFixedSizeComponent(filterAction)
 
-    val verticalGroup = groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-      .addComponent(addAction)
-      .addComponent(refreshAction)
+    val verticalGroup = groupLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+      .addFixedSizeComponent(addAction)
+      .addFixedSizeComponent(refreshAction)
       .addComponent(separator)
       .addComponent(moduleSelectionCombo)
       .addComponent(searchAction)
-      .addComponent(filterAction)
+      .addFixedSizeComponent(filterAction)
 
     groupLayout.setHorizontalGroup(sequentialGroup)
     groupLayout.setVerticalGroup(verticalGroup)
@@ -364,7 +365,9 @@ private fun DefaultActionGroup.addOtherMenuTypeFilters(viewModel: ResourceExplor
 }
 
 private fun action(addAction: AnAction) =
-  ActionButton(addAction, PresentationFactory().getPresentation(addAction), "", BUTTON_SIZE)
+  ActionButton(addAction, PresentationFactory().getPresentation(addAction), "", BUTTON_SIZE).apply {
+    border = ACTION_BUTTON_BORDER
+  }
 
 private fun GroupLayout.SequentialGroup.addFixedSizeComponent(
   jComponent: JComponent,
@@ -375,6 +378,13 @@ private fun GroupLayout.SequentialGroup.addFixedSizeComponent(
   return this
 }
 
+private fun GroupLayout.ParallelGroup.addFixedSizeComponent(
+  jComponent: JComponent,
+): GroupLayout.ParallelGroup {
+  val height = jComponent.preferredSize.height
+  this.addComponent(jComponent, height, height, height)
+  return this
+}
 
 /**
  * Creates a combo box for the [ResourceExplorerToolbar], should contain available modules in the project. Selecting a module should
