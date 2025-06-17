@@ -76,6 +76,8 @@
                     interface="com.android.tools.idea.naveditor.editor.AddDestinationMenuToken"/>
     <extensionPoint qualifiedName="com.android.tools.idea.naveditor.surface.navDesignSurfaceToken"
                     interface="com.android.tools.idea.naveditor.surface.NavDesignSurfaceToken"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.naveditor.dialogs.addDeeplinkDialogToken"
+                    interface="com.android.tools.idea.naveditor.dialogs.AddDeeplinkDialog$AddDeeplinkDialogToken"/>
   </extensionPoints>
 
 </idea-plugin>

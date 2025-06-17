@@ -17,5 +17,6 @@
   <extensions defaultExtensionNs="com.android.tools.idea.naveditor">
     <editor.addDestinationMenuToken implementation="com.android.tools.idea.naveditor.tokens.GradleAddDestinationMenuToken"/>
     <surface.navDesignSurfaceToken implementation="com.android.tools.idea.naveditor.tokens.GradleNavDesignSurfaceToken"/>
+    <dialogs.addDeeplinkDialogToken implementation="com.android.tools.idea.naveditor.tokens.GradleAddDeeplinkDialogToken"/>
   </extensions>
 </idea-plugin>
