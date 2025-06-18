@@ -62,7 +62,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.jewel.bridge.LocalComponent
@@ -85,13 +85,13 @@ private fun resolve(sdkHandler: AndroidSdkHandler, deviceSkin: Path, imageSkins:
 @Composable
 internal fun WizardPageScope.ConfigurationPage(
   device: VirtualDevice,
-  systemImageStateFlow: StateFlow<SystemImageState>,
+  systemImageStateFlow: Flow<SystemImageState>,
   skins: ImmutableCollection<Skin>,
   deviceNameValidator: DeviceNameValidator,
   sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
   finish: @UiThread suspend (VirtualDevice) -> Boolean,
 ) {
-  val systemImageState by systemImageStateFlow.collectAsState()
+  val systemImageState by systemImageStateFlow.collectAsState(SystemImageState.INITIAL)
 
   // Wait a bit for remote images to arrive before we proceed, so that we make our initial
   // system image selection based on the full list, if possible.

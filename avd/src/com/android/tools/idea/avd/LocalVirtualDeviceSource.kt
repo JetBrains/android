@@ -32,21 +32,18 @@ import com.android.tools.idea.avdmanager.ui.NameComparator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.sdk.DeviceManagers
-import com.intellij.openapi.components.service
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 
 internal class LocalVirtualDeviceSource(
   private val skins: ImmutableCollection<Skin>,
-  val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
-  val avdManager: AvdManager = IdeAvdManagers.getAvdManager(sdkHandler),
-  val systemImageStateFlow: StateFlow<SystemImageState> =
-    service<SystemImageStateService>().systemImageStateFlow,
+  val sdkHandler: AndroidSdkHandler,
+  val avdManager: AvdManager,
+  val systemImageFlow: Flow<SystemImageState>,
 ) {
 
   companion object {
@@ -54,8 +51,13 @@ internal class LocalVirtualDeviceSource(
       val skins =
         SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
           .toImmutableList()
-
-      return LocalVirtualDeviceSource(skins)
+      val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
+      return LocalVirtualDeviceSource(
+        skins,
+        sdkHandler,
+        IdeAvdManagers.getAvdManager(sdkHandler),
+        ISystemImages.systemImageFlow(sdkHandler),
+      )
     }
   }
 
@@ -75,14 +77,7 @@ internal class LocalVirtualDeviceSource(
               name = deviceNameValidator.uniquify(AvdNames.cleanDisplayName(profile.name))
             }
           }
-        ConfigurationPage(
-          device,
-          systemImageStateFlow,
-          skins,
-          deviceNameValidator,
-          sdkHandler,
-          finish,
-        )
+        ConfigurationPage(device, systemImageFlow, skins, deviceNameValidator, sdkHandler, finish)
       }
     }
     finishAction = WizardAction.Disabled
