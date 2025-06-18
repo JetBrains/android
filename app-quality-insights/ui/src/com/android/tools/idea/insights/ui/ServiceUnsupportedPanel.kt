@@ -94,13 +94,6 @@ class ServiceUnsupportedPanel(
 
         val contentPanel = JPanel(BorderLayout(0, JBUI.scale(8))).apply { isOpaque = false }
 
-        val headerLabel =
-          JBLabel(deprecationData.header).apply {
-            font = JBFont.label().asBold()
-            isOpaque = false
-          }
-        contentPanel.add(headerLabel, BorderLayout.NORTH)
-
         val descriptionTextPane =
           JTextArea().apply {
             text = deprecationData.description
@@ -108,11 +101,11 @@ class ServiceUnsupportedPanel(
             isFocusable = false
             wrapStyleWord = true
             lineWrap = true
-            columns = 50
+            columns = 30
             font = JBFont.label()
             isOpaque = false
           }
-        contentPanel.add(descriptionTextPane)
+        contentPanel.add(descriptionTextPane, BorderLayout.NORTH)
 
         val bottomPanel =
           JPanel(HorizontalLayout(8)).apply {
