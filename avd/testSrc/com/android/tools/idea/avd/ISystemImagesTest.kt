@@ -31,7 +31,7 @@ class ISystemImagesTest {
   @Test
   fun systemImageFlow_empty() {
     with(SdkFixture()) {
-      val imageFlow = ISystemImages.systemImageFlow(sdkHandler, null)
+      val imageFlow = ISystemImages.systemImageFlow(sdkHandler)
       runBlocking {
         withTimeout(10.seconds) {
           val state = imageFlow.first { it.hasLocal }
@@ -48,7 +48,7 @@ class ISystemImagesTest {
         listOf(createLocalSystemImage("google_apis", listOf(), AndroidVersion(34)))
       )
 
-      val imageFlow = ISystemImages.systemImageFlow(sdkHandler, null)
+      val imageFlow = ISystemImages.systemImageFlow(sdkHandler)
       runBlocking {
         withTimeout(10.seconds) {
           val state = imageFlow.first { it.hasRemote }

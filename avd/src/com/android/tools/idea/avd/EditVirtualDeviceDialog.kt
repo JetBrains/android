@@ -34,20 +34,19 @@ import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeAvdManagers
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import java.awt.Component
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 internal class EditVirtualDeviceDialog(
   private val avdInfo: AvdInfo,
   baseDevice: Device,
   private val mode: Mode,
-  private val systemImageStateFlow: StateFlow<SystemImageState>,
+  private val systemImageFlow: Flow<SystemImageState>,
   private val skins: ImmutableList<Skin>,
   private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler(),
   private val avdManager: AvdManager = IdeAvdManagers.getAvdManager(sdkHandler),
@@ -75,14 +74,7 @@ internal class EditVirtualDeviceDialog(
 
   @Composable
   fun WizardPageScope.Page() {
-    ConfigurationPage(
-      device,
-      systemImageStateFlow,
-      skins,
-      deviceNameValidator,
-      sdkHandler,
-      ::finish,
-    )
+    ConfigurationPage(device, systemImageFlow, skins, deviceNameValidator, sdkHandler, ::finish)
   }
 
   private suspend fun finish(device: VirtualDevice): Boolean {
@@ -128,8 +120,9 @@ internal class EditVirtualDeviceDialog(
         return false
       }
 
-      val systemImageStateFlow = service<SystemImageStateService>().systemImageStateFlow
-      val dialog = EditVirtualDeviceDialog(avdInfo, baseDevice, mode, systemImageStateFlow, skins)
+      val systemImageFlow =
+        ISystemImages.systemImageFlow(AndroidSdks.getInstance().tryToChooseSdkHandler())
+      val dialog = EditVirtualDeviceDialog(avdInfo, baseDevice, mode, systemImageFlow, skins)
       return withContext(AndroidDispatchers.uiThread) {
         val wizard =
           with(dialog) {

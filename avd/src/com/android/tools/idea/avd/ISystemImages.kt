@@ -15,24 +15,18 @@
  */
 package com.android.tools.idea.avd
 
-import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.SystemImageSupplier
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.progress.StudioProgressRunner
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.utils.CpuArchitecture
 import com.android.utils.osArchitecture
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import kotlin.time.Duration.Companion.days
 import kotlinx.collections.immutable.ImmutableList
@@ -41,23 +35,12 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transform
-
-private sealed class SystemImageLoadingEvent
-
-private object LocalImagesLoaded : SystemImageLoadingEvent()
-
-private object RemoteImagesLoaded : SystemImageLoadingEvent()
-
-private object Error : SystemImageLoadingEvent()
 
 internal data class SystemImageState(
   val hasLocal: Boolean,
@@ -70,15 +53,8 @@ internal data class SystemImageState(
   }
 }
 
-@Service(Service.Level.APP)
-internal class SystemImageStateService(val coroutineScope: CoroutineScope) {
-  val systemImageStateFlow =
-    ISystemImages.systemImageFlow(AndroidSdks.getInstance().tryToChooseSdkHandler(), null)
-      .stateIn(coroutineScope, SharingStarted.Eagerly, SystemImageState.INITIAL)
-}
-
 internal object ISystemImages {
-  fun systemImageFlow(sdkHandler: AndroidSdkHandler, project: Project?): Flow<SystemImageState> {
+  fun systemImageFlow(sdkHandler: AndroidSdkHandler): Flow<SystemImageState> {
     val indicator = StudioLoggerProgressIndicator(ISystemImages::class.java)
     val repoManager = sdkHandler.getRepoManager(indicator)
 
@@ -93,37 +69,39 @@ internal object ISystemImages {
         .get()
         .toImmutableList()
     }
-    var state = SystemImageState.INITIAL
 
-    // Transform callbacks from RepoManager to SystemImageLoadingEvents that are processed serially.
-    return callbackFlow {
-        repoManager.load(
-          cacheExpirationMs = 1.days.inWholeMilliseconds,
-          onLocalComplete = RepoLoadedListener { trySend(LocalImagesLoaded) },
-          onSuccess = RepoLoadedListener { trySend(RemoteImagesLoaded) },
-          onError = Runnable { trySend(Error) },
-          runner = StudioProgressRunner(false, "Loading Images", project),
-          downloader = StudioDownloader(),
-          settings = StudioSettingsController.getInstance(),
-        )
-
-        // At this point, we've sent local and remote images (or an error). Now just listen for
-        // package downloads.
-        val listener = RepoLoadedListener { trySend(LocalImagesLoaded) }
-        repoManager.addLocalChangeListener(listener)
-        awaitClose { repoManager.removeLocalChangeListener(listener) }
-      }
-      .transform { event ->
-        state =
-          when (event) {
-            is LocalImagesLoaded -> state.copy(hasLocal = true, images = systemImages())
-            is RemoteImagesLoaded -> state.copy(hasRemote = true, images = systemImages())
-            is Error -> state.copy(error = "Error loading remote images.")
+    // Load local and remote packages and emit the corresponding SystemImageState.
+    return flow<SystemImageState> {
+        coroutineScope {
+          val localPackages = async { repoManager.loadLocalPackages(indicator, 1.days) }
+          val remotePackages = async {
+            repoManager.loadRemotePackages(
+              indicator,
+              1.days,
+              StudioDownloader(),
+              StudioSettingsController.getInstance(),
+            )
           }
-        emit(state)
+
+          val state =
+            try {
+              localPackages.await()
+              SystemImageState.INITIAL.copy(hasLocal = true, images = systemImages())
+            } catch (e: Exception) {
+              thisLogger().warn("Loading local images", e)
+              SystemImageState.INITIAL.copy(error = "Error loading images.")
+            }
+          emit(state)
+          try {
+            remotePackages.await()
+            emit(state.copy(hasRemote = true, images = systemImages()))
+          } catch (e: Exception) {
+            thisLogger().warn("Loading remote images", e)
+            emit(state.copy(error = "Error loading remote images."))
+          }
+        }
       }
-      .flowOn(AndroidDispatchers.workerThread)
-      .conflate()
+      .flowOn(Dispatchers.IO)
   }
 }
 
