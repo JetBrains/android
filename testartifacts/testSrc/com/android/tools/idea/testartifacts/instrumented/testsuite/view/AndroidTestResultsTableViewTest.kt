@@ -185,7 +185,7 @@ class AndroidTestResultsTableViewTest {
 
     // No test cases are finished yet.
     assertThat(table.getTableViewForTesting().rowCount).isEqualTo(5)
-    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
     assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
     assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
@@ -352,6 +352,59 @@ class AndroidTestResultsTableViewTest {
   }
 
   @Test
+  fun addTestResultsWithNoClass() {
+    val table = AndroidTestResultsTableView(
+      mockListener, mockJavaPsiFacade, mockModule, mockTestArtifactSearchScopes, mockLogger, mockAndroidTestResultsUserPreferencesManager)
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
+    val testcase1OnDevice1 = AndroidTestCase("testid1", "method1", "", "")
+    val testcase2OnDevice1 = AndroidTestCase("testid2", "method2", "", "")
+    val testcase1OnDevice2 = AndroidTestCase("testid1", "method1", "", "")
+
+    table.addDevice(device1)
+    table.addDevice(device2)
+    table.addTestCase(device1, testcase1OnDevice1)
+    table.addTestCase(device1, testcase2OnDevice1)
+    table.addTestCase(device2, testcase1OnDevice2)
+
+    // No test cases are finished yet.
+    assertThat(table.getTableViewForTesting().rowCount).isEqualTo(3)
+    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("method1")
+    assertThat(table.getTableViewForTesting().getItem(1).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("method2")
+    assertThat(table.getTableViewForTesting().getItem(2).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device2)).isNull()
+
+    // Let test case 1 and 2 finish on the device 1.
+    testcase1OnDevice1.result = AndroidTestCaseResult.PASSED
+    testcase2OnDevice1.result = AndroidTestCaseResult.FAILED
+
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device2)).isNull()
+
+    // Let test case 1 finish on the device 2.
+    testcase1OnDevice2.result = AndroidTestCaseResult.PASSED
+
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.PASSED)
+  }
+
+  @Test
   fun clickTestResultsRow() {
     val table = AndroidTestResultsTableView(
       mockListener, mockJavaPsiFacade, mockModule, mockTestArtifactSearchScopes, mockLogger, mockAndroidTestResultsUserPreferencesManager)
@@ -427,7 +480,7 @@ class AndroidTestResultsTableViewTest {
 
     val view = table.getTableViewForTesting()
     assertThat(view.rowCount).isEqualTo(3)
-    assertThat(view.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(view.getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(view.getItem(1).getFullTestCaseName()).isEqualTo("package2.class2.")
     assertThat(view.getItem(2).getFullTestCaseName()).isEqualTo("package2.class2.method2")
   }
@@ -646,7 +699,7 @@ class AndroidTestResultsTableViewTest {
       it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, 0, 0, /*clickCount=*/1, false))
     }
 
-    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
     assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method1")
     assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.method2")
@@ -658,7 +711,7 @@ class AndroidTestResultsTableViewTest {
       it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, 0, 0, /*clickCount=*/1, false))
     }
 
-    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
     assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.method1")
     assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.")
@@ -670,7 +723,7 @@ class AndroidTestResultsTableViewTest {
       it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, 0, 0, /*clickCount=*/1, false))
     }
 
-    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
     assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.method1")
     assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.")
@@ -683,7 +736,7 @@ class AndroidTestResultsTableViewTest {
       it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, durationColumnPositionX, 0, /*clickCount=*/1, false))
     }
 
-    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
     assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method2")  // 100 ms
     assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.method1")  // 200 ms
@@ -697,7 +750,7 @@ class AndroidTestResultsTableViewTest {
       it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, statusColumnPositionX, 0, /*clickCount=*/1, false))
     }
 
-    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
     assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.method1")  // failed
     assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.")
@@ -711,7 +764,7 @@ class AndroidTestResultsTableViewTest {
       it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, deviceStatusColumnPositionX, 0, /*clickCount=*/1, false))
     }
 
-    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class2.")
     assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.method1")  // failed
     assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.")
@@ -878,7 +931,7 @@ class AndroidTestResultsTableViewTest {
 
     val tableView = table.getTableViewForTesting()
     assertThat(tableView.rowCount).isEqualTo(6)
-    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
     assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method1")
     assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.method2")
@@ -888,14 +941,14 @@ class AndroidTestResultsTableViewTest {
     collapseAllAction.actionPerformed(mock())
 
     assertThat(tableView.rowCount).isEqualTo(3)
-    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
     assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package1.class2.")
 
     expandAllAction.actionPerformed(mock())
 
     assertThat(tableView.rowCount).isEqualTo(6)
-    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("")
     assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
     assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method1")
     assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("package1.class1.method2")

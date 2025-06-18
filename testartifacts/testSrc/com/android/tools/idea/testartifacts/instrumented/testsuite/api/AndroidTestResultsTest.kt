@@ -16,6 +16,8 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -52,9 +54,78 @@ class AndroidTestResultsTest {
     assertThat(createAndroidTestResults(Duration.ofMillis(2500)).getRoundedDuration(mockDevice)).isEqualTo(Duration.ofMillis(2000))
   }
 
+  @Test
+  fun testNames() {
+    val testResults = TestAndroidTestResults("myMethod", "myClass", "myPackage")
+    assertThat(testResults.getFullTestClassName()).isEqualTo("myPackage.myClass")
+    assertThat(testResults.getFullTestCaseName()).isEqualTo("myPackage.myClass.myMethod")
+  }
+
+  @Test
+  fun testNames_emptyPackageName() {
+    val testResults = TestAndroidTestResults("myMethod", "myClass", "")
+    assertThat(testResults.getFullTestClassName()).isEqualTo("myClass")
+    assertThat(testResults.getFullTestCaseName()).isEqualTo("myClass.myMethod")
+  }
+
+  @Test
+  fun testNames_emptyClassName() {
+    val testResults = TestAndroidTestResults("myMethod", "", "myPackage")
+    assertThat(testResults.getFullTestClassName()).isEqualTo("")
+    assertThat(testResults.getFullTestCaseName()).isEqualTo("myMethod")
+  }
+
+  @Test
+  fun testNames_emptyPackageNameAndClassName() {
+    val testResults = TestAndroidTestResults("myMethod", "", "")
+    assertThat(testResults.getFullTestClassName()).isEqualTo("")
+    assertThat(testResults.getFullTestCaseName()).isEqualTo("myMethod")
+  }
+
   private fun createAndroidTestResults(duration: Duration? = null): AndroidTestResults {
     val results = mock<AndroidTestResults>()
     whenever(results.getDuration(any())).thenReturn(duration)
     return results
   }
+}
+
+class TestAndroidTestResults(override val methodName: String,
+                             override val className: String,
+                             override val packageName: String) : AndroidTestResults {
+  override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
+
+  override fun getTestResultSummary(): AndroidTestCaseResult {
+    return AndroidTestCaseResult.PASSED
+  }
+
+  override fun getTestResultSummary(devices: List<AndroidDevice>): AndroidTestCaseResult {
+    return AndroidTestCaseResult.PASSED
+  }
+
+  override fun getTestResultSummaryText(devices: List<AndroidDevice>) = "PASSED"
+
+  override fun getResultStats(): AndroidTestResultStats = AndroidTestResultStats(passed = 1)
+
+  override fun getResultStats(device: AndroidDevice) = AndroidTestResultStats(passed = 1)
+
+  override fun getResultStats(devices: List<AndroidDevice>) = AndroidTestResultStats(passed = 1)
+
+  override fun getLogcat(device: AndroidDevice) = ""
+
+  override fun getStartTime(device: AndroidDevice): Long? = null
+
+  override fun getDuration(device: AndroidDevice): Duration? = null
+
+  override fun getTotalDuration(): Duration = Duration.ZERO
+
+  override fun getErrorStackTrace(device: AndroidDevice) = ""
+
+  override fun getBenchmark(device: AndroidDevice) = BenchmarkOutput("")
+
+  override fun getRetentionInfo(device: AndroidDevice) = null
+
+  override fun getRetentionSnapshot(device: AndroidDevice) = null
+
+  override fun getAdditionalTestArtifacts(device: AndroidDevice) = emptyMap<String, String>()
+
 }

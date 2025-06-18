@@ -237,7 +237,7 @@ class AndroidTestSuiteViewTest {
 
     // Initially, all tests are displayed.
     assertThat(tableView.rowCount).isEqualTo(9)
-    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")  // Root aggregation (failed)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("")  // Root aggregation (failed)
     assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.")  // Class A aggregation (failed)
     assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1")  // method 1 (failed)
     assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageA.classA.method2")  // method 2 (passed)
@@ -251,7 +251,7 @@ class AndroidTestSuiteViewTest {
     view.mySkippedToggleButton.isSelected = false
 
     assertThat(tableView.rowCount).isEqualTo(8)
-    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")  // Root aggregation (failed)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("")  // Root aggregation (failed)
     assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.")  // Class A aggregation (failed)
     assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1")  // method 1 (failed)
     assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageA.classA.method2")  // method 2 (passed)
@@ -265,7 +265,7 @@ class AndroidTestSuiteViewTest {
     view.mySkippedToggleButton.isSelected = true
 
     assertThat(tableView.rowCount).isEqualTo(8)
-    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")  // Root aggregation (failed)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("")  // Root aggregation (failed)
     assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.")  // Class A aggregation (failed)
     assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1")  // method 1 (failed)
     assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)
@@ -279,7 +279,7 @@ class AndroidTestSuiteViewTest {
     view.mySkippedToggleButton.isSelected = false
 
     assertThat(tableView.rowCount).isEqualTo(7)
-    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo(".")  // Root aggregation (failed)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("")  // Root aggregation (failed)
     assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("packageA.classA.")  // Class A aggregation (failed)
     assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("packageA.classA.method1")  // method 1 (failed)
     assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("packageB.classB.")  // Class B aggregation (in progress)

@@ -122,25 +122,34 @@ interface AndroidTestResults {
  * Returns the fully qualified name of the test case.
  */
 fun AndroidTestResults.getFullTestCaseName(): String {
-  return "${getFullTestClassName()}.$methodName"
+  val fullTestClassName = getFullTestClassName()
+  if (fullTestClassName.isBlank()) {
+    return methodName
+  }
+  else {
+    return "$fullTestClassName.$methodName"
+  }
 }
 
 /**
  * Returns the fully qualified name of the test class.
  */
 fun AndroidTestResults.getFullTestClassName(): String {
-  return if (packageName.isBlank()) {
-    className
-  } else {
-    "$packageName.$className"
+  if (className.isBlank()) {
+    return ""
   }
+  if (packageName.isBlank()) {
+    return className
+  }
+
+  return "$packageName.$className"
 }
 
 /**
  * Returns true if this result is a root aggregation result.
  */
 fun AndroidTestResults.isRootAggregationResult(): Boolean {
-  return getFullTestCaseName() == "."
+  return getFullTestCaseName() == ""
 }
 
 data class AndroidTestResultStats(

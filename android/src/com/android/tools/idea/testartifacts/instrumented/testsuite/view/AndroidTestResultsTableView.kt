@@ -782,13 +782,21 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
   fun addTestResultsRow(device: AndroidDevice, testCase: AndroidTestCase): AndroidTestResultsRow {
     val row = myTestResultsRows.getOrPut(testCase.id) {
       AndroidTestResultsRow(testCase.methodName, testCase.className, testCase.packageName).also { resultsRow ->
-        val testClassAggRow = myTestClassAggregationRow.getOrPut(resultsRow.getFullTestClassName()) {
-          AggregationRow(resultsRow.packageName, resultsRow.className).also {
-            myRootAggregationRow.add(it)
-            myRowInsertionOrder.putIfAbsent(it, myRowInsertionOrder.size)
+        // If a package name or class name is specified then add the test under a test suite row,
+        // otherwise just add it directly to the root row
+        val parent = if (testCase.className.isNotBlank() || testCase.packageName.isNotBlank()) {
+          myTestClassAggregationRow.getOrPut(resultsRow.getFullTestClassName()) {
+            AggregationRow(resultsRow.packageName, resultsRow.className).also {
+              myRootAggregationRow.add(it)
+              myRowInsertionOrder.putIfAbsent(it, myRowInsertionOrder.size)
+            }
           }
         }
-        testClassAggRow.add(resultsRow)
+        else {
+          myRootAggregationRow
+        }
+
+        parent.add(resultsRow)
         myRowInsertionOrder.putIfAbsent(resultsRow, myRowInsertionOrder.size)
       }
     }
