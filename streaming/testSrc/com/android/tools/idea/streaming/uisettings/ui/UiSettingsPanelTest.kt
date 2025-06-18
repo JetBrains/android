@@ -51,10 +51,11 @@ class UiSettingsPanelTest {
   private var lastCommand: String = ""
   private val deviceTypeFromTestName: DeviceType
     get() = when {
-      nameRule.methodName.endsWith("Wear") -> DeviceType.WEAR
-      nameRule.methodName.endsWith("Tv") -> DeviceType.TV
       nameRule.methodName.endsWith("Automotive") -> DeviceType.AUTOMOTIVE
       nameRule.methodName.endsWith("Desktop") -> DeviceType.DESKTOP
+      nameRule.methodName.endsWith("Tv") -> DeviceType.TV
+      nameRule.methodName.endsWith("Wear") -> DeviceType.WEAR
+      nameRule.methodName.endsWith("Xr") -> DeviceType.XR
       else -> DeviceType.HANDHELD
     }
 
@@ -253,6 +254,18 @@ class UiSettingsPanelTest {
     assertThat(panel.findDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()
     assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNull()
+  }
+
+  @Test
+  fun testControlsForXr() {
+    assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JSlider> { it.name == FONT_SCALE_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNotNull()
+
+    assertThat(panel.findDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
   }
 
   @Test
