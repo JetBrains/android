@@ -44,3 +44,13 @@ java_library(
         "//java_and_deps/deps/top_level_lib_1",
     ],
 )
+
+java_library(
+    name = "jar_of_interface_and_implementation",
+    srcs = glob(["java/com/example/jar_of_interface_and_implementation/*.java"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//java_and_deps/deps/interface_and_implementation/java/com/example/interface_and_implementation:libchild",
+        "//java_and_deps/deps/interface_and_implementation/java/com/example/interface_and_implementation:libchildimpl",
+    ],
+)
