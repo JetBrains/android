@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.utils
 
-import com.android.tools.idea.gradle.project.sync.model.StubEelDescriptor
 import com.android.tools.idea.gradle.project.sync.model.StubEelNioBridgeService
+import com.android.tools.idea.gradle.project.sync.model.StubLocalEelDescriptor
 import com.android.tools.idea.gradle.project.sync.model.StubLocalPosixEelApi
 import com.android.tools.idea.gradle.project.sync.utils.environment.TestSystemEnvironment
 import com.android.tools.idea.sdk.IdeSdks
@@ -42,9 +42,11 @@ object EnvironmentUtils {
 
     val localPosixEelApi = Mockito.spy(ApplicationManager.getApplication().getService(LocalPosixEelApi::class.java))
     doReturn(StubLocalPosixEelApi(environmentVariablesMap)).whenever(localPosixEelApi).exec
+    val localEelDescriptor = StubLocalEelDescriptor(localPosixEelApi)
+
     ApplicationManager.getApplication().replaceService(LocalPosixEelApi::class.java, localPosixEelApi, disposable)
     ApplicationManager.getApplication().replaceService(
-      EelNioBridgeService::class.java, StubEelNioBridgeService(StubEelDescriptor(localPosixEelApi)), disposable)
+      EelNioBridgeService::class.java, StubEelNioBridgeService(localEelDescriptor), disposable)
 
     handleSpecialCasesEnvironmentVariables(environmentVariablesMap, disposable)
   }

@@ -39,6 +39,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.PlatformTestUtil
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
@@ -84,6 +85,7 @@ class JdkIntegrationTest(
     disposable: Disposable,
     tempDir: File
   ) {
+    Registry.get("gradle.sync.use.eel.for.wsl").setValue(false)
     ApplicationManager.getApplication().invokeAndWait {
       JdkTableUtils.removeAllJavaSdkFromJdkTable()
     }
@@ -107,6 +109,7 @@ class JdkIntegrationTest(
     StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME.clearOverride()
     JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
     CapturePlatformModelsProjectResolverExtension.reset()
+    Registry.get("gradle.sync.use.eel.for.wsl").resetToDefault()
   }
 
   data class TestEnvironment(
