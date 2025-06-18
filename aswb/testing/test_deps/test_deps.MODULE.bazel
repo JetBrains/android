@@ -14,7 +14,7 @@ aswb_test_deps_repository(
         "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz": "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
         "https://github.com/bazelbuild/bazel-worker-api/releases/download/v0.0.4/bazel-worker-api-v0.0.4.tar.gz": "79b30bcdab8cb0dce1523b28ff798067419715f5540a8a446bbccf393e5eb79c",
         "https://github.com/bazelbuild/platforms/releases/download/0.0.11/platforms-0.0.11.tar.gz": "29742e87275809b5e598dc2f04d86960cc7a55b3067d97221c9abbc9926bff0f",
-        "https://github.com/bazelbuild/rules_android/releases/download/v0.6.3/rules_android-v0.6.3.tar.gz": "16cb3e7fa0e9633730414ffad5bc4ef9722336c217f57bd130e3e95689138f45",
+        "https://github.com/bazelbuild/rules_android/releases/download/v0.6.4/rules_android-v0.6.4.tar.gz": "4135e2fa37a94bb36c7801e33faef2934c9fe4f9a84d0035eacc4154c2c30e44",
         "https://github.com/bazelbuild/rules_cc/releases/download/0.1.1/rules_cc-0.1.1.tar.gz": "712d77868b3152dd618c4d64faaddefcc5965f90f5de6e6dd1d5ddcd0be82d42",
         "https://github.com/bazelbuild/rules_java/releases/download/8.11.0/rules_java-8.11.0.tar.gz": "d31b6c69e479ffa45460b64dc9c7792a431cac721ef8d5219fc9f603fa2ff877",
         "https://github.com/bazelbuild/rules_jvm_external/releases/download/6.7/rules_jvm_external-6.7.tar.gz": "a1e351607f04fed296ba33c4977d3fe2a615ed50df7896676b67aac993c53c18",
