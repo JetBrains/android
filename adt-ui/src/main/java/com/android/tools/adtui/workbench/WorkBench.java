@@ -171,6 +171,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myLoadingPanel.stopLoading();
     myMainPanel.setVisible(true);
     mySplitter.addDividerResizeListener(createWidthUpdater());
+    myToolDefinitions.clear();
     myToolDefinitions.addAll(definitions);
     mySplitter.setFirstSize(getInitialSideWidth(Side.LEFT));
     if (mySplitter.getInnerComponent() != null) {
