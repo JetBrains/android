@@ -50,9 +50,15 @@ class ComposeResizeTracker : ResizeTracker {
       widthDp,
       heightDp,
       dpi,
+      ResizeComposePreviewEvent.ResizeSource.DRAG,
     )
   }
 }
+
+val LayoutlibSceneManager.resizeMode
+  get(): ResizeMode =
+    if (this.sceneRenderConfiguration.showDecorations) ResizeMode.DEVICE_RESIZE
+    else ResizeMode.COMPOSABLE_RESIZE
 
 /** Usage tracker for the Compose Resize tooling. */
 object ComposeResizeToolingUsageTracker {
@@ -63,14 +69,32 @@ object ComposeResizeToolingUsageTracker {
     mode: ResizeMode,
     widthDp: Int,
     heightDp: Int,
-    dpi: Int,
+    dpi: Int?,
+    source: ResizeComposePreviewEvent.ResizeSource,
   ) {
     logEvent(surface) {
       eventType = EventType.RESIZE_STOPPED
       resizeMode = mode
+      resizeSource = source
+
       deviceWidthDp = widthDp
       deviceHeightDp = heightDp
-      this.dpi = dpi
+
+      dpi?.let { this.dpi = it }
+    }
+  }
+
+  fun logResizeStopped(
+    surface: DesignSurface<*>?,
+    mode: ResizeMode,
+    source: ResizeComposePreviewEvent.ResizeSource,
+    deviceId: String,
+  ) {
+    logEvent(surface) {
+      eventType = EventType.RESIZE_STOPPED
+      resizeMode = mode
+      resizeSource = source
+      this.deviceId = deviceId
     }
   }
 
