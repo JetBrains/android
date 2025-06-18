@@ -32,6 +32,7 @@ jvm_library(
     "//platform/core-ui",
     "//platform/execution",
     "//platform/core-api:core",
+    "//platform/execution-impl",
     "//platform/util",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",

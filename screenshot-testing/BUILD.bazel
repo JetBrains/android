@@ -77,6 +77,7 @@ jvm_library(
     "//platform/analysis-api:analysis",
     "//platform/core-api:core",
     "//platform/core-impl",
+    "//platform/execution-impl",
     "//jps/model-api:model",
     "//platform/projectModel-api:projectModel",
     "//platform/testFramework",
