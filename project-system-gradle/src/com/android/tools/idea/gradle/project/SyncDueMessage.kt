@@ -183,8 +183,8 @@ object SyncDueMessage {
 
           })
           .yesText(AndroidBundle.message("gradle.settings.autoSync.dialog.sync"))
-          .noText(AndroidBundle.message("gradle.settings.autoSync.dialog.continue"))
-          .cancelText(AndroidBundle.message("gradle.settings.autoSync.dialog.snooze"))
+          .noText(AndroidBundle.message("gradle.settings.autoSync.dialog.snooze"))
+          .cancelText(AndroidBundle.message("gradle.settings.autoSync.dialog.continue"))
           .show(project)
 
         when (dialogSelection) {
@@ -193,12 +193,12 @@ object SyncDueMessage {
             requestProjectSync(project)
           }
 
-          MessageConstants.CANCEL -> {
+          MessageConstants.NO -> {
             trackSuppressedSync(type = IndicatorType.DIALOG, action = UserAction.SNOOZE)
             snooze()
           }
 
-          MessageConstants.NO -> {
+          MessageConstants.CANCEL -> {
             trackSuppressedSync(type = IndicatorType.DIALOG, action = UserAction.CLOSED)
           }
         }

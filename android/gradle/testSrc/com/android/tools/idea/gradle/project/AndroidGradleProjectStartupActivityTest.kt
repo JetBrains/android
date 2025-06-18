@@ -35,6 +35,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.RunsInEdt
@@ -91,7 +92,7 @@ class AndroidGradleProjectStartupActivityTest {
     ApplicationManager.getApplication().replaceService(GradleSyncInvoker::class.java, syncInvoker, myTestRootDisposable)
     myInfo = mock()
     myStartupActivity = AndroidGradleProjectStartupActivity()
-    TestDialogManager.setTestDialog(TestDialog.NO)
+    TestDialogManager.setTestDialog { Messages.CANCEL }
     calendar = Calendar.getInstance().apply { set(2025, 1, 1, 0, 0) }
     SyncDueMessage.timeProvider = { calendar.toInstant().toEpochMilli() }
   }
@@ -102,6 +103,7 @@ class AndroidGradleProjectStartupActivityTest {
     AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Default
     StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_UI.clearOverride()
     PropertiesComponent.getInstance().unsetValue(SYNC_DUE_DIALOG_SHOWN)
+    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_SNOOZED_SETTING_AT_DATE)
     TestDialogManager.setTestDialog(TestDialog.DEFAULT)
   }
 
