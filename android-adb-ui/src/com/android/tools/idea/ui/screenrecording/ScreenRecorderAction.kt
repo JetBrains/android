@@ -22,10 +22,10 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.ui.AndroidAdbUiBundle
-import com.intellij.concurrency.ConcurrentCollectionFactory
 import com.android.tools.idea.ui.DISPLAY_ID_KEY
 import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
 import com.android.tools.idea.ui.DisplayInfoProvider
+import com.intellij.concurrency.ConcurrentCollectionFactory
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -216,4 +216,3 @@ data class ScreenRecordingParameters(
 
 private fun ScreenRecordingParameters.isRecordingSupported(project: Project): Boolean =
     featureLevel >= 19 && ScreenRecordingSupportedCache.getInstance(project).isScreenRecordingSupported(serialNumber)
-
