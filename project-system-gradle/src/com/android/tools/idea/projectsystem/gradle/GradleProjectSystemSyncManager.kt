@@ -30,8 +30,12 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGENT_REQUESTED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATE_ROLLED_BACK
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.Disposer
@@ -72,10 +76,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     if (AutoSyncSettingStore.autoSyncBehavior == AutoSyncBehavior.Default) {
       return false
     }
-    if (reason == SyncReason.USER_REQUEST) {
-      return false
-    }
-    if(reason == SyncReason.AGENT_REQUESTED) {
+    if (reason.forStats in listOf(TRIGGER_USER_REQUEST, TRIGGER_USER_STALE_CHANGES, TRIGGER_AGENT_REQUESTED)) {
       return false
     }
     val isMigration = listOf(TRIGGER_AGP_VERSION_UPDATED, TRIGGER_AGP_VERSION_UPDATE_ROLLED_BACK).contains(reason.forStats)
