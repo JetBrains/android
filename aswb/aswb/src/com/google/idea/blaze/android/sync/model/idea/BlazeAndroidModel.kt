@@ -13,40 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.android.sync.model.idea;
+package com.google.idea.blaze.android.sync.model.idea
 
-import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.Namespacing;
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.project.Project;
-import java.io.File;
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.Namespacing
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
+import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.project.Project
+import java.io.File
 
-/** Blaze model for an android project */
-public class BlazeAndroidModel extends BlazeAndroidModelBase {
-  private final NamedIdeaSourceProvider sourceProvider;
+/** Blaze model for an android project  */
+class BlazeAndroidModel(
+  project: Project,
+  rootDirPath: File,
+  val defaultSourceProvider: NamedIdeaSourceProvider,
+  applicationId: ListenableFuture<String>,
+  minSdkVersion: Int
+) : BlazeAndroidModelBase(project, rootDirPath, applicationId, minSdkVersion) {
+  override val namespacing: Namespacing
+    get() = Namespacing.DISABLED
 
-  public BlazeAndroidModel(
-      Project project,
-      File rootDirPath,
-      NamedIdeaSourceProvider sourceProvider,
-      ListenableFuture<String> applicationId,
-      int minSdkVersion) {
-    super(project, rootDirPath, applicationId, minSdkVersion);
-    this.sourceProvider = sourceProvider;
-  }
-
-  public NamedIdeaSourceProvider getDefaultSourceProvider() {
-    return sourceProvider;
-  }
-
-  @Override
-  public Namespacing getNamespacing() {
-    return Namespacing.DISABLED;
-  }
-
-  @Override
-  protected String uninitializedApplicationId() {
-    return AndroidModel.UNINITIALIZED_APPLICATION_ID;
+  override fun uninitializedApplicationId(): String {
+    return AndroidModel.UNINITIALIZED_APPLICATION_ID
   }
 }
