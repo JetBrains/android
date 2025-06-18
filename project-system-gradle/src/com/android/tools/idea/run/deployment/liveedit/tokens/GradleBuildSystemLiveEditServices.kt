@@ -103,7 +103,7 @@ internal class GradleApplicationLiveEditServices(private val module: Module): Ap
 
   override fun getRuntimeVersionString(): String {
     val moduleSystem = module.getModuleSystem() as? GradleModuleSystem ?: return DEFAULT_RUNTIME_VERSION
-    val externalModule = GoogleMavenArtifactId.COMPOSE_TOOLING.getModule()
+    val externalModule = GoogleMavenArtifactId.COMPOSE_RUNTIME.getModule()
     return when (val component = moduleSystem.getResolvedDependency(externalModule, DependencyScopeType.MAIN)) {
       null -> DEFAULT_RUNTIME_VERSION
       else -> component.version.toString()
