@@ -222,7 +222,12 @@ class DeviceClient(
     val agentPushed = coroutineScope {
       async {
         pushSerializer.executeSeriallyFor(deviceSerialNumber) { // Don't allow concurrent pushes to the same device.
-          pushAgent(deviceSelector, adbSession, project)
+          try {
+            pushAgent(deviceSelector, adbSession, project)
+          }
+          catch (e: Throwable) {
+            throw RuntimeException("Unable to copy the screen sharing agent to the device", e)
+          }
         }
       }
     }
