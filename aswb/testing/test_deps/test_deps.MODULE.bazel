@@ -50,7 +50,7 @@ aswb_test_deps_repository(
     },
     bazel_sha256 = "7ff2b6a675b59a791d007c526977d5262ade8fa52efc8e0d1ff9e18859909fc0",
     bazel_url = "https://github.com/bazelbuild/bazel/releases/download/8.2.1/bazel-8.2.1-linux-x86_64",
-    bcr_sha256 = "27055508caa3bbab956c28bc6e43f8d44a5a5ffb4b42a8fae78cd822c2261e46",
+    bcr_sha256 = "974e23a7e7bc221db89083f0cdfd466a3a87f589823a79c71a23a9d0b5cb6aa5",
     bcr_url = "https://github.com/bazelbuild/bazel-central-registry/archive/273df7ac4c4a72daabf72b6b4efb12ab5d002807.zip",
     projects = "tools/adt/idea/aswb/testing/test_deps/projects",
 )
