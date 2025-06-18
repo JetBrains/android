@@ -22,6 +22,8 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.configurations.updateScreenSize
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
+import com.android.tools.idea.compose.preview.analytics.resizeMode
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.deviceSizeDp
 import com.android.tools.idea.compose.preview.util.previewElement
@@ -34,6 +36,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.visual.getDeviceGroupsSortedAsMap
 import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.android.tools.preview.config.ConversionUtil
+import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -216,7 +219,10 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     currentSceneManager?.sceneRenderConfiguration?.clearOverrideRenderSize = true
     currentSceneManager?.forceNextResizeToWrapContent = isOriginalPreviewSizeModeWrap()
     currentConfiguration?.setEffectiveDevice(originalDeviceSnapshot, originalDeviceStateSnapshot)
-
+    ComposeResizeToolingUsageTracker.logResizeReverted(
+      currentSceneManager?.scene?.designSurface,
+      currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
+    )
     hasBeenResized = false
   }
 
@@ -290,6 +296,12 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
       revertResizing()
     } else if (selectedItem is DropDownListItem.DeviceItem) {
       currentConfiguration?.setDevice(selectedItem.device, false)
+      ComposeResizeToolingUsageTracker.logResizeStopped(
+        currentSceneManager?.scene?.designSurface,
+        currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
+        ResizeComposePreviewEvent.ResizeSource.DROPDOWN,
+        selectedItem.device.id,
+      )
     }
   }
 
@@ -420,6 +432,14 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
       config.updateScreenSize(
         ConversionUtil.dpToPx(newWidthDp, dpi),
         ConversionUtil.dpToPx(newHeightDp, dpi),
+      )
+      ComposeResizeToolingUsageTracker.logResizeStopped(
+        currentSceneManager?.scene?.designSurface,
+        currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
+        newWidthDp,
+        newHeightDp,
+        dpi,
+        ResizeComposePreviewEvent.ResizeSource.TEXT_FIELD,
       )
     }
   }
