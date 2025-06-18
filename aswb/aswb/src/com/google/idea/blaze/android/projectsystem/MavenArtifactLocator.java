@@ -15,20 +15,18 @@
  */
 package com.google.idea.blaze.android.projectsystem;
 
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.extensions.ExtensionPointName;
-import java.lang.Deprecated;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * Build systems can implement their own {@link MavenArtifactLocator} to help the IDE to locate
- * artifacts referenced using {@link GradleCoordinate}. Note that there can be multiple artifact
+ * artifacts referenced using {@link WellKnownMavenArtifactId}. Note that there can be multiple artifact
  * locators enabled at the same time; see {@link
  * MavenArtifactLocator#forBuildSystem(BuildSystemName)} on how to obtain them for a given build
  * system.
@@ -38,23 +36,12 @@ public interface MavenArtifactLocator {
       ExtensionPointName.create("com.google.idea.blaze.MavenArtifactLocator");
 
   /**
-   * Returns a label for the artifact referenced by the given coordinate if the artifact can be
-   * located in the current workspace.
-   *
-   * @param coordinate GradleCoordinate for the artifact.
-   */
-  @Deprecated
-  Label labelFor(GradleCoordinate coordinate);
-
-  /**
    * Returns a label for the artifact if it can be
    * located in the current workspace.
    *
-   * @param coordinate GradleCoordinate for the artifact.
+   * @param id the WellKnownMavenArtifactId of the artifact.
    */
-  default Label labelFor(WellKnownMavenArtifactId id) {
-      return labelFor(id.getCoordinate("+"));
-  }
+  Label labelFor(WellKnownMavenArtifactId id);
 
   /** Returns the {@link BuildSystemName} this {@link MavenArtifactLocator} supports. */
   BuildSystemName buildSystem();

@@ -337,14 +337,19 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem, Registering
     return target != null ? gradleCoordinate : null;
   }
 
+  // TODO(xof): temporarily (as of 2025-06-18) preserve this while the
+  //  getResolvedDependency(GradleCoordinate) methods still exist, but
+  //  there are no longer any production callers.
   private Stream<TargetKey> locateArtifactsFor(GradleCoordinate coordinate) {
     // External dependencies can be imported into the project via many routes (e.g. maven_jar,
     // local_repository, custom repo paths, etc). Within the project these dependencies are all
     // referenced by their TargetKey. Here we use a locator to convert coordinates to TargetKey
     // labels in order to find them.
+    WellKnownMavenArtifactId id = WellKnownMavenArtifactId.find(coordinate.getGroupId(), coordinate.getArtifactId());
+    if (id == null) return Stream.of();
     return MavenArtifactLocator.forBuildSystem(Blaze.getBuildSystemName(module.getProject()))
         .stream()
-        .map(locator -> locator.labelFor(coordinate))
+        .map(locator -> locator.labelFor(id))
         .filter(Objects::nonNull)
         .map(TargetKey::forPlainTarget);
   }
