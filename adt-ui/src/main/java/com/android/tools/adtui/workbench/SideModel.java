@@ -126,6 +126,7 @@ class SideModel<T> {
   }
 
   public void setTools(@NotNull List<AttachedToolWindow<T>> tools) {
+    myAllTools.clear();
     tools.forEach(this::add);
     updateLocally();
   }
