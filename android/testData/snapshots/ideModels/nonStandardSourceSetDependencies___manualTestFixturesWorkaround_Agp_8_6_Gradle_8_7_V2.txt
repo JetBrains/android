@@ -5452,6 +5452,12 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 platform                      : ANDROID
             disambiguationClassifier      : android
             platform                      : ANDROID
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : testDebugUnitTest
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : testReleaseUnitTest
         sourceSets
             androidInstrumentedTest       : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
             androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)

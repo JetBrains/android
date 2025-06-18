@@ -2754,6 +2754,12 @@ MODULE                        : kotlinMultiPlatform.app
                 platform                      : ANDROID
             disambiguationClassifier      : android
             platform                      : ANDROID
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : testDebugUnitTest
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : testReleaseUnitTest
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl) (*seen*)
@@ -3596,6 +3602,12 @@ MODULE                        : kotlinMultiPlatform.module2
                 platform                      : ANDROID
             disambiguationClassifier      : android
             platform                      : ANDROID
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : testDebugUnitTest
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : testReleaseUnitTest
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl) (*seen*)
