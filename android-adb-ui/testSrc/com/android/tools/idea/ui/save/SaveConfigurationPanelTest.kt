@@ -141,6 +141,19 @@ class SaveConfigurationPanelTest {
     assertThat(saveConfig.postSaveAction).isEqualTo(PostSaveAction.OPEN)
   }
 
+  @Test
+  fun testValidationOnApply() {
+    val panel = SaveConfigurationPanel(saveConfig, EXT_PNG, timestamp, 5, project).createPanel()
+    val ui = FakeUi(panel)
+    val filenameTemplateField = ui.getComponent<JBTextField>()
+    filenameTemplateField.text = "screenshots/<####>"
+    panel.apply()
+    assertThat(saveConfig.filenameTemplate).isEqualTo("screenshots/<####>")
+    filenameTemplateField.text = ""
+    panel.apply()
+    assertThat(saveConfig.filenameTemplate).isEqualTo("screenshots/<####>") // Invalid filename template is not saved.
+  }
+
   private fun JEditorPane.clickOnHyperlink(hyperlink: String) {
     assertThat(text.contains("<a href=\"$hyperlink\">")).isTrue()
     fireHyperlinkUpdate(HyperlinkEvent(this, HyperlinkEvent.EventType.ACTIVATED, null, hyperlink))
