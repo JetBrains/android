@@ -471,6 +471,7 @@ studio_plugin(
         "@intellij//:intellij.platform.vcs.dvcs.impl",
         "@intellij//:intellij.platform.vcs.impl",
         "@intellij//:intellij.platform.vcs.log.impl",
+        "@intellij//:intellij.properties.backend.psi",
         "@intellij//:intellij.settingsSync.core",
         "@intellij//:intellij.spellchecker",
         "@intellij//:intellij.spellchecker.xml",

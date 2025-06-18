@@ -71,5 +71,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-intellij.spellchecker" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-intellij.properties.backend.psi" level="project" />
   </component>
 </module>
