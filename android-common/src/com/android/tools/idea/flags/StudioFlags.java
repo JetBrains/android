@@ -2163,6 +2163,12 @@ public final class StudioFlags {
                     "When enabled, uses the new DiffEditorViewer UI.",
                     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_FLEXIBLE_TRANSFORM_SUGGESTIONS_ENABLED =
+    new BooleanFlag(STUDIOBOT, "flexible.transform.suggestions.enabled",
+                    "Enable the new flexible suggestions/diffs controls in the editor.",
+                    "If enabled, will show AI transform suggestions using new, more flexible controls such as inlays.",
+                    false);
+
   public static final Flag<Boolean> STUDIOBOT_ALLOW_TRANSFORMS_WITH_CITATIONS =
     new BooleanFlag(STUDIOBOT, "editor.ai.transform.allow.transforms.with.citations",
                     "Show transform results that have citations.",
