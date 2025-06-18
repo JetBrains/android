@@ -110,7 +110,9 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
       }
     }
     autoSyncBehaviorComboBox.whenItemSelected { newSelection ->
-      autoSyncBehaviorAwaitingSetting = newSelection
+      autoSyncBehaviorAwaitingSetting = newSelection.takeUnless {
+        it == AutoSyncSettingStore.autoSyncBehavior
+      }
     }
   }
 
