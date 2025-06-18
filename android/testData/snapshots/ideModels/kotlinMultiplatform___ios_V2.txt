@@ -5258,6 +5258,12 @@ MODULE                        : kotlinMultiPlatform.module2
                 platform                      : ANDROID
             disambiguationClassifier      : android
             platform                      : ANDROID
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : testDebugUnitTest
+            - testRunTasks                : KotlinTestRunTaskImpl
+                compilationName               : test
+                taskName                      : testReleaseUnitTest
         - targets                     : iosArm64 (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : iosMain (KotlinSourceSetImpl)
