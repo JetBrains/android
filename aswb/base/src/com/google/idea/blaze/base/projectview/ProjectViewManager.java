@@ -19,7 +19,6 @@ import com.google.idea.blaze.base.project.BaseQuerySyncConversionUtility;
 import com.google.idea.blaze.base.project.QuerySyncConversionUtility;
 import com.google.idea.blaze.base.projectview.parser.ProjectViewParser;
 import com.google.idea.blaze.base.projectview.section.ScalarSection;
-import com.google.idea.blaze.base.projectview.section.Section;
 import com.google.idea.blaze.base.projectview.section.sections.EnableCodeAnalysisOnSyncSection;
 import com.google.idea.blaze.base.projectview.section.sections.UseQuerySyncSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceLocationSection;
@@ -93,43 +92,40 @@ public abstract class ProjectViewManager {
     ScalarSection<Boolean> useQuerySyncSection = ScalarSection.builder(UseQuerySyncSection.KEY)
       .set(importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC).build();
     ScalarSection<Boolean> enableCodeAnalysisSection = ScalarSection.builder(EnableCodeAnalysisOnSyncSection.KEY).set(true).build();
-    Optional<Section<?>> existingUseQuerySyncSection = projectViewFile.projectView
-      .getSections().stream().filter(x -> x.isSectionType(UseQuerySyncSection.KEY)).findAny();
-    if (existingUseQuerySyncSection.isEmpty()) {
+    ScalarSection<Boolean> existingUseQuerySyncSection = projectView.getLast(UseQuerySyncSection.KEY);
+    if (existingUseQuerySyncSection == null) {
       projectView.add(useQuerySyncSection);
       return true;
     }
-
     BlazeImportSettings.ProjectType existingProjectType =
-      projectViewFile.projectView.getScalarValue(UseQuerySyncSection.KEY)
+      existingUseQuerySyncSection.getValue()
       ? BlazeImportSettings.ProjectType.QUERY_SYNC
       : BlazeImportSettings.ProjectType.ASPECT_SYNC;
 
     if (existingProjectType == BlazeImportSettings.ProjectType.ASPECT_SYNC
-          && importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC) {
-        existingUseQuerySyncSection.ifPresent(projectView::remove);
-        if (!querySyncConversionUtility.isConverted(projectViewFile)) {
-          projectView.add(BaseQuerySyncConversionUtility.AUTO_CONVERSION_SECTION);
-        }
-        projectView.add(useQuerySyncSection);
-        if (projectViewFile.projectView.getSections().stream().noneMatch(x -> x.equals(enableCodeAnalysisSection))) {
-          projectView.add(enableCodeAnalysisSection);
-        }
-        Notifications.Bus.notify(
-          new Notification(
-            "QuerySync",
-            "Your project was auto-converted to Query Sync. To learn more, click the link below.",
-            NotificationType.INFORMATION).addAction(new NotificationAction("go/query-sync#auto-convert") {
+        && importSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC) {
+      projectView.remove(existingUseQuerySyncSection);
+      projectView.add(useQuerySyncSection);
+      if (!querySyncConversionUtility.isConverted(projectViewFile)) {
+        projectView.add(BaseQuerySyncConversionUtility.AUTO_CONVERSION_SECTION);
+      }
+      if (projectView.getLast(EnableCodeAnalysisOnSyncSection.KEY) == null) {
+        projectView.add(enableCodeAnalysisSection);
+      }
+      Notifications.Bus.notify(
+        new Notification(
+          "QuerySync",
+          "Your project was auto-converted to Query Sync. To learn more, click the link below.",
+          NotificationType.INFORMATION).addAction(new NotificationAction("go/query-sync#auto-convert") {
 
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e,
-                                        @NotNull Notification notification) {
-              BrowserUtil.browse("http://go/query-sync#auto-convert");
-
-            }
-          }),
-          project);
-        return true;
+          @Override
+          public void actionPerformed(@NotNull AnActionEvent e,
+                                      @NotNull Notification notification) {
+            BrowserUtil.browse("http://go/query-sync#auto-convert");
+          }
+        }),
+        project);
+      return true;
     }
     return false;
   }

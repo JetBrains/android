@@ -86,6 +86,7 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -600,10 +601,12 @@ public final class BlazeEditProjectViewControl {
 
     final ProjectView projectView;
     final ProjectViewSet projectViewSet;
+    ProjectViewSet.ProjectViewFile projectViewFile = parseResult.getTopLevelProjectViewFile();
+    assert projectViewFile != null;
     ScalarSection<String> workspaceRootSection = ScalarSection.builder(WorkspaceLocationSection.KEY)
       .set(workspaceData.workspaceRoot().toString()).build();
     ScalarSection<Boolean> useQuerySyncSection = ScalarSection.builder(UseQuerySyncSection.KEY)
-      .set(QuerySync.useForNewProjects()).build();
+      .set(Optional.ofNullable(projectViewFile.projectView.getScalarValue(UseQuerySyncSection.KEY)).orElse(QuerySync.useForNewProjects())).build();
     if (useSharedProjectView && selectProjectViewOption.getSharedProjectView() != null) {
       projectView =
           ProjectView.builder()
@@ -620,11 +623,10 @@ public final class BlazeEditProjectViewControl {
               .add(localProjectViewFile, projectView)
               .build();
     } else {
-      ProjectViewSet.ProjectViewFile projectViewFile = parseResult.getTopLevelProjectViewFile();
-      assert projectViewFile != null;
       ProjectView.Builder projectViewBuilder = ProjectView.builder(projectViewFile.projectView);
+      // Remove workspace_location if it already exists in the imported project
+      projectViewBuilder.remove(projectViewBuilder.getLast(WorkspaceLocationSection.KEY));
       projectViewBuilder.add(workspaceRootSection);
-      projectViewBuilder.add(useQuerySyncSection);
       projectView = projectViewBuilder.build();
       projectViewSet = parseResult;
     }
