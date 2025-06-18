@@ -25,12 +25,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import com.intellij.util.text.DateFormatUtil
+import com.intellij.util.text.DateTimeFormatManager
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.util.Locale
 
 @RunWith(JUnit4::class)
 class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCase() {
@@ -69,11 +70,12 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
       DevServicesDeprecationMetadata.newBuilder().apply { header = "header" }.build()
     )
     assertThat(
-      ServerFlagService.instance.getProtoOrNull(
-        "dev_services/service",
-        DevServicesDeprecationMetadata.getDefaultInstance(),
+        ServerFlagService.instance.getProtoOrNull(
+          "dev_services/service",
+          DevServicesDeprecationMetadata.getDefaultInstance(),
+        )
       )
-    ).isNotNull()
+      .isNotNull()
 
     val provider = ServerFlagBasedDevServicesDeprecationDataProvider()
 
@@ -85,11 +87,12 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
   fun `proto with missing values returns DEPRECATED`() {
     StudioFlags.USE_POLICY_WITH_DEPRECATE.override(false)
     assertThat(
-      ServerFlagService.instance.getProto(
-        "dev_services/service",
-        DevServicesDeprecationMetadata.getDefaultInstance(),
+        ServerFlagService.instance.getProto(
+          "dev_services/service",
+          DevServicesDeprecationMetadata.getDefaultInstance(),
+        )
       )
-    ).isNotNull()
+      .isNotNull()
 
     registerServiceProto(
       DevServicesDeprecationMetadata.newBuilder().apply { header = "header" }.build()
@@ -102,26 +105,34 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
 
   @Test
   fun `proto description returns substituted string`() {
-    val serviceProto = DevServicesDeprecationMetadata.newBuilder().apply {
-      description = "<service_name> will be substituted. So will <date>"
-      deprecationDate = Date.newBuilder().apply {
-        year = 2025
-        month = 1
-        day = 1
-      }.build()
-    }.build()
+    val serviceProto =
+      DevServicesDeprecationMetadata.newBuilder()
+        .apply {
+          description = "<service_name> will be substituted. So will <date>"
+          deprecationDate =
+            Date.newBuilder()
+              .apply {
+                year = 2025
+                month = 1
+                day = 1
+              }
+              .build()
+        }
+        .build()
     registerServiceProto(serviceProto)
 
     var deprecationData = provider.getCurrentDeprecationData("service")
-    assertThat(deprecationData.description).isEqualTo("This service will be substituted. So will Jan 1, 2025")
+    assertThat(deprecationData.description)
+      .isEqualTo("This service will be substituted. So will ${deprecationData.formattedDate()}")
 
     deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
-    assertThat(deprecationData.description).isEqualTo("UserFriendlyName will be substituted. So will Jan 1, 2025")
+    assertThat(deprecationData.description)
+      .isEqualTo("UserFriendlyName will be substituted. So will ${deprecationData.formattedDate()}")
 
     registerServiceProto(
-      DevServicesDeprecationMetadata.newBuilder().apply {
-      description = "<service_name> will be substituted. So will <date>"
-    }.build()
+      DevServicesDeprecationMetadata.newBuilder()
+        .apply { description = "<service_name> will be substituted. So will <date>" }
+        .build()
     )
 
     deprecationData = provider.getCurrentDeprecationData("service")
@@ -130,25 +141,34 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
 
   @Test
   fun `proto header returns substituted string`() {
-    val serviceProto = DevServicesDeprecationMetadata.newBuilder().apply {
-      header = "<service_name> will be substituted. So will <date>"
-      deprecationDate = Date.newBuilder().apply {
-        year = 2025
-        month = 1
-        day = 1
-      }.build()
-    }.build()
+    val serviceProto =
+      DevServicesDeprecationMetadata.newBuilder()
+        .apply {
+          header = "<service_name> will be substituted. So will <date>"
+          deprecationDate =
+            Date.newBuilder()
+              .apply {
+                year = 2025
+                month = 1
+                day = 1
+              }
+              .build()
+        }
+        .build()
     registerServiceProto(serviceProto)
 
     var deprecationData = provider.getCurrentDeprecationData("service")
-    assertThat(deprecationData.header).isEqualTo("This service will be substituted. So will Jan 1, 2025")
+    assertThat(deprecationData.header)
+      .isEqualTo("This service will be substituted. So will ${deprecationData.formattedDate()}")
 
     deprecationData = provider.getCurrentDeprecationData("service", "UserFriendlyName")
-    assertThat(deprecationData.header).isEqualTo("UserFriendlyName will be substituted. So will Jan 1, 2025")
+    assertThat(deprecationData.header)
+      .isEqualTo("UserFriendlyName will be substituted. So will ${deprecationData.formattedDate()}")
 
-    registerServiceProto(DevServicesDeprecationMetadata.newBuilder().apply {
-      header = "<service_name> will be substituted. So will <date>"
-    }.build()
+    registerServiceProto(
+      DevServicesDeprecationMetadata.newBuilder()
+        .apply { header = "<service_name> will be substituted. So will <date>" }
+        .build()
     )
 
     deprecationData = provider.getCurrentDeprecationData("service")
@@ -157,13 +177,11 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
 
   @Test
   fun `service proto takes precedence over studio proto`() {
-    registerServiceProto(DevServicesDeprecationMetadata.newBuilder().apply {
-      header = "ServiceProto"
-    }.build()
+    registerServiceProto(
+      DevServicesDeprecationMetadata.newBuilder().apply { header = "ServiceProto" }.build()
     )
-    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply {
-      header = "StudioProto"
-    }.build()
+    registerStudioProto(
+      DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
     )
 
     val deprecationData = provider.getCurrentDeprecationData("service")
@@ -172,9 +190,8 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
 
   @Test
   fun `studio proto returned when service proto not available`() {
-    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply {
-      header = "StudioProto"
-    }.build()
+    registerStudioProto(
+      DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
     )
 
     val deprecationData = provider.getCurrentDeprecationData("service")
@@ -183,37 +200,44 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
 
   @Test
   fun `date is formatted to user locale`() {
-    val studioProto = DevServicesDeprecationMetadata.newBuilder().apply {
-      description = "<date>"
-      deprecationDate = Date.newBuilder().apply {
-        year = 2025
-        month = 1
-        day = 1
-      }.build()
-    }.build()
-    registerStudioProto(studioProto)
+    val studioProto =
+      DevServicesDeprecationMetadata.newBuilder()
+        .apply {
+          description = "<date>"
+          deprecationDate =
+            Date.newBuilder()
+              .apply {
+                year = 2025
+                month = 1
+                day = 15
+              }
+              .build()
+        }
+        .build()
 
-    withLocaleOverride(Locale.FRENCH).use {
+    withDateFormatOverride("dd MMM yyyy").use {
+      registerStudioProto(studioProto)
       val deprecationData = provider.getCurrentDeprecationData("service")
-      assertThat(deprecationData.description).isEqualTo("1 janv. 2025")
+      assertThat(deprecationData.description).isEqualTo("15 Jan 2025")
     }
 
-    withLocaleOverride(Locale.GERMAN).use {
+    withDateFormatOverride("dd/MM/yyyy").use {
+      registerStudioProto(studioProto)
       val deprecationData = provider.getCurrentDeprecationData("service")
-      assertThat(deprecationData.description).isEqualTo("01.01.2025")
+      assertThat(deprecationData.description).isEqualTo("15/01/2025")
     }
 
-    withLocaleOverride(Locale.ITALIAN).use {
+    withDateFormatOverride("MM/dd/yy").use {
+      registerStudioProto(studioProto)
       val deprecationData = provider.getCurrentDeprecationData("service")
-      assertThat(deprecationData.description).isEqualTo("1 gen 2025")
+      assertThat(deprecationData.description).isEqualTo("01/15/25")
     }
   }
 
   @Test
   fun `deprecation data contains default url when moreInfoUrl not provided`() {
-    registerStudioProto(DevServicesDeprecationMetadata.newBuilder().apply {
-      header = "StudioProto"
-    }.build()
+    registerStudioProto(
+      DevServicesDeprecationMetadata.newBuilder().apply { header = "StudioProto" }.build()
     )
 
     val deprecationData = provider.getCurrentDeprecationData("service")
@@ -223,21 +247,32 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
   private fun registerServiceProto(flag: Any) {
     registerFlag("dev_services/service", flag)
   }
+
   private fun registerStudioProto(flag: Any) {
     registerFlag("dev_services/studio", flag)
   }
+
   private fun registerFlag(name: String, flag: Any) {
     fakeServerFlagService.registerFlag(name, flag)
   }
 
-  private fun withLocaleOverride(override: Locale) = object : AutoCloseable {
-    private val originalLocale = Locale.getDefault()
-    init {
-      Locale.setDefault(override)
-    }
+  @Suppress("UnstableApiUsage")
+  private fun withDateFormatOverride(override: String) =
+    object : AutoCloseable {
+      private val originalPattern = DateTimeFormatManager.getInstance().dateFormatPattern
+      private val originalSystemDateFormatOverride =
+        DateTimeFormatManager.getInstance().isOverrideSystemDateFormat
 
-    override fun close() {
-      Locale.setDefault(originalLocale)
+      init {
+        DateTimeFormatManager.getInstance().resetFormats()
+        DateTimeFormatManager.getInstance().isOverrideSystemDateFormat = true
+        DateTimeFormatManager.getInstance().dateFormatPattern = override
+      }
+
+      override fun close() {
+        DateTimeFormatManager.getInstance().isOverrideSystemDateFormat =
+          originalSystemDateFormatOverride
+        DateTimeFormatManager.getInstance().dateFormatPattern = originalPattern
+      }
     }
-  }
 }

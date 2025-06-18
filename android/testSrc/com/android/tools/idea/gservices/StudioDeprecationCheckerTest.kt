@@ -49,15 +49,7 @@ class StudioDeprecationCheckerTest {
         .getNotificationsOfType(Notification::class.java, projectRule.project)
         .toList()
 
-  private var deprecationData =
-    DevServicesDeprecationData(
-      "header",
-      "description",
-      "moreInfoUrl",
-      true,
-      DevServicesDeprecationStatus.DEPRECATED,
-      null,
-    )
+  private lateinit var deprecationData: DevServicesDeprecationData
 
   private val service =
     object : DevServicesDeprecationDataProvider {
@@ -75,6 +67,15 @@ class StudioDeprecationCheckerTest {
       projectRule.disposable,
     )
     PropertiesComponent.getInstance().unsetValue(PROP_KEY)
+    deprecationData =
+      DevServicesDeprecationData(
+        "header",
+        "description",
+        "moreInfoUrl",
+        true,
+        DevServicesDeprecationStatus.DEPRECATED,
+        null,
+      )
   }
 
   @Test
@@ -124,8 +125,10 @@ class StudioDeprecationCheckerTest {
 
     assertThat(notification.icon).isEqualTo(AllIcons.General.Warning)
     assertThat(notification.type).isEqualTo(NotificationType.WARNING)
-    assertThat(notification.title).isEqualTo(deprecationData.header)
-    assertThat(notification.content).isEqualTo(deprecationData.description)
+    assertThat(notification.title)
+      .isEqualTo("Cloud services won't be accessible after ${deprecationData.formattedDate()}")
+    assertThat(notification.content)
+      .isEqualTo("Please update Android Studio to ensure uninterrupted access to cloud services.")
   }
 
   @Test
@@ -139,8 +142,9 @@ class StudioDeprecationCheckerTest {
 
     assertThat(notification.icon).isEqualTo(AllIcons.General.Error)
     assertThat(notification.type).isEqualTo(NotificationType.ERROR)
-    assertThat(notification.title).isEqualTo(deprecationData.header)
-    assertThat(notification.content).isEqualTo(deprecationData.description)
+    assertThat(notification.title).isEqualTo("Unsupported Android Studio version")
+    assertThat(notification.content)
+      .isEqualTo("This version of Android Studio is no longer compatible with cloud services.")
   }
 
   @Test

@@ -81,10 +81,24 @@ class StudioDeprecationChecker : ProjectActivity {
       }
     }
 
+    val header =
+      if (deprecationData.isDeprecated()) {
+        "Cloud services won't be accessible after ${deprecationData.formattedDate()}"
+      } else {
+        "Unsupported Android Studio version"
+      }
+
+    val description =
+      if (deprecationData.isDeprecated()) {
+        "Please update Android Studio to ensure uninterrupted access to cloud services."
+      } else {
+        "This version of Android Studio is no longer compatible with cloud services."
+      }
+
     val notification =
       notificationGroup.createNotification(
-        deprecationData.header,
-        deprecationData.description,
+        header,
+        description,
         deprecationData.getNotificationType(),
       )
 
