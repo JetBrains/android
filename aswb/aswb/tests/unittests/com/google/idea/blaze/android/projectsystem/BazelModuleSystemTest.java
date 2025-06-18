@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.android.projectsystem;
 
-import static com.android.ide.common.repository.GoogleMavenArtifactIdHelper.APP_COMPAT_V7;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -202,9 +201,9 @@ public class BazelModuleSystemTest extends BlazeTestCase {
   }
 
   @Test
-  public void testGetResolvedDependencyWithoutLocators() throws Exception {
+  public void testHasResolvedDependencyWithoutLocators() throws Exception {
     registerExtensionPoint(MavenArtifactLocator.EP_NAME, MavenArtifactLocator.class);
-    assertThat(BazelModuleSystem.create(module).getResolvedDependency(APP_COMPAT_V7)).isNull();
+    assertThat(BazelModuleSystem.create(module).hasResolvedDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7)).isFalse();
   }
 
   @Test

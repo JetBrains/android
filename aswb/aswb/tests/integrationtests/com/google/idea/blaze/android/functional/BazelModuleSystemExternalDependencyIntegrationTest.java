@@ -15,14 +15,13 @@
  */
 package com.google.idea.blaze.android.functional;
 
-import static com.android.ide.common.repository.GoogleMavenArtifactIdHelper.CONSTRAINT_LAYOUT_COORDINATE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.idea.blaze.android.targetmapbuilder.NbAarTarget.aar_import;
 import static com.google.idea.blaze.android.targetmapbuilder.NbAndroidTarget.android_library;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.idea.blaze.android.BlazeAndroidIntegrationTestCase;
@@ -81,15 +80,14 @@ public class BazelModuleSystemExternalDependencyIntegrationTest
     registerExtension(
         MavenArtifactLocator.EP_NAME,
         new MavenArtifactLocator() {
-          private final ImmutableMap<GradleCoordinate, Label> knownArtifacts =
-              new ImmutableMap.Builder<GradleCoordinate, Label>()
-                  .put(CONSTRAINT_LAYOUT_COORDINATE, Label.create(CONSTRAINT_LAYOUT_LABEL))
+          private final ImmutableMap<WellKnownMavenArtifactId, Label> knownArtifacts =
+              new ImmutableMap.Builder<WellKnownMavenArtifactId, Label>()
+                  .put(GoogleMavenArtifactId.CONSTRAINT_LAYOUT, Label.create(CONSTRAINT_LAYOUT_LABEL))
                   .build();
 
           @Override
-          public Label labelFor(GradleCoordinate coordinate) {
-            return knownArtifacts.get(
-                new GradleCoordinate(coordinate.getGroupId(), coordinate.getArtifactId(), "+"));
+          public Label labelFor(WellKnownMavenArtifactId id) {
+            return knownArtifacts.get(id);
           }
 
           @Override
@@ -119,7 +117,7 @@ public class BazelModuleSystemExternalDependencyIntegrationTest
   }
 
   @Test
-  public void getResolvedDependency_missingDependency() {
+  public void hasResolvedDependency_missingDependency() {
     setTargetMap(
         android_library("//java/com/foo/gallery/activities:activities")
             .src("MainActivity.java")
@@ -132,11 +130,11 @@ public class BazelModuleSystemExternalDependencyIntegrationTest
         ModuleFinder.getInstance(getProject())
             .findModuleByName("java.com.foo.gallery.activities.activities");
     BazelModuleSystem workspaceModuleSystem = BazelModuleSystem.getInstance(activityModule);
-    assertThat(workspaceModuleSystem.getResolvedDependency(CONSTRAINT_LAYOUT_COORDINATE)).isNull();
+    assertThat(workspaceModuleSystem.hasResolvedDependency(GoogleMavenArtifactId.CONSTRAINT_LAYOUT)).isFalse();
   }
 
   @Test
-  public void getResolvedDependency_transitiveDependency() {
+  public void hasResolvedDependency_transitiveDependency() {
     setTargetMap(
         android_library("//java/com/foo/gallery/activities:activities")
             .src("MainActivity.java")
@@ -150,8 +148,7 @@ public class BazelModuleSystemExternalDependencyIntegrationTest
         ModuleFinder.getInstance(getProject())
             .findModuleByName("java.com.foo.gallery.activities.activities");
     BazelModuleSystem workspaceModuleSystem = BazelModuleSystem.getInstance(workspaceModule);
-    assertThat(workspaceModuleSystem.getResolvedDependency(CONSTRAINT_LAYOUT_COORDINATE))
-        .isNotNull();
+    assertThat(workspaceModuleSystem.hasResolvedDependency(GoogleMavenArtifactId.CONSTRAINT_LAYOUT)).isTrue();
   }
 
   @Test

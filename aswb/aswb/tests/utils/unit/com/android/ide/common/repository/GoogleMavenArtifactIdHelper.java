@@ -19,13 +19,9 @@ import com.google.idea.blaze.base.model.primitives.Label;
 
 /** Helper class for GoogleMavenArtifactId. */
 public final class GoogleMavenArtifactIdHelper {
-  public static final GradleCoordinate CONSTRAINT_LAYOUT_COORDINATE =
-      GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+");
-  public static final GradleCoordinate APP_COMPAT_V7 =
-      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getCoordinate("+");
 
-  public static Label getLabelForGoogleMavenArtifactId(GradleCoordinate coordinate) {
-    switch (GoogleMavenArtifactId.find(coordinate.getGroupId(), coordinate.getArtifactId())) {
+  public static Label getLabelForGoogleMavenArtifactId(GoogleMavenArtifactId id) {
+    switch (id) {
       case SUPPORT_RECYCLERVIEW_V7:
         return Label.create("//third_party/recyclerview:recyclerview");
       case CONSTRAINT_LAYOUT:
