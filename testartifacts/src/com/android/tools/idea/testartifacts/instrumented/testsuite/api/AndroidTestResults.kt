@@ -97,25 +97,25 @@ interface AndroidTestResults {
   /**
    * Returns an error stack trace or empty if a test passes.
    */
-  fun getErrorStackTrace(device: AndroidDevice): String
+  fun getErrorStackTrace(device: AndroidDevice): String = ""
 
   /**
    * Returns a benchmark test results.
    */
-  fun getBenchmark(device: AndroidDevice): BenchmarkOutput
+  fun getBenchmark(device: AndroidDevice): BenchmarkOutput = BenchmarkOutput("")
   /**
    * Returns the retention info artifact from Android Test Retention if available.
    */
-  fun getRetentionInfo(device: AndroidDevice): File?
+  fun getRetentionInfo(device: AndroidDevice): File? = null
   /**
    * Returns the snapshot artifact from Android Test Retention if available.
    */
-  fun getRetentionSnapshot(device: AndroidDevice): File?
+  fun getRetentionSnapshot(device: AndroidDevice): File? = null
 
   /**
    * Returns the additional test artifacts.
    */
-  fun getAdditionalTestArtifacts(device: AndroidDevice): Map<String, String>
+  fun getAdditionalTestArtifacts(device: AndroidDevice): Map<String, String> = emptyMap()
 }
 
 /**

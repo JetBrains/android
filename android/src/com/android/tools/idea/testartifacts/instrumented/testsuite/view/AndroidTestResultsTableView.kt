@@ -34,8 +34,10 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestStep
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestResultsRow
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.state.AndroidTestResultsUserPreferencesManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
@@ -172,6 +174,13 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
         parent = parent.parent
       }
     }
+  }
+
+  @UiThread
+  fun addTestStep(device: AndroidDevice, testCase: AndroidTestCase, testStep: AndroidTestStep) {
+    val testStepRow = myModel.addTestStepRow(device, testCase, testStep)
+    refreshTable()
+    myTableView.tree.expandPath(TreeUtil.getPath(myModel.myRootAggregationRow, testStepRow.parent))
   }
 
   /**
@@ -746,6 +755,7 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
    */
   val myTestResultsRows = mutableMapOf<String, AndroidTestResultsRow>()
   val myTestClassAggregationRow = mutableMapOf<String, AggregationRow>()
+  val myTestStepRows = mutableMapOf<String, TestStepRow>()
   val myRootAggregationRow: AggregationRow = root as AggregationRow
   var mySortKeyColumn = -1
 
@@ -801,6 +811,21 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
       }
     }
     row.addTestCase(device, testCase)
+    return row
+  }
+
+  fun addTestStepRow(device: AndroidDevice, testCase: AndroidTestCase, testStep: AndroidTestStep): TestStepRow {
+    val row = myTestStepRows.getOrPut(testStep.id) {
+      val testStepRow = TestStepRow(testStep)
+
+      val testCaseRow = myTestResultsRows.get(testCase.id) ?: addTestResultsRow(device, testCase)
+      testCaseRow.add(testStepRow)
+
+      testStepRow
+    }
+
+    row.addTestStep(testStep, device)
+
     return row
   }
 
@@ -1134,7 +1159,7 @@ private object AndroidTestAggregatedResultsColumnCellRenderer : DefaultTableCell
  */
 private class AndroidTestResultsRow(override val methodName: String,
                                     override val className: String,
-                                    override val packageName: String) : AndroidTestResults, DefaultMutableTreeNode() {
+                                    override val packageName: String) : AndroidTestResults, FilterableTreeNode() {
   private val myTestCases = mutableMapOf<String, AndroidTestCase>()
 
   /**
@@ -1448,9 +1473,22 @@ private fun AggregationRow.toAndroidTestResultsTreeNode(): AndroidTestResultsTre
   return AndroidTestResultsTreeNode(this, sequence {
     yieldAll(allChildren.mapNotNull {
       when (it) {
-        is AndroidTestResultsRow -> AndroidTestResultsTreeNode(it, emptySequence())
+        is AndroidTestResultsRow -> it.toAndroidTestResultsTreeNode()
         is AggregationRow -> it.toAndroidTestResultsTreeNode()
         else -> null
+      }
+    })
+  })
+}
+
+private fun AndroidTestResultsRow.toAndroidTestResultsTreeNode(): AndroidTestResultsTreeNode {
+  return AndroidTestResultsTreeNode(this, sequence {
+    yieldAll(allChildren.mapNotNull {
+      if (it is TestStepRow) {
+        AndroidTestResultsTreeNode(it, emptySequence())
+      }
+      else {
+        null
       }
     })
   })

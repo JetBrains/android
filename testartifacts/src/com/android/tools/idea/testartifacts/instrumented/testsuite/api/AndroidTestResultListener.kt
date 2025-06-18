@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestStep
 
 /**
  * A listener to subscribe Android instrumentation test execution progress.
@@ -58,6 +59,30 @@ interface AndroidTestResultListener {
    */
   @AnyThread
   fun onTestCaseStarted(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {
+    // no-op
+  }
+
+  /**
+   * Called when a test step execution is started.
+   *
+   * @param device a device which a test suite to be executed on
+   * @param testCase a test case metadata
+   * @param testStep a test step metadata
+   */
+  @AnyThread
+  fun onTestStepStarted(device: AndroidDevice, testCase: AndroidTestCase, testStep: AndroidTestStep) {
+    // no-op
+  }
+
+  /**
+   * Called when a test step execution is finished.
+   *
+   * @param device a device which a test suite to be executed on
+   * @param testCase a test case metadata
+   * @param testStep a test step metadata
+   */
+  @AnyThread
+  fun onTestStepFinished(device: AndroidDevice, testCase: AndroidTestCase, testStep: AndroidTestStep) {
     // no-op
   }
 

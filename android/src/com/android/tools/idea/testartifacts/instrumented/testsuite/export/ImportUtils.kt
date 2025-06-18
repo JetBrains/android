@@ -23,6 +23,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestStep
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
@@ -33,7 +34,6 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
 import com.intellij.execution.ExecutorRegistry
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
@@ -171,6 +171,8 @@ private class ImportAndroidTestMatrixRunProfileState(
           private val myDevices: MutableMap<String, AndroidDevice> = mutableMapOf()
           private var myCurrentTargetDevice: AndroidDevice? = null
           private var myCurrentTestSuite: AndroidTestSuite? = null
+          private var myCurrentTestCase: AndroidTestCase? = null
+          private var myCurrentTestStep: AndroidTestStep? = null
 
           override fun startElement(uri: String, localName: String, qName: String, attributes: Attributes) {
             if (!myProcessingAndroidTestMatrixElement) {
@@ -227,8 +229,37 @@ private class ImportAndroidTestMatrixRunProfileState(
                 )
                 val device = requireNotNull(myCurrentTargetDevice)
                 val testsuite = requireNotNull(myCurrentTestSuite)
+                myCurrentTestCase = testcase
                 console.onTestCaseStarted(device, testsuite, testcase)
                 console.onTestCaseFinished(device, testsuite, testcase)
+              }
+
+              "additionalTestCaseArtifact" -> {
+                requireNotNull(myCurrentTestCase)
+                  .additionalTestArtifacts[attributes.getValue("key")] = attributes.getValue("value")
+              }
+
+              "testStep" -> {
+                val testStep = AndroidTestStep(
+                  attributes.getValue("id"),
+                  attributes.getValue("index").toInt(),
+                  attributes.getValue("name"),
+                  AndroidTestCaseResult.valueOf(attributes.getValue("result")),
+                  attributes.getValue("logcat"),
+                  attributes.getValue("errorStackTrace"),
+                  attributes.getValue("startTimestampMillis").toLong(),
+                  attributes.getValue("endTimestampMillis").toLong(),
+                )
+                val device = requireNotNull(myCurrentTargetDevice)
+                val testCase = requireNotNull(myCurrentTestCase)
+                myCurrentTestStep = testStep
+                console.onTestStepStarted(device, testCase, testStep)
+                console.onTestStepFinished(device, testCase, testStep)
+              }
+
+              "additionalTestStepArtifact" -> {
+                requireNotNull(myCurrentTestStep)
+                  .additionalTestArtifacts[attributes.getValue("key")] = attributes.getValue("value")
               }
             }
           }

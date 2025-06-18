@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.export
 
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsTreeNode
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestClassName
@@ -23,6 +22,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.TestStepRow
 import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.application.ApplicationNamesInfo
@@ -112,7 +112,7 @@ class AndroidTestResultsXmlFormatter(
 
   private fun addTestSuiteElementForDevice(device: AndroidDevice) {
     rootResultsNode.childResults.forEach { node ->
-      if (node.childResults.toList().isNotEmpty()) {
+      if (isTestSuiteNode(node)) {
         addNodeAsTestSuite(node, device)
       }
       else {
@@ -226,7 +226,7 @@ class AndroidTestResultsXmlFormatter(
         }
       }
       devices.forEach { device ->
-        val testCasesForDevice = getTestCasesForAndroidTestMatrixExport(device)
+        val testCaseNodesForDevice = getTestCaseNodesForAndroidTestMatrixExport(device)
 
         val testSuiteResult = when(rootResultsNode.results.getTestCaseResult(device)) {
                                 null -> null
@@ -237,9 +237,10 @@ class AndroidTestResultsXmlFormatter(
         addElement("testsuite",
                    mapOf(
                      "deviceId" to device.id,
-                     "testCount" to testCasesForDevice.size.toString(),
+                     "testCount" to testCaseNodesForDevice.size.toString(),
                      "result" to testSuiteResult.toString())) {
-          testCasesForDevice.forEach { testCase ->
+          testCaseNodesForDevice.forEach { testCaseNode ->
+            val testCase = testCaseNode.results
             val result = testCase.getTestCaseResult(device) ?: return@forEach
             val startTime = testCase.getStartTime(device) ?: 0L
             val endTime = startTime + (testCase.getDuration(device)?.toMillis() ?: 0L)
@@ -256,25 +257,61 @@ class AndroidTestResultsXmlFormatter(
                 "startTimestampMillis" to startTime.toString(),
                 "endTimestampMillis" to endTime.toString(),
                 "benchmark" to testCase.getBenchmark(device).lines.joinToString("\n") { "${it.rawText}" }
-              ))
+              )) {
+              // Add additional test case artifacts
+              testCase.getAdditionalTestArtifacts(device).forEach { (key, value) ->
+                addElement("additionalTestCaseArtifact", mapOf("key" to key, "value" to value))
+              }
+
+              // Add test steps
+              for (step in testCaseNode.childResults) {
+                val stepResults = step.results
+                val result = stepResults.getTestCaseResult(device) ?: continue
+                val startTime = stepResults.getStartTime(device) ?: 0L
+                val endTime = startTime + (stepResults.getDuration(device)?.toMillis() ?: 0L)
+                if (stepResults is TestStepRow) {
+                  addElement(
+                    "testStep",
+                    mapOf(
+                      "id" to stepResults.testStep.id,
+                      "name" to stepResults.testStep.name,
+                      "index" to stepResults.testStep.index.toString(),
+                      "result" to result.toString(),
+                      "logcat" to stepResults.getLogcat(device),
+                      "errorStackTrace" to stepResults.getErrorStackTrace(device),
+                      "startTimestampMillis" to startTime.toString(),
+                      "endTimestampMillis" to endTime.toString(),
+                    )
+                  ) {
+                    // Add additional test step artifacts
+                    stepResults.getAdditionalTestArtifacts(device).forEach { (key, value) ->
+                      addElement("additionalTestStepArtifact", mapOf("key" to key, "value" to value))
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
     }
   }
 
-  private fun getTestCasesForAndroidTestMatrixExport(device: AndroidDevice): List<AndroidTestResults> {
+  private fun getTestCaseNodesForAndroidTestMatrixExport(device: AndroidDevice): List<AndroidTestResultsTreeNode> {
     return rootResultsNode.childResults.flatMap { node ->
-      if (node.childResults.toList().isNotEmpty()) {
+      if (isTestSuiteNode(node)) {
         return@flatMap node.childResults.filter { testCases ->
           testCases.results.getTestCaseResult(device)?.isTerminalState == true
-        }.map {
-          it.results
         }
       }
       else {
-        return@flatMap listOf(node.results).asSequence()
+        return@flatMap listOf(node).asSequence()
       }
     }.toList()
+  }
+
+  private fun isTestSuiteNode(node: AndroidTestResultsTreeNode): Boolean {
+    val childResults = node.childResults.toList()
+    return childResults.isNotEmpty() && childResults.first().results !is TestStepRow
   }
 }

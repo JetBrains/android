@@ -26,6 +26,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestStep
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.state.AndroidTestResultsUserPreferencesManager
@@ -402,6 +403,119 @@ class AndroidTestResultsTableViewTest {
     assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
     assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
     assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.PASSED)
+  }
+
+  @Test
+  fun addTestResultsWithTestSteps() {
+    val table = AndroidTestResultsTableView(
+      mockListener, mockJavaPsiFacade, mockModule, mockTestArtifactSearchScopes, mockLogger, mockAndroidTestResultsUserPreferencesManager)
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
+    val testCase1OnDevice1 = AndroidTestCase("testid1", "method1", "class1", "package1")
+    val testCase2OnDevice1 = AndroidTestCase("testid2", "method2", "class2", "package2")
+    val testCase1OnDevice2 = AndroidTestCase("testid1", "method1", "class1", "package1")
+
+    val testCase1Step1OnDevice1 = AndroidTestStep("case1.step1", 0, "step1")
+    val testCase1Step2OnDevice1 = AndroidTestStep("case1.step2", 1, "step2")
+    val testCase2Step1OnDevice1 = AndroidTestStep("case2.step1", 2, "step1")
+    val testCase1Step1OnDevice2 = AndroidTestStep("case1.step1", 0, "step1")
+
+    table.addDevice(device1)
+    table.addDevice(device2)
+
+    table.addTestCase(device1, testCase1OnDevice1)
+    table.addTestStep(device1, testCase1OnDevice1, testCase1Step1OnDevice1)
+    table.addTestStep(device1, testCase1OnDevice1, testCase1Step2OnDevice1)
+
+    table.addTestCase(device1, testCase2OnDevice1)
+    table.addTestStep(device1, testCase2OnDevice1, testCase2Step1OnDevice1)
+
+    table.addTestCase(device2, testCase1OnDevice2)
+    table.addTestStep(device2, testCase1OnDevice2, testCase1Step1OnDevice2)
+
+    // No test cases are finished yet.
+    assertThat(table.getTableViewForTesting().rowCount).isEqualTo(8)
+    assertThat(table.getTableViewForTesting().getItem(0).getFullTestCaseName()).isEqualTo("")
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(table.getTableViewForTesting().getItem(1).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    assertThat(table.getTableViewForTesting().getItem(2).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("step1")
+    assertThat(table.getTableViewForTesting().getItem(3).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(3).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(3).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("step2")
+    assertThat(table.getTableViewForTesting().getItem(4).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device2)).isNull()
+    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package2.class2.")
+    assertThat(table.getTableViewForTesting().getItem(5).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(5).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(5).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(6).getFullTestCaseName()).isEqualTo("package2.class2.method2")
+    assertThat(table.getTableViewForTesting().getItem(6).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(6).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(6).getTestCaseResult(device2)).isNull()
+    assertThat(table.getTableViewForTesting().getItem(7).getFullTestCaseName()).isEqualTo("step1")
+    assertThat(table.getTableViewForTesting().getItem(7).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(7).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(7).getTestCaseResult(device2)).isNull()
+
+    // Let test case 1 and 2 finish on the device 1.
+    testCase1Step1OnDevice1.result = AndroidTestCaseResult.PASSED
+    testCase1Step2OnDevice1.result = AndroidTestCaseResult.PASSED
+    testCase1OnDevice1.result = AndroidTestCaseResult.PASSED
+
+    testCase2Step1OnDevice1.result = AndroidTestCaseResult.FAILED
+    testCase2OnDevice1.result = AndroidTestCaseResult.FAILED
+
+    assertThat(table.getTableViewForTesting().rowCount).isEqualTo(8)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(1).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    assertThat(table.getTableViewForTesting().getItem(2).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(3).getFullTestCaseName()).isEqualTo("step1")
+    assertThat(table.getTableViewForTesting().getItem(3).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(3).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(3).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(4).getFullTestCaseName()).isEqualTo("step2")
+    assertThat(table.getTableViewForTesting().getItem(4).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(4).getTestCaseResult(device2)).isNull()
+    assertThat(table.getTableViewForTesting().getItem(5).getFullTestCaseName()).isEqualTo("package2.class2.")
+    assertThat(table.getTableViewForTesting().getItem(5).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(5).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(5).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(6).getFullTestCaseName()).isEqualTo("package2.class2.method2")
+    assertThat(table.getTableViewForTesting().getItem(6).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(6).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(6).getTestCaseResult(device2)).isNull()
+    assertThat(table.getTableViewForTesting().getItem(7).getFullTestCaseName()).isEqualTo("step1")
+    assertThat(table.getTableViewForTesting().getItem(7).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(7).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(table.getTableViewForTesting().getItem(7).getTestCaseResult(device2)).isNull()
+
+    // Let test case 1 finish on the device 2.
+    testCase1Step1OnDevice2.result = AndroidTestCaseResult.PASSED
+    testCase1OnDevice2.result = AndroidTestCaseResult.PASSED
+
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(2).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(3).getTestCaseResult(device2)).isEqualTo(AndroidTestCaseResult.PASSED)
   }
 
   @Test

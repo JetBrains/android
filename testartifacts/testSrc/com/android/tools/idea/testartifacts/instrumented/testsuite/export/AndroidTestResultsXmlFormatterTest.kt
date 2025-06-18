@@ -23,7 +23,9 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestStep
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.TestStepRow
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.testFramework.DisposableRule
@@ -251,7 +253,7 @@ class AndroidTestResultsXmlFormatterTest {
   }
 
   @Test
-  fun formatTestsWithNoSuites() {
+  fun formatTestsWithNoSuitesAndTestSteps() {
     val device = AndroidDevice(
       "testDeviceId", "testDeviceName", "testDeviceName",
       AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(23),
@@ -278,12 +280,30 @@ class AndroidTestResultsXmlFormatterTest {
       whenever(getErrorStackTrace(eq(device))).thenReturn("testErrorStackTrace")
       whenever(getBenchmark(eq(device))).thenReturn(BenchmarkOutput("testBenchmark"))
     }
+    val stepResults = mock<TestStepRow>().apply {
+      whenever(testStep).thenReturn(AndroidTestStep("testStepId1", 0, "Test step", AndroidTestCaseResult.PASSED))
+      whenever(methodName).thenReturn("Test step")
+      whenever(className).thenReturn("")
+      whenever(packageName).thenReturn("")
+      whenever(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getStartTime(eq(device))).thenReturn(10000L)
+      whenever(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234L))
+      whenever(getLogcat(eq(device))).thenReturn("testLogcat")
+      whenever(getErrorStackTrace(eq(device))).thenReturn("testErrorStackTrace")
+      whenever(getBenchmark(eq(device))).thenReturn(BenchmarkOutput(""))
+    }
+
     val rootResultsNode = AndroidTestResultsTreeNode(
       rootResults,
       sequenceOf(
         AndroidTestResultsTreeNode(
           caseResults,
-          sequenceOf()
+          sequenceOf(
+            AndroidTestResultsTreeNode(
+              stepResults,
+              sequenceOf()
+            )
+          )
         )
       )
     )
@@ -305,7 +325,107 @@ class AndroidTestResultsXmlFormatterTest {
                   <additionalInfo key="processorName" value="testProcessorName"/>
               </device>
               <testsuite deviceId="testDeviceId" testCount="1" result="PASSED">
-                  <testcase id="testmethod" methodName="testmethod" className="" packageName="" result="PASSED" logcat="testLogcat" errorStackTrace="testErrorStackTrace" startTimestampMillis="10000" endTimestampMillis="11234" benchmark="testBenchmark"/>
+                  <testcase id="testmethod" methodName="testmethod" className="" packageName="" result="PASSED" logcat="testLogcat" errorStackTrace="testErrorStackTrace" startTimestampMillis="10000" endTimestampMillis="11234" benchmark="testBenchmark">
+                      <testStep id="testStepId1" name="Test step" index="0" result="PASSED" logcat="testLogcat" errorStackTrace="testErrorStackTrace" startTimestampMillis="10000" endTimestampMillis="11234"/>
+                  </testcase>
+              </testsuite>
+          </androidTestMatrix>
+      </testrun>
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun formatTestsWithTestSteps() {
+    val device = AndroidDevice(
+      "testDeviceId", "testDeviceName", "testDeviceName",
+      AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(23),
+      mutableMapOf("processorName" to "testProcessorName"))
+
+    val runConfig = mock<RunConfiguration>().apply {
+      whenever(name).thenReturn("testRunConfig")
+      whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+    }
+
+    val rootResults = mock<AndroidTestResults>().apply {
+      whenever(getTotalDuration()).thenReturn(Duration.ofMillis(1234L))
+      whenever(getResultStats()).thenReturn(AndroidTestResultStats(passed = 1))
+      whenever(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.PASSED)
+    }
+    val classResults = mock<AndroidTestResults>().apply {
+      whenever(methodName).thenReturn("")
+      whenever(className).thenReturn("testclass")
+      whenever(packageName).thenReturn("testpackage")
+      whenever(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getStartTime(eq(device))).thenReturn(10000L)
+      whenever(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234L))
+    }
+    val caseResults = mock<AndroidTestResults>().apply {
+      whenever(methodName).thenReturn("testmethod")
+      whenever(className).thenReturn("testclass")
+      whenever(packageName).thenReturn("testpackage")
+      whenever(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getStartTime(eq(device))).thenReturn(10000L)
+      whenever(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234L))
+      whenever(getLogcat(eq(device))).thenReturn("testLogcat")
+      whenever(getErrorStackTrace(eq(device))).thenReturn("testErrorStackTrace")
+      whenever(getBenchmark(eq(device))).thenReturn(BenchmarkOutput("testBenchmark"))
+    }
+    val stepResults = mock<TestStepRow>().apply {
+      whenever(testStep).thenReturn(AndroidTestStep("testStepId1", 0, "Test step", AndroidTestCaseResult.PASSED))
+      whenever(methodName).thenReturn("Test step")
+      whenever(className).thenReturn("")
+      whenever(packageName).thenReturn("")
+      whenever(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.PASSED)
+      whenever(getStartTime(eq(device))).thenReturn(10000L)
+      whenever(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234L))
+      whenever(getLogcat(eq(device))).thenReturn("testLogcat")
+      whenever(getErrorStackTrace(eq(device))).thenReturn("testErrorStackTrace")
+      whenever(getBenchmark(eq(device))).thenReturn(BenchmarkOutput(""))
+    }
+
+    val rootResultsNode = AndroidTestResultsTreeNode(
+      rootResults,
+      sequenceOf(
+        AndroidTestResultsTreeNode(
+          classResults,
+          sequenceOf(
+            AndroidTestResultsTreeNode(
+              caseResults,
+              sequenceOf(
+                AndroidTestResultsTreeNode(
+                  stepResults,
+                  sequenceOf()
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+
+    val xml = format(Duration.ofMillis(1234), rootResultsNode, listOf(device), runConfig)
+
+    assertThat(xml).isEqualTo("""
+      <?xml version="1.0" encoding="UTF-8"?><testrun duration="1234" footerText="Generated by Android Studio on 9/10/20, 1:39 PM" name="testRunConfig">
+          <count name="total" value="1"/>
+          <count name="passed" value="1"/>
+          <config configId="AndroidTestRunConfigurationType" name="testRunConfig"/>
+          <suite name="testpackage.testclass" duration="1234" status="passed">
+              <test name="testmethod" duration="1234" status="passed">
+                  <output type="stderr">testErrorStackTrace</output>
+                  <output type="stdout">testBenchmark</output>
+                  <output type="stdout">testLogcat</output>
+              </test>
+          </suite>
+          <androidTestMatrix executionDuration="1234">
+              <device id="testDeviceId" deviceName="testDeviceName" deviceType="LOCAL_EMULATOR" version="23">
+                  <additionalInfo key="processorName" value="testProcessorName"/>
+              </device>
+              <testsuite deviceId="testDeviceId" testCount="1" result="PASSED">
+                  <testcase id="testpackage.testclass.testmethod" methodName="testmethod" className="testclass" packageName="testpackage" result="PASSED" logcat="testLogcat" errorStackTrace="testErrorStackTrace" startTimestampMillis="10000" endTimestampMillis="11234" benchmark="testBenchmark">
+                      <testStep id="testStepId1" name="Test step" index="0" result="PASSED" logcat="testLogcat" errorStackTrace="testErrorStackTrace" startTimestampMillis="10000" endTimestampMillis="11234"/>
+                  </testcase>
               </testsuite>
           </androidTestMatrix>
       </testrun>

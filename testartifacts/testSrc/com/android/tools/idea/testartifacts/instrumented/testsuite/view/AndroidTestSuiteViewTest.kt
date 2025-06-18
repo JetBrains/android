@@ -26,6 +26,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestStep
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.google.common.truth.Truth.assertThat
@@ -701,6 +702,16 @@ class AndroidTestSuiteViewTest {
     view.onTestCaseFinished(device, suite, testcase)
   }
 
+  private fun runTestStep(view: AndroidTestSuiteView,
+                          device: AndroidDevice,
+                          testCase: AndroidTestCase,
+                          testStep: AndroidTestStep,
+                          result: AndroidTestCaseResult) {
+    view.onTestStepStarted(device, testCase, testStep)
+    testStep.result = result
+    view.onTestStepFinished(device, testCase, testStep)
+  }
+
   @Test
   fun actionButtonsAreFocusable() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
@@ -864,6 +875,53 @@ class AndroidTestSuiteViewTest {
     assertThat(view.myExportTestResultsAction.devices).isNull()
     assertThat(view.myExportTestResultsAction.rootResultsNode).isNull()
     assertThat(view.myExportTestResultsAction.executionDuration).isNull()
+  }
+
+  @Test
+  fun testStepsAreDisplayedInTheTestTree() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
+    val device1 = device("deviceId1", "deviceName1")
+
+    view.onTestSuiteScheduled(device1)
+
+    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 1)
+    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
+
+    val testcaseOnDevice1 = AndroidTestCase("testId1", "method1", "class1", "package1")
+    runTestCase(view, device1, testsuiteOnDevice1,
+                testcaseOnDevice1, AndroidTestCaseResult.PASSED)
+
+    runTestStep(view, device1, testcaseOnDevice1, AndroidTestStep("testId1.stepId1", 0, "step1"), AndroidTestCaseResult.PASSED)
+    runTestStep(view, device1, testcaseOnDevice1, AndroidTestStep("testId1.stepId2", 1, "step2"), AndroidTestCaseResult.PASSED)
+
+    val testCase2OnDevice1 = AndroidTestCase("testId2", "method2", "class1", "package1")
+    runTestCase(view, device1, testsuiteOnDevice1,
+                testCase2OnDevice1, AndroidTestCaseResult.FAILED)
+    runTestStep(view, device1, testCase2OnDevice1, AndroidTestStep("testId2.stepId3", 0, "step1"), AndroidTestCaseResult.PASSED)
+    runTestStep(view, device1, testCase2OnDevice1, AndroidTestStep("testId2.stepId4", 1, "step2"), AndroidTestCaseResult.FAILED)
+
+    testsuiteOnDevice1.result = AndroidTestSuiteResult.FAILED
+    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    // Verify that the test steps are visible in the tree
+    val tableView = view.myResultsTableView.getTableViewForTesting()
+    assertThat(tableView.rowCount).isEqualTo(8)
+    assertThat(tableView.getItem(0).getFullTestCaseName()).isEqualTo("") // Root
+    assertThat(tableView.getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(tableView.getItem(1).getFullTestCaseName()).isEqualTo("package1.class1.")
+    assertThat(tableView.getItem(1).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(tableView.getItem(2).getFullTestCaseName()).isEqualTo("package1.class1.method1")
+    assertThat(tableView.getItem(2).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(tableView.getItem(3).getFullTestCaseName()).isEqualTo("step1")
+    assertThat(tableView.getItem(3).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(tableView.getItem(4).getFullTestCaseName()).isEqualTo("step2")
+    assertThat(tableView.getItem(4).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(tableView.getItem(5).getFullTestCaseName()).isEqualTo("package1.class1.method2")
+    assertThat(tableView.getItem(5).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
+    assertThat(tableView.getItem(6).getFullTestCaseName()).isEqualTo("step1")
+    assertThat(tableView.getItem(6).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(tableView.getItem(7).getFullTestCaseName()).isEqualTo("step2")
+    assertThat(tableView.getItem(7).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.FAILED)
   }
 
   private fun device(id: String, name: String, apiVersion: Int = 28): AndroidDevice {
