@@ -23,7 +23,6 @@ import com.intellij.openapi.fileChooser.PathChooserDialog
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.ValidationInfo
-import com.intellij.openapi.ui.validation.DialogValidation
 import com.intellij.openapi.util.io.FileUtilRt.getExtension
 import com.intellij.openapi.util.io.FileUtilRt.getNameWithoutExtension
 import com.intellij.ui.TextAccessor
@@ -38,7 +37,6 @@ import java.io.File
 import java.nio.file.InvalidPathException
 import java.nio.file.Paths
 import java.time.Instant
-import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JTextField
 import javax.swing.event.HyperlinkEvent
@@ -56,10 +54,9 @@ internal class SaveConfigurationPanel(
   private lateinit var preview: JEditorPane
   private lateinit var saveLocationField: TextAccessor
   private lateinit var filenameTemplateField: JTextField
-  private val validation = Validation()
   private val hyperlinkAction = HyperlinkEventAction { event ->
     if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-      filenameTemplateField.simulateTyping(if (event.description == "%Nd") "%3d" else event.description)
+      filenameTemplateField.insertText(if (event.description == "%Nd") "%3d" else event.description)
     }
   }
 
@@ -72,17 +69,17 @@ internal class SaveConfigurationPanel(
           .also { it.putUserData(PathChooserDialog.PREFER_LAST_OVER_EXPLICIT, false) })
           .columns(COLUMNS_LARGE)
           .bindText({ saveConfigResolver.expandSaveLocation(saveConfig.saveLocation) },
-                    { saveConfig.saveLocation = saveConfigResolver.generalizeSaveLocation(it.trim())})
-          .validationOnInput(validation)
+                    { if (checkSaveLocation(it) == null) saveConfig.saveLocation = saveConfigResolver.generalizeSaveLocation(it.trim()) })
+          .validationOnInput { checkSaveLocation(it.text)?.let { msg -> ValidationInfo(msg, it) } }
           .onChanged { preview.text = generatePreview() }
           .applyToComponent { saveLocationField = this }
       }
       row(message("configure.screenshot.dialog.filename")) {
         textField()
           .bindText({ saveConfig.filenameTemplate.replace('/', File.separatorChar) },
-                    { saveConfig.filenameTemplate = it.trim().replace(File.separatorChar, '/') })
+                    { if (checkFilenameTemplate(it) == null) saveConfig.filenameTemplate = it.trim().replace(File.separatorChar, '/') })
           .columns(COLUMNS_LARGE)
-          .validationOnInput(validation)
+          .validationOnInput { checkFilenameTemplate(it.text)?.let { msg -> ValidationInfo(msg, it) } }
           .onChanged { preview.text = generatePreview() }
           .applyToComponent { filenameTemplateField = this }
       }
@@ -125,9 +122,12 @@ internal class SaveConfigurationPanel(
     }
   }
 
-  private fun generatePreview(): String {
+  private fun generatePreview(): String =
+      generatePreview(saveLocationField.text, filenameTemplateField.text)
+
+  private fun generatePreview(saveLocation: String, filenameTemplate: String): String {
     return saveConfigResolver.expandFilenamePattern(
-        saveLocationField.text.trim(), normalizeFilename(filenameTemplateField.text), fileExtension, timestamp, sequentialNumber)
+        saveLocation.trim(), normalizeFilename(filenameTemplate), fileExtension, timestamp, sequentialNumber)
   }
 
   private fun normalizeFilename(filename: String): String {
@@ -135,46 +135,42 @@ internal class SaveConfigurationPanel(
     return if (getExtension(trimmed).equals(fileExtension, ignoreCase = true)) getNameWithoutExtension(trimmed) else trimmed
   }
 
-  private fun JTextField.simulateTyping(text: String) {
-    val selectionStart = selectionStart
-    this.text = this.text.replaceRange(selectionStart, selectionEnd, text)
-    caretPosition = selectionStart + text.length
+  /** Checks if the save location is valid and returns an error message if not. */
+  private fun checkSaveLocation(saveLocation: String): String? {
+    return checkPath(saveLocation.trim().replace('/', File.separatorChar))?.let {
+      message("configure.screenshot.dialog.error.invalid.directory", it)
+    }
   }
 
-  private inner class Validation : DialogValidation {
-
-    override fun validate(): ValidationInfo? {
-      val saveLocation = saveLocationField.text.trim().replace('/', File.separatorChar)
-      checkPath(saveLocation)?.let {
-          return ValidationInfo(message("configure.screenshot.dialog.error.invalid.directory", it), saveLocationField as JComponent)
-      }
-
-      val filenamePattern = normalizeFilename(filenameTemplateField.text)
-      return when {
-        filenamePattern.isEmpty() ->
-            ValidationInfo(message("configure.screenshot.dialog.error.empty.filename"), filenameTemplateField)
-        filenamePattern.startsWith(File.separator) ->
-            ValidationInfo(message("configure.screenshot.dialog.error.leading.separator"), filenameTemplateField)
-        filenamePattern.endsWith(File.separator) ->
-            ValidationInfo(message("configure.screenshot.dialog.error.trailing.separator"), filenameTemplateField)
-        filenamePattern.contains("..") || filenamePattern.contains(":") ->
-            ValidationInfo(message("configure.screenshot.dialog.error.invalid.filename.generic"), filenameTemplateField)
-        else -> checkPath(generatePreview())?.let {
-            ValidationInfo(message("configure.screenshot.dialog.error.invalid.filename", it), filenameTemplateField)
-        }
+  /** Checks if the given filename template is valid and returns an error message if not. */
+  private fun checkFilenameTemplate(filenameTemplate: String): String? {
+    val filename = normalizeFilename(filenameTemplate)
+    return when {
+      filename.isEmpty() -> message("configure.screenshot.dialog.error.empty.filename")
+      filename.startsWith(File.separator) -> message("configure.screenshot.dialog.error.leading.separator")
+      filename.endsWith(File.separator) -> message("configure.screenshot.dialog.error.trailing.separator")
+      filename.contains("..") || filename.contains(":") -> message("configure.screenshot.dialog.error.invalid.filename.generic")
+      else -> checkPath(generatePreview(saveConfig.saveLocation, filename))?.let {
+        message("configure.screenshot.dialog.error.invalid.filename", it)
       }
     }
+  }
 
-    /** Checks is the given string is a valid file system path and returns an error message if not. */
-    private fun checkPath(path: String): String? {
-      try {
-        Paths.get(path)
-        return null
-      }
-      catch(e: InvalidPathException) {
-        return e.reason
-      }
+  /** Checks if the given string is a valid file system path and returns an error message if not. */
+  private fun checkPath(path: String): String? {
+    try {
+      Paths.get(path)
+      return null
     }
+    catch(e: InvalidPathException) {
+      return e.reason
+    }
+  }
+
+  private fun JTextField.insertText(textToInsert: String) {
+    val selectionStart = selectionStart
+    text = text.replaceRange(selectionStart, selectionEnd, textToInsert)
+    caretPosition = selectionStart + textToInsert.length
   }
 }
 
