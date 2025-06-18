@@ -45,19 +45,23 @@ class DesignerCommonIssueSidePanelTest {
   fun testLoadIssue() {
     val panel = DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable)
     assertFalse(panel.loadIssueNode(null))
-    assertFalse(panel.hasIssueDetailComponent())
+    assertFalse(panel.hasFirstComponent())
+    assertFalse(panel.hasSecondComponent())
 
     assertFalse(panel.loadIssueNode(TestNode()))
-    assertFalse(panel.hasIssueDetailComponent())
+    assertFalse(panel.hasFirstComponent())
+    assertFalse(panel.hasSecondComponent())
 
     assertTrue(panel.loadIssueNode(TestIssueNode(TestIssue())))
-    assertTrue(panel.hasIssueDetailComponent())
+    assertTrue(panel.hasFirstComponent())
+    assertFalse(panel.hasSecondComponent())
 
     val hasContent = runInEdtAndGet {
       val file = rule.fixture.addFileToProject("path/to/file.xml", "")
       panel.loadIssueNode(IssueNode(file.virtualFile, TestIssue(), null))
     }
     assertTrue(hasContent)
-    assertTrue(panel.hasIssueDetailComponent())
+    assertTrue(panel.hasFirstComponent())
+    assertTrue(panel.hasSecondComponent())
   }
 }
