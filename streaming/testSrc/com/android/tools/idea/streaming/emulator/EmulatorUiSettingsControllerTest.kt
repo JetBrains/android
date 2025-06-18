@@ -148,6 +148,20 @@ class EmulatorUiSettingsControllerTest {
   }
 
   @Test
+  fun testResetStateOnXr() {
+    // Use default value for settings included for Wear
+    // Use non default values for settings not included for Wear
+    uiRule.configureUiSettings(
+      darkMode = true, // Default on XR
+      gestureNavigation = false, // Not included
+      talkBackInstalled = true,
+    )
+    controller.initAndWait()
+    // All values should be recognized as default values:
+    assertThat(model.differentFromDefault.value).isFalse()
+  }
+
+  @Test
   fun testGestureOverlayMissingAndTalkbackInstalled() {
     uiRule.configureUiSettings(gestureOverlayInstalled = false, talkBackInstalled = true)
     controller.initAndWait()

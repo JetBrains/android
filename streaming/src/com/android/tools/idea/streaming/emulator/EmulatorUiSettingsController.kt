@@ -109,6 +109,16 @@ internal const val FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO =
   "setprop debug.layout false; " +
   "service call activity $SYSPROPS_TRANSACTION; " // Parameters: applicationId
 
+internal const val FACTORY_RESET_COMMAND_FOR_XR =
+  "cmd uimode night yes; " +
+  "cmd locale set-app-locales %s --locales; " +
+  "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
+  "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
+  "settings put system font_scale 1; " +
+  "wm density %d; " +
+  "setprop debug.layout false; " +
+  "service call activity $SYSPROPS_TRANSACTION; "  // Parameters: applicationId, density
+
 internal const val FACTORY_RESET_COMMAND =
   "cmd uimode night no; " +
   "cmd locale set-app-locales %s --locales; " +
@@ -379,6 +389,7 @@ internal class EmulatorUiSettingsController(
         DeviceType.WEAR -> FACTORY_RESET_COMMAND_FOR_WEAR.format(readApplicationId)
         DeviceType.TV,
         DeviceType.AUTOMOTIVE -> FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO.format(readApplicationId)
+        DeviceType.XR -> FACTORY_RESET_COMMAND_FOR_XR.format(readApplicationId, readPhysicalDensity)
         else -> FACTORY_RESET_COMMAND.format(readApplicationId, readPhysicalDensity)
       }
       executeShellCommand(command)
@@ -387,12 +398,15 @@ internal class EmulatorUiSettingsController(
   }
 
   private fun updateResetButton() {
-    var isDefault = lastLocaleTag.isEmpty() && !lastTalkBack && lastFontScale == FontScale.NORMAL.percent &&
-                    !lastDebugLayout
+    var isDefault = lastLocaleTag.isEmpty() && !lastTalkBack &&
+                    lastFontScale == FontScale.NORMAL.percent && !lastDebugLayout
     val extraChecks = when (deviceType) {
       DeviceType.WEAR -> true
       DeviceType.TV,
       DeviceType.AUTOMOTIVE -> !lastDarkMode
+      DeviceType.XR -> lastDarkMode && // Dark mode is default on XR emulator
+                       !lastSelectToSpeak &&
+                       lastDensity == readPhysicalDensity
       else -> !lastDarkMode &&
               !lastSelectToSpeak &&
               lastDensity == readPhysicalDensity &&

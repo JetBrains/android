@@ -111,7 +111,7 @@ internal class UiSettingsPanel(
             .apply { component.name = TALKBACK_TITLE }
         }.visibleIf(model.talkBackInstalled.and(model.permissionMonitoringDisabled))
 
-        if (deviceType == DeviceType.HANDHELD || deviceType == DeviceType.DESKTOP) {
+        if (deviceType == DeviceType.HANDHELD || deviceType == DeviceType.DESKTOP || deviceType == DeviceType.XR) {
           row(JBLabel(SELECT_TO_SPEAK_TITLE)) {
             checkBox("")
               .accessibleName(SELECT_TO_SPEAK_TITLE)
@@ -130,7 +130,7 @@ internal class UiSettingsPanel(
             .apply { component.name = FONT_SCALE_TITLE }
         }.visibleIf(model.permissionMonitoringDisabled)
 
-        if (deviceType == DeviceType.HANDHELD || deviceType == DeviceType.DESKTOP) {
+        if (deviceType == DeviceType.HANDHELD || deviceType == DeviceType.DESKTOP || deviceType == DeviceType.XR) {
           row(JBLabel(DENSITY_TITLE)) {
             slider(0, model.screenDensityIndex.value, 1, 1)
               .accessibleName(DENSITY_TITLE)
