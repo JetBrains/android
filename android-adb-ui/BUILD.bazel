@@ -41,7 +41,7 @@ jvm_library(
     "//platform/util:util-ui",
     "//android/render-resources",
     "//plugins/webp",
-    "//libraries/ktor-client",
+    "//platform/util/concurrency",
   ],
   runtime_deps = [":adb-ui_resources"]
 )
