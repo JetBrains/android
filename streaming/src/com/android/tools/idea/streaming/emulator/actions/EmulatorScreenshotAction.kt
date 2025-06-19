@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.emulator.control.ImageFormat
 import com.android.io.writeImage
+import com.android.tools.adtui.ImageUtils.ellipticalClip
 import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
@@ -47,12 +48,7 @@ import com.intellij.platform.ide.progress.withModalProgress
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.awt.AlphaComposite
 import java.awt.Color
-import java.awt.Graphics2D
-import java.awt.Rectangle
-import java.awt.geom.Area
-import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import java.io.IOException
 import javax.imageio.IIOException
@@ -87,7 +83,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
             val emulatorConfig = emulatorController.emulatorConfig
             val screenshotImage = ScreenshotImage(image, format.rotation.rotationValue,
                                                   emulatorConfig.deviceType, emulatorConfig.avdName, displayId)
-            val screenshotDecorator = EmulatorScreenshotDecorator(displayId, skin)
+            val screenshotDecorator = EmulatorScreenshotDecorator(skin)
             val framingOptions = if (displayId == PRIMARY_DISPLAY_ID && skin != null) listOf(AvdFrame()) else listOf()
             val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
             val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
@@ -156,58 +152,17 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     }
   }
 
-  private class EmulatorScreenshotDecorator(private val displayId: Int, private val skinDefinition: SkinDefinition?) : ScreenshotDecorator {
+  private class EmulatorScreenshotDecorator(private val skinDefinition: SkinDefinition?) : ScreenshotDecorator {
 
     override val canClipToDisplayShape: Boolean
-      get() = true
+      get() = skinDefinition != null
 
     override fun decorate(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage {
-      if (displayId != PRIMARY_DISPLAY_ID) {
-        return screenshotImage.image // Decorations are applied only to the primary display.
+      // Decorations are applied only to the primary display.
+      if (skinDefinition == null || screenshotImage.displayId != PRIMARY_DISPLAY_ID) {
+        return if (screenshotImage.isRoundDisplay) ellipticalClip(screenshotImage.image, backgroundColor) else screenshotImage.image
       }
-      val image = screenshotImage.image
-      val w = image.width
-      val h = image.height
-      val skin = skinDefinition?.createScaledLayout(w, h, screenshotImage.screenshotOrientationQuadrants)
-      val arcWidth = skin?.displayCornerSize?.width ?: 0
-      val arcHeight = skin?.displayCornerSize?.height ?: 0
-      if (framingOption == null || skin == null) {
-        @Suppress("UndesirableClassUsage")
-        val result = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
-        val graphics = result.createGraphics()
-        val displayRectangle = Rectangle(0, 0, w, h)
-        graphics.drawImageWithRoundedCorners(image, displayRectangle, arcWidth, arcHeight)
-        graphics.composite = AlphaComposite.getInstance(AlphaComposite.DST_OUT)
-        skin?.drawFrameAndMask(graphics, displayRectangle)
-        if (backgroundColor != null) {
-          graphics.color = backgroundColor
-          graphics.composite = AlphaComposite.getInstance(AlphaComposite.DST_OVER)
-          graphics.fillRect(0, 0, image.width, image.height)
-        }
-        graphics.dispose()
-        return result
-      }
-
-      val frameRectangle = skin.frameRectangle
-      @Suppress("UndesirableClassUsage")
-      val result = BufferedImage(frameRectangle.width, frameRectangle.height, BufferedImage.TYPE_INT_ARGB)
-      val graphics = result.createGraphics()
-      val displayRectangle = Rectangle(-frameRectangle.x, -frameRectangle.y, w, h)
-      graphics.drawImageWithRoundedCorners(image, displayRectangle, arcWidth, arcHeight)
-
-      skin.drawFrameAndMask(graphics, displayRectangle)
-      graphics.dispose()
-      return result
-    }
-
-    private fun Graphics2D.drawImageWithRoundedCorners(image: BufferedImage, displayRectangle: Rectangle, arcWidth: Int, arcHeight: Int) {
-      if (arcWidth > 0 && arcHeight > 0) {
-        clip = Area(RoundRectangle2D.Double(displayRectangle.x.toDouble(), displayRectangle.y.toDouble(),
-                                            displayRectangle.width.toDouble(), displayRectangle.height.toDouble(),
-                                            arcWidth.toDouble(), arcHeight.toDouble()))
-      }
-      drawImage(image, null, displayRectangle.x, displayRectangle.y)
-      clip = null
+      return screenshotImage.decorate(framingOption != null, skinDefinition, backgroundColor)
     }
   }
 }

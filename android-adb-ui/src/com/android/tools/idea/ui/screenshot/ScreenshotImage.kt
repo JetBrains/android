@@ -17,7 +17,14 @@ package com.android.tools.idea.ui.screenshot
 
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.device.SkinDefinition
+import java.awt.AlphaComposite
+import java.awt.Color
 import java.awt.Dimension
+import java.awt.Graphics2D
+import java.awt.Rectangle
+import java.awt.geom.Area
+import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
 import kotlin.math.roundToInt
 
@@ -88,5 +95,48 @@ class ScreenshotImage(
       Double.NaN
     }
   }
-}
 
+  fun decorate(drawFrame: Boolean, skinDefinition: SkinDefinition, backgroundColor: Color?): BufferedImage {
+    val w = image.width
+    val h = image.height
+    val skin = skinDefinition.createScaledLayout(w, h, screenshotOrientationQuadrants)
+    val arcWidth = skin.displayCornerSize.width
+    val arcHeight = skin.displayCornerSize.height
+    if (drawFrame) {
+      val frameRectangle = skin.frameRectangle
+      @Suppress("UndesirableClassUsage")
+      val decoratedImage = BufferedImage(frameRectangle.width, frameRectangle.height, BufferedImage.TYPE_INT_ARGB)
+      val graphics = decoratedImage.createGraphics()
+      val displayRectangle = Rectangle(-frameRectangle.x, -frameRectangle.y, w, h)
+      graphics.drawImageWithRoundedCorners(image, displayRectangle, arcWidth, arcHeight)
+      skin.drawFrameAndMask(graphics, displayRectangle)
+      graphics.dispose()
+      return decoratedImage
+    }
+
+    @Suppress("UndesirableClassUsage")
+    val decoratedImage = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
+    val graphics = decoratedImage.createGraphics()
+    val displayRectangle = Rectangle(0, 0, w, h)
+    graphics.drawImageWithRoundedCorners(image, displayRectangle, arcWidth, arcHeight)
+    graphics.composite = AlphaComposite.getInstance(AlphaComposite.DST_OUT)
+    skin.drawFrameAndMask(graphics, displayRectangle) // Erase the part of the image overlapping with the frame.
+    if (backgroundColor != null) {
+      graphics.color = backgroundColor
+      graphics.composite = AlphaComposite.getInstance(AlphaComposite.DST_OVER)
+      graphics.fillRect(0, 0, image.width, image.height)
+    }
+    graphics.dispose()
+    return decoratedImage
+  }
+
+  private fun Graphics2D.drawImageWithRoundedCorners(image: BufferedImage, displayRectangle: Rectangle, arcWidth: Int, arcHeight: Int) {
+    if (arcWidth > 0 && arcHeight > 0) {
+      clip = Area(RoundRectangle2D.Double(displayRectangle.x.toDouble(), displayRectangle.y.toDouble(),
+                                          displayRectangle.width.toDouble(), displayRectangle.height.toDouble(),
+                                          arcWidth.toDouble(), arcHeight.toDouble()))
+    }
+    drawImage(image, null, displayRectangle.x, displayRectangle.y)
+    clip = null
+  }
+}

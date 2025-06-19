@@ -24,7 +24,6 @@ import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.device.SkinDefinitionCache
 import java.awt.Color
 import java.awt.Dimension
-import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.nio.file.Files
 import java.nio.file.Path
@@ -53,20 +52,8 @@ class DeviceScreenshotDecorator : ScreenshotDecorator {
     get() = false
 
   private fun addSkinBasedFrame(screenshotImage: ScreenshotImage, skinFolder: Path): BufferedImage {
-    val image = screenshotImage.image
-    val skinDefinition = getSkinDefinition(skinFolder, screenshotImage.displaySize) ?: return image
-    val w = image.width
-    val h = image.height
-    val skin = skinDefinition.createScaledLayout(w, h, screenshotImage.screenshotOrientationQuadrants)
-    val frameRectangle = skin.frameRectangle
-    @Suppress("UndesirableClassUsage")
-    val result = BufferedImage(frameRectangle.width, frameRectangle.height, BufferedImage.TYPE_INT_ARGB)
-    val graphics = result.createGraphics()
-    val displayRectangle = Rectangle(-frameRectangle.x, -frameRectangle.y, w, h)
-    graphics.drawImage(image, null, displayRectangle.x, displayRectangle.y)
-    skin.drawFrameAndMask(graphics, displayRectangle)
-    graphics.dispose()
-    return result
+    val skinDefinition = getSkinDefinition(skinFolder, screenshotImage.displaySize) ?: return screenshotImage.image
+    return screenshotImage.decorate(true, skinDefinition, null)
   }
 
   private fun getSkinDefinition(skinFolder: Path, displaySize: Dimension?): SkinDefinition? {
