@@ -101,6 +101,7 @@ jvm_library(
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
     "//json/backend",
     "//platform/analysis-api:analysis",
+    "//platform/code-style-api:codeStyle",
     "//platform/lang-impl",
     "//platform/core-api:core",
     "//platform/core-impl",

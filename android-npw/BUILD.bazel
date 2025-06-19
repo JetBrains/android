@@ -49,6 +49,7 @@ jvm_library(
     "//java/java-impl:impl",
     "//java/idea-ui:ui",
     "//platform/analysis-api:analysis",
+    "//platform/code-style-api:codeStyle",
     "//platform/util/concurrency",
     "//platform/core-api:core",
     "//platform/core-ui",

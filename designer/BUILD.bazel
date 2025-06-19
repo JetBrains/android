@@ -278,6 +278,7 @@ jvm_library(
     "@lib//:kotlinx-collections-immutable",
     "@lib//:mockito",
     "@lib//:protobuf",
+    "//platform/code-style-api:codeStyle",
     "@lib//:truth",
     "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:kotlinc-kotlin-compiler-fe10",
