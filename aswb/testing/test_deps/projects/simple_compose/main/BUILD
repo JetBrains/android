@@ -3,6 +3,7 @@ load("@rules_kotlin//kotlin:core.bzl", "kt_compiler_plugin")
 
 android_binary(
     name = "simple_compose",
+    custom_package = "com.basicapp",
     manifest = "AndroidManifest.xml",
     visibility = ["//visibility:private"],
     deps = [
