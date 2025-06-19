@@ -73,5 +73,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" />
+    <orderEntry type="library" name="studio-plugin-intellij.spellchecker" level="project" />
   </component>
 </module>

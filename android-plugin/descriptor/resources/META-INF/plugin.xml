@@ -21,6 +21,8 @@
     <module name="intellij.libraries.grpc"/>
     <module name="intellij.libraries.grpc.netty.shaded"/>
     <module name="intellij.settingsSync.core"/>
+    <module name="intellij.spellchecker"/>
+    <module name="intellij.spellchecker.xml"/>
     <module name="intellij.platform.jewel.foundation"/>
     <module name="intellij.platform.jewel.ideLafBridge"/>
     <module name="intellij.platform.jewel.markdown.core"/>

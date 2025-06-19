@@ -132,6 +132,8 @@ iml_module(
         "@intellij//:com.intellij.modules.json",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
         "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
+        "@intellij//:intellij.spellchecker",
+        "@intellij//:intellij.spellchecker.xml",
     ],
 )
 

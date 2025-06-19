@@ -118,6 +118,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-flags:intellij.android.gradle.dsl.flags",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
         "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
+        "@intellij//:intellij.spellchecker",
     ],
 )
 
@@ -602,6 +603,7 @@ iml_module(
         "//tools/adt/idea/gradle-declarative-lang-sync:intellij.android.gradle.declarative.lang.sync",
         "//tools/adt/idea/gradle-declarative-lang-flags:intellij.android.gradle.declarative.lang.flags",
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
+        "@intellij//:intellij.spellchecker",
     ],
     test_jvm_flags = ["-Didea.skip.indices.initialization=true"],
     test_resources = ["testResources"],

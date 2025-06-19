@@ -472,6 +472,8 @@ studio_plugin(
         "@intellij//:intellij.platform.vcs.impl",
         "@intellij//:intellij.platform.vcs.log.impl",
         "@intellij//:intellij.settingsSync.core",
+        "@intellij//:intellij.spellchecker",
+        "@intellij//:intellij.spellchecker.xml",
         "@intellij//:intellij.webp",
         "@intellij//:org.intellij.groovy",
         "@intellij//:org.intellij.intelliLang",
@@ -553,6 +555,7 @@ studio_plugin(
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
         "@intellij//:com.intellij.platform.images",
+        "@intellij//:intellij.spellchecker",
         "@intellij//:org.jetbrains.kotlin",
     ],
 )

@@ -60,6 +60,7 @@ iml_module(
         "//tools/adt/idea/ml-api:intellij.android.ml-api",
         "//tools/adt/idea/avd:intellij.android.avd",
         "//tools/adt/idea/visual-lint:intellij.android.visual-lint",
+        "@intellij//:intellij.spellchecker",
     ],
 )
 

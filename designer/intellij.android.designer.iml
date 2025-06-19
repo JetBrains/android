@@ -65,6 +65,7 @@
     <orderEntry type="module" module-name="intellij.android.ml-api" />
     <orderEntry type="module" module-name="intellij.android.avd" />
     <orderEntry type="module" module-name="intellij.android.visual-lint" />
+    <orderEntry type="library" name="studio-plugin-intellij.spellchecker" level="project" />
     <orderEntry type="library" scope="TEST" name="junit4" level="project" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
