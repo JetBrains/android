@@ -62,14 +62,14 @@ class ScreenRecorderAction : DumbAwareAction(
   }
 
   override fun update(event: AnActionEvent) {
-    val params = event.getData(SCREEN_RECORDER_PARAMETERS_KEY)
+    val params = event.getData(ScreenRecordingParameters.DATA_KEY)
     val project = event.project
     event.presentation.isEnabled =
         params != null && project != null && isRecordingSupported(params, project) && !recordingInProgress.contains(params.serialNumber)
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    val params = event.getData(SCREEN_RECORDER_PARAMETERS_KEY) ?: return
+    val params = event.getData(ScreenRecordingParameters.DATA_KEY) ?: return
     val displayId = event.getData(DISPLAY_ID_KEY) ?: 0
     val displayInfoProvider = event.getData(DISPLAY_INFO_PROVIDER_KEY)
     val project = event.project ?: return
@@ -197,9 +197,6 @@ class ScreenRecorderAction : DumbAwareAction(
   }
 
   companion object {
-    @JvmStatic
-    val SCREEN_RECORDER_PARAMETERS_KEY = DataKey.create<ScreenRecordingParameters>("ScreenRecordingParameters")
-
     const val MAX_RECORDING_DURATION_MINUTES = 30 // Emulator or Android 14+.
     const val MAX_RECORDING_DURATION_MINUTES_LEGACY = 3
 
@@ -216,4 +213,8 @@ data class ScreenRecordingParameters(
   val featureLevel: Int,
   val recordingLifetimeDisposable: Disposable,
   val avdFolder: Path?, // Only for AVD, otherwise null.
-)
+) {
+  companion object {
+    val DATA_KEY = DataKey.create<ScreenRecordingParameters>("ScreenRecordingParameters")
+  }
+}
