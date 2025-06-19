@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.screenshot
 
-import com.android.SdkConstants
+import com.android.SdkConstants.DOT_PNG
 import com.android.io.writeImage
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
@@ -24,7 +24,6 @@ import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbAwareAction
@@ -48,12 +47,12 @@ class ScreenshotAction : DumbAwareAction(
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
-    event.presentation.isEnabled = event.getData(SCREENSHOT_PARAMETERS_KEY) != null
+    event.presentation.isEnabled = event.getData(ScreenshotParameters.DATA_KEY) != null
   }
 
   override fun actionPerformed(event: AnActionEvent) {
     val project = event.project ?: return
-    val screenshotParameters = event.getData(SCREENSHOT_PARAMETERS_KEY) ?: return
+    val screenshotParameters = event.getData(ScreenshotParameters.DATA_KEY) ?: return
     val displayId = event.getData(DISPLAY_ID_KEY) ?: 0
     val displayInfoProvider = event.getData(DISPLAY_INFO_PROVIDER_KEY)
     val serialNumber = screenshotParameters.serialNumber
@@ -75,7 +74,7 @@ class ScreenshotAction : DumbAwareAction(
           val decoration = ScreenshotViewer.getDefaultDecoration(screenshot, screenshotDecorator, framingOptions.firstOrNull())
           val processedImage = screenshotDecorator.decorate(screenshot, decoration)
           indicator.checkCanceled()
-          val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
+          val file = FileUtil.createTempFile("screenshot", DOT_PNG).toPath()
           processedImage.writeImage("PNG", file)
           indicator.checkCanceled()
           val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:
@@ -134,9 +133,5 @@ class ScreenshotAction : DumbAwareAction(
         }
       }
     }.queue()
-  }
-
-  companion object {
-    val SCREENSHOT_PARAMETERS_KEY = DataKey.create<ScreenshotParameters>("ScreenshotParameters")
   }
 }

@@ -39,9 +39,7 @@ import com.android.tools.idea.streaming.core.installFileDropHandler
 import com.android.tools.idea.streaming.core.sizeWithoutInsets
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListener
-import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingParameters
-import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.android.tools.idea.ui.screenshot.ScreenshotParameters
 import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
@@ -224,13 +222,12 @@ internal class DeviceToolWindowPanel(
     sink[DEVICE_CLIENT_KEY] = deviceClient
     sink[DEVICE_CONTROLLER_KEY] = deviceController
     sink[DEVICE_HANDLE_KEY] = deviceHandle
-    sink[ScreenshotAction.SCREENSHOT_PARAMETERS_KEY] = deviceController?.let { createScreenshotOptions() }
-    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = deviceController?.let { createScreenRecorderParameters(it) }
+    sink[ScreenshotParameters.DATA_KEY] = deviceController?.let { createScreenshotParameters() }
+    sink[ScreenRecordingParameters.DATA_KEY] = deviceController?.let { createScreenRecorderParameters(it) }
   }
 
-  private fun createScreenshotOptions(): ScreenshotParameters {
-    val properties = deviceConfig.deviceProperties
-    return when (properties) {
+  private fun createScreenshotParameters(): ScreenshotParameters {
+    return when (val properties = deviceConfig.deviceProperties) {
       is LocalEmulatorProperties -> ScreenshotParameters(deviceSerialNumber, deviceConfig.deviceType, properties.avdPath)
       else -> ScreenshotParameters(deviceSerialNumber, deviceConfig.deviceType, deviceConfig.deviceModel)
     }

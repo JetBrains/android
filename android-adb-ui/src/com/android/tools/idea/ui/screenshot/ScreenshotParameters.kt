@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.screenshot
 
-import ai.grazie.annotation.TestOnly
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRound
@@ -31,9 +30,9 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.SkinUtils
 import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.android.tools.sdk.DeviceManagers
+import com.intellij.openapi.actionSystem.DataKey
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.io.path.name
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.log2
@@ -245,6 +244,9 @@ private constructor(
   )
 
   companion object {
+
+    val DATA_KEY = DataKey.create<ScreenshotParameters>("ScreenshotParameters")
+
     private fun getAvdProperties(
       avdFolder: Path,
       avdManagerConnection: AvdManagerConnection,
