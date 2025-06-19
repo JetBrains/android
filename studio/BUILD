@@ -816,6 +816,7 @@ studio_plugin(
         "@intellij//:intellij.platform.jewel.markdown.core",
         "@intellij//:intellij.platform.jewel.markdown.ideLafBridgeStyling",
         "@intellij//:intellij.platform.jewel.ui",
+        "@intellij//:intellij.libraries.lucene.common",
         "@intellij//:intellij.platform.vcs.impl",
         "@intellij//:intellij.platform.vcs.log.impl",
         "@intellij//:org.intellij.groovy",
