@@ -2335,7 +2335,9 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val disableKtsRelatedIndexing: Boolean = false,
   val reportProjectSizeUsage: Boolean = false,
   val overrideProjectGradleJdkPath: File? = null,
-  val onProjectCreated: Project.() -> Unit = {}
+  val onProjectCreated: Project.() -> Unit = {},
+  // Only relevant when re-opening a project that already is set to switch variants
+  val skipSwitchingVariants: Boolean = false,
 )
 
 fun OpenPreparedProjectOptions.withoutKtsRelatedIndexing(): OpenPreparedProjectOptions = copy(disableKtsRelatedIndexing = true)

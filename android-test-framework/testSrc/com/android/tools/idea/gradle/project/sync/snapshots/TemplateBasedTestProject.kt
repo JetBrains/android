@@ -207,12 +207,14 @@ class PreparedTemplateBasedTestProject(
       invokeAndWaitIfNeeded {
         AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
       }
-      templateBasedTestProject.switchVariant?.let { switchVariant ->
-        switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
-        invokeAndWaitIfNeeded {
-          AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+      if (!options.skipSwitchingVariants) {
+        templateBasedTestProject.switchVariant?.let { switchVariant ->
+          switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
+          invokeAndWaitIfNeeded {
+            AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+          }
+          templateBasedTestProject.verifyOpened?.invoke(project) // Second time.
         }
-        templateBasedTestProject.verifyOpened?.invoke(project) // Second time.
       }
       body(project, root)
     }
