@@ -19,7 +19,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.idea.streaming.executeStreamingAction
+import com.android.tools.idea.streaming.executeAction
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
@@ -78,7 +78,7 @@ class FloatingToolbarContainerTest {
 
     // Change the selected toolbar button and check how the toolbar updates itself.
     val rightTopAction = fakeUi.getComponent<ActionButton> { it.presentation.text == "Right Top" }.action
-    executeStreamingAction(rightTopAction, panel, place = ActionPlaces.KEYBOARD_SHORTCUT)
+    executeAction(rightTopAction, panel, place = ActionPlaces.KEYBOARD_SHORTCUT)
     assertAppearance("CollapsibleVerticalRightTopSelected")
   }
 

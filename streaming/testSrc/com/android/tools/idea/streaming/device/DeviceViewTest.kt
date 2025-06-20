@@ -40,7 +40,7 @@ import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
-import com.android.tools.idea.streaming.executeStreamingAction
+import com.android.tools.idea.streaming.executeAction
 import com.android.tools.idea.streaming.extractText
 import com.android.tools.idea.streaming.xr.TRANSLATION_STEP_SIZE
 import com.android.tools.idea.testing.AndroidExecutorsRule
@@ -151,9 +151,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.fileSize
 import kotlin.time.Duration.Companion.seconds
 
-/**
- * Tests for [DeviceView], [DeviceDisplayPanel] and [DeviceClient].
- */
+/** Tests for [DeviceView], [DeviceDisplayPanel] and [DeviceClient]. */
 @RunsInEdt
 internal class DeviceViewTest {
 
@@ -282,7 +280,7 @@ internal class DeviceViewTest {
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
           MotionEventMessage(listOf(horizontalScrollPointer), MotionEventMessage.ACTION_SCROLL, 0, 0, 0, false))
 
-      executeStreamingAction("android.device.rotate.left", view, project)
+      executeAction("android.device.rotate.left", view, project)
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage((i + 1) % 4))
     }
 
@@ -329,9 +327,9 @@ internal class DeviceViewTest {
     assertThat(view.displayRectangle).isEqualTo(Rectangle(61, 0, 277, 600))
     assertThat(view.displayOrientationQuadrants).isEqualTo(0)
 
-    executeStreamingAction("android.device.rotate.right", view, project)
+    executeAction("android.device.rotate.right", view, project)
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage(3))
-    executeStreamingAction("android.device.rotate.right", view, project)
+    executeAction("android.device.rotate.right", view, project)
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage(2))
     assertThat(view.displayOrientationQuadrants).isEqualTo(2)
     assertThat(view.displayOrientationCorrectionQuadrants).isEqualTo(0)
@@ -594,7 +592,7 @@ internal class DeviceViewTest {
         else -> SetMaxVideoResolutionMessage(view.displayId, Dimension(294, 400))
       }
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(expected)
-      executeStreamingAction("android.device.rotate.right", view, project)
+      executeAction("android.device.rotate.right", view, project)
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage(3 - i))
       fakeUi.layoutAndDispatchEvents()
       assertThat(view.canZoomOut()).isFalse() // zoom-in mode cancelled by the rotation.
@@ -941,7 +939,7 @@ internal class DeviceViewTest {
     createDeviceView(250, 500)
     waitForFrame()
 
-    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
+    executeAction("android.streaming.hardware.input", view, agentRule.project)
 
     assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.currentTimeMillis(), 0, VK_M, VK_M.toChar()))).isTrue()
   }
@@ -951,7 +949,7 @@ internal class DeviceViewTest {
     createDeviceView(250, 500)
     waitForFrame()
 
-    executeStreamingAction("android.streaming.hardware.input", view, project)
+    executeAction("android.streaming.hardware.input", view, project)
     val keymapManager = KeymapManager.getInstance()
     keymapManager.activeKeymap.addShortcut("android.streaming.hardware.input", KeyboardShortcut.fromString("control shift J"))
 
@@ -964,7 +962,7 @@ internal class DeviceViewTest {
     createDeviceView(250, 500)
     waitForFrame()
 
-    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
+    executeAction("android.streaming.hardware.input", view, agentRule.project)
     fakeUi.keyboard.setFocus(view)
 
     fakeUi.keyboard.press(VK_CONTROL)
@@ -985,7 +983,7 @@ internal class DeviceViewTest {
     createDeviceView(250, 500)
     waitForFrame()
 
-    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
+    executeAction("android.streaming.hardware.input", view, agentRule.project)
 
     val mousePosition = Point(97, 141)
     fakeUi.mouse.press(mousePosition)
@@ -1051,7 +1049,7 @@ internal class DeviceViewTest {
     assertAppearance("MultiTouch1")
 
     // Enable hardware input
-    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
+    executeAction("android.streaming.hardware.input", view, agentRule.project)
 
     // Check if multitouch indicator is hidden.
     fakeUi.layoutAndDispatchEvents()
@@ -1065,7 +1063,7 @@ internal class DeviceViewTest {
         MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_DOWN, 1, 1, 0, true))
 
     // Disable hardware input.
-    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project, modifiers = CTRL_DOWN_MASK)
+    executeAction("android.streaming.hardware.input", view, agentRule.project, modifiers = CTRL_DOWN_MASK)
 
     // Check if multitouch indicator is shown again.
     fakeUi.layoutAndDispatchEvents()
@@ -1078,7 +1076,7 @@ internal class DeviceViewTest {
     waitForFrame()
 
     // Enable hardware input.
-    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
+    executeAction("android.streaming.hardware.input", view, agentRule.project)
 
     // Press Ctrl.
     focusManager.focusOwner = view
@@ -1087,7 +1085,7 @@ internal class DeviceViewTest {
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON))
 
     // Disable hardware input.
-    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
+    executeAction("android.streaming.hardware.input", view, agentRule.project)
 
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
   }
@@ -1098,7 +1096,7 @@ internal class DeviceViewTest {
     waitForFrame()
 
     // Enable hardware input.
-    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
+    executeAction("android.streaming.hardware.input", view, agentRule.project)
 
     // Press Ctrl.
     focusManager.focusOwner = view

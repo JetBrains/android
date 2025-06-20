@@ -30,7 +30,7 @@ import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDe
 import com.android.tools.idea.streaming.device.UNKNOWN_ORIENTATION
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
-import com.android.tools.idea.streaming.executeStreamingAction
+import com.android.tools.idea.streaming.executeAction
 import com.android.tools.idea.streaming.extractText
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.google.common.truth.Truth.assertThat
@@ -81,7 +81,7 @@ class StreamingHardwareInputActionTest {
     val action = StreamingHardwareInputAction()
     val view = emulatorViewRule.newEmulatorView(FakeEmulator::createPhoneAvd)
 
-    executeStreamingAction(action, view, project)
+    executeAction(action, view, project)
     val presentation = updateAndGetActionPresentation(action, view, project)
 
     assertThat(presentation.isEnabled).isTrue()
@@ -94,7 +94,7 @@ class StreamingHardwareInputActionTest {
     val action = StreamingHardwareInputAction()
     val view = emulatorViewRule.newEmulatorView(FakeEmulator::createPhoneAvd)
 
-    executeStreamingAction(action, view, project)
+    executeAction(action, view, project)
 
     assertThat(action.isSelected(createTestEvent(view, project))).isTrue()
   }
@@ -105,7 +105,7 @@ class StreamingHardwareInputActionTest {
     val view = createDeviceView(agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280)))
     assertThat(action.isSelected(createTestEvent(view, project))).isFalse()
 
-    executeStreamingAction(action, view, project)
+    executeAction(action, view, project)
 
     assertThat(action.isSelected(createTestEvent(view, project))).isTrue()
   }
@@ -118,7 +118,7 @@ class StreamingHardwareInputActionTest {
     assertThat(action.isSelected(createTestEvent(view1, project))).isFalse()
     assertThat(action.isSelected(createTestEvent(view2, project))).isFalse()
 
-    executeStreamingAction(action, view1, project)
+    executeAction(action, view1, project)
 
     assertThat(action.isSelected(createTestEvent(view1, project))).isTrue()
     assertThat(action.isSelected(createTestEvent(view2, project))).isFalse()

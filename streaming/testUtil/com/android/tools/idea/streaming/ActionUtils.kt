@@ -40,34 +40,38 @@ import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_E
 
 /** Executes an action related to device streaming. */
-fun executeStreamingAction(actionId: String, source: Component, project: Project? = null, place: String = ActionPlaces.TOOLBAR,
-                           modifiers: Int = CTRL_DOWN_MASK,
-                           extra: DataSnapshotProvider? = null) {
+fun executeAction(actionId: String, source: Component, project: Project? = null, place: String = ActionPlaces.TOOLBAR,
+                  modifiers: Int = CTRL_DOWN_MASK, extra: DataSnapshotProvider? = null) {
   val action = ActionManager.getInstance().getAction(actionId)
-  executeStreamingAction(action, source, project, place = place, modifiers = modifiers, extra = extra)
+  executeAction(action, source, project, place = place, modifiers = modifiers, extra = extra)
 }
 
 /** Executes an action related to device streaming. */
-fun executeStreamingAction(action: AnAction, source: Component, project: Project? = null, place: String = ActionPlaces.TOOLBAR,
-                           modifiers: Int = CTRL_DOWN_MASK,
-                           extra: DataSnapshotProvider? = null) {
+fun executeAction(action: AnAction, source: Component, project: Project? = null, place: String = ActionPlaces.TOOLBAR,
+                  modifiers: Int = CTRL_DOWN_MASK, extra: DataSnapshotProvider? = null) {
   val event = createTestEvent(source, project, place = place, modifiers = modifiers, extra = extra)
+  executeAction(action, event)
+}
+
+fun executeAction(action: AnAction, event: AnActionEvent) {
   performDumbAwareUpdate(action, event, true)
   assertThat(event.presentation.isEnabledAndVisible).isTrue()
   performActionDumbAwareWithCallbacks(action, event)
 }
 
 fun updateAndGetActionPresentation(actionId: String, source: Component, project: Project? = null,
-                                   place: String = ActionPlaces.KEYBOARD_SHORTCUT,
-                                   extra: DataSnapshotProvider? = null): Presentation {
+                                   place: String = ActionPlaces.KEYBOARD_SHORTCUT, extra: DataSnapshotProvider? = null): Presentation {
   val action = ActionManager.getInstance().getAction(actionId)
   return updateAndGetActionPresentation(action, source, project, place = place, extra = extra)
 }
 
 fun updateAndGetActionPresentation(action: AnAction, source: Component, project: Project? = null,
-                                   place: String = ActionPlaces.KEYBOARD_SHORTCUT,
-                                   extra: DataSnapshotProvider? = null): Presentation {
+                                   place: String = ActionPlaces.KEYBOARD_SHORTCUT, extra: DataSnapshotProvider? = null): Presentation {
   val event = createTestEvent(source, project, place, presentation = action.templatePresentation.clone(), extra = extra)
+  return updateAndGetActionPresentation(action, event)
+}
+
+fun updateAndGetActionPresentation(action: AnAction, event: AnActionEvent): Presentation {
   performDumbAwareUpdate(action, event, false)
   return event.presentation
 }

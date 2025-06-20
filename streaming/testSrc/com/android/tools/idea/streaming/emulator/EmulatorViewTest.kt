@@ -43,7 +43,7 @@ import com.android.tools.idea.streaming.core.DeviceInputListenerManager
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_SCREENSHOT_CALL_FILTER
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
-import com.android.tools.idea.streaming.executeStreamingAction
+import com.android.tools.idea.streaming.executeAction
 import com.android.tools.idea.streaming.xr.TRANSLATION_STEP_SIZE
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
@@ -140,9 +140,7 @@ import java.util.concurrent.TimeoutException
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.seconds
 
-/**
- * Tests for [EmulatorView], [EmulatorDisplayPanel] and some emulator toolbar actions.
- */
+/** Tests for [EmulatorView], [EmulatorDisplayPanel] and some emulator toolbar actions. */
 @RunsInEdt
 class EmulatorViewTest {
 
@@ -883,7 +881,7 @@ class EmulatorViewTest {
     fakeEmulator.virtualSceneCameraActive = true
 
     // Disable hardware input with shift key
-    executeStreamingAction("android.streaming.hardware.input", view, emulatorViewRule.project, modifiers = SHIFT_DOWN_MASK)
+    executeAction("android.streaming.hardware.input", view, emulatorViewRule.project, modifiers = SHIFT_DOWN_MASK)
 
     // Check if notification panel is disappeared
     waitForCondition(200, MILLISECONDS) {
@@ -929,7 +927,7 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1274 y: 744 buttons: 1 }")
 
     // Disable hardware input
-    executeStreamingAction("android.streaming.hardware.input", view, emulatorViewRule.project, modifiers = CTRL_DOWN_MASK)
+    executeAction("android.streaming.hardware.input", view, emulatorViewRule.project, modifiers = CTRL_DOWN_MASK)
 
     // Check if multitouch indicator is shown
     fakeUi.layoutAndDispatchEvents()
