@@ -553,7 +553,7 @@ class SavePreviewInNewSizeActionTest {
         """
         @Preview(
             name = "845dp x 360dp",
-            device = "spec:width=360dp,height=640dp,dpi=480",
+            device = "spec:width=845dp,height=360dp,dpi=160,orientation=landscape",
             widthDp = 845,
             heightDp = 360
         )
@@ -572,7 +572,7 @@ class SavePreviewInNewSizeActionTest {
 
       @Preview(
           name = "845dp x 360dp",
-          device = "spec:width=360dp,height=640dp,dpi=480",
+          device = "spec:width=845dp,height=360dp,dpi=160,orientation=landscape",
           widthDp = 845,
           heightDp = 360
       )

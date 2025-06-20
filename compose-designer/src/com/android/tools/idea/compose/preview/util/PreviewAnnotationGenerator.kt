@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.util
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.deviceSizeDp
+import com.android.tools.idea.configurations.ReferenceDevice
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.ConfigurablePreviewElement
 import com.android.tools.preview.NO_DEVICE_SPEC
@@ -25,7 +26,15 @@ import com.android.tools.preview.UNDEFINED_API_LEVEL
 import com.android.tools.preview.UNSET_UI_MODE_VALUE
 import com.android.tools.preview.config.*
 import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_CHIN_SIZE_ZERO
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_DPI
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_ORIENTATION
 import java.util.Locale as JavaUtilLocale
+
+/**
+ * A set of device IDs corresponding to `ReferenceDevice`s. These devices are for tooling and should
+ * not be saved by their ID.
+ */
+private val referenceDeviceIds = ReferenceDevice.getWindowSizeDevices().map { it.id }.toSet()
 
 /** Appends a parameter-value pair to the StringBuilder. */
 private fun StringBuilder.appendParamValue(parameterName: String, value: String): StringBuilder =
@@ -50,10 +59,14 @@ internal fun createDeviceSpec(configuration: Configuration): String {
   builder.appendParamValue(Preview.DeviceSpec.PARAMETER_WIDTH, "${widthDp}dp")
   builder.appendSeparator()
   builder.appendParamValue(Preview.DeviceSpec.PARAMETER_HEIGHT, "${heightDp}dp")
-  builder.appendSeparator()
-  builder.appendParamValue(Preview.DeviceSpec.PARAMETER_DPI, dpi.toString())
-  builder.appendSeparator()
-  builder.appendParamValue(Preview.DeviceSpec.PARAMETER_ORIENTATION, orientation)
+  if (dpi != DEFAULT_DPI) {
+    builder.appendSeparator()
+    builder.appendParamValue(Preview.DeviceSpec.PARAMETER_DPI, dpi.toString())
+  }
+  if (orientation != DEFAULT_ORIENTATION.name) {
+    builder.appendSeparator()
+    builder.appendParamValue(Preview.DeviceSpec.PARAMETER_ORIENTATION, orientation)
+  }
 
   val currentDeviceConfig = device.toDeviceConfig()
 
@@ -146,15 +159,23 @@ internal fun toPreviewAnnotationText(
     }
 
     val targetDevice = configuration.device
-    if (targetDevice != null && targetDevice.id != Configuration.CUSTOM_DEVICE_ID) {
-      // If the current configuration's device is a known, non-custom device, use its ID.
+    val isReferenceDevice = targetDevice != null && referenceDeviceIds.contains(targetDevice.id)
+
+    if (
+      targetDevice != null &&
+        targetDevice.id != Configuration.CUSTOM_DEVICE_ID &&
+        !isReferenceDevice
+    ) {
+      // If the current configuration's device is a known, non-custom device and non-reference
+      // device, use its ID.
       if (targetDevice.id != DEFAULT_DEVICE_ID) {
         // If device is default we can omit device parameter
         params.add("$PARAMETER_DEVICE = \"id:${targetDevice.id}\"")
       }
     } else {
-      if (displaySettings.showDecoration) {
-        val deviceSpec = createDeviceSpec(configuration)
+      val deviceSpec = createDeviceSpec(configuration)
+
+      if (displaySettings.showDecoration || isReferenceDevice) {
         params.add("$PARAMETER_DEVICE = \"$deviceSpec\"")
       } else {
         if (
@@ -162,7 +183,7 @@ internal fun toPreviewAnnotationText(
             previewConfig.deviceSpec != "Devices.DEFAULT"
         ) {
           // if original configuration had device non-default spec we should update it
-          params.add("$PARAMETER_DEVICE = \"${previewConfig.deviceSpec}\"")
+          params.add("$PARAMETER_DEVICE = \"$deviceSpec\"")
         }
         params.add("$PARAMETER_WIDTH_DP = $currentWidthDp")
         params.add("$PARAMETER_HEIGHT_DP = $currentHeightDp")
