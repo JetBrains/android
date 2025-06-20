@@ -91,6 +91,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.swing.Action;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -176,7 +178,10 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   // TODO(b/291955340): Should have @RequiresBackgroundThread
-  /** This method should be called under a read action. */
+
+  /**
+   * This method should be called under a read action.
+   */
   @Nullable
   public static <T extends DomElement> T loadDomElementWithReadPermission(@NotNull Project project,
                                                                           @NotNull XmlFile xmlFile,
@@ -353,6 +358,17 @@ public class AndroidUtils extends CommonAndroidUtil {
       }
 
       @Override
+      protected Action @NotNull [] createActions() {
+        return new Action[]{getCancelAction()};
+      }
+
+      @Override
+      protected void createDefaultActions() {
+        super.createDefaultActions();
+        myCancelAction.putValue(Action.NAME, "Close");
+      }
+
+      @Override
       protected JComponent createCenterPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         JTextArea textArea = new JTextArea(messageBuilder.toString());
@@ -472,7 +488,7 @@ public class AndroidUtils extends CommonAndroidUtil {
     int N = name.length();
     boolean hasSep = false;
     boolean front = true;
-    for (int i=0; i<N; i++) {
+    for (int i = 0; i < N; i++) {
       char c = name.charAt(i);
       if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
         front = false;
@@ -481,10 +497,12 @@ public class AndroidUtils extends CommonAndroidUtil {
       if ((c >= '0' && c <= '9') || c == '_') {
         if (!front) {
           continue;
-        } else {
+        }
+        else {
           if (c == '_') {
             return "The character '_' cannot be the first character in a package segment";
-          } else {
+          }
+          else {
             return "A digit cannot be the first character in a package segment";
           }
         }
@@ -527,7 +545,7 @@ public class AndroidUtils extends CommonAndroidUtil {
    * Looks up the declared associated context/activity for the given XML file and
    * returns the resolved fully qualified name if found
    *
-   * @param module module containing the XML file
+   * @param module  module containing the XML file
    * @param xmlFile the XML file
    * @return the associated fully qualified name, or null
    */
@@ -540,7 +558,7 @@ public class AndroidUtils extends CommonAndroidUtil {
    * Looks up the declared associated context/activity for the given XML file and
    * returns the associated class, if found
    *
-   * @param module module containing the XML file
+   * @param module  module containing the XML file
    * @param xmlFile the XML file
    * @return the associated class, or null
    */
