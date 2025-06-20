@@ -10,6 +10,7 @@ import subprocess
 import xml.etree.ElementTree as ET
 
 
+# Note: this Change-Id is referenced by sync-to-intellij-update-draft.py.
 DRAFT_CHANGE_ID = 'Change-Id: I75eb93541a6ff66ad00a738bc490185210b23601'
 
 COMMIT_MSG = '\n'.join([
@@ -64,10 +65,7 @@ def main():
                 # Pin revision to a synthetic draft commit that we push to Gerrit.
                 ref = run('git', 'commit-tree', '-p', 'm/studio-main^{}', '-m', COMMIT_MSG, f'{args.branch}^{{tree}}', cwd=path)
                 if str(path) in ['tools/idea', 'tools/vendor/intellij/cidr']:
-                    # Gerrit falls over when trying to render huge commits in IntelliJ/CIDR. We do
-                    # not need these commits in Gerrit anyway because we compile against prebuilts.
-                    # So instead we push these commits to the special draft branch.
-                    jobs.append(executor.submit(push_to_draft_branch, path, ref, 'goog', args.push))
+                    continue  # TODO: Gerrit falls over when trying to render huge commits in IntelliJ/CIDR.
                 else:
                     jobs.append(executor.submit(push_to_gerrit, path, ref, 'goog', args.push))
                 project.set('revision', ref)
@@ -79,12 +77,11 @@ def main():
     for job in jobs:
         job.result()
 
-    # Now push the updated manifest to Gerrit (for presubmit) and the draft branch (for sharing).
+    # Now push the updated manifest to Gerrit.
     jobs = []
     with ThreadPoolExecutor() as executor:
         manifest_str = ET.tostring(manifest)
         jobs.append(executor.submit(push_manifest_to_gerrit, manifest_str, args.push))
-        jobs.append(executor.submit(push_manifest_to_draft_branch, manifest_str, args.push))
 
     # Check if any jobs raised an exception.
     for job in jobs:
@@ -108,19 +105,6 @@ def push_to_gerrit(path: Path, ref: str, remote: str, push: bool):
                 raise e
     else:
         print(f'Would upload {ref:.10} in {path}')
-
-
-def push_to_draft_branch(path: Path, ref: str, remote: str, push: bool):
-    if push:
-        print(f'Force-pushing {ref:.10} in {path}')
-        run('git', 'push', '-f', '-o', 'banned-words~skip', remote, f'{ref}:studio-feature-ij2017.3', cwd=path)
-    else:
-        print(f'Would force-push {ref:.10} in {path}')
-
-
-def push_manifest_to_draft_branch(manifest: str, push: bool):
-    ref = create_manifest_commit(manifest, '[do not submit] IntelliJ update draft')
-    push_to_draft_branch(MANIFEST_DIR, ref, 'origin', push)
 
 
 def push_manifest_to_gerrit(manifest: str, push: bool):
