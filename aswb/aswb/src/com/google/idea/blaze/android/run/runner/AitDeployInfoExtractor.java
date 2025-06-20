@@ -47,7 +47,8 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
       BlazeBuildOutputs buildOutputs,
       String deployInfoOutputGroups,
       String apkOutputGroup,
-      BlazeContext context)
+      BlazeContext context,
+      ImmutableList<File> nativeSymbols)
       throws IOException {
     DeployData testData =
         deployDataForTarget(
@@ -66,7 +67,8 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
               apkOutputGroup,
               context);
     }
-    return merge(testData, targetData, context);
+
+    return merge(testData, targetData, context, nativeSymbols);
   }
 
   private DeployData deployDataForTarget(
@@ -85,7 +87,10 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
   }
 
   private BlazeAndroidDeployInfo merge(
-      DeployData testData, @Nullable DeployData targetData, BlazeContext context) {
+      DeployData testData,
+      @Nullable DeployData targetData,
+      BlazeContext context,
+      ImmutableList<File> nativeSymbols) {
     ParsedManifest targetManifest = targetData == null ? null : targetData.mergedManifest();
 
     ImmutableList.Builder<File> apks = new ImmutableList.Builder<File>();
@@ -93,7 +98,7 @@ public final class AitDeployInfoExtractor implements DeployInfoExtractor {
     if (targetData != null) {
       apks.addAll(cacheLocally(instrumentationInfo.targetApp, targetData.apks(), context));
     }
-    return new BlazeAndroidDeployInfo(testData.mergedManifest(), targetManifest, apks.build());
+    return new BlazeAndroidDeployInfo(testData.mergedManifest(), targetManifest, apks.build(), nativeSymbols);
   }
 
   private ImmutableList<File> cacheLocally(

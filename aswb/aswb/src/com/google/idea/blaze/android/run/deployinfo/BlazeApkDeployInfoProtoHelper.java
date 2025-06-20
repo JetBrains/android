@@ -36,7 +36,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Utilities for reading and constructing {@link AndroidDeployInfo} and {@link
@@ -125,32 +124,6 @@ public class BlazeApkDeployInfoProtoHelper {
 
     return new BlazeAndroidDeployInfo(
         mergedManifest, testTargetMergedManifest, apksToDeploy, symbolFiles);
-  }
-
-  public BlazeAndroidDeployInfo extractInstrumentationTestDeployInfoAndInvalidateManifests(
-      Project project,
-      File executionRoot,
-      AndroidDeployInfo instrumentorProto,
-      AndroidDeployInfo appProto)
-      throws GetDeployInfoException {
-    File instrumentorManifest =
-        new File(executionRoot, instrumentorProto.getMergedManifest().getExecRootPath());
-    ParsedManifest parsedInstrumentorManifest =
-        getParsedManifestSafe(project, instrumentorManifest);
-    ParsedManifestService.getInstance(project).invalidateCachedManifest(instrumentorManifest);
-
-    File appManifest = new File(executionRoot, appProto.getMergedManifest().getExecRootPath());
-    ParsedManifest parsedAppManifest = getParsedManifestSafe(project, appManifest);
-    ParsedManifestService.getInstance(project).invalidateCachedManifest(appManifest);
-
-    ImmutableList<File> apksToDeploy =
-        Stream.concat(
-                instrumentorProto.getApksToDeployList().stream(),
-                appProto.getApksToDeployList().stream())
-            .map(artifact -> new File(executionRoot, artifact.getExecRootPath()))
-            .collect(toImmutableList());
-
-    return new BlazeAndroidDeployInfo(parsedInstrumentorManifest, parsedAppManifest, apksToDeploy);
   }
 
   /** Transforms thrown {@link IOException} to {@link GetDeployInfoException} */

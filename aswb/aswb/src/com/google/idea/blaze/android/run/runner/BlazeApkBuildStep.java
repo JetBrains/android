@@ -45,6 +45,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /** Blaze specific build flow for android_binary builds. */
@@ -94,6 +95,7 @@ public class BlazeApkBuildStep implements ApkBuildStep {
 
     context.output(new StatusOutput("Building Application."));
     BlazeBuildOutputs buildOutputs;
+    List<File> nativeSymbols = new ArrayList<>();
     Stopwatch stopwatch = Stopwatch.createStarted();
     String deployOutputGroup;
     String apkOutputGroup;
@@ -138,9 +140,20 @@ public class BlazeApkBuildStep implements ApkBuildStep {
       return;
     }
 
+    if (nativeDebuggingEnabled) {
+      List<NativeSymbolFinder> nativeSymbolFinderList = NativeSymbolFinder.EP_NAME.getExtensionList();
+      for (Label target : targets) {
+        nativeSymbols.addAll(
+          nativeSymbolFinderList.stream()
+            .flatMap(
+              finder ->
+                finder.getNativeSymbolsForBuild(project, context, target, buildOutputs).stream())
+            .collect(ImmutableList.toImmutableList()));
+      }
+    }
     try {
       blazeAndroidDeployInfo =
-          deployInfoExtractor.extract(buildOutputs, deployOutputGroup, apkOutputGroup, context);
+          deployInfoExtractor.extract(buildOutputs, deployOutputGroup, apkOutputGroup, context, ImmutableList.copyOf(nativeSymbols));
     } catch (IOException e) {
       logger.warn("Unexpected error while retrieving deploy info", e);
       String message = "Error retrieving deployment info from build results: " + e.getMessage();

@@ -16,6 +16,7 @@
 package com.google.idea.blaze.android.run.test;
 
 import static com.google.idea.blaze.android.run.binary.BlazeAndroidBinaryNormalBuildRunContextBase.getApkInfoToInstall;
+import static com.google.idea.blaze.android.run.runner.BlazeAndroidLaunchTasksProvider.NATIVE_DEBUGGING_ENABLED;
 
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
@@ -59,6 +60,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.xdebugger.XDebugSession;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 import kotlin.Unit;
 import kotlin.coroutines.EmptyCoroutineContext;
@@ -124,6 +126,9 @@ public class BlazeAndroidTestRunContext implements BlazeAndroidRunContext {
   @Override
   public void augmentLaunchOptions(LaunchOptions.Builder options) {
     options.setDeploy(!configState.getLaunchMethod().equals(AndroidTestLaunchMethod.BLAZE_TEST));
+    if (configState.getCommonState().isNativeDebuggingEnabled()) {
+      options.addExtraOptions(Map.of(NATIVE_DEBUGGING_ENABLED, true));
+    }
   }
 
   @Override

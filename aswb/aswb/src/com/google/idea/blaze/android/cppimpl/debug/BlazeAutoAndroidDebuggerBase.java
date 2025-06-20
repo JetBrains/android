@@ -55,10 +55,4 @@ public abstract class BlazeAutoAndroidDebuggerBase extends AutoAndroidDebugger {
   public boolean supportsProject(Project project) {
     return Blaze.isBlazeProject(project);
   }
-
-  @Override
-  public boolean shouldBeDefault() {
-    // TODO b/134190522 Set as default again when blaze native debugger works.
-    return false;
-  }
 }

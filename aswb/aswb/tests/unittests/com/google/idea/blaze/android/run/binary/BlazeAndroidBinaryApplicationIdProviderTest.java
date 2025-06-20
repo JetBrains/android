@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
+import java.io.File;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -35,11 +36,13 @@ import org.junit.runners.JUnit4;
  */
 @RunWith(JUnit4.class)
 public class BlazeAndroidBinaryApplicationIdProviderTest {
+  static ImmutableList<File> nativeSymbols = ImmutableList.of(new File("symbols.so"));
+
   @Test
   public void getApplicationId() throws Exception {
     ParsedManifest manifest = new ParsedManifest("package.name", ImmutableList.of(), null);
     BlazeAndroidDeployInfo deployInfo =
-        new BlazeAndroidDeployInfo(manifest, null, ImmutableList.of());
+        new BlazeAndroidDeployInfo(manifest, null, ImmutableList.of(), nativeSymbols);
     ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
     when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
 
@@ -52,7 +55,7 @@ public class BlazeAndroidBinaryApplicationIdProviderTest {
   public void getApplicationId_noPackageNameInMergedManifest() throws Exception {
     ParsedManifest manifest = new ParsedManifest(null, ImmutableList.of(), null);
     BlazeAndroidDeployInfo deployInfo =
-        new BlazeAndroidDeployInfo(manifest, null, ImmutableList.of());
+        new BlazeAndroidDeployInfo(manifest, null, ImmutableList.of(), nativeSymbols);
     ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
     when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
 

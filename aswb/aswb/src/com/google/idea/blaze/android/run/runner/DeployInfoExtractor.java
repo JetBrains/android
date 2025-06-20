@@ -15,9 +15,11 @@
  */
 package com.google.idea.blaze.android.run.runner;
 
+import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
+import java.io.File;
 import java.io.IOException;
 
 /** Extracts deployment information out of build artifacts. */
@@ -27,6 +29,7 @@ public interface DeployInfoExtractor {
       BlazeBuildOutputs buildOutputs,
       String deployInfoOutputGroups,
       String apkOutputGroup,
-      BlazeContext context)
+      BlazeContext context,
+      ImmutableList<File> nativeSymbols)
       throws IOException;
 }

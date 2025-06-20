@@ -67,6 +67,8 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
   private static final String MNEMONIC = "k9-opt";
   private static final ImmutableList<String> BIN_PREFIXES =
       ImmutableList.of("blaze-out", MNEMONIC, "bin");
+  private static final ImmutableList<File> nativeSymbols =
+      ImmutableList.of(new File("symbols.so"));
 
   private BlazeContext context;
 
@@ -79,20 +81,18 @@ public class BinaryDeployInfoExtractorTest extends BlazeIntegrationTestCase {
   @Test
   public void parse_nominalOutput() throws BuildEventStreamException, IOException {
     NativeSymbolFinder mockSymbolFinder = mock(NativeSymbolFinder.class);
-    File symbolFile = new File("/path/to/symbol");
-    when(mockSymbolFinder.getNativeSymbolsForBuild(any(), any(), any(), any())).thenReturn(ImmutableList.of(symbolFile));
     registerExtension(NativeSymbolFinder.EP_NAME, mockSymbolFinder);
     BlazeBuildOutputs buildOutputs =
         BlazeBuildOutputs.fromParsedBepOutput(nominalApkBuildOutput());
     BlazeAndroidDeployInfo deployInfo =
         new BinaryDeployInfoExtractor(getProject(), Label.of("//some:target"), true, true)
-            .extract(buildOutputs, "android-deploy-info", "default", context);
+            .extract(buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
 
     assertThat(deployInfo).isNotNull();
     assertThat(deployInfo.getMergedManifest().packageName)
         .isEqualTo("com.google.android.buildsteptester");
     assertThat(deployInfo.getApksToDeploy()).isEmpty();
-    assertThat(deployInfo.getSymbolFiles()).isEqualTo(ImmutableList.of(symbolFile));
+    assertThat(deployInfo.getSymbolFiles()).isEqualTo(nativeSymbols);
     assertThat(deployInfo.getTestTargetMergedManifest()).isNull();
   }
 

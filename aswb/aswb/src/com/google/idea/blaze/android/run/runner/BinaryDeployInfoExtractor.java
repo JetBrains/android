@@ -28,7 +28,6 @@ import com.google.idea.blaze.common.Label;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.nio.file.Path;
 
 /**
@@ -52,7 +51,8 @@ public final class BinaryDeployInfoExtractor implements DeployInfoExtractor {
     BlazeBuildOutputs buildOutputs,
     String deployInfoOutputGroups,
     String apkOutputGroup,
-    BlazeContext context)
+    BlazeContext context,
+    ImmutableList<File> nativeSymbols)
     throws IOException {
 
     String suffix = useMobileInstall ? "_mi.deployinfo.pb" : ".deployinfo.pb";
@@ -68,24 +68,7 @@ public final class BinaryDeployInfoExtractor implements DeployInfoExtractor {
       runtimeArtifactCache.fetchArtifacts(targetLabel, deployData.apks(), context, RuntimeArtifactKind.APK).stream()
         .map(Path::toFile)
         .collect(toImmutableList());
-    ImmutableList<File> nativeSymbols = fetchNativeSymbolArtifacts(buildOutputs, context);
     return new BlazeAndroidDeployInfo(
       deployData.mergedManifest(), /* testTargetMergedManifest */ null, localApks, nativeSymbols);
-  }
-
-  private ImmutableList<File> fetchNativeSymbolArtifacts(BlazeBuildOutputs buildOutputs, BlazeContext context) {
-    ImmutableList<File> nativeSymbols = ImmutableList.of();
-    if (nativeDebuggingEnabled) {
-      nativeSymbols =
-        NativeSymbolFinder.getInstances().stream()
-          .flatMap(
-            finder ->
-              finder.getNativeSymbolsForBuild(project,
-                                              context,
-                                              com.google.idea.blaze.base.model.primitives.Label.create(targetLabel.toString()),
-                                              buildOutputs)
-                .stream()).collect(toImmutableList());
-    }
-    return nativeSymbols;
   }
 }

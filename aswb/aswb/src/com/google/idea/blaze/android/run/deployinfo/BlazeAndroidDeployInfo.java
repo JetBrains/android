@@ -34,13 +34,6 @@ public class BlazeAndroidDeployInfo {
   public BlazeAndroidDeployInfo(
       ParsedManifest mergedManifest,
       @Nullable ParsedManifest testTargetMergedManifest,
-      ImmutableList<File> apksToDeploy) {
-    this(mergedManifest, testTargetMergedManifest, apksToDeploy, ImmutableList.of());
-  }
-
-  public BlazeAndroidDeployInfo(
-      ParsedManifest mergedManifest,
-      @Nullable ParsedManifest testTargetMergedManifest,
       ImmutableList<File> apksToDeploy,
       ImmutableList<File> symbolFiles) {
     this.mergedManifest = mergedManifest;
