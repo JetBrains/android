@@ -28,11 +28,10 @@ import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import io.ktor.utils.io.core.toByteArray
-import javax.swing.Icon
-import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.Icon
+import kotlin.test.fail
 
 private val XML =
   """
