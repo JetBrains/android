@@ -20,6 +20,7 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.insights.ui.transparentPanel
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.observable.util.addComponentListener
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
@@ -59,7 +60,13 @@ class SdkInsightsPanel(category: String, title: String, private val body: String
   // The url wrapped with () parentheses and is located at the end of the body.
   private val urlRegex = Regex("\\(([^)]+)\\)\\s*$", RegexOption.MULTILINE)
 
-  private val expandedLabel = HtmlLabel().apply { text = replaceUrlsWithHtmlLinks(body) }
+  private val expandedLabel =
+    HtmlLabel().apply {
+      text = replaceUrlsWithHtmlLinks(body)
+      if (SystemInfo.isMac) {
+        border = JBUI.Borders.emptyBottom(JBUI.scale(10))
+      }
+    }
 
   private val scrollPane =
     JBScrollPane(expandedLabel).apply {
