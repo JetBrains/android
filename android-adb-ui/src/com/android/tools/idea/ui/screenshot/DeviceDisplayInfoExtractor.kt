@@ -19,7 +19,9 @@ package com.android.tools.idea.ui.screenshot
 class DeviceDisplayInfoExtractor(displayId: Int) {
   private val regex =
     Regex(
-      "\\s(DisplayDeviceInfo\\W.* state ON,.*)\\s\\S]*?\\s+mCurrentLayerStack=$displayId\\W",
+      "\\s(DisplayDeviceInfo\\W[^\\n]* state ON,[^\\n]*)}\\n" +
+        "([^\\n]+\\n)*" + // match anything that is not two consecutive carriage returns
+        "\\s+mCurrentLayerStack=$displayId\\W",
       RegexOption.MULTILINE,
     )
 
