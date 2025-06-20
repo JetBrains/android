@@ -111,8 +111,10 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
 
   @VisibleForTesting
   fun addLeaks(newLeaks: List<Leak>) {
-    val newLeakList = _leaks.value + newLeaks
-    _leaks.value = newLeakList
+    val uniqueNewLeaks = newLeaks.filter { it !in _leaks.value }
+    if (uniqueNewLeaks.isNotEmpty()) {
+      _leaks.value = _leaks.value + uniqueNewLeaks
+    }
   }
 
   /**

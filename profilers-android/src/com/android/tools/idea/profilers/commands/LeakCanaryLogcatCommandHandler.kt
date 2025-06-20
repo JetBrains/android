@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.commands
 
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Commands
@@ -37,6 +38,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.concurrent.BlockingDeque
+import java.util.concurrent.TimeUnit
 
 /**
  * Handles LeakCanary logcat tracking commands, capturing and processing LeakCanary logs from a connected Android device.
@@ -58,6 +60,13 @@ class LeakCanaryLogcatCommandHandler(
   private val logger: Logger = Logger.getInstance(LeakCanaryLogcatCommandHandler::class.java)
   private var startTimeNs: Long = 0
   private var isEnded = false
+  private var prevLeakCanaryLogTimeStamp = 0L
+  private var inLastFrame = false
+  private var capturedLogsForIncompleteTrace = StringBuilder()
+  private val leakStartPattern: String = "bytes retained by leaking objects"
+  private val lastFramePattern: String = "╰→"
+  private val initialTabSpace: String = "     "
+  private val TWO_SECONDS = TimeUnit.SECONDS.toSeconds(2)
 
   companion object {
     private const val LEAKCANARY_TAG = "LeakCanary"
@@ -109,18 +118,18 @@ class LeakCanaryLogcatCommandHandler(
       // Start event
       LeakCanaryLogcatInfo.newBuilder()
         .setLogcatStarted(LeakCanaryLogcatStarted.newBuilder()
-                          .setTimestamp(timestampNs)
-                          .build())
+                            .setTimestamp(timestampNs)
+                            .build())
         .build()
     }
     else {
       // Stop event
       LeakCanaryLogcatInfo.newBuilder()
         .setLogcatEnded(LeakCanaryLogcatEnded.newBuilder()
-                         .setStartTimestamp(startTimeNs)
-                         .setEndTimestamp(timestampNs)
-                         .setStatus(stopStatus)
-                         .build())
+                          .setStartTimestamp(startTimeNs)
+                          .setEndTimestamp(timestampNs)
+                          .setStatus(stopStatus)
+                          .build())
         .build()
     }
 
@@ -179,6 +188,7 @@ class LeakCanaryLogcatCommandHandler(
           if (logCollectionJob?.isCancelled == true) return@collect
 
           logcatMessages.forEach { logcatMessage ->
+            detectAndHandlePartialLeakTraces(logcatMessage)
             if (LEAKCANARY_TAG != logcatMessage.header.tag) return@forEach
 
             // The following logic reads LeakCanary's logs line by line, but LeakCanary may print multiple lines as one logcat entry
@@ -205,7 +215,8 @@ class LeakCanaryLogcatCommandHandler(
             }
           }
         }
-      } catch (e: Exception) {
+      }
+      catch (e: Exception) {
         // Exception that can occur when isEnded = true is not taken into account because we stop listening and session is ended.
         if (!isEnded) {
           // Send a failed status and end session when there is error reading logcat.
@@ -216,6 +227,68 @@ class LeakCanaryLogcatCommandHandler(
           sendLeakCanaryLogcatInfoEvent(timestampNs = currentTimeNs, isStarted = false, stopStatus = FAILURE)
           addSessionEndedEvent(eventQueue, currentTimeNs, pid, sessionId)
         }
+      }
+    }
+  }
+
+  private fun convertIncompleteToCompleteTrace(leaktrace: StringBuilder): String {
+    return """====================================
+HEAP ANALYSIS RESULT
+====================================
+1 APPLICATION LEAKS
+
+References underlined with "~~~" are likely causes.
+Learn more at https://squ.re/leaks.
+
+$leaktrace
+====================================
+0 LIBRARY LEAKS
+
+A Library Leak is a leak caused by a known bug in 3rd party code that you do not have control over.
+See https://square.github.io/leakcanary/fundamentals-how-leakcanary-works/#4-categorizing-leaks
+====================================
+0 UNREACHABLE OBJECTS
+
+An unreachable object is still in memory but LeakCanary could not find a strong reference path
+from GC roots.
+====================================
+METADATA
+
+Please include this in bug reports and Stack Overflow questions.
+Analysis duration: -1 ms
+Heap dump file path: -
+Heap dump timestamp: 0
+Heap dump duration: Unknown
+====================================""".trimIndent()
+  }
+
+  private fun detectAndHandlePartialLeakTraces(logcatMessage: LogcatMessage) {
+    if (logcatMessage.header.tag == LEAKCANARY_TAG) {
+      prevLeakCanaryLogTimeStamp = logcatMessage.header.timestamp.epochSecond
+      logcatMessage.message.split("\n").forEach { line ->
+        if (inLastFrame && initialTabSpace !in line) {
+          sendLeakCanaryLogcatEvent(convertIncompleteToCompleteTrace(capturedLogsForIncompleteTrace))
+          capturedLogsForIncompleteTrace.clear()
+          inLastFrame = false
+        }
+        if (capturedLogsForIncompleteTrace.isNotEmpty()) {
+          capturedLogsForIncompleteTrace.appendLine(line)
+          if (lastFramePattern in line) {
+            inLastFrame = true
+          }
+        }
+        if (leakStartPattern in line) {
+          capturedLogsForIncompleteTrace.clear()
+          inLastFrame = false
+          capturedLogsForIncompleteTrace.appendLine(line)
+        }
+      }
+    }
+    else {
+      if (inLastFrame && logcatMessage.header.timestamp.epochSecond - prevLeakCanaryLogTimeStamp >= TWO_SECONDS) {
+        sendLeakCanaryLogcatEvent(convertIncompleteToCompleteTrace(capturedLogsForIncompleteTrace))
+        capturedLogsForIncompleteTrace.clear()
+        inLastFrame = false
       }
     }
   }
