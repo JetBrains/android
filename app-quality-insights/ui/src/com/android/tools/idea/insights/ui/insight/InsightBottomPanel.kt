@@ -17,11 +17,13 @@ package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
 import com.android.tools.idea.insights.ai.transform.CodeTransformation
+import com.android.tools.idea.insights.ai.transform.CodeTransformationDeterminer
 import com.android.tools.idea.insights.ai.transform.CodeTransformationDeterminerImpl
 import com.android.tools.idea.insights.ai.transform.CodeTransformationImpl
 import com.intellij.openapi.Disposable
@@ -30,8 +32,10 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.SideBorder
 import com.intellij.ui.components.panels.HorizontalLayout
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JPanel
 import kotlinx.coroutines.Dispatchers
@@ -43,12 +47,14 @@ import kotlinx.coroutines.launch
 
 private const val SUGGEST_A_FIX = "Suggest a fix"
 private const val SUGGEST_A_FIX_DISABLED = "No suggested fix available."
+private const val CONTEXT_CHECK_INITIAL_DELAY_MILLIS = 1000L
+private const val CONTEXT_CHECK_DELAY_MILLIS = 1000L
 
 class InsightBottomPanel(
-  controller: AppInsightsProjectLevelController,
+  private val controller: AppInsightsProjectLevelController,
   currentInsightFlow: StateFlow<LoadingState<AiInsight?>>,
   private val parentDisposable: Disposable,
-  private val insightFixTransformationDeterminer: CodeTransformationDeterminerImpl =
+  private val insightFixTransformationDeterminer: CodeTransformationDeterminer =
     CodeTransformationDeterminerImpl(
       controller.project,
       CodeContextResolverImpl(controller.project),
@@ -69,7 +75,24 @@ class InsightBottomPanel(
 
   init {
     if (StudioFlags.SUGGEST_A_FIX.get()) {
-      fixInsightButton.addActionListener { scope.launch { currentTransformation?.apply() } }
+      // TODO(b/427275801): Listen to Gemini context changes
+      val contextChecker =
+        AppExecutorUtil.getAppScheduledExecutorService()
+          .scheduleWithFixedDelay(
+            {
+              fixInsightButton.isEnabled =
+                GeminiPluginApi.getInstance().isContextAllowed(controller.project)
+            },
+            CONTEXT_CHECK_INITIAL_DELAY_MILLIS,
+            CONTEXT_CHECK_DELAY_MILLIS,
+            TimeUnit.MILLISECONDS,
+          )
+      Disposer.register(parentDisposable) { contextChecker.cancel(true) }
+      fixInsightButton.addActionListener {
+        if (GeminiPluginApi.getInstance().isContextAllowed(controller.project)) {
+          scope.launch { currentTransformation?.apply() }
+        }
+      }
       currentInsightFlow
         .onEach { insightState ->
           when (insightState) {

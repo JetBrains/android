@@ -22,21 +22,31 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
+import com.android.tools.idea.insights.ai.transform.CodeTransformationDeterminer
 import com.android.tools.idea.insights.ai.transform.CodeTransformationDeterminerImpl
+import com.android.tools.idea.insights.ai.transform.CodeTransformationImpl
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import javax.swing.JButton
+import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class InsightBottomPanelTest {
@@ -72,7 +82,9 @@ class InsightBottomPanelTest {
         )
       currentInsightFlow.value = LoadingState.Ready(insight)
 
-      val button = fakeUi.findComponent<JButton> { it.name == "suggest_a_fix_button" }!!
+      val button =
+        fakeUi.findComponent<JButton> { it.name == "suggest_a_fix_button" }
+          ?: fail("Suggest a fix button not found")
       waitForCondition(5.seconds) { button.text == "Suggest a fix" }
       assertThat(button.isEnabled).isTrue()
       assertThat(button.isBorderPainted).isTrue()
@@ -83,15 +95,75 @@ class InsightBottomPanelTest {
       assertThat(button.isEnabled).isFalse()
     }
 
-  private fun createInsightBottomPanel() =
+  @Test
+  fun `suggest a fix button is disabled when context is disabled`() = runTest {
+    createInsightBottomPanel()
+    val insight =
+      AiInsight(
+        rawInsight =
+          """
+        |This is an insight.
+        |
+        |The fix should likely be in AndroidManifest.xml.
+      """
+            .trimMargin()
+      )
+    currentInsightFlow.value = LoadingState.Ready(insight)
+
+    val button =
+      fakeUi.findComponent<JButton> { it.name == "suggest_a_fix_button" }
+        ?: fail("Suggest a fix button not found")
+    waitForCondition(5.seconds) { button.text == "Suggest a fix" }
+    assertThat(button.isEnabled).isTrue()
+
+    // Disable context
+    controllerRule.fakeGeminiPluginApi.contextAllowed = false
+    waitForCondition(2.seconds) { !button.isEnabled }
+  }
+
+  @Test
+  fun `suggest a fix on context disabled does not take action`() = runTest {
+    val mockDeterminer = mock<CodeTransformationDeterminer>()
+    val mockCodeTransformation = mock<CodeTransformationImpl>()
+    doAnswer { mockCodeTransformation }.whenever(mockDeterminer).getApplicableTransformation(any())
+    createInsightBottomPanel(mockDeterminer)
+    val insight =
+      AiInsight(
+        rawInsight =
+          """
+        |This is an insight.
+        |
+        |The fix should likely be in AndroidManifest.xml.
+      """
+            .trimMargin()
+      )
+    currentInsightFlow.value = LoadingState.Ready(insight)
+
+    val button =
+      fakeUi.findComponent<JButton> { it.name == "suggest_a_fix_button" }
+        ?: fail("Suggest a fix button not found")
+    waitForCondition(5.seconds) { button.text == "Suggest a fix" }
+    assertThat(button.isEnabled).isTrue()
+
+    // Disable context
+    controllerRule.fakeGeminiPluginApi.contextAllowed = false
+
+    button.doClick()
+    verify(mockCodeTransformation, never()).apply()
+  }
+
+  private fun createInsightBottomPanel(
+    determiner: CodeTransformationDeterminer =
+      CodeTransformationDeterminerImpl(
+        projectRule.project,
+        FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))),
+      )
+  ) =
     InsightBottomPanel(
         controllerRule.controller,
         currentInsightFlow,
         projectRule.disposable,
-        CodeTransformationDeterminerImpl(
-          projectRule.project,
-          FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))),
-        ),
+        determiner,
       )
       .also { fakeUi = FakeUi(it) }
 }
