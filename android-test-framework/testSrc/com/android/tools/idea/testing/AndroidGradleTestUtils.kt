@@ -1965,7 +1965,7 @@ private fun createJavaModuleDataNode(
           gradlePath,
           moduleBasePath,
           listOf(),
-          null,
+          moduleBasePath.resolve("build.gradle"),
           null,
           null,
           false,
