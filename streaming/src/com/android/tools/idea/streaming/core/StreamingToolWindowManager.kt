@@ -678,7 +678,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun showToolWindowName() {
     if (StudioFlags.RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME.get()) {
       toolWindow.decorator.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, null)
-      toolWindow.component.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, null) // Workaround for IDEA-373768.
       toolWindow.updateContentUi()
     }
   }
@@ -686,7 +685,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun hideToolWindowName() {
     if (StudioFlags.RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME.get()) {
       toolWindow.decorator.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "true")
-      toolWindow.component.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "true") // Workaround for IDEA-373768.
       toolWindow.updateContentUi()
     }
   }
