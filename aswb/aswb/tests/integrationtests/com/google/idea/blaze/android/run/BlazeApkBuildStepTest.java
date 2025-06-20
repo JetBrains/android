@@ -28,6 +28,7 @@ import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.ErrorCollector;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
+import java.io.File;
 import java.io.IOException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,6 +45,7 @@ public final class BlazeApkBuildStepTest extends BlazeIntegrationTestCase {
   @Rule public TemporaryFolder folder = new TemporaryFolder();
   @Rule public final Expect expect = Expect.create();
   @Rule public VerificationCollector collector = MockitoJUnit.collector();
+  static ImmutableList<File> nativeSymbols = ImmutableList.of(new File("symbols.so"));
 
   private ErrorCollector errorCollector;
   private BlazeContext context;
@@ -60,7 +62,7 @@ public final class BlazeApkBuildStepTest extends BlazeIntegrationTestCase {
   public void bepParseError_terminatesLaunch() {
     // Set up a builder with the deploy info extractor throwing an error.
     DeployInfoExtractor mockDeployInfoExtractor =
-        (buildOutputs, deployInfoOutputGroup, apksOutputGroup, context) -> {
+        (buildOutputs, deployInfoOutputGroup, apksOutputGroup, context, nativeSymbols) -> {
           throw new IOException("some error");
         };
     BlazeApkBuildStep buildStep =
@@ -83,9 +85,10 @@ public final class BlazeApkBuildStepTest extends BlazeIntegrationTestCase {
         new BlazeAndroidDeployInfo(
             new ParsedManifest("some.pkg.name", ImmutableList.of(), null),
             null,
-            ImmutableList.of());
+            ImmutableList.of(),
+            nativeSymbols);
     DeployInfoExtractor mockDeployInfoExtractor =
-        (buildOutputs, deployInfoOutputGroup, apksOutputGroup, context) -> deployInfo;
+        (buildOutputs, deployInfoOutputGroup, apksOutputGroup, context, nativeSymbols) -> deployInfo;
     BlazeApkBuildStep buildStep =
         defaultBuildStepBuilder().setDeployInfoExtractor(mockDeployInfoExtractor).build();
 
@@ -108,7 +111,7 @@ public final class BlazeApkBuildStepTest extends BlazeIntegrationTestCase {
         .setLaunchId("some-random-id")
         .setBuildInvoker(newFakeInvoker())
         .setDeployInfoExtractor(
-            (buildOutputs, deployInfoOutputGroup, apksOutputGroup, context) -> null);
+            (buildOutputs, deployInfoOutputGroup, apksOutputGroup, context, nativeSymbols) -> null);
   }
 
   private static FakeBuildInvoker newFakeInvoker() {

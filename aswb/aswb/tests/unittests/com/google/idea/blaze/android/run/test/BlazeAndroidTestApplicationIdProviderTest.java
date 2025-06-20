@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.android.manifest.ManifestParser.ParsedManifest;
 import com.google.idea.blaze.android.run.deployinfo.BlazeAndroidDeployInfo;
 import com.google.idea.blaze.android.run.runner.ApkBuildStep;
+import java.io.File;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -35,11 +36,12 @@ import org.junit.runners.JUnit4;
  */
 @RunWith(JUnit4.class)
 public class BlazeAndroidTestApplicationIdProviderTest {
+  static ImmutableList<File> nativeSymbols = ImmutableList.of(new File("symbols.so"));
   @Test
   public void getTestPackageName() throws Exception {
     BlazeAndroidDeployInfo deployInfo =
         new BlazeAndroidDeployInfo(
-            stubManifest("test.package.name"), stubManifest("package.name"), ImmutableList.of());
+            stubManifest("test.package.name"), stubManifest("package.name"), ImmutableList.of(), nativeSymbols);
     ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
     when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
 
@@ -52,7 +54,7 @@ public class BlazeAndroidTestApplicationIdProviderTest {
   public void getTestPackageName_noPackageNameInMergedManifest() throws Exception {
     BlazeAndroidDeployInfo deployInfo =
         new BlazeAndroidDeployInfo(
-            stubManifest(null), stubManifest("package.name"), ImmutableList.of());
+            stubManifest(null), stubManifest("package.name"), ImmutableList.of(), nativeSymbols);
     ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
     when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
 
@@ -74,7 +76,7 @@ public class BlazeAndroidTestApplicationIdProviderTest {
   public void getPackageName() throws Exception {
     BlazeAndroidDeployInfo deployInfo =
         new BlazeAndroidDeployInfo(
-            stubManifest("test.package.name"), stubManifest("package.name"), ImmutableList.of());
+            stubManifest("test.package.name"), stubManifest("package.name"), ImmutableList.of(), nativeSymbols);
     ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
     when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
 
@@ -87,7 +89,7 @@ public class BlazeAndroidTestApplicationIdProviderTest {
   public void getPackageName_noPackageNameInMergedManifest() throws Exception {
     BlazeAndroidDeployInfo deployInfo =
         new BlazeAndroidDeployInfo(
-            stubManifest("test.package.name"), stubManifest(null), ImmutableList.of());
+            stubManifest("test.package.name"), stubManifest(null), ImmutableList.of(), nativeSymbols);
     ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
     when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
 
@@ -108,7 +110,7 @@ public class BlazeAndroidTestApplicationIdProviderTest {
   @Test
   public void getPackageName_noMergedManifest() throws Exception {
     BlazeAndroidDeployInfo deployInfo =
-        new BlazeAndroidDeployInfo(stubManifest("test.package.name"), null, ImmutableList.of());
+        new BlazeAndroidDeployInfo(stubManifest("test.package.name"), null, ImmutableList.of(), ImmutableList.of());
     ApkBuildStep mockBuildStep = mock(ApkBuildStep.class);
     when(mockBuildStep.getDeployInfo()).thenReturn(deployInfo);
 

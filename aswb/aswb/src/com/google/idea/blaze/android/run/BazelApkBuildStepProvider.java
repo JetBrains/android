@@ -112,6 +112,7 @@ public class BazelApkBuildStepProvider implements ApkBuildStepProvider {
         .setUseMobileInstall(useMobileInstall)
         .setLaunchId(launchId)
         .setBuildInvoker(buildInvoker)
+        .setNativeDebuggingEnabled(nativeDebuggingEnabled)
         .setDeployInfoExtractor(new AitDeployInfoExtractor(project, info))
         .build();
   }

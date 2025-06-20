@@ -144,7 +144,7 @@ public class BlazeAndroidTestRunConfigurationHandler
           .getAitBuildStep(
               project,
               useMobileInstall,
-              /* nativeDebuggingEnabled= */ false,
+              /* nativeDebuggingEnabled= */ true,
               label,
               blazeFlags,
               exeFlags,
@@ -152,7 +152,7 @@ public class BlazeAndroidTestRunConfigurationHandler
     } else {
       // TODO(b/248317444): This path is only invoked for the deprecated {@code android_test}
       // targets, and should eventually be removed.
-      return new FullApkBuildStep(project, label, blazeFlags, /* nativeDebuggingEnabled= */ false);
+      return new FullApkBuildStep(project, label, blazeFlags, /* nativeDebuggingEnabled= */ true);
     }
   }
 

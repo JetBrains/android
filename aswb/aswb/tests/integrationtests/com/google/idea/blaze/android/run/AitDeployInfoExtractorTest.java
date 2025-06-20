@@ -76,6 +76,9 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
   private static final FileArtifact TARGET_APK_ARTIFACT_FILE =
       new FileArtifact(BIN_PREFIXES, "some/random/target.apk", new File("/some/random/target.apk"));
 
+  private static final ImmutableList<File> nativeSymbols =
+      ImmutableList.of(new File("symbols.so"));
+
   @Rule public TemporaryFolder folder = new TemporaryFolder();
 
   private BlazeContext context;
@@ -105,7 +108,7 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
 
     BlazeAndroidDeployInfo deployInfo =
         new AitDeployInfoExtractor(getProject(), instrumentationInfo)
-            .extract(buildOutputs, "android-deploy-info", "default", context);
+            .extract(buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
 
     assertThat(deployInfo).isNotNull();
     assertThat(deployInfo.getMergedManifest().packageName)
@@ -138,7 +141,7 @@ public class AitDeployInfoExtractorTest extends BlazeIntegrationTestCase {
 
     BlazeAndroidDeployInfo deployInfo =
         new AitDeployInfoExtractor(getProject(), instrumentationInfo)
-            .extract(buildOutputs, "android-deploy-info", "default", context);
+            .extract(buildOutputs, "android-deploy-info", "default", context, nativeSymbols);
 
     assertThat(deployInfo).isNotNull();
     assertThat(deployInfo.getMergedManifest().packageName)
