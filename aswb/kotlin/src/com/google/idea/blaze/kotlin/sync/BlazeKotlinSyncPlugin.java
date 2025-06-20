@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.kotlin.sync;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.idea.blaze.kotlin.sync.KotlinUtils.findToolchain;
 
 import com.google.common.collect.ImmutableList;
@@ -58,7 +57,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
-import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor;
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments;
 import org.jetbrains.kotlin.cli.common.arguments.FreezableKt;
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments;
@@ -210,11 +208,6 @@ public class BlazeKotlinSyncPlugin implements BlazeSyncPlugin {
     return facet;
   }
 
-  private static boolean isCompilerOption(String option) {
-    return option.startsWith(
-        "plugin:" + AndroidCommandLineProcessor.Companion.getANDROID_COMPILER_PLUGIN_ID() + ":");
-  }
-
   @Override
   public void updateProjectStructure(
       Project project,
@@ -268,13 +261,9 @@ public class BlazeKotlinSyncPlugin implements BlazeSyncPlugin {
     }
 
     String[] oldPluginOptions = commonArguments.getPluginOptions();
-    if (oldPluginOptions == null) {
-      oldPluginOptions = new String[0];
+    if (oldPluginOptions != null) {
+      newPluginOptions.addAll(Arrays.asList(oldPluginOptions));
     }
-    newPluginOptions.addAll(
-        Arrays.stream(oldPluginOptions)
-            .filter(option -> !isCompilerOption(option))
-            .collect(toImmutableList()));
     if (KotlinPluginModeProvider.Companion.isK2Mode()) {
       // Register the bundled directly, as KtCompilerPluginsProviderIdeImpl consistently replaces user's plugin class path with it.
       // Note: This implementation may need updating if the Kotlin plugin alters its provider replacement logic.
