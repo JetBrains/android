@@ -30,14 +30,20 @@ import javax.swing.event.HyperlinkListener
 import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class ComposeRenderErrorContributorTest {
   @get:Rule val androidProjectRule = AndroidProjectRule.inMemory()
 
-  private val linkManager = StudioHtmlLinkManager()
+  private lateinit var linkManager: StudioHtmlLinkManager
   private val nopLinkHandler = HyperlinkListener {}
+
+  @Before
+  fun setup() {
+    linkManager = StudioHtmlLinkManager()
+  }
 
   @Test
   fun `composition local stack trace is found`() {
