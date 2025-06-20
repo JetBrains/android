@@ -27,7 +27,7 @@ import com.android.tools.idea.streaming.device.DeviceView
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.device.UNKNOWN_ORIENTATION
-import com.android.tools.idea.streaming.executeStreamingAction
+import com.android.tools.idea.streaming.executeAction
 import com.android.tools.idea.streaming.uisettings.ui.APP_LANGUAGE_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.DARK_THEME_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.DENSITY_TITLE
@@ -58,6 +58,7 @@ import javax.swing.JComboBox
 import javax.swing.JSlider
 import kotlin.time.Duration.Companion.seconds
 
+/** Tests for [DeviceUiSettingsAction]. */
 @RunsInEdt
 class DeviceUiSettingsActionTest {
   private val agentRule = FakeScreenSharingAgentRule()
@@ -86,7 +87,7 @@ class DeviceUiSettingsActionTest {
   @Test
   fun testActiveAction() {
     val view = connectDeviceAndCreateView()
-    executeStreamingAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
+    executeAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
     val dialog = waitForDialog()
     assertThat(dialog.contentPanel.findDescendant<UiSettingsPanel>()).isNotNull()
   }
@@ -94,7 +95,7 @@ class DeviceUiSettingsActionTest {
   @Test
   fun testWearControls() {
     val view = connectDeviceAndCreateView(isWear = true)
-    executeStreamingAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
+    executeAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
     val dialog = waitForDialog()
     val panel = dialog.contentPanel
     assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNull()
@@ -110,7 +111,7 @@ class DeviceUiSettingsActionTest {
   @Test
   fun testDialogClosesWhenDialogLosesFocus() {
     val view = connectDeviceAndCreateView()
-    executeStreamingAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
+    executeAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
     val dialog = waitForDialog()
     dialog.window.windowFocusListeners.forEach { it.windowLostFocus(mock()) }
     assertThat(dialog.isDisposed).isTrue()
@@ -119,7 +120,7 @@ class DeviceUiSettingsActionTest {
   @Test
   fun testDialogClosesWithParentDisposable() {
     val view = connectDeviceAndCreateView()
-    executeStreamingAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
+    executeAction("android.streaming.ui.settings", view, project, ActionPlaces.TOOLBAR)
     val dialog = waitForDialog()
 
     Disposer.dispose(view)

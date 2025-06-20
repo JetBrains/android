@@ -18,7 +18,7 @@ package com.android.tools.idea.streaming.emulator
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.executeStreamingAction
+import com.android.tools.idea.streaming.executeAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -32,9 +32,7 @@ import org.junit.runners.model.Statement
 import java.nio.file.Path
 import kotlin.time.Duration.Companion.seconds
 
-/**
- * Allows tests to create [EmulatorView]s connected to [FakeEmulator]s.
- */
+/** Allows tests to create [EmulatorView]s connected to [FakeEmulator]s. */
 class EmulatorViewRule : TestRule {
 
   private val projectRule = AndroidProjectRule.inMemory()
@@ -82,7 +80,7 @@ class EmulatorViewRule : TestRule {
   }
 
   fun executeAction(actionId: String, emulatorView: EmulatorView, place: String = ActionPlaces.TOOLBAR) {
-    executeStreamingAction(actionId, emulatorView, projectRule.project, place)
+    executeAction(actionId, emulatorView, projectRule.project, place)
   }
 
   fun getFakeEmulator(emulatorView: EmulatorView): FakeEmulator =
