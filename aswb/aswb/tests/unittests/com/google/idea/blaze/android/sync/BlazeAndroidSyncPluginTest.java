@@ -46,28 +46,19 @@ import com.google.idea.blaze.java.sync.model.BlazeJavaImportResult;
 import com.google.idea.blaze.java.sync.model.BlazeJavaSyncData;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.RootsChangeRescanningInfo;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
-import com.intellij.openapi.roots.OrderEnumerator;
-import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.util.Ref;
 import com.intellij.pom.java.LanguageLevel;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
 /** Unit tests for {@link com.google.idea.blaze.android.sync.BlazeAndroidSyncPlugin} */
 @RunWith(JUnit4.class)
@@ -85,7 +76,7 @@ public class BlazeAndroidSyncPluginTest extends BlazeTestCase {
    * <p>A mock sdk provider with 2 registered SDKs: android-26 and android-28. 2 SDKs are registered
    * because the test will make use of both to verify the correct one is selected.
    *
-   * <p>A {@link MockProjectRootManagerEx} service. Note that it's registered on the {@link
+   * <p>A mock {@link ProjectRootManagerEx} service. Note that it's registered on the {@link
    * ProjectRootManager} component instead of {@link ProjectRootManagerEx}. This is due to the way
    * {@link ProjectRootManagerEx} obtains its own instance. See {@link
    * ProjectRootManagerEx#getInstance(Project)} for more details.
@@ -106,7 +97,16 @@ public class BlazeAndroidSyncPluginTest extends BlazeTestCase {
 
     applicationServices.register(ExperimentService.class, new MockExperimentService());
 
-    projectServices.register(ProjectRootManager.class, new MockProjectRootManagerEx());
+    // The mock ProjectRootManagerEx stores a project SDK so it can be obtained later for verification.
+    var mockProjectRootManager = Mockito.mock(ProjectRootManagerEx.class);
+    var projectSdk = new Ref<Sdk>();
+    Mockito.doAnswer(m -> {
+        projectSdk.set(m.getArgument(0));
+        return null;
+      })
+      .when(mockProjectRootManager).setProjectSdk(Mockito.any());
+    Mockito.when(mockProjectRootManager.getProjectSdk()).thenAnswer(m -> projectSdk.get());
+    projectServices.register(ProjectRootManager.class, mockProjectRootManager);
 
     projectServices.register(
         LanguageLevelProjectExtension.class, new MockLanguageLevelProjectExtension());
@@ -229,120 +229,5 @@ public class BlazeAndroidSyncPluginTest extends BlazeTestCase {
     public void setLanguageLevel(@NotNull LanguageLevel languageLevel) {
       this.languageLevel = languageLevel;
     }
-  }
-
-  /** Stores a project sdk so that it can be obtained later for verification. */
-  private static class MockProjectRootManagerEx extends ProjectRootManagerEx {
-    Sdk projectSdk;
-
-    @Override
-    public void makeRootsChange(
-      @NotNull Runnable runnable, @NotNull RootsChangeRescanningInfo rootsChangeRescanningInfo) {}
-
-    @Override
-    public @NotNull AutoCloseable withRootsChange(
-      @NotNull RootsChangeRescanningInfo rootsChangeRescanningInfo) {
-      return new AutoCloseable() {
-        @Override
-        public void close() throws Exception {}
-      };
-    }
-
-    @Override
-    public List<VirtualFile> markRootsForRefresh() {
-      return new ArrayList<>();
-    }
-
-    @Nullable
-    @Override
-    public Sdk getProjectSdk() {
-      return projectSdk;
-    }
-
-    @Override
-    public void setProjectSdk(@Nullable Sdk sdk) {
-      projectSdk = sdk;
-    }
-
-    /* The below methods are not used and irrelevant to this test */
-    @Override
-    public void addProjectJdkListener(@NotNull ProjectJdkListener projectJdkListener) {}
-
-    @Override
-    public void removeProjectJdkListener(@NotNull ProjectJdkListener projectJdkListener) {}
-
-    @Override
-    public void makeRootsChange(@NotNull Runnable runnable, boolean b, boolean b1) {}
-
-    @Override
-    public void mergeRootsChangesDuring(@NotNull Runnable runnable) {}
-
-    @Override
-    public void clearScopesCachesForModules() {}
-
-    @NotNull
-    @Override
-    public ProjectFileIndex getFileIndex() {
-      return null;
-    }
-
-    @NotNull
-    @Override
-    public OrderEnumerator orderEntries() {
-      return null;
-    }
-
-    @NotNull
-    @Override
-    public OrderEnumerator orderEntries(@NotNull Collection<? extends Module> collection) {
-      return null;
-    }
-
-    @Override
-    public VirtualFile[] getContentRootsFromAllModules() {
-      return new VirtualFile[0];
-    }
-
-    @NotNull
-    @Override
-    public List<String> getContentRootUrls() {
-      return null;
-    }
-
-    @NotNull
-    @Override
-    public VirtualFile[] getContentRoots() {
-      return new VirtualFile[0];
-    }
-
-    @NotNull
-    @Override
-    public VirtualFile[] getContentSourceRoots() {
-      return new VirtualFile[0];
-    }
-
-    @NotNull
-    @Override
-    public List<VirtualFile> getModuleSourceRoots(
-        @NotNull Set<? extends JpsModuleSourceRootType<?>> set) {
-      return null;
-    }
-
-    @Override
-    public String getProjectSdkName() {
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public String getProjectSdkTypeName() {
-      return null;
-    }
-
-    // @Override #api211
-    public void setProjectSdkName(String s) {}
-
-    @Override
-    public void setProjectSdkName(String name, String sdkTypeName) {}
   }
 }
