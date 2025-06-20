@@ -46,8 +46,7 @@ class ShellCommandScreenshotProvider(
 
   private val coroutineScope = createCoroutineScope()
   private val adbLibService = AdbLibService.getInstance(project)
-  private val deviceDisplayInfoRegex =
-      Regex("\\s(DisplayDeviceInfo\\W.* state ON,.*)\\s\\S]*?\\s+mCurrentLayerStack=$displayId\\W", RegexOption.MULTILINE)
+  private val deviceDisplayInfoExtractor = DeviceDisplayInfoExtractor(displayId)
 
   /** This simplified constructor is intended exclusively for use in TestRecorderScreenshotTask. */
   constructor(project: Project, serialNumber: String) : this(project, serialNumber, DeviceType.HANDHELD, "Device", PRIMARY_DISPLAY_ID)
@@ -72,7 +71,7 @@ class ShellCommandScreenshotProvider(
       try {
         val dumpsysOutput = dumpsysJob.await()
         ProgressManagerAdapter.checkCanceled()
-        val displayInfo = extractDeviceDisplayInfo(dumpsysOutput)
+        val displayInfo = deviceDisplayInfoExtractor.extractFromDumpSys(dumpsysOutput)
         ProgressManagerAdapter.checkCanceled()
         val image = screenshotJob.await()
         ProgressManagerAdapter.checkCanceled()
@@ -87,12 +86,6 @@ class ShellCommandScreenshotProvider(
       }
     }
   }
-
-  /**
-   * Returns the first line starting with "DisplayDeviceInfo".
-   */
-  private fun extractDeviceDisplayInfo(dumpsysOutput: String): String =
-    deviceDisplayInfoRegex.find(dumpsysOutput)?.groupValues?.get(1) ?: ""
 
   override fun dispose() {}
 }
