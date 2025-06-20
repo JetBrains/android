@@ -22,9 +22,9 @@ import com.android.sdklib.AndroidDpCoordinate
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.ConversionUtil
 import com.android.tools.configurations.Wallpaper
 import com.android.tools.configurations.updateScreenSize
-import com.android.tools.preview.config.ConversionUtil
 import com.android.tools.preview.config.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.preview.config.DeviceConfig
 import com.android.tools.preview.config.Navigation

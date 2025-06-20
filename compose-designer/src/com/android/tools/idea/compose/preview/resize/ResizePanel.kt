@@ -20,12 +20,13 @@ import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
+import com.android.tools.configurations.ConversionUtil
+import com.android.tools.configurations.deviceSizeDp
 import com.android.tools.configurations.updateScreenSize
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.compose.preview.analytics.resizeMode
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.deviceSizeDp
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.ReferenceDevice
@@ -35,7 +36,6 @@ import com.android.tools.idea.preview.util.getSdkDevices
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.visual.getDeviceGroupsSortedAsMap
 import com.android.tools.preview.UNDEFINED_DIMENSION
-import com.android.tools.preview.config.ConversionUtil
 import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable

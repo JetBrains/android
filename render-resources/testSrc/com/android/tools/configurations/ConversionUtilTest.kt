@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.preview.config
+package com.android.tools.configurations
 
-import com.android.tools.preview.config.ConversionUtil.dpToPx
-import com.android.tools.preview.config.ConversionUtil.pxToDp
+
+import com.android.tools.configurations.ConversionUtil.dpToPx
+import com.android.tools.configurations.ConversionUtil.pxToDp
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
