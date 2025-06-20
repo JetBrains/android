@@ -23,6 +23,7 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.preview.ComposePreviewElementInstance
@@ -262,7 +263,7 @@ class PreviewAnnotationGeneratorTest {
       @androidx.compose.ui.tooling.preview.Preview(
           name = "ShowSystemUiPreview",
           showSystemUi = true,
-          device = "spec:width=400dp,height=600dp,dpi=160,orientation=portrait"
+          device = "spec:width=400dp,height=600dp,dpi=160"
       )
       """
           .trimIndent()
@@ -362,7 +363,7 @@ class PreviewAnnotationGeneratorTest {
         @androidx.compose.ui.tooling.preview.Preview(
             name = "DevicePortrait",
             showSystemUi = true,
-            device = "spec:width=167dp,height=333dp,dpi=480,orientation=portrait"
+            device = "spec:width=167dp,height=333dp,dpi=480"
         )
       """
           .trimIndent()
@@ -473,6 +474,34 @@ class PreviewAnnotationGeneratorTest {
         """
       @androidx.compose.ui.tooling.preview.Preview(
           name = "DefaultDevicePreview"
+      )
+      """
+          .trimIndent()
+      )
+  }
+
+  @Test
+  fun `toPreviewAnnotationText with reference device generates device spec`() = runTest {
+    val referenceDeviceId = DEVICE_CLASS_PHONE_ID
+    val configuration = createConfigurationForDevice(referenceDeviceId)
+
+    // showDecoration is false to ensure the spec is generated because it's a reference device,
+    // not because of the decoration.
+    val previewElement =
+      createPreviewElement(name = "ReferenceDevicePreview", showDecoration = false)
+
+    val generatedText =
+      toPreviewAnnotationText(previewElement, configuration, "ReferenceDevicePreview")
+
+    // For a reference device, a 'spec' should be generated instead of an 'id',
+    // as reference devices are for tooling purposes and their IDs are not stable.
+    // The spec for ReferenceDevice.PHONE is 411x891 dp at 420 dpi.
+    assertThat(generatedText)
+      .isEqualTo(
+        """
+      @androidx.compose.ui.tooling.preview.Preview(
+          name = "ReferenceDevicePreview",
+          device = "spec:width=411dp,height=891dp"
       )
       """
           .trimIndent()

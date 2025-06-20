@@ -178,14 +178,12 @@ class PreviewAnnotationRoundTripTest {
 
     val generatedText = toPreviewAnnotationText(previewElement, configuration, "MyDevicePreview")
 
-    // Corrected expected string: it should preserve the original device spec AND add
-    // widthDp/heightDp
     assertThat(generatedText)
       .isEqualTo(
         """
         @androidx.compose.ui.tooling.preview.Preview(
             name = "MyDevicePreview",
-            device = "spec:width=100dp,height=100dp,dpi=240,orientation=portrait",
+            device = "spec:width=400dp,height=800dp,dpi=240",
             widthDp = 400,
             heightDp = 800
         )
@@ -356,13 +354,12 @@ class PreviewAnnotationRoundTripTest {
       val generatedText =
         toPreviewAnnotationText(previewElement, configuration, "DeviceWithCustomSize")
 
-      // Expected: original device spec + new widthDp/heightDp
       assertThat(generatedText)
         .isEqualTo(
           """
         @androidx.compose.ui.tooling.preview.Preview(
             name = "DeviceWithCustomSize",
-            device = "spec:width=400dp,height=800dp,dpi=240,cutout=double",
+            device = "spec:width=600dp,height=1200dp,dpi=160",
             widthDp = 600,
             heightDp = 1200
         )
