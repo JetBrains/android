@@ -238,12 +238,10 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
 
   private static boolean isInterestingFrame(@NotNull StackTraceElement frame) {
     String className = frame.getClassName();
-    return !(className.startsWith("android.")
+    return !(isFramework(frame)
              || className.startsWith("org.jetbrains.")
              || className.startsWith("com.android.")
-             || className.startsWith("java.")
-             || className.startsWith("javax.")
-             || className.startsWith("sun."));
+    );
   }
 
   private static boolean isFramework(@NotNull StackTraceElement frame) {
@@ -255,8 +253,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
   }
 
   private static boolean isVisible(@NotNull StackTraceElement frame) {
-    String className = frame.getClassName();
-    return !(isFramework(frame) || className.startsWith("sun."));
+    return !isFramework(frame);
   }
 
   @NotNull
