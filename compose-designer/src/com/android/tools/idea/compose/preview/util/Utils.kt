@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.util
 
-import com.android.resources.ScreenOrientation
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.compose.isValidPreviewLocation
-import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlDataProvider
@@ -36,7 +34,6 @@ import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.util.isAndroidModule
 import com.android.tools.idea.util.isCommonWithAndroidModule
-import com.android.tools.preview.config.ConversionUtil
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleUtilCore
@@ -116,47 +113,3 @@ private fun KtNamedFunction.isInAndroidOrCommonModule(): Boolean {
 
 private fun KtNamedFunction.isInTestFile() =
   isTestFile(this.project, this.containingFile.virtualFile)
-
-/**
- * Calculates the width and height based on the given x and y dimensions and the screen orientation.
- */
-private fun calculateDimensions(
-  x: Int,
-  y: Int,
-  mScreenOrientation: ScreenOrientation?,
-): Pair<Int, Int> {
-  // Determine if the desired orientation needs a swap.
-  val shouldSwapDimensions = (x > y) != (mScreenOrientation == ScreenOrientation.LANDSCAPE)
-
-  return if (shouldSwapDimensions) {
-    Pair(y, x)
-  } else {
-    Pair(x, y)
-  }
-}
-
-/** Calculates the current width and height in PX for the given Configuration. */
-fun Configuration.deviceSizePx(): Pair<Int, Int> {
-  val deviceState = deviceState ?: return Pair(0, 0)
-  val orientation = deviceState.orientation
-  val x = deviceState.hardware.screen.xDimension
-  val y = deviceState.hardware.screen.yDimension
-  return calculateDimensions(x, y, orientation)
-}
-
-/** Calculates the current width and height in DP for the given Configuration. */
-fun Configuration.deviceSizeDp(): Pair<Int, Int> {
-  val deviceState = deviceState ?: return Pair(0, 0)
-  val orientation = deviceState.orientation
-  val x =
-    ConversionUtil.pxToDp(
-      deviceState.hardware.screen.xDimension,
-      deviceState.hardware.screen.pixelDensity.dpiValue,
-    )
-  val y =
-    ConversionUtil.pxToDp(
-      deviceState.hardware.screen.yDimension,
-      deviceState.hardware.screen.pixelDensity.dpiValue,
-    )
-  return calculateDimensions(x, y, orientation)
-}

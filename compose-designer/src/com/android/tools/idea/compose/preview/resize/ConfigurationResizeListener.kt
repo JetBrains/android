@@ -17,9 +17,9 @@ package com.android.tools.idea.compose.preview.resize
 
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
+import com.android.tools.configurations.deviceSizePx
 import com.android.tools.idea.common.util.updateLayoutParams
 import com.android.tools.idea.common.util.updateLayoutParamsToWrapContent
-import com.android.tools.idea.compose.preview.util.deviceSizePx
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.intellij.openapi.Disposable

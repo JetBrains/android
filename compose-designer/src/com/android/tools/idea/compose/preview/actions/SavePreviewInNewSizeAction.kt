@@ -17,11 +17,11 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.deviceSizeDp
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.util.deviceSizeDp
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.util.toPreviewAnnotationText
 import com.android.tools.idea.concurrency.asCollection

@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.util
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.deviceSizeDp
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.ConfigurablePreviewElement
 import com.android.tools.preview.NO_DEVICE_SPEC
