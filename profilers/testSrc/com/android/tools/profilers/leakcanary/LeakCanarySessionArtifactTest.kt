@@ -131,7 +131,8 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
     assertEquals(1, leakCanarySessionArtifact.size)
     leakCanarySessionArtifact[0].doSelect()
     assertTrue { profilers.stage is LeakCanaryModel }
-    assertEquals(3, (profilers.stage as LeakCanaryModel).leaks.value.size)
+    // All the leaks are same which are stored in the LeakCanaryModel, hence only 1 unique leak will be present
+    assertEquals(1, (profilers.stage as LeakCanaryModel).leaks.value.size)
   }
 
   @Test
