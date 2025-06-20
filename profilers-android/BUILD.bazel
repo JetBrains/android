@@ -137,7 +137,6 @@ jvm_library(
     "//platform/platform-api:ide",
     "//platform/ide-core",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/platform-util-io:ide-util-io",
     "//platform/projectModel-api:projectModel",
     "//platform/util",

@@ -62,7 +62,6 @@ jvm_library(
     "//android/android-common:common",
     "//platform/core-ui",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test_lib",
     "//platform/analysis-api:analysis",
     "//java/java-psi-api:psi",
   ]

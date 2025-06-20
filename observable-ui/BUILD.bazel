@@ -41,7 +41,6 @@ jvm_library(
     "//platform/core-ui",
     "//platform/platform-api:ide",
     "//platform/platform-impl:ide-impl",
-    "//platform/platform-impl:ide-impl_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
     "//platform/testFramework",
     "//platform/testFramework:testFramework_test_lib",
