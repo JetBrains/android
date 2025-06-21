@@ -46,7 +46,7 @@ class DeviceScreenshotPostprocessorTest {
 
   @Test
   fun testSkinFrame() {
-    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, "")
+    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID)
     val skinFolder = DeviceArtDescriptor.getBundledDescriptorsFolder()!!.toPath().resolve("pixel_6")
     val framedImage = postprocessor.decorate(screenshotImage, DeviceFramingOption("Pixel 6", skinFolder), null)
     assertImageSimilar("SkinFrame", framedImage)
@@ -54,7 +54,7 @@ class DeviceScreenshotPostprocessorTest {
 
   @Test
   fun testDeviceArtFrame() {
-    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, "")
+    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID)
     val artDescriptor = DeviceArtDescriptor.getDescriptors(null).find { it.id == "phone" }!!
     val framedImage = postprocessor.decorate(screenshotImage, DeviceFramingOption(artDescriptor), null)
     assertImageSimilar("DeviceArtFrame", framedImage)
@@ -63,7 +63,7 @@ class DeviceScreenshotPostprocessorTest {
   @Test
   fun testCircularClip() {
     val screenshotImage = ScreenshotImage(createImage(400, 400, Color.CYAN), 0, DeviceType.WEAR, "Watch", PRIMARY_DISPLAY_ID,
-                                          "DisplayDeviceInfo{..., FLAG_ROUND}")
+                                          isRoundDisplay = true)
     val framedImage = postprocessor.decorate(screenshotImage, null, null)
     assertImageSimilar("CircularClip", framedImage)
   }

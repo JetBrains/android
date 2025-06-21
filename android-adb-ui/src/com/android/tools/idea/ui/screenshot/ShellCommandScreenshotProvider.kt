@@ -31,6 +31,7 @@ import com.google.common.base.Throwables.throwIfUnchecked
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import java.awt.Dimension
 
 private val commandTimeout = INFINITE_DURATION
 
@@ -46,7 +47,6 @@ class ShellCommandScreenshotProvider(
 
   private val coroutineScope = createCoroutineScope()
   private val adbLibService = AdbLibService.getInstance(project)
-  private val deviceDisplayInfoExtractor = DeviceDisplayInfoExtractor(displayId)
 
   /** This simplified constructor is intended exclusively for use in TestRecorderScreenshotTask. */
   constructor(project: Project, serialNumber: String) : this(project, serialNumber, DeviceType.HANDHELD, "Device", PRIMARY_DISPLAY_ID)
@@ -71,14 +71,17 @@ class ShellCommandScreenshotProvider(
       try {
         val dumpsysOutput = dumpsysJob.await()
         ProgressManagerAdapter.checkCanceled()
-        val displayInfo = deviceDisplayInfoExtractor.extractFromDumpSys(dumpsysOutput)
+        val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(dumpsysOutput).find { it.logicalId == displayId }
         ProgressManagerAdapter.checkCanceled()
         val image = screenshotJob.await()
         ProgressManagerAdapter.checkCanceled()
         val screenshotRotation = displayInfoProvider?.getScreenshotRotation(displayId) ?: 0
         val rotatedImage = ImageUtils.rotateByQuadrants(image, screenshotRotation)
-        val orientation = displayInfoProvider?.getDisplayOrientation(displayId) ?: 0
-        ScreenshotImage(rotatedImage, orientation, deviceType, deviceName, displayId, displayInfo)
+        val orientation = displayInfoProvider?.getDisplayOrientation(displayId) ?: displayInfo?.orientationQuadrants ?: 0
+        val displaySize = displayInfoProvider?.getDisplaySize(displayId) ?: displayInfo?.size ?: Dimension()
+        val displayDensity = displayInfo?.density ?: 0
+        val isRoundDisplay = displayInfo?.isRound ?: false
+        ScreenshotImage(rotatedImage, orientation, deviceType, deviceName, displayId, displaySize, displayDensity, isRoundDisplay)
       }
       catch (e: Throwable) {
         throwIfUnchecked(e)

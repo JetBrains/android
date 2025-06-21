@@ -19,6 +19,7 @@ package com.android.tools.idea.ui.util
 import com.android.adblib.AdbSession
 import com.android.adblib.DeviceSelector
 import com.android.adblib.shellAsText
+import com.android.tools.idea.ui.screenshot.DumpsysDisplayDeviceInfoParser
 
 /**
  * Returns the physical ID corresponding to a logical display. Throws an exception in case of
@@ -31,11 +32,10 @@ suspend fun AdbSession.getPhysicalDisplayId(device: DeviceSelector, displayId: I
 }
 
 /**
- * Returns the physical ID corresponding to a logical display by parsing output of `adb dumpsys display`.
+ * Returns the physical ID corresponding to a logical display by parsing output of `adb shell dumpsys display`.
  * Throws an exception if the given logical display ID is not fund in the dumpsys output.
  */
 fun getPhysicalDisplayIdFromDumpsysOutput(dumpsysOutput: String, displayId: Int): Long {
-  val regex = Regex("\\s+mCurrentLayerStack=$displayId\\W[\\s\\S]*?\\s+mPhysicalDisplayId=(\\d+)\n", RegexOption.MULTILINE)
-  val match = regex.find(dumpsysOutput) ?: throw RuntimeException("Unable to find physical id for logical display $displayId")
-  return match.groupValues[1].toLong()
+  return DumpsysDisplayDeviceInfoParser.getActiveDisplays(dumpsysOutput).find { it.logicalId == displayId }?.physicalId ?:
+      throw RuntimeException("Unable to find physical id for logical display $displayId")
 }
