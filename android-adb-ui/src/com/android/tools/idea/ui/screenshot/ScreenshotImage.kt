@@ -34,21 +34,17 @@ class ScreenshotImage(
   val deviceType: DeviceType,
   val deviceName: String,
   val displayId: Int,
-  private val displayInfo: String = "",
+  val displaySize: Dimension = Dimension(),
+  // Display density in dpi, or zero if not available. Please keep in mind that some devices,
+  // e.g. Android TV, report fictitious display density.
+  val displayDensity: Int = 0,
+  val isRoundDisplay: Boolean = false,
 ) {
 
   val width: Int
     get() = image.width
   val height: Int
     get() = image.height
-
-  // True is the display is round.
-  val isRoundDisplay: Boolean = displayInfo.contains("FLAG_ROUND")
-  // Size of the display in pixels.
-  val displaySize: Dimension? = computeDisplaySize()
-  // Display density in dpi, or Double.NaN if not available. Please keep in mind that some devices,
-  // e.g. Android TV, report fictitious display density.
-  val displayDensity: Double = computeDisplayDensity()
 
   val isWear: Boolean
     get() = deviceType == DeviceType.WEAR
@@ -72,28 +68,10 @@ class ScreenshotImage(
       deviceType = deviceType,
       deviceName = deviceName,
       displayId = displayId,
-      displayInfo = displayInfo,
+      displaySize = displaySize,
+      displayDensity = displayDensity,
+      isRoundDisplay = isRoundDisplay,
     )
-  }
-
-  private fun computeDisplaySize(): Dimension? {
-    val (width, height) = Regex("(\\d+) x (\\d+)").find(displayInfo)?.destructured ?: return null
-    return try {
-      Dimension(width.toInt(), height.toInt())
-    }
-    catch (_: NumberFormatException) {
-      null
-    }
-  }
-
-  private fun computeDisplayDensity(): Double {
-    val (density) = Regex("density (\\d+)").find(displayInfo)?.destructured ?: return Double.NaN
-    return try {
-      density.toDouble()
-    }
-    catch (_: NumberFormatException) {
-      Double.NaN
-    }
   }
 
   fun decorate(drawFrame: Boolean, skinDefinition: SkinDefinition, backgroundColor: Color?): BufferedImage {
