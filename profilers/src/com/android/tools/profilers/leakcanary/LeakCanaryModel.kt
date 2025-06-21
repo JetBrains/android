@@ -249,7 +249,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
         Transport.GetEventGroupsRequest.newBuilder()
           .setStreamId(session.streamId)
           .setPid(session.pid)
-          .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT_INFO)
+          .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT_STATUS)
           .setFromTimestamp(range.min.toLong())
           .setToTimestamp(range.max.toLong())
           .build()).groupsList.flatMap { group -> group.eventsList.toList() }

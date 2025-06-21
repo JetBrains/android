@@ -84,7 +84,7 @@ object SessionArtifactUtils {
   }
 
   fun createLeakCanarySessionArtifact(profilers: StudioProfilers, session: Common.Session,
-                                      infoEvent: LeakCanary.LeakCanaryLogcatInfo): LeakCanarySessionArtifact {
+                                      infoEvent: LeakCanary.LeakCanaryLogcatStatus): LeakCanarySessionArtifact {
     val sessionMetadata = Common.SessionMetaData.getDefaultInstance()
     return LeakCanarySessionArtifact(profilers, session, sessionMetadata, infoEvent.logcatEnded)
   }
