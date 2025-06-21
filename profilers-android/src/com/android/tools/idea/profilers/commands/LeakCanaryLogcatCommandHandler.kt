@@ -27,8 +27,8 @@ import com.android.tools.profiler.proto.LeakCanary.LeakCanaryLogcatEnded.Status
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryLogcatEnded.Status.FAILURE
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryLogcatEnded.Status.STATUS_UNSPECIFIED
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS
-import com.android.tools.profiler.proto.LeakCanary.LeakCanaryLogcatInfo
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryLogcatStarted
+import com.android.tools.profiler.proto.LeakCanary.LeakCanaryLogcatStatus
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.intellij.openapi.diagnostic.Logger
@@ -114,9 +114,9 @@ class LeakCanaryLogcatCommandHandler(
    */
   private fun sendLeakCanaryLogcatInfoEvent(timestampNs: Long, isStarted: Boolean,
                                             stopStatus: Status = STATUS_UNSPECIFIED) {
-    val infoEvent: LeakCanaryLogcatInfo = if (isStarted) {
+    val infoEvent: LeakCanaryLogcatStatus = if (isStarted) {
       // Start event
-      LeakCanaryLogcatInfo.newBuilder()
+      LeakCanaryLogcatStatus.newBuilder()
         .setLogcatStarted(LeakCanaryLogcatStarted.newBuilder()
                             .setTimestamp(timestampNs)
                             .build())
@@ -124,7 +124,7 @@ class LeakCanaryLogcatCommandHandler(
     }
     else {
       // Stop event
-      LeakCanaryLogcatInfo.newBuilder()
+      LeakCanaryLogcatStatus.newBuilder()
         .setLogcatEnded(LeakCanaryLogcatEnded.newBuilder()
                           .setStartTimestamp(startTimeNs)
                           .setEndTimestamp(timestampNs)
@@ -137,8 +137,8 @@ class LeakCanaryLogcatCommandHandler(
                        .setGroupId(pid.toLong())
                        .setPid(pid)
                        .setIsEnded(!isStarted)
-                       .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT_INFO)
-                       .setLeakCanaryLogcatInfo(infoEvent)
+                       .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT_STATUS)
+                       .setLeakCanaryLogcatStatus(infoEvent)
                        .setTimestamp(timestampNs)
                        .build())
   }

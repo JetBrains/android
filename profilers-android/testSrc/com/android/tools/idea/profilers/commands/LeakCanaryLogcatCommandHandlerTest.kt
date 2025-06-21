@@ -323,10 +323,10 @@ class LeakCanaryLogcatCommandHandlerTest {
 
   private fun verifyStartEvent() {
     val startEvent = mockEventQueue.poll()
-    assertEquals(Common.Event.Kind.LEAKCANARY_LOGCAT_INFO, startEvent.kind)
+    assertEquals(Common.Event.Kind.LEAKCANARY_LOGCAT_STATUS, startEvent.kind)
     assertEquals(123, startEvent.groupId)
-    assertEquals(startTime, startEvent.leakCanaryLogcatInfo.logcatStarted.timestamp)
-    assertEquals(0, startEvent.leakCanaryLogcatInfo.logcatEnded.startTimestamp)
+    assertEquals(startTime, startEvent.leakCanaryLogcatStatus.logcatStarted.timestamp)
+    assertEquals(0, startEvent.leakCanaryLogcatStatus.logcatEnded.startTimestamp)
   }
 
   private fun verifyEndEvent() {
@@ -335,12 +335,12 @@ class LeakCanaryLogcatCommandHandlerTest {
     assertEquals(mockEventQueue.size, 2) // End event is received
     val leakInfoEndEvent = mockEventQueue.poll()
     val sessionEndEvent = mockEventQueue.poll()
-    assertEquals(Common.Event.Kind.LEAKCANARY_LOGCAT_INFO, leakInfoEndEvent.kind)
+    assertEquals(Common.Event.Kind.LEAKCANARY_LOGCAT_STATUS, leakInfoEndEvent.kind)
     assertEquals(123, leakInfoEndEvent.groupId)
-    assertEquals(startTime, leakInfoEndEvent.leakCanaryLogcatInfo.logcatEnded.startTimestamp)
+    assertEquals(startTime, leakInfoEndEvent.leakCanaryLogcatStatus.logcatEnded.startTimestamp)
     assertTrue(leakInfoEndEvent.isEnded)
-    assertEquals(endTime, leakInfoEndEvent.leakCanaryLogcatInfo.logcatEnded.endTimestamp)
-    assertEquals(LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS, leakInfoEndEvent.leakCanaryLogcatInfo.logcatEnded.status)
+    assertEquals(endTime, leakInfoEndEvent.leakCanaryLogcatStatus.logcatEnded.endTimestamp)
+    assertEquals(LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS, leakInfoEndEvent.leakCanaryLogcatStatus.logcatEnded.status)
 
     assertEquals(Common.Event.Kind.SESSION, sessionEndEvent.kind)
     assertEquals(0, sessionEndEvent.groupId)

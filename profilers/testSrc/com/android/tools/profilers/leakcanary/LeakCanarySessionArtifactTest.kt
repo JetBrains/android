@@ -22,7 +22,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.SessionMetaData
 import com.android.tools.profiler.proto.LeakCanary
-import com.android.tools.profiler.proto.LeakCanary.LeakCanaryLogcatInfo
+import com.android.tools.profiler.proto.LeakCanary.LeakCanaryLogcatStatus
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
@@ -195,11 +195,11 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
                                       Common.Event.newBuilder()
                                         .setPid(FakeTransportService.FAKE_PROCESS.pid)
-                                        .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT_INFO)
+                                        .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT_STATUS)
                                         .setIsEnded(false)
                                         .setTimestamp(timeStamp1)
-                                        .setLeakCanaryLogcatInfo(
-                                          LeakCanaryLogcatInfo.newBuilder()
+                                        .setLeakCanaryLogcatStatus(
+                                          LeakCanaryLogcatStatus.newBuilder()
                                             .setLogcatStarted(LeakCanary.LeakCanaryLogcatStarted.newBuilder()
                                                                 .setTimestamp(timeStamp1)
                                                                 .build())
@@ -212,10 +212,10 @@ class LeakCanarySessionArtifactTest : WithFakeTimer {
     transportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID,
                                       Common.Event.newBuilder()
                                         .setPid(FakeTransportService.FAKE_PROCESS.pid)
-                                        .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT_INFO)
+                                        .setKind(Common.Event.Kind.LEAKCANARY_LOGCAT_STATUS)
                                         .setIsEnded(true)
                                         .setTimestamp(timeStamp3)
-                                        .setLeakCanaryLogcatInfo(LeakCanaryLogcatInfo
+                                        .setLeakCanaryLogcatStatus(LeakCanaryLogcatStatus
                                                                    .newBuilder()
                                                                    .setLogcatEnded(LeakCanary.LeakCanaryLogcatEnded.newBuilder()
                                                                                      .setStartTimestamp(timeStamp1)

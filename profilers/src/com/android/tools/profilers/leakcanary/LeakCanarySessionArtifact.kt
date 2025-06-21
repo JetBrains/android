@@ -66,7 +66,7 @@ class LeakCanarySessionArtifact(override val profilers: StudioProfilers,
                                                                          session.endTimestamp.toDouble()))
       leakInfoEvents.forEach { leakEvent ->
         run {
-          artifacts.add(LeakCanarySessionArtifact(profilers, session, sessionMetadata, leakEvent.leakCanaryLogcatInfo.logcatEnded))
+          artifacts.add(LeakCanarySessionArtifact(profilers, session, sessionMetadata, leakEvent.leakCanaryLogcatStatus.logcatEnded))
         }
       }
       return artifacts
