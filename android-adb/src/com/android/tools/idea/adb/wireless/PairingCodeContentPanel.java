@@ -23,8 +23,11 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
@@ -188,7 +191,7 @@ public class PairingCodeContentPanel {
     myDeviceList.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
     myDeviceListScrollPane.setViewportView(myDeviceList);
     myEmptyPanel = new JPanel();
-    myEmptyPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), 0, 0));
+    myEmptyPanel.setLayout(new GridBagLayout());
     myRootComponent.add(myEmptyPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
@@ -196,16 +199,22 @@ public class PairingCodeContentPanel {
     myDeviceLineupLabel = new JBLabel();
     myDeviceLineupLabel.setHorizontalTextPosition(0);
     myDeviceLineupLabel.setIconTextGap(0);
-    // TODO(b/412571872) remove this hack, implement custom UI for available pairable devices (pending input from UX session).
     if (mdnsServiceUnderPairing == null) {
       myDeviceLineupLabel.setText("Searching for devices...");
     } else {
       myDeviceLineupLabel.setText(String.format("Waiting for %s to enter pairing mode...", mdnsServiceUnderPairing.getDisplayString()));
     }
     myDeviceLineupLabel.setVerticalTextPosition(3);
-    myEmptyPanel.add(myDeviceLineupLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
-                                                              GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                              null, null, 0, false));
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    myEmptyPanel.add(myDeviceLineupLabel, gbc);
+    if (mdnsServiceUnderPairing != null) {
+      final AsyncProcessIcon asyncProcessIcon = new AsyncProcessIcon("Pairing server");
+      gbc.gridy = 1;
+      gbc.insets = new Insets(JBUI.scale(4), 0, 0, 0);
+      myEmptyPanel.add(asyncProcessIcon, gbc);
+    }
   }
 
   private static boolean isPanelDeleted(@NotNull List<PairingMdnsService> services, @NotNull PairingCodeDevicePanel panel) {
