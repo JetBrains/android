@@ -22,6 +22,7 @@ import com.android.tools.apk.analyzer.ArchiveContext
 import com.android.tools.apk.analyzer.Archives
 import com.android.tools.apk.analyzer.BinaryXmlParser
 import com.android.tools.apk.analyzer.dex.ProguardMappings
+import com.android.tools.apk.analyzer.internal.AppBundleArchive
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode
 import com.android.tools.idea.FileEditorUtil
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer
@@ -29,6 +30,7 @@ import com.android.tools.idea.apk.viewer.dex.DexFileViewer
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil
+import com.android.tools.proguard.ProguardMap
 import com.android.utils.FileUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -67,6 +69,7 @@ import java.security.NoSuchAlgorithmException
 import java.util.Optional
 import javax.swing.JComponent
 import javax.swing.LayoutFocusTraversalPolicy
+import kotlin.io.path.name
 import kotlin.math.max
 
 internal class ApkEditor(
@@ -81,7 +84,8 @@ internal class ApkEditor(
 
   private val splitter: JBSplitter
   private var currentEditor: ApkFileEditorComponent? = null
-  private var proguardMapping: ProguardMappings? = null
+  @VisibleForTesting
+  var proguardMapping: ProguardMappings? = null
 
   init {
     FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY.set(this, true)
@@ -138,8 +142,8 @@ internal class ApkEditor(
           FileUtils.copyFile(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk)
           val context = Archives.open(copyOfApk, LogWrapper(log))
           archiveContext = context
+          proguardMapping = loadProguardMapping(context.getArchive(), apkVirtualFile.toNioPath())
           // TODO(b/244771241) ApkViewPanel should be created on the UI thread
-          proguardMapping = context.getArchive().loadProguardMapping()
           val panel = ThreadingCheckerUtil.withChecksDisabledForSupplier {
             ApkViewPanel(
               ApkParser(context, ApkSizeCalculator.getDefault()),
@@ -455,6 +459,28 @@ internal class ApkEditor(
         return truncated.toString()
       }
       return text
+    }
+
+    private fun loadProguardMapping(archive: Archive, path: Path): ProguardMappings? {
+      if (archive is AppBundleArchive) {
+        // App bundles contain their mapping.
+        return archive.loadProguardMapping()
+      }
+
+      // Try to find the mapping file assuming file structure:
+      //  module/build/outputs/apk/variant/app-variant.apk
+      //  module/build/outputs/mapping/variant/mapping.txt
+      val parent = path.parent  ?: return null
+      val variant = parent.name
+      val mapping = parent.parent?.parent?.resolve("mapping/$variant/mapping.txt") ?: return null
+      return try {
+        val proguardMap = ProguardMap()
+        proguardMap.readFromFile(mapping.toFile())
+        ProguardMappings(proguardMap, null, null)
+      } catch (e: IOException) {
+        log.warn("Error loading Proguard mapping from $mapping", e)
+        null
+      }
     }
   }
 }

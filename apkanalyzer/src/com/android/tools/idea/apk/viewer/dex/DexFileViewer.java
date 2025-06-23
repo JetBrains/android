@@ -53,6 +53,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -246,8 +247,8 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     actionGroup.add(new ShowReferencedAction(myTree, myDexFilters));
     actionGroup.addSeparator();
     actionGroup.add(new ShowRemovedNodesAction(myTree, myDexFilters));
-    actionGroup.add(new DeobfuscateNodesAction());
     actionGroup.add(new LoadProguardAction());
+    actionGroup.add(new DeobfuscateNodesAction());
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("DexFileViewer", actionGroup, true);
     toolbar.setTargetComponent(myTopPanel);
     myTopPanel.add(toolbar.getComponent(), BorderLayout.WEST);
@@ -790,7 +791,8 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
 
   private class DeobfuscateNodesAction extends ToggleAction implements DumbAware {
     public DeobfuscateNodesAction() {
-      super("Deobfuscate names", "Deobfuscate names using Proguard mapping", AllIcons.ObjectBrowser.AbbreviatePackageNames);
+      super(getActionText(myDeobfuscateNames), null, EmptyIcon.ICON_0);
+      getTemplatePresentation().setDisabledIcon(EmptyIcon.ICON_0);
     }
 
     @Override
@@ -807,19 +809,25 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     public void setSelected(@NotNull AnActionEvent e, boolean state) {
       myDeobfuscateNames = state;
       initDex();
+      e.getPresentation().setText(getActionText(state));
     }
 
     @Override
     public void update(@NotNull AnActionEvent e) {
       super.update(e);
-      e.getPresentation().setEnabled(myProguardMappings != null && myProguardMappings.map != null);
+      Presentation presentation = e.getPresentation();
+      presentation.setEnabled(myProguardMappings != null && myProguardMappings.map != null);
+      presentation.putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
+    }
+
+    private static String getActionText(Boolean state) {
+      return state ? "Show Obfuscated Names" : "Show Deobfuscated Names";
     }
   }
 
   private class LoadProguardAction extends AnAction implements DumbAware {
     public LoadProguardAction() {
-      super("Load Proguard mappings...", null, EmptyIcon.ICON_0);
-      getTemplatePresentation().setDisabledIcon(EmptyIcon.ICON_0);
+      super("Load Proguard Mappings...", null, AllIcons.ObjectBrowser.AbbreviatePackageNames);
     }
 
     @Override
@@ -834,12 +842,11 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
 
     @Override
     public void update(@NotNull AnActionEvent e) {
-      e.getPresentation().putClientProperty(ActionUtil.SHOW_TEXT_IN_TOOLBAR, true);
       if (myProguardMappings != null) {
-        e.getPresentation().setText("Change Proguard mappings...");
+        e.getPresentation().setText("Change Proguard Mappings...");
       }
       else {
-        e.getPresentation().setText("Load Proguard mappings...");
+        e.getPresentation().setText("Load Proguard Mappings...");
       }
     }
   }
