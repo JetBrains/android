@@ -70,6 +70,7 @@ public class TestDataSyncRunner {
     GraphToProjectConverter converter =
         new GraphToProjectConverter(
             packageReader,
+            new PackageReader.ParallelReader.SingleThreadedForTests(),
             Predicates.alwaysTrue(),
             context,
             projectDefinition,

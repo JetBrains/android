@@ -15,11 +15,8 @@
  */
 package com.google.idea.blaze.qsync.java;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
-import java.io.IOException;
+import com.google.idea.blaze.common.Context;
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * A {@link PackageReader} that accepts paths relative to the workspace root and then delegates to a
@@ -28,22 +25,16 @@ import java.util.List;
 public class WorkspaceResolvingPackageReader implements PackageReader {
 
   private final Path workspaceRoot;
-  private final PackageReader workspaceRelativePackageReader;
+  private final PackageReader absolutePackageReader;
 
   public WorkspaceResolvingPackageReader(
-      Path workspaceRoot, PackageReader workspaceRelativePackageReader) {
+      Path workspaceRoot, PackageReader absolutePackageReader) {
     this.workspaceRoot = workspaceRoot;
-    this.workspaceRelativePackageReader = workspaceRelativePackageReader;
+    this.absolutePackageReader = absolutePackageReader;
   }
 
   @Override
-  public String readPackage(Path path) throws IOException {
-    return workspaceRelativePackageReader.readPackage(workspaceRoot.resolve(path));
-  }
-
-  @Override
-  public List<String> readPackages(List<Path> paths) throws IOException {
-    return workspaceRelativePackageReader.readPackages(
-        paths.stream().map(workspaceRoot::resolve).collect(toImmutableList()));
+  public String readPackage(Context<?> context, Path path) {
+    return absolutePackageReader.readPackage(context, workspaceRoot.resolve(path));
   }
 }

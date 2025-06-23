@@ -46,7 +46,9 @@ public class QuerySyncTestUtils {
 
   public static final Context<?> LOGGING_CONTEXT = new LoggingContext();
 
-  public static final PackageReader EMPTY_PACKAGE_READER = p -> "";
+  public static final PackageReader EMPTY_PACKAGE_READER = (c, p) -> "";
+
+  public static final PackageReader.ParallelReader SIMPLE_PARALLEL_PACKAGE_READER = new PackageReader.ParallelReader.SingleThreadedForTests();
 
   public static final VcsStateDiffer NO_CHANGES_DIFFER =
       (recent, earlier) -> Optional.of(ImmutableSet.of());
@@ -63,7 +65,7 @@ public class QuerySyncTestUtils {
 
   private static final ImmutableSet<String> JAVA_ROOT_DIRS = ImmutableSet.of("java", "javatests");
 
-  public static String inferJavaPackageFromPath(Path p) {
+  public static String inferJavaPackageFromPath(Context<?> context, Path p) {
     Path dir = p.getParent();
     for (int i = 0; i < dir.getNameCount(); ++i) {
       if (JAVA_ROOT_DIRS.contains(dir.getName(i).toString())) {

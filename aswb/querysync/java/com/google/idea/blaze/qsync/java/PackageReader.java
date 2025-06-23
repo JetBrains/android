@@ -15,21 +15,38 @@
  */
 package com.google.idea.blaze.qsync.java;
 
-import java.io.IOException;
+import com.google.idea.blaze.common.Context;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import javax.annotation.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /** Calculates the package for a java source file. */
 public interface PackageReader {
 
-  String readPackage(Path path) throws IOException;
+  /** Calculates packages for java source files. */
+  interface ParallelReader {
+    Map<Path, String> readPackages(Context<?> context, PackageReader reader, List<Path> paths);
 
-  default List<String> readPackages(List<Path> paths) throws IOException {
-    List<String> ret = new ArrayList<>(paths.size());
-    for (Path path : paths) {
-      ret.add(readPackage(path));
+    @TestOnly
+    class SingleThreadedForTests implements ParallelReader {
+      @Override
+      public Map<Path, String> readPackages(Context<?> context, PackageReader reader, List<Path> paths) {
+        Map<Path, String> pathToPkgMap = new LinkedHashMap<>(paths.size());
+        for (Path path : paths) {
+          String pkg = reader.readPackage(context, path);
+          if (pkg != null) {
+            pathToPkgMap.put(path, pkg);
+          }
+        }
+        return pathToPkgMap;
+      }
+
     }
-    return ret;
   }
+
+  @Nullable
+  String readPackage(Context<?> context, Path path);
 }

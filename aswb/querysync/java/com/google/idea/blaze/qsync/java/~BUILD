@@ -15,7 +15,10 @@ java_proto_library(
 
 aswb_library(
     name = "java",
-    srcs = glob(["*.java"]),
+    srcs = glob([
+        "*.java",
+        "*.kt",
+    ]),
     deps = [
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",

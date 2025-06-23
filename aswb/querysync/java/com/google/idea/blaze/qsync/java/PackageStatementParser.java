@@ -17,6 +17,8 @@ package com.google.idea.blaze.qsync.java;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.idea.blaze.common.Context;
+import com.google.idea.blaze.common.PrintOutput;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,6 +27,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 
 /** Package reader that parses package statements from java source files. */
 public class PackageStatementParser implements PackageReader {
@@ -34,9 +37,14 @@ public class PackageStatementParser implements PackageReader {
       Pattern.compile("\\bpackage\\s+([^;]+);");
 
   @Override
-  public String readPackage(Path path) throws IOException {
+  @Nullable
+  public String readPackage(Context<?> context, Path path) {
     try (InputStream in = new FileInputStream(path.toFile())) {
       return readPackage(in);
+    }
+    catch (IOException ex) {
+      context.output(PrintOutput.error("Cannot read file '%s': %s".formatted(path, ex.getMessage())));
+      return null;
     }
   }
 

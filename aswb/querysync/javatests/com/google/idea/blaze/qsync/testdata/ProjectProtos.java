@@ -23,6 +23,7 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.GraphToProjectConverter;
+import com.google.idea.blaze.qsync.java.PackageReader;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectProto.Project;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
@@ -44,6 +45,7 @@ public class ProjectProtos {
     GraphToProjectConverter converter =
         new GraphToProjectConverter(
             EMPTY_PACKAGE_READER,
+            new PackageReader.ParallelReader.SingleThreadedForTests(),
             Predicates.alwaysTrue(),
             NOOP_CONTEXT,
             ProjectDefinition.builder()

@@ -20,22 +20,13 @@ import com.google.errorprone.annotations.FormatString;
 import javax.annotation.Nonnull;
 
 /** Output that can be printed to a log. */
-public class PrintOutput implements Output {
-
-  @Nonnull private final String text;
-
-  @Nonnull private final OutputType outputType;
+public record PrintOutput(@Nonnull String text, @Nonnull OutputType outputType) implements Output {
 
   /** The output type */
   public enum OutputType {
     NORMAL,
     LOGGED,
     ERROR
-  }
-
-  public PrintOutput(@Nonnull String text, @Nonnull OutputType outputType) {
-    this.text = text;
-    this.outputType = outputType;
   }
 
   public PrintOutput(@Nonnull String text) {

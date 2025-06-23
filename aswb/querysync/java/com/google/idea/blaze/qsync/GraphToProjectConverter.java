@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync;
 
-import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
@@ -45,15 +44,12 @@ import com.google.idea.blaze.qsync.java.PackageReader;
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl;
-import com.google.idea.blaze.qsync.project.LanguageClassProto.LanguageClass;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.blaze.qsync.project.ProjectProto.ProjectPath.Base;
-import com.google.idea.blaze.qsync.project.ProjectTarget;
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType;
 import com.google.idea.blaze.qsync.project.TestSourceGlobMatcher;
 import com.google.idea.blaze.qsync.query.PackageSet;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.AbstractMap.SimpleEntry;
@@ -62,7 +58,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,13 +68,13 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 /** Converts a {@link BuildGraphDataImpl} instance into a project proto. */
 public class GraphToProjectConverter {
 
   private final PackageReader packageReader;
+  private final PackageReader.ParallelReader parallelPackageReader;
   private final Predicate<Path> fileExistenceCheck;
   private final Context<?> context;
 
@@ -88,25 +83,13 @@ public class GraphToProjectConverter {
 
   public GraphToProjectConverter(
       PackageReader packageReader,
-      Path workspaceRoot,
-      Context<?> context,
-      ProjectDefinition projectDefinition,
-      ListeningExecutorService executor) {
-    this.packageReader = packageReader;
-    this.fileExistenceCheck = p -> Files.isRegularFile(workspaceRoot.resolve(p));
-    this.context = context;
-    this.projectDefinition = projectDefinition;
-    this.executor = executor;
-  }
-
-  @VisibleForTesting
-  public GraphToProjectConverter(
-      PackageReader packageReader,
+      PackageReader.ParallelReader parallelPackageReader,
       Predicate<Path> fileExistenceCheck,
       Context<?> context,
       ProjectDefinition projectDefinition,
       ListeningExecutorService executor) {
     this.packageReader = packageReader;
+    this.parallelPackageReader = parallelPackageReader;
     this.fileExistenceCheck = fileExistenceCheck;
     this.context = context;
     this.projectDefinition = projectDefinition;
@@ -155,13 +138,13 @@ public class GraphToProjectConverter {
    */
   @VisibleForTesting
   public ImmutableMap<Path, ImmutableMap<Path, String>> calculateJavaRootSources(
-      Collection<Path> srcFiles, PackageSet packages) throws BuildException {
+    Context<?> context, Collection<Path> srcFiles, PackageSet packages) throws BuildException {
 
     // A map from package to the file chosen to represent it.
     ImmutableList<Path> chosenFiles = chooseTopLevelFiles(srcFiles, packages);
 
     // A map from a directory to its prefix
-    ImmutableMap<Path, String> prefixes = readPackages(chosenFiles);
+    ImmutableMap<Path, String> prefixes = readPackages(context, chosenFiles);
 
     // All packages split by their content roots
     ImmutableMap<Path, ImmutableMap<Path, String>> rootToPrefix = splitByRoot(prefixes);
@@ -215,24 +198,16 @@ public class GraphToProjectConverter {
     return split.buildKeepingLast();
   }
 
-  private ImmutableMap<Path, String> readPackages(Collection<Path> files) throws BuildException {
-    try {
-      long now = System.currentTimeMillis();
-      ArrayList<Path> allFiles = new ArrayList<>(files);
-      List<String> allPackages = packageReader.readPackages(allFiles);
-      long elapsed = System.currentTimeMillis() - now;
-      context.output(PrintOutput.log("%-10d Java files read (%d ms)", files.size(), elapsed));
+  private ImmutableMap<Path, String> readPackages(Context<?> context, Collection<Path> files) throws BuildException {
+    long now = System.currentTimeMillis();
+    ArrayList<Path> allFiles = new ArrayList<>(files);
+    Map<Path, String> allPackages = parallelPackageReader.readPackages(context, packageReader, allFiles);
+    long elapsed = System.currentTimeMillis() - now;
+    context.output(PrintOutput.log("%-10d Java files read (%d ms)", files.size(), elapsed));
 
-      ImmutableMap.Builder<Path, String> prefixes = ImmutableMap.builder();
-      Iterator<Path> i = allFiles.iterator();
-      Iterator<String> j = allPackages.iterator();
-      while (i.hasNext() && j.hasNext()) {
-        prefixes.put(i.next().getParent(), j.next());
-      }
-      return prefixes.buildOrThrow();
-    } catch (IOException e) {
-      throw new BuildException(e);
-    }
+    ImmutableMap.Builder<Path, String> prefixes = ImmutableMap.builder();
+    allPackages.forEach((path, pkg) -> prefixes.put(path.getParent(), pkg));
+    return prefixes.buildOrThrow();
   }
 
   @VisibleForTesting
@@ -487,7 +462,7 @@ public class GraphToProjectConverter {
 
   public ProjectProto.Project createProject(BuildGraphData graph) throws BuildException {
     ImmutableMap<Path, ImmutableMap<Path, String>> javaSourceRoots =
-        calculateJavaRootSources(graph.getJavaSourceFiles(), graph.packages());
+        calculateJavaRootSources(context, graph.getJavaSourceFiles(), graph.packages());
     ImmutableMultimap<Path, Path> rootToNonJavaSource =
       nonJavaSourceFolders(
         graph.getSourceFilesByRuleKindAndType(t -> !RuleKinds.isJava(t), SourceType.all()));

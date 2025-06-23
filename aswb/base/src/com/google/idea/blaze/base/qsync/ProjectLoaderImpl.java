@@ -51,6 +51,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.NewArtifactTracker;
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
+import com.google.idea.blaze.qsync.java.PackageReader;
 import com.google.idea.blaze.qsync.java.PackageStatementParser;
 import com.google.idea.blaze.qsync.java.ParallelPackageReader;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
@@ -249,9 +250,10 @@ public class ProjectLoaderImpl implements ProjectLoader {
             runQueryInWorkspace::getValue);
     ProjectBuilder snapshotBuilder =
         new ProjectBuilder(
-            executor,
-            createWorkspaceRelativePackageReader(),
-            workspaceRoot.path()
+          executor,
+          createPackageReader(),
+          createParallelPackageReader(),
+          workspaceRoot.path()
         );
     QueryRunner queryRunner = createQueryRunner(buildSystem);
     ProjectQuerier projectQuerier =
@@ -273,8 +275,12 @@ public class ProjectLoaderImpl implements ProjectLoader {
     return Paths.get(checkNotNull(project.getBasePath())).resolve(".buildcache");
   }
 
-  private ParallelPackageReader createWorkspaceRelativePackageReader() {
-    return new ParallelPackageReader(executor, new PackageStatementParser());
+  private PackageReader createPackageReader() {
+    return new PackageStatementParser();
+  }
+
+  private PackageReader.ParallelReader createParallelPackageReader() {
+    return new ParallelPackageReader(executor);
   }
 
   private ProjectQuerierImpl createProjectQuerier(
