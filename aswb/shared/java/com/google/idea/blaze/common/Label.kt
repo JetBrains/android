@@ -43,11 +43,16 @@ data class Label (val workspace: String, val buildPackage: String, val name: Str
       val workspaceEnd = label.indexOf("//", workspacePosition)
       val buildPackagePosition: Int = workspaceEnd + 2
       require(buildPackagePosition >= 2) { "Invalid label: $label" }
-      val buildPackageEnd = label.indexOf(":", buildPackagePosition)
-      val namePosition: Int = buildPackageEnd + 1
-      require(namePosition >= 1) { "Invalid label: $label" }
+      val (buildPackageEnd, namePosition) = label.indexOf(":", buildPackagePosition)
+        .let {
+          if (it >= 0) it to it + 1 else label.length to label.lastIndexOf('/') + 1
+        }
 
       val workspace = label.substring(workspacePosition, workspaceEnd)
+      // Bazel 8 states that repo names may contain only A-Z, a-z, 0-9, '-', '_', '.' and '+', but this is not a stable specification
+      // as just a version ago it allowed ~ as well. Make sure the name does not include any dangerous characters.
+      require(!workspace.contains('/') && !workspace.contains(':')) { "Invalid workspace: $workspace" }
+
       val buildPackage = label.substring(buildPackagePosition, buildPackageEnd)
       val name = label.substring(namePosition)
 
