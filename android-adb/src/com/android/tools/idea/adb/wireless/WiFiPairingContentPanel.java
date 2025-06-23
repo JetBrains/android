@@ -54,9 +54,7 @@ public class WiFiPairingContentPanel {
 
   public void setPairingCodeComponent(@NotNull JComponent component, @Nullable TrackingMdnsService mdnsServiceUnderPairing) {
     myPairingCodePanel.setContent(component);
-    if (mdnsServiceUnderPairing != null) {
-      myPairingCodePanel.setAsyncProcessText("Waiting for Pairing mode");
-    } else {
+    if (mdnsServiceUnderPairing == null) {
       myPairingCodePanel.setAsyncProcessText("Available Wi-Fi devices");
     }
   }
