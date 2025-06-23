@@ -109,7 +109,7 @@ abstract class Issue {
   /** A short summary of the error description */
   abstract val summary: String
 
-  /** The description of the error. It can contains some HTML tag */
+  /** The description of the error. It can contain some HTML tag */
   abstract val description: String
 
   abstract val severity: HighlightSeverity
