@@ -41,14 +41,16 @@ iml_module(
         "//tools/adt/idea/android-templates:intellij.android.templates",
         # Kotlin Android Gradle Configurator
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
+        # AI Plugin access to Gradle Project System functionality
+        "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle",
         # TODO(b/316555700), Kotlin Intrinsics deprecation schedule, AndroidModuleInfoProviderImpl
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
+        # TODO(b/427148033), MigrateToCatalogProcessor
+        "//tools/vendor/google/ml/aiplugin/experimental:aiplugin.experimental",
         # TODO(xof): investigate
         "//tools/adt/idea/android-lint:intellij.android.lint",
         "//tools/adt/idea/android-navigator:intellij.android.navigator",
         "//tools/adt/idea/mlkit:intellij.android.mlkit",
-        "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle",
-        "//tools/vendor/google/ml/aiplugin/experimental:aiplugin.experimental",
         "//tools/vendor/google/android-ndk:android-ndk",
         "//tools/vendor/google/firebase:firebase",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
