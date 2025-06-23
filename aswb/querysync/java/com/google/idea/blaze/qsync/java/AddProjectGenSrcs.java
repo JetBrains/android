@@ -200,7 +200,7 @@ public class AddProjectGenSrcs implements ProjectProtoUpdateOperation {
       }
 
       ArtifactWithOrigin chosen = candidates.stream().min((a, b) -> a.compareTo(b)).orElseThrow();
-      if (testSourceMatcher.matches(chosen.artifact().target().getPackage())) {
+      if (testSourceMatcher.matches(chosen.artifact().target().getBuildPackagePath())) {
         javatestsSrc.addIfNewer(finalDest, chosen.artifact(), chosen.origin());
       } else {
         javaSrc.addIfNewer(finalDest, chosen.artifact(), chosen.origin());

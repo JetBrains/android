@@ -199,9 +199,9 @@ public abstract class QuerySummaryImpl implements QuerySummary {
 
     public Query.StoredLabel indexLabel(Label l) {
       return Query.StoredLabel.newBuilder()
-        .setWorkspace(index(l.getWorkspaceName()))
-        .setBuildPackage(index(l.getPackage().toString()))
-        .setName(index(l.getName().toString()))
+        .setWorkspace(index(l.getWorkspace()))
+        .setBuildPackage(index(l.getBuildPackage()))
+        .setName(index(l.getName()))
         .build();
     }
 
@@ -478,7 +478,7 @@ public abstract class QuerySummaryImpl implements QuerySummary {
   public ImmutableSet<Path> getPackagesWithErrors() {
     return proto().getPackagesWithErrorsList().stream()
         .map(Label::of)
-        .map(Label::getPackage) // The packages are BUILD file labels.
+        .map(Label::getBuildPackagePath) // The packages are BUILD file labels.
         .collect(toImmutableSet());
   }
 
@@ -492,7 +492,7 @@ public abstract class QuerySummaryImpl implements QuerySummary {
   public PackageSet getPackages() {
     return new PackageSet(
         Stream.concat(
-                getSourceFilesMap().keySet().stream().map(Label::getPackage).distinct(),
+                getSourceFilesMap().keySet().stream().map(Label::getBuildPackagePath).distinct(),
                 getPackagesWithErrors().stream())
             .collect(toImmutableSet()));
   }

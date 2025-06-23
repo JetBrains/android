@@ -143,7 +143,7 @@ public class BlazeQueryParser {
     final var visitors = new RuleVisitors();
     for (Map.Entry<Label, QueryData.SourceFile> sourceFileEntry :
         query.getSourceFilesMap().entrySet()) {
-      if (sourceFileEntry.getKey().getWorkspaceName().isEmpty()) {
+      if (sourceFileEntry.getKey().getWorkspace().isEmpty()) {
         graphBuilder.addSourceFileLabel(sourceFileEntry.getKey());
       } else {
         context.output(

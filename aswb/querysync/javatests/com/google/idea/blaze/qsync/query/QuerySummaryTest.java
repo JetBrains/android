@@ -33,7 +33,7 @@ import org.junit.runners.JUnit4;
 public class QuerySummaryTest {
 
   private String targetName(Label buildTarget) {
-    return buildTarget.name();
+    return buildTarget.getName();
   }
 
   @Test

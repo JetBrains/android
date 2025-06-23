@@ -102,7 +102,7 @@ class PartialProjectRefresh implements RefreshOperation {
     Map<Label, QueryData.SourceFile> newSourceFiles = Maps.newHashMap();
     for (Map.Entry<Label, QueryData.SourceFile> sfEntry :
         previousState.querySummary().getSourceFilesMap().entrySet()) {
-      Path buildPackage = sfEntry.getKey().getPackage();
+      Path buildPackage = sfEntry.getKey().getBuildPackagePath();
       if (!(deletedPackages.contains(buildPackage)
           || partialQuery.getPackages().contains(buildPackage))) {
         newSourceFiles.put(sfEntry.getKey(), sfEntry.getValue());
@@ -111,7 +111,7 @@ class PartialProjectRefresh implements RefreshOperation {
     Map<Label, QueryData.Rule> newRules = Maps.newHashMap();
     for (Map.Entry<Label, QueryData.Rule> ruleEntry :
         previousState.querySummary().getRulesMap().entrySet()) {
-      Path buildPackage = ruleEntry.getKey().getPackage();
+      Path buildPackage = ruleEntry.getKey().getBuildPackagePath();
       if (!(deletedPackages.contains(buildPackage)
           || partialQuery.getPackages().contains(buildPackage))) {
         newRules.put(ruleEntry.getKey(), ruleEntry.getValue());
