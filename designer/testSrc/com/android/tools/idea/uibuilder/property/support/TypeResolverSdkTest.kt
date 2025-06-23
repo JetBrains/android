@@ -31,9 +31,9 @@ import com.android.SdkConstants.MATERIAL2_PKG
 import com.android.SdkConstants.PreferenceAttributes.ATTR_DEFAULT_VALUE
 import com.android.SdkConstants.PreferenceClasses
 import com.android.SdkConstants.PreferenceClasses.CLASS_PREFERENCE
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
 import com.android.tools.idea.uibuilder.property.NlPropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
@@ -331,7 +331,7 @@ class TypeResolverSdkTest {
 
   private class Report(
     private val name: String,
-    private val versionMap: Map<String, GradleVersion> = emptyMap(),
+    private val versionMap: Map<String, Version> = emptyMap(),
   ) {
     private val found = mutableMapOf<String, Int>()
     private val errors = mutableMapOf<String, Int>()

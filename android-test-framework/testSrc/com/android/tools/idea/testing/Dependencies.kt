@@ -16,7 +16,7 @@
 package com.android.tools.idea.testing
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.testutils.TestUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.application.PathManager
@@ -51,7 +51,7 @@ object Dependencies {
    *
    *  The name specified must be a folder in either [ANDROIDX_FOLDER] or [LEGACY_FOLDER].
    */
-  fun add(fixture: CodeInsightTestFixture, vararg dependencyNames: String): Map<String, GradleVersion> {
+  fun add(fixture: CodeInsightTestFixture, vararg dependencyNames: String): Map<String, Version> {
     val loader = DependencyLoader(fixture)
     val loadedDependencies = loader.loadAll(*dependencyNames)
     IndexingTestUtil.waitUntilIndexesAreReady(fixture.project)
@@ -60,11 +60,11 @@ object Dependencies {
 
   private class DependencyLoader(val fixture: CodeInsightTestFixture) {
 
-    fun loadAll(vararg dependencyNames: String): Map<String, GradleVersion> {
+    fun loadAll(vararg dependencyNames: String): Map<String, Version> {
       return dependencyNames.map { Pair(it, load(it)) }.toMap()
     }
 
-    private fun load(dependency: String): GradleVersion {
+    private fun load(dependency: String): Version {
       val root = File(PathManager.getHomePath())
       val legacyFolder = root.resolve(LEGACY_FOLDER)
       val androidFolder = root.resolve(ANDROIDX_FOLDER)
@@ -90,9 +90,9 @@ object Dependencies {
 
     // TODO(b/135483675): Read the pom file and load all transitive dependencies as well.
     // TODO: Also update the API above such that Androidx only will have to specify the artifactId. Not: "appcompat/appcompat"
-    private fun loadLatestVersion(folder: File): GradleVersion {
+    private fun loadLatestVersion(folder: File): Version {
       val name = folder.name
-      val version = folder.list()?.maxOfOrNull { GradleVersion.parse(it) } ?: error("No versions found in folder: ${folder.path}")
+      val version = folder.list()?.maxOfOrNull { Version.parse(it) } ?: error("No versions found in folder: ${folder.path}")
       val versionFolder = File(folder, version.toString())
       val aarFile = File(versionFolder, "$name-$version.aar")
       val aarDir = FileUtil.createTempDirectory(name, "_exploded")
