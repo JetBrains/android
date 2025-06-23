@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync;
 
 import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
 import static com.google.idea.blaze.qsync.QuerySyncTestUtils.EMPTY_PACKAGE_READER;
+import static com.google.idea.blaze.qsync.QuerySyncTestUtils.SIMPLE_PARALLEL_PACKAGE_READER;
 import static com.google.idea.blaze.qsync.QuerySyncTestUtils.NOOP_CONTEXT;
 
 import com.google.auto.value.AutoValue;
@@ -30,8 +31,10 @@ import java.util.function.Predicate;
 
 /** Test utility for building {@link GraphToProjectConverter} instances */
 @AutoValue
-abstract class GraphToProjectConverters {
+abstract class GraphToProjectConvertersForTests {
   public abstract PackageReader packageReader();
+
+  public abstract PackageReader.ParallelReader parallelPackageReader();
 
   public abstract Predicate<Path> fileExistenceCheck();
 
@@ -46,8 +49,9 @@ abstract class GraphToProjectConverters {
   public abstract ImmutableSet<Path> systemExcludes();
 
   static Builder builder() {
-    return new AutoValue_GraphToProjectConverters.Builder()
+    return new AutoValue_GraphToProjectConvertersForTests.Builder()
         .setPackageReader(EMPTY_PACKAGE_READER)
+        .setParallelPackageReader(SIMPLE_PARALLEL_PACKAGE_READER)
         .setFileExistenceCheck(Predicates.alwaysTrue())
         .setLanguageClasses(ImmutableSet.of())
         .setProjectIncludes(ImmutableSet.of())
@@ -59,6 +63,8 @@ abstract class GraphToProjectConverters {
   @AutoValue.Builder
   abstract static class Builder {
     abstract Builder setPackageReader(PackageReader value);
+
+    abstract Builder setParallelPackageReader(PackageReader.ParallelReader value);
 
     abstract Builder setFileExistenceCheck(Predicate<Path> value);
 
@@ -72,12 +78,13 @@ abstract class GraphToProjectConverters {
 
     abstract Builder setSystemExcludes(ImmutableSet<Path> value);
 
-    abstract GraphToProjectConverters autoBuild();
+    abstract GraphToProjectConvertersForTests autoBuild();
 
     public GraphToProjectConverter build() {
-      GraphToProjectConverters info = autoBuild();
+      GraphToProjectConvertersForTests info = autoBuild();
       return new GraphToProjectConverter(
           info.packageReader(),
+          new PackageReader.ParallelReader.SingleThreadedForTests(),
           info.fileExistenceCheck(),
           NOOP_CONTEXT,
           ProjectDefinition.builder()

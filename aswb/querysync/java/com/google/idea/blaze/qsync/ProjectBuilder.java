@@ -24,6 +24,7 @@ import com.google.idea.blaze.qsync.java.WorkspaceResolvingPackageReader;
 import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectProto.Project;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -33,15 +34,18 @@ import java.nio.file.Path;
 public class ProjectBuilder {
 
   private final ListeningExecutorService executor;
-  private final PackageReader workspaceRelativePackageReader;
+  private final PackageReader packageReader;
+  private final PackageReader.ParallelReader parallelPackageReader;
   private final Path workspaceRoot;
 
   public ProjectBuilder(
       ListeningExecutorService executor,
-      PackageReader workspaceRelativePackageReader,
+      PackageReader packageReader,
+      PackageReader.ParallelReader parallelPackageReader,
       Path workspaceRoot) {
     this.executor = executor;
-    this.workspaceRelativePackageReader = workspaceRelativePackageReader;
+    this.packageReader = packageReader;
+    this.parallelPackageReader = parallelPackageReader;
     this.workspaceRoot = workspaceRoot;
   }
 
@@ -60,11 +64,14 @@ public class ProjectBuilder {
     Path effectiveWorkspaceRoot =
         postQuerySyncData.vcsState().flatMap(s -> s.workspaceSnapshotPath).orElse(workspaceRoot);
     WorkspaceResolvingPackageReader packageReader =
-        new WorkspaceResolvingPackageReader(effectiveWorkspaceRoot, workspaceRelativePackageReader);
+        new WorkspaceResolvingPackageReader(effectiveWorkspaceRoot, this.packageReader);
     GraphToProjectConverter graphToProjectConverter =
         new GraphToProjectConverter(
             packageReader,
-            effectiveWorkspaceRoot,
+            parallelPackageReader,
+            // Note: Files.isReadable(path) may help avoid hitting siloed files but it may also hide issues, if it happens that a file at the
+            // "top" level of the project view inclusion is not readable.
+            p -> Files.isRegularFile(workspaceRoot.resolve(p)),
             context,
             postQuerySyncData.projectDefinition(),
             executor);

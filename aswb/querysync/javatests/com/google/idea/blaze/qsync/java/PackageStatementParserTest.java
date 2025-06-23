@@ -18,9 +18,14 @@ package com.google.idea.blaze.qsync.java;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.base.Joiner;
+import com.google.idea.blaze.common.NoopContext;
+import com.google.idea.blaze.common.Output;
+import com.google.idea.blaze.common.PrintOutput;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -123,5 +128,21 @@ public class PackageStatementParserTest {
                             "}")
                         .getBytes(StandardCharsets.UTF_8))))
         .isEqualTo("com.myorg.kotlinpackage");
+  }
+
+  @Test
+  public void handled_io_errors() throws IOException {
+    final var outputs = new ArrayList<Output>();
+    PackageStatementParser psp = new PackageStatementParser();
+    assertThat(
+      psp.readPackage(new NoopContext() {
+        @Override
+        public <T extends Output> void output(T output) {
+          outputs.add(output);
+        }
+      }, Path.of("/file/indeed/not/found!"))).isNull();
+    assertThat(outputs)
+      .containsExactly(
+        PrintOutput.error("Cannot read file '/file/indeed/not/found!': /file/indeed/not/found! (No such file or directory)"));
   }
 }

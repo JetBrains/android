@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.idea.blaze.common.NoopContext;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.junit.Test;
@@ -29,15 +30,15 @@ public class QuerySyncTestUtilsTest {
   @Test
   public void testPackageReader_javaPath() throws IOException {
     assertThat(
-            QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER.readPackage(
-                Path.of("/some/project/java/com/my/package/Class.java")))
+            QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER.readPackage(new NoopContext(),
+                                                                         Path.of("/some/project/java/com/my/package/Class.java")))
         .isEqualTo("com.my.package");
   }
 
   @Test
   public void testPackageReader_javatestsPath() throws IOException {
     assertThat(
-            QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER.readPackage(
+            QuerySyncTestUtils.PATH_INFERRING_PACKAGE_READER.readPackage(new NoopContext(),
                 Path.of("/some/project/javatests/com/my/test/package/Test.java")))
         .isEqualTo("com.my.test.package");
   }

@@ -6,7 +6,7 @@ java_library(
     name = "TestUtils",
     testonly = 1,
     srcs = [
-        "GraphToProjectConverters.java",
+        "GraphToProjectConvertersForTests.java",
         "QuerySyncTestUtils.java",
         "TestDataSyncRunner.java",
     ],
@@ -35,6 +35,7 @@ java_test(
     srcs = ["QuerySyncTestUtilsTest.java"],
     deps = [
         ":TestUtils",
+        "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common:test_utils",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
     ],
@@ -46,6 +47,7 @@ java_test(
     deps = [
         ":TestUtils",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:language_class_java_proto",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project:project_java_proto",
@@ -53,6 +55,7 @@ java_test(
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata:build_graphs",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
+        "//tools/adt/idea/aswb/shared/javatests/com/google/idea/blaze/common:test_utils",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
         "@maven//:com.google.guava.guava",
