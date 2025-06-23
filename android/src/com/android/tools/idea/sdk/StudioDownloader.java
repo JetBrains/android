@@ -78,7 +78,7 @@ public class StudioDownloader implements Downloader {
         mStartOffset = startOffset;
         Storage storage = new Storage(mContentLength);
         mReasonableUnit = storage.getLargestReasonableUnits();
-        mTotalDisplaySize = storage.toUiString(1);
+        mTotalDisplaySize = storage.toUiString(Locale.US, 1);
         setIndeterminate(false);
       }
       else {
