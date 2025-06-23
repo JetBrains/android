@@ -46,10 +46,13 @@ import com.google.gct.wizard.WizardState
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.BACKUP_AND_SYNC_EVENT
 import com.google.wireless.android.sdk.stats.BackupAndSyncEvent
 import com.google.wireless.android.sdk.stats.GoogleLoginPluginEvent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.SettingsCategory
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.settingsSync.core.ServerState
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
+import com.intellij.settingsSync.core.SettingsSyncMain
 import com.intellij.settingsSync.core.SettingsSyncPushResult
 import com.intellij.settingsSync.core.SettingsSyncSettings
 import com.intellij.settingsSync.core.SettingsSyncSettings.State
@@ -58,6 +61,8 @@ import com.intellij.settingsSync.core.communicator.SettingsSyncCommunicatorProvi
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.replaceService
+import java.nio.file.Path
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
@@ -65,7 +70,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -82,6 +86,7 @@ class WizardFlowTest {
 
   private lateinit var communicator: FakeRemoteCommunicator
   private lateinit var communicatorProvider: FakeCommunicatorProvider
+  private lateinit var appConfigDir: Path
 
   private val step1 = EnableOrSkipStepPage()
   private val step2 = PushOrPullStepPage()
@@ -96,6 +101,15 @@ class WizardFlowTest {
 
   @Before
   fun setup() {
+    appConfigDir = FileUtil.createTempDirectory("app_config", null).toPath()
+
+    ApplicationManager.getApplication()
+      .replaceService(
+        SettingsSyncMain::class.java,
+        SettingsSyncMain(coroutineScope = scope, appConfigPath = appConfigDir),
+        disposableRule.disposable,
+      )
+
     communicator =
       FakeRemoteCommunicator(USER_EMAIL).apply {
         Disposer.register(disposableRule.disposable, this)
@@ -210,8 +224,8 @@ class WizardFlowTest {
   }
 
   // This covers the onboarding flow: step3 only
-  @Ignore("b/410589934")
-  fun `test sync categories selection wizard page, disable plugins`() = {
+  @Test
+  fun `test sync categories selection wizard page, disable plugins`() {
     // Prepare
     val wizardState =
       WizardState().apply {
