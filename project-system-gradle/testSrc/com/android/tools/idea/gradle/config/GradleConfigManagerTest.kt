@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.config
 import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
 import com.android.tools.idea.gradle.util.GradleConfigProperties
-import com.android.tools.idea.sdk.GradleDefaultJdkPathStore
+import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.testing.JdkConstants.JDK_1_8_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.intellij.openapi.application.runWriteActionAndWait

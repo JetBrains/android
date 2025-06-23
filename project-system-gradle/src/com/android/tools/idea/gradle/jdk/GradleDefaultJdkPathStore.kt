@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sdk
+package com.android.tools.idea.gradle.jdk
 
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.components.Service
 
 private const val GRADLE_JDK_PATH_KEY = "gradle.jdk.path"
 

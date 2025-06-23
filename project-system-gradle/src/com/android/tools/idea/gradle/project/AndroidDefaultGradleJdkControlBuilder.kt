@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project
 
 import com.android.tools.idea.gradle.ui.GradleJdkPathEditComboBox
 import com.android.tools.idea.gradle.ui.GradleJdkPathEditComboBoxBuilder
-import com.android.tools.idea.sdk.GradleDefaultJdkPathStore
+import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
