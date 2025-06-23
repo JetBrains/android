@@ -91,6 +91,7 @@ CodecInfo* SelectVideoEncoder(const string& mime_type) {
   int width_alignment = codec_info.GetIntField(clazz.GetFieldId("widthAlignment", "I"));
   int height_alignment = codec_info.GetIntField(clazz.GetFieldId("heightAlignment", "I"));
   int max_frame_rate = codec_info.GetIntField(clazz.GetFieldId("maxFrameRate", "I"));
+  Log::I("Selected %s video encoder with %dx%d max resolution", codec_name.c_str(), max_width, max_height);
   return new CodecInfo(mime_type, codec_name, Size(max_width, max_height), Size(width_alignment, height_alignment), max_frame_rate);
 }
 
