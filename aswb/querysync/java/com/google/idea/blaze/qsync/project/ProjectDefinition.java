@@ -170,7 +170,7 @@ public abstract class ProjectDefinition {
   }
 
   public boolean isIncluded(Label target) {
-    return isIncluded(target.getPackage());
+    return isIncluded(target.getBuildPackagePath());
   }
 
   public boolean isIncluded(Path workspacePath) {

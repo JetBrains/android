@@ -559,10 +559,10 @@ public class GraphToProjectConverter {
     for (var sourceFile : sourceFiles) {
       if (sourceFile.getName().toString().endsWith(".xml")) {
         @SuppressWarnings("PathAsIterable")
-        List<Path> pathParts = Lists.newArrayList(sourceFile.getName());
+        List<Path> pathParts = Lists.newArrayList(sourceFile.getNamePath());
         int resPos = pathParts.indexOf(Path.of("res"));
         if (resPos >= 0) {
-          directories.add(sourceFile.getPackage().resolve(sourceFile.getName().subpath(0, resPos + 1)));
+          directories.add(sourceFile.getBuildPackagePath().resolve(sourceFile.getNamePath().subpath(0, resPos + 1)));
         }
       }
     }

@@ -65,7 +65,7 @@ public class QuerySummaryTestBuilder {
     ImmutableMultimap<Label, Label> includes = includesBuilder.build();
     Set<Label> sourceFiles =
         packages.stream()
-            .map(Label::getPackage)
+            .map(Label::getBuildPackagePath)
             .map(p -> Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, p, Path.of("BUILD")))
             .collect(toCollection(HashSet::new));
     sourceFiles.addAll(includes.keySet());
@@ -79,7 +79,7 @@ public class QuerySummaryTestBuilder {
     builder.putAllSourceFiles(
       sourceFiles.stream().collect(toImmutableMap(src -> src, src -> new QueryData.SourceFile(src, includes.get(src)))));
 
-    builder.putAllPackagesWithErrors(buildFilesWithErrors.stream().map(Label::getPackage).collect(toImmutableSet()));
+    builder.putAllPackagesWithErrors(buildFilesWithErrors.stream().map(Label::getBuildPackagePath).collect(toImmutableSet()));
 
     return builder.build().protoForSerializationOnly();
   }

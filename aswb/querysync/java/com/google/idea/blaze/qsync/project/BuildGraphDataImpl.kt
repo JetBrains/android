@@ -314,9 +314,9 @@ data class BuildGraphDataImpl(
         private fun computePackages(storage: Storage): PackageSet {
           val packages = PackageSet.Builder()
           for (sourceFile in storage.sourceFileLabels) {
-            if (sourceFile.name == Path.of("BUILD") || sourceFile.name == Path.of("BUILD.bazel")) {
+            if (sourceFile.name == "BUILD" || sourceFile.name == "BUILD.bazel") {
               // TODO: b/334110669 - support Bazel workspaces.
-              packages.add(sourceFile.getPackage())
+              packages.add(sourceFile.getBuildPackagePath())
             }
           }
           return packages.build()

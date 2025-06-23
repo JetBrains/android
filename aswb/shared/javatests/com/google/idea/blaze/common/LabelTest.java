@@ -29,59 +29,59 @@ public class LabelTest {
 
   @Test
   public void testGetPackage_nonEmpty() {
-    Truth8.assertThat(Label.of("//package/path:rule").getPackage())
+    Truth8.assertThat(Label.of("//package/path:rule").getBuildPackagePath())
         .isEqualTo(Path.of("package/path"));
   }
 
   @Test
   public void testGetPackage_withWorkspace() {
-    Truth8.assertThat(Label.of("@myws//package/path:rule").getPackage())
+    Truth8.assertThat(Label.of("@myws//package/path:rule").getBuildPackagePath())
         .isEqualTo(Path.of("package/path"));
   }
 
   @Test
   public void testGetPackage_withQualifiedRootWorkspace() {
-    Truth8.assertThat(Label.of("@//package/path:rule").getPackage())
+    Truth8.assertThat(Label.of("@//package/path:rule").getBuildPackagePath())
         .isEqualTo(Path.of("package/path"));
-    Truth8.assertThat(Label.of("@@//package/path:rule").getPackage())
+    Truth8.assertThat(Label.of("@@//package/path:rule").getBuildPackagePath())
         .isEqualTo(Path.of("package/path"));
   }
 
   @Test
   public void testGetName_simple() {
-    Truth8.assertThat(Label.of("//package/path:rule").getName()).isEqualTo(Path.of("rule"));
+    Truth8.assertThat(Label.of("//package/path:rule").getNamePath()).isEqualTo(Path.of("rule"));
   }
 
   @Test
   public void testGetName_withWorkspace() {
-    Truth8.assertThat(Label.of("@someworkspace//package/path:rule").getName())
+    Truth8.assertThat(Label.of("@someworkspace//package/path:rule").getNamePath())
         .isEqualTo(Path.of("rule"));
   }
 
   @Test
   public void testGetPackage_empty() {
-    Truth8.assertThat(Label.of("//:rule").getPackage()).isEqualTo(Path.of(""));
+    Truth8.assertThat(Label.of("//:rule").getBuildPackagePath()).isEqualTo(Path.of(""));
   }
 
   @Test
   public void testGetPackage_empty_withWorkspace() {
-    Truth8.assertThat(Label.of("@workspace//:rule").getPackage()).isEqualTo(Path.of(""));
+    Truth8.assertThat(Label.of("@workspace//:rule").getBuildPackagePath()).isEqualTo(Path.of(""));
   }
 
   @Test
   public void testGetName_withDirectory() {
-    Truth8.assertThat(Label.of("//package/path:source/Class.java").getName())
+    Truth8.assertThat(Label.of("//package/path:source/Class.java").getNamePath())
         .isEqualTo(Path.of("source/Class.java"));
   }
 
   @Test
   public void testGetName_emptyPackage() {
-    Truth8.assertThat(Label.of("//:rule").getName()).isEqualTo(Path.of("rule"));
+    Truth8.assertThat(Label.of("//:rule").getNamePath()).isEqualTo(Path.of("rule"));
   }
 
   @Test
   public void testGetName_emptyPackage_withWorkspace() {
-    Truth8.assertThat(Label.of("@foo//:rule").getName()).isEqualTo(Path.of("rule"));
+    Truth8.assertThat(Label.of("@foo//:rule").getNamePath()).isEqualTo(Path.of("rule"));
   }
 
   @Test
@@ -107,17 +107,17 @@ public class LabelTest {
 
   @Test
   public void testGetWorkspace_empty() {
-    assertThat(Label.of("//package:rule").getWorkspaceName()).isEmpty();
+    assertThat(Label.of("//package:rule").getWorkspace()).isEmpty();
   }
 
   @Test
   public void testGetWorkspace_nonEmpty() {
-    assertThat(Label.of("@myworkspace//package:rule").getWorkspaceName()).isEqualTo("myworkspace");
+    assertThat(Label.of("@myworkspace//package:rule").getWorkspace()).isEqualTo("myworkspace");
   }
 
   @Test
   public void testGetWorkspace_doubleAt() {
-    assertThat(Label.of("@@myws//package:rule").getWorkspaceName()).isEqualTo("myws");
+    assertThat(Label.of("@@myws//package:rule").getWorkspace()).isEqualTo("myws");
   }
 
   @Test

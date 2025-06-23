@@ -31,12 +31,12 @@ class TargetTreeImpl private constructor(private val sortedLabels: List<Label>) 
   override fun getDirectTargets(pkg: Path): Sequence<Label> =
     sortedLabels
       .subList(getPackageStartIndex(workspace = "", pkg), sortedLabels.size).asSequence()
-      .takeWhile { it.workspace == "" && it.`package` == pkg }
+      .takeWhile { it.workspace == "" && it.getBuildPackagePath() == pkg }
 
   override fun getSubpackages(pkg: Path): Sequence<Label> =
     sortedLabels
       .subList(getPackageStartIndex(workspace = "", pkg), sortedLabels.size).asSequence()
-      .takeWhile { it.workspace == "" && it.`package`.startsWithRespectingEmpty(pkg) }
+      .takeWhile { it.workspace == "" && it.getBuildPackagePath().startsWithRespectingEmpty(pkg) }
 
   override val targetCountForStatsOnly: Int
     get() = sortedLabels.size
@@ -46,9 +46,9 @@ class TargetTreeImpl private constructor(private val sortedLabels: List<Label>) 
       .binarySearch {
         val workspaceResult = it.workspace compareTo workspace
         if (workspaceResult != 0) return@binarySearch workspaceResult
-        val packageResult = comparePathsByNames(it.`package`, pkg)
+        val packageResult = comparePathsByNames(it.getBuildPackagePath(), pkg)
         if (packageResult != 0) return@binarySearch packageResult
-        it.name() compareTo ""
+        it.name compareTo ""
       }
       .let { if (it >= 0) it else -it - 1 }
   }
@@ -62,7 +62,7 @@ class TargetTreeImpl private constructor(private val sortedLabels: List<Label>) 
         sortedLabels = targets.sortedWith { a, b ->
           val workspaceResult = a.workspace compareTo b.workspace
           if (workspaceResult != 0) return@sortedWith workspaceResult
-          val pkgResult = comparePathsByNames(a.`package`, b.`package`)
+          val pkgResult = comparePathsByNames(a.getBuildPackagePath(), b.getBuildPackagePath())
           if (pkgResult != 0) return@sortedWith pkgResult
           a.name compareTo b.name
         }

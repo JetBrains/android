@@ -107,7 +107,7 @@ public class AddProjectGenSrcJars implements ProjectProtoUpdateOperation {
                         ProjectProto.SourceFolder.newBuilder()
                             .setProjectPath(added.resolveChild(innerPath.path()).toProto())
                             .setIsGenerated(true)
-                            .setIsTest(testSourceMatcher.matches(genSrc.target().getPackage()))
+                            .setIsTest(testSourceMatcher.matches(genSrc.target().getBuildPackagePath()))
                             .setPackagePrefix(innerPath.packagePrefix())
                             .build());
                   }

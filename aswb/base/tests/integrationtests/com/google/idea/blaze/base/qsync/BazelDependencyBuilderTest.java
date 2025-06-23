@@ -147,7 +147,7 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
       );
 
     var targets = ImmutableSet.of(Label.of("//target1:target1"), Label.of("//target2:target2"));
-    final var generatedTargetPatternName = Label.of(String.format("//.aswb:targets-%s.txt", dependencyBuilder.getProjectHash())).name();
+    final var generatedTargetPatternName = Label.of(String.format("//.aswb:targets-%s.txt", dependencyBuilder.getProjectHash())).getName();
 
     final var invocationInfo =
       dependencyBuilder.getInvocationInfo(BlazeContext.create(), targets, ImmutableSet.of(OutputGroup.ARTIFACT_INFO_FILE));
