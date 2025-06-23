@@ -19,13 +19,13 @@ import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
+import com.android.tools.idea.projectsystem.TestVersion;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.Collections;
@@ -60,7 +60,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
   }
 
   public void testSrcCompatUsedIfNoActivityClassName() {
-    myTestProjectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, myModule, new GradleVersion(1, 1));
+    myTestProjectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, myModule, TestVersion.create(1, 1));
 
     ImageViewHandler handler = new ImageViewHandler();
     assertThat(handler.shouldUseSrcCompat(myModel)).isTrue();
@@ -69,7 +69,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
   public void testSrcCompatNotUsedIfActivityIsDerivedFromSystemActivity() {
     Configuration configuration = myModel.getConfiguration();
     configuration.setActivity("com.example.MyActivity");
-    myTestProjectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, myModule, new GradleVersion(1, 1));
+    myTestProjectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, myModule, TestVersion.create(1, 1));
     addAppCompatActivity();
     addMyActivityAsSystemActivity();
 
@@ -80,7 +80,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
   public void testSrcCompatUsedIfActivityIsDerivedFromAppCompatActivity() {
     Configuration configuration = myModel.getConfiguration();
     configuration.setActivity("com.example.MyActivity");
-    myTestProjectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, myModule, new GradleVersion(1, 1));
+    myTestProjectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, myModule, TestVersion.create(1, 1));
     addAppCompatActivity();
     addMyActivityAsAppCompatActivity();
 
@@ -91,7 +91,7 @@ public class ImageViewHandlerTest extends LayoutTestCase {
   public void testSrcCompatUsedIfActivityIsDerivedFromAppCompatActivityUsingReletiveActivityName() {
     Configuration configuration = myModel.getConfiguration();
     configuration.setActivity(".MyActivity");
-    myTestProjectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, myModule, new GradleVersion(1, 1));
+    myTestProjectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, myModule, TestVersion.create(1, 1));
     addAppCompatActivity();
     addMyActivityAsAppCompatActivity();
 

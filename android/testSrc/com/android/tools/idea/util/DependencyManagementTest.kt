@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.util
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.NON_PLATFORM_SUPPORT_LAYOUT_LIBS
 import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.TestProjectSystem
-import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.TestVersion
 import com.google.common.truth.Truth
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
@@ -58,11 +57,11 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testDoesNotDependOnAndroidX() {
-    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, module, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, module, TestVersion.create(1337, 600613))
 
     Truth.assertThat(module.dependsOnAndroidx()).isFalse()
 
-    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APPCOMPAT, module, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APPCOMPAT, module, TestVersion.create(1337, 600613))
 
     Truth.assertThat(module.dependsOnAndroidx()).isFalse()
   }
@@ -128,19 +127,19 @@ class DependencyManagementTest : LightPlatformTestCase() {
   }
 
   fun testDependsOnWhenDependencyExists() {
-    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, module, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, module, TestVersion.create(1337, 600613))
 
     Truth.assertThat(module.dependsOn(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7)).isTrue()
   }
 
   fun testDependsOnWhenDependencyDoesNotExist() {
-    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, module, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, module, TestVersion.create(1337, 600613))
 
     Truth.assertThat(module.dependsOn(GoogleMavenArtifactId.SUPPORT_DESIGN)).isFalse()
   }
 
   fun testAddEmptyListOfDependencies() {
-    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, module, GradleVersion(1337, 600613))
+    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, module, TestVersion.create(1337, 600613))
 
     val dependenciesNotAdded = module.addDependenciesWithUiConfirmation(setOf(), false)
 

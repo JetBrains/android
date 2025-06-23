@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.configurations.Configuration;
@@ -27,6 +26,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
+import com.android.tools.idea.projectsystem.TestVersion;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.res.ResourceNamespacing;
 import com.android.tools.sdk.CompatibilityRenderTarget;
@@ -104,8 +104,8 @@ public class ThemeResolverTest extends AndroidTestCase {
   public void testRequiredBaseThemesWithDesignLibraryPresent() {
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), TestRepositories.PLATFORM_SUPPORT_LIBS);
     projectSystem.useInTests();
-    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, myModule, new GradleVersion(1337, 600613));
-    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_DESIGN, myModule, new GradleVersion(1338, 600614));
+    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7, myModule, TestVersion.create(1337, 600613));
+    projectSystem.addDependency(GoogleMavenArtifactId.SUPPORT_DESIGN, myModule, TestVersion.create(1338, 600614));
 
     myFixture.addFileToProject("res/values/values.xml", "<resources>\n" +
                                                         "    <style name=\"Platform.AppCompat\" parent=\"Theme.Material\"/>\n" +
@@ -141,7 +141,7 @@ public class ThemeResolverTest extends AndroidTestCase {
   private void doTestRecommendedThemesAppcompat() {
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), TestRepositories.PLATFORM_SUPPORT_LIBS);
     projectSystem.useInTests();
-    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APPCOMPAT, myModule, new GradleVersion(1337, 600613));
+    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APPCOMPAT, myModule, TestVersion.create(1337, 600613));
 
     ResourceNamespace appcompatNamespace =
       StudioResourceRepositoryManager.getInstance(myModule).getNamespacing() == ResourceNamespacing.DISABLED

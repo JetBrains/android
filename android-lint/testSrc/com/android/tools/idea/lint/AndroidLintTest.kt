@@ -20,7 +20,6 @@ import com.android.SdkConstants
 import com.android.ide.common.repository.FakeGoogleMavenRepositoryV2Host
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GoogleMavenRepositoryV2
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.StubGoogleMavenRepository
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.VirtualTimeScheduler
@@ -135,6 +134,7 @@ import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.projectsystem.TestVersion
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.getIntentionAction
@@ -1012,7 +1012,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     testProjectSystem.addDependency(
       GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7,
       myFixture.module,
-      GradleVersion.parse("+"),
+      TestVersion.WILD,
     )
     myFixture.copyFileToProject(
       "$globalTestDir/AppCompatActivity.java.txt",
@@ -2371,7 +2371,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     testProjectSystem.addDependency(
       GoogleMavenArtifactId.ANDROIDX_APPCOMPAT,
       myFixture.module,
-      GradleVersion.parse("+"),
+      TestVersion.WILD,
     )
     doTestWithFix(
       AndroidLintAppCompatCustomViewInspection(),
