@@ -75,14 +75,14 @@ fun AnalysisSchema.convert(): BuildDeclarativeSchema {
       }.toMap()
     )
   }
-  safeRun {
-    infixFunctions.putAll(
-      infixFunctionsByFqName.mapNotNull {
-        keyValue ->
-        keyValue.value.convert()?.let { keyValue.key.simpleName to it }
-      }.toMap()
-    )
-  }
+  //safeRun {
+  //  infixFunctions.putAll(
+  //    infixFunctionsByFqName.mapNotNull {
+  //      keyValue ->
+  //      keyValue.value.convert()?.let { keyValue.key.simpleName to it }
+  //    }.toMap()
+  //  )
+  //}
   topFunctions.putAll(
     externalFunctionsByFqName.mapNotNull { keyValue ->
       keyValue.value.convert()?.let { keyValue.key.simpleName to it }
