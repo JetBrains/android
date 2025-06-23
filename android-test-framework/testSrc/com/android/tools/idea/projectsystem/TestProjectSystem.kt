@@ -218,8 +218,10 @@ class TestProjectSystem @JvmOverloads constructor(
           TestRegisteredDependencyId(it.coordinate)
         }
 
-      override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? =
-        dependenciesByModule[module].map { it.coordinate }.firstOrNull { it.matches(coordinate) }
+      override fun hasResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): Boolean =
+        id.getCoordinate("+").let { coordinate ->
+          dependenciesByModule[module].map { it.coordinate }.firstOrNull { it.matches(coordinate) } != null
+        }
 
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
         listOfNotNull(

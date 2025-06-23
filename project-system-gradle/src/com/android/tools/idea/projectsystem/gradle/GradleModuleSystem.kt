@@ -19,7 +19,6 @@ import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.repository.AgpVersion
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.WellKnownMavenArtifactId
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
@@ -142,14 +141,8 @@ class GradleModuleSystem(
 
   private val dependencyCompatibility = GradleDependencyCompatibilityAnalyzer(this, projectBuildModelHandler)
 
-  override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
-    return getCompileDependenciesFor(module, scope)
-      ?.libraries
-      ?.filterIsInstance<IdeArtifactLibrary>()
-      ?.mapNotNull { it.component }
-      ?.find { it.matches(coordinate.toDependency()) }
-      ?.let { GradleCoordinate(it.group, it.name, it.version.toString()) }
-  }
+  override fun hasResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): Boolean =
+    getResolvedDependency(id.getModule(), scope) != null
 
   fun getResolvedDependency(externalModule: ExternalModule, scope: DependencyScopeType): Component? {
     return getCompileDependenciesFor(module, scope)
@@ -163,8 +156,6 @@ class GradleModuleSystem(
     this.group == dependency.group &&
     this.name == dependency.name &&
     dependency.version?.contains(this.version) == true
-
-  private fun GradleCoordinate.toDependency(): Dependency = Dependency.parse(toString());
 
   private fun IdeArtifactLibrary.componentToArtifact(): Pair<Component, File?>? =
     when (this) {
@@ -196,18 +187,6 @@ class GradleModuleSystem(
 
   override fun getRegisteredDependency(id: GradleRegisteredDependencyQueryId): GradleRegisteredDependencyId? =
     getRegisteredDependency(id.module)?.let { GradleRegisteredDependencyId(it) }
-
-  // This only exists to support the contract of getRegisteredDependency(), which is that an existing declared dependency should be
-  // returned if it matches the coordinate given, with a possibly-wild or possibly rich version.  If the declared dependency is to
-  // an explicit singleton, we check whether the pattern contains that version; if the pattern version is wild, we accept any
-  // declared dependency; otherwise, we accept only exact rich version matches.
-  private fun Dependency.matches(coordinate: GradleCoordinate): Boolean =
-    coordinate.groupId == this.group &&
-    coordinate.artifactId == this.name &&
-    when (val version = this.version?.explicitSingletonVersion) {
-      null -> coordinate.revision == "+" || RichVersion.parse(coordinate.revision) == this.version
-      else -> RichVersion.parse(coordinate.revision).contains(version)
-    }
 
   fun getRegisteredDependency(externalModule: ExternalModule): Dependency? =
     getDirectDependencies(module).find { it.name == externalModule.name && it.group == externalModule.group }
