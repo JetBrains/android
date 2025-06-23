@@ -142,4 +142,15 @@ public class LabelTest {
     assertThat(Label.of("//path/path_end_is_target_name"))
         .isEqualTo(Label.of("//path/path_end_is_target_name:path_end_is_target_name"));
   }
+
+  @Test
+  public void relativeLabel() {
+    assertThat(Label.Companion.parseLabel("relative/path:target_name", true))
+        .isEqualTo(Label.of("//relative/path:target_name"));
+  }
+
+  @Test
+  public void relativeLabelNotAllowed() {
+    assertThrows(IllegalArgumentException.class, () -> Label.Companion.parseLabel("relative/path:target_name", false));
+  }
 }

@@ -30,7 +30,7 @@ import java.nio.file.Path
  * <p>Note that this class only supports labels in the current workspace, i.e. not labels of the
  * form {@code @repo//pkg/foo:abc}.
  */
-data class Label (val workspace: String, val buildPackage: String, val name: String) {
+data class Label(val workspace: String, val buildPackage: String, val name: String) {
 
   companion object {
     @JvmField
@@ -38,11 +38,20 @@ data class Label (val workspace: String, val buildPackage: String, val name: Str
 
     @JvmStatic
     fun of(label: String): Label {
+      return parseLabel(label)
+    }
+
+    /**
+     * Parse a string as a Bazel label.
+     *
+     * When parsing the resulting label is not validated fully. This is to avoid performance penalty when processing BEP output.
+     */
+    fun parseLabel(label: String, allowRelativeLabels: Boolean = false): Label {
       require(!label.isBlank()) { "Empty label" }
       val workspacePosition = if (label.startsWith("@")) (if (label.startsWith("@@")) 2 else 1) else 0
-      val workspaceEnd = label.indexOf("//", workspacePosition)
-      val buildPackagePosition: Int = workspaceEnd + 2
-      require(buildPackagePosition >= 2) { "Invalid label: $label" }
+      val (workspaceEnd, buildPackagePosition) = label.indexOf("//", workspacePosition)
+        .let { if (it < 0 && allowRelativeLabels) 0 to 0 else it to it + 2 }
+      require(workspaceEnd >= workspacePosition) { "Invalid label: $label" }
       val (buildPackageEnd, namePosition) = label.indexOf(":", buildPackagePosition)
         .let {
           if (it >= 0) it to it + 1 else label.length to label.lastIndexOf('/') + 1
@@ -74,11 +83,6 @@ data class Label (val workspace: String, val buildPackage: String, val name: Str
     fun fromWorkspacePackageAndName(workspace: String, packagePath: Path, name: String): Label {
       return fromWorkspacePackageAndName(workspace, packagePath, Path.of(name));
     }
-
-    @JvmStatic
-    fun toLabelList(labels: List<String>): List<Label> {
-      return labels.map { Label.of(it) }
-    }
   }
 
   fun getBuildPackagePath(): Path = Path.of(buildPackage)
@@ -109,6 +113,45 @@ data class Label (val workspace: String, val buildPackage: String, val name: Str
       append(buildPackage);
       append(":");
       append(name);
+    }
+  }
+}
+
+data class TargetPattern(
+  private val workspace: String,
+  private val buildPackagePath: Path,
+  private val includesSubpackages: Boolean,
+  private val targetName: String?,
+) {
+  fun includes(target: Label): Boolean {
+    if (workspace != target.workspace) return false
+    val targetBuildPackagePath = target.getBuildPackagePath()
+    if (buildPackagePath != targetBuildPackagePath && !(includesSubpackages && targetBuildPackagePath.startsWith(buildPackagePath))) {
+      return false
+    }
+    return targetName == null || targetName == target.name
+  }
+
+  companion object {
+    private val threeDotsPath = Path.of("...")
+    private val wildcardTargets = setOf("*", "all", "all-targets")
+
+    fun parse(pattern: String): TargetPattern {
+      val parsedAsLabel = Label.parseLabel(pattern, allowRelativeLabels = true)
+      val parsedBuildPackagePath = parsedAsLabel.getBuildPackagePath()
+      return if (parsedBuildPackagePath.endsWith(threeDotsPath))
+        TargetPattern(
+          parsedAsLabel.workspace,
+          parsedBuildPackagePath.subpath(0, parsedBuildPackagePath.nameCount - 1),
+          includesSubpackages = true,
+          targetName = null
+        )
+      else TargetPattern(
+        parsedAsLabel.workspace,
+        parsedBuildPackagePath.subpath(0, parsedBuildPackagePath.nameCount),
+        includesSubpackages = false,
+        targetName = parsedAsLabel.name.takeUnless { it in wildcardTargets }
+      )
     }
   }
 }
