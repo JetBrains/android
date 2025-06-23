@@ -19,12 +19,14 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.rendering.HtmlLinkManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.mock.MockPsiFile;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.module.Module;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -32,18 +34,19 @@ import java.util.stream.Collectors;
 public class StudioHtmlLinkManagerTest extends LayoutTestCase {
   public void testAction() {
     StudioHtmlLinkManager manager = new StudioHtmlLinkManager();
+    Module module = myFixture.getModule();
     final AtomicBoolean result1 = new AtomicBoolean(false);
     final AtomicBoolean result2 = new AtomicBoolean(false);
-    HtmlLinkManager.Action runnable1 = (module) -> result1.set(true);
-    HtmlLinkManager.Action runnable2 = (module) -> result2.set(true);
+    HtmlLinkManager.Action runnable1 = (module1) -> result1.set(true);
+    HtmlLinkManager.Action runnable2 = (module1) -> result2.set(true);
     String url1 = manager.createActionLink(runnable1);
     String url2 = manager.createActionLink(runnable2);
     assertFalse(result1.get());
-    manager.handleUrl(url1, null, new MockPsiFile(myFixture.getPsiManager()), false, HtmlLinkManager.NOOP_SURFACE);
+    manager.handleUrl(url1, module, new MockPsiFile(myFixture.getPsiManager()), false, HtmlLinkManager.NOOP_SURFACE);
     assertTrue(result1.get());
     assertFalse(result2.get());
     result1.set(false);
-    manager.handleUrl(url2, null, new MockPsiFile(myFixture.getPsiManager()), false, HtmlLinkManager.NOOP_SURFACE);
+    manager.handleUrl(url2, module, new MockPsiFile(myFixture.getPsiManager()), false, HtmlLinkManager.NOOP_SURFACE);
     assertFalse(result1.get());
     assertTrue(result2.get());
   }

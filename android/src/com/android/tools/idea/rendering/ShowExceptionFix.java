@@ -20,7 +20,9 @@ import com.android.tools.environment.Logger;
 import com.android.tools.rendering.HtmlLinkManager;
 import com.android.tools.rendering.RenderProblem;
 import com.intellij.openapi.module.Module;
+import com.intellij.psi.PsiFile;
 import java.lang.ref.WeakReference;
+import javax.swing.event.HyperlinkListener;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +51,16 @@ public class ShowExceptionFix implements HtmlLinkManager.Action {
 
   @Override
   public void actionPerformed(@Nullable Module module) {
+    throw new UnsupportedOperationException("This is a noop. Use showException method instead.");
+  }
+
+  /**
+   * Shows the exception associated with this throwable.
+   * @param module The module associated with the rendering context.
+   * @param file The PSI file where the exception occurred.
+   * @param linkManager The {@link HtmlLinkManager} to use for navigating the links.
+   */
+  public void showException(@Nullable Module module, PsiFile file, HtmlLinkManager linkManager) {
     if (module == null) {
       Logger.getInstance(ShowExceptionFix.class).warn("Module has been disposed");
       return;
@@ -66,6 +78,6 @@ public class ShowExceptionFix implements HtmlLinkManager.Action {
     while (t.getCause() != null && t.getCause() != t) {
       t = t.getCause();
     }
-    AndroidUtils.showStackStace(module.getProject(), new Throwable[]{t});
+    AndroidUtils.showStackStace(module, new Throwable[]{t}, file, linkManager);
   }
 }

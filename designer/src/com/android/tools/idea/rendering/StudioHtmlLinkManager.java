@@ -232,7 +232,10 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     }
     else if (url.startsWith(URL_RUNNABLE)) {
       Action linkRunnable = getLinkRunnable(url);
-      if (linkRunnable != null) {
+      if (linkRunnable instanceof ShowExceptionFix) {
+        ((ShowExceptionFix)linkRunnable).showException(module, file, this);
+      }
+      else if (linkRunnable != null) {
         linkRunnable.actionPerformed(module);
       }
     }

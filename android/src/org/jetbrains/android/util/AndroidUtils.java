@@ -18,43 +18,34 @@ package org.jetbrains.android.util;
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
 
 import com.android.SdkConstants;
-import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.rendering.RenderUtils;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.util.CommonAndroidUtil;
 import com.android.tools.rendering.AndroidXmlFiles;
-import com.android.utils.TraceUtils;
+import com.android.tools.rendering.HtmlLinkManager;
+import java.lang.ref.WeakReference;
+import javax.swing.JEditorPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import com.android.utils.HtmlBuilder;
 import com.intellij.CommonBundle;
-import com.intellij.codeInsight.hint.HintUtil;
-import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.facet.ProjectFacetManager;
-import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.lang.java.JavaParserDefinition;
 import com.intellij.lexer.Lexer;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.roots.ModuleOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -64,22 +55,16 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.JavaTokenType;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.tree.java.IKeywordElementType;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.awt.RelativePoint;
+import com.intellij.ui.components.JBHtmlPane;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.PsiNavigateUtil;
-import com.intellij.util.graph.Graph;
-import com.intellij.util.graph.GraphAlgorithms;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
@@ -88,15 +73,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.swing.Action;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.JTextArea;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidFacetProperties;
@@ -341,15 +324,82 @@ public class AndroidUtils extends CommonAndroidUtil {
     }
   }
 
-  public static void showStackStace(@Nullable Project project, @NotNull Throwable[] throwables) {
-    StringBuilder messageBuilder = new StringBuilder();
 
-    for (Throwable t : throwables) {
-      if (messageBuilder.length() > 0) {
-        messageBuilder.append("\n\n");
+  /**
+   * Creates a URL string for opening a specific location in the source code.
+   *
+   * @param className  The fully qualified name of the class.
+   * @param methodName The name of the method within the class.
+   * @param fileName   The name of the source file.
+   * @param lineNumber The line number within the source file.
+   * @return A formatted URL string for opening the specified source location.
+   */
+  @NotNull
+  private static String createOpenStackUrl(@NotNull String className,
+                                           @NotNull String methodName,
+                                           @NotNull String fileName,
+                                           int lineNumber) {
+    return "open:" + className + "#" + methodName + ";" + fileName + ":" + lineNumber;
+  }
+
+  /**
+   * Generates an HTML representation of a stack trace with clickable links for file locations.
+   * Each stack frame that includes a file name and line number will be rendered as a clickable link
+   * that can be used to navigate to the corresponding source code location.
+   *
+   * @param throwable The {@link Throwable} object whose stack trace is to be converted to HTML.
+   * @param builder   The {@link HtmlBuilder} to which the HTML representation of the stack trace will be appended.
+   * @return The {@link HtmlBuilder} instance with the stack trace appended.
+   */
+  private static HtmlBuilder getClickablestackTrace(Throwable throwable, HtmlBuilder builder) {
+    int indent = 2;
+    builder.addHtml(StringUtil.replace(throwable.toString(), "\n", "<BR/>")).newline();
+    StackTraceElement[] frames = throwable.getStackTrace();
+    for (int i = 0; i < frames.length; i++) {
+      StackTraceElement frame = frames[i];
+      String className = frame.getClassName();
+      String methodName = frame.getMethodName();
+      builder.addNbsps(indent);
+      builder.add("at ").add(className).add(".").add(methodName);
+      String fileName = frame.getFileName();
+      if (fileName != null && !fileName.isEmpty()) {
+        int lineNumber = frame.getLineNumber();
+        String location = fileName + ':' + lineNumber;
+        String url = createOpenStackUrl(className, methodName, fileName, lineNumber);
+        builder.add("(").addLink(location, url).add(")");
       }
-      messageBuilder.append(TraceUtils.getStackTrace(t));
+      builder.newline();
     }
+    return builder;
+  }
+
+
+  /**
+   * Displays a dialog showing the stack traces of multiple {@link Throwable} objects.
+   * The stack traces are presented in an HTML format with clickable links that allow
+   * navigation to the source code locations of the stack frames.
+   *
+   * @param module The {@link Module} associated with the context, used for resolving paths. Can be null.
+   * @param throwables An array of {@link Throwable} objects whose stack traces are to be displayed.
+   * @param file The {@link PsiFile} associated with the context, potentially used by the {@link HtmlLinkManager}.
+   * @param linkManager The {@link HtmlLinkManager} responsible for handling hyperlink events.
+   */
+  public static void showStackStace(@Nullable Module module,
+                                     @NotNull Throwable[] throwables,
+                                     PsiFile file, HtmlLinkManager linkManager) {
+    HyperlinkListener hyperlinkListener = new LinkHandler(
+      linkManager, null, module, file);
+    Project project = module.getProject();
+    HtmlBuilder htmlBuilder = new HtmlBuilder();
+    htmlBuilder.openHtmlBody();
+    for (Throwable t : throwables) {
+      if (htmlBuilder.toString().length() > 0) {
+        htmlBuilder.add("\n\n");
+      }
+      htmlBuilder = getClickablestackTrace(t, htmlBuilder);
+    }
+    htmlBuilder.closeHtmlBody();
+    HtmlBuilder finalHtmlBuilder = htmlBuilder;
 
     DialogWrapper wrapper = new DialogWrapper(project, false) {
       {
@@ -370,13 +420,20 @@ public class AndroidUtils extends CommonAndroidUtil {
 
       @Override
       protected JComponent createCenterPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        JTextArea textArea = new JTextArea(messageBuilder.toString());
-        textArea.setEditable(false);
-        textArea.setRows(40);
-        textArea.setColumns(70);
-        panel.add(ScrollPaneFactory.createScrollPane(textArea));
-        return panel;
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        JBHtmlPane descriptionEditorPane = new JBHtmlPane();
+        descriptionEditorPane.addHyperlinkListener(e -> {
+          // Let the original link manager handle the event (e.g., to open a file).
+          hyperlinkListener.hyperlinkUpdate(e);
+          // Then, if the link was activated, close the dialog.
+          if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            close(DialogWrapper.OK_EXIT_CODE);
+          }
+        });
+        contentPanel.add(descriptionEditorPane, BorderLayout.NORTH);
+        contentPanel.add(ScrollPaneFactory.createScrollPane(descriptionEditorPane));
+        descriptionEditorPane.setText(finalHtmlBuilder.getHtml());
+        return contentPanel;
       }
     };
     wrapper.setTitle("Stack Trace");
