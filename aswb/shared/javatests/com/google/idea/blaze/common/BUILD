@@ -19,6 +19,17 @@ java_test(
     ],
 )
 
+aswb_test(
+    name = "TargetPatternTest",
+    size = "small",
+    srcs = ["TargetPatternTest.kt"],
+    deps = [
+        "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
+        "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/aswb/third_party/java/truth",
+    ],
+)
+
 java_library(
     name = "test_utils",
     srcs = [
