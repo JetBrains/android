@@ -52,6 +52,7 @@ class ServiceUnsupportedPanel(
 ) : JPanel(GridBagLayout()) {
   init {
     isOpaque = false
+    border = JBUI.Borders.empty()
     val gbc =
       GridBagConstraints().apply {
         fill = GridBagConstraints.BOTH
@@ -138,7 +139,7 @@ class ServiceUnsupportedPanel(
           setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
           g.color = Banner.ERROR_BACKGROUND
           g.fillRoundRect(0, 0, width - 1, height - 1, 12, 12)
-          g.color = Banner.ERROR_BACKGROUND.brighter()
+          g.color = Banner.ERROR_BORDER_COLOR
           g.drawRoundRect(0, 0, width - 1, height - 1, 12, 12)
         }
       }
