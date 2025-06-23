@@ -19,8 +19,11 @@ import com.android.SdkConstants
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlDataProvider
 import com.android.tools.idea.common.surface.InteractionInformation
+import com.android.tools.idea.common.surface.MouseDraggedEvent
+import com.android.tools.idea.common.surface.MousePressedEvent
 import com.android.tools.idea.common.surface.MouseReleasedEvent
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
@@ -73,22 +76,46 @@ class ComposeResizeTrackerTest {
 
   @Test
   fun testSendSizeOnCommit() {
-    val view = surface.sceneViews[0]
+    val view = surface.sceneViews[0] as ScreenView
     val resizeInteraction =
-      CanvasResizeInteraction(surface, view as ScreenView, view.sceneManager.model.configuration)
-    val x = 100
-    val y = 200
-    resizeInteraction.commit(
-      MouseReleasedEvent(MouseEventBuilder(x, y).build(), InteractionInformation(x, y, 0))
+      CanvasResizeInteraction(surface, view, view.sceneManager.model.configuration)
+
+    // Simulate the full drag interaction to populate the internal state correctly.
+    val startX = view.x
+    val startY = view.y
+    val targetX = startX + 100
+    val targetY = startY + 200
+    val startInfo = InteractionInformation(startX, startY, 0)
+
+    // 1. Begin the drag
+    resizeInteraction.begin(MousePressedEvent(MouseEventBuilder(startX, startY).build(), startInfo))
+
+    // 2. Update (drag) to the target coordinates
+    resizeInteraction.update(
+      MouseDraggedEvent(MouseEventBuilder(targetX, targetY).build(), startInfo)
     )
+
+    // 3. Commit (release mouse)
+    resizeInteraction.commit(
+      MouseReleasedEvent(
+        MouseEventBuilder(targetX, targetY).build(),
+        InteractionInformation(targetX, targetY, 0),
+      )
+    )
+
     val event =
       usageTrackerRule.usages
         .find { it.studioEvent.kind == RESIZE_COMPOSE_PREVIEW_EVENT }!!
         .studioEvent
         .resizeComposePreviewEvent
+
+    // The expected values are the dimensions (in dp) after conversion from Swing pixels.
+    val expectedWidthDp = Coordinates.getAndroidDimensionDip(view, targetX - startX)
+    val expectedHeightDp = Coordinates.getAndroidDimensionDip(view, targetY - startY)
+
     assertThat(event.eventType).isEqualTo(ResizeComposePreviewEvent.EventType.RESIZE_STOPPED)
-    assertThat(event.deviceHeightDp).isEqualTo(y)
-    assertThat(event.deviceWidthDp).isEqualTo(x)
+    assertThat(event.deviceHeightDp).isEqualTo(expectedHeightDp)
+    assertThat(event.deviceWidthDp).isEqualTo(expectedWidthDp)
     assertThat(event.resizeMode).isEqualTo(ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE)
   }
 }

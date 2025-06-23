@@ -64,14 +64,15 @@ public class CanvasResizeInteraction implements Interaction {
   private final MergingUpdateQueue myUpdateQueue;
   private final int myMaxAndroidSizePx;
 
+  private int myCurrentAndroidWidth;
+  private int myCurrentAndroidHeight;
+
   private final Update myPositionUpdate = new Update("CanvasResizePositionUpdate") {
     @Override
     public void run() {
-      int androidX = Coordinates.getAndroidX(myScreenView, myCurrentX);
-      int androidY = Coordinates.getAndroidY(myScreenView, myCurrentY);
-      if (androidX > 0 && androidY > 0) {
-        int newX = androidX <= myMaxAndroidSizePx ? androidX : ConfigurationUtilKt.deviceSizePx(myConfiguration).getFirst();
-        int newY = androidY <= myMaxAndroidSizePx ? androidY : ConfigurationUtilKt.deviceSizePx(myConfiguration).getSecond();
+      if (myCurrentAndroidWidth > 0 && myCurrentAndroidHeight > 0) {
+        int newX = myCurrentAndroidWidth <= myMaxAndroidSizePx ? myCurrentAndroidWidth : ConfigurationUtilKt.deviceSizePx(myConfiguration).getFirst();
+        int newY = myCurrentAndroidHeight <= myMaxAndroidSizePx ? myCurrentAndroidHeight : ConfigurationUtilKt.deviceSizePx(myConfiguration).getSecond();
 
         Configurations.updateScreenSize(myConfiguration, newX, newY);
       }
@@ -142,6 +143,15 @@ public class CanvasResizeInteraction implements Interaction {
       myCurrentX = x;
       myCurrentY = y;
 
+      // Calculate width/height relative to the ScreenView's origin in Swing coordinates.
+      // This is robust against the view moving on the canvas during resize.
+      int swingWidth = myCurrentX - myScreenView.getX();
+      int swingHeight = myCurrentY - myScreenView.getY();
+
+      // Convert the Swing dimension to the final Android pixel dimension.
+      myCurrentAndroidWidth = Coordinates.getAndroidDimension(myScreenView, swingWidth);
+      myCurrentAndroidHeight = Coordinates.getAndroidDimension(myScreenView, swingHeight);
+
       Dimension viewSize = myDesignSurface.getViewSize();
       int maxX = Coordinates.getSwingX(myScreenView, myMaxAndroidSizePx) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
       int maxY = Coordinates.getSwingY(myScreenView, myMaxAndroidSizePx) + NlConstants.DEFAULT_SCREEN_OFFSET_Y;
@@ -166,15 +176,12 @@ public class CanvasResizeInteraction implements Interaction {
     myDesignSurface.setResizeMode(false);
     myDesignSurface.setScrollableViewMinSize(new Dimension(0, 0));
 
-    int androidX = Coordinates.getAndroidX(myScreenView, event.getInfo().getX());
-    int androidY = Coordinates.getAndroidY(myScreenView, event.getInfo().getY());
-
-    if (androidX < 0 || androidY < 0) {
+    if (myCurrentAndroidWidth < 0 || myCurrentAndroidHeight < 0) {
       myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
     }
     else {
-      int newX = androidX <= myMaxAndroidSizePx ? androidX : ConfigurationUtilKt.deviceSizePx(myConfiguration).getFirst();
-      int newY = androidY <= myMaxAndroidSizePx ? androidY : ConfigurationUtilKt.deviceSizePx(myConfiguration).getSecond();
+      int newX = myCurrentAndroidWidth <= myMaxAndroidSizePx ? myCurrentAndroidWidth : ConfigurationUtilKt.deviceSizePx(myConfiguration).getFirst();
+      int newY = myCurrentAndroidHeight <= myMaxAndroidSizePx ? myCurrentAndroidHeight : ConfigurationUtilKt.deviceSizePx(myConfiguration).getSecond();
       Configurations.updateScreenSize(myConfiguration, newX, newY);
       ResizeTracker tracker = ResizeTracker.getTracker(myScreenView.getSceneManager());
 
@@ -216,22 +223,22 @@ public class CanvasResizeInteraction implements Interaction {
       int screenViewX = myScreenView.getX();
       int screenViewY = myScreenView.getY();
 
-      int currentAndroidWidth = Coordinates.getAndroidX(myScreenView, myCurrentX);
-      int currentAndroidHeight = Coordinates.getAndroidY(myScreenView, myCurrentY);
+      int currentSwingWidth = Coordinates.getSwingDimension(myScreenView, myCurrentAndroidWidth);
+      int currentSwingHeight = Coordinates.getSwingDimension(myScreenView, myCurrentAndroidHeight);
 
-      if (currentAndroidWidth > 0 && currentAndroidHeight > 0) {
+      if (currentSwingWidth > 0 && currentSwingHeight > 0) {
         Graphics2D graphics = (Graphics2D)g2d.create();
         graphics.setStroke(NlConstants.THICK_SOLID_STROKE);
 
-        if (currentAndroidWidth < myMaxAndroidSizePx && currentAndroidHeight < myMaxAndroidSizePx) {
+        if (myCurrentAndroidWidth < myMaxAndroidSizePx && myCurrentAndroidHeight < myMaxAndroidSizePx) {
           graphics.setColor(NlConstants.RESIZING_CONTOUR_COLOR);
-          graphics.drawRect(screenViewX - 1, screenViewY - 1, myCurrentX - screenViewX, myCurrentY - screenViewY);
+          graphics.drawRect(screenViewX - 1, screenViewY - 1, currentSwingWidth, currentSwingHeight);
         }
         else {
           int screenViewMaxSize = Coordinates.getSwingDimension(myScreenView, myMaxAndroidSizePx);
           graphics.setColor(JBColor.RED);
-          graphics.drawRect(screenViewX - 1, screenViewY - 1, Math.min(myCurrentX - screenViewX, screenViewMaxSize),
-                            Math.min(myCurrentY - screenViewY, screenViewMaxSize));
+          graphics.drawRect(screenViewX - 1, screenViewY - 1, Math.min(currentSwingWidth, screenViewMaxSize),
+                            Math.min(currentSwingHeight, screenViewMaxSize));
         }
         graphics.dispose();
       }
