@@ -26,13 +26,11 @@ import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.runInEdtAndGet
-import kotlinx.coroutines.Dispatchers
 import org.junit.Before
 import org.junit.Rule
 
@@ -80,7 +78,6 @@ abstract class InspectorTests {
 
     animationPreview =
       ComposeAnimationPreview(
-          Dispatchers.EDT,
           surface.project,
           ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
           { surface.model?.let { surface.getSceneManager(it) } },
