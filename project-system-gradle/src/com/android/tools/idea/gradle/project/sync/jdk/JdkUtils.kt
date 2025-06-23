@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.jdk
 
 import com.android.tools.idea.gradle.util.GradleConfigProperties
-import com.android.tools.idea.sdk.GradleDefaultJdkPathStore
+import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.sdk.extensions.isEqualTo
