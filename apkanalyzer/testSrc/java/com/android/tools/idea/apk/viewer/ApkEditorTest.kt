@@ -65,6 +65,7 @@ import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
+import kotlin.io.path.createParentDirectories
 import kotlin.io.path.pathString
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
@@ -263,6 +264,28 @@ class ApkEditorTest {
     val editor = apkEditor.getEditor<ApkFileEditorComponent>(apkEditor.getNode("/kotlin/kotlin.kotlin_builtins"))
 
     assertThat(editor).isInstanceOf(EmptyPanel::class.java)
+  }
+
+  @Test
+  fun proguardMapping_fromBundle() {
+    val apkEditor = apkEditor("/app-benchmark.aab")
+
+    assertThat(apkEditor.proguardMapping).isNotNull()
+  }
+
+  @Test
+  fun proguardMapping_fromApk() {
+    val appDir = temporaryDirectoryRule.newPath("app")
+    val apk = appDir.resolve("module/build/outputs/apk/release/app-release.apk")
+    val mapping = appDir.resolve("module/build/outputs/mapping/release/mapping.txt")
+    apk.createParentDirectories()
+    mapping.createParentDirectories()
+    TestResources.getFile("/obfuscated-app.apk").copyTo(apk.toFile())
+    TestResources.getFile("/obfuscated-app-mapping.txt").copyTo(mapping.toFile())
+
+    val apkEditor = apkEditor(apk.pathString, isResource = false)
+
+    assertThat(apkEditor.proguardMapping).isNotNull()
   }
 
   private fun apkEditor(path: String, isResource: Boolean = true): ApkEditor {
