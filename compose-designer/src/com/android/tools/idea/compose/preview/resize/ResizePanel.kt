@@ -69,6 +69,9 @@ import org.jetbrains.annotations.TestOnly
 
 private const val textFieldWidth = 60
 
+private const val minimumSizeDp = 1
+private const val maximumSizeDp = 5000
+
 /**
  * Panel that allows resizing the preview by selecting a device or entering custom dimensions. It is
  * displayed in the toolbar of the Compose Preview.
@@ -160,7 +163,8 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     devicePickerButton = setupDevicePickerButton()
 
     val formatter = NumberFormatter(NumberFormat.getIntegerInstance())
-    formatter.minimum = 1
+    formatter.minimum = minimumSizeDp
+    formatter.maximum = maximumSizeDp
     widthTextField = JFormattedTextField(formatter)
     heightTextField = JFormattedTextField(formatter)
 
@@ -416,8 +420,8 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
 
   private fun updateConfigurationFromTextFields() {
     val config = currentConfiguration ?: return
-    val newWidthDp = widthTextField.text.toIntOrNull()
-    val newHeightDp = heightTextField.text.toIntOrNull()
+    val newWidthDp = widthTextField.value as? Int
+    val newHeightDp = heightTextField.value as? Int
 
     if (newWidthDp != null && newHeightDp != null && newWidthDp > 0 && newHeightDp > 0) {
       val (currentConfigWidthDp, currentConfigHeightDp) = config.deviceSizeDp()
@@ -474,8 +478,8 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     }
 
     val (wDp, hDp) = config.deviceSizeDp()
-    widthTextField.text = wDp.toString()
-    heightTextField.text = hDp.toString()
+    widthTextField.value = wDp
+    heightTextField.value = hDp
 
     setEnabledIncludingChildren(true)
 
