@@ -30,7 +30,6 @@ import com.android.tools.idea.ui.util.getPhysicalDisplayIdFromDumpsysOutput
 import com.google.common.base.Throwables.throwIfUnchecked
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 import java.awt.Dimension
 
 private val commandTimeout = INFINITE_DURATION
@@ -67,26 +66,24 @@ class ShellCommandScreenshotProvider(
       adbLibService.session.deviceServices.screenCapAsBufferedImage(deviceSelector, physicalDisplayId)
     }
 
-    return runBlocking {
-      try {
-        val dumpsysOutput = dumpsysJob.await()
-        ProgressManagerAdapter.checkCanceled()
-        val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(dumpsysOutput).find { it.logicalId == displayId }
-        ProgressManagerAdapter.checkCanceled()
-        val image = screenshotJob.await()
-        ProgressManagerAdapter.checkCanceled()
-        val screenshotRotation = displayInfoProvider?.getScreenshotRotation(displayId) ?: 0
-        val rotatedImage = ImageUtils.rotateByQuadrants(image, screenshotRotation)
-        val orientation = displayInfoProvider?.getDisplayOrientation(displayId) ?: displayInfo?.orientationQuadrants ?: 0
-        val displaySize = displayInfoProvider?.getDisplaySize(displayId) ?: displayInfo?.size ?: Dimension()
-        val displayDensity = displayInfo?.density ?: 0
-        val isRoundDisplay = displayInfo?.isRound ?: false
-        ScreenshotImage(rotatedImage, orientation, deviceType, deviceName, displayId, displaySize, displayDensity, isRoundDisplay)
-      }
-      catch (e: Throwable) {
-        throwIfUnchecked(e)
-        throw RuntimeException(e)
-      }
+    try {
+      val dumpsysOutput = dumpsysJob.await()
+      ProgressManagerAdapter.checkCanceled()
+      val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(dumpsysOutput).find { it.logicalId == displayId }
+      ProgressManagerAdapter.checkCanceled()
+      val image = screenshotJob.await()
+      ProgressManagerAdapter.checkCanceled()
+      val screenshotRotation = displayInfoProvider?.getScreenshotRotation(displayId) ?: 0
+      val rotatedImage = ImageUtils.rotateByQuadrants(image, screenshotRotation)
+      val orientation = displayInfoProvider?.getDisplayOrientation(displayId) ?: displayInfo?.orientationQuadrants ?: 0
+      val displaySize = displayInfoProvider?.getDisplaySize(displayId) ?: displayInfo?.size ?: Dimension()
+      val displayDensity = displayInfo?.density ?: 0
+      val isRoundDisplay = displayInfo?.isRound ?: false
+      return ScreenshotImage(rotatedImage, orientation, deviceType, deviceName, displayId, displaySize, displayDensity, isRoundDisplay)
+    }
+    catch (e: Throwable) {
+      throwIfUnchecked(e)
+      throw RuntimeException(e)
     }
   }
 
