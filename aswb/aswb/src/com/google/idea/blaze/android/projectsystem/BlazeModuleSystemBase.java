@@ -19,7 +19,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Arrays.stream;
 
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.android.ide.common.util.PathString;
 import com.android.manifmerger.ManifestSystemProperty;
@@ -283,12 +282,18 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem, Registering
     return Futures.immediateFuture(result);
   }
 
+  @Override
+  public boolean hasResolvedDependency(WellKnownMavenArtifactId id, DependencyScopeType scope) throws DependencyManagementException {
+    return getResolvedTarget(id) != null;
+  }
+
   @Nullable
-  private TargetKey getResolvedTarget(GradleCoordinate coordinate) {
+  private TargetKey getResolvedTarget(WellKnownMavenArtifactId id) {
     if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
       // TODO (b/262289199): While there is a way of mapping a gradle coordinate to a target,
       //  that is a very tricky practice that while it could be supported with Query Sync, we
-      //  should try to avoid it.
+      //  should try to avoid it.  (Maybe we should revisit this now that we do not need to
+      //  support arbitrary Gradle coordinates?)
       return null;
     }
     BlazeProjectData projectData =
@@ -303,7 +308,7 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem, Registering
     TransitiveDependencyMap transitiveDependencyMap =
         TransitiveDependencyMap.getInstance(module.getProject());
 
-    return locateArtifactsFor(coordinate)
+    return locateArtifactsFor(id)
         .filter(
             artifactKey ->
                 resourceModuleKey == null
@@ -320,38 +325,6 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem, Registering
                         resourceModuleKey, artifactKey))
         .findFirst()
         .orElse(null);
-  }
-
-  @Nullable
-  @Override
-  public GradleCoordinate getResolvedDependency(GradleCoordinate coordinate) {
-    return getResolvedDependency(coordinate, DependencyScopeType.MAIN);
-  }
-
-  @Override
-  @Nullable
-  public GradleCoordinate getResolvedDependency(
-      GradleCoordinate gradleCoordinate, DependencyScopeType dependencyScopeType)
-      throws DependencyManagementException {
-    TargetKey target = getResolvedTarget(gradleCoordinate);
-    return target != null ? gradleCoordinate : null;
-  }
-
-  // TODO(xof): temporarily (as of 2025-06-18) preserve this while the
-  //  getResolvedDependency(GradleCoordinate) methods still exist, but
-  //  there are no longer any production callers.
-  private Stream<TargetKey> locateArtifactsFor(GradleCoordinate coordinate) {
-    // External dependencies can be imported into the project via many routes (e.g. maven_jar,
-    // local_repository, custom repo paths, etc). Within the project these dependencies are all
-    // referenced by their TargetKey. Here we use a locator to convert coordinates to TargetKey
-    // labels in order to find them.
-    WellKnownMavenArtifactId id = WellKnownMavenArtifactId.find(coordinate.getGroupId(), coordinate.getArtifactId());
-    if (id == null) return Stream.of();
-    return MavenArtifactLocator.forBuildSystem(Blaze.getBuildSystemName(module.getProject()))
-        .stream()
-        .map(locator -> locator.labelFor(id))
-        .filter(Objects::nonNull)
-        .map(TargetKey::forPlainTarget);
   }
 
   private Stream<TargetKey> locateArtifactsFor(WellKnownMavenArtifactId id) {

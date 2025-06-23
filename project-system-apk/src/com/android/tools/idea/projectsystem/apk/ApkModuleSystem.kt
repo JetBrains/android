@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.apk
 
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.WellKnownMavenArtifactId
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.apk.ApkFacet
@@ -23,7 +23,6 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.DependencyScopeType
-import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.ScopeType
@@ -45,7 +44,7 @@ class ApkModuleSystem(override val module: Module): AndroidModuleSystem {
 
   override val submodules: Collection<Module> = listOf()
 
-  override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? = null
+  override fun hasResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): Boolean = false
 
   override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> = listOf()
 

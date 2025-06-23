@@ -19,7 +19,6 @@ package com.android.tools.idea.projectsystem
 
 import com.android.AndroidProjectTypes
 import com.android.ide.common.repository.GoogleMavenArtifactId
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.WellKnownMavenArtifactId
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
@@ -88,35 +87,16 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate>
 
   /**
-   * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate].
-   * <p>
-   * This method will resolve version information to what is resolved. For example:
-   * Query coordinate a:b:+ will return a:b:123 if version 123 of that artifact is a resolved dependency.
-   * Query coordinate a:b:123 will return a:b:123 if version 123 of that artifact is a resolved dependency.
-   * Query coordinate a:b:456 will return null if version 123 is a resolved dependency but not version 456.
-   * Use [RegisteringModuleSystem.getRegisteredDependency] if you want the registered dependency.
-   * <p>
-   * **Note**: This function will not acquire any locks during its operation.
+   * Returns whether this module has a resolved dependency on the artifact with [id] in the [DependencyScopeType.MAIN] scope.
    */
-  @Throws(DependencyManagementException::class)
-  fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? = getResolvedDependency(coordinate, DependencyScopeType.MAIN)
-
-  @Throws(DependencyManagementException::class)
-  fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate?
-
-  @Throws(DependencyManagementException::class)
-  fun getResolvedDependency(id: WellKnownMavenArtifactId): GradleCoordinate? = getResolvedDependency(id.getCoordinate("+"))
-
-  @Throws(DependencyManagementException::class)
-  fun getResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): GradleCoordinate? =
-    getResolvedDependency(id.getCoordinate("+"), scope)
-
   @Throws(DependencyManagementException::class)
   fun hasResolvedDependency(id: WellKnownMavenArtifactId) = hasResolvedDependency(id, DependencyScopeType.MAIN)
 
+  /**
+   * Returns whether this module has a resolved dependency on the artifact with [id] in the given [scope].
+   */
   @Throws(DependencyManagementException::class)
-  fun hasResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): Boolean =
-    getResolvedDependency(id, scope) != null
+  fun hasResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): Boolean
 
   fun getRegisteringModuleSystem(): RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>? =
     this as? RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>
