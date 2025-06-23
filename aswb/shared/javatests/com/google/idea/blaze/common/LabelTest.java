@@ -95,11 +95,6 @@ public class LabelTest {
   }
 
   @Test
-  public void testNew_noName() {
-    assertThrows(IllegalArgumentException.class, () -> Label.of("//package/path"));
-  }
-
-  @Test
   public void testToFilePath() {
     Truth8.assertThat(Label.of("//package/path:BUILD").toFilePath())
         .isEqualTo(Path.of("package/path/BUILD"));
@@ -140,5 +135,11 @@ public class LabelTest {
   public void siblingWithPathAndName() {
     assertThat(Label.of("@abc//some/path:def").siblingWithPathAndName("other/path:name"))
         .isEqualTo(Label.of("@@abc//some/path/other/path:name"));
+  }
+
+  @Test
+  public void omittedTargetName() {
+    assertThat(Label.of("//path/path_end_is_target_name"))
+        .isEqualTo(Label.of("//path/path_end_is_target_name:path_end_is_target_name"));
   }
 }
