@@ -1642,7 +1642,6 @@ class ComposePreviewRepresentation(
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
   ): ComposeAnimationPreview {
     return ComposeAnimationPreview(
-        Dispatchers.EDT,
         surface.project,
         ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
         { surface.model?.let { surface.getSceneManager(it) } },

@@ -31,11 +31,12 @@ import com.android.tools.idea.compose.preview.animation.state.PickerState
 import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import javax.swing.JComponent
-import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -46,20 +47,13 @@ import kotlinx.coroutines.withContext
  *   opened.
  */
 class ComposeAnimationPreview(
-  uiContext: CoroutineContext,
   project: Project,
   val tracker: ComposeAnimationTracker,
   sceneManagerProvider: () -> LayoutlibSceneManager?,
   private val rootComponent: JComponent,
   val psiFilePointer: SmartPsiElementPointer<PsiFile>,
 ) :
-  AnimationPreview<ComposeAnimationManager>(
-    uiContext,
-    project,
-    sceneManagerProvider,
-    rootComponent,
-    tracker,
-  ),
+  AnimationPreview<ComposeAnimationManager>(project, sceneManagerProvider, rootComponent, tracker),
   ComposeAnimationHandler {
 
   /** Generates unique tab names for each tab e.g "tabTitle(1)", "tabTitle(2)". */
@@ -104,7 +98,7 @@ class ComposeAnimationPreview(
   override fun addAnimation(animation: ComposeAnimation) =
     scope.launch {
       removeAnimation(animation).join()
-      val tab = withContext(uiContext) { createAnimationManager(animation) }
+      val tab = withContext(Dispatchers.EDT) { createAnimationManager(animation) }
       tab.setup()
       addAnimationManager(tab)
     }

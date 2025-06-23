@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -40,9 +41,9 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
-import kotlin.coroutines.CoroutineContext
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -66,7 +67,6 @@ private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
  * T is subclass of AnimationManager AnimationPreview can work with.
  */
 abstract class AnimationPreview<T : AnimationManager>(
-  protected val uiContext: CoroutineContext,
   project: Project,
   @VisibleForTesting val sceneManagerProvider: () -> LayoutlibSceneManager?,
   rootComponent: JComponent,
@@ -154,7 +154,7 @@ abstract class AnimationPreview<T : AnimationManager>(
    */
   private val timeline: Timeline =
     Timeline(animationPreviewPanel, component).apply {
-      addChangeListener { scope.launch(uiContext) { bottomPanel.clockTimeMs = value } }
+      addChangeListener { scope.launch(Dispatchers.EDT) { bottomPanel.clockTimeMs = value } }
     }
   val clockControl = SliderClockControl(timeline)
 
@@ -196,7 +196,7 @@ abstract class AnimationPreview<T : AnimationManager>(
   /** Repaints [TimelineElement] on selected tab. */
   protected suspend fun updateTimelineElements() {
     // Call once to update all sizes as all curves / lines required it.
-    withContext(uiContext) {
+    withContext(Dispatchers.EDT) {
       timeline.sliderUI.elements.forEach { Disposer.dispose(it) }
       timeline.sliderUI.elements = getTimelineElements()
       timeline.revalidate()
@@ -312,7 +312,7 @@ abstract class AnimationPreview<T : AnimationManager>(
         maxDurationPerIteration.value,
       )
     scope.launch {
-      withContext(uiContext) {
+      withContext(Dispatchers.EDT) {
         clockControl.updateMaxDuration(max(timelineMax, MINIMUM_TIMELINE_DURATION_MS))
       }
       updateTimelineElements()
@@ -369,7 +369,7 @@ abstract class AnimationPreview<T : AnimationManager>(
     }
 
   protected suspend fun removeAnimationManager(animationManager: T) {
-    withContext(uiContext) {
+    withContext(Dispatchers.EDT) {
       animationManager.destroy()
       coordinationTab.removeCard(animationManager.card)
       removeAnimation(animationManager)
@@ -392,7 +392,7 @@ abstract class AnimationPreview<T : AnimationManager>(
 
   /** Adds an [AnimationManager] card to [coordinationTab]. */
   protected suspend fun addAnimationManager(animationTab: T) {
-    withContext(uiContext) {
+    withContext(Dispatchers.EDT) {
       val isAddingFirstTab = animations.isEmpty()
       addAnimation(animationTab)
       coordinationTab.addCard(animationTab.card)
