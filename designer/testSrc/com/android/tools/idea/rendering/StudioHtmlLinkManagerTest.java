@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
@@ -50,7 +49,7 @@ public class StudioHtmlLinkManagerTest extends LayoutTestCase {
   }
 
   public void testHandleAddDependency() {
-    List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
+    List<TestProjectSystem.Artifact> accessibleDependencies = new ImmutableList.Builder<TestProjectSystem.Artifact>()
       .addAll(TestRepositories.GOOGLE_PLAY_SERVICES)
       .addAll(TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
       .addAll(TestRepositories.PLATFORM_SUPPORT_LIBS)
@@ -75,7 +74,7 @@ public class StudioHtmlLinkManagerTest extends LayoutTestCase {
         .map(dependency ->
                dependency.getType()
                + "("
-               + dependency.getCoordinate().getGroupId() + ":" + dependency.getCoordinate().getArtifactId()
+               + dependency.getId().getGroupId() + ":" + dependency.getId().getArtifactId()
                + ")")
         .collect(Collectors.toList()))
       .containsExactly("IMPLEMENTATION(com.android.support:palette-v7)",

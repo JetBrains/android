@@ -42,7 +42,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
@@ -406,7 +405,7 @@ public class NlModelTest extends LayoutTestCase {
   }
 
   public void testCreateComponentWithDependencyCheck() {
-    List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
+    List<TestProjectSystem.Artifact> accessibleDependencies = new ImmutableList.Builder<TestProjectSystem.Artifact>()
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
@@ -448,7 +447,7 @@ public class NlModelTest extends LayoutTestCase {
   }
 
   public void testAddComponentsWithDependencyCheck() {
-    List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
+    List<TestProjectSystem.Artifact> accessibleDependencies = new ImmutableList.Builder<TestProjectSystem.Artifact>()
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
@@ -498,7 +497,7 @@ public class NlModelTest extends LayoutTestCase {
   }
 
   public void testAddComponentsNoDependencyCheckOnMove() {
-    List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
+    List<TestProjectSystem.Artifact> accessibleDependencies = new ImmutableList.Builder<TestProjectSystem.Artifact>()
       .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();

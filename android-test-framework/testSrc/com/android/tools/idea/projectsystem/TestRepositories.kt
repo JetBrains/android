@@ -56,11 +56,11 @@ val PLATFORM_SUPPORT_LIBS =
     SUPPORT_EXIFINTERFACE,
     ANDROIDX_EXIFINTERFACE,
     ANDROIDX_PREFERENCE,
-  ).map { it.getCoordinate("+") }
+  ).map { TestProjectSystem.Artifact(it, TestVersion.create(1)) }
 @JvmField
 val NON_PLATFORM_SUPPORT_LAYOUT_LIBS = listOf(CONSTRAINT_LAYOUT, ANDROIDX_CONSTRAINTLAYOUT, FLEXBOX_LAYOUT)
-  .map { it.getCoordinate("+") }
+  .map { TestProjectSystem.Artifact(it, TestVersion.create(1)) }
 
 @JvmField
 val GOOGLE_PLAY_SERVICES = listOf(PLAY_SERVICES, PLAY_SERVICES_ADS, PLAY_SERVICES_WEARABLE, PLAY_SERVICES_MAPS)
-  .map { it.getCoordinate("+") }
+  .map { TestProjectSystem.Artifact(it, TestVersion.create(1)) }

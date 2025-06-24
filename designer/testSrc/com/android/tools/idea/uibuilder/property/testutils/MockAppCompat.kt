@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.testutils
 
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.projectsystem.TestVersion
 import com.android.tools.idea.uibuilder.MOST_RECENT_API_LEVEL
 import com.google.common.collect.ImmutableList
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -155,10 +156,12 @@ public class MyActivity extends AppCompatActivity {}
 object MockAppCompat {
 
   fun setUp(facet: AndroidFacet, fixture: JavaCodeInsightTestFixture) {
-    val version = String.format("%1\$d.0.0", MOST_RECENT_API_LEVEL)
-    val appCompatCoordinate = GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getCoordinate(version)
-    val projectSystem =
-      TestProjectSystem(facet.module.project, ImmutableList.of(appCompatCoordinate))
+    val appCompatArtifact =
+      TestProjectSystem.Artifact(
+        GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7,
+        TestVersion.create(MOST_RECENT_API_LEVEL),
+      )
+    val projectSystem = TestProjectSystem(facet.module.project, ImmutableList.of(appCompatArtifact))
     projectSystem.useInTests()
 
     fixture.addFileToProject(

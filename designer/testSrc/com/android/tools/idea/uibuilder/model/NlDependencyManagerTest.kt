@@ -49,14 +49,11 @@ open class NlDependencyManagerTest : LayoutTestCase() {
 
   fun testEnsureLibraryIsIncluded() {
     val depsShouldBeAdded =
-      listOf(
-        GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+"),
-        GoogleMavenArtifactId.SUPPORT_CARDVIEW_V7.getCoordinate("+"),
-      )
+      listOf(GoogleMavenArtifactId.CONSTRAINT_LAYOUT, GoogleMavenArtifactId.SUPPORT_CARDVIEW_V7)
     NlDependencyManager.getInstance()
       .addDependencies(model.treeReader.components, model.facet, false)
     assertSameElements(
-      projectSystem.getAddedDependencies(model.module).map { it.coordinate },
+      projectSystem.getAddedDependencies(model.module).map { it.id },
       depsShouldBeAdded,
     )
   }
