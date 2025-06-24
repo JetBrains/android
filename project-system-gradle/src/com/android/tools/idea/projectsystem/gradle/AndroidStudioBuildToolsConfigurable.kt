@@ -70,8 +70,9 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
         clearAutoSyncVariables()
         trackAutoSyncSettingChanged()
         if (it == AutoSyncBehavior.Default) {
-          SyncDueMessage.getProjectsWhereNotificationShown().forEach {
-            GradleSyncInvoker.getInstance().requestProjectSync(it, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+          SyncDueMessage.getProjectsWhereSyncIsDue().forEach { project ->
+            GradleSyncInvoker.getInstance().requestProjectSync(project,
+                                                               GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
           }
         }
       }

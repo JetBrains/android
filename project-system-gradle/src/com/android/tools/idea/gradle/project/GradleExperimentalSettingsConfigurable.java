@@ -111,7 +111,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
       trackAutoSyncSettingChanged();
       clearAutoSyncVariables();
       if (getAutoSyncBehaviorComboBox() == AutoSyncBehavior.Default) {
-        SyncDueMessage.INSTANCE.getProjectsWhereNotificationShown().forEach(project -> GradleSyncInvoker.getInstance()
+        SyncDueMessage.INSTANCE.getProjectsWhereSyncIsDue().forEach(project -> GradleSyncInvoker.getInstance()
           .requestProjectSync(project, new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST), null));
       }
     }

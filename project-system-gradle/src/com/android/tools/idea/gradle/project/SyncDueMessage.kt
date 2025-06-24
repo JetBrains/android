@@ -217,11 +217,14 @@ object SyncDueMessage {
       }
   }
 
-  fun getProjectsWhereNotificationShown(): List<Project> {
-    return ProjectManager.getInstance().openProjects.filter {
-      NotificationsManager.getNotificationsManager().getNotificationsOfType(SyncDueNotification::class.java, it).isNotEmpty()
-    }
+  fun getProjectsWhereSyncIsDue(): List<Project> = ProjectManager.getInstance().openProjects.filter {
+    it.hasSyncDueNotificationShown() || it.hasNoInitialSyncPerformed()
   }
+
+  private fun Project.hasSyncDueNotificationShown(): Boolean = NotificationsManager.getNotificationsManager().getNotificationsOfType(
+    SyncDueNotification::class.java, this).isNotEmpty()
+
+  private fun Project.hasNoInitialSyncPerformed(): Boolean = ProjectStructure.getInstance(this).androidPluginVersions.allVersions.isEmpty()
 
   private fun isShownFirstTime(): Boolean {
     return PropertiesComponent.getInstance().getValue(SYNC_DUE_DIALOG_SHOWN).isNullOrBlank()
