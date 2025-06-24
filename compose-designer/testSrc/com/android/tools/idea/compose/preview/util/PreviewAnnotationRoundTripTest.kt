@@ -255,6 +255,7 @@ class PreviewAnnotationRoundTripTest {
       """
       import androidx.compose.ui.tooling.preview.Preview
       import androidx.compose.runtime.Composable
+      import android.content.res.Configuration.UI_MODE_NIGHT_NO
 
       @androidx.compose.ui.tooling.preview.Preview(
           name = "FullParams",
@@ -264,7 +265,7 @@ class PreviewAnnotationRoundTripTest {
           apiLevel = 28,
           locale = "en-rUS",
           fontScale = 1.2f,
-          uiMode = 16
+          uiMode = UI_MODE_NIGHT_NO
       )
       @Composable
       fun MyComposable() {
@@ -301,7 +302,7 @@ class PreviewAnnotationRoundTripTest {
             apiLevel = 28,
             locale = "en-rUS",
             fontScale = 1.2f,
-            uiMode = 16,
+            uiMode = UI_MODE_NIGHT_NO,
             widthDp = 500,
             heightDp = 500
         )
@@ -367,4 +368,48 @@ class PreviewAnnotationRoundTripTest {
             .trimIndent()
         )
     }
+
+  @Test
+  fun `toPreviewAnnotationText with combined UiMode generates constant names`() = runTest {
+    @Language("kotlin")
+    val composeFileContent =
+      """
+      import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.runtime.Composable
+      import android.content.res.Configuration.UI_MODE_NIGHT_YES
+      import android.content.res.Configuration.UI_MODE_TYPE_DESK
+
+      @Preview(name = "CombinedUiMode", uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_DESK)
+      @Composable
+      fun MyComposable() {}
+      """
+        .trimIndent()
+
+    val composeTestFile = projectRule.fixture.addFileToProject("src/Test.kt", composeFileContent)
+
+    val previewElement =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+          projectRule.project,
+          composeTestFile.virtualFile,
+        )
+        .flatMap { it.resolve() }
+        .first()
+
+    val configuration = createConfiguration(width = 200, height = 200)
+
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "CombinedUiMode")
+
+    assertThat(generatedText)
+      .isEqualTo(
+        """
+        @androidx.compose.ui.tooling.preview.Preview(
+            name = "CombinedUiMode",
+            uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_DESK,
+            widthDp = 200,
+            heightDp = 200
+        )
+        """
+          .trimIndent()
+      )
+  }
 }

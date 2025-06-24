@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.util
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.deviceSizeDp
+import com.android.tools.idea.compose.pickers.preview.enumsupport.UiMode
 import com.android.tools.idea.configurations.ReferenceDevice
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.ConfigurablePreviewElement
@@ -35,6 +36,54 @@ import java.util.Locale as JavaUtilLocale
  * not be saved by their ID.
  */
 private val referenceDeviceIds = ReferenceDevice.getWindowSizeDevices().map { it.id }.toSet()
+
+// region uiModeToString conversion
+
+// Constants mirroring those in android.content.res.Configuration for uiMode bitmasks
+private const val UI_MODE_NIGHT_MASK = 0x30
+private const val UI_MODE_TYPE_MASK = 0x0f
+
+/** Enum representing the `UI_MODE_NIGHT_*` constants. */
+private enum class NightMode(val classConstant: String, val resolvedValue: Int) {
+  NIGHT_NO("UI_MODE_NIGHT_NO", 16),
+  NIGHT_YES("UI_MODE_NIGHT_YES", 32);
+
+  companion object {
+    private val valueMap = NightMode.entries.associateBy(NightMode::resolvedValue)
+
+    fun fromInt(value: Int): NightMode? = valueMap[value]
+  }
+}
+
+/**
+ * Converts a `uiMode` integer value into a human-readable string of its constant parts by using the
+ * [UiMode] and [NightMode] enums.
+ */
+private fun uiModeToString(uiMode: Int): String {
+  if (uiMode == UNSET_UI_MODE_VALUE) return ""
+
+  val night = uiMode and UI_MODE_NIGHT_MASK
+  val type = uiMode and UI_MODE_TYPE_MASK
+
+  // If there are other bits set besides night/type, we can't represent it cleanly.
+  if ((uiMode and (night or type).inv()) != 0) {
+    return uiMode.toString()
+  }
+
+  val nightString = if (night != 0) NightMode.fromInt(night)?.classConstant else null
+  val typeString = if (type != 0) UiMode.fromInt(type)?.classConstant else null
+
+  val parts = listOfNotNull(nightString, typeString)
+
+  // Fallback to integer if we found parts of the bitmask that don't map to our enums.
+  if ((night != 0 && nightString == null) || (type != 0 && typeString == null)) {
+    return uiMode.toString()
+  }
+
+  return if (parts.isEmpty()) uiMode.toString() else parts.joinToString(" or ")
+}
+
+// endregion
 
 /** Appends a parameter-value pair to the StringBuilder. */
 private fun StringBuilder.appendParamValue(parameterName: String, value: String): StringBuilder =
@@ -152,7 +201,7 @@ internal fun toPreviewAnnotationText(
       params.add("$PARAMETER_FONT_SCALE = ${previewConfig.fontScale}f")
     }
     if (previewConfig.uiMode != UNSET_UI_MODE_VALUE) {
-      params.add("$PARAMETER_UI_MODE = ${previewConfig.uiMode}")
+      params.add("$PARAMETER_UI_MODE = ${uiModeToString(previewConfig.uiMode)}")
     }
     if (displaySettings.showDecoration) {
       params.add("$PARAMETER_SHOW_SYSTEM_UI = true")
