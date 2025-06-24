@@ -299,7 +299,10 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     if (selectedItem is DropDownListItem.OriginalItem) {
       revertResizing()
     } else if (selectedItem is DropDownListItem.DeviceItem) {
-      currentConfiguration?.setDevice(selectedItem.device, false)
+      currentConfiguration?.setEffectiveDevice(
+        selectedItem.device,
+        selectedItem.device.defaultState,
+      )
       ComposeResizeToolingUsageTracker.logResizeStopped(
         currentSceneManager?.scene?.designSurface,
         currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
