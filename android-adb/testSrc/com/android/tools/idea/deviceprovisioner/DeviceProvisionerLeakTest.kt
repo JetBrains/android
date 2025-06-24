@@ -25,9 +25,11 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.LeakHunter
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
@@ -44,7 +46,7 @@ class DeviceProvisionerLeakTest {
 
   private val fakeAdbProvider = FakeAdbServerProviderRule()
 
-  @get:Rule val rules = RuleChain(project1, project2, fakeAdbProvider)
+  @get:Rule val rules = RuleChain(EdtRule(), project1, project2, fakeAdbProvider)
 
   private fun createDeviceProvisioner(project: Project): DeviceProvisioner {
     val coroutineScope =
@@ -68,6 +70,7 @@ class DeviceProvisionerLeakTest {
    * DeviceProvisionerTest.)
    */
   @Test
+  @RunsInEdt
   fun provisionerNotRetainedByConnectedDevice() {
     val dp1 = createDeviceProvisioner(project1.project)
     val dp2 = createDeviceProvisioner(project2.project)
