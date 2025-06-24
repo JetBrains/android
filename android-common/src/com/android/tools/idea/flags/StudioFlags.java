@@ -2440,6 +2440,12 @@ public final class StudioFlags {
                     "Verify user tier in all API requests to the AIDA endpoint",
                     true);
 
+  public static final Flag<Boolean> GEMINI_NEXT_PREDICTION =
+    new BooleanFlag(STUDIOBOT, "gemini.next.prediction",
+                    "Enable next edit/action prediction in the IDE",
+                    "Enable next edit/action prediction in the IDE",
+                    false);
+
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
