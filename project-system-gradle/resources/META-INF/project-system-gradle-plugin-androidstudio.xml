@@ -73,6 +73,9 @@
     <registryKey key="ide.widget.project.status" defaultValue="false" description="Enables the project status widget and disables editor project notifications" overrides="true"/>
     <!-- Disable split implementation of Build tool window. It breaks tests but is not relevant for Android Studio. Context: b/461527060 -->
     <registryKey key="build.toolwindow.split.tree" description="Use split implementation (frontend/backend) of Build tool window" defaultValue="false"  overrides="true"/>
+    <!-- Enable Daemon JVM criteria by default for NPW but also suggest migrating existing projects -->
+    <registryKey key="gradle.daemon.jvm.criteria.new.project" defaultValue="true" description="Enable to allow new projects to be created with the Gradle Daemon JVM criteria" overrides="true"/>
+    <registryKey key="gradle.daemon.jvm.criteria.suggest.migration" defaultValue="true" description="Enable to recommend migrate project from existing Gradle JDK configuration to Gradle Daemon JVM criteria" overrides="true"/>
 
     <configurationType implementation="com.android.tools.idea.testartifacts.testsuite.runconfiguration.TestSuiteRunConfigurationType"/>
     <runConfigurationProducer
