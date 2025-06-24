@@ -112,6 +112,7 @@ class PreviewAnnotationGeneratorTest {
     deviceSpec: String? = null,
     widthDp: Int = UNDEFINED_DIMENSION,
     heightDp: Int = UNDEFINED_DIMENSION,
+    wallpaper: Int = -1,
     composableMethodFqn: String = "com.example.MyComposable",
     baseName: String = "MyComposable",
     parameterName: String? = name.ifBlank { null },
@@ -125,6 +126,7 @@ class PreviewAnnotationGeneratorTest {
         fontScale = fontScale,
         uiMode = uiMode,
         device = deviceSpec,
+        wallpaper = wallpaper,
       )
     return SingleComposePreviewElementInstance.forTesting<Any>(
       composableMethodFqn = composableMethodFqn,
@@ -529,6 +531,31 @@ class PreviewAnnotationGeneratorTest {
             backgroundColor = 0xFF112233,
             widthDp = 100,
             heightDp = 100
+        )
+        """
+          .trimIndent()
+      )
+  }
+
+  @Test
+  fun `toPreviewAnnotationText preserves wallpaper`() = runTest {
+    val previewElement =
+      createPreviewElement(
+        name = "WallpaperPreview",
+        wallpaper = 1, // Corresponds to Wallpapers.GREEN_DOMINATED_EXAMPLE
+      )
+    val configuration = createConfiguration(width = 400, height = 600)
+
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "WallpaperPreview")
+
+    assertThat(generatedText)
+      .isEqualTo(
+        """
+        @androidx.compose.ui.tooling.preview.Preview(
+            name = "WallpaperPreview",
+            wallpaper = Wallpapers.GREEN_DOMINATED_EXAMPLE,
+            widthDp = 400,
+            heightDp = 600
         )
         """
           .trimIndent()

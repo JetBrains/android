@@ -412,4 +412,53 @@ class PreviewAnnotationRoundTripTest {
           .trimIndent()
       )
   }
+
+  @Test
+  fun `toPreviewAnnotationText round-trips with wallpaper`() = runTest {
+    @Language("kotlin")
+    val composeFileContent =
+      """
+      import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Wallpapers
+      import androidx.compose.runtime.Composable
+
+      @androidx.compose.ui.tooling.preview.Preview(
+        name = "WallpaperPreview",
+        wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE
+      )
+      @Composable
+      fun MyComposable() {
+      }
+    """
+        .trimIndent()
+
+    val composeTestFile = projectRule.fixture.addFileToProject("src/Test.kt", composeFileContent)
+
+    val previewElements =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+          projectRule.project,
+          composeTestFile.virtualFile,
+        )
+        .flatMap { it.resolve() }
+    assertThat(previewElements).hasSize(1)
+
+    val previewElement = previewElements.first()
+
+    val configuration = createConfiguration(width = 400, height = 600)
+
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "WallpaperPreview")
+
+    assertThat(generatedText)
+      .isEqualTo(
+        """
+        @androidx.compose.ui.tooling.preview.Preview(
+            name = "WallpaperPreview",
+            wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
+            widthDp = 400,
+            heightDp = 600
+        )
+        """
+          .trimIndent()
+      )
+  }
 }
