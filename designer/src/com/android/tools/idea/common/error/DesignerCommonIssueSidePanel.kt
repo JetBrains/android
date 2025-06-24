@@ -18,12 +18,9 @@ package com.android.tools.idea.common.error
 import com.android.tools.idea.rendering.errors.ui.MessageTip
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
-import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.EditorKind
-import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -63,7 +60,6 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
   init {
     Disposer.register(parentDisposable, this)
     splitter.firstComponent = null
-    splitter.secondComponent = null
     splitter.setResizeEnabled(true)
     add(splitter, BorderLayout.CENTER)
 
@@ -88,41 +84,7 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
   fun loadIssueNode(issueNode: DesignerCommonIssueNode?): Boolean {
     splitter.firstComponent =
       (issueNode as? IssueNode)?.let { node -> DesignerCommonIssueDetailPanel(project, node.issue) }
-
-    if (issueNode == null) {
-      splitter.secondComponent = null
-      return false
-    }
-    val editor = issueNode.getVirtualFile()?.let { getEditor(it) }
-    if (editor != null) {
-      editor.setBorder(JBUI.Borders.empty())
-      val navigable = issueNode.getNavigatable()
-      if (navigable is OpenFileDescriptor) {
-        navigable.navigateIn(editor)
-      }
-    }
-    splitter.secondComponent = editor?.component
-
-    return splitter.firstComponent != null || splitter.secondComponent != null
-  }
-
-  private fun getEditor(file: VirtualFile): Editor? {
-    val editor = fileToEditorMap[file]
-    if (editor != null) {
-      return editor
-    }
-    val document = ProblemsView.getDocument(project, file) ?: return null
-    val newEditor =
-      (EditorFactory.getInstance().createViewer(document, project, EditorKind.PREVIEW) as EditorEx)
-        .apply {
-          setCaretEnabled(false)
-          isEmbeddedIntoDialogWrapper = true
-          contentComponent.isOpaque = false
-          setBorder(JBUI.Borders.empty())
-          settings.setGutterIconsShown(false)
-        }
-    fileToEditorMap[file] = newEditor
-    return newEditor
+    return splitter.firstComponent != null
   }
 
   override fun dispose() {
@@ -133,8 +95,6 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
   }
 
   @TestOnly fun hasFirstComponent() = splitter.firstComponent != null
-
-  @TestOnly fun hasSecondComponent() = splitter.secondComponent != null
 }
 
 /** The side panel to show the details of issue detail in [DesignerCommonIssuePanel]. */
