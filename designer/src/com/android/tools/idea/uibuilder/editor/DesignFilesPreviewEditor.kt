@@ -21,7 +21,6 @@ import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.configurations.ConfigurationListener
-import com.android.tools.idea.actions.ANIMATION_TOOLBAR
 import com.android.tools.idea.common.editor.DEFAULT_MODEL_PROVIDER
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.editor.DesignerEditor
@@ -48,7 +47,6 @@ import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.android.tools.idea.uibuilder.type.AnimationListFileType
 import com.android.tools.idea.uibuilder.type.DrawableFileType
 import com.android.tools.idea.uibuilder.type.getPreviewConfig
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.command.WriteCommandAction
@@ -209,9 +207,7 @@ class DesignFilesPreviewEditor(
       } else {
         null
       }
-    // Clear the existing provider first, which happens when another toolbar is created.
-    DataManager.removeDataProvider(panel)
-    DataManager.registerDataProvider(panel) { if (ANIMATION_TOOLBAR.`is`(it)) toolbar else null }
+    panel.setAnimationToolbar(toolbar)
     if (toolbar != null) {
       myProject.messageBus
         .connect(toolbar)
