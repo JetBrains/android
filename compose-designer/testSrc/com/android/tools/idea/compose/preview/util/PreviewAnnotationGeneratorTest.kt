@@ -240,7 +240,7 @@ class PreviewAnnotationGeneratorTest {
             apiLevel = 30,
             locale = "fr",
             fontScale = 1.5f,
-            uiMode = 35,
+            uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_CAR,
             widthDp = 400,
             heightDp = 600
         )

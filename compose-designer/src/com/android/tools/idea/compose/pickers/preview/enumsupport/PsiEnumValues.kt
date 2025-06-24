@@ -187,6 +187,12 @@ internal enum class UiMode(
 
   override val fqClass: String = SdkConstants.CLASS_CONFIGURATION
   override val trackableValue: PreviewPickerValue = PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
+
+  companion object {
+    private val valueMap = UiMode.entries.associateBy { it.resolvedValue.toIntOrNull() ?: -1 }
+
+    fun fromInt(value: Int): UiMode? = valueMap[value]
+  }
 }
 
 /**
