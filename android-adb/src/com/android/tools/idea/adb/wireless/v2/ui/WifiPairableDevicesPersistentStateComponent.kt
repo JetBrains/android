@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.asStateFlow
 
 @State(name = "WifiPairing", storages = [Storage("wifi.xml", roamingType = RoamingType.DEFAULT)])
 @Service
-// TODO(b/412571872) add tests
 class WifiPairableDevicesPersistentStateComponent :
   SimplePersistentStateComponent<WifiPairableDevicesPersistentStateComponent.State>(State()) {
   class State : BaseState() {

@@ -55,7 +55,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-// TODO(b/412571872) add tests
 class WifiPairableDeviceProvisionerPlugin(
   private val scope: CoroutineScope,
   private val adbService: AdbServiceWrapper,

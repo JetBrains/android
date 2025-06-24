@@ -21,7 +21,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 
-// TODO(b/412571872) add tests
 /** Builds a WifiPairableDeviceProvisionerPlugin with its dependencies provided by Studio. */
 class WifiPairableDeviceProvisionerFactory : DeviceProvisionerFactory {
   override val isEnabled: Boolean
