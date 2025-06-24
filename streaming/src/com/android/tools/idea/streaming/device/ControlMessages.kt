@@ -803,7 +803,7 @@ internal data class DisplayAddedOrChangedNotification(
   val width: Int,
   val height: Int,
   val rotation: Int,
-  val displayType: DisplayType
+  val displayType: Int
 ) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
@@ -812,7 +812,7 @@ internal data class DisplayAddedOrChangedNotification(
     stream.writeInt(width)
     stream.writeInt(height)
     stream.writeInt(rotation)
-    stream.writeEnum(displayType)
+    stream.writeInt(displayType)
   }
 
   override fun toString(): String =
@@ -826,7 +826,7 @@ internal data class DisplayAddedOrChangedNotification(
       val width = stream.readInt()
       val height = stream.readInt()
       val rotation = stream.readInt()
-      val displayType = stream.readEnum<DisplayType>()
+      val displayType = stream.readInt()
       return DisplayAddedOrChangedNotification(displayId, width, height, rotation, displayType)
     }
   }

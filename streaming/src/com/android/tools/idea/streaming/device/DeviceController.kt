@@ -350,7 +350,8 @@ internal class DeviceController(
 
   private fun onDisplayAddedOrChanged(message: DisplayAddedOrChangedNotification) {
     for (listener in displayListeners) {
-      listener.onDisplayAddedOrChanged(message.displayId, message.width, message.height, message.rotation, message.displayType)
+      val displayType = try { DisplayType.entries[message.displayType] } catch (_: IndexOutOfBoundsException) { DisplayType.UNKNOWN }
+      listener.onDisplayAddedOrChanged(message.displayId, message.width, message.height, message.rotation, displayType)
     }
   }
 
