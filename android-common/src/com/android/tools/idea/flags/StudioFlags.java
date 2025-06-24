@@ -2180,7 +2180,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "flexible.transform.suggestions.enabled",
                     "Enable the new flexible suggestions/diffs controls in the editor.",
                     "If enabled, will show AI transform suggestions using new, more flexible controls such as inlays.",
-                    false);
+                    enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_ALLOW_TRANSFORMS_WITH_CITATIONS =
     new BooleanFlag(STUDIOBOT, "editor.ai.transform.allow.transforms.with.citations",
