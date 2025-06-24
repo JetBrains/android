@@ -95,6 +95,9 @@ public class IdeaTestSuiteBase {
 
     // TODO(b/213385827): Fix Kotlin script classpath calculation during tests
     System.setProperty("kotlin.script.classpath", "");
+
+    // set compose property for unit tests
+    System.setProperty("compose.swing.render.on.graphics", "true");
   }
 
   private static Map<String, String> readJvmArgsProperties(Path path) throws IOException {
