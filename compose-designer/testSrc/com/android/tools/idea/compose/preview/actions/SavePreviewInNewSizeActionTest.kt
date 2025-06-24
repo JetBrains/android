@@ -1020,6 +1020,77 @@ class SavePreviewInNewSizeActionTest {
     assertThat(composeTest.text).isEqualTo(expectedContent)
   }
 
+  @Test
+  fun `add new annotation with backgroundColor defined as hex literal`() = runTest {
+    @Language("kotlin")
+    val composeTest =
+      projectRule.fixture.addFileToProject(
+        "src/Test.kt",
+        """
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.runtime.Composable
+
+            @Preview("Article screen", showBackground = true, backgroundColor = 0xFF000000)
+            @Composable
+            fun MyComposable() {
+            }
+            """
+          .trimIndent(),
+      )
+
+    val previewElement =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+          projectRule.project,
+          composeTest.virtualFile,
+        )
+        .first()
+    modeManager.setMode(PreviewMode.Focus(previewElement))
+    val originalAnnotation = previewElement.previewElementDefinition!!.element as KtAnnotationEntry
+
+    val configuration = createConfiguration(300, 400)
+
+    `when`(resizePanel.hasBeenResized).thenReturn(true)
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) =
+            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        }
+      )
+    `when`(model.configuration).thenReturn(configuration)
+
+    val action = SavePreviewInNewSizeAction()
+    val event = TestActionEvent.createTestEvent(getDataContext())
+
+    action.actionPerformed(event)
+
+    val previewElements =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+        projectRule.project,
+        composeTest.virtualFile,
+      )
+
+    assertThat(previewElements.size).isEqualTo(2)
+    val newAnnotation =
+      previewElements
+        .map { (it.previewElementDefinition!!.element!! as KtAnnotationEntry) }
+        .find { it.text != originalAnnotation.text }!!
+
+    assertThat(newAnnotation.text)
+      .isEqualTo(
+        """
+            @Preview(
+                name = "300dp x 400dp",
+                showBackground = true,
+                backgroundColor = 0xFF000000,
+                widthDp = 300,
+                heightDp = 400
+            )
+            """
+          .trimIndent()
+      )
+  }
+
   fun KtAnnotationEntry.getValueForArgument(name: String): String? {
     val valueArgument =
       valueArgumentList!!.arguments.find { it.getArgumentName()?.asName?.identifier == name }

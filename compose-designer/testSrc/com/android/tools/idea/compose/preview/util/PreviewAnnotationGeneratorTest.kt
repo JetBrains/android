@@ -507,4 +507,31 @@ class PreviewAnnotationGeneratorTest {
           .trimIndent()
       )
   }
+
+  @Test
+  fun `toPreviewAnnotationText handles backgroundColor with hash prefix`() = runTest {
+    val previewElement =
+      createPreviewElement(
+        name = "ColorTest",
+        showBackground = true,
+        backgroundColor = "#FF112233", // Color format with hash
+      )
+    val configuration = createConfiguration(width = 100, height = 100)
+
+    val generatedText = toPreviewAnnotationText(previewElement, configuration, "ColorTest")
+
+    assertThat(generatedText)
+      .isEqualTo(
+        """
+        @androidx.compose.ui.tooling.preview.Preview(
+            name = "ColorTest",
+            showBackground = true,
+            backgroundColor = 0xFF112233,
+            widthDp = 100,
+            heightDp = 100
+        )
+        """
+          .trimIndent()
+      )
+  }
 }
