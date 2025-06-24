@@ -15,6 +15,9 @@
  */
 package com.google.idea.blaze.common
 
+import com.google.idea.blaze.common.TargetPattern.ScopeStatus.EXCLUDED
+import com.google.idea.blaze.common.TargetPattern.ScopeStatus.INCLUDED
+import com.google.idea.blaze.common.TargetPattern.ScopeStatus.NOT_IN_SCOPE
 import java.nio.file.Path
 
 
@@ -122,14 +125,20 @@ data class TargetPattern(
   private val buildPackagePath: Path,
   private val includesSubpackages: Boolean,
   private val targetName: String?,
+  private val negative: Boolean,
 ) {
-  fun includes(target: Label): Boolean {
-    if (workspace != target.workspace) return false
+  enum class ScopeStatus { NOT_IN_SCOPE, INCLUDED, EXCLUDED }
+
+  fun inScope(target: Label): ScopeStatus {
+    if (workspace != target.workspace) return NOT_IN_SCOPE
     val targetBuildPackagePath = target.getBuildPackagePath()
     if (buildPackagePath != targetBuildPackagePath && !(includesSubpackages && targetBuildPackagePath.startsWith(buildPackagePath))) {
-      return false
+      return NOT_IN_SCOPE
     }
-    return targetName == null || targetName == target.name
+    return when (targetName == null || targetName == target.name) {
+      true -> if (negative) EXCLUDED else INCLUDED
+      false -> NOT_IN_SCOPE
+    }
   }
 
   companion object {
@@ -137,20 +146,23 @@ data class TargetPattern(
     private val wildcardTargets = setOf("*", "all", "all-targets")
 
     fun parse(pattern: String): TargetPattern {
-      val parsedAsLabel = Label.parseLabel(pattern, allowRelativeLabels = true)
+      val (negative, patternLabel) = if (pattern.startsWith('-')) true to pattern.substring(1) else false to pattern
+      val parsedAsLabel = Label.parseLabel(patternLabel, allowRelativeLabels = true)
       val parsedBuildPackagePath = parsedAsLabel.getBuildPackagePath()
       return if (parsedBuildPackagePath.endsWith(threeDotsPath))
         TargetPattern(
           parsedAsLabel.workspace,
           parsedBuildPackagePath.subpath(0, parsedBuildPackagePath.nameCount - 1),
           includesSubpackages = true,
-          targetName = null
+          targetName = null,
+          negative = negative,
         )
       else TargetPattern(
         parsedAsLabel.workspace,
         parsedBuildPackagePath.subpath(0, parsedBuildPackagePath.nameCount),
         includesSubpackages = false,
-        targetName = parsedAsLabel.name.takeUnless { it in wildcardTargets }
+        targetName = parsedAsLabel.name.takeUnless { it in wildcardTargets },
+        negative = negative,
       )
     }
   }

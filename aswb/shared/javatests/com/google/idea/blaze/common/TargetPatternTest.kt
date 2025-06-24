@@ -16,6 +16,9 @@
 package com.google.idea.blaze.common
 
 import com.google.common.truth.Expect
+import com.google.idea.blaze.common.TargetPattern.ScopeStatus.INCLUDED
+import com.google.idea.blaze.common.TargetPattern.ScopeStatus.EXCLUDED
+import com.google.idea.blaze.common.TargetPattern.ScopeStatus.NOT_IN_SCOPE
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,35 +31,43 @@ class TargetPatternTest {
 
   @Test
   fun simpleMatch() {
-    expect.that(TargetPattern.parse("//some/path").includes(Label.of("//some/path"))).isTrue()
-    expect.that(TargetPattern.parse("//some/path").includes(Label.of("//some/path1"))).isFalse()
-    expect.that(TargetPattern.parse("//some/path").includes(Label.of("//some1/path"))).isFalse()
+    expect.that(TargetPattern.parse("//some/path").inScope(Label.of("//some/path"))).isEqualTo(INCLUDED)
+    expect.that(TargetPattern.parse("//some/path").inScope(Label.of("//some/path1"))).isEqualTo(NOT_IN_SCOPE)
+    expect.that(TargetPattern.parse("//some/path").inScope(Label.of("//some1/path"))).isEqualTo(NOT_IN_SCOPE)
+    expect.that(TargetPattern.parse("-//some/path").inScope(Label.of("//some/path"))).isEqualTo(EXCLUDED)
+    expect.that(TargetPattern.parse("-//some/path").inScope(Label.of("//some/path1"))).isEqualTo(NOT_IN_SCOPE)
+    expect.that(TargetPattern.parse("-//some/path").inScope(Label.of("//some1/path"))).isEqualTo(NOT_IN_SCOPE)
   }
 
   @Test
   fun subpathWildcard() {
-    expect.that(TargetPattern.parse("//some/path/...").includes(Label.of("//some/path"))).isTrue()
-    expect.that(TargetPattern.parse("//some/path/...").includes(Label.of("//some/path:target"))).isTrue()
-    expect.that(TargetPattern.parse("//some/path/...").includes(Label.of("//some/path/subpackage"))).isTrue()
-    expect.that(TargetPattern.parse("//some/path/...").includes(Label.of("//some/path/subpackage:target"))).isTrue()
-    expect.that(TargetPattern.parse("//some/path/...").includes(Label.of("//some/path1"))).isFalse()
-    expect.that(TargetPattern.parse("//some/path/...").includes(Label.of("//some1/path"))).isFalse()
+    expect.that(TargetPattern.parse("//some/path/...").inScope(Label.of("//some/path"))).isEqualTo(INCLUDED)
+    expect.that(TargetPattern.parse("//some/path/...").inScope(Label.of("//some/path:target"))).isEqualTo(INCLUDED)
+    expect.that(TargetPattern.parse("//some/path/...").inScope(Label.of("//some/path/subpackage"))).isEqualTo(INCLUDED)
+    expect.that(TargetPattern.parse("//some/path/...").inScope(Label.of("//some/path/subpackage:target"))).isEqualTo(INCLUDED)
+    expect.that(TargetPattern.parse("//some/path/...").inScope(Label.of("//some/path1"))).isEqualTo(NOT_IN_SCOPE)
+    expect.that(TargetPattern.parse("//some/path/...").inScope(Label.of("//some1/path"))).isEqualTo(NOT_IN_SCOPE)
+    expect.that(TargetPattern.parse("-//some/path/...").inScope(Label.of("//some1/path"))).isEqualTo(NOT_IN_SCOPE)
     // Wildcard paths imply wildcard targets.
-    expect.that(TargetPattern.parse("//some/path/...:all").includes(Label.of("//some/path"))).isTrue()
-    expect.that(TargetPattern.parse("//some/path/...:all-target").includes(Label.of("//some/path:target"))).isTrue()
-    expect.that(TargetPattern.parse("//some/path/...:*").includes(Label.of("//some/path/subpackage"))).isTrue()
-    expect.that(TargetPattern.parse("//some/path/...:all").includes(Label.of("//some/path/subpackage:target"))).isTrue()
-    expect.that(TargetPattern.parse("//some/path/...:all-target").includes(Label.of("//some/path1"))).isFalse()
-    expect.that(TargetPattern.parse("//some/path/...:*").includes(Label.of("//some1/path"))).isFalse()
+    expect.that(TargetPattern.parse("//some/path/...:all").inScope(Label.of("//some/path"))).isEqualTo(INCLUDED)
+    expect.that(TargetPattern.parse("-//some/path/...:all").inScope(Label.of("//some/path"))).isEqualTo(EXCLUDED)
+    expect.that(TargetPattern.parse("//some/path/...:all-target").inScope(Label.of("//some/path:target"))).isEqualTo(INCLUDED)
+    expect.that(TargetPattern.parse("//some/path/...:*").inScope(Label.of("//some/path/subpackage"))).isEqualTo(INCLUDED)
+    expect.that(TargetPattern.parse("//some/path/...:all").inScope(Label.of("//some/path/subpackage:target"))).isEqualTo(INCLUDED)
+    expect.that(TargetPattern.parse("//some/path/...:all-target").inScope(Label.of("//some/path1"))).isEqualTo(NOT_IN_SCOPE)
+    expect.that(TargetPattern.parse("//some/path/...:*").inScope(Label.of("//some1/path"))).isEqualTo(NOT_IN_SCOPE)
     // Although, our target pattern parsing does not validate or enforce it.
-    expect.that(TargetPattern.parse("//some/path/...:target-names-not-allowed-here").includes(Label.of("//some1/path"))).isFalse()
+    expect.that(TargetPattern.parse("//some/path/...:target-names-not-allowed-here").inScope(Label.of("//some1/path"))).isEqualTo(NOT_IN_SCOPE)
   }
 
   @Test
   fun wildcardTargetName() {
-    expect.that(TargetPattern.parse("//some/path:*").includes(Label.of("//some/path"))).isTrue()
-    expect.that(TargetPattern.parse("//some/path:all").includes(Label.of("//some/path"))).isTrue()
-    expect.that(TargetPattern.parse("//some/path:all-targets").includes(Label.of("//some/path"))).isTrue()
-    expect.that(TargetPattern.parse("//some/path:all-something-else").includes(Label.of("//some/path"))).isFalse()
+    expect.that(TargetPattern.parse("//some/path:*").inScope(Label.of("//some/path"))).isEqualTo(INCLUDED)
+    expect.that(TargetPattern.parse("-//some/path:*").inScope(Label.of("//some/path"))).isEqualTo(EXCLUDED)
+    expect.that(TargetPattern.parse("//some/path:all").inScope(Label.of("//some/path"))).isEqualTo(INCLUDED)
+    expect.that(TargetPattern.parse("//some/path:all-targets").inScope(Label.of("//some/path"))).isEqualTo(INCLUDED)
+    expect.that(TargetPattern.parse("-//some/path:all-targets").inScope(Label.of("//some/path"))).isEqualTo(EXCLUDED)
+    expect.that(TargetPattern.parse("//some/path:all-something-else").inScope(Label.of("//some/path"))).isEqualTo(NOT_IN_SCOPE)
+    expect.that(TargetPattern.parse("-//some/path:all-something-else").inScope(Label.of("//some/path"))).isEqualTo(NOT_IN_SCOPE)
   }
 }
