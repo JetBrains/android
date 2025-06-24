@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator.nodes.other;
 
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.GroupNodes;
 import com.android.tools.idea.navigator.nodes.android.AndroidPsiDirectoryNode;
@@ -155,6 +156,11 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
   @Override
   public Comparable getTypeSortKey() {
     return mySourceType;
+  }
+
+  @Override
+  public int getTypeSortWeight(final boolean sortByType) {
+    return AndroidViewTypeSortWeight.PACKAGE.getWeight();
   }
 
   @Nullable

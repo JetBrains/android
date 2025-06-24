@@ -20,6 +20,7 @@ import static com.android.tools.idea.navigator.nodes.ModuleNodeUtils.showInProje
 
 import com.android.SdkConstants;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptNode;
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -124,6 +125,11 @@ public class NonAndroidModuleNode extends AndroidViewModuleNode {
   @Nullable
   public Comparable getTypeSortKey() {
     return getSortKey();
+  }
+
+  @Override
+  public int getTypeSortWeight(final boolean sortByType) {
+    return AndroidViewTypeSortWeight.PACKAGE.getWeight();
   }
 
   @Override

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.google.common.collect.Iterables;
@@ -122,6 +123,11 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
   @Nullable
   public Comparable getTypeSortKey() {
     return AndroidSourceType.MANIFEST.INSTANCE;
+  }
+
+  @Override
+  public int getTypeSortWeight(final boolean sortByType) {
+    return AndroidViewTypeSortWeight.PACKAGE.getWeight();
   }
 
   @Override

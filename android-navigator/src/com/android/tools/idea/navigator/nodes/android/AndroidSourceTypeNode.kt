@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.android
 
 import com.android.tools.idea.navigator.AndroidViewNodes
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight
 import com.android.tools.idea.navigator.nodes.FolderGroupNode
 import com.android.tools.idea.navigator.nodes.GroupNodes
 import com.android.tools.idea.projectsystem.findSourceRoot
@@ -126,6 +127,10 @@ open class AndroidSourceTypeNode(
   override fun getSortKey(): Comparable<*>? = sourceType
 
   override fun getTypeSortKey(): Comparable<*>? = sourceType
+
+  override fun getTypeSortWeight(sortByType: Boolean): Int {
+    return AndroidViewTypeSortWeight.PACKAGE.weight
+  }
 
   override fun equals(other: Any?): Boolean {
     if (this === other) {

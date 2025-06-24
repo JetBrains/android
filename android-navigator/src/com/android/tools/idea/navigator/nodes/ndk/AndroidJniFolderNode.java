@@ -23,6 +23,7 @@ import static org.jetbrains.android.facet.AndroidSourceType.CPP;
 
 import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.GroupNodes;
 import com.google.common.collect.Iterables;
@@ -153,6 +154,11 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
   @Nullable
   public Comparable getTypeSortKey() {
     return CPP.INSTANCE;
+  }
+
+  @Override
+  public int getTypeSortWeight(final boolean sortByType) {
+    return AndroidViewTypeSortWeight.PACKAGE.getWeight();
   }
 
   /**

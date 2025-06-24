@@ -20,6 +20,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidViewNodes;
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -134,6 +135,11 @@ public class AndroidResFileNode extends PsiFileNode implements Comparable {
   @Nullable
   public Comparable getTypeSortKey() {
     return this;
+  }
+
+  @Override
+  public int getTypeSortWeight(final boolean sortByType) {
+    return AndroidViewTypeSortWeight.FILE.getWeight();
   }
 
   @Override
