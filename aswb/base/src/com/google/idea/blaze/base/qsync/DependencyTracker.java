@@ -45,7 +45,7 @@ public interface DependencyTracker {
 
   /** Request to {@link #buildDependenciesForTargets(BlazeContext, DependencyBuildRequest)}. */
   class DependencyBuildRequest {
-    enum RequestType {
+    public enum RequestType {
       /**
        * Build multiple targets and mark all dependencies as built even if they produce no
        * artifacts.
@@ -80,11 +80,15 @@ public interface DependencyTracker {
     }
 
     public Collection<OutputGroup> getOutputGroups(Collection<QuerySyncLanguage> languages) {
+      return getOutputGroups(languages, requestType);
+    }
+
+    public static Collection<OutputGroup> getOutputGroups(Collection<QuerySyncLanguage> languages, RequestType type) {
       var outputGroups = languages.stream()
         .mapMulti(DependencyBuildRequest::languageToOutputGroups)
         .collect(Collectors.toCollection(() -> EnumSet.noneOf(OutputGroup.class)));
 
-      if (requestType.equals(RequestType.FILE_PREVIEWS)) {
+      if (type.equals(RequestType.FILE_PREVIEWS)) {
         outputGroups.add(OutputGroup.TRANSITIVE_RUNTIME_JARS);
       }
 

@@ -24,6 +24,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.MoreCollectors;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
+import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
+import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest.RequestType;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.QuerySyncManager.OperationType;
 import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin;
@@ -33,12 +35,12 @@ import com.google.idea.blaze.base.qsync.action.TargetDisambiguationAnchors;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
-import com.google.idea.blaze.qsync.deps.OutputGroup;
+import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import kotlinx.coroutines.Deferred;
 import kotlinx.coroutines.guava.ListenableFutureKt;
@@ -113,13 +115,7 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
     assert tracker != null;
 
     var builder = tracker.getBuilder();
-
-    // TODO: b/427295033 - Reconcile this set with what xinruiy is doing
-    var groups = EnumSet.of(OutputGroup.JARS,
-                            OutputGroup.TRANSITIVE_RUNTIME_JARS,
-                            OutputGroup.AARS,
-                            OutputGroup.GENSRCS,
-                            OutputGroup.ARTIFACT_INFO_FILE);
+    var groups = DependencyBuildRequest.getOutputGroups(List.of(QuerySyncLanguage.JVM), RequestType.FILE_PREVIEWS);
 
     try {
       builder.build(context, labels, groups);
