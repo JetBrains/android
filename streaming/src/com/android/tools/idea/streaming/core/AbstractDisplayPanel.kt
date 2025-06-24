@@ -141,7 +141,7 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
         val actionManager = ActionManager.getInstance()
         val inputModeGroup = actionManager.getAction("android.streaming.xr.input.mode.group") as? ActionGroup
         if (inputModeGroup != null) {
-          addToolbar("FloatingToolbar", inputModeGroup, collapsible = true)
+          addToolbar("FloatingToolbar", inputModeGroup, collapsible = false)
         }
 
         val recenterGroup = actionManager.getAction("android.streaming.xr.recenter.group") as? ActionGroup
