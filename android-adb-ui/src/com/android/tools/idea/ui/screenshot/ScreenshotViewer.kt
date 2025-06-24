@@ -19,6 +19,7 @@ import com.android.SdkConstants.EXT_PNG
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.analytics.UsageTracker.log
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.android.tools.idea.ui.save.PostSaveAction
@@ -45,24 +46,26 @@ import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
 import com.intellij.openapi.fileTypes.NativeFileType.openAssociatedApplication
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.options.ShowSettingsUtil
-import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.ui.Messages.showErrorDialog
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtilRt.getExtension
 import com.intellij.openapi.util.io.FileUtilRt.getNameWithoutExtension
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.IdeFocusManager
+import com.intellij.platform.ide.progress.withModalProgress
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.util.ExceptionUtil.getMessage
 import com.intellij.util.ui.components.BorderLayoutPanel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 import org.intellij.images.editor.ImageFileEditor
 import org.jetbrains.android.util.runOnDisposalOfAnyOf
 import org.jetbrains.annotations.NonNls
@@ -324,7 +327,7 @@ class ScreenshotViewer(
     }
     catch (e: IOException) {
       val error = e.message ?: e.javaClass.name
-      Messages.showErrorDialog(project, message("screenshot.dialog.error", error), message("screenshot.action.title"))
+      showErrorDialog(project, message("screenshot.dialog.error", error), message("screenshot.action.title"))
       return false
     }
 
@@ -369,7 +372,7 @@ class ScreenshotViewer(
     }
     catch (e: IOException) {
       val error = e.message ?: e.javaClass.name
-      Messages.showErrorDialog(project, message("screenshot.dialog.error", error), message("screenshot.action.title"))
+      showErrorDialog(project, message("screenshot.dialog.error", error), message("screenshot.action.title"))
       return false
     }
 
@@ -444,25 +447,28 @@ class ScreenshotViewer(
   }
 
   private fun doRefreshScreenshot() {
-    object : ScreenshotTask(project, screenshotProvider) {
-
-      override fun run(indicator: ProgressIndicator) {
-        Disposer.register(disposable) { indicator.cancel() }
-        super.run(indicator)
-      }
-
-      override fun onSuccess() {
-        val msg = error
-        if (msg != null) {
-          Messages.showErrorDialog(myProject, msg, message("screenshot.action.title"))
-          return
+    screenshotProvider.createCoroutineScope().launch {
+      withModalProgress(project, message("screenshot.task.step.obtain")) {
+        try {
+          val screenshotImage = screenshotProvider.captureScreenshot()
+          sourceImageRef.set(screenshotImage)
+          ApplicationManager.getApplication().invokeLater {
+            processScreenshot(if (allowImageRotation) rotationQuadrants else 0)
+          }
         }
-
-        val screenshotImage = screenshot
-        sourceImageRef.set(screenshotImage)
-        processScreenshot(if (allowImageRotation) rotationQuadrants else 0)
+        catch (e: CancellationException) {
+          throw e
+        }
+        catch (e: Throwable) {
+          val cause = getMessage(e) ?: e::javaClass.name
+          val message = message("screenshot.error.generic", cause)
+          thisLogger().error(message, e)
+          ApplicationManager.getApplication().invokeLater {
+            showErrorDialog(project, message, message("screenshot.action.title"))
+          }
+        }
       }
-    }.queue()
+    }
   }
 
   private fun updateImageRotation(numQuadrants: Int) {

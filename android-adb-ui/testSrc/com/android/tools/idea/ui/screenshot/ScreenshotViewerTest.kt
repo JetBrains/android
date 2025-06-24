@@ -165,7 +165,7 @@ class ScreenshotViewerTest {
 
     val recaptureButton = ui.getComponent<JButton> { it.text == "Recapture" }
     ui.clickOn(recaptureButton)
-    assertThat(screenshotProvider.captured).isTrue()
+    waitForCondition(2.seconds) { screenshotProvider.captured }
     Disposer.dispose(screenshotProvider)
     assertThat(recaptureButton.isEnabled).isFalse()
   }
