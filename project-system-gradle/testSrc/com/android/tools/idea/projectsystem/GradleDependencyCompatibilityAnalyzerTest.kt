@@ -99,7 +99,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_RUNTIME.getComponent("0.0.1-alpha1"))
+    assertThat(found).containsExactly(
+      GoogleMavenArtifactId.ANDROIDX_NAVIGATION_RUNTIME.getDependency("+"),
+      GoogleMavenArtifactId.ANDROIDX_NAVIGATION_RUNTIME.getComponent("0.0.1-alpha1")
+    )
   }
 
   @Test
@@ -111,7 +114,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getComponent("1.0.2"))
+    assertThat(found).containsExactly(
+      GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getDependency("+"),
+      GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getComponent("1.0.2")
+    )
   }
 
   @Test
@@ -139,7 +145,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getComponent("23.1.1"))
+    assertThat(found).containsExactly(
+      GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getDependency("+"),
+      GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getComponent("23.1.1")
+    )
   }
 
   @Test
@@ -155,7 +164,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getComponent("22.2.1"))
+    assertThat(found).containsExactly(
+      GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getDependency("+"),
+      GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getComponent("22.2.1")
+    )
   }
 
   @Test
@@ -180,7 +192,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       -   androidx.appcompat:appcompat:2.0.0
     """.trimIndent())
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getComponent("2.0.0"))
+    assertThat(found).containsExactly(
+      GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getDependency("+"),
+      GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getComponent("2.0.0")
+    )
   }
 
   @Test
@@ -209,7 +224,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       -   androidx.core:core:2.0.0
     """.trimIndent())
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getComponent("2.0.0"))
+    assertThat(found).containsExactly(
+      GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getDependency("+"),
+      GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getComponent("2.0.0")
+    )
   }
 
   @Test
@@ -236,7 +254,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       -   androidx.core:core:1.0.0
     """.trimIndent())
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(Component.parse("com.acme.pie:pie:1.0.0-alpha1"))
+    assertThat(found).containsExactly(
+      Dependency.parse("com.acme.pie:pie:+"),
+      Component.parse("com.acme.pie:pie:1.0.0-alpha1")
+    )
   }
 
   @Test
@@ -262,7 +283,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       -   androidx.core:core:1.0.0
     """.trimIndent())
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(Component.parse("com.acme.pie:pie:1.0.0-alpha1"))
+    assertThat(found).containsExactly(
+      Dependency.parse("com.acme.pie:pie:+"),
+      Component.parse("com.acme.pie:pie:1.0.0-alpha1")
+    )
   }
 
   @Test
@@ -275,8 +299,11 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       listOf(Dependency.parse("com.acme.pie:pie:+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
-    assertThat(found).containsExactly(Component.parse("com.acme.pie:pie:1.0.0-alpha1"))
     assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(
+      Dependency.parse("com.acme.pie:pie:+"),
+      Component.parse("com.acme.pie:pie:1.0.0-alpha1")
+    )
   }
 
   @Test
@@ -293,8 +320,11 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       listOf(GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getDependency("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getComponent("1.2.0"))
     assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(
+      GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getDependency("+"),
+      GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getComponent("1.2.0")
+    )
   }
 
   @Test
@@ -313,8 +343,11 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       listOf(GoogleMavenArtifactId.MATERIAL.getDependency("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.MATERIAL.getComponent("1.3.0"))
     assertThat(missing).isEmpty()
+    assertThat(found).containsExactly(
+      GoogleMavenArtifactId.MATERIAL.getDependency("+"),
+      GoogleMavenArtifactId.MATERIAL.getComponent("1.3.0")
+    )
   }
 
   @Test
@@ -328,7 +361,9 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
     assertThat(warning).isEmpty()
     assertThat(found).containsExactly(
+      GoogleMavenArtifactId.ANDROIDX_CORE_KTX.getDependency("1.0.0"),
       GoogleMavenArtifactId.ANDROIDX_CORE_KTX.getComponent("1.0.0"),
+      GoogleMavenArtifactId.ANDROIDX_NAVIGATION_RUNTIME_KTX.getDependency("2.0.0"),
       GoogleMavenArtifactId.ANDROIDX_NAVIGATION_RUNTIME_KTX.getComponent("2.0.0"))
     assertThat(missing).isEmpty()
   }
@@ -342,10 +377,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).hasSize(1)
-
-    val foundDependency = found.first()
-    assertThat(foundDependency).isEqualTo(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getComponent("23.1.1"))
+    assertThat(found).containsExactly(
+      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getDependency("+"),
+      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getComponent("23.1.1")
+    )
   }
 
   @Test
@@ -390,7 +425,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getComponent("23.1.0"))
+    assertThat(found).containsExactly(
+      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getDependency("23.1.0"),
+      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getComponent("23.1.0")
+    )
   }
 
   @Test
@@ -402,7 +440,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getComponent("1.1.0-beta3"))
+    assertThat(found).containsExactly(
+      GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getDependency("1.1.0-beta3"),
+      GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getComponent("1.1.0-beta3")
+    )
   }
 
   @Test
@@ -438,7 +479,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getComponent("23.1.1"))
+    assertThat(found).containsExactly(
+      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getDependency("23.+"),
+      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getComponent("23.1.1")
+    )
   }
 
   @Test
@@ -450,7 +494,10 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getComponent("22.2.1"))
+    assertThat(found).containsExactly(
+      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getDependency("22.2.+"),
+      GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getComponent("22.2.1")
+    )
   }
 
   private fun setupProject(

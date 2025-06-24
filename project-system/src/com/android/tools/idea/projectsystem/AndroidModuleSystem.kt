@@ -449,7 +449,9 @@ interface RegisteringModuleSystem<T: RegisteredDependencyQueryId, U: RegisteredD
   fun analyzeDependencyCompatibility(dependencies: List<U>): ListenableFuture<RegisteredDependencyCompatibilityResult<U>>
 }
 data class RegisteredDependencyCompatibilityResult<U: RegisteredDependencyId>(
-  val compatible: List<U>,
+  /** a [Map] of original [RegisteredDependencyId] to (possibly) specialized [RegisteredDependencyId] */
+  val compatible: Map<U,U>,
+  /** a [List] of original [RegisteredDependencyId] */
   val incompatible: List<U>,
   val warning: String
 )

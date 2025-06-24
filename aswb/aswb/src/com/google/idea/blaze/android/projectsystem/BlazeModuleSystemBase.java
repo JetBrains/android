@@ -101,6 +101,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -270,8 +271,12 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem, Registering
 
   @Override
   public ListenableFuture<RegisteredDependencyCompatibilityResult<BlazeRegisteredDependencyId>> analyzeDependencyCompatibility(List<? extends BlazeRegisteredDependencyId> dependencies) {
-    List<? extends BlazeRegisteredDependencyId> compatible = dependencies.stream().filter(it -> it instanceof BlazeTargetRegisteredDependencyId).toList();
-    List<? extends BlazeRegisteredDependencyId> missing = dependencies.stream().filter(it -> !(it instanceof BlazeTargetRegisteredDependencyId)).toList();
+    ImmutableMap<BlazeRegisteredDependencyId,BlazeRegisteredDependencyId> compatible = dependencies.stream()
+        .filter(it -> it instanceof BlazeTargetRegisteredDependencyId)
+        .collect(ImmutableMap.toImmutableMap(it -> it, it -> it));
+    ImmutableList<BlazeRegisteredDependencyId> missing = dependencies.stream()
+        .filter(it -> !(it instanceof BlazeTargetRegisteredDependencyId))
+        .collect(ImmutableList.toImmutableList());
     RegisteredDependencyCompatibilityResult<BlazeRegisteredDependencyId> result;
     if (missing.isEmpty()) {
       result = new RegisteredDependencyCompatibilityResult<>(compatible, missing, "");

@@ -86,24 +86,24 @@ class GradleDependencyCompatibilityAnalyzer(
    */
   fun analyzeComponentCompatibility(
     components: List<Component>
-  ): ListenableFuture<Triple<List<Component>, List<Dependency>, String>> {
-    val dependenciesToStrings = components.map { component ->
+  ): ListenableFuture<Triple<Map<Component,Component>, List<Dependency>, String>> {
+    val dependenciesToComponents = components.map { component ->
       val stability = component.stability
       val upperBound = stability.expiration(component.version)
       val range = VersionRange(Range.closedOpen(component.version, upperBound))
       val dependency = Dependency(component.group, component.name, RichVersion.strictly(range))
-      dependency to component.toString()
+      dependency to component
     }
-    return findVersions(dependenciesToStrings.map { it.first }).transform(MoreExecutors.directExecutor()) { results ->
-      analyzeCompatibility(dependenciesToStrings, results)
+    return findVersions(dependenciesToComponents.map { it.first }).transform(MoreExecutors.directExecutor()) { results ->
+      analyzeCompatibility(dependenciesToComponents, results)
     }
   }
 
   fun analyzeDependencyCompatibility(
     dependencies: List<Dependency>
-  ): ListenableFuture<Triple<List<Component>, List<Dependency>, String>> {
+  ): ListenableFuture<Triple<Map<Dependency,Component>, List<Dependency>, String>> {
     return findVersions(dependencies).transform(MoreExecutors.directExecutor()) { results ->
-      analyzeCompatibility(dependencies.map { it to it.toString() }, results)
+      analyzeCompatibility(dependencies.map { it to it }, results)
     }
   }
 
@@ -139,10 +139,10 @@ class GradleDependencyCompatibilityAnalyzer(
     return repositorySearchFactory.create(repositories)
   }
 
-  private fun analyzeCompatibility(
-    dependenciesToAdd: List<Pair<Dependency,String>>,
+  private fun <T> analyzeCompatibility(
+    dependenciesToAdd: List<Pair<Dependency,T>>,
     searchResults: List<SearchResult>
-  ): Triple<List<Component>, List<Dependency>, String> {
+  ): Triple<Map<T,Component>, List<Dependency>, String> {
     val dependencies = dependenciesToAdd.mapNotNull { it.first.externalModule()?.let { m -> m to it } }.associateBy( { it.first }, { it.second })
     val versionsMap = searchResults.filter { it.artifactFound() }.associate { it.toExternalModuleVersionPair(dependencies) }
     if (!versionsMap.keys.containsAll(dependencies.keys) || versionsMap.values.any { it.isEmpty() }) {
@@ -151,7 +151,7 @@ class GradleDependencyCompatibilityAnalyzer(
     }
 
     // First analyze the existing dependency artifacts of all the related modules.
-    val found = mutableListOf<Component>()
+    val found = mutableMapOf<T,Component>()
     val analyzer = AndroidDependencyAnalyzer()
     try {
       projectBuildModelHandler.read {
@@ -163,8 +163,8 @@ class GradleDependencyCompatibilityAnalyzer(
     catch (ex: VersionIncompatibilityException) {
       // The existing dependencies are not compatible.
       // There is no point in trying to find the correct new dependency, just pick the most recent.
-      dependencies.keys.forEach { artifact ->
-        versionsMap[artifact]?.firstOrNull()?.let { found.add(artifact.toComponent(it)) }
+      dependencies.forEach { (artifact, info) ->
+        versionsMap[artifact]?.firstOrNull()?.let { found[info.second] = artifact.toComponent(it) }
       }
       return Triple(found, listOf(), "Inconsistencies in the existing project dependencies found.\n${ex.message}")
     }
@@ -172,30 +172,31 @@ class GradleDependencyCompatibilityAnalyzer(
     // Then attempt to find a version of each new artifact that would not cause compatibility problems with the existing dependencies.
     val baseAnalyzer = AndroidDependencyAnalyzer(analyzer)
     val warning = StringBuilder()
-    for (artifact in dependencies.keys) {
+    for ((artifact, info) in dependencies) {
       val versions = versionsMap[artifact] ?: listOf()
       try {
-        found.add(findCompatibleVersion(analyzer, baseAnalyzer, artifact, versions.listIterator()))
+        found[info.second] = findCompatibleVersion(analyzer, baseAnalyzer, artifact, versions.listIterator())
       }
       catch (ex: VersionIncompatibilityException) {
         warning.append(if (warning.isNotEmpty()) "\n\n" else "").append(ex.message)
-        versions.firstOrNull()?.let { found.add(artifact.toComponent(it)) }
+        versions.firstOrNull()?.let { found[info.second] = artifact.toComponent(it) }
       }
     }
     return Triple(found, listOf(), warning.toString())
   }
 
-  private fun createMissingDependenciesResponse(
-    dependencies: Map<ExternalModule, Pair<Dependency, String>>,
+  private fun <T> createMissingDependenciesResponse(
+    dependencies: Map<ExternalModule, Pair<Dependency, T>>,
     resultMap: Map<ExternalModule, List<Version>>
-  ): Triple<List<Component>, List<Dependency>, String> {
+  ): Triple<Map<T,Component>, List<Dependency>, String> {
     val found = dependencies.values.filter { resultMap[it.first.externalModule()]?.isNotEmpty() ?: false }
-      .mapNotNull { it.first.externalModule()?.let let@{ m -> m.toComponent(resultMap[m]?.firstOrNull() ?: return@let null) } }
+      .mapNotNull { it.first.externalModule()?.let let@{ m -> it.second to m.toComponent(resultMap[m]?.firstOrNull() ?: return@let null) } }
+      .toMap()
     val missing = dependencies.values.filter { resultMap[it.first.externalModule()]?.isEmpty() ?: true }
     assert(missing.isNotEmpty())
     val message = when (missing.size) {
       1 -> "The dependency was not found: ${missing.first().second }"
-      else -> "The dependencies were not found:\n   ${missing.joinToString("\n   ") { it.second }}"
+      else -> "The dependencies were not found:\n   ${missing.joinToString("\n   ") { it.second.toString() }}"
     }
     return Triple(found, missing.map { it.first }, message)
   }
@@ -317,8 +318,8 @@ class GradleDependencyCompatibilityAnalyzer(
   private fun SearchResult.artifactFound(): Boolean =
     artifacts.firstOrNull { it.unsortedVersions.isNotEmpty() } != null
 
-  private fun SearchResult.toExternalModuleVersionPair(
-    requestedDependencies: Map<ExternalModule, Pair<Dependency, String>>
+  private fun <T> SearchResult.toExternalModuleVersionPair(
+    requestedDependencies: Map<ExternalModule, Pair<Dependency, T>>
   ): Pair<ExternalModule, List<Version>> {
     val id = artifacts.first().let { ExternalModule(it.groupId, it.name) }
     val versionFilter = requestedDependencies[id]?.first?.version?.let { versionFilter(it) } ?: { true }

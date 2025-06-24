@@ -147,10 +147,10 @@ fun Module.addDependenciesWithUiConfirmation(artifacts: Set<GoogleMavenArtifactI
         val idsToExceptions: ArrayList<Pair<RegisteredDependencyId, DependencyManagementException>> = ArrayList()
         for (coordinate in compatibleDependencies) {
           try {
-            moduleSystem.registerDependency(coordinate, dependencyType)
+            moduleSystem.registerDependency(coordinate.value, dependencyType)
           }
           catch (e: DependencyManagementException) {
-            idsToExceptions.add(Pair(coordinate, e))
+            idsToExceptions.add(Pair(coordinate.key, e))
           }
         }
         idsToExceptions

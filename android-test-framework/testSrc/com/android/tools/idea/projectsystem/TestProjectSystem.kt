@@ -160,7 +160,7 @@ class TestProjectSystem @JvmOverloads constructor(
       }
 
       override fun analyzeDependencyCompatibility(dependencies: List<TestRegisteredDependencyId>): ListenableFuture<RegisteredDependencyCompatibilityResult<TestRegisteredDependencyId>> {
-        val found = mutableListOf<TestRegisteredDependencyId>()
+        val found = mutableMapOf<TestRegisteredDependencyId,TestRegisteredDependencyId>()
         val missing = mutableListOf<TestRegisteredDependencyId>()
         var compatibilityWarningMessage = ""
         for (dependency in dependencies) {
@@ -168,7 +168,7 @@ class TestProjectSystem @JvmOverloads constructor(
           val lookup = availableStableDependencies.firstOrNull { it.matches(wildcardCoordinate) }
                        ?: availablePreviewDependencies.firstOrNull { it.matches(wildcardCoordinate) }
           if (lookup != null) {
-            found.add(TestRegisteredDependencyId(lookup))
+            found[dependency] = TestRegisteredDependencyId(lookup)
             incompatibleDependencyPairs[lookup]?.let { value ->
               if (value.let { dependencies.map { it.coordinate }.contains(it) } == true) {
                 compatibilityWarningMessage += "$lookup is not compatible with ${value}\n"

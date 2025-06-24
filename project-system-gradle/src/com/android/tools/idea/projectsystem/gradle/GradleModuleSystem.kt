@@ -326,21 +326,21 @@ class GradleModuleSystem(
     return dependencyCompatibility.analyzeDependencyCompatibility(dependencies.map { it.dependency })
       .transform(MoreExecutors.directExecutor()) { result ->
         RegisteredDependencyCompatibilityResult(
-          compatible = result.first.map { GradleRegisteredDependencyId(it.dependency()) },
+          compatible = result.first.map { (k, v) -> GradleRegisteredDependencyId(k) to GradleRegisteredDependencyId(v.dependency()) }.toMap(),
           incompatible = result.second.map { GradleRegisteredDependencyId(it) },
           warning = result.third
         )
       }
   }
 
-  data class DependencyCompatibilityResult(
-    val compatible: List<Component>,
+  data class DependencyCompatibilityResult<T>(
+    val compatible: Map<T,Component>,
     val incompatible: List<Dependency>,
     val warning: String
   )
 
   @JvmName("analyzeGradleDependencyCompatibility")
-  fun analyzeDependencyCompatibility(dependencies: List<Dependency>): ListenableFuture<DependencyCompatibilityResult> {
+  fun analyzeDependencyCompatibility(dependencies: List<Dependency>): ListenableFuture<DependencyCompatibilityResult<Dependency>> {
     return dependencyCompatibility.analyzeDependencyCompatibility(dependencies)
       .transform(MoreExecutors.directExecutor()) { result ->
         DependencyCompatibilityResult(
@@ -351,7 +351,7 @@ class GradleModuleSystem(
       }
   }
 
-  fun analyzeComponentCompatibility(components: List<Component>): ListenableFuture<DependencyCompatibilityResult> {
+  fun analyzeComponentCompatibility(components: List<Component>): ListenableFuture<DependencyCompatibilityResult<Component>> {
     return dependencyCompatibility.analyzeComponentCompatibility(components)
       .transform(MoreExecutors.directExecutor()) { result ->
         DependencyCompatibilityResult(
