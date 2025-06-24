@@ -226,6 +226,7 @@ object StudioIconsCompose {
     val OemLabDeviceTv: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/oem-lab-device-tv.svg", "/studio/icons/device-explorer/oem-lab-device-tv.svg", StudioIconsCompose.javaClass) // 16x16
     val OemLabDeviceWear: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/oem-lab-device-wear.svg", "/studio/icons/device-explorer/oem-lab-device-wear.svg", StudioIconsCompose.javaClass) // 16x16
     val PhysicalDeviceCar: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/physical-device-car.svg", "/studio/icons/device-explorer/physical-device-car.svg", StudioIconsCompose.javaClass) // 16x16
+    val PhysicalDeviceGlass: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/physical-device-glass.svg", "/studio/icons/device-explorer/physical-device-glass.svg", StudioIconsCompose.javaClass) // 16x16
     val PhysicalDeviceHeadset: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/physical-device-headset.svg", "/studio/icons/device-explorer/physical-device-headset.svg", StudioIconsCompose.javaClass) // 16x16
     val PhysicalDevicePhone: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/physical-device-phone.svg", "/studio/icons/device-explorer/physical-device-phone.svg", StudioIconsCompose.javaClass) // 16x16
     val PhysicalDeviceThings: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/physical-device-things.svg", "/studio/icons/device-explorer/physical-device-things.svg", StudioIconsCompose.javaClass) // 16x16
@@ -235,6 +236,7 @@ object StudioIconsCompose {
     val SharedPrefs: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/shared-prefs.svg", "/studio/icons/device-explorer/shared-prefs.svg", StudioIconsCompose.javaClass) // 16x16
     val VirtualDeviceCar: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/virtual-device-car.svg", "/studio/icons/device-explorer/virtual-device-car.svg", StudioIconsCompose.javaClass) // 16x16
     val VirtualDeviceDesktop: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/virtual-device-desktop.svg", "/studio/icons/device-explorer/virtual-device-desktop.svg", StudioIconsCompose.javaClass) // 16x16
+    val VirtualDeviceGlass: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/virtual-device-glass.svg", "/studio/icons/device-explorer/virtual-device-glass.svg", StudioIconsCompose.javaClass) // 16x16
     val VirtualDeviceHeadset: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/virtual-device-headset.svg", "/studio/icons/device-explorer/virtual-device-headset.svg", StudioIconsCompose.javaClass) // 16x16
     val VirtualDevicePhone: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/virtual-device-phone.svg", "/studio/icons/device-explorer/virtual-device-phone.svg", StudioIconsCompose.javaClass) // 16x16
     val VirtualDeviceTv: IntelliJIconKey = IntelliJIconKey("/studio/icons/device-explorer/virtual-device-tv.svg", "/studio/icons/device-explorer/virtual-device-tv.svg", StudioIconsCompose.javaClass) // 16x16
