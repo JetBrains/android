@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.editor;
 
 
+import static com.android.tools.idea.actions.DesignerDataKeys.ANIMATION_TOOLBAR;
 import static com.android.tools.idea.common.editor.DefaultModelProviderKt.getDEFAULT_MODEL_PROVIDER;
 
 import com.android.annotations.concurrency.UiThread;
@@ -37,6 +38,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.rendering.AndroidBuildTargetReference;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
+import com.android.tools.idea.uibuilder.editor.AnimationToolbar;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
@@ -172,6 +174,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
       return getFile().getContainingDirectory();
     }
   };
+  private @Nullable AnimationToolbar myAnimationToolbar;
 
   /**
    * Creates a new {@link DesignerEditorPanel}.
@@ -328,6 +331,10 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
       sink.set(SplitEditorKt.getSPLIT_TEXT_EDITOR_KEY(), (TextEditor)fileEditorDelegate);
       sink.set(LangDataKeys.IDE_VIEW, myIdeView);
     }
+
+    if (myAnimationToolbar != null) {
+      sink.set(ANIMATION_TOOLBAR, myAnimationToolbar);
+    }
   }
 
   /**
@@ -336,6 +343,13 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
    */
   void setFileEditorDelegate(TextEditor editor) {
     getSurface().setFileEditorDelegate(editor);
+  }
+
+  /**
+   * Sets the {@link AnimationToolbar} to be used by this surface.
+   */
+  public void setAnimationToolbar(@Nullable AnimationToolbar toolbar) {
+    myAnimationToolbar = toolbar;
   }
 
   @NotNull
@@ -441,7 +455,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
 
   @UiThread
   private void initNeleModelOnEventDispatchThread(@NotNull NlModel model) {
-    if (Disposer.isDisposed(model)) {
+    if (model.isDisposed()) {
       return;
     }
 
