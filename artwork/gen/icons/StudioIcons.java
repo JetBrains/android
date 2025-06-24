@@ -65,7 +65,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon DEVICE_AUTOMOTIVE = load("studio/icons/avd/device-automotive.svg", -394712981, 2);
     /** 16x16 */ public static final @NotNull Icon DEVICE_CAR = load("studio/icons/avd/device-car.svg", 1789710622, 2);
     /** 16x16 */ public static final @NotNull Icon DEVICE_DESKTOP = load("studio/icons/avd/device-desktop.svg", -1694729812, 2);
-    /** 16x16 */ public static final @NotNull Icon DEVICE_GLASS = load("studio/icons/avd/device-glass.svg", 1265457422, 2);
+    /** 16x16 */ public static final @NotNull Icon DEVICE_GLASS = load("studio/icons/avd/device-glass.svg", -1842149093, 2);
     /** 16x16 */ public static final @NotNull Icon DEVICE_MOBILE = load("studio/icons/avd/device-mobile.svg", -1037126160, 2);
     /** 16x16 */ public static final @NotNull Icon DEVICE_PHONE = load("studio/icons/avd/device-phone.svg", -1178478461, 2);
     /** 16x16 */ public static final @NotNull Icon DEVICE_PLAY_STORE = load("studio/icons/avd/device-play-store.svg", -904602528, 2);
@@ -232,6 +232,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon OEM_LAB_DEVICE_TV = load("studio/icons/device-explorer/oem-lab-device-tv.svg", -368343828, 2);
     /** 16x16 */ public static final @NotNull Icon OEM_LAB_DEVICE_WEAR = load("studio/icons/device-explorer/oem-lab-device-wear.svg", -1065174037, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_CAR = load("studio/icons/device-explorer/physical-device-car.svg", 717820306, 2);
+    /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_GLASS = load("studio/icons/device-explorer/physical-device-glass.svg", -1019116356, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_HEADSET = load("studio/icons/device-explorer/physical-device-headset.svg", 1270646705, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_PHONE = load("studio/icons/device-explorer/physical-device-phone.svg", -274222570, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_THINGS = load("studio/icons/device-explorer/physical-device-things.svg", -1396298619, 2);
@@ -241,6 +242,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon SHARED_PREFS = load("studio/icons/device-explorer/shared-prefs.svg", -691324783, 2);
     /** 16x16 */ public static final @NotNull Icon VIRTUAL_DEVICE_CAR = load("studio/icons/device-explorer/virtual-device-car.svg", 248483370, 2);
     /** 16x16 */ public static final @NotNull Icon VIRTUAL_DEVICE_DESKTOP = load("studio/icons/device-explorer/virtual-device-desktop.svg", -1074348463, 2);
+    /** 16x16 */ public static final @NotNull Icon VIRTUAL_DEVICE_GLASS = load("studio/icons/device-explorer/virtual-device-glass.svg", -613158192, 2);
     /** 16x16 */ public static final @NotNull Icon VIRTUAL_DEVICE_HEADSET = load("studio/icons/device-explorer/virtual-device-headset.svg", 276802364, 2);
     /** 16x16 */ public static final @NotNull Icon VIRTUAL_DEVICE_PHONE = load("studio/icons/device-explorer/virtual-device-phone.svg", -1149144664, 2);
     /** 16x16 */ public static final @NotNull Icon VIRTUAL_DEVICE_TV = load("studio/icons/device-explorer/virtual-device-tv.svg", -225102860, 2);
