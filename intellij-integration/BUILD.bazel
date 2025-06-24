@@ -1,4 +1,4 @@
-### auto-generated section `build intellij-integration-tests` start
+### auto-generated section `build intellij.android.intellij-integration-tests` start
 load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
@@ -26,4 +26,4 @@ jvm_test(
   name = "intellij-integration-tests_test",
   runtime_deps = [":intellij-integration-tests_test_lib"]
 )
-### auto-generated section `build intellij-integration-tests` end
+### auto-generated section `build intellij.android.intellij-integration-tests` end
