@@ -170,10 +170,10 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (connectionStateReference.compareAndSet(oldState, newState)) {
       if (newState == ConnectionState.DISCONNECTED) {
         if (oldState == ConnectionState.CONNECTED) {
-          LOG.info("Disconnected from ${emulatorConfig.avdName} (${emulatorId.serialPort})")
+          LOG.info("Disconnected from ${emulatorConfig.avdName} on port ${emulatorId.grpcPort}")
         }
         else {
-          LOG.warn("Unable to connect to ${emulatorConfig.avdName} (${emulatorId.serialPort})")
+          LOG.warn("Unable to connect to ${emulatorConfig.avdName} on port ${emulatorId.grpcPort}")
         }
       }
       for (listener in connectionStateListeners) {
