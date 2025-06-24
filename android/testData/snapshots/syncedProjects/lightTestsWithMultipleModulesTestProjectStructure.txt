@@ -29,7 +29,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -81,7 +82,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -149,7 +151,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -216,7 +219,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.app.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -280,7 +284,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -332,7 +337,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -398,7 +404,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -464,7 +471,8 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.lib.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
