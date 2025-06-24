@@ -298,7 +298,7 @@ class PreviewAnnotationRoundTripTest {
             name = "FullParams",
             group = "MyGroup",
             showBackground = true,
-            backgroundColor = 0x#ffcccccc,
+            backgroundColor = 0xFFCCCCCC,
             apiLevel = 28,
             locale = "en-rUS",
             fontScale = 1.2f,

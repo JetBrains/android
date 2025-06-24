@@ -49,7 +49,7 @@ private enum class NightMode(val classConstant: String, val resolvedValue: Int) 
   NIGHT_YES("UI_MODE_NIGHT_YES", 32);
 
   companion object {
-    private val valueMap = NightMode.entries.associateBy(NightMode::resolvedValue)
+    private val valueMap = entries.associateBy(NightMode::resolvedValue)
 
     fun fromInt(value: Int): NightMode? = valueMap[value]
   }
@@ -185,10 +185,13 @@ internal fun toPreviewAnnotationText(
       params.add("$PARAMETER_SHOW_BACKGROUND = true")
     }
     if (!displaySettings.backgroundColor.isNullOrBlank()) {
-      val colorNonNull = displaySettings.backgroundColor!!
-      params.add(
-        "$PARAMETER_BACKGROUND_COLOR = ${if (colorNonNull.startsWith("0x")) colorNonNull else "0x$colorNonNull"}"
-      )
+      var colorValue = displaySettings.backgroundColor!!
+      if (colorValue.startsWith("#")) {
+        colorValue = colorValue.substring(1)
+      } else if (colorValue.startsWith("0x", ignoreCase = true)) {
+        colorValue = colorValue.substring(2)
+      }
+      params.add("$PARAMETER_BACKGROUND_COLOR = 0x${colorValue.uppercase()}")
     }
 
     if (previewConfig.apiLevel != UNDEFINED_API_LEVEL) {
