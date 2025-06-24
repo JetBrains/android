@@ -10,10 +10,10 @@
   <vendor>JetBrains, Google</vendor>
 
   <change-notes><![CDATA[
-    This release contains updates from Android Studio Narwhal Canary 3.
+    This release contains updates from Android Studio Narwhal RC1.
 
     For detailed information, please refer to the release notes available at:
-    <a href="https://androidstudio.googleblog.com/2025/04/android-studio-narwhal-202511-canary-4.html">Android Studio Narwhal Canary 3</a>.]]>
+    <a href="https://androidstudio.googleblog.com/2025/06/android-studio-narwhal-202511-rc-1-now.html">Android Studio Narwhal RC1</a>.]]>
   </change-notes>
 
   <dependencies>
