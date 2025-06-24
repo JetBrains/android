@@ -71,6 +71,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -492,6 +493,11 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     @Override
     public PsiElement getParent() {
       return myParent;
+    }
+
+    @Override
+    public @Nullable @NonNls String getText() {
+      return getDocumentation();
     }
   }
 
