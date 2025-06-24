@@ -37,7 +37,6 @@ import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.data.BlazeDataStorage;
 import com.google.idea.blaze.base.util.WorkspacePathUtil;
-import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.openapi.project.Project;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -47,9 +46,6 @@ import javax.annotation.Nullable;
 
 /** The roots to import. Derived from project view. */
 public final class ImportRoots {
-
-  private final BoolExperiment treatProjectTargetsAsSource =
-      new BoolExperiment("blaze.treat.project.targets.as.source", true);
 
   /** Returns the ImportRoots for the project, or null if it's not a blaze project. */
   @Nullable
@@ -240,7 +236,7 @@ public final class ImportRoots {
       return false;
     }
     return projectDirectories.containsWorkspacePath(label.blazePackage())
-        || (treatProjectTargetsAsSource.getValue() && targetInProject(label));
+        || targetInProject(label);
   }
 
   /**
