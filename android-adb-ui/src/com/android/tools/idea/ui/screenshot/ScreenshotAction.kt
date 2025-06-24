@@ -18,21 +18,25 @@ package com.android.tools.idea.ui.screenshot
 import com.android.SdkConstants.DOT_PNG
 import com.android.io.writeImage
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.android.tools.idea.ui.DISPLAY_ID_KEY
 import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.Messages.showErrorDialog
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.platform.ide.progress.withModalProgress
+import com.intellij.util.ExceptionUtil.getMessage
 import icons.StudioIcons
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 import java.io.IOException
 
 /**
@@ -60,78 +64,47 @@ class ScreenshotAction : DumbAwareAction(
     val deviceName = screenshotParameters.deviceName
     val screenshotProvider =
         ShellCommandScreenshotProvider(project, serialNumber, screenshotParameters.deviceType, deviceName, displayId, displayInfoProvider)
-    var disposable: Disposable? = screenshotProvider
+    val scope = AdbLibService.getInstance(project).session.scope.createChildScope(true)
 
-    object : ScreenshotTask(project, screenshotProvider) {
-      var backingFile: VirtualFile? = null
-
-      override fun run(indicator: ProgressIndicator) {
-        super.run(indicator)
-        val screenshot = screenshot ?: return
+    scope.launch {
+      withModalProgress(project, message("screenshot.task.step.obtain")) {
         try {
+          val screenshotImage = screenshotProvider.captureScreenshot()
           val screenshotDecorator = screenshotParameters.screenshotDecorator
-          val framingOptions = screenshotParameters.getFramingOptions(screenshot)
-          val decoration = ScreenshotViewer.getDefaultDecoration(screenshot, screenshotDecorator, framingOptions.firstOrNull())
-          val processedImage = screenshotDecorator.decorate(screenshot, decoration)
-          indicator.checkCanceled()
+          val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
+          val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
+          val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
           val file = FileUtil.createTempFile("screenshot", DOT_PNG).toPath()
           processedImage.writeImage("PNG", file)
-          indicator.checkCanceled()
-          val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:
+          val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:
               throw IOException(message("screenshot.error.save"))
-          while (virtualFile.length == 0L) {
+          while (backingFile.length == 0L) {
             // It's not clear why the file may have zero length after the first refresh, but it was empirically observed.
-            virtualFile.refresh(false, false)
+            backingFile.refresh(false, false)
           }
-          backingFile = virtualFile
-          indicator.checkCanceled()
-        }
-        catch (e: IOException) {
-          indicator.checkCanceled()
-          thisLogger().warn("Error while saving screenshot file", e)
-          error = message("screenshot.error.generic", e)
-        }
-      }
-
-      override fun onSuccess() {
-        val error = error
-        if (error != null) {
-          Messages.showErrorDialog(project, error, message("screenshot.action.title"))
-          return
-        }
-
-        showScreenshotViewer(screenshot!!, backingFile!!)
-      }
-
-      override fun onFinished() {
-        disposable?.let {
-          Disposer.dispose(it)
-        }
-      }
-
-      private fun showScreenshotViewer(screenshot: ScreenshotImage, backingFile: VirtualFile) {
-        val screenshotPostprocessor = screenshotParameters.screenshotDecorator
-        val framingOptions = screenshotParameters.getFramingOptions(screenshot)
-        try {
           val defaultFrame = if (framingOptions.isNotEmpty()) screenshotParameters.getDefaultFramingOption() else 0
           val allowImageRotation = displayInfoProvider == null && screenshotParameters.deviceType == DeviceType.HANDHELD
-          val viewer = ScreenshotViewer(project,
-                                        screenshot,
-                                        backingFile,
-                                        screenshotProvider,
-                                        screenshotPostprocessor,
-                                        framingOptions,
-                                        defaultFrame,
-                                        allowImageRotation)
-          viewer.show()
-          Disposer.register(viewer.disposable, screenshotProvider)
-          disposable = null
+
+          ApplicationManager.getApplication().invokeLater {
+            val viewer = ScreenshotViewer(project, screenshotImage, backingFile, screenshotProvider, screenshotDecorator,
+                                          framingOptions, defaultFrame, allowImageRotation)
+            Disposer.register(viewer.disposable, screenshotProvider)
+            viewer.show()
+          }
         }
-        catch (e: Exception) {
-          thisLogger().warn("Error while displaying screenshot viewer", e)
-          Messages.showErrorDialog(project, message("screenshot.error.generic", e), message("screenshot.action.title"))
+        catch (e: Throwable) {
+          Disposer.dispose(screenshotProvider)
+          if (e is CancellationException) {
+            throw e
+          }
+          val cause = getMessage(e) ?: e::javaClass.name
+          val message = message("screenshot.error.generic", cause)
+          thisLogger().error(message, e)
+          ApplicationManager.getApplication().invokeLater {
+            showErrorDialog(project, message, message("screenshot.action.title"))
+          }
         }
       }
-    }.queue()
+    }
   }
 }
