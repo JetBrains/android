@@ -23,6 +23,7 @@ import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.intellij.facet.impl.FacetUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
+import com.intellij.openapi.application.WriteAction
 import com.intellij.testFramework.ProjectRule
 import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.CoroutineScope
@@ -71,7 +72,9 @@ class DeviceCableMonitorTest {
       maxSpeedMbps = 5000L,
       negotiatedSpeedMbps = 480L,
     )
-    FacetUtil.addFacet(projectRule.module, AndroidFacet.getFacetType())
+    WriteAction.runAndWait<Throwable> {
+      FacetUtil.addFacet(projectRule.module, AndroidFacet.getFacetType())
+    }
 
     monitor = DeviceCableMonitor()
     CoroutineScope(Dispatchers.IO).launch { monitor.execute(projectRule.project) }
