@@ -19,6 +19,7 @@ import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewDirectoryHelper;
@@ -106,6 +107,11 @@ public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
   @Nullable
   public Comparable getTypeSortKey() {
     return getSortKey();
+  }
+
+  @Override
+  public int getTypeSortWeight(final boolean sortByType) {
+    return AndroidViewTypeSortWeight.PACKAGE.getWeight();
   }
 
   @Override

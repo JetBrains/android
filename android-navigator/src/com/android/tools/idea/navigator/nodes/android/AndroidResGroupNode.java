@@ -19,6 +19,7 @@ import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.GroupNodes;
@@ -128,6 +129,11 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
   @Nullable
   public Comparable getTypeSortKey() {
     return this;
+  }
+
+  @Override
+  public int getTypeSortWeight(final boolean sortByType) {
+    return AndroidViewTypeSortWeight.PACKAGE.getWeight();
   }
 
   @Override

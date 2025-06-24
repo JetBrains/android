@@ -23,6 +23,7 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static java.util.Collections.emptyList;
 
 import com.android.tools.idea.navigator.AndroidViewNodes;
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.intellij.ide.projectView.PresentationData;
@@ -94,6 +95,11 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
   @Nullable
   public Comparable getTypeSortKey() {
     return getSortKey();
+  }
+
+  @Override
+  public int getTypeSortWeight(final boolean sortByType) {
+    return AndroidViewTypeSortWeight.FILE.getWeight();
   }
 
   @Override

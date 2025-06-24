@@ -19,6 +19,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.GroupNodes;
 import com.google.common.collect.HashMultimap;
@@ -130,6 +131,11 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
   @Nullable
   public Comparable getTypeSortKey() {
     return myFolderType;
+  }
+
+  @Override
+  public int getTypeSortWeight(final boolean sortByType) {
+    return AndroidViewTypeSortWeight.PACKAGE.getWeight();
   }
 
   @Override

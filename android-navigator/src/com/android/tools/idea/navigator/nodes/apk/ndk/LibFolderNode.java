@@ -23,6 +23,7 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.debugging.NativeLibrary;
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -105,6 +106,11 @@ public class LibFolderNode extends ProjectViewNode<VirtualFile> {
   @Nullable
   public Comparable getTypeSortKey() {
     return getSourceType();
+  }
+
+  @Override
+  public int getTypeSortWeight(final boolean sortByType) {
+    return AndroidViewTypeSortWeight.PACKAGE.getWeight();
   }
 
   @NotNull

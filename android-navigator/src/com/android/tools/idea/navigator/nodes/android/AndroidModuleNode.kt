@@ -19,8 +19,9 @@ import com.android.ide.common.util.PathString
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode
 import com.android.tools.idea.navigator.nodes.AndroidViewNodeProvider
-import com.android.tools.idea.projectsystem.gradle.getHolderModule
+import com.android.tools.idea.navigator.nodes.AndroidViewTypeSortWeight
 import com.android.tools.idea.projectsystem.gradle.AndroidIconProviderProjectGradleToken
+import com.android.tools.idea.projectsystem.gradle.getHolderModule
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectViewNode
@@ -70,6 +71,9 @@ class AndroidModuleNode(
 
   override fun getSortKey(): Comparable<*>? = value?.takeUnless { it.isDisposed }?.name
   override fun getTypeSortKey(): Comparable<*>? = sortKey
+  override fun getTypeSortWeight(sortByType: Boolean): Int {
+    return AndroidViewTypeSortWeight.PACKAGE.weight
+  }
 
   override fun toTestString(printInfo: Queryable.PrintInfo?): String {
     val module = value

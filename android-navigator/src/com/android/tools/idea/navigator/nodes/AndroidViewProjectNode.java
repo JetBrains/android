@@ -135,4 +135,9 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
 
     return AndroidViewNodeProvider.getProviders().stream().anyMatch(it -> it.projectContainsExternalFile(myProject, file));
   }
+
+  @Override
+  public int getTypeSortWeight(final boolean sortByType) {
+    return AndroidViewTypeSortWeight.PACKAGE.getWeight();
+  }
 }
