@@ -108,7 +108,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
   @NotNull private final VirtualFile myFile;
   @NotNull private final DesignSurface<?> mySurface;
   @NotNull private final DesignSurfaceListener mySurfaceListener;
-  @NotNull private final Map<NlModel, ModelListener> myModelToListeners = new HashMap<>();
 
   @NotNull private final ModelLintIssueAnnotator myModelLintIssueAnnotator;
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
@@ -143,6 +142,17 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
   /** Notification panel to be used for the surface. */
   NotificationPanel myNotificationPanel = new NotificationPanel(
     ExtensionPointName.create("com.android.tools.idea.uibuilder.editorNotificationProvider"));
+
+  /**
+   * Listener to update the issues when the model suffers any updates.
+   */
+  @NotNull
+  private final ModelListener myModelListener = new ModelListener() {
+    @Override
+    public void modelDerivedDataChanged(@NotNull NlModel model) {
+      myModelLintIssueAnnotator.annotateRenderInformationToLint(model);
+    }
+  };
 
   /** {@link IdeView} that allows the IDE to present the correct File menu options by detecting where the current file is located. */
   private final IdeView myIdeView = new IdeView() {
@@ -435,22 +445,9 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
       return;
     }
 
-    mySurface.getModels()
-      .forEach(it -> {
-        ModelListener listener = myModelToListeners.remove(it);
-        if (listener != null) {
-          it.removeListener(listener);
-        }
-      });
+    mySurface.getModels().forEach(it -> it.removeListener(myModelListener));
     mySurface.setModel(model);
-    ModelListener listener = new ModelListener() {
-      @Override
-      public void modelDerivedDataChanged(@NotNull NlModel model) {
-        myModelLintIssueAnnotator.annotateRenderInformationToLint(model);
-      }
-    };
-    myModelToListeners.put(model, listener);
-    model.addListener(listener);
+    model.addListener(myModelListener);
 
     if (myAccessoryPanel != null) {
       float initialProportion = PropertiesComponent.getInstance().getFloat(ACCESSORY_PROPORTION, 0.5f);
@@ -508,13 +505,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
   @Override
   public void dispose() {
     mySurface.removeListener(mySurfaceListener);
-    Set<NlModel> keys = myModelToListeners.keySet();
-    for (NlModel model : keys) {
-      ModelListener listener = myModelToListeners.remove(model);
-      if (listener != null) {
-        model.removeListener(listener);
-      }
-    }
+    mySurface.getModels().forEach((model) -> model.removeListener(myModelListener));
   }
 
   @NotNull
