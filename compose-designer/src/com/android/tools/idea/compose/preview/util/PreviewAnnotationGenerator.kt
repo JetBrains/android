@@ -19,6 +19,7 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.deviceSizeDp
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiMode
+import com.android.tools.idea.compose.pickers.preview.enumsupport.Wallpaper
 import com.android.tools.idea.configurations.ReferenceDevice
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.ConfigurablePreviewElement
@@ -81,6 +82,20 @@ private fun uiModeToString(uiMode: Int): String {
   }
 
   return if (parts.isEmpty()) uiMode.toString() else parts.joinToString(" or ")
+}
+
+// endregion
+
+// region wallpaperToString conversion
+
+private fun wallpaperToString(wallpaperValue: Int): String {
+  val wallpaper = Wallpaper.entries.find { it.resolvedValue == wallpaperValue.toString() }
+  // We assume the FQN for Wallpapers will be imported, so we just need the enum class name.
+  return if (wallpaper != null && wallpaper != Wallpaper.NONE) {
+    "Wallpapers.${wallpaper.classConstant}"
+  } else {
+    wallpaperValue.toString() // Fallback for unknown values
+  }
 }
 
 // endregion
@@ -191,6 +206,7 @@ internal fun toPreviewAnnotationText(
       } else if (colorValue.startsWith("0x", ignoreCase = true)) {
         colorValue = colorValue.substring(2)
       }
+      // Ensure the hex value is uppercase to match test expectations and improve consistency.
       params.add("$PARAMETER_BACKGROUND_COLOR = 0x${colorValue.uppercase()}")
     }
 
@@ -205,6 +221,9 @@ internal fun toPreviewAnnotationText(
     }
     if (previewConfig.uiMode != UNSET_UI_MODE_VALUE) {
       params.add("$PARAMETER_UI_MODE = ${uiModeToString(previewConfig.uiMode)}")
+    }
+    if (previewConfig.wallpaper.toString() != Wallpaper.NONE.resolvedValue) {
+      params.add("$PARAMETER_WALLPAPER = ${wallpaperToString(previewConfig.wallpaper)}")
     }
     if (displaySettings.showDecoration) {
       params.add("$PARAMETER_SHOW_SYSTEM_UI = true")
