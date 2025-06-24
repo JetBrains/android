@@ -75,10 +75,6 @@ public interface DependencyTracker {
       return new DependencyBuildRequest(RequestType.WHOLE_PROJECT, ImmutableSet.of());
     }
 
-    public static DependencyBuildRequest filePreviews(Collection<Label> targets) {
-      return new DependencyBuildRequest(RequestType.FILE_PREVIEWS, ImmutableSet.copyOf(targets));
-    }
-
     public Collection<OutputGroup> getOutputGroups(Collection<QuerySyncLanguage> languages) {
       return getOutputGroups(languages, requestType);
     }
