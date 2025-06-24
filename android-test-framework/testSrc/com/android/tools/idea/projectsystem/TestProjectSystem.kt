@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.android.ide.common.repository.GoogleMavenArtifactId
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.WellKnownMavenArtifactId
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.ide.common.util.PathString
@@ -62,13 +60,22 @@ import java.util.concurrent.CountDownLatch
 @Deprecated("Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project")
 class TestProjectSystem @JvmOverloads constructor(
   override val project: Project,
-  availableDependencies: List<GradleCoordinate> = listOf(),
+  availableDependencies: List<Artifact> = listOf(),
   private var sourceProvidersFactoryStub: SourceProvidersFactory = SourceProvidersFactoryStub(),
   @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS,
   private val androidLibraryDependencies: Collection<ExternalAndroidLibrary> = emptySet()
 ) : AndroidProjectSystem {
 
-  data class Dependency(val type: DependencyType, val coordinate: GradleCoordinate)
+  data class Artifact(val id: WellKnownMavenArtifactId, val version: NumericTestVersion)
+
+  data class DependencySpec(val id: WellKnownMavenArtifactId, val version: TestVersion)
+
+  data class Dependency(val type: DependencyType, val spec: DependencySpec) {
+    val id get() = spec.id
+    val version get() = spec.version
+    constructor(type: DependencyType, id: WellKnownMavenArtifactId, version: TestVersion):
+      this(type, DependencySpec(id, version))
+  }
 
   interface TestModuleSystem: AndroidModuleSystem, RegisteringModuleSystem<TestRegisteredDependencyQueryId, TestRegisteredDependencyId>
 
@@ -98,30 +105,29 @@ class TestProjectSystem @JvmOverloads constructor(
   }
 
   private val dependenciesByModule: HashMultimap<Module, Dependency> = HashMultimap.create()
-  private val availablePreviewDependencies: List<GradleCoordinate>
-  private val availableStableDependencies: List<GradleCoordinate>
-  private val incompatibleDependencyPairs: HashMap<GradleCoordinate, GradleCoordinate>
-  private val coordinateToFakeRegisterDependencyError: HashMap<GradleCoordinate, String>
+  private val availablePreviewDependencies: List<Artifact>
+  private val availableStableDependencies: List<Artifact>
+  private val incompatibleArtifactIdPairs: HashMap<WellKnownMavenArtifactId, WellKnownMavenArtifactId>
+  private val artifactIdToFakeRegisterDependencyError: HashMap<WellKnownMavenArtifactId, String>
   var namespace: String? = null
   var manifestOverrides = ManifestOverrides()
   var useAndroidX: Boolean = false
   var usesCompose: Boolean = false
 
   init {
-    val sortedHighToLowDeps = availableDependencies.sortedWith(GradleCoordinate.COMPARE_PLUS_HIGHER).reversed()
-    val (previewDeps, stableDeps) = sortedHighToLowDeps.partition(GradleCoordinate::isPreview)
+    val sortedHighToLowDeps = availableDependencies.sortedBy { it.version }.reversed()
+    val (previewDeps, stableDeps) = sortedHighToLowDeps.partition { it.version.isPreview() }
     availablePreviewDependencies = previewDeps
     availableStableDependencies = stableDeps
-    incompatibleDependencyPairs = HashMap()
-    coordinateToFakeRegisterDependencyError = HashMap()
+    incompatibleArtifactIdPairs = HashMap()
+    artifactIdToFakeRegisterDependencyError = HashMap()
   }
 
   /**
    * Adds the given artifact to the given module's list of dependencies.
    */
-  fun addDependency(artifactId: GoogleMavenArtifactId, module: Module, testVersion: TestVersion) {
-    val coordinate = artifactId.getCoordinate(testVersion.toString())
-    dependenciesByModule.put(module, Dependency(DependencyType.IMPLEMENTATION, coordinate))
+  fun addDependency(artifactId: WellKnownMavenArtifactId, module: Module, testVersion: TestVersion) {
+    dependenciesByModule.put(module, Dependency(DependencyType.IMPLEMENTATION, artifactId, testVersion))
   }
 
   /**
@@ -130,27 +136,28 @@ class TestProjectSystem @JvmOverloads constructor(
   fun getAddedDependencies(module: Module): Set<Dependency> = dependenciesByModule.get(module)
 
   /**
-   * Mark a pair of dependencies as incompatible so that [RegisteringModuleSystem.analyzeDependencyCompatibility]
+   * Mark a pair of ids as incompatible so that [RegisteringModuleSystem.analyzeDependencyCompatibility]
    * will return them as incompatible dependencies.
    */
-  fun addIncompatibleDependencyPair(dep1: GradleCoordinate, dep2: GradleCoordinate) {
-    incompatibleDependencyPairs[dep1] = dep2
+  fun addIncompatibleArtifactIdPair(id1: WellKnownMavenArtifactId, id2: WellKnownMavenArtifactId) {
+    incompatibleArtifactIdPairs[id1] = id2
   }
 
   /**
-   * Add a fake error condition for [coordinate] such that calling [RegisteringModuleSystem.registerDependency] on the
+   * Add a fake error condition for [id] such that calling [RegisteringModuleSystem.registerDependency] on the
    * coordinate will throw a [DependencyManagementException] with error message set to [errorMessage].
    */
-  fun addFakeErrorForRegisteringDependency(coordinate: GradleCoordinate, errorMessage: String) {
-    coordinateToFakeRegisterDependencyError[coordinate] = errorMessage
+  fun addFakeErrorForRegisteringDependency(id: WellKnownMavenArtifactId, errorMessage: String) {
+    artifactIdToFakeRegisterDependencyError[id] = errorMessage
   }
 
-  data class TestRegisteredDependencyQueryId(val coordinate: GradleCoordinate): RegisteredDependencyQueryId {
-    override fun toString(): String = coordinate.toString()
+  data class TestRegisteredDependencyQueryId(val id: WellKnownMavenArtifactId): RegisteredDependencyQueryId
+
+  data class TestRegisteredDependencyId(val id: WellKnownMavenArtifactId, val version: TestVersion): RegisteredDependencyId {
+    val dependencySpec get() = DependencySpec(id, version)
+    override fun toString() = "($id,$version)"
   }
-  data class TestRegisteredDependencyId(val coordinate: GradleCoordinate): RegisteredDependencyId {
-    override fun toString(): String = coordinate.toString()
-  }
+
   override fun getModuleSystem(module: Module): TestModuleSystem {
     class TestAndroidModuleSystemImpl : TestModuleSystem {
       override val module = module
@@ -164,14 +171,13 @@ class TestProjectSystem @JvmOverloads constructor(
         val missing = mutableListOf<TestRegisteredDependencyId>()
         var compatibilityWarningMessage = ""
         for (dependency in dependencies) {
-          val wildcardCoordinate = dependency.coordinate.let { GradleCoordinate(it.groupId, it.artifactId, "+") }
-          val lookup = availableStableDependencies.firstOrNull { it.matches(wildcardCoordinate) }
-                       ?: availablePreviewDependencies.firstOrNull { it.matches(wildcardCoordinate) }
+          val lookup = availableStableDependencies.firstOrNull { it.id == dependency.id  }
+                       ?: availablePreviewDependencies.firstOrNull { it.id == dependency.id }
           if (lookup != null) {
-            found[dependency] = TestRegisteredDependencyId(lookup)
-            incompatibleDependencyPairs[lookup]?.let { value ->
-              if (value.let { dependencies.map { it.coordinate }.contains(it) } == true) {
-                compatibilityWarningMessage += "$lookup is not compatible with ${value}\n"
+            found[dependency] = TestRegisteredDependencyId(lookup.id, lookup.version)
+            incompatibleArtifactIdPairs[lookup.id]?.let { value ->
+              dependencies.firstOrNull { it.id == value }?.let { other ->
+                compatibilityWarningMessage += "$dependency is not compatible with $other\n"
               }
             }
           }
@@ -194,33 +200,23 @@ class TestProjectSystem @JvmOverloads constructor(
       override fun getDirectResourceModuleDependents() = emptyList<Module>()
 
       override fun registerDependency(dependency: TestRegisteredDependencyId, type: DependencyType) {
-        coordinateToFakeRegisterDependencyError[dependency.coordinate]?.let {
+        artifactIdToFakeRegisterDependencyError[dependency.id]?.let {
           throw DependencyManagementException(it, DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
         }
-        dependenciesByModule.put(module, Dependency(type, dependency.coordinate))
+        dependenciesByModule.put(module, Dependency(type, dependency.dependencySpec))
       }
 
       override fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): TestRegisteredDependencyQueryId =
-        TestRegisteredDependencyQueryId(id.getCoordinate("+"))
-
-      private fun getRegisteredDependencyQueryId(coordinate: GradleCoordinate): TestRegisteredDependencyQueryId =
-        TestRegisteredDependencyQueryId(coordinate)
+        TestRegisteredDependencyQueryId(id)
 
       override fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): TestRegisteredDependencyId =
-        TestRegisteredDependencyId(id.getCoordinate("+"))
-
-      private fun getRegisteredDependencyId(coordinate: GradleCoordinate): TestRegisteredDependencyId =
-        TestRegisteredDependencyId(coordinate)
+        TestRegisteredDependencyId(id, TestVersion.WILD)
 
       override fun getRegisteredDependency(id: TestRegisteredDependencyQueryId): TestRegisteredDependencyId? =
-        dependenciesByModule[module].firstOrNull { it.coordinate.matches(id.coordinate) }?.let {
-          TestRegisteredDependencyId(it.coordinate)
-        }
+        dependenciesByModule[module].firstOrNull { it.id == id.id }?.let { TestRegisteredDependencyId(it.id, it.version) }
 
       override fun hasResolvedDependency(id: WellKnownMavenArtifactId, scope: DependencyScopeType): Boolean =
-        id.getCoordinate("+").let { coordinate ->
-          dependenciesByModule[module].map { it.coordinate }.firstOrNull { it.matches(coordinate) } != null
-        }
+        dependenciesByModule[module].firstOrNull { it.id == id } != null
 
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
         listOfNotNull(
@@ -376,20 +372,33 @@ class TestProjectSystem @JvmOverloads constructor(
 sealed interface TestVersion {
   companion object {
     @JvmStatic
-    fun create(parts: List<Int>): TestVersion = NumericTestVersion(parts)
+    fun create(parts: List<Int>): NumericTestVersion = NumericTestVersion(parts)
     @JvmStatic
-    fun create(vararg parts: Int): TestVersion = create(parts.toList())
+    fun create(vararg parts: Int): NumericTestVersion = create(parts.toList())
     @JvmField
     val WILD: TestVersion = SpecialTestVersion.WILD
   }
 }
 
-data class NumericTestVersion(val parts: List<Int>): TestVersion {
+data class NumericTestVersion(val parts: List<Int>): TestVersion, Comparable<NumericTestVersion> {
   override fun toString() = parts.joinToString(".")
+  override fun compareTo(other: NumericTestVersion): Int {
+    for (i in 0..Int.MAX_VALUE) {
+      when {
+        parts.size == i && other.parts.size == i -> return 0
+        parts.size == i -> return -1
+        other.parts.size == i -> return 1
+        parts[i] > other.parts[i] -> return 1
+        parts[i] < other.parts[i] -> return 1
+      }
+    }
+    return 0
+  }
+  fun isPreview() = !parts.all { it > 0 }
 }
 
 enum class SpecialTestVersion(val string: String): TestVersion {
-  WILD("+")
+  WILD("*")
   ;
 
   override fun toString() = string
