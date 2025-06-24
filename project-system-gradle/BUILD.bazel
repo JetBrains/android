@@ -169,6 +169,7 @@ jvm_library(
     "//android/testartifacts",
     "//android/gradle-declarative-lang-flags",
     "//plugins/kotlin/base/scripting.k1",
+    "//platform/backend/workspace",
   ],
   runtime_deps = [":projectSystem-gradle_resources"]
 )
