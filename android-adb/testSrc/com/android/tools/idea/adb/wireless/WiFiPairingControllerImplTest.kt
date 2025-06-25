@@ -18,6 +18,7 @@ package com.android.tools.idea.adb.wireless
 import com.android.adblib.ServerStatus
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.TimeoutRemainder
+import com.android.test.testutils.EnsureAndroidProjectRule
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
@@ -69,6 +70,8 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   @get:Rule val iconLoaderRule = IconLoaderRule()
 
   @get:Rule val usageTrackerRule = UsageTrackerRule()
+
+  @get:Rule val ensureAndroidProjectRule = EnsureAndroidProjectRule()
 
   private val randomProvider by lazy { MockRandomProvider() }
 
