@@ -2008,6 +2008,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> GEMINI_ADD_LOGIC_FOR_A_NEW_LINK =
     new BooleanFlag(APP_LINKS_ASSISTANT, "gemini.add.logic.for.a.new.link", "Use Gemini to add deep link logic",
                     "Use Gemini to add the business logic for a new deep link.", false);
+  public static final Flag<Boolean> MISSING_URLS_FEATURE =
+    new BooleanFlag(APP_LINKS_ASSISTANT, "missing.urls.feature", "Missing URLs feature",
+                    "Add a new tab to display missing URLs and help users fix them.", false);
   // endregion App Links Assistant
 
   // region NEW_COLLECT_LOGS_DIALOG
