@@ -68,7 +68,7 @@ class TraceProcessorModelTest {
 
     val traceProtoBuilder = TraceProcessor.TraceEventsResult.newBuilder()
     traceProtoBuilder.addThread(1)
-      .addEvent(1000, 1000, 2000, "EventA")
+      .addEvent(1000, 1000, 18000, "EventA")
       .addEvent(1001, 2000, 5000, "EventA-1", 1000, 1)
       .addEvent(1002, 5000, 1000, "EventA-1-1", 1001, 2)
       .addEvent(1003, 15000, 3000, "EventA-2", 1000, 1)
@@ -78,7 +78,7 @@ class TraceProcessorModelTest {
     // Set the thread running for the entire recording to simplify the verification of `TraceEventModel.cpuTimeUs`.
     // The RUNNING state is implied as the start state, so it's not encoded here.
     val schedProtoBuilder = TraceProcessor.SchedulingEventsResult.newBuilder().setNumCores(4)
-    schedProtoBuilder.addSchedulingEvent(1, 1, 0, 1000, 17000,
+    schedProtoBuilder.addSchedulingEvent(1, 1, 0, 1000, 18000,
                                          TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
     modelBuilder.addSchedulingEvents(schedProtoBuilder.build())
     modelBuilder.addTraceEvents(traceProtoBuilder.build())
@@ -87,15 +87,57 @@ class TraceProcessorModelTest {
     val process = model.getProcessById(1)!!
     val thread = process.threadById[1] ?: error("Thread with id = 1 should be present in this process.")
     assertThat(thread.traceEvents).containsExactly(
-      // EventA end is 18, because A-2 ends at 18.
-      TraceEventModel("EventA", 1, 18, 2, listOf(
+      // EventA end is 19, irrespective of endTimestamp of child event
+      TraceEventModel("EventA", 1, 19, 18, listOf(
         TraceEventModel("EventA-1", 2, 7, 5, listOf(
           TraceEventModel("EventA-1-1", 5, 6, 1, listOf())
         )),
         TraceEventModel("EventA-2", 15, 18, 3, listOf()))))
 
     assertThat(model.getCaptureStartTimestampUs()).isEqualTo(1)
-    assertThat(model.getCaptureEndTimestampUs()).isEqualTo(18)
+    assertThat(model.getCaptureEndTimestampUs()).isEqualTo(19)
+  }
+
+  @Test
+  fun `addTraceEvents - incomplete trace event`() {
+    val processProtoBuilder = TraceProcessor.ProcessMetadataResult.newBuilder()
+    processProtoBuilder.addProcess(1, "Process1")
+      .addThread(2, "AnotherThreadProcess1")
+      .addThread(1, "MainThreadProcess1")
+
+    // Set EventA-1's duration to -1 to represent an incomplete trace event.
+    val traceProtoBuilder = TraceProcessor.TraceEventsResult.newBuilder()
+    traceProtoBuilder.addThread(1)
+      .addEvent(1000, 1000, 18000, "EventA")
+      .addEvent(1001, 2000, -1, "EventA-1", 1000, 1)
+      .addEvent(1002, 5000, 1000, "EventA-1-1", 1001, 2)
+      .addEvent(1003, 8000, 2000, "EventA-1-2", 1001, 2)
+      .addEvent(1004, 15000, 3000, "EventA-2", 1000, 1)
+
+    val modelBuilder = TraceProcessorModel.Builder()
+    modelBuilder.addProcessMetadata(processProtoBuilder.build())
+    // Set the thread running for the entire recording to simplify the verification of `TraceEventModel.cpuTimeUs`.
+    // The RUNNING state is implied as the start state, so it's not encoded here.
+    val schedProtoBuilder = TraceProcessor.SchedulingEventsResult.newBuilder().setNumCores(4)
+    schedProtoBuilder.addSchedulingEvent(1, 1, 0, 1000, 18000,
+                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
+    modelBuilder.addSchedulingEvents(schedProtoBuilder.build())
+    modelBuilder.addTraceEvents(traceProtoBuilder.build())
+    val model = modelBuilder.build()
+
+    val process = model.getProcessById(1)!!
+    val thread = process.threadById[1] ?: error("Thread with id = 1 should be present in this process.")
+    assertThat(thread.traceEvents).containsExactly(
+      // EventA-1 end is 10, which is maximum end time of its child event
+      TraceEventModel("EventA", 1, 19, 18, listOf(
+        TraceEventModel("EventA-1", 2, 10, 8, listOf(
+          TraceEventModel("EventA-1-1", 5, 6, 1, listOf()),
+          TraceEventModel("EventA-1-2", 8, 10, 2, listOf())
+        )),
+        TraceEventModel("EventA-2", 15, 18, 3, listOf()))))
+
+    assertThat(model.getCaptureStartTimestampUs()).isEqualTo(1)
+    assertThat(model.getCaptureEndTimestampUs()).isEqualTo(19)
   }
 
   @Test

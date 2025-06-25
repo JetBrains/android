@@ -174,6 +174,7 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
         val rootIds = mutableSetOf<Long>()
         val eventToChildrenIds = mutableMapOf<Long, MutableList<Long>>()
         val eventPerId = mutableMapOf<Long, TraceEventModel>()
+        val incompleteEventToThreadId = mutableMapOf<Long, Int>()
 
         for (event in thread.traceEventList) {
           if (event.depth > 0) {
@@ -184,10 +185,20 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
           }
 
           val startTimestampUs = convertToUs(event.timestampNanoseconds)
-          val durationTimestampUs = convertToUs(event.durationNanoseconds)
-          val endTimestampUs = startTimestampUs + durationTimestampUs
-          val cpuTimeUs = getRunningTimeUsInRange(startTimestampUs, endTimestampUs,
-                                                  threadToScheduling.getOrDefault(thread.threadId.toInt(), listOf()))
+          var endTimestampUs = -1L
+          var cpuTimeUs = -1L
+          if (event.durationNanoseconds == -1L){
+            // A duration of -1 signifies an incomplete trace event. For these events, CPU time calculation
+            // is deferred until the end time is estimated. Thread scheduling information is stored to facilitate
+            // CPU time calculation for such events at a later stage
+            incompleteEventToThreadId[event.id] = thread.threadId.toInt()
+          }
+          else {
+            val durationTimestampUs = convertToUs(event.durationNanoseconds)
+            endTimestampUs = startTimestampUs + durationTimestampUs
+            cpuTimeUs = getRunningTimeUsInRange(startTimestampUs, endTimestampUs,
+                                                threadToScheduling.getOrDefault(thread.threadId.toInt(), listOf()))
+          }
 
           eventPerId[event.id] = TraceEventModel(event.name,
                                                  startTimestampUs,
@@ -196,14 +207,14 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
                                                  listOf())
         }
 
-        val reconstructedTree = reconstructTraceTree(rootIds, eventToChildrenIds, eventPerId)
+        val reconstructedTree = reconstructTraceTree(rootIds, eventToChildrenIds, eventPerId, incompleteEventToThreadId)
         threadToEventsMap[thread.threadId.toInt()] = rootIds.mapNotNull { reconstructedTree[it] }
       }
     }
 
     // Runs through the partially computed events to rebuild the whole trace trees, by doing a DFS from the root nodes.
     private fun reconstructTraceTree(
-      rootIds: Set<Long>, eventToChildrenIds: Map<Long, List<Long>>, eventPerId: Map<Long, TraceEventModel>): Map<Long, TraceEventModel> {
+      rootIds: Set<Long>, eventToChildrenIds: Map<Long, List<Long>>, eventPerId: Map<Long, TraceEventModel>, incompleteEventToThreadId:  Map<Long, Int>): Map<Long, TraceEventModel> {
 
       val reconstructedEventsPerId = mutableMapOf<Long, TraceEventModel>()
 
@@ -231,11 +242,14 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
 
         val myStart = event.startTimestampUs
         val maxEndTs = children.lastOrNull()?.endTimestampUs ?: 0L
-        val myCpuTime = event.cpuTimeUs
-
+        // For incomplete events, the end time is estimated as the maximum of its start time and its last child's end time.
+        // The CPU time is calculated using the estimated end time
+        val updatedEndTimestampUs = if (event.endTimestampUs != -1L) event.endTimestampUs else maxOf(myStart, maxEndTs)
+        val updatedCpuTimeUs = if (event.cpuTimeUs != -1L) event.cpuTimeUs else getRunningTimeUsInRange(event.startTimestampUs, updatedEndTimestampUs,
+                                                                                                        threadToScheduling.getOrDefault(incompleteEventToThreadId[eventId], listOf()))
         val updatedEvent = event.copy(
-          // Our end time is either the end of our last children or our start + how much time we took.
-          endTimestampUs = maxOf(myStart + myCpuTime, maxEndTs),
+          endTimestampUs = updatedEndTimestampUs,
+          cpuTimeUs = updatedCpuTimeUs,
           childrenEvents = children)
         reconstructedEventsPerId[eventId] = updatedEvent
 
