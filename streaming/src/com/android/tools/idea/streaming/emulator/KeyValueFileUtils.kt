@@ -20,7 +20,6 @@ import com.google.common.base.Splitter
 import com.intellij.openapi.diagnostic.Logger
 import java.io.IOException
 import java.nio.file.Files
-import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.ATOMIC_MOVE
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
@@ -35,25 +34,15 @@ import kotlin.text.Charsets.UTF_8
  * @param keysToExtract the keys to be returned together with the corresponding values,
  *     or null to return all keys and values.
  */
-fun readKeyValueFile(file: Path, keysToExtract: Set<String>? = null): Map<String, String>? {
-  return try {
-    val result = mutableMapOf<String, String>()
-    for (line in Files.readAllLines(file)) {
-      val keyValue = KEY_VALUE_SPLITTER.splitToList(line)
-      if (keyValue.size == 2 && (keysToExtract == null || keysToExtract.contains(keyValue[0]))) {
-        result[keyValue[0]] = keyValue[1]
-      }
+fun readKeyValueFile(file: Path, keysToExtract: Set<String>? = null): Map<String, String> {
+  val result = mutableMapOf<String, String>()
+  for (line in Files.readAllLines(file)) {
+    val keyValue = KEY_VALUE_SPLITTER.splitToList(line)
+    if (keyValue.size == 2 && (keysToExtract == null || keysToExtract.contains(keyValue[0]))) {
+      result[keyValue[0]] = keyValue[1]
     }
-    result
   }
-  catch (e: NoSuchFileException) {
-    logError("Could not find $file", null)
-    null
-  }
-  catch (e: IOException) {
-    logError("Error reading $file", e)
-    null
-  }
+  return result
 }
 
 /**
@@ -63,7 +52,7 @@ fun readKeyValueFile(file: Path, keysToExtract: Set<String>? = null): Map<String
  * @param updates the keys and the corresponding values to update; keys with null values are deleted
  */
 fun updateKeyValueFile(file: Path, updates: Map<String, String?>) {
-  val originalContents = readKeyValueFile(file) ?: return
+  val originalContents = readKeyValueFile(file)
   val sortedContents = TreeMap(originalContents)
   sortedContents.putAll(updates)
   val lines = sortedContents.entries.asSequence()

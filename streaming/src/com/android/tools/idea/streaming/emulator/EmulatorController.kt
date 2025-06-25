@@ -76,7 +76,6 @@ import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.util.Alarm
@@ -96,9 +95,7 @@ import kotlin.math.max
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 
-/**
- * Controls a running Emulator.
- */
+/** Controls a running Emulator. */
 class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposable) : UserDataHolderBase(), Disposable {
   private val imageResponseMarshaller = ImageResponseMarshaller()
   private val streamScreenshotMethod = EmulatorControllerGrpc.getStreamScreenshotMethod().toBuilder(
@@ -217,8 +214,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /** Loads emulator configuration from disk. Returns true if successful. */
   @Slow
   fun loadEmulatorConfiguration(): Boolean {
-    emulatorConfig = EmulatorConfiguration.readAvdDefinition(emulatorId.avdId, emulatorId.avdFolder) ?:
-        EmulatorConfiguration.createStub(emulatorId.avdName, emulatorId.avdFolder)
+    emulatorConfig = try {
+      EmulatorConfiguration.readAvdDefinition(emulatorId.avdId, emulatorId.avdFolder)
+    }
+    catch (e: Exception) {
+      val message = e.message ?: e.javaClass.name
+      LOG.warn("Error while loading configuration for ${emulatorId.avdName} - $message")
+      EmulatorConfiguration.createStub(emulatorId.avdName, emulatorId.avdFolder)
+    }
     return emulatorConfig.isValid
   }
 
@@ -752,7 +755,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     return emulatorId.hashCode()
   }
 
-  private inner class Connection(
+  private class Connection(
     val channel: ManagedChannel,
     val maxInboundMessageSize: Int,
     val emulatorControllerStub: EmulatorControllerGrpc.EmulatorControllerStub,
@@ -776,7 +779,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     SHUTDOWN_SENT
   }
 
-  inner class CancelableClientCall(private val call: ClientCall<*, *>) : Cancelable {
+  class CancelableClientCall(private val call: ClientCall<*, *>) : Cancelable {
 
     override fun cancel() {
       call.cancel("Canceled by consumer", null)
@@ -850,7 +853,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
           applier.apply(headers)
         }
         catch (e: Throwable) {
-          thisLogger().error(e)
+          LOG.error(e)
           applier.fail(Status.UNAUTHENTICATED.withCause(e))
         }
       }

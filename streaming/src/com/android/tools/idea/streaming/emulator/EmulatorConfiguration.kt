@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.emulator
 import com.android.SdkConstants.ANDROID_HOME_ENV
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags.ANDROID_TV_TAG
 import com.android.sdklib.SystemImageTags.AUTOMOTIVE_DISTANT_DISPLAY_TAG
@@ -33,15 +34,12 @@ import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.android.utils.asSeparatedListContains
 import com.google.common.base.Splitter
 import com.google.common.collect.ImmutableMap
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import java.awt.Dimension
 import java.nio.file.Path
 import javax.swing.Icon
 
-/**
- * Represents configuration of a running Emulator.
- */
+/** Represents configuration of a running Emulator. */
 class EmulatorConfiguration private constructor(
   val avdFolder: Path,
   val avdName: String,
@@ -65,34 +63,34 @@ class EmulatorConfiguration private constructor(
     get() = displaySize.height
 
   val isValid: Boolean
-    get() = displaySize.width > 0 && displaySize.height > 0 && api > 0
+    get() = displaySize.width > 0 && displaySize.height > 0 && androidVersion.androidApiLevel.majorVersion > 0
 
   val api: Int
-    get() = androidVersion.apiLevel
+    get() = androidVersion.androidApiLevel.majorVersion
 
   companion object {
     /**
      * Creates and returns an [EmulatorConfiguration] using data in the AVD folder.
      * Returns null if any of the essential data is missing.
      */
-    fun readAvdDefinition(avdId: String, avdFolder: Path): EmulatorConfiguration? {
+    fun readAvdDefinition(avdId: String, avdFolder: Path): EmulatorConfiguration {
       val hardwareIniFile = avdFolder.resolve("hardware-qemu.ini")
       val keysToExtract = setOf("android.sdk.root", "hw.audioOutput", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density",
                                 "hw.sensor.hinge.resizable.config")
-      val hardwareIni = readKeyValueFile(hardwareIniFile, keysToExtract) ?: return null
+      val hardwareIni = readKeyValueFile(hardwareIniFile, keysToExtract)
       val sdkPath = hardwareIni["android.sdk.root"] ?: System.getenv(ANDROID_HOME_ENV) ?: ""
       val androidSdkRoot = avdFolder.resolve(sdkPath)
       val displayWidth = parseInt(hardwareIni["hw.lcd.width"], 0)
       val displayHeight = parseInt(hardwareIni["hw.lcd.height"], 0)
       if (displayWidth <= 0 || displayHeight <= 0) {
-        return null
+        throw RuntimeException("Invalid display size: $displayWidth x $displayHeight")
       }
       val density = parseInt(hardwareIni["hw.lcd.density"], 0)
 
       val hasAudioOutput = hardwareIni["hw.audioOutput"]?.toBoolean() != false
 
       val configIniFile = avdFolder.resolve("config.ini")
-      val configIni = readKeyValueFile(configIniFile) ?: return null
+      val configIni = readKeyValueFile(configIniFile)
 
       val avdName = configIni["avd.ini.displayname"] ?: avdId.replace('_', ' ')
       val initialOrientation = when {
@@ -118,18 +116,16 @@ class EmulatorConfiguration private constructor(
         configIni["hw.resizable.configs"]?.let { parseDisplayModes(it, postureMode) } ?: emptyList()
       }
       catch (_: Exception) {
-        thisLogger().warn("Unrecognized value of the hw.resizable.configs property, \"${configIni["hw.resizable.configs"]}\"," +
-                          " in $configIniFile")
-        emptyList()
+        throw RuntimeException("Unrecognized value of the hw.resizable.configs property, \"${configIni["hw.resizable.configs"]}\"," +
+                               " in $configIniFile")
       }
 
       val postureValues = try {
         configIni["hw.sensor.posture_list"]?.let(::parsePostures) ?: emptyList()
       }
       catch (_: Exception) {
-        thisLogger().warn("Unrecognized value of the hw.sensor.posture_list property, \"${configIni["hw.sensor.posture_list"]}\"," +
-                          " in $configIniFile")
-        emptyList()
+        throw RuntimeException("Unrecognized value of the hw.sensor.posture_list property, \"${configIni["hw.sensor.posture_list"]}\"," +
+                               " in $configIniFile")
       }
       var postures = emptyList<PostureDescriptor>()
       for (type in PostureDescriptor.ValueType.entries) {
@@ -148,18 +144,18 @@ class EmulatorConfiguration private constructor(
             }
           }
           catch (_: Exception) {
-            thisLogger().warn("Unrecognized value of the $key property, \"$ranges\", in $configIniFile")
+            throw RuntimeException("Unrecognized value of the $key property, \"$ranges\", in $configIniFile")
           }
           break
         }
       }
 
-      val systemImage = configIni["image.sysdir.1"] ?: return null
+      val systemImage = configIni["image.sysdir.1"] ?: throw RuntimeException("System image is not defined")
       val sourcePropertiesFile = androidSdkRoot.resolve(systemImage).resolve("source.properties")
       val versionKeys =
           setOf("AndroidVersion.ApiLevel", "AndroidVersion.CodeName", "AndroidVersion.ExtensionLevel", "AndroidVersion.IsBaseSdk")
-      val sourceProperties = readKeyValueFile(sourcePropertiesFile, versionKeys) ?: return null
-      val api = parseInt(sourceProperties["AndroidVersion.ApiLevel"], 0)
+      val sourceProperties = readKeyValueFile(sourcePropertiesFile, versionKeys)
+      val api = sourceProperties["AndroidVersion.ApiLevel"]?.let { AndroidApiLevel.fromString(it) } ?: throw RuntimeException("Missing or invalid API level")
       val codeName = sourceProperties["AndroidVersion.CodeName"]
       val extensionLevel = sourceProperties["AndroidVersion.ExtensionLevel"]?.let { parseInt(it, 0) }
       val isBaseSdk = sourceProperties["AndroidVersion.IsBaseSdk"]?.toBoolean() != false
@@ -211,8 +207,9 @@ class EmulatorConfiguration private constructor(
     }
 
     fun createStub(avdName: String, avdFolder: Path): EmulatorConfiguration {
-      return EmulatorConfiguration(avdFolder, avdName, DeviceType.HANDHELD, AndroidVersion(0, 0), Dimension(), 0, emptyMap(), null, false,
-                                   false, 0, emptyList(), emptyList())
+      return EmulatorConfiguration(avdFolder, avdName, DeviceType.HANDHELD, AndroidVersion(0, 0), Dimension(), 0, emptyMap(), null,
+                                   hasOrientationSensors = false, hasAudioOutput = false, initialOrientationQuadrants = 0,
+                                   displayModes = emptyList(), postures = emptyList())
     }
 
     private fun getSkinPath(configIni: Map<String, String>, androidSdkRoot: Path): Path? {
