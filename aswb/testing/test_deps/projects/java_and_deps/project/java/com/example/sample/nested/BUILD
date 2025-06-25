@@ -9,6 +9,7 @@ java_library(
     ],
 )
 
+# Nothing in the project view depends on this library.
 java_library(
     name = "nested2",
     srcs = glob(["**/NestedClass2.java"]),

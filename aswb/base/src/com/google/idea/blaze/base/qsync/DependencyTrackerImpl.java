@@ -45,14 +45,17 @@ import java.io.IOException;
  */
 public class DependencyTrackerImpl implements DependencyTracker {
 
+  private final ProjectDefinition projectDefinition;
   private final SnapshotHolder snapshotHolder;
   private final DependencyBuilder builder;
   private final ArtifactTracker<BlazeContext> artifactTracker;
 
   public DependencyTrackerImpl(
-      SnapshotHolder snapshotHolder,
-      DependencyBuilder builder,
-      ArtifactTracker<BlazeContext> artifactTracker) {
+    ProjectDefinition projectDefinition,
+    SnapshotHolder snapshotHolder,
+    DependencyBuilder builder,
+    ArtifactTracker<BlazeContext> artifactTracker) {
+    this.projectDefinition = projectDefinition;
     this.snapshotHolder = snapshotHolder;
     this.builder = builder;
     this.artifactTracker = artifactTracker;
@@ -84,7 +87,7 @@ public class DependencyTrackerImpl implements DependencyTracker {
       QuerySyncProjectSnapshot snapshot, DependencyBuildRequest request) {
     return switch (request.requestType) {
       case MULTIPLE_TARGETS -> snapshot.graph().computeRequestedTargets(request.targets);
-      case WHOLE_PROJECT -> snapshot.graph().computeWholeProjectTargets();
+      case WHOLE_PROJECT -> snapshot.graph().computeWholeProjectTargets(projectDefinition);
       case FILE_PREVIEWS -> new RequestedTargets(request.targets, ImmutableSet.of());
     };
   }
