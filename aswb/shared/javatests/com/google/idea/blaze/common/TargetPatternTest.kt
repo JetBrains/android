@@ -70,4 +70,19 @@ class TargetPatternTest {
     expect.that(TargetPattern.parse("//some/path:all-something-else").inScope(Label.of("//some/path"))).isEqualTo(NOT_IN_SCOPE)
     expect.that(TargetPattern.parse("-//some/path:all-something-else").inScope(Label.of("//some/path"))).isEqualTo(NOT_IN_SCOPE)
   }
+
+  @Test
+  fun matchesToString(){
+    expect.that(TargetPattern.parse("//some/path").toString()).isEqualTo("//some/path:path")
+    expect.that(TargetPattern.parse("-//some/path").toString()).isEqualTo("-//some/path:path")
+    expect.that(TargetPattern.parse("//some/path/...").toString()).isEqualTo("//some/path/...")
+    expect.that(TargetPattern.parse("-//some/path/...").toString()).isEqualTo("-//some/path/...")
+    expect.that(TargetPattern.parse("//some/path:target").toString()).isEqualTo("//some/path:target")
+    // Note, repo names are normalized even though it might not be correct to do when in the context of of a dependency repo.
+    expect.that(TargetPattern.parse("@repo//some/path:target").toString()).isEqualTo("@@repo//some/path:target")
+    // Note, for now we do not distinguish different wildcard kinds since we only deal with rules anyway.
+    expect.that(TargetPattern.parse("//some/path:all").toString()).isEqualTo("//some/path:*")
+    expect.that(TargetPattern.parse("//some/path:all-targets").toString()).isEqualTo("//some/path:*")
+    expect.that(TargetPattern.parse("//some/path:*").toString()).isEqualTo("//some/path:*")
+  }
 }

@@ -20,6 +20,8 @@ message Snapshot {
 message ProjectDefinition {
   repeated string include_paths = 1;
   repeated string exclude_paths = 2;
+  bool derive_targets_from_directories = 6;
+  repeated string target_patterns = 7;
   repeated LanguageClass language_classes = 3;
   repeated string test_sources = 4;
   // TODO(b/382333575): improve excluding system folders

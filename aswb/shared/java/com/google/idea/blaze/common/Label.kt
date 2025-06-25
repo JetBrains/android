@@ -109,13 +109,13 @@ data class Label(val workspace: String, val buildPackage: String, val name: Stri
   override fun toString(): String {
     return buildString(capacity = 5 + workspace.length + buildPackage.length + name.length) {
       if (!workspace.isEmpty()) {
-        append("@@");
-        append(workspace);
+        append("@@")
+        append(workspace)
       }
-      append("//");
-      append(buildPackage);
-      append(":");
-      append(name);
+      append("//")
+      append(buildPackage)
+      append(":")
+      append(name)
     }
   }
 }
@@ -141,10 +141,36 @@ data class TargetPattern(
     }
   }
 
+  override fun toString(): String {
+    return buildString(capacity = 9 + workspace.length + buildPackagePath.toString().length + (targetName?.length ?: 0)) {
+      if (negative) {
+        append("-")
+      }
+      if (workspace != "") {
+        append("@@")
+        append(workspace)
+      }
+      append("//")
+      append(buildPackagePath)
+      if (targetName != null) {
+        append(":")
+        append(targetName)
+      } else {
+        if (includesSubpackages) {
+          append("/...")
+        }
+        else {
+          append(":*")
+        }
+      }
+    }
+  }
+
   companion object {
     private val threeDotsPath = Path.of("...")
     private val wildcardTargets = setOf("*", "all", "all-targets")
 
+    @JvmStatic
     fun parse(pattern: String): TargetPattern {
       val (negative, patternLabel) = if (pattern.startsWith('-')) true to pattern.substring(1) else false to pattern
       val parsedAsLabel = Label.parseLabel(patternLabel, allowRelativeLabels = true)
