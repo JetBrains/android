@@ -18,7 +18,9 @@ package com.android.tools.idea.lint
 import com.android.ide.common.repository.GMAVEN_BASE_URL
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GoogleMavenRepository.Companion.MAVEN_GOOGLE_CACHE_DIR_KEY
+import com.android.repository.api.Checksum
 import com.android.repository.api.ConsoleProgressIndicator
+import com.android.repository.api.ProgressIndicatorAdapter
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.flags.StudioFlags
@@ -28,6 +30,8 @@ import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.lint.detector.api.Severity
 import com.android.tools.lint.detector.api.readUrlData
 import com.android.utils.FileUtils
+import com.google.common.hash.Hashing
+import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.io.FileUtil
@@ -58,7 +62,7 @@ class PlayPolicyInsightsJarCache(private val client: AndroidLintIdeClient) {
   private val bundledJar: File? = getBundledJar()
   private var googleMavenRepository: GoogleMavenRepository? = null
   private val isUpdating = MutableStateFlow(false)
-  private var nextUpdatingTimeMs = 0L
+  @kotlin.concurrent.Volatile private var nextUpdatingTimeMs = 0L
 
   private fun getGoogleMavenRepository(): GoogleMavenRepository {
     return googleMavenRepository
@@ -108,14 +112,18 @@ class PlayPolicyInsightsJarCache(private val client: AndroidLintIdeClient) {
     try {
       if (cachedFile == null) {
         val dir = cachedDir ?: return null
-        cachedFile =
-          dir
-            .toFile()
-            .listFiles()
-            ?.filter { it.name.startsWith(ARTIFACT_ID) }
-            ?.sortedBy { file -> file.name }
-            ?.maxByOrNull { file -> file.lastModified() }
-        cachedFileVerified(cachedFile?.lastModified() ?: 0L)
+        dir
+          .toFile()
+          .listFiles()
+          ?.filter { it.name.startsWith(ARTIFACT_ID) && it.name.endsWith(".jar") }
+          ?.sortedBy { file -> file.name }
+          ?.maxByOrNull { file -> file.lastModified() }
+          ?.let { jarFile ->
+            // Verify existing jar file with its sha256 checksum.
+            if (sha256Verified(jarFile.sha256(), jarFile.sha256FileText())) {
+              cachedFileVerified(jarFile)
+            }
+          }
       }
     } catch (e: Exception) {
       client.log(
@@ -149,18 +157,47 @@ class PlayPolicyInsightsJarCache(private val client: AndroidLintIdeClient) {
             // Update the library from gMaven.
             val repository = getGoogleMavenRepository()
             val version = repository.getVersions(GROUP_ID, ARTIFACT_ID).maxOrNull() ?: return@launch
-            val fileName = "${ARTIFACT_ID}-${version}.jar"
-            val url =
+            val jarName = "${ARTIFACT_ID}-${version}.jar"
+            val urlResolver: (String) -> URL = { fileName ->
               URL(
                 "${GMAVEN_BASE_URL}/${GROUP_ID.replace('.', '/')}/${ARTIFACT_ID}/${version}/${fileName}"
               )
-            val path = dir.resolve(fileName)
-            val file = path.toFile()
-            if (!file.exists()) {
-              StudioDownloader()
-                .downloadFullyWithCaching(url, path, null, ConsoleProgressIndicator())
             }
-            cachedFile = file
+            val jarPath = dir.resolve(jarName)
+            val jarFile = jarPath.toFile()
+
+            // Update the sha256 file.
+            var sha256FileText = jarFile.sha256FileText()
+            var sha256 = jarFile.sha256()
+            val verified: () -> Boolean = { sha256Verified(sha256, sha256FileText) }
+
+            if (!verified()) {
+              val shaFile = jarFile.sha256File()
+              StudioDownloader()
+                .downloadFullyWithCaching(
+                  urlResolver(shaFile.name),
+                  shaFile.toPath(),
+                  null,
+                  object : ProgressIndicatorAdapter() {},
+                )
+              sha256FileText = jarFile.sha256FileText()
+            }
+
+            // Download the jar.
+            if (!verified()) {
+              StudioDownloader()
+                .downloadFullyWithCaching(
+                  urlResolver(jarName),
+                  jarPath,
+                  Checksum.create(sha256FileText, "sha-256"),
+                  ConsoleProgressIndicator(),
+                )
+              sha256 = jarFile.sha256()
+            }
+
+            if (verified()) {
+              cachedFileVerified(jarFile, actionTimeMs)
+            }
           } catch (e: Exception) {
             client.log(Severity.WARNING, e, "Failed to download jar: ${GROUP_ID}-${ARTIFACT_ID}")
           }
@@ -183,7 +220,22 @@ class PlayPolicyInsightsJarCache(private val client: AndroidLintIdeClient) {
     }
   }
 
-  private fun cachedFileVerified(timestamp: Long) {
+  /** Checksum of the file with sha256 algorithm. */
+  private fun File.sha256(): String =
+    takeIf { exists() }?.let { Hashing.sha256().hashBytes(Files.toByteArray(this)).toString() }
+      ?: ""
+
+  /** Checksum read from its sha256 file. */
+  private fun File.sha256FileText(): String =
+    sha256File().takeIf { it.exists() }?.readText()?.trim() ?: ""
+
+  private fun File.sha256File(): File = File("${path}.sha256")
+
+  private fun sha256Verified(checksum1: String, checksum2: String) =
+    checksum1.isNotEmpty() && checksum1 == checksum2
+
+  private fun cachedFileVerified(file: File, timestamp: Long = file.lastModified()) {
+    cachedFile = file
     nextUpdatingTimeMs =
       nextUpdatingTimeMs.coerceAtMost(timestamp + TimeUnit.DAYS.toMillis(CACHE_EXPIRY_DAYS))
   }
