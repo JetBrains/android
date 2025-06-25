@@ -95,7 +95,7 @@ public final class Sdks {
     if (addToSdkTable) {
       ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(sdk));
       if (parentDisposable != null) {
-        Disposer.register(parentDisposable, () -> WriteAction.run(() -> ProjectJdkTable.getInstance().removeJdk(sdk)));
+        Disposer.register(parentDisposable, () -> WriteAction.runAndWait(() -> ProjectJdkTable.getInstance().removeJdk(sdk)));
       }
     }
 

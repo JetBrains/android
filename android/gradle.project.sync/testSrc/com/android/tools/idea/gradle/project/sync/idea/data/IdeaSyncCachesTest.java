@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.idea.data;
 
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.application.ActionsKt.runWriteAction;
 
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject;
@@ -26,6 +25,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.android.utils.FileUtils;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -124,7 +124,7 @@ public class IdeaSyncCachesTest {
   private void deleteLibraryFilesFromGradleCache(List<VirtualFile> lifecycleLiveDataLibraryPaths) {
     assertThat(lifecycleLiveDataLibraryPaths).isNotEmpty();
     // Delete all CLASSES files from the Gradle cache. When a library expires in the Gradle cache all files are deleted.
-    runWriteAction(() ->{
+    WriteAction.runAndWait(() -> {
       lifecycleLiveDataLibraryPaths.forEach(file -> {
         try {
           file.delete(this);
@@ -133,7 +133,6 @@ public class IdeaSyncCachesTest {
           Assert.fail(e.getMessage());
         }
       });
-      return null;
     });
   }
 }

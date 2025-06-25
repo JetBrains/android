@@ -26,10 +26,9 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.utils.FileUtils;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -96,14 +95,13 @@ public class BuildFileProcessorTest {
 
     File settingsFile = new File(projectRule.getProject().getBasePath(), FN_SETTINGS_GRADLE);
     VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(settingsFile);
-    ApplicationManager.getApplication().runWriteAction((Computable<Void>)() -> {
+    WriteAction.runAndWait(() -> {
       try {
         VfsUtil.saveText(virtualFile, VfsUtilCore.loadText(virtualFile) + "\ninclude 'notamodule'");
       }
       catch (IOException e) {
         Assert.fail(e.getMessage());
       }
-      return null;
     });
     BuildFileProcessor.processRecursively(
       projectRule.getProject(),
