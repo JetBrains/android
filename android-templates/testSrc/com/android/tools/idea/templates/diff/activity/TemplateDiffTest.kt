@@ -17,6 +17,7 @@ package com.android.tools.idea.templates.diff.activity
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION
 import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE
 import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_XR_TEMPLATE
 import com.android.tools.idea.npw.model.RenderTemplateModel
@@ -65,6 +66,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
   @get:Rule val xrTemplateFlagRule = FlagRule(NPW_ENABLE_XR_TEMPLATE, true)
   @get:Rule val navigationFlagRule = FlagRule(NPW_ENABLE_NAVIGATION_UI_TEMPLATE, true)
+  @get:Rule val journeyFlagRule = FlagRule(JOURNEYS_WITH_GEMINI_EXECUTION, true)
 
   companion object {
     /** Keeps track of whether the previous parameterized test failed */
