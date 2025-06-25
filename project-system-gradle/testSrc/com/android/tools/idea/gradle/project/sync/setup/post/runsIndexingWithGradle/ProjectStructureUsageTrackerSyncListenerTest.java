@@ -48,7 +48,6 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -89,11 +88,6 @@ public class ProjectStructureUsageTrackerSyncListenerTest {
   }
 
   @Test
-  @Ignore("""
-    TODO(b/384022658): The required hardware field is populated using the manifest index, but for
-    now with phased sync this is using inaccurate modification tracker/caching mechanism, causing
-    frequent flakes in tests.
-    """)
   public void testProductStructureUsageWithWearHardware() {
     trackGradleProject(AndroidCoreTestProject.RUN_CONFIG_WATCHFACE, project -> {
       List<LoggedUsage> usages =
@@ -124,8 +118,7 @@ public class ProjectStructureUsageTrackerSyncListenerTest {
                                .setFlavorCount(0)
                                .setFlavorDimension(0)
                                .setSigningConfigCount(1)
-                               .setRequiredHardware("android.hardware.type.watch")
-          )
+                               .setRequiredHardware("android.hardware.type.watch"))
           .setModuleCount(1)
           .setLibCount(0)
           .setAppId(AnonymizerUtil.anonymizeUtf8("from.gradle.debug"))
