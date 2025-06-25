@@ -21,6 +21,14 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
+import com.android.tools.leakcanarylib.data.GcRootType
+import com.android.tools.leakcanarylib.data.Leak
+import com.android.tools.leakcanarylib.data.LeakTrace
+import com.android.tools.leakcanarylib.data.LeakTraceNodeType
+import com.android.tools.leakcanarylib.data.LeakType
+import com.android.tools.leakcanarylib.data.LeakingStatus
+import com.android.tools.leakcanarylib.data.Node
+import com.android.tools.leakcanarylib.data.ReferencingField
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.LeakCanary
@@ -182,6 +190,149 @@ class LeakCanaryModelTest : WithFakeTimer {
     assertTrue(leakInfoEvents[0].isEnded)
     assertEquals(LeakCanary.LeakCanaryLogcatEnded.Status.SUCCESS, leakInfoEvents[0].leakCanaryLogcatStatus.logcatEnded.status)
     assertFalse(stage.isRecording.value)
+  }
+
+  // A leaking node is found in the leak trace.
+  @Test
+  fun `test getLeakClassName when leaking node is found`() {
+    val previousNode = createTestNode(
+      className = "MainActivity",
+      leakingStatus = LeakingStatus.NO,
+      referenceName = "mLeakyView",
+      isLikelyCause = true
+    )
+    val leakingNode = createTestNode(
+      className = "LeakyView",
+      leakingStatus = LeakingStatus.YES
+    )
+    val leakTrace = LeakTrace(GcRootType.NATIVE_STACK, nodes = listOf(previousNode, leakingNode))
+    val leak = Leak(
+      type = LeakType.APPLICATION_LEAKS,
+      retainedByteSize = 1024,
+      signature = "leak_signature_123",
+      leakTraceCount = 1,
+      displayedLeakTrace = listOf(leakTrace)
+    )
+    val result = LeakCanaryModel.getLeakClassName(leak)
+    assertEquals("MainActivity.mLeakyView", result)
+  }
+
+  // Leaking node is UNKNOWN and it's the last node
+  @Test
+  fun `test getLeakClassName when leaking node is UNKNOWN and it is the last node`() {
+    val node1 = createTestNode(
+      className = "IntermediateClass",
+      leakingStatus = LeakingStatus.NO,
+      referenceName = "mReference"
+    )
+    val unknownNode = createTestNode(
+      className = "UnknownLeaker",
+      leakingStatus = LeakingStatus.UNKNOWN,
+      referenceName = "ReferenceName_UNKNOWN"
+    )
+    val leakTrace = LeakTrace(GcRootType.NATIVE_STACK, nodes = listOf(node1, unknownNode))
+    val leak = Leak(
+      type = LeakType.APPLICATION_LEAKS,
+      retainedByteSize = 700,
+      signature = "leak_signature_789",
+      leakTraceCount = 1,
+      displayedLeakTrace = listOf(leakTrace)
+    )
+    val result = LeakCanaryModel.getLeakClassName(leak)
+    assertEquals("IntermediateClass.mReference", result)
+  }
+
+  // The input leak object is null.
+  @Test
+  fun `test getLeakClassName when leak is null`() {
+    val leak: Leak? = null
+    val result = LeakCanaryModel.getLeakClassName(leak)
+    assertEquals("", result)
+  }
+
+  // Leaking node is UNKNOWN and there's a previous NO node
+  @Test
+  fun `test getLeakClassName when leaking node is UNKNOWN and there is a previous NO node`() {
+    val noNode = createTestNode(
+      className = "noNode",
+      leakingStatus = LeakingStatus.NO,
+      referenceName = "someField"
+    )
+    val yesNode = createTestNode(
+      className = "yesNode",
+      leakingStatus = LeakingStatus.YES
+    )
+    val unknownNode = createTestNode(
+      className = "UncertainLeaker",
+      leakingStatus = LeakingStatus.UNKNOWN,
+      referenceName = "ReferenceName_UNKNOWN"
+    )
+
+    val leakTrace = LeakTrace(GcRootType.NATIVE_STACK, nodes = listOf(noNode, yesNode, unknownNode))
+    val leak = Leak(
+      type = LeakType.LIBRARY_LEAKS,
+      retainedByteSize = 900,
+      signature = "leak_signature_abc",
+      leakTraceCount = 1,
+      displayedLeakTrace = listOf(leakTrace)
+    )
+    val result = LeakCanaryModel.getLeakClassName(leak)
+    assertEquals("noNode.someField", result)
+  }
+
+  // Leaking node is UNKNOWN and there's a YES node after UNKNOWN node
+  @Test
+  fun `test getLeakClassName when leaking node is UNKNOWN and there is a YES node after UNKNOWN`() {
+    val previousNoNode = createTestNode(
+      className = "AnotherPrevious",
+      leakingStatus = LeakingStatus.NO,
+      referenceName = "someField"
+    )
+    val unknownNode = createTestNode(
+      className = "UncertainLeaker",
+      leakingStatus = LeakingStatus.UNKNOWN,
+      referenceName = "ReferenceName_UNKNOWN"
+    )
+    val nextNode = createTestNode(
+      className = "NextNodeInTrace",
+      leakingStatus = LeakingStatus.YES
+    )
+    val leakTrace = LeakTrace(GcRootType.NATIVE_STACK, nodes = listOf(previousNoNode, unknownNode, nextNode))
+    val leak = Leak(
+      type = LeakType.LIBRARY_LEAKS,
+      retainedByteSize = 900,
+      signature = "leak_signature_abc",
+      leakTraceCount = 1,
+      displayedLeakTrace = listOf(leakTrace)
+    )
+    val result = LeakCanaryModel.getLeakClassName(leak)
+    assertEquals("AnotherPrevious.someField", result)
+  }
+
+  private fun createTestNode(
+    className: String,
+    leakingStatus: LeakingStatus = LeakingStatus.UNKNOWN,
+    referenceName: String? = null,
+    isLikelyCause: Boolean = false
+  ): Node {
+    val referencingField = referenceName?.let {
+      ReferencingField(
+        className = className,
+        type = ReferencingField.ReferencingFieldType.STATIC_FIELD,
+        isLikelyCause = isLikelyCause,
+        referenceName = it
+      )
+    }
+    return Node(
+      nodeType = LeakTraceNodeType.INSTANCE,
+      className = className,
+      leakingStatus = leakingStatus,
+      leakingStatusReason = "",
+      retainedByteSize = 2048,
+      retainedObjectCount = 2024,
+      notes = emptyList(),
+      referencingField = referencingField
+    )
   }
 }
 

@@ -264,15 +264,21 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers): ModelSta
      * @return The extracted class name or an empty string if no leak or class name is found.
      */
     fun getLeakClassName(leak: Leak?): String {
-      val className = leak?.displayedLeakTrace?.firstNotNullOfOrNull { leakTrace ->
-        leakTrace.nodes.firstOrNull { node -> node.leakingStatus == LeakingStatus.YES }?.className
-      } ?: return ""
-      val classPathSplit = className.split(".")
-      return if (classPathSplit.size >= 2) {
-        "${classPathSplit[classPathSplit.size - 2]}.${classPathSplit.last()}"
-      } else {
-        className
+      if(leak?.displayedLeakTrace == null || leak.displayedLeakTrace.isEmpty()){
+        return ""
       }
+      val leakTrace = leak.displayedLeakTrace.first()
+      val suspectNodeList = leakTrace.nodes.filterIndexed { index, node ->
+        when(node.leakingStatus) {
+          LeakingStatus.UNKNOWN -> true
+          LeakingStatus.NO -> index == leakTrace.nodes.lastIndex || leakTrace.nodes[index + 1].leakingStatus != LeakingStatus.NO
+          else ->false
+        }
+      }
+      return suspectNodeList.firstOrNull()?.let { node ->
+        val referenceField = node.referencingField
+        "${referenceField?.className ?: ""}.${referenceField?.referenceName ?: ""}"
+      } ?: leakTrace.nodes.last().className
     }
   }
 

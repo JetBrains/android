@@ -248,7 +248,7 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(1) // Check whether 1 leak detected as per log file
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("memoryleaksample.LeakingActivity5") // Check if leak report contains the activity class name.
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("GlobalLeakingObject.leakedActivity5") // Check if leak report contains the activity class name.
     stage.stopListening()
 
     val infoEvents = LeakCanaryModel.getLeakCanaryLogcatInfo(profilers.client, profilers.session,
@@ -271,11 +271,11 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(5) // Check whether 5 leaks detected as per log file
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("memoryleaksample.LeakingFragment1") // Check if leak report contains the fragment class name.
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[1])).isEqualTo("memoryleaksample.LeakingFragment2")
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[2])).isEqualTo("memoryleaksample.LeakingFragment3")
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[3])).isEqualTo("memoryleaksample.LeakingFragment4")
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[4])).isEqualTo("memoryleaksample.LeakingFragment5")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("GlobalLeakingObject.leakedFragment1") // Check if leak report contains the fragment class name.
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[1])).isEqualTo("GlobalLeakingObject.leakedFragment2")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[2])).isEqualTo("GlobalLeakingObject.leakedFragment3")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[3])).isEqualTo("GlobalLeakingObject.leakedFragment4")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[4])).isEqualTo("GlobalLeakingObject.leakedFragment5")
     stage.stopListening()
 
     val infoEvents = LeakCanaryModel.getLeakCanaryLogcatInfo(profilers.client, profilers.session,
@@ -298,11 +298,11 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(5) // Check whether 5 leaks detected as per log file
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("view.View") // Check if leak report contains the view class name.
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[1])).isEqualTo("view.View")
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[2])).isEqualTo("view.View")
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[3])).isEqualTo("view.View")
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[4])).isEqualTo("view.View")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("GlobalLeakingObject.leakedFragmentView1") // Check if leak report contains the view class name.
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[1])).isEqualTo("GlobalLeakingObject.leakedFragmentView2")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[2])).isEqualTo("GlobalLeakingObject.leakedFragmentView3")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[3])).isEqualTo("GlobalLeakingObject.leakedFragmentView4")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[4])).isEqualTo("GlobalLeakingObject.leakedFragmentView5")
     stage.stopListening()
 
     val infoEvents = LeakCanaryModel.getLeakCanaryLogcatInfo(profilers.client, profilers.session,
@@ -325,11 +325,11 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(5) // Check whether 5 leaks detected as per log file
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("memoryleaksample.LeakingViewModel1") // Check if leak report contains the viewModel class name.
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[1])).isEqualTo("memoryleaksample.LeakingViewModel2")
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[2])).isEqualTo("memoryleaksample.LeakingViewModel3")
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[3])).isEqualTo("memoryleaksample.LeakingViewModel4")
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[4])).isEqualTo("memoryleaksample.LeakingViewModel5")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("GlobalLeakingObject.leakedViewModel1") // Check if leak report contains the viewModel class name.
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[1])).isEqualTo("GlobalLeakingObject.leakedViewModel2")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[2])).isEqualTo("GlobalLeakingObject.leakedViewModel3")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[3])).isEqualTo("GlobalLeakingObject.leakedViewModel4")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[4])).isEqualTo("GlobalLeakingObject.leakedViewModel5")
     stage.stopListening()
 
     val infoEvents = LeakCanaryModel.getLeakCanaryLogcatInfo(profilers.client, profilers.session,
@@ -352,11 +352,11 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for listener to receive events
     assertThat(stage.leaks.value).isNotEmpty() // Check if at least one leak is detected
     assertThat(stage.leaks.value.size).isEqualTo(5) // Check whether 5 leaks detected as per log file
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("memoryleaksample.LeakingService1") // Check if leak report contains the service class name.
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[1])).isEqualTo("memoryleaksample.LeakingService2")
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[2])).isEqualTo("memoryleaksample.LeakingService3")
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[3])).isEqualTo("memoryleaksample.LeakingService4")
-    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[4])).isEqualTo("memoryleaksample.LeakingService5")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[0])).isEqualTo("GlobalLeakingObject.leakedService1") // Check if leak report contains the service class name.
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[1])).isEqualTo("GlobalLeakingObject.leakedService2")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[2])).isEqualTo("GlobalLeakingObject.leakedService3")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[3])).isEqualTo("GlobalLeakingObject.leakedService4")
+    assertThat(LeakCanaryModel.getLeakClassName(stage.leaks.value[4])).isEqualTo("GlobalLeakingObject.leakedService5")
     stage.stopListening()
 
     val infoEvents = LeakCanaryModel.getLeakCanaryLogcatInfo(profilers.client, profilers.session,
