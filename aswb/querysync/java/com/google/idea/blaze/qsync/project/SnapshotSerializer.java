@@ -18,6 +18,7 @@ package com.google.idea.blaze.qsync.project;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.idea.blaze.common.TargetPattern;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange;
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange.Operation;
@@ -29,7 +30,7 @@ import java.nio.file.Path;
 /** Serializes a {@link PostQuerySyncData} instance to a proto message. */
 public class SnapshotSerializer {
 
-  public static final int PROTO_VERSION = 1;
+  public static final int PROTO_VERSION = 2;
 
   static final ImmutableBiMap<Operation, SnapshotProto.WorkspaceFileChange.VcsOperation> OP_MAP =
       ImmutableBiMap.of(
@@ -68,6 +69,8 @@ public class SnapshotSerializer {
     projectDefinition.projectExcludes().stream()
         .map(Path::toString)
         .forEach(proto::addExcludePaths);
+    proto.setDeriveTargetsFromDirectories(projectDefinition.deriveTargetsFromDirectories());
+    projectDefinition.targetPatterns().stream().map(TargetPattern::toString).forEach(proto::addTargetPatterns);
     projectDefinition.systemExcludes().stream()
         .map(Path::toString)
         .forEach(proto::addSystemExcludes);

@@ -16,6 +16,7 @@
 package com.google.idea.blaze.base.qsync;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
@@ -26,6 +27,8 @@ import com.google.idea.blaze.base.bazel.BuildSystemProvider;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.section.Glob;
+import com.google.idea.blaze.base.projectview.section.sections.AutomaticallyDeriveTargetsSection;
+import com.google.idea.blaze.base.projectview.section.sections.TargetSection;
 import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection;
 import com.google.idea.blaze.base.qsync.cc.CcProjectProtoTransform;
 import com.google.idea.blaze.base.scope.BlazeContext;
@@ -40,6 +43,7 @@ import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverImpl;
 import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider;
 import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler;
+import com.google.idea.blaze.common.TargetPattern;
 import com.google.idea.blaze.common.artifact.BuildArtifactCache;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.DependenciesProjectProtoUpdater;
@@ -64,6 +68,7 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Loads a project, either from saved state or from a {@code .blazeproject} file, yielding a {@link
@@ -337,9 +342,19 @@ public class ProjectLoaderImpl implements ProjectLoader {
       projectViewSet.listItems(TestSourceSection.KEY).stream()
         .map(Glob::toString)
         .collect(ImmutableSet.toImmutableSet());
+    // derive_targets_from_directories: true in query sync basically means
+    final var deriveTargetsFromDirectories = projectViewSet.getScalarValue(AutomaticallyDeriveTargetsSection.KEY).orElse(false);
+    final var targetPatterns =
+      projectViewSet
+        .listItems(TargetSection.KEY)
+        .stream()
+        .map(it -> TargetPattern.parse(it.toString()))
+        .collect(toImmutableList());
     return ProjectDefinition.builder()
       .setProjectIncludes(importRoots.rootPaths())
       .setProjectExcludes(importRoots.excludePaths())
+      .setDeriveTargetsFromDirectories(deriveTargetsFromDirectories)
+      .setTargetPatterns(targetPatterns)
       .setLanguageClasses(LanguageClasses.toQuerySync(workspaceLanguageSettings.getActiveLanguages()))
       .setTestSources(testSourceGlobs)
       .setSystemExcludes(ImmutableSet.<Path>builder()

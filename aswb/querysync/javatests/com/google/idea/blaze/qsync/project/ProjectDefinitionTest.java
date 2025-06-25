@@ -18,6 +18,7 @@ package com.google.idea.blaze.qsync.project;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.nio.file.Path;
 import org.junit.Test;
@@ -33,6 +34,7 @@ public class ProjectDefinitionTest {
         ProjectDefinition.builder()
             .setProjectIncludes(ImmutableSet.of(Path.of("contentroot1"), Path.of("contentroot2")))
             .setProjectExcludes(ImmutableSet.of())
+          .setTargetPatterns(ImmutableList.of())
             .setSystemExcludes(ImmutableSet.of())
             .setTestSources(ImmutableSet.of())
             .setLanguageClasses(ImmutableSet.of())
@@ -49,6 +51,7 @@ public class ProjectDefinitionTest {
         ProjectDefinition.builder()
             .setProjectIncludes(ImmutableSet.of(Path.of("contentroot1"), Path.of("contentroot2")))
             .setProjectExcludes(ImmutableSet.of())
+            .setTargetPatterns(ImmutableList.of())
             .setSystemExcludes(ImmutableSet.of())
             .setTestSources(ImmutableSet.of())
             .setLanguageClasses(ImmutableSet.of())
@@ -63,6 +66,7 @@ public class ProjectDefinitionTest {
         ProjectDefinition.builder()
         .setProjectIncludes(ImmutableSet.of(Path.of("contentroot1"), Path.of("contentroot2")))
         .setProjectExcludes(ImmutableSet.of(Path.of("contentroot1/excluded")))
+        .setTargetPatterns(ImmutableList.of())
         .setSystemExcludes(ImmutableSet.of())
         .setTestSources(ImmutableSet.of())
         .setLanguageClasses(ImmutableSet.of())

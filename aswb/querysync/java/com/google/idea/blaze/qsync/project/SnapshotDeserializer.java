@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync.project;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.collect.ImmutableBiMap;
@@ -22,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.PrintOutput;
+import com.google.idea.blaze.common.TargetPattern;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange;
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange.Operation;
@@ -70,16 +72,13 @@ public class SnapshotDeserializer {
 
   private void visitProjectDefinition(SnapshotProto.ProjectDefinition proto) {
     snapshot.setProjectDefinition(
-        ProjectDefinition.builder()
-            .setProjectIncludes(
-                proto.getIncludePathsList().stream().map(Path::of).collect(toImmutableSet()))
-            .setProjectExcludes(
-                proto.getExcludePathsList().stream().map(Path::of).collect(toImmutableSet()))
-            .setLanguageClasses(QuerySyncLanguage.fromProtoList(proto.getLanguageClassesList()))
-            .setTestSources(ImmutableSet.copyOf(proto.getTestSourcesList()))
-            .setSystemExcludes(
-                proto.getSystemExcludesList().stream().map(Path::of).collect(toImmutableSet()))
-            .build());
+      ProjectDefinition.builder().setProjectIncludes(proto.getIncludePathsList().stream().map(Path::of).collect(toImmutableSet()))
+        .setProjectExcludes(proto.getExcludePathsList().stream().map(Path::of).collect(toImmutableSet()))
+        .setDeriveTargetsFromDirectories(proto.getDeriveTargetsFromDirectories())
+        .setTargetPatterns(proto.getTargetPatternsList().stream().map(TargetPattern::parse).collect(toImmutableList()))
+        .setLanguageClasses(QuerySyncLanguage.fromProtoList(proto.getLanguageClassesList()))
+        .setTestSources(ImmutableSet.copyOf(proto.getTestSourcesList()))
+        .setSystemExcludes(proto.getSystemExcludesList().stream().map(Path::of).collect(toImmutableSet())).build());
   }
 
   private void visitVcsState(SnapshotProto.VcsState proto) {

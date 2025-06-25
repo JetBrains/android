@@ -19,6 +19,7 @@ import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorS
 import static com.google.idea.blaze.qsync.QuerySyncTestUtils.getQuerySummary;
 
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
@@ -51,8 +52,9 @@ public class TestDataSyncRunner {
   public QuerySyncProjectSnapshot sync(TestData testProject) throws IOException, BuildException {
     ProjectDefinition projectDefinition =
         ProjectDefinition.builder()
-        .setProjectIncludes(ImmutableSet.copyOf(testProject.getRelativeSourcePaths()))
+          .setProjectIncludes(ImmutableSet.copyOf(testProject.getRelativeSourcePaths()))
           .setProjectExcludes(ImmutableSet.of())
+          .setTargetPatterns(ImmutableList.of())
           .setSystemExcludes(ImmutableSet.of())
           .setTestSources(ImmutableSet.of())
           .setLanguageClasses(ImmutableSet.of())

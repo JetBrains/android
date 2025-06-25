@@ -20,6 +20,7 @@ import static com.google.idea.blaze.qsync.QuerySyncTestUtils.EMPTY_PACKAGE_READE
 import static com.google.idea.blaze.qsync.QuerySyncTestUtils.NOOP_CONTEXT;
 
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.GraphToProjectConverter;
@@ -51,6 +52,7 @@ public class ProjectProtos {
             ProjectDefinition.builder()
                 .setProjectIncludes(ImmutableSet.of(workspaceImportDirectory))
                 .setProjectExcludes(ImmutableSet.of())
+                .setTargetPatterns(ImmutableList.of())
                 .setSystemExcludes(ImmutableSet.of())
                 .setTestSources(ImmutableSet.of())
                 .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))

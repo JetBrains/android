@@ -21,8 +21,10 @@ import static com.google.idea.blaze.common.vcs.WorkspaceFileChange.Operation.DEL
 import static com.google.idea.blaze.common.vcs.WorkspaceFileChange.Operation.MODIFY;
 import static com.google.idea.blaze.qsync.QuerySyncTestUtils.NOOP_CONTEXT;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.Truth8;
+import com.google.idea.blaze.common.TargetPattern;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange;
 import com.google.idea.blaze.qsync.query.QuerySummaryTestUtil;
@@ -48,6 +50,7 @@ public class SnapshotSerializationTest {
                     .builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("project/path")))
                     .setProjectExcludes(ImmutableSet.of(Path.of("project/path/excluded")))
+                    .setTargetPatterns(ImmutableList.of())
                     .setSystemExcludes(ImmutableSet.of(Path.of(".aswb")))
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
                     .setTestSources(ImmutableSet.of("javatests/*"))
@@ -107,6 +110,7 @@ public class SnapshotSerializationTest {
                     .builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("project/path")))
                     .setProjectExcludes(ImmutableSet.of(Path.of("project/path/excluded")))
+                    .setTargetPatterns(ImmutableList.of(TargetPattern.parse("//some/pattern:all"), TargetPattern.parse("-//some/negative/pattern")))
                     .setSystemExcludes(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
                     .setTestSources(ImmutableSet.of("javatests/*"))
@@ -133,6 +137,7 @@ public class SnapshotSerializationTest {
                     .builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("project/path")))
                     .setProjectExcludes(ImmutableSet.of(Path.of("project/path/excluded")))
+                    .setTargetPatterns(ImmutableList.of())
                     .setSystemExcludes(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
                     .setTestSources(ImmutableSet.of("javatests/*"))

@@ -18,11 +18,13 @@ package com.google.idea.blaze.qsync.project;
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.PrintOutput;
+import com.google.idea.blaze.common.TargetPattern;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,6 +43,8 @@ public abstract class ProjectDefinition {
       new AutoValue_ProjectDefinition.Builder()
           .setProjectIncludes(ImmutableSet.of())
           .setProjectExcludes(ImmutableSet.of())
+          .setDeriveTargetsFromDirectories(false)
+          .setTargetPatterns(ImmutableList.of())
           .setLanguageClasses(ImmutableSet.of())
           .setTestSources(ImmutableSet.of())
           .setSystemExcludes(ImmutableSet.of())
@@ -59,6 +63,18 @@ public abstract class ProjectDefinition {
    */
   public abstract ImmutableSet<Path> projectExcludes();
 
+  /**
+   * If set to true, the main scope of the project includes all targets within the whole-project scope, unless modified by `targets:`
+   * exclusions.
+   */
+  public abstract boolean deriveTargetsFromDirectories();
+
+  /**
+   * Target patterns in the main project scope, where the main project scope is a scope to which many query sync operations apply
+   * by default. The empty list means all targets are included.
+   */
+  public abstract ImmutableList<TargetPattern> targetPatterns();
+
   public abstract ImmutableSet<QuerySyncLanguage> languageClasses();
 
   /**
@@ -74,7 +90,7 @@ public abstract class ProjectDefinition {
   public abstract ImmutableSet<Path> systemExcludes();
 
   public static Builder builder() {
-    return new AutoValue_ProjectDefinition.Builder();
+    return new AutoValue_ProjectDefinition.Builder().setDeriveTargetsFromDirectories(false);
   }
 
   public abstract Builder toBuilder();
@@ -85,6 +101,10 @@ public abstract class ProjectDefinition {
     public abstract Builder setProjectIncludes(ImmutableSet<Path> projectIncludes);
 
     public abstract Builder setProjectExcludes(ImmutableSet<Path> projectExcludes);
+
+    public abstract Builder setDeriveTargetsFromDirectories(boolean value);
+
+    public abstract Builder setTargetPatterns(ImmutableList<TargetPattern> value);
 
     public abstract Builder setLanguageClasses(ImmutableSet<QuerySyncLanguage> languageClasses);
 

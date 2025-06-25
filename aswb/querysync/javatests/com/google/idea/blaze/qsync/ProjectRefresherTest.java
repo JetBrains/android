@@ -20,6 +20,7 @@ import static com.google.idea.blaze.qsync.QuerySyncTestUtils.differForFiles;
 import static com.google.idea.blaze.qsync.QuerySyncTestUtils.noFilesChangedDiffer;
 
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange;
@@ -187,6 +188,7 @@ public class ProjectRefresherTest {
                 ProjectDefinition.builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("package")))
                     .setProjectExcludes(ImmutableSet.of())
+                    .setTargetPatterns(ImmutableList.of())
                     .setSystemExcludes(ImmutableSet.of())
                     .setTestSources(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
@@ -223,6 +225,7 @@ public class ProjectRefresherTest {
                 ProjectDefinition.builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("package")))
                     .setProjectExcludes(ImmutableSet.of())
+                    .setTargetPatterns(ImmutableList.of())
                     .setSystemExcludes(ImmutableSet.of())
                     .setTestSources(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
@@ -261,6 +264,7 @@ public class ProjectRefresherTest {
                 ProjectDefinition.builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("package")))
                     .setProjectExcludes(ImmutableSet.of())
+                    .setTargetPatterns(ImmutableList.of())
                     .setSystemExcludes(ImmutableSet.of())
                     .setTestSources(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
@@ -295,6 +299,7 @@ public class ProjectRefresherTest {
                 ProjectDefinition.builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("package")))
                     .setProjectExcludes(ImmutableSet.of())
+                    .setTargetPatterns(ImmutableList.of())
                     .setSystemExcludes(ImmutableSet.of())
                     .setTestSources(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
@@ -331,6 +336,7 @@ public class ProjectRefresherTest {
                 ProjectDefinition.builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("package")))
                     .setProjectExcludes(ImmutableSet.of())
+                    .setTargetPatterns(ImmutableList.of())
                     .setSystemExcludes(ImmutableSet.of())
                     .setTestSources(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
@@ -367,6 +373,7 @@ public class ProjectRefresherTest {
                 ProjectDefinition.builder()
                     .setProjectIncludes(ImmutableSet.of(Path.of("package")))
                     .setProjectExcludes(ImmutableSet.of())
+                    .setTargetPatterns(ImmutableList.of())
                     .setSystemExcludes(ImmutableSet.of())
                     .setTestSources(ImmutableSet.of())
                     .setLanguageClasses(ImmutableSet.of(QuerySyncLanguage.JVM))
