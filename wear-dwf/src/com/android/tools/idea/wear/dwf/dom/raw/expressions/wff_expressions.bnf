@@ -1,0 +1,91 @@
+/*
+ * Copyright (C) 2025 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+{
+  parserClass='com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionParser'
+  parserUtilClass='com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionParserUtil'
+
+  extends='com.intellij.extapi.psi.ASTWrapperPsiElement'
+
+  psiClassPrefix='WFFExpression'
+  psiImplClassSuffix='Impl'
+  psiPackage='com.android.tools.idea.wear.dwf.dom.raw.expressions'
+  psiImplPackage='com.android.tools.idea.wear.dwf.dom.raw.expressions.impl'
+  elementTypeHolderClass='com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes'
+  elementTypeClass='com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionElementType'
+  tokenTypeClass='com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTokenType'
+
+  classHeader='generatedFilesHeader.txt'
+
+  extends(".*expr")=expr
+  tokens = [
+    SPACE='regexp:\s+'
+    NUMBER='regexp:\d+(\.\d*)?'
+    STRING="regexp:('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")"
+    ID='regexp:\p{Alpha}\w*'
+    OPERATORS='regexp:\+|-|%|\*|==|=|>=|<=|>|<|\||\|\||&&|&|\~|\!|\!=|/'
+    OPEN_PAREN='('
+    CLOSE_PAREN=')'
+    OPEN_BRACKET='['
+    CLOSE_BRACKET=']'
+    COMMA = ','
+    DOT = '.'
+    NULL = 'null'
+  ]
+}
+
+root ::= element *
+private element ::= expr {recoverWhile=element_recover}
+private element_recover ::= !(OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | NUMBER | STRING)
+
+expr ::= add_group
+  | conditional_group
+  | boolean_group
+  | mul_group
+  | unary_group
+  | call_expr
+  | primary_group
+  {extraRoot=true}
+
+private conditional_group ::= conditional_expr | elvis_expr
+private boolean_group ::= or_expr | and_expr
+private unary_group ::= unary_plus_expr | unary_min_expr | unary_not_expr | bit_compl_expr
+private mul_group ::= mul_expr | div_expr | mod_expr
+private add_group ::= plus_expr | minus_expr
+private primary_group ::= literal_expr | paren_expr
+
+function_id ::= ID &OPEN_PAREN
+call_expr ::= function_id arg_list
+arg_list ::= OPEN_PAREN [ !CLOSE_PAREN expr  (',' expr) * ] CLOSE_PAREN
+literal_expr ::= NUMBER | STRING | ID | data_source | configuration | NULL
+unary_min_expr ::= '-' expr
+unary_plus_expr ::= '+' expr
+unary_not_expr ::= '!' expr
+or_expr ::= expr ('||' | '|') expr
+and_expr ::= expr ('&&' | '&') expr
+bit_compl_expr ::= '~' expr
+conditional_op ::= '<=' | '>=' | '==' | '!=' | '&&' | '||' | '<' | '>'
+conditional_expr ::= expr conditional_op expr
+div_expr ::= expr '/' expr
+mul_expr ::= expr '*' expr
+minus_expr ::= expr '-' expr
+plus_expr ::= expr '+' expr
+mod_expr ::= expr '%' expr
+paren_expr ::= OPEN_PAREN expr CLOSE_PAREN
+elvis_expr ::= conditional_expr '?' expr ':' expr
+
+data_source ::= OPEN_BRACKET ID CLOSE_BRACKET
+configuration_id ::= ID DOT ID
+configuration ::= OPEN_BRACKET configuration_id CLOSE_BRACKET

@@ -3,7 +3,11 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.wear-dwf",
-    srcs = ["src"],
+    # do not sort: must match IML order
+    srcs = [
+        "src",
+        "gen",
+    ],
     iml_files = ["intellij.android.wear-dwf.iml"],
     resources = ["resources"],
     visibility = ["//visibility:public"],
@@ -54,6 +58,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/android-lang:intellij.android.lang.tests",
     ],
     test_friends = ["//tools/adt/idea/wear-dwf:intellij.android.wear-dwf"],
     test_resources = ["testData"],

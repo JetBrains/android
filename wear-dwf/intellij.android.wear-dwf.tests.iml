@@ -31,6 +31,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.lang.tests" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.wear-dwf" />
 </module>
