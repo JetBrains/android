@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
+import com.android.tools.idea.gservices.DevServiceDeprecationInfoBuilder
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -49,7 +50,7 @@ import kotlinx.coroutines.launch
 class InsightDeprecatedPanel(
   scope: CoroutineScope,
   project: Project,
-  private val data: DevServicesDeprecationData,
+  data: DevServicesDeprecationData,
   visibilityFlow: Flow<Boolean>,
   private val tracker: AppInsightsTracker,
 ) : JPanel(GridBagLayout()) {
@@ -72,7 +73,7 @@ class InsightDeprecatedPanel(
 
     scope.launch {
       visibilityFlow.takeTillFirst { it }.collect()
-      logEvent(data.status, userNotified = true)
+      logEvent(userNotified = true)
     }
   }
 
@@ -136,7 +137,7 @@ class InsightDeprecatedPanel(
       val button =
         JButton("Update Android Studio").apply {
           addActionListener {
-            logEvent(data.status, userClickedUpdate = true)
+            logEvent(userClickedUpdate = true)
             UpdateChecker.updateAndShowResult(project)
           }
         }
@@ -149,7 +150,7 @@ class InsightDeprecatedPanel(
         HyperlinkLabel().apply {
           setHyperlinkText("More info")
           addHyperlinkListener {
-            logEvent(data.status, userClickedMoreInfo = true)
+            logEvent(userClickedMoreInfo = true)
             BrowserUtil.browse(url)
           }
           icon = AllIcons.General.ContextHelp
@@ -158,17 +159,19 @@ class InsightDeprecatedPanel(
     }
 
   private fun logEvent(
-    deprecationStatus: DevServicesDeprecationStatus,
     userNotified: Boolean? = null,
     userClickedMoreInfo: Boolean? = null,
     userClickedUpdate: Boolean? = null,
   ) =
     tracker.logServiceDeprecated(
-      deprecationStatus,
       AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel.INSIGHTS_PANEL,
       DevServiceDeprecationInfo.DeliveryType.PANEL,
-      userNotified,
-      userClickedMoreInfo,
-      userClickedUpdate,
+      DevServiceDeprecationInfoBuilder(
+        DevServicesDeprecationStatus.UNSUPPORTED,
+        DevServiceDeprecationInfo.DeliveryType.PANEL,
+        userNotified,
+        userClickedMoreInfo,
+        userClickedUpdate,
+      ),
     )
 }

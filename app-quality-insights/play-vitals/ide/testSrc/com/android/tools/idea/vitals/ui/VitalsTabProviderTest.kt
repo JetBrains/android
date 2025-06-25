@@ -18,6 +18,7 @@ package com.android.tools.idea.vitals.ui
 import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gservices.DeprecationBanner
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
@@ -25,7 +26,6 @@ import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.StubAppInsightsProjectLevelController
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
-import com.android.tools.idea.insights.ui.ServiceDeprecatedBanner
 import com.android.tools.idea.insights.ui.ServiceUnsupportedPanel
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
@@ -200,7 +200,7 @@ class VitalsTabProviderTest {
     flow.take(3).collectIndexed { idx, comp ->
       when (idx) {
         0,
-        1 -> assertThat(comp).isInstanceOf(ServiceDeprecatedBanner::class.java)
+        1 -> assertThat(comp).isInstanceOf(DeprecationBanner::class.java)
         2 -> assertThat(comp.toString()).contains("placeholderContent")
       }
     }

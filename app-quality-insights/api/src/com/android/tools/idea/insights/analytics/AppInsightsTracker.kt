@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.analytics
 
-import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.ai.AiInsight
@@ -92,13 +91,9 @@ interface AppInsightsTracker {
   )
 
   fun logServiceDeprecated(
-    deprecationStatus: DevServicesDeprecationStatus,
     panel: AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel,
     deliveryType: DevServiceDeprecationInfo.DeliveryType,
-    userNotified: Boolean? = null,
-    userClickedMoreInfo: Boolean? = null,
-    userClickedUpdate: Boolean? = null,
-    userClickedDismiss: Boolean? = null,
+    deprecationInfo: DevServiceDeprecationInfo,
   )
 
   enum class ProductType {
