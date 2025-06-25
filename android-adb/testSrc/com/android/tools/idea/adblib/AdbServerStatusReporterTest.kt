@@ -18,6 +18,7 @@ package com.android.tools.idea.adblib
 
 import com.android.adblib.ServerStatus
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.test.testutils.EnsureAndroidProjectRule
 import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.intellij.testFramework.ProjectRule
 import java.util.concurrent.CountDownLatch
@@ -32,6 +33,7 @@ class AdbServerStatusReporterTest {
   @get:Rule val projectRule = ProjectRule()
   @get:Rule val adbRule = FakeAdbRule()
   @get:Rule val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
+  @get:Rule val ensureAndroidProjectRule = EnsureAndroidProjectRule()
   private lateinit var reporter: AdbServerStatusReporter
 
   private var statusCallbackCalled = false
