@@ -189,10 +189,9 @@ class GeminiAiInsightClient(
         }
       }
 
-    val response =
-      GeminiPluginApi.getInstance().generate(project, prompt).toList().joinToString("\n")
+    val response = GeminiPluginApi.getInstance().generate(project, prompt).toList().joinToString("")
 
-    val fileNames = response.split(",").map { it.trim() }
+    val fileNames = response.cleanNewLineAndSpace().split(",").map { it.trim() }
     logger.debug("Gemini wants to see $fileNames")
 
     val contextData = codeContextResolver.getSource(fileNames)
@@ -202,6 +201,8 @@ class GeminiAiInsightClient(
 
     return contextData
   }
+
+  private fun String.cleanNewLineAndSpace() = replace("\n", "").replace(" ", "")
 
   private fun getPromptWithContext() =
     if (StudioFlags.SUGGEST_A_FIX.get()) {

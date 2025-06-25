@@ -55,6 +55,32 @@ class GeminiAiInsightClientTest {
 
   private var expectedPromptText: String = ""
 
+  private val codeContext =
+    listOf(
+      CodeContext(
+        "a/b/c/HelloWorld1.kt",
+        """
+      |package a.b.c
+      |
+      |fun helloWorld() {
+      |  println("Hello World")
+      |}
+      """
+          .trimMargin(),
+      ),
+      CodeContext(
+        "a/b/c/HelloWorld2.kt",
+        """
+      |package a.b.c
+      |
+      |fun helloWorld2() {
+      |  println("Hello World 2")
+      |}
+      """
+          .trimMargin(),
+      ),
+    )
+
   private lateinit var fakeGeminiPluginApi: FakeGeminiPluginApi
   private lateinit var codeContextResolver: CodeContextResolver
 
@@ -62,33 +88,7 @@ class GeminiAiInsightClientTest {
   fun setup() {
     fakeGeminiPluginApi = FakeGeminiPluginApi()
     fakeGeminiPluginApi.generateResponse = "a/b/c/HelloWorld1.kt,a/b/c/HelloWorld2.kt"
-    codeContextResolver =
-      FakeCodeContextResolver(
-        listOf(
-          CodeContext(
-            "a/b/c/HelloWorld1.kt",
-            """
-              |package a.b.c
-              |
-              |fun helloWorld() {
-              |  println("Hello World")
-              |}
-              """
-              .trimMargin(),
-          ),
-          CodeContext(
-            "a/b/c/HelloWorld2.kt",
-            """
-              |package a.b.c
-              |
-              |fun helloWorld2() {
-              |  println("Hello World 2")
-              |}
-              """
-              .trimMargin(),
-          ),
-        )
-      )
+    codeContextResolver = FakeCodeContextResolver(codeContext)
 
     ExtensionTestUtil.maskExtensions(
       GeminiPluginApi.EP_NAME,
@@ -531,4 +531,73 @@ class GeminiAiInsightClientTest {
       assertThat(insight.rawInsight).isEqualTo("a/b/c/HelloWorld1.kt,a/b/c/HelloWorld2.kt")
       assertThat(insight.insightSource).isEqualTo(InsightSource.STUDIO_BOT)
     }
+
+  @Test
+  fun `gemini insight response for filename is cleaned for newline and space`() = runBlocking {
+    StudioFlags.SUGGEST_A_FIX.override(true)
+    StudioFlags.GEMINI_ASSISTED_CONTEXT_FETCH.override(true)
+    codeContextResolver =
+      object : FakeCodeContextResolver(codeContext) {
+        override suspend fun getSource(fileNames: List<String>): CodeContextData {
+          val context =
+            fileNames.mapNotNull { filePath -> codeContext.firstOrNull { it.filePath == filePath } }
+          return CodeContextData(context)
+        }
+      }
+    val client =
+      GeminiAiInsightClient(projectRule.project, AppInsightsCacheImpl(), codeContextResolver)
+    fakeGeminiPluginApi.generateResponse = "a /b /c /Hello World1 .kt,\na/b/c/Hello World 2.kt\n"
+
+    val request =
+      GeminiCrashInsightRequest(
+        connection = CONNECTION1,
+        issueId = ISSUE1.id,
+        variantId = null,
+        deviceName = "DeviceName",
+        apiLevel = "ApiLevel",
+        event = ISSUE1.sampleEvent,
+      )
+
+    expectedPromptText =
+      """
+      |SYSTEM
+      |Respond in MarkDown format only. Do not format with HTML. Do not include duplicate heading tags.
+      |For headings, use H3 only. Initial explanation should not be under a heading.
+      |Begin with the explanation directly. Do not add fillers at the start of response.
+      |
+      |USER
+      |Explain this exception from my app running on DeviceName with Android version ApiLevel.
+      |Please reference the provided source code if they are helpful.
+      |If you think you can guess which single file the fix for this crash should be performed in,
+      |please include at the end of the response the extract phrase \"The fix should likely be in \${'$'}file,
+      |where file is the fully qualified path of the source file in which you think the fix should likely be performed.
+      |Exception:
+      |```
+      |retrofit2.HttpException: HTTP 401 
+      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.build(ResponseWrapper.kt:23)
+      |${'\t'}dev.firebase.appdistribution.api_service.ResponseWrapper${'$'}Companion.fetchOrError(ResponseWrapper.kt:31)
+      |```
+      |a/b/c/HelloWorld1.kt:
+      |```
+      |package a.b.c
+      |
+      |fun helloWorld() {
+      |  println("Hello World")
+      |}
+      |```
+      |a/b/c/HelloWorld2.kt:
+      |```
+      |package a.b.c
+      |
+      |fun helloWorld2() {
+      |  println("Hello World 2")
+      |}
+      |```"""
+        .trimMargin()
+
+    val insight = client.fetchCrashInsight(request)
+    assertThat(fakeGeminiPluginApi.receivedPrompt?.formatForTests()).isEqualTo(expectedPromptText)
+
+    assertThat(insight.rawInsight).isEqualTo("a /b /c /Hello World1 .kt,\na/b/c/Hello World 2.kt\n")
+  }
 }
