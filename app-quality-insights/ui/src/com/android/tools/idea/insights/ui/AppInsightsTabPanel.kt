@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.insights.ui
 
+import com.android.tools.idea.gservices.DeprecationBanner
+import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.awt.BorderLayout
 import java.awt.Component
@@ -26,8 +30,8 @@ private const val errorMsg = "Please call setComponent to add a component to thi
 
 /** A shell for containing the contents of an insights tab. */
 class AppInsightsTabPanel : JPanel(BorderLayout()), Disposable {
-  var deprecatedBanner: ServiceDeprecatedBanner? = null
-    private set(value) {
+  private var deprecatedBanner: DeprecationBanner? = null
+    set(value) {
       if (field != null) {
         remove(field)
       }
@@ -51,12 +55,13 @@ class AppInsightsTabPanel : JPanel(BorderLayout()), Disposable {
     super.add(component, BorderLayout.CENTER)
   }
 
-  fun addDeprecatedBanner(banner: ServiceDeprecatedBanner, closeAction: () -> Unit) {
-    banner.setCloseAction {
-      deprecatedBanner = null
-      closeAction()
-    }
-    deprecatedBanner = banner
+  fun addDeprecatedBanner(
+    project: Project,
+    deprecationData: DevServicesDeprecationData,
+    tracker: AppInsightsTracker,
+  ) {
+    deprecatedBanner =
+      AppInsightsDeprecationBanner(project, deprecationData, tracker) { deprecatedBanner = null }
   }
 
   override fun dispose() = Unit

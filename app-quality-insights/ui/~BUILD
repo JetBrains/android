@@ -5,12 +5,6 @@ iml_module(
     name = "intellij.android.app-quality-insights.ui",
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.ui.iml"],
-    # do not sort: must match IML order
-    test_deps = [
-        "@intellij//:test-framework",
-        "//tools/base/testutils:studio.android.sdktools.testutils",
-        "//tools/adt/idea/.idea/libraries:mockito",
-    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -30,6 +24,7 @@ iml_module(
         "@intellij//:intellij.platform.vcs.dvcs.impl",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as",
         "@intellij//:intellij.libraries.grpc",
+        "//tools/adt/idea/android:intellij.android.core",
     ],
 )
 
@@ -63,6 +58,8 @@ iml_module(
         "//tools/adt/idea/server-flags:intellij.android.server-flags",
         "@intellij//:intellij.platform.vcs.impl",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as",
+        "@intellij//:test-framework",
+        "//tools/adt/idea/android:intellij.android.core",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

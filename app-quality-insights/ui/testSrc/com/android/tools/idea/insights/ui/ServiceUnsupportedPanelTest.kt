@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.idea.gservices.DevServiceDeprecationInfoBuilder
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -50,51 +51,30 @@ class ServiceUnsupportedPanelTest {
   @Test
   fun `userNotified is logged only once`() {
     createPanel()
-    verify(tracker, never())
-      .logServiceDeprecated(
-        eq(DevServicesDeprecationStatus.UNSUPPORTED),
-        eq(TAB_PANEL),
-        eq(PANEL),
-        eq(null),
-        eq(null),
-        eq(null),
-        eq(null),
-      )
+    verify(tracker, never()).logServiceDeprecated(eq(TAB_PANEL), eq(PANEL), anyOrNull())
 
     activeTabFlow.value = true
     verify(tracker, timeout(5000).times(1))
       .logServiceDeprecated(
-        eq(DevServicesDeprecationStatus.UNSUPPORTED),
         eq(TAB_PANEL),
         eq(PANEL),
-        eq(true),
-        anyOrNull(),
-        anyOrNull(),
-        eq(null),
+        eq(DevServiceDeprecationInfoBuilder(deprecationData.status, PANEL, userNotified = true)),
       )
 
     activeTabFlow.value = false
     verify(tracker)
       .logServiceDeprecated(
-        eq(DevServicesDeprecationStatus.UNSUPPORTED),
         eq(TAB_PANEL),
         eq(PANEL),
-        anyOrNull(),
-        anyOrNull(),
-        anyOrNull(),
-        eq(null),
+        eq(DevServiceDeprecationInfoBuilder(deprecationData.status, PANEL, userNotified = true)),
       )
 
     activeTabFlow.value = true
     verify(tracker)
       .logServiceDeprecated(
-        eq(DevServicesDeprecationStatus.UNSUPPORTED),
         eq(TAB_PANEL),
         eq(PANEL),
-        anyOrNull(),
-        anyOrNull(),
-        anyOrNull(),
-        eq(null),
+        eq(DevServiceDeprecationInfoBuilder(deprecationData.status, PANEL, userNotified = true)),
       )
   }
 
@@ -108,13 +88,9 @@ class ServiceUnsupportedPanelTest {
 
     verify(tracker)
       .logServiceDeprecated(
-        eq(DevServicesDeprecationStatus.UNSUPPORTED),
         eq(TAB_PANEL),
         eq(PANEL),
-        eq(null),
-        eq(true),
-        eq(null),
-        eq(null),
+        eq(DevServiceDeprecationInfoBuilder(deprecationData.status, PANEL, moreInfoClicked = true)),
       )
   }
 
@@ -128,13 +104,9 @@ class ServiceUnsupportedPanelTest {
 
     verify(tracker)
       .logServiceDeprecated(
-        eq(DevServicesDeprecationStatus.UNSUPPORTED),
         eq(TAB_PANEL),
         eq(PANEL),
-        eq(null),
-        eq(null),
-        eq(true),
-        eq(null),
+        eq(DevServiceDeprecationInfoBuilder(deprecationData.status, PANEL, updateClicked = true)),
       )
   }
 
