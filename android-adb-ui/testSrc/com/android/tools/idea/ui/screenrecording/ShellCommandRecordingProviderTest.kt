@@ -48,7 +48,7 @@ class ShellCommandRecordingProviderTest {
       fakeAdbRule.adbSession.deviceServices
 
   @Test
-  fun testRecording(): Unit = runBlockingWithTimeout {
+  fun testRecording() = runBlockingWithTimeout {
     // Prepare.
     val device = createFakeDevice()
     val options = ScreenRecorderOptions(
@@ -70,10 +70,10 @@ class ShellCommandRecordingProviderTest {
   }
 
   private suspend fun createFakeDevice(): DeviceState {
-    val device = fakeAdb.connectDevice("1234", "Google", "Pixel 9", "Baklava", AndroidApiLevel(36), HostConnectionType.USB)
-    device.deviceStatus = DeviceState.DeviceStatus.ONLINE
-    deviceServices.session.waitForOnlineConnectedDevice(device.deviceId)
-    return device
+    return fakeAdb.connectDevice("1234", "Google", "Pixel 9", "Baklava", AndroidApiLevel(36), HostConnectionType.USB).apply {
+      deviceStatus = DeviceState.DeviceStatus.ONLINE
+      deviceServices.session.waitForOnlineConnectedDevice(deviceId)
+    }
   }
 }
 
