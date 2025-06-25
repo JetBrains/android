@@ -377,19 +377,19 @@ abstract class AbstractDisplayView(
   }
 
   override fun canZoomIn(): Boolean =
-      deviceType == DeviceType.XR || super.canZoomIn()
+    deviceType == DeviceType.XR_HEADSET || super.canZoomIn()
 
   override fun canZoomOut(): Boolean =
-      deviceType == DeviceType.XR || super.canZoomOut()
+    deviceType == DeviceType.XR_HEADSET || super.canZoomOut()
 
   override fun canZoomToActual(): Boolean =
-      deviceType != DeviceType.XR && super.canZoomToActual()
+    deviceType != DeviceType.XR_HEADSET && super.canZoomToActual()
 
   override fun canZoomToFit(): Boolean =
-      deviceType != DeviceType.XR && super.canZoomToFit()
+    deviceType != DeviceType.XR_HEADSET && super.canZoomToFit()
 
   override fun zoom(type: ZoomType): Boolean {
-    if (deviceType == DeviceType.XR) {
+    if (deviceType == DeviceType.XR_HEADSET) {
       when (type) {
         ZoomType.IN -> xrInputController?.sendTranslation(0F, 0F, -TRANSLATION_STEP_SIZE) // Move forward.
         ZoomType.OUT -> xrInputController?.sendTranslation(0F, 0F, TRANSLATION_STEP_SIZE) // Move backward.

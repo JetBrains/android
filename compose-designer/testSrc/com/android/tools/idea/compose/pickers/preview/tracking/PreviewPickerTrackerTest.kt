@@ -106,7 +106,7 @@ internal class PreviewPickerTrackerTest {
         registerNameModificationWithDevice(
           isCustom = false,
           isGeneric = false,
-          tagId = SystemImageTags.XR_TAG.id,
+          tagId = SystemImageTags.XR_HEADSET_TAG.id,
         )
       }
 

@@ -617,7 +617,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         devicePosture?.let {
           responseObserver.sendStreamingResponse(createPostureNotification(it))
         }
-        if (config.deviceType == DeviceType.XR) {
+        if (config.deviceType == DeviceType.XR_HEADSET) {
           responseObserver.sendStreamingResponse(createXrOptionsNotification(xrOptions))
         }
       }

@@ -18,4 +18,4 @@ package com.android.tools.idea.streaming.emulator.actions
 import com.android.sdklib.deviceprovisioner.DeviceType
 
 /** Simulates pressing the Home button on an Android XR virtual device. */
-class EmulatorAllAppsButtonAction : EmulatorPushButtonAction("AllApps", configFilter = { it.deviceType == DeviceType.XR })
+class EmulatorAllAppsButtonAction : EmulatorPushButtonAction("AllApps", configFilter = { it.deviceType == DeviceType.XR_HEADSET })

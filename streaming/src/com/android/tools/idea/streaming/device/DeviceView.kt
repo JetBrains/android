@@ -234,7 +234,7 @@ internal class DeviceView(
 
   override var xrInputController: DeviceXrInputController? = null
     get() {
-      if (field == null && isConnected && deviceConfig.deviceType == DeviceType.XR) {
+      if (field == null && isConnected && deviceConfig.deviceType == DeviceType.XR_HEADSET) {
         field = DeviceXrInputController.getInstance(project, deviceClient)
       }
       return field
@@ -574,7 +574,7 @@ internal class DeviceView(
     if (!isConnected) {
       return
     }
-    val isMouse = deviceConfig.deviceType == DeviceType.XR || isHardwareInputEnabled()
+    val isMouse = deviceConfig.deviceType == DeviceType.XR_HEADSET || isHardwareInputEnabled()
     val buttonState =
         (if (modifiers and BUTTON1_DOWN_MASK != 0 && isMouse) MotionEventMessage.BUTTON_PRIMARY else 0) or
         (if (modifiers and BUTTON2_DOWN_MASK != 0) MotionEventMessage.BUTTON_TERTIARY else 0) or

@@ -80,7 +80,6 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import java.util.OptionalLong
 import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
@@ -552,7 +551,8 @@ constructor(
     private fun canLaunchInToolWindow(avd: AvdInfo, project: Project?): Boolean {
       return project != null &&
         ToolWindowManager.getInstance(project).getToolWindow("Running Devices") != null &&
-        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.get() || !avd.isXrDevice)
+             (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.get() || !avd.isXrHeadsetDevice) &&
+             !avd.isXrGlassesDevice // Glasses devices are not supported by the tool window yet.
     }
 
     @JvmStatic

@@ -159,7 +159,7 @@ class EmulatorConfigurationTest {
     assertThat(config).isNotNull()
     assertThat(config.avdFolder).isEqualTo(avdFolder)
     assertThat(config.avdName).isEqualTo("XR Headset Device API 34")
-    assertThat(config.deviceType).isEqualTo(DeviceType.XR)
+    assertThat(config.deviceType).isEqualTo(DeviceType.XR_HEADSET)
     assertThat(config.androidVersion).isEqualTo(androidVersion)
     assertThat(config.displayWidth).isEqualTo(2560)
     assertThat(config.displayHeight).isEqualTo(2368)

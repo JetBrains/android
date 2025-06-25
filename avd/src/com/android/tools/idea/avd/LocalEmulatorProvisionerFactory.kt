@@ -68,6 +68,7 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
           tv = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV,
           automotive = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR,
           headset = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET,
+          glasses = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS,
         ),
       defaultPresentation = StudioDefaultDeviceActionPresentation,
       diskIoThread,

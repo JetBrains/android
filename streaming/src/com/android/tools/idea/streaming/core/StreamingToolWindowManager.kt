@@ -987,7 +987,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       val runningAvdFolders = RunningEmulatorCatalog.getInstance().emulators.map { it.emulatorId.avdFolder }.toSet()
       val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
       avdManager.getAvds(false).filter {
-        it.dataFolderPath !in runningAvdFolders && (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.get() || !it.isXrDevice)
+        it.dataFolderPath !in runningAvdFolders && (StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.get() || !it.isXrHeadsetDevice)
       }
     }
   }
@@ -1059,7 +1059,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
     private fun JComponent.isNonXrDevicePanel(): Boolean =
-        this is StreamingDevicePanel<*> && deviceType != DeviceType.XR
+        this is StreamingDevicePanel<*> && deviceType != DeviceType.XR_HEADSET
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
   }

@@ -154,7 +154,7 @@ class UiSettingsRule : ExternalResource() {
     return when (deviceType) {
       DeviceType.WEAR -> FakeEmulator.createWatchAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
       DeviceType.AUTOMOTIVE -> FakeEmulator.createAutomotiveAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
-      DeviceType.XR -> FakeEmulator.createXrAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
+      DeviceType.XR_HEADSET -> FakeEmulator.createXrAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
       else -> FakeEmulator.createPhoneAvd(emulatorRule.avdRoot, androidVersion = AndroidVersion(api, 0))
     }
   }
@@ -189,7 +189,7 @@ class UiSettingsRule : ExternalResource() {
         methodNameWithoutApiLevel.endsWith("Tv") -> DeviceType.TV
         methodNameWithoutApiLevel.endsWith("Automotive") -> DeviceType.AUTOMOTIVE
         methodNameWithoutApiLevel.endsWith("Desktop") -> DeviceType.DESKTOP
-        methodNameWithoutApiLevel.endsWith("Xr") -> DeviceType.XR
+        methodNameWithoutApiLevel.endsWith("Xr") -> DeviceType.XR_HEADSET
         else -> DeviceType.HANDHELD
       }
     }
@@ -209,7 +209,7 @@ class UiSettingsRule : ExternalResource() {
         DeviceType.TV -> SdkVersionInfo.HIGHEST_KNOWN_API_TV
         DeviceType.AUTOMOTIVE -> SdkVersionInfo.HIGHEST_KNOWN_API_AUTO
         DeviceType.DESKTOP -> SdkVersionInfo.HIGHEST_KNOWN_API_DESKTOP
-        DeviceType.XR -> SdkVersionInfo.HIGHEST_KNOWN_API_XR
+        DeviceType.XR_HEADSET -> SdkVersionInfo.HIGHEST_KNOWN_API_XR
         else -> SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
       }
     }

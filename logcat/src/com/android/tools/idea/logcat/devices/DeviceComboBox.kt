@@ -43,6 +43,7 @@ import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
+import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
@@ -82,6 +83,7 @@ private val EMULATOR_ICONS =
     VIRTUAL_DEVICE_TV,
     VIRTUAL_DEVICE_CAR,
     VIRTUAL_DEVICE_HEADSET,
+    VIRTUAL_DEVICE_GLASS,
   )
 
 /**

@@ -89,7 +89,7 @@ class LocalEmulatorProvisionerFactoryTest {
       StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR,
     )
     validateIcon(
-      avdManager.makeAvdInfo(5, tag = SystemImageTags.XR_TAG),
+      avdManager.makeAvdInfo(5, tag = SystemImageTags.XR_HEADSET_TAG),
       StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_HEADSET,
     )
   }

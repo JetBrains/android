@@ -19,4 +19,4 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.streaming.device.AKEYCODE_ALL_APPS
 
 /** Simulates pressing the Home button on an Android XR device. */
-internal class DeviceAllAppsButtonAction : DevicePushButtonAction(AKEYCODE_ALL_APPS, configFilter = { it.deviceType == DeviceType.XR })
+internal class DeviceAllAppsButtonAction : DevicePushButtonAction(AKEYCODE_ALL_APPS, configFilter = { it.deviceType == DeviceType.XR_HEADSET })

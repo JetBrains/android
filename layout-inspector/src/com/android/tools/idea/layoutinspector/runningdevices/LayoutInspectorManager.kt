@@ -353,7 +353,7 @@ fun createRendererPanel(
   tabComponents: TabComponents,
   statsProvider: () -> SessionStatistics = { layoutInspector.currentClient.stats },
 ): LayoutInspectorRenderer {
-  val isXrDevice = tabComponents.displayView.deviceType == DeviceType.XR
+  val isXrDevice = tabComponents.displayView.deviceType == DeviceType.XR_HEADSET
   val useOnDeviceRendering =
     isXrDevice || StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ON_DEVICE_RENDERING.get()
 

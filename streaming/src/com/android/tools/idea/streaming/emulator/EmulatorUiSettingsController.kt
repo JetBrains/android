@@ -389,7 +389,7 @@ internal class EmulatorUiSettingsController(
         DeviceType.WEAR -> FACTORY_RESET_COMMAND_FOR_WEAR.format(readApplicationId)
         DeviceType.TV,
         DeviceType.AUTOMOTIVE -> FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO.format(readApplicationId)
-        DeviceType.XR -> FACTORY_RESET_COMMAND_FOR_XR.format(readApplicationId, readPhysicalDensity)
+        DeviceType.XR_HEADSET -> FACTORY_RESET_COMMAND_FOR_XR.format(readApplicationId, readPhysicalDensity)
         else -> FACTORY_RESET_COMMAND.format(readApplicationId, readPhysicalDensity)
       }
       executeShellCommand(command)
@@ -404,9 +404,9 @@ internal class EmulatorUiSettingsController(
       DeviceType.WEAR -> true
       DeviceType.TV,
       DeviceType.AUTOMOTIVE -> !lastDarkMode
-      DeviceType.XR -> lastDarkMode && // Dark mode is default on XR emulator
-                       !lastSelectToSpeak &&
-                       lastDensity == readPhysicalDensity
+      DeviceType.XR_HEADSET -> lastDarkMode && // Dark mode is default on XR emulator
+                               !lastSelectToSpeak &&
+                               lastDensity == readPhysicalDensity
       else -> !lastDarkMode &&
               !lastSelectToSpeak &&
               lastDensity == readPhysicalDensity &&

@@ -28,7 +28,7 @@ import com.intellij.openapi.project.DumbAware
 internal class StreamingHomeButtonAction : DelegatingPushButtonAction(HomeButtonAction(), AllAppsButtonAction()), DumbAware {
 
   override fun getDelegate(event: AnActionEvent): AnAction =
-    delegates[if (getDeviceType(event) == DeviceType.XR) 1 else 0]
+    delegates[if (getDeviceType(event) == DeviceType.XR_HEADSET) 1 else 0]
 }
 
 private class HomeButtonAction : StreamingPushButtonAction(EmulatorHomeButtonAction(), DeviceHomeButtonAction())

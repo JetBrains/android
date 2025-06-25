@@ -55,7 +55,7 @@ class UiSettingsPanelTest {
       nameRule.methodName.endsWith("Desktop") -> DeviceType.DESKTOP
       nameRule.methodName.endsWith("Tv") -> DeviceType.TV
       nameRule.methodName.endsWith("Wear") -> DeviceType.WEAR
-      nameRule.methodName.endsWith("Xr") -> DeviceType.XR
+      nameRule.methodName.endsWith("Xr") -> DeviceType.XR_HEADSET
       else -> DeviceType.HANDHELD
     }
 

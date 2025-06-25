@@ -29,16 +29,6 @@ import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_TV
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_WEAR
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_XR
 import com.android.sdklib.SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION
-import com.android.sdklib.SystemImageTags.ANDROID_TV_TAG
-import com.android.sdklib.SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG
-import com.android.sdklib.SystemImageTags.AUTOMOTIVE_TAG
-import com.android.sdklib.SystemImageTags.DEFAULT_TAG
-import com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG
-import com.android.sdklib.SystemImageTags.GOOGLE_APIS_X86_TAG
-import com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG
-import com.android.sdklib.SystemImageTags.WEAR_TAG
-import com.android.sdklib.SystemImageTags.XR_TAG
-import com.android.sdklib.repository.IdDisplay
 import icons.StudioIllustrations.FormFactors
 import javax.swing.Icon
 

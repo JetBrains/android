@@ -22,7 +22,8 @@ import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
 import static com.android.sdklib.SystemImageTags.DESKTOP_TAG;
 import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
 import static com.android.sdklib.SystemImageTags.WEAR_TAG;
-import static com.android.sdklib.SystemImageTags.XR_TAG;
+import static com.android.sdklib.SystemImageTags.XR_GLASSES_TAG;
+import static com.android.sdklib.SystemImageTags.XR_HEADSET_TAG;
 
 import com.android.sdklib.repository.IdDisplay;
 import com.google.common.collect.ImmutableList;
@@ -32,5 +33,5 @@ public class AvdWizardUtils {
   public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, DESKTOP_TAG,
                                                                          ANDROID_TV_TAG, GOOGLE_TV_TAG,
                                                                          AUTOMOTIVE_TAG, AUTOMOTIVE_DISTANT_DISPLAY_TAG,
-                                                                         XR_TAG);
+                                                                         XR_HEADSET_TAG, XR_GLASSES_TAG);
 }

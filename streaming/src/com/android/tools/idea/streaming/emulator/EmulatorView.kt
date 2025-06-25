@@ -413,7 +413,7 @@ class EmulatorView(
   override var xrInputController: EmulatorXrInputController? = null
     get() {
       if (field == null) {
-        if (emulator.connectionState == ConnectionState.CONNECTED && emulatorConfig.deviceType == DeviceType.XR) {
+        if (emulator.connectionState == ConnectionState.CONNECTED && emulatorConfig.deviceType == DeviceType.XR_HEADSET) {
           project?.let { project ->
             field = EmulatorXrInputController.getInstance(project, emulator)
           }

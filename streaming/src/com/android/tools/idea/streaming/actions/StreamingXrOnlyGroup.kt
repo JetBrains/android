@@ -28,6 +28,6 @@ internal class StreamingXrOnlyGroup : DefaultActionGroup() {
   override fun update(event: AnActionEvent) {
     super.update(event)
     // Enabled only for XR devices.
-    event.presentation.isEnabledAndVisible = getDeviceType(event) == DeviceType.XR
+    event.presentation.isEnabledAndVisible = getDeviceType(event) == DeviceType.XR_HEADSET
   }
 }

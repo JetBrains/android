@@ -422,7 +422,7 @@ class DeviceClient(
                 (if (isAudioStreamingEnabled()) STREAM_AUDIO else 0) or
                 (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0) or
                 (if (StudioFlags.DEVICE_MIRRORING_USE_UINPUT.get()) USE_UINPUT else 0) or
-                (if (deviceConfig.deviceType == DeviceType.XR) DEVICE_IS_XR else 0) or // Workaround for b/406870742 and b/408280128.
+      (if (deviceConfig.deviceType == DeviceType.XR_HEADSET) DEVICE_IS_XR else 0) or // Workaround for b/406870742 and b/408280128.
                 (if (StudioFlags.DEVICE_MIRRORING_UNICODE_TYPING.get()) UNICODE_TYPING else 0)
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
     val maxBitRate = calculateMaxBitRate()

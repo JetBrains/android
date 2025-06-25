@@ -21,7 +21,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /** Resets the view on an XR device to its initial state. */
-internal class DeviceXrRecenterAction : AbstractDeviceAction(configFilter = { it.deviceType == DeviceType.XR }) {
+internal class DeviceXrRecenterAction : AbstractDeviceAction(configFilter = { it.deviceType == DeviceType.XR_HEADSET }) {
 
   override fun actionPerformed(event: AnActionEvent) {
     getDeviceController(event)?.sendControlMessage(XrRecenterMessage())

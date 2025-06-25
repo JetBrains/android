@@ -49,7 +49,7 @@ internal fun getDeviceType(event: AnActionEvent): DeviceType? =
     getDisplayView(event)?.deviceType
 
 internal fun getXrInputController(event: AnActionEvent): AbstractXrInputController? {
-  if (getDeviceType(event) != DeviceType.XR) {
+  if (getDeviceType(event) != DeviceType.XR_HEADSET) {
     return null
   }
   val project = event.project ?: return null

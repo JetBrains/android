@@ -40,7 +40,7 @@ sealed class StreamingXrInputModeAction(private val inputMode: XrInputMode) : To
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isEnabledAndVisible = getDeviceType(event) == DeviceType.XR &&
+    event.presentation.isEnabledAndVisible = getDeviceType(event) == DeviceType.XR_HEADSET &&
                                              (inputMode != XrInputMode.HAND || StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) &&
                                              (inputMode != XrInputMode.EYE || StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.get())
     event.presentation.enableRichTooltip(this)
