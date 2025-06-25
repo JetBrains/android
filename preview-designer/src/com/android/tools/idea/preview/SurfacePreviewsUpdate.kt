@@ -50,6 +50,7 @@ import com.intellij.psi.PsiFile
 import com.jetbrains.rd.util.getOrCreate
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.util.projectStructure.module
 
 /**
@@ -291,7 +292,8 @@ fun copySettingsInto(from: PreviewDisplaySettings, to: DisplaySettings, psiFile:
  *
  * @return the [NlModel] to use for rendering.
  */
-private suspend fun <T : PsiPreviewElement> NlDesignSurface.createOrReuseModelForPreviewElement(
+@VisibleForTesting
+suspend fun <T : PsiPreviewElement> NlDesignSurface.createOrReuseModelForPreviewElement(
   modelToReuse: NlModel?,
   debugLogger: PreviewElementDebugLogger?,
   previewElementModelAdapter: PreviewElementModelAdapter<T, NlModel>,
@@ -308,6 +310,8 @@ private suspend fun <T : PsiPreviewElement> NlDesignSurface.createOrReuseModelFo
     fileContents,
   )
   var newModel: NlModel
+  val newConfiguration: Configuration =
+    Configuration.create(configurationManager, FolderConfiguration.createDefault())
   if (modelToReuse != null) {
     var forceReinflate = true
     var invalidatePreviousRender = false
@@ -322,6 +326,8 @@ private suspend fun <T : PsiPreviewElement> NlDesignSurface.createOrReuseModelFo
     // result from a previous render.
     if (affinity > 0) invalidatePreviousRender = true
     modelToReuse.updateFileContentBlocking(fileContents)
+    // We shouldn't reuse the configuration from a previous render when we reuse the model.
+    modelToReuse.configuration = newConfiguration
     newModel = modelToReuse
     this.getSceneManager(newModel)?.let {
       if (forceReinflate) it.sceneRenderConfiguration.needsInflation.set(true)
@@ -332,15 +338,13 @@ private suspend fun <T : PsiPreviewElement> NlDesignSurface.createOrReuseModelFo
     debugLogger?.log("No models to reuse were found. New model $now.")
     val file =
       previewElementModelAdapter.createLightVirtualFile(fileContents, psiFile.virtualFile, now)
-    val configuration =
-      Configuration.create(configurationManager, FolderConfiguration.createDefault())
-    configuration.imageTransformation = this.getGlobalImageTransformation()
+    newConfiguration.imageTransformation = this.getGlobalImageTransformation()
     newModel =
       NlModel.Builder(
           parentDisposable,
           AndroidBuildTargetReference.from(facet, psiFile.virtualFile),
           file,
-          configuration,
+          newConfiguration,
         )
         .withComponentRegistrar(NlComponentRegistrar)
         .withXmlProvider { project, virtualFile ->

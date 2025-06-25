@@ -61,7 +61,7 @@ class BottomAppBarAnalyzerTest : LayoutTestCase() {
         )
         .build()
     val tabletConfig = RenderTestUtil.getConfiguration(myModule, model.virtualFile, "Nexus 9")
-    model.setConfiguration(tabletConfig)
+    model.configuration = tabletConfig
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
     val issues = BottomAppBarAnalyzer.findIssues(renderResult, model.configuration)
     assertEquals(1, issues.size)

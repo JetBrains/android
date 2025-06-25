@@ -33,8 +33,6 @@ import org.jetbrains.annotations.NotNull;
  * {@link NlModel} that runs all the operations synchronously for testing
  */
 public class SyncNlModel extends NlModel {
-
-  private Configuration myConfiguration; // for testing purposes
   private DesignSurface<? extends SceneManager> mySurface; // for testing purposes
 
   @NotNull
@@ -80,19 +78,5 @@ public class SyncNlModel extends NlModel {
   @NotNull
   public DesignSurface<? extends SceneManager> getSurface() {
     return mySurface;
-  }
-
-  @VisibleForTesting
-  public void setConfiguration(Configuration configuration) {
-    myConfiguration = configuration;
-  }
-
-  @NotNull
-  @Override
-  public Configuration getConfiguration() {
-    if (myConfiguration != null) {
-      return myConfiguration;
-    }
-    return super.getConfiguration();
   }
 }
