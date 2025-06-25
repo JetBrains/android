@@ -27,7 +27,8 @@ class MockWiFiPairingNotificationService(project: Project) : WiFiPairingNotifica
   val showBalloonTracker = FutureValuesTracker<ShowBalloonParams>()
 
   override fun showBalloon(title: String, content: String, type: NotificationType, icon: Icon?) {
-    delegateService.showBalloon(title, content, type, icon)
+    // this isn't required by the tests and likely causes a hang on JB CI
+    // delegateService.showBalloon(title, content, type, icon)
     showBalloonTracker.produce(ShowBalloonParams(title, content, type, icon))
   }
 
