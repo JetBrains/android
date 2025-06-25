@@ -19,6 +19,7 @@ import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.testing.ProjectServiceRule
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.ProjectRule
@@ -48,8 +49,7 @@ class ScreenRecorderActionTest {
 
   private val project get() = projectRule.project
 
-  @Suppress("UnstableApiUsage")
-  private val testRootDisposable get() = project.earlyDisposable
+  private val testRootDisposable get() = projectRule.disposable
   private val userData = mutableMapOf<String, Any?>()
   private val action = ScreenRecorderAction()
 
