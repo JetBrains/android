@@ -29,6 +29,7 @@ iml_module(
         "//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor",
         "//tools/adt/idea/.idea/libraries:opentest4j",
         "//tools/adt/idea/studio:studio-sdk-all-modules",
+        "//prebuilts/tools/common/m2:junit-jupiter-api-5.9.2",
     ],
     # do not sort: must match IML order
     deps = [
