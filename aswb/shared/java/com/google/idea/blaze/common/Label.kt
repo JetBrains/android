@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.common
 
+import com.google.idea.blaze.common.TargetPattern.ScopeStatus
 import com.google.idea.blaze.common.TargetPattern.ScopeStatus.EXCLUDED
 import com.google.idea.blaze.common.TargetPattern.ScopeStatus.INCLUDED
 import com.google.idea.blaze.common.TargetPattern.ScopeStatus.NOT_IN_SCOPE
@@ -120,19 +121,21 @@ data class Label(val workspace: String, val buildPackage: String, val name: Stri
   }
 }
 
+private val rootPath = Path.of("/")
+
 data class TargetPattern(
-  private val workspace: String,
-  private val buildPackagePath: Path,
-  private val includesSubpackages: Boolean,
-  private val targetName: String?,
+  internal val workspace: String,
+  internal val buildPackageAbsolutePath: Path,
+  internal val includesSubpackages: Boolean,
+  internal val targetName: String?,
   private val negative: Boolean,
 ) {
   enum class ScopeStatus { NOT_IN_SCOPE, INCLUDED, EXCLUDED }
 
   fun inScope(target: Label): ScopeStatus {
     if (workspace != target.workspace) return NOT_IN_SCOPE
-    val targetBuildPackagePath = target.getBuildPackagePath()
-    if (buildPackagePath != targetBuildPackagePath && !(includesSubpackages && targetBuildPackagePath.startsWith(buildPackagePath))) {
+    val targetBuildPackagePath = rootPath.resolve(target.getBuildPackagePath())
+    if (buildPackageAbsolutePath != targetBuildPackagePath && !(includesSubpackages && targetBuildPackagePath.startsWith(buildPackageAbsolutePath))) {
       return NOT_IN_SCOPE
     }
     return when (targetName == null || targetName == target.name) {
@@ -142,7 +145,7 @@ data class TargetPattern(
   }
 
   override fun toString(): String {
-    return buildString(capacity = 9 + workspace.length + buildPackagePath.toString().length + (targetName?.length ?: 0)) {
+    return buildString(capacity = 9 + workspace.length + buildPackageAbsolutePath.toString().length + (targetName?.length ?: 0)) {
       if (negative) {
         append("-")
       }
@@ -150,8 +153,8 @@ data class TargetPattern(
         append("@@")
         append(workspace)
       }
-      append("//")
-      append(buildPackagePath)
+      append("/")
+      append(buildPackageAbsolutePath)
       if (targetName != null) {
         append(":")
         append(targetName)
@@ -174,18 +177,18 @@ data class TargetPattern(
     fun parse(pattern: String): TargetPattern {
       val (negative, patternLabel) = if (pattern.startsWith('-')) true to pattern.substring(1) else false to pattern
       val parsedAsLabel = Label.parseLabel(patternLabel, allowRelativeLabels = true)
-      val parsedBuildPackagePath = parsedAsLabel.getBuildPackagePath()
+      val parsedBuildPackagePath = rootPath.resolve(parsedAsLabel.getBuildPackagePath())
       return if (parsedBuildPackagePath.endsWith(threeDotsPath))
         TargetPattern(
           parsedAsLabel.workspace,
-          parsedBuildPackagePath.subpath(0, parsedBuildPackagePath.nameCount - 1),
+          parsedBuildPackagePath.parent,
           includesSubpackages = true,
           targetName = null,
           negative = negative,
         )
       else TargetPattern(
         parsedAsLabel.workspace,
-        parsedBuildPackagePath.subpath(0, parsedBuildPackagePath.nameCount),
+        parsedBuildPackagePath,
         includesSubpackages = false,
         targetName = parsedAsLabel.name.takeUnless { it in wildcardTargets },
         negative = negative,
@@ -193,3 +196,61 @@ data class TargetPattern(
     }
   }
 }
+
+class TargetPatternCollection(private val root: Node, private val rootScope: ScopeStatus) {
+  class Node(val key: String, var children: MutableMap<String, Node> = mutableMapOf(), var scope: ((Label) -> ScopeStatus)? = null)
+
+  fun inScope(target: Label): ScopeStatus {
+    var node = root
+    var lastScope: ((Label) -> ScopeStatus) = { rootScope }
+    for (key in target.structuralKeys()) {
+      node = node.children[key] ?: break
+      lastScope = node.scope ?: lastScope
+    }
+    return lastScope(target)
+  }
+
+  companion object {
+    @JvmStatic
+    fun create(patterns: List<TargetPattern>): TargetPatternCollection {
+      if (patterns.isEmpty()) {
+        // The empty list means everything is included.
+        return TargetPatternCollection(Node(key = ""), rootScope = INCLUDED)
+      }
+      val root = Node(key = "")
+
+      fun add(pattern: TargetPattern) {
+        var node = root
+        for (key in pattern.structuralKeys()) {
+          node = node.children.getOrPut(key) { Node(key) }
+        }
+        node.children.clear() // Override any previously configured patterns underneath.
+        node.scope = pattern::inScope
+      }
+
+      for (pattern in patterns) {
+        add(pattern)
+      }
+      return TargetPatternCollection(root, rootScope = NOT_IN_SCOPE)
+    }
+  }
+}
+
+private fun TargetPattern.structuralKeys(): List<String> = buildList(3 + buildPackageAbsolutePath.nameCount) {
+  add(workspace)
+  addAll(buildPackageAbsolutePath.map { it.toString() })
+  if (!includesSubpackages) {
+    add("*") // A dedicated key for all targets under the package.
+    if (targetName != null) {
+      add(targetName)
+    }
+  }
+}
+
+private fun Label.structuralKeys(): List<String> = buildList(3 + getBuildPackagePath().nameCount) {
+  add(workspace)
+  addAll(getBuildPackagePath().map {it.toString()})
+  add("*") // A dedicated key for all targets under the package.
+  add(name)
+}
+
