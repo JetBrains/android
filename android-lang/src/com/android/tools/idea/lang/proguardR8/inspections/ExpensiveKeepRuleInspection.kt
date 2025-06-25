@@ -28,9 +28,16 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8RuleWithClassSpecifi
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Visitor
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
+import com.intellij.openapi.components.service
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.util.childrenOfType
+
+
+/**
+ * The maximum number of classes that are allowed to be affected by a proguard rule.
+ */
+internal const val CLASSES_AFFECTED_LIMIT = 100
 
 /**
  * Reports when overly broad Proguard rules are used.
@@ -51,8 +58,9 @@ class ExpensiveKeepRuleInspection : LocalInspectionTool() {
         if (expensiveKeepRule != null) {
           // Expand on this by using the qualified name to identify the blast radius.
           holder.registerProblem(
-            /* psiElement = */ expensiveKeepRule.elementToHighlight,
-            /* descriptionTemplate = */ expensiveKeepRule.description)
+            expensiveKeepRule.elementToHighlight,
+            expensiveKeepRule.description
+          )
         }
       }
     }
@@ -66,6 +74,7 @@ private data class ExpensiveProguardR8Rule(
 )
 
 private fun expensiveKeepRuleOrNull(rule: ProguardR8RuleWithClassSpecification): ExpensiveProguardR8Rule? {
+  val service = rule.project.service<AffectedClassesProjectService>()
   val flag = rule.flag
   val header = rule.classSpecificationHeader
   val classType = header.childrenOfType<ProguardR8ClassType>().firstOrNull()
@@ -106,11 +115,7 @@ private fun expensiveKeepRuleOrNull(rule: ProguardR8RuleWithClassSpecification):
     return null
   }
 
-  // Check if the qualified name has a wildcard in the fully qualified class name.
-  val doubleAsterisk = className.qualifiedName.childrenOfType<PsiElement>()
-    .firstOrNull { it.textMatches(/* text = */ "**") }
-
-  if (doubleAsterisk == null) {
+  if (!className.qualifiedName.isExpensive()) {
     return null
   }
 
@@ -135,7 +140,11 @@ private fun expensiveKeepRuleOrNull(rule: ProguardR8RuleWithClassSpecification):
       methodSpecs.any { it.isExpensive() }
     }
 
-  if (isBodyExpensive) {
+  val countAffected = service.affectedClassesForQualifiedName(
+    qualifiedName = className.qualifiedName
+  )
+
+  if (isBodyExpensive && countAffected >= CLASSES_AFFECTED_LIMIT) {
     return ExpensiveProguardR8Rule(
       elementToHighlight = rule,
       qualifiedName = className.qualifiedName,
@@ -146,16 +155,31 @@ private fun expensiveKeepRuleOrNull(rule: ProguardR8RuleWithClassSpecification):
   return null
 }
 
+internal fun ProguardR8QualifiedName.isExpensive(): Boolean {
+  val elements = childrenOfType<PsiElement>()
+  // We check if we have a doubleAsterisk for the last element
+  val doubleAsteriskPresent = elements.firstOrNull { it.textMatches("**") } != null
+  val lastPsiElementDoubleAsterisk = elements.lastOrNull()?.textMatches("**") ?: false
+  // Or we check that we have a superfluous **(.*) additionally which means the same thing
+  // We are excluding wildcards that include suffixes intentionally
+  // E.g. **.*R$* is an example pattern that we are attempting to exclude.
+  return lastPsiElementDoubleAsterisk ||
+         (
+           doubleAsteriskPresent &&
+           elements.takeLast(n = 2).joinToString(separator = "") { it.text } == ".*"
+         )
+}
+
 private fun ProguardR8FieldsSpecification.isExpensive(): Boolean {
-  return childrenOfType<PsiElement>().any { it.textMatches(/* text = */ "<fields>") }
+  return childrenOfType<PsiElement>().any { it.textMatches("<fields>") }
 }
 
 private fun ProguardR8MethodSpecification.isExpensive(): Boolean {
-  return childrenOfType<PsiElement>().any { it.textMatches(/* text = */ "<methods>") }
+  return childrenOfType<PsiElement>().any { it.textMatches("<methods>") }
 }
 
 private fun ProguardR8Field.isExpensive(): Boolean {
   return childrenOfType<ProguardR8ClassMemberName>()
     .flatMap { it.childrenOfType<PsiElement>() }
-    .any { it.textMatches(/* text = */ "**") || it.textMatches(/* text = */ "*") }
+    .any { it.textMatches("**") || it.textMatches("*") }
 }

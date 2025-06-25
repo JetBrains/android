@@ -13,30 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lang.com.android.tools.idea.lang.proguardR8
+package com.android.tools.idea.lang.proguardR8
 
-import com.android.tools.idea.lang.proguardR8.ProguardR8FileType
+import com.android.tools.idea.lang.proguardR8.inspections.AffectedClassesProjectService
 import com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspection
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
 import com.android.tools.idea.testing.highlightedAs
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.testFramework.registerServiceInstance
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
+import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 
 abstract class ExpensiveKeepRuleTestCase : JavaCodeInsightFixtureAdtTestCase() {
+
+  lateinit var affectedClassesProjectService: AffectedClassesProjectService
+
   override fun setUp() {
     super.setUp()
+    affectedClassesProjectService = mock()
+    whenever(
+      methodCall = affectedClassesProjectService.affectedClassesForQualifiedName(
+        qualifiedName = any<ProguardR8QualifiedName>()
+      )
+    ).thenReturn(101) // 100 is the limit on the number of affected classes
     // Only turn on expensive keep rule inspections
     myFixture.enableInspections(ExpensiveKeepRuleInspection::class.java)
+    project.registerServiceInstance(
+      serviceInterface = AffectedClassesProjectService::class.java,
+      instance = affectedClassesProjectService
+    )
   }
 }
 
 class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
   fun testOverlyBroadKeepRules() {
     val rules = listOf(
+      "-keep class **",
       "-keep class **.*",
+      "-keep class **.*.*.*", // Makes no sense to do something like this, but this is a valid rule
       "-keep class **.* { **; }",
       "-keep class com.** { <fields>; }",
       "-keep class com.** { <methods>; }",
       "-keep class com.** { **; }",
+      "-keep class **.internal.** { **; }"
     )
 
     rules.forEach { rule ->
@@ -80,7 +101,8 @@ class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
       "-keep class **.* { <init>(...); }",
       "-keep class something.internal.*",
       "-keep class * extends android.app.Activity { <init>(...); }",
-      "-keep @proguard.annotation.Keep class **.*"
+      "-keep @proguard.annotation.Keep class **.*",
+      "-keep class **.R$* { <fields>; }" // Intentionally allowing these kinds of rules for now.
     )
 
     rules.forEach { rule ->

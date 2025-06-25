@@ -72,6 +72,8 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
+        "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/adt/idea/.idea/libraries:mockito",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
