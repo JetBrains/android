@@ -138,7 +138,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private val lifeCycleLock = Object()
   private var startTime = 0L
 
-  private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)!!
+  private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)
   private val foldedDisplayRegion: FoldedDisplay? = readDisplayRegion(avdFolder)
 
   @Volatile var displayRotation: SkinRotation = SkinRotation.PORTRAIT
@@ -219,14 +219,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     synchronized(lifeCycleLock) {
       val keysToExtract = setOf("fastboot.chosenSnapshotFile", "fastboot.forceChosenSnapshotBoot", "fastboot.forceFastBoot")
       val map = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract)
-      if (map != null) {
-        val snapshotId = when {
-          map["fastboot.forceFastBoot"] == "yes" -> "default_boot"
-          map["fastboot.forceChosenSnapshotBoot"] == "yes" -> map["fastboot.chosenSnapshotFile"]
-          else -> null
-        }
-        lastLoadedSnapshot = if (snapshotId == null || snapshotId in incompatibleSnapshots) null else snapshotId
+      val snapshotId = when {
+        map["fastboot.forceFastBoot"] == "yes" -> "default_boot"
+        map["fastboot.forceChosenSnapshotBoot"] == "yes" -> map["fastboot.chosenSnapshotFile"]
+        else -> null
       }
+      lastLoadedSnapshot = if (snapshotId == null || snapshotId in incompatibleSnapshots) null else snapshotId
 
       startTime = System.currentTimeMillis()
       grpcCallLog.clear()
@@ -528,7 +526,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
   private fun readDisplayRegion(avdFolder: Path): FoldedDisplay? {
     val configIniFile = avdFolder.resolve("config.ini")
-    val configIni = readKeyValueFile(configIniFile) ?: return null
+    val configIni = readKeyValueFile(configIniFile)
     val width = parseInt(configIni["hw.displayRegion.0.1.width"], 0)
     val height = parseInt(configIni["hw.displayRegion.0.1.height"], 0)
     if (width == 0 || height == 0) {
@@ -1893,7 +1891,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           <ns:sdk-sys-img xmlns:ns="http://schemas.android.com/sdk/android/repo/sys-img2/01">
             <localPackage path="${systemImageFolder.toString().replace('/', ';')}" obsolete="false">
               <type-details xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns:sysImgDetailsType">
-                <api-level>${androidVersion.androidApiLevel.majorVersion}</api-level>
+                <api-level>${androidVersion.androidApiLevel}</api-level>
                 <tag><id>google_apis</id><display>Google APIs</display></tag>
                 <vendor><id>google</id><display>Google Inc.</display></vendor>
                 <abi>$abi</abi>
@@ -1936,7 +1934,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @UiThread
     @Throws(TimeoutException::class)
-    private fun <T> LinkedBlockingDeque<T>.get(timeout: Duration, filter: Predicate<T> = alwaysTrue()): T {
+    private fun <T : Any> LinkedBlockingDeque<T>.get(timeout: Duration, filter: Predicate<T> = alwaysTrue()): T {
       val timeoutMillis = timeout.inWholeMilliseconds
       val deadline = System.currentTimeMillis() + timeoutMillis
       var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
