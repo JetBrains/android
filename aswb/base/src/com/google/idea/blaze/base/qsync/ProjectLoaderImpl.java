@@ -245,7 +245,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
     AppInspectorTracker appInspectorTracker =
         new AppInspectorTrackerImpl(appInspectorBuilder, appInspectorArtifactTracker);
     DependencyTracker dependencyTracker =
-        new DependencyTrackerImpl(snapshotHolder, dependencyBuilder, artifactTracker);
+        new DependencyTrackerImpl(latestProjectDef, snapshotHolder, dependencyBuilder, artifactTracker);
     ProjectRefresher projectRefresher =
         new ProjectRefresher(
             vcsHandler.map(it -> (VcsStateDiffer)it::diffVcsState).orElse(VcsStateDiffer.NONE),

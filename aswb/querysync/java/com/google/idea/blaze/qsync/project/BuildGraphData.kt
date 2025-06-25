@@ -168,7 +168,7 @@ interface BuildGraphData {
   /**
    * Calculates the [RequestedTargets] for the whole project.
    */
-  fun computeWholeProjectTargets(): RequestedTargets
+  fun computeWholeProjectTargets(projectDefinition: ProjectDefinition): RequestedTargets
 
   /** Output stats about the the project to the context (and thus normally to the console).  */
   fun outputStats(context: Context<*>)

@@ -26,6 +26,8 @@ import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.common.RuleKinds
+import com.google.idea.blaze.common.TargetPattern
+import com.google.idea.blaze.common.TargetPattern.ScopeStatus.INCLUDED
 import com.google.idea.blaze.common.TargetTree
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Location.Companion.Location
 import com.google.idea.blaze.qsync.project.ProjectTarget.SourceType
@@ -554,8 +556,11 @@ data class BuildGraphDataImpl(
     }
   }
 
-  override fun computeWholeProjectTargets(): RequestedTargets {
-    return computeRequestedTargets(storage.allSupportedTargets.getTargets().toList())
+  override fun computeWholeProjectTargets(projectDefinition: ProjectDefinition): RequestedTargets {
+    val effectiveTargetPatterns = projectDefinition.effectiveTargetPatterns()
+    return computeRequestedTargets(
+      storage.allSupportedTargets.getTargets().filter { effectiveTargetPatterns.inScope(it) == INCLUDED }.toList()
+    )
   }
 
   override fun outputStats(context: Context<*>) {
