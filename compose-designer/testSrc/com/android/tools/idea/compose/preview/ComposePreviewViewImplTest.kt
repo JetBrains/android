@@ -35,11 +35,13 @@ import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.build.RenderingBuildStatus
 import com.android.tools.idea.editors.build.RenderingBuildStatusManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.LlmPrompt
+import com.android.tools.idea.preview.createOrReuseModelForPreviewElement
 import com.android.tools.idea.preview.find.PreviewElementProvider
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
@@ -55,7 +57,7 @@ import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.codeInsight.daemon.impl.MockWolfTheProblemSolver
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
@@ -77,6 +79,7 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
@@ -88,26 +91,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-
-private fun createTestPreviewElementDataContext(
-  project: Project,
-  composePreviewManager: ComposePreviewManager,
-  previewElement: PsiComposePreviewElementInstance,
-) =
-  object :
-    NlDataProvider(
-      COMPOSE_PREVIEW_MANAGER,
-      PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE,
-      CommonDataKeys.PROJECT,
-    ) {
-    override fun getData(dataId: String): Any? =
-      when (dataId) {
-        COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
-        PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
-        CommonDataKeys.PROJECT.name -> project
-        else -> null
-      }
-  }
 
 private fun configureLayoutlibSceneManagerForPreviewElement(
   displaySettings: PreviewDisplaySettings,
@@ -311,19 +294,7 @@ class ComposePreviewViewImplTest {
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager =
       ::configureLayoutlibSceneManagerForPreviewElement,
   ) {
-    val testPreviewElementModelAdapter =
-      object : ComposePreviewElementModelAdapter() {
-        override fun toXml(previewElement: PsiComposePreviewElementInstance) =
-          """
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="wrap_content"
-  android:layout_height="wrap_content"
-  android:text="Hello world ${previewElement.displaySettings.name}" />
-"""
-
-        override fun createDataProvider(previewElement: PsiComposePreviewElementInstance) =
-          createTestPreviewElementDataContext(project, composePreviewManager, previewElement)
-      }
+    val testPreviewElementModelAdapter = createPreviewElementModelAdapter(composePreviewManager)
     runBlocking(Dispatchers.Default) {
       surface.updatePreviewsAndRefresh(
         reinflate = true,
@@ -346,6 +317,31 @@ class ComposePreviewViewImplTest {
       fakeUi.root.validate()
     }
   }
+
+  private fun createPreviewElementModelAdapter(
+    composePreviewManager: ComposePreviewManager
+  ): ComposePreviewElementModelAdapter =
+    object : ComposePreviewElementModelAdapter() {
+      override fun toXml(previewElement: PsiComposePreviewElementInstance) =
+        """
+  <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Hello world ${previewElement.displaySettings.name}" />
+  """
+
+      override fun createDataProvider(previewElement: PsiComposePreviewElementInstance) =
+        object :
+          NlDataProvider(COMPOSE_PREVIEW_MANAGER, PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE, PROJECT) {
+          override fun getData(dataId: String): Any? =
+            when (dataId) {
+              COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
+              PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
+              PROJECT.name -> project
+              else -> null
+            }
+        }
+    }
 
   @Test
   fun `empty preview state when flag is disabled`() {
@@ -569,6 +565,49 @@ class ComposePreviewViewImplTest {
     }
 
     assertNull(fakeUi.findComponent<InstructionsPanel> { it.isShowing })
+  }
+
+  @Test
+  fun `test reusing model resets Configuration`() {
+    val composePreviewManager = TestComposePreviewManager()
+    val fakePreviewElement =
+      SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
+        "Fake Test Method",
+        "Display1",
+      )
+    val testPreviewElementModelAdapter = createPreviewElementModelAdapter(composePreviewManager)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(projectRule.module)
+
+    runBlocking {
+      val modelToCreate =
+        previewView.mainSurface.createOrReuseModelForPreviewElement(
+          reinflate = true,
+          previewElement = fakePreviewElement,
+          previewElementModelAdapter = testPreviewElementModelAdapter,
+          debugLogger = null,
+          modelToReuse = null,
+          psiFile = mainFileSmartPointer.element!!,
+          configurationManager = configurationManager,
+          parentDisposable = fixture.testRootDisposable,
+          facet = projectRule.module.androidFacet!!,
+        )
+      val configuration = modelToCreate.configuration
+
+      val modelToReuse =
+        previewView.mainSurface.createOrReuseModelForPreviewElement(
+          reinflate = true,
+          previewElement = fakePreviewElement,
+          previewElementModelAdapter = testPreviewElementModelAdapter,
+          debugLogger = null,
+          modelToReuse = modelToCreate,
+          psiFile = mainFileSmartPointer.element!!,
+          configurationManager = configurationManager,
+          parentDisposable = fixture.testRootDisposable,
+          facet = projectRule.module.androidFacet!!,
+        )
+      assertEquals(modelToReuse, modelToCreate)
+      assertNotEquals(configuration, modelToReuse.configuration)
+    }
   }
 }
 

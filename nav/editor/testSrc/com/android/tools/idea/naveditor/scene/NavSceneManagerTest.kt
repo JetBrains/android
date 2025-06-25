@@ -107,7 +107,7 @@ class NavSceneManagerTest : NavTestCase() {
     val model = model("nav.xml") { navigation { fragment("fragment1") } }
 
     val configuration = mock<Configuration>()
-    model.setConfiguration(configuration)
+    model.configuration = configuration
 
     val state = mock<State>()
     whenever(configuration.deviceState).thenReturn(state)
