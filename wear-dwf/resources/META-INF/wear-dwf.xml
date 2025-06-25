@@ -29,6 +29,15 @@
                      enabledByDefault="true"
                      groupKey="android.inspections.group.name"
                      displayName="Unknown Watch Face Format version" />
+
+    <fileType name="WFFExpressionFile"
+              language="WFFExpression"
+              implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionFileType"
+              fieldName="INSTANCE"
+              extensions="expression"/>
+    <lang.parserDefinition language="WFFExpression"
+                           implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionParserDefinition"/>
+
   </extensions>
   <actions>
     <action id="ImportWatchFaceStudioFileAction"
