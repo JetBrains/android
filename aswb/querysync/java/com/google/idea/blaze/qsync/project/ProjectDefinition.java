@@ -25,6 +25,7 @@ import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.TargetPattern;
+import com.google.idea.blaze.common.TargetPatternCollection;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -74,6 +75,17 @@ public abstract class ProjectDefinition {
    * by default. The empty list means all targets are included.
    */
   public abstract ImmutableList<TargetPattern> targetPatterns();
+
+  @Memoized
+  public TargetPatternCollection effectiveTargetPatterns() {
+    return TargetPatternCollection.create(
+      deriveTargetsFromDirectories()
+      ? ImmutableList.<TargetPattern>builder()
+        .add(TargetPattern.parse("//..."))
+        .addAll(targetPatterns())
+        .build()
+      : targetPatterns());
+  }
 
   public abstract ImmutableSet<QuerySyncLanguage> languageClasses();
 
