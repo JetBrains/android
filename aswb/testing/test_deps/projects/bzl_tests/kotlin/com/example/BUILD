@@ -17,12 +17,20 @@ kt_jvm_library(
     srcs = ["Distant.kt"],
 )
 
+# aswb:bazel-only-begin(kt_jvm_binary is available in bazel)
 kt_jvm_binary(
     name = "foo",
     srcs = ["FooMain.kt"],
     main_class = "com.example.MyMainClass",
     deps = [":foolib"],
 )
+# aswb:bazel-only-end-and-replace-begin
+# java_binary(
+#    name = "foo",
+#    main_class = "com.example.MyMainClass",
+#    runtime_deps = [":foolib"],
+#)
+# aswb:replace-end
 
 build_dependencies_deps_test_fixture(
     name = "kt_library_test_fixture",
