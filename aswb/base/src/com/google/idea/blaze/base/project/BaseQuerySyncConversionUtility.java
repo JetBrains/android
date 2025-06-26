@@ -69,12 +69,13 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
   }
 
   @Override
-  public boolean canConvert(Path projectViewFilePath) {
-    return AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled()
-           && !isConverted(projectViewFilePath)
-           && parseProjectFields(projectViewFilePath)
-             .filter(fields -> !fields.useQuerySync && !fields.shardSync)
-             .isPresent();
+  public boolean canConvert(Path projectViewFilePath, int legacySyncShardCount) {
+    var conversionProjectFields = parseProjectFields(projectViewFilePath);
+    return AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled() &&
+           !isConverted(projectViewFilePath) &&
+           conversionProjectFields.isPresent() &&
+           !conversionProjectFields.get().useQuerySync() &&
+           (!conversionProjectFields.get().shardSync() || legacySyncShardCount == 1);
   }
 
   private boolean isConverted(Path projectViewFilePath) {
@@ -93,7 +94,7 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
 
   @Override
   public QuerySyncAutoConversionStats.Status calculateStatus(BlazeImportSettings blazeImportSettings, Path projectViewFilePath) {
-    if (isConverted(projectViewFilePath) || canConvert(projectViewFilePath)) {
+    if (isConverted(projectViewFilePath) || canConvert(projectViewFilePath, blazeImportSettings.getLegacySyncShardCount())) {
       return blazeImportSettings.getProjectType() == BlazeImportSettings.ProjectType.QUERY_SYNC ?
              QuerySyncAutoConversionStats.Status.CONVERTED : QuerySyncAutoConversionStats.Status.REVERTED;
     }
