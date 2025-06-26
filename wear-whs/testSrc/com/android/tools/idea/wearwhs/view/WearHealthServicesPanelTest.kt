@@ -23,8 +23,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.concurrency.mapState
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.FakeActionPopupMenu
@@ -40,6 +39,7 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
@@ -58,6 +58,7 @@ import javax.swing.JTextField
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -97,9 +98,8 @@ class WearHealthServicesPanelTest {
 
   @Before
   fun setUp() {
-    uiScope = AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.uiThread)
-    workerScope =
-      AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
+    uiScope = projectRule.testRootDisposable.createCoroutineScope(extraContext = Dispatchers.EDT)
+    workerScope = projectRule.testRootDisposable.createCoroutineScope(Dispatchers.Default)
     deviceManager = FakeDeviceManager()
 
     stateManager =
