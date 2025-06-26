@@ -38,10 +38,11 @@ fun getLeakStatusIcon(leakingStatus: LeakingStatus): IntelliJIconKey {
 }
 
 fun getLeakStatusColor(leakingStatus: LeakingStatus): Color {
+  val amber = Color(0xFFFFBF00)
   return when (leakingStatus) {
     LeakingStatus.YES -> Color.Red
-    LeakingStatus.UNKNOWN -> Color.Yellow
-    LeakingStatus.NO -> Color.LightGray
+    LeakingStatus.UNKNOWN -> amber
+    LeakingStatus.NO -> Color.Gray
   }
 }
 
