@@ -25,7 +25,7 @@ import java.nio.file.Path;
  * These settings are later used to convert a legacy sync project to Query Sync.
  */
 public interface QuerySyncConversionUtility {
-  boolean canConvert(Path projectViewFilePath);
+  boolean canConvert(Path projectViewFilePath, int legacySyncShardCount);
   void backupExistingProjectDirectories();
   boolean isConverted(ProjectViewSet.ProjectViewFile projectViewFile);
   QuerySyncAutoConversionStats.Status calculateStatus(BlazeImportSettings blazeImportSettings, Path projectViewFilePath);
