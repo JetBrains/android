@@ -6,5 +6,5 @@ dependencies {
     implementation files("../lib2/liba.jar")
 }
 
-sourceCompatibility = "7"
-targetCompatibility = "7"
+java.sourceCompatibility = JavaVersion.VERSION_1_7
+java.targetCompatibility = JavaVersion.VERSION_1_7

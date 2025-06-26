@@ -20,5 +20,5 @@ dependencies {
     implementation "com.example.jlib:lib4:0.6"
 }
 
-sourceCompatibility = "1.6"
-targetCompatibility = "1.6"
+java.sourceCompatibility = JavaVersion.VERSION_1_6
+java.targetCompatibility = JavaVersion.VERSION_1_6

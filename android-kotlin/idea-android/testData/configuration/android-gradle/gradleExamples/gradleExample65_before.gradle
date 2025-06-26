@@ -26,7 +26,7 @@ android {
 }
 
 group = 'com.example.android.multiproject'
-archivesBaseName = 'baseLib'
+base { archivesName = 'baseLib' }
 version = '1.0'
 
 uploadArchives {
