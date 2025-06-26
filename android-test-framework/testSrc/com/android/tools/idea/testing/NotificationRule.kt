@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
+import com.intellij.util.containers.ContainerUtil
 import org.junit.rules.ExternalResource
 import javax.swing.Icon
 
@@ -45,7 +46,7 @@ class NotificationRule(private val project: () -> Project) : ExternalResource() 
 
   constructor(rule: EdtAndroidProjectRule) : this(rule::project)
 
-  private val _notifications: MutableList<NotificationInfo> = mutableListOf()
+  private val _notifications: MutableList<NotificationInfo> = ContainerUtil.createConcurrentList()
   val notifications: List<NotificationInfo> = _notifications
 
   override fun before() {
