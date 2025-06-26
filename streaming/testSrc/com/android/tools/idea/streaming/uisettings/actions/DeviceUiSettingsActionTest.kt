@@ -18,6 +18,8 @@ package com.android.tools.idea.streaming.uisettings.actions
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.actions.executeAction
+import com.android.tools.adtui.actions.updateAndGetActionPresentation
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.findModelessDialog
@@ -27,7 +29,6 @@ import com.android.tools.idea.streaming.device.DeviceView
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.device.UNKNOWN_ORIENTATION
-import com.android.tools.idea.streaming.executeAction
 import com.android.tools.idea.streaming.uisettings.ui.APP_LANGUAGE_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.DARK_THEME_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.DENSITY_TITLE
@@ -37,7 +38,6 @@ import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
-import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces

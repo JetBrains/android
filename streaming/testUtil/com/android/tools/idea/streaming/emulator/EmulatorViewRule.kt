@@ -17,8 +17,8 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.actions.executeAction
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.executeAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
