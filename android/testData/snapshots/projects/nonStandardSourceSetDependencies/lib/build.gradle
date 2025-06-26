@@ -37,7 +37,7 @@ def manualTestFixturesJar = tasks.register("JarManualTestFixtures", Jar) {
     from(file("$buildDir/tmp/kotlin-classes/debugUnitTest"))
 
     includeEmptyDirs = false
-    archiveBaseName.set("manual-test-fixtures")
+    base { archivesName.set("manual-test-fixtures") }
 }
 
 artifacts {

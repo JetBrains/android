@@ -2458,8 +2458,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugApi                      : <empty>
                         debugApiDependenciesMetadata  : <empty>
                         debugApiElements              : <empty>
-                        - debugApiElements-published  : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                        - debugArchives               : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugApiElements-published  : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-debug.aar [-]
+                        - debugArchives               : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-debug.aar [-]
                         debugCompilationApi           : <empty>
                         debugCompilationCompileOnly   : <empty>
                         debugCompilationImplementation          : <empty>
@@ -2473,10 +2473,10 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugIntransitiveDependenciesMetadata   : <empty>
                         debugRuntimeClasspath         : <empty>
                         debugRuntimeElements          : <empty>
-                        - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
+                        - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-debug.aar [-]
                         debugRuntimeOnly              : <empty>
-                        - debugSourcesElements        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
-                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
+                        - debugSourcesElements        : <ROOT>/lib/build/libs/manual-test-fixtures-debug-sources.jar [-]
+                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/manual-test-fixtures-debug-sources.jar [-]
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestApi              : <empty>
                         debugUnitTestApiDependenciesMetadata    : <empty>
@@ -2516,8 +2516,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseApi                    : <empty>
                         releaseApiDependenciesMetadata          : <empty>
                         releaseApiElements            : <empty>
-                        - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                        - releaseArchives             : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseApiElements-published          : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]
+                        - releaseArchives             : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]
                         releaseCompilationApi         : <empty>
                         releaseCompilationCompileOnly : <empty>
                         releaseCompilationImplementation        : <empty>
@@ -2531,10 +2531,10 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseIntransitiveDependenciesMetadata : <empty>
                         releaseRuntimeClasspath       : <empty>
                         releaseRuntimeElements        : <empty>
-                        - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
+                        - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/manual-test-fixtures-release.aar [-]
                         releaseRuntimeOnly            : <empty>
-                        - releaseSourcesElements      : <ROOT>/lib/build/libs/lib-sources.jar [-]
-                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/lib-sources.jar [-]
+                        - releaseSourcesElements      : <ROOT>/lib/build/libs/manual-test-fixtures-sources.jar [-]
+                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/manual-test-fixtures-sources.jar [-]
                         releaseUnitTestAnnotationProcessorClasspath       : <empty>
                         releaseUnitTestApi            : <empty>
                         releaseUnitTestApiDependenciesMetadata  : <empty>
@@ -6576,7 +6576,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
                     jvmTarget                     : 17
-                    moduleName                    : lib_debug
+                    moduleName                    : manual-test-fixtures_debug
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -6593,7 +6593,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
                     jvmTarget                     : 17
-                    moduleName                    : lib_debugAndroidTest
+                    moduleName                    : manual-test-fixtures_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -6611,7 +6611,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
                     jvmTarget                     : 17
-                    moduleName                    : lib_debugUnitTest
+                    moduleName                    : manual-test-fixtures_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true

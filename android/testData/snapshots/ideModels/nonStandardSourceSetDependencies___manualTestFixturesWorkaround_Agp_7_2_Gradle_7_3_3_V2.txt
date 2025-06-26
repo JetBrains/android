@@ -2278,8 +2278,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugRuntimeElements          : <empty>
                         - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                         debugRuntimeOnly              : <empty>
-                        - debugSourcesElements        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
-                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
+                        - debugSourcesElements        : <ROOT>/lib/build/libs/manual-test-fixtures-debug-sources.jar [-]
+                        - debugSourcesElements-published        : <ROOT>/lib/build/libs/manual-test-fixtures-debug-sources.jar [-]
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestApi              : <empty>
                         debugUnitTestApiDependenciesMetadata    : <empty>
@@ -2338,8 +2338,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseRuntimeElements        : <empty>
                         - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                         releaseRuntimeOnly            : <empty>
-                        - releaseSourcesElements      : <ROOT>/lib/build/libs/lib-sources.jar [-]
-                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/lib-sources.jar [-]
+                        - releaseSourcesElements      : <ROOT>/lib/build/libs/manual-test-fixtures-sources.jar [-]
+                        - releaseSourcesElements-published      : <ROOT>/lib/build/libs/manual-test-fixtures-sources.jar [-]
                         releaseUnitTestAnnotationProcessorClasspath       : <empty>
                         releaseUnitTestApi            : <empty>
                         releaseUnitTestApiDependenciesMetadata  : <empty>
@@ -6443,7 +6443,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
                     jvmTarget                     : 1.8
-                    moduleName                    : lib_debug
+                    moduleName                    : manual-test-fixtures_debug
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -6460,7 +6460,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest
                     jvmTarget                     : 1.8
-                    moduleName                    : lib_debugAndroidTest
+                    moduleName                    : manual-test-fixtures_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
@@ -6477,7 +6477,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     backendThreads                : 1
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest
                     jvmTarget                     : 1.8
-                    moduleName                    : lib_debugUnitTest
+                    moduleName                    : manual-test-fixtures_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
                     noStdlib                      : true
