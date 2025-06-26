@@ -26,7 +26,11 @@ def _kt_library_test_impl(env, target):
         struct(
             compile_jars_depset = ["*.jar"],
             generated_outputs = [struct(
+                # aswb:bazel-only-begin(java_package is not available in bazel)
                 compile_jdeps = "",
+                # aswb:bazel-only-end-and-replace-begin
+                # compile_jdeps = "*.jdeps",
+                # aswb:replace-end
                 generated_source_jar = "",
                 generated_class_jar = "",
             )],

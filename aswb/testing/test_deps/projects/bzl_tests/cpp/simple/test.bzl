@@ -40,7 +40,11 @@ def _cc_library_test_impl(env, target):
             local_defines = [],
             quote_includes = [".", "{}".format(BAZEL_OUT_FASTBUILD)],
             system_includes = ["{}/foo/bar".format(TEST_TARGET_PACKAGE), "{}/{}/foo/bar".format(BAZEL_OUT_FASTBUILD, TEST_TARGET_PACKAGE)],
+            # aswb:bazel-only-begin(java_package is not available in bazel)
             validation_artifacts = [],
+            # aswb:bazel-only-end-and-replace-begin
+            # validation_artifacts = ["*"],
+            # aswb:replace-end
         ),
     )
     actual.toolchain_target().equals(CC_TOOLCHAIN_TARGET)
@@ -61,19 +65,26 @@ def _cc_binary_test_impl(env, target):
     actual.label().equals("//{}:{}".format(TEST_TARGET_PACKAGE, CC_BINARY_TARGET))
     actual.compilation_context().contains_exactly(
         struct(
-            defines = [],
             direct_headers = [],
             direct_private_headers = [],
             direct_public_headers = [],
             direct_textual_headers = [],
             external_includes = [],
             framework_includes = [],
-            headers = [],
             includes = [],
             local_defines = [],
             quote_includes = [".", "{}".format(BAZEL_OUT_FASTBUILD), "external/rules_cc+", "{}/external/rules_cc+".format(BAZEL_OUT_FASTBUILD), "external/bazel_tools", "{}/external/bazel_tools".format(BAZEL_OUT_FASTBUILD)],
+            # aswb:bazel-only-begin(java_package is not available in bazel)
+            defines = [],
+            headers = [],
             system_includes = [],
             validation_artifacts = [],
+            # aswb:bazel-only-end-and-replace-begin
+            #defines = ["*"],
+            #headers = ["*"],
+            #system_includes = ["*"],
+            # validation_artifacts = ["*"],
+            # aswb:replace-end
         ),
     )
     actual.toolchain_target().equals(CC_TOOLCHAIN_TARGET)
