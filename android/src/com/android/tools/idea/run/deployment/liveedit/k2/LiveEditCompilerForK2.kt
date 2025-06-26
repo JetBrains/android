@@ -20,8 +20,8 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
-import com.android.tools.idea.run.deployment.liveedit.readActionPrebuildChecks
 import com.android.tools.idea.run.deployment.liveedit.checkPsiErrorElement
+import com.android.tools.idea.run.deployment.liveedit.readActionPrebuildChecks
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.util.findAndroidModule
@@ -37,9 +37,12 @@ import org.jetbrains.kotlin.analysis.api.components.KaCompilerTarget
 import org.jetbrains.kotlin.analysis.api.diagnostics.getDefaultMessageWithFactoryName
 import org.jetbrains.kotlin.analysis.api.projectStructure.contextModule
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.idea.base.facet.implementingModules
 import org.jetbrains.kotlin.idea.base.facet.platform.platform
-import org.jetbrains.kotlin.idea.base.projectStructure.toKaSourceModuleForProductionOrTest
+import org.jetbrains.kotlin.idea.base.projectStructure.toKaSourceModuleForProduction
+import org.jetbrains.kotlin.idea.base.projectStructure.toKaSourceModuleForTest
 import org.jetbrains.kotlin.platform.isCommon
+import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
@@ -65,7 +68,14 @@ private fun getCompileTargetFile(original: KtFile, module: Module): KtFile {
     return original
   }
 
-  val sourceModule = module.findAndroidModule()?.toKaSourceModuleForProductionOrTest() ?: return original
+  if (module.implementingModules.filter { it.platform.isJvm() }.size < 2) {
+    return original
+  }
+
+  val androidModule = module.findAndroidModule() ?: return original
+  val sourceModule = androidModule.toKaSourceModuleForProduction()
+                     ?: androidModule.toKaSourceModuleForTest()
+                     ?: return original
 
   // create a dangling copy of this file with the proper (Android) context.
   val danglingFile = KtPsiFactory(module.project).createFile(original.name, original.text)
