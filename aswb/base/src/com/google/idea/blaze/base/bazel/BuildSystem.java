@@ -91,6 +91,10 @@ public interface BuildSystem {
        */
       SUPPORT_QUERY_FILE,
       /**
+       * Capability to run blaze/bazel build/test command with --target_pattern_file flag
+       */
+      SUPPORT_TARGET_PATTERN_FILE,
+      /**
        * Capability to debug Android local test
        */
       ATTACH_JAVA_DEBUGGER
