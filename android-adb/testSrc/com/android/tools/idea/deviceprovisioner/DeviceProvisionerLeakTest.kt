@@ -28,6 +28,7 @@ import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.testFramework.LeakHunter
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
@@ -96,13 +97,17 @@ class DeviceProvisionerLeakTest {
 
     runBlocking { withTimeout(5000) { job2.join() } }
 
-    LeakHunter.checkLeak(fakeAdbProvider.adbSession, DeviceProvisioner::class.java) {
-      !it.scope.isActive
+    runInEdtAndWait {
+      LeakHunter.checkLeak(fakeAdbProvider.adbSession, DeviceProvisioner::class.java) {
+        !it.scope.isActive
+      }
     }
 
     assertThat(handle1.state.connectedDevice).isSameAs(handle2.state.connectedDevice)
-    LeakHunter.checkLeak(handle1.state.connectedDevice!!, DeviceProvisioner::class.java) {
-      !it.scope.isActive
+    runInEdtAndWait {
+      LeakHunter.checkLeak(handle1.state.connectedDevice!!, DeviceProvisioner::class.java) {
+        !it.scope.isActive
+      }
     }
   }
 }
