@@ -37,9 +37,11 @@ import org.jetbrains.kotlin.analysis.api.components.KaCompilerTarget
 import org.jetbrains.kotlin.analysis.api.diagnostics.getDefaultMessageWithFactoryName
 import org.jetbrains.kotlin.analysis.api.projectStructure.contextModule
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.idea.base.facet.implementingModules
 import org.jetbrains.kotlin.idea.base.facet.platform.platform
 import org.jetbrains.kotlin.idea.base.projectStructure.toKaSourceModuleForProductionOrTest
 import org.jetbrains.kotlin.platform.isCommon
+import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
@@ -62,6 +64,10 @@ internal class LiveEditCompilerForK2(private val project: Project,
 @OptIn(KaExperimentalApi::class)
 private fun getCompileTargetFile(original: KtFile, module: Module): KtFile {
   if (!module.platform.isCommon()) {
+    return original
+  }
+
+  if (module.implementingModules.filter { it.platform.isJvm() }.size < 2) {
     return original
   }
 
