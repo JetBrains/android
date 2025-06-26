@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming
+package com.android.tools.adtui.actions
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
@@ -39,44 +39,49 @@ import java.awt.event.KeyEvent.CTRL_DOWN_MASK
 import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_E
 
-/** Executes an action related to device streaming. */
-fun executeAction(actionId: String, source: Component, project: Project? = null, place: String = ActionPlaces.TOOLBAR,
+/** Executes an action. */
+fun executeAction(actionId: String, source: Component? = null, project: Project? = null, place: String = ActionPlaces.TOOLBAR,
                   modifiers: Int = CTRL_DOWN_MASK, extra: DataSnapshotProvider? = null) {
   val action = ActionManager.getInstance().getAction(actionId)
   executeAction(action, source, project, place = place, modifiers = modifiers, extra = extra)
 }
 
-/** Executes an action related to device streaming. */
-fun executeAction(action: AnAction, source: Component, project: Project? = null, place: String = ActionPlaces.TOOLBAR,
+/** Executes an action. */
+fun executeAction(action: AnAction, source: Component? = null, project: Project? = null, place: String = ActionPlaces.TOOLBAR,
                   modifiers: Int = CTRL_DOWN_MASK, extra: DataSnapshotProvider? = null) {
   val event = createTestEvent(source, project, place = place, modifiers = modifiers, extra = extra)
   executeAction(action, event)
 }
 
+/** Executes an action. */
 fun executeAction(action: AnAction, event: AnActionEvent) {
   performDumbAwareUpdate(action, event, true)
   assertThat(event.presentation.isEnabledAndVisible).isTrue()
   performActionDumbAwareWithCallbacks(action, event)
 }
 
-fun updateAndGetActionPresentation(actionId: String, source: Component, project: Project? = null,
+/** Calls update on the action and returns [Presentation]. */
+fun updateAndGetActionPresentation(actionId: String, source: Component? = null, project: Project? = null,
                                    place: String = ActionPlaces.KEYBOARD_SHORTCUT, extra: DataSnapshotProvider? = null): Presentation {
   val action = ActionManager.getInstance().getAction(actionId)
   return updateAndGetActionPresentation(action, source, project, place = place, extra = extra)
 }
 
-fun updateAndGetActionPresentation(action: AnAction, source: Component, project: Project? = null,
+/** Calls update on the action and returns [Presentation]. */
+fun updateAndGetActionPresentation(action: AnAction, source: Component? = null, project: Project? = null,
                                    place: String = ActionPlaces.KEYBOARD_SHORTCUT, extra: DataSnapshotProvider? = null): Presentation {
   val event = createTestEvent(source, project, place, presentation = action.templatePresentation.clone(), extra = extra)
   return updateAndGetActionPresentation(action, event)
 }
 
+/** Calls update on the action and returns [Presentation]. */
 fun updateAndGetActionPresentation(action: AnAction, event: AnActionEvent): Presentation {
   performDumbAwareUpdate(action, event, false)
   return event.presentation
 }
 
-fun createTestEvent(source: Component, project: Project? = null, place: String = ActionPlaces.KEYBOARD_SHORTCUT,
+/** Creates a [AnActionEvent] for testing an action. */
+fun createTestEvent(source: Component? = null, project: Project? = null, place: String = ActionPlaces.KEYBOARD_SHORTCUT,
                     modifiers: Int = CTRL_DOWN_MASK, presentation: Presentation = Presentation(),
                     extra: DataSnapshotProvider? = null): AnActionEvent {
   val inputEvent = KeyEvent(source, KEY_RELEASED, System.currentTimeMillis(), modifiers, VK_E, CHAR_UNDEFINED)

@@ -21,6 +21,9 @@ import com.android.testutils.TestUtils
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.actions.createTestEvent
+import com.android.tools.adtui.actions.executeAction
+import com.android.tools.adtui.actions.updateAndGetActionPresentation
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
@@ -33,7 +36,6 @@ import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
-import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
@@ -43,8 +45,6 @@ import com.android.tools.idea.streaming.device.FakeScreenSharingAgent.ControlMes
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.device.actions.DeviceFoldingAction
 import com.android.tools.idea.streaming.device.xr.DeviceXrInputController
-import com.android.tools.idea.streaming.executeAction
-import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.override

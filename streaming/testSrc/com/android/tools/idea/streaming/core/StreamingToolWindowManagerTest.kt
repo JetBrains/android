@@ -31,6 +31,9 @@ import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.actions.createTestEvent
+import com.android.tools.adtui.actions.executeAction
+import com.android.tools.adtui.actions.updateAndGetActionPresentation
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
@@ -52,7 +55,6 @@ import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.ToolWindowHeadlessManagerImpl
 import com.android.tools.idea.streaming.createFakeToolWindow
-import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
@@ -61,8 +63,6 @@ import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.streaming.emulator.sendKeyEvent
-import com.android.tools.idea.streaming.executeAction
-import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.DisposerExplorer
 import com.android.tools.idea.testing.override
