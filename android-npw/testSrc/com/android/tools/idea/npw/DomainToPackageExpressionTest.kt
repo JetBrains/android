@@ -17,11 +17,16 @@ package com.android.tools.idea.npw
 
 import com.android.tools.idea.npw.project.DomainToPackageExpression
 import com.android.tools.idea.observable.core.StringValueProperty
+import com.intellij.testFramework.ApplicationRule
+import org.junit.Assert.assertEquals
+import org.junit.Rule
 import org.junit.Test
 
-import org.junit.Assert.assertEquals
-
 class DomainToPackageExpressionTest {
+
+  @get:Rule
+  val appRule = ApplicationRule()
+
   @Test
   fun packageNameDeriverSantizesCompanyDomainKey() {
     val companyDomain = StringValueProperty("sub.exa-mple.com")
