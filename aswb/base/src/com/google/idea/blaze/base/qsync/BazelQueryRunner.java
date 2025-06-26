@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 public class BazelQueryRunner implements QueryRunner {
 
   private static final BoolExperiment PREFER_REMOTE_QUERIES =
-      new BoolExperiment("query.sync.run.query.remotely", true);
+      new BoolExperiment("query.sync.run.query.remotely", false);
 
   private static final Logger logger = Logger.getInstance(BazelQueryRunner.class);
   // TODO b/374906681 - The 130000 figure comes from the command runner. Move it to the invoker instead of hardcoding.
