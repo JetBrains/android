@@ -68,8 +68,8 @@ def _target_label_equals(self, other):
         other: ([`Label`] | [`str`]) the expected value. If a `str` is passed, it
             will be converted to a `Label` using the `Label` function.
     """
-    if (type(self.actual)) != "Target":
-        self.meta.add_failure("Unexpected type {}".format(type(self.actual)))
+    if "label" not in dir(self.actual):
+        self.meta.add_failure("Unexpected type {}".format(type(self.actual)), "")
     return _label_subject_equals(struct(actual = self.actual.label, meta = self.meta), other)
 
 def nested_struct_factory(actual, *, meta, attrs):
@@ -135,7 +135,7 @@ def _struct_equal(actual, meta, attrs, expected):
 def collection_struct_contains_exactly(self, expecteds):
     """Check that a collection contains exactly the given elements.
 
-    * It handles the comparision of struct in collection compared to CollectionSubject.contains_exactly provided by rule_testing
+    * It handles the comparison of struct in collection compared to CollectionSubject.contains_exactly provided by rule_testing
     * The collection must contain all the values, no more or less. The None field should be passed as (attr_name: "")
 
     Args:
@@ -314,7 +314,7 @@ def _str_subject_equals(self, other):
    """
     if self.actual == other:
         return
-    if "*" in other:
+    if other and "*" in other:
         index = other.index("*")
         prefix = other[0:index]
         suffix = other[index + 1:]

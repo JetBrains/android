@@ -11,7 +11,8 @@ TEST_TARGET_PACKAGE = "bzl_tests/cpp/simple"
 BAZEL_OUT_FASTBUILD = "bazel-out/k8-fastbuild/bin"
 CC_TOOLCHAIN_TARGET = "@rules_cc//cc:current_cc_toolchain"
 CC_TOOLCHAIN_TARGET_LABEL = "@@rules_cc+//cc:current_cc_toolchain"
-GNU_SYSTEM_NAME = "local"
+COMPILER = "gcc"
+GNU_SYSTEM_NAME = "*"
 
 def _cc_library_test(name, **test_kwargs):
     analysis_test(name = name, impl = _cc_library_test_impl, target = ":cc_library_test_fixture", **test_kwargs)
@@ -35,11 +36,11 @@ def _cc_library_test_impl(env, target):
             direct_textual_headers = ["{}/simple_textual.h".format(TEST_TARGET_PACKAGE)],
             external_includes = [],
             framework_includes = [],
-            headers = ["{}/simple.h".format(TEST_TARGET_PACKAGE), "{}/simple_textual.h".format(TEST_TARGET_PACKAGE)],
+            headers = ["*"],
             includes = [],
             local_defines = [],
-            quote_includes = [".", "{}".format(BAZEL_OUT_FASTBUILD)],
-            system_includes = ["{}/foo/bar".format(TEST_TARGET_PACKAGE), "{}/{}/foo/bar".format(BAZEL_OUT_FASTBUILD, TEST_TARGET_PACKAGE)],
+            quote_includes = ["*"],
+            system_includes = ["*"],
             # aswb:bazel-only-begin(java_package is not available in bazel)
             validation_artifacts = [],
             # aswb:bazel-only-end-and-replace-begin
@@ -73,16 +74,16 @@ def _cc_binary_test_impl(env, target):
             framework_includes = [],
             includes = [],
             local_defines = [],
-            quote_includes = [".", "{}".format(BAZEL_OUT_FASTBUILD), "external/rules_cc+", "{}/external/rules_cc+".format(BAZEL_OUT_FASTBUILD), "external/bazel_tools", "{}/external/bazel_tools".format(BAZEL_OUT_FASTBUILD)],
+            quote_includes = ["*"],
             # aswb:bazel-only-begin(java_package is not available in bazel)
             defines = [],
             headers = [],
             system_includes = [],
             validation_artifacts = [],
             # aswb:bazel-only-end-and-replace-begin
-            #defines = ["*"],
-            #headers = ["*"],
-            #system_includes = ["*"],
+            # defines = ["*"],
+            # headers = ["*"],
+            # system_includes = ["*"],
             # validation_artifacts = ["*"],
             # aswb:replace-end
         ),
@@ -110,7 +111,7 @@ def _cc_toolchain_test_impl(env, target):
             id = CC_TOOLCHAIN_TARGET_LABEL + "%" + GNU_SYSTEM_NAME,
             compiler_executable = "*",
             cpu = "k8",
-            compiler = "gcc",
+            compiler = COMPILER,
             target_name = GNU_SYSTEM_NAME,
             built_in_include_directories = ["*"],
             c_options = ["*"],

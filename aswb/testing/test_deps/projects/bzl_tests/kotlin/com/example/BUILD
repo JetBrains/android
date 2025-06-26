@@ -29,7 +29,7 @@ kt_jvm_binary(
 #    name = "foo",
 #    main_class = "com.example.MyMainClass",
 #    runtime_deps = [":foolib"],
-#)
+# )
 # aswb:replace-end
 
 build_dependencies_deps_test_fixture(

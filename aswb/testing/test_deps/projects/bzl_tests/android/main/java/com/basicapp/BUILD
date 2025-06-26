@@ -8,7 +8,4 @@ android_library(
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
     visibility = ["//visibility:public"],
-    deps = [
-        "@maven//:com_google_guava_guava",
-    ],
 )
