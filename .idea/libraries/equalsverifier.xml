@@ -2,6 +2,7 @@
   <library name="equalsverifier">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/nl/jqno/equalsverifier/equalsverifier/3.15.6/equalsverifier-3.15.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
