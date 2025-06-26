@@ -240,6 +240,7 @@ private fun createHeader(
 ): JPanel = panel {
   val resetButton =
     ActionLink(message("wear.whs.panel.reset")).apply {
+      toolTipText = message("wear.whs.panel.reset.tooltip")
       autoHideOnDisable = false
       addActionListener { reset() }
     }
