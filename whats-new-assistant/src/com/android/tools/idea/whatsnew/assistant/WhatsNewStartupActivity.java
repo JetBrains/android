@@ -48,6 +48,11 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
       return;
     }
 
+    // b/428227953: Hide in Android Studio Cloud, where the Gemini tool window takes priority.
+    if (System.getenv("GOOGLE_CLOUD_WORKSTATIONS") != null) {
+      return;
+    }
+
     WhatsNewService service = ApplicationManager.getApplication().getService(WhatsNewService.class);
     if (service == null) {
       return;
