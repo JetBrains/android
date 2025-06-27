@@ -16,15 +16,20 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_1_8_PATH
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.VfsTestUtil
+import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -49,7 +54,8 @@ class ProjectJdkRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
   }
 
   @After
-  fun removeJdk17FromProjectTable() {
+  fun tearDown() {
+    Registry.get("gradle.daemon.jvm.criteria").resetToDefault()
     jdk17?.let { runWriteAction { ProjectJdkTable.getInstance().removeJdk(it) } }?.also { jdk17 = null }
   }
 
@@ -89,6 +95,21 @@ class ProjectJdkRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
     val processor = ProjectJdkRefactoringProcessor(project, AgpVersion.parse("4.0.0"), AgpVersion.parse("7.0.0"))
     // This is blocked because the Project JDK Table has no entry for JDK11
     assertTrue(processor.isBlocked)
+  }
+
+  @Test
+  fun testNoUpdateIfProjectUsesDaemonJvmCriteria() {
+    Registry.get("gradle.daemon.jvm.criteria").setValue(true)
+    createDaemonJvmPropertiesFile("21")
+    GradleWrapper.find(project)?.updateDistributionUrl(GradleVersion.version("8.13"))
+    setGradleInstallationPath(JDK_1_8_PATH)
+
+    val processor = ProjectJdkRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0"))
+    assertThat(processor.findUsages()).isEmpty()
+  }
+
+  private fun createDaemonJvmPropertiesFile(version: String?) {
+    VfsTestUtil.createFile(project.guessProjectDir()!!, "gradle/gradle-daemon-jvm.properties", version?.let { "toolchainVersion=$version" }.orEmpty())
   }
 
   private fun setGradleInstallationPath(path: String) {
