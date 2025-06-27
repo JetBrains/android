@@ -281,22 +281,16 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
       LOG.info("Play Vitals gRpc server connected at $address")
       return VitalsGrpcClientImpl(
         channel =
-          channelBuilderForAddress(address)
-            .apply {
-              if (StudioFlags.PLAY_VITALS_GRPC_USE_TRANSPORT_SECURITY.get()) useTransportSecurity()
-              else usePlaintext()
-            }
-            .build()
-            .also {
-              try {
-                Disposer.register(parentDisposable) {
-                  it.shutdown()
-                  it.awaitTermination(1, TimeUnit.SECONDS)
-                }
-              } catch (e: IncorrectOperationException) {
-                it.shutdownNow()
+          channelBuilderForAddress(address).useTransportSecurity().build().also {
+            try {
+              Disposer.register(parentDisposable) {
+                it.shutdown()
+                it.awaitTermination(1, TimeUnit.SECONDS)
               }
-            },
+            } catch (e: IncorrectOperationException) {
+              it.shutdownNow()
+            }
+          },
         authTokenInterceptor = interceptor,
       )
     }

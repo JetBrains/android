@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import io.grpc.Server
 import io.grpc.ServerBuilder
+import io.netty.handler.ssl.util.SelfSignedCertificate
 import java.util.concurrent.TimeUnit
 import org.junit.runner.Description
 
@@ -30,10 +31,12 @@ class VitalsGrpcServerRule(
   lateinit var server: Server
   val database = FakeVitalsDatabase(connection)
   val clock = FakeClock()
+  val cert = SelfSignedCertificate()
 
   override fun before(description: Description) {
     server =
       ServerBuilder.forPort(0)
+        .useTransportSecurity(cert.certificate(), cert.privateKey())
         .addService(FakeErrorsService(connection, database, clock))
         .addService(FakeReportingService(connection))
         .directExecutor()

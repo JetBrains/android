@@ -18,7 +18,6 @@ package com.android.tools.idea.vitals.ui
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsContentPanel
@@ -103,17 +102,15 @@ class VitalsContentContainerPanel(
 
     val toolWindowList =
       mutableListOf<AppInsightsToolWindowDefinition>().apply {
-        if (StudioFlags.PLAY_VITALS_INSIGHT_IN_TOOLWINDOW.get()) {
-          add(
-            InsightToolWindow.create(
-              projectController,
-              this@VitalsContentContainerPanel,
-              VitalsInsightPermissionDeniedHandler(),
-              tabVisibilityFlow,
-              tracker,
-            )
+        add(
+          InsightToolWindow.create(
+            projectController,
+            this@VitalsContentContainerPanel,
+            VitalsInsightPermissionDeniedHandler(),
+            tabVisibilityFlow,
+            tracker,
           )
-        }
+        )
 
         add(
           DistributionToolWindow.create(
