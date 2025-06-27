@@ -111,7 +111,7 @@ internal constructor(
         cancellable(),
       ) {
         reportSequentialProgress { reporter ->
-          var steps = if (applicationId == null) 4 else 3
+          val steps = if (applicationId == null) 4 else 3
           var step = 0
           withContext(Default) {
             reporter.onStep(Step(++step, steps, "Checking device..."))
@@ -135,11 +135,11 @@ internal constructor(
               project.showDialog(message("error.application.not.debuggable", appId))
               return@withContext null
             }
-            steps += debuggableApps.size - 1
+            @Suppress("AssignedValueIsNeverRead")
+            reporter.onStep(Step(++step, steps, "Checking apps..."))
             val appIdToBackupEnabledMap =
               withContext(Default) {
                 debuggableApps.withIndex().associate {
-                  reporter.onStep(Step(++step, steps, "Checking ${it.value}"))
                   it.value to backupService.isBackupEnabled(serialNumber, it.value)
                 }
               }
@@ -218,7 +218,7 @@ internal constructor(
       result.notifyRestore(operation, serialNumber)
     }
     if (result is Error) {
-      logger.warn(message("notification.error", operation), result.throwable)
+      result.logWarning(message("notification.error", operation))
     }
     BackupUsageTracker.logRestore(source, result)
     return result
@@ -285,7 +285,7 @@ internal constructor(
         when (result) {
           is Success -> virtualFileManager.refreshAndFindFileByNioPath(backupFile)
           is WithoutAppData -> virtualFileManager.refreshAndFindFileByNioPath(backupFile)
-          is Error -> logger.warn(message("notification.error", operation), result.throwable)
+          is Error -> result.logWarning(message("notification.error", operation))
         }
         BackupUsageTracker.logBackup(type, source, result)
         result
@@ -404,7 +404,7 @@ internal constructor(
     AdbLibService.getSession(project).scope.launch {
       val result = backupService.sendUpdateGmsIntent(serialNumber)
       if (result is Error) {
-        logger.warn("Error Updating Google Services", result.throwable)
+        result.logWarning("Error Updating Google Services")
         val message =
           when (result.errorCode) {
             PLAY_STORE_NOT_INSTALLED -> message("open.play.store.error.unavailable")
@@ -444,3 +444,9 @@ internal constructor(
 
 private val ProcessHandler.applicationId: String?
   get() = getUserData(AndroidSessionInfo.KEY)?.applicationId
+
+private fun Error.logWarning(text: String) {
+  if (throwable !is CancellationException) {
+    logger.warn(text, throwable)
+  }
+}
