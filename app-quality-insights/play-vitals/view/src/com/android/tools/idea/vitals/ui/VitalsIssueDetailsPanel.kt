@@ -21,7 +21,6 @@ import com.android.tools.adtui.common.WrappedFlowLayout
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi.RequestSource.PLAY_VITALS
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
@@ -48,7 +47,6 @@ import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
 import com.android.tools.idea.insights.ui.SELECTED_EVENT_KEY
 import com.android.tools.idea.insights.ui.StackTraceConsole
 import com.android.tools.idea.insights.ui.TabbedPaneDefinition
-import com.android.tools.idea.insights.ui.createInsightToolBar
 import com.android.tools.idea.insights.ui.dateFormatter
 import com.android.tools.idea.insights.ui.prettyRangeString
 import com.android.tools.idea.insights.ui.shortenEventId
@@ -347,13 +345,6 @@ class VitalsIssueDetailsPanel(
           layout = BoxLayout(this, BoxLayout.X_AXIS)
           add(affectedVersionsLabel)
           add(Box.createHorizontalGlue())
-          if (!StudioFlags.PLAY_VITALS_INSIGHT_IN_TOOLWINDOW.get()) {
-            // Work around for Gemini's onboarding flow not exposed.
-            // Action system will take care of calling update on InsightAction.
-            // InsightAction (added when creating toolbar) updates the text depending on Gemini's
-            // onboarding status
-            createInsightToolBar("play vitals", this).also { add(it.component) }
-          }
         }
       )
       add(Box.createVerticalStrut(5))

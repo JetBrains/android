@@ -24,9 +24,13 @@ import com.android.tools.idea.vitals.client.grpc.MOST_AFFECTED_OS
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcServerRule
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.google.common.truth.Truth.assertThat
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.security.KeyStore
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.pathString
 import org.junit.Rule
 import org.junit.Test
 
@@ -99,12 +103,23 @@ class VitalsIntegrationTest {
     )
 
     val install = system.installation
+    // Create a temp truststore to add the certificate of the local AIServiceGrpc sever there
+    val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
+    val tempKeystorePath = Files.createTempFile("e2e_test_truststore", ".jks")
+    val defaultTrustStorePath =
+      System.getProperty("javax.net.ssl.trustStore")
+        ?: (System.getProperty("java.home") + "/lib/security/cacerts")
+    FileInputStream(defaultTrustStorePath).use { fis -> keyStore.load(fis, null) }
+    keyStore.setCertificateEntry("E2E test", grpcServerRule.cert.cert())
+    FileOutputStream(tempKeystorePath.pathString).use { fos -> keyStore.store(fos, null) }
+
+    // Configure Studio to use temp truststore that contains certificate of the local AIServiceGrpc
+    system.installation.addVmOption("-Djavax.net.ssl.trustStore=${tempKeystorePath.pathString}")
 
     install.addVmOption("-Dappinsights.enable.play.vitals=true")
     install.addVmOption(
       "-Dappinsights.play.vitals.grpc.server=localhost:${grpcServerRule.server.port}"
     )
-    install.addVmOption("-Dappinsights.play.vitals.grpc.use.transport.security=false")
     install.addVmOption("-Dappinsights.gemini.fetch.real.insight=false")
     install.addVmOption("-Dappinsights.play.vitals.show.insight.tool.window=true")
     system.setEnv("GOOGLE_LOGIN_USER", "test_user@google.com")

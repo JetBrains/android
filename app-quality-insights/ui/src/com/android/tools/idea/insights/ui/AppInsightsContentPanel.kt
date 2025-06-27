@@ -16,7 +16,6 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Event
@@ -88,9 +87,9 @@ class AppInsightsContentPanel(
     workBench: WorkBench<AppInsightsToolWindowContext>,
     firstToolWindowName: String,
   ) {
-    if (name.contains("CRASHLYTICS") && StudioFlags.CRASHLYTICS_INSIGHT_IN_TOOLWINDOW.get()) {
+    if (name.contains("CRASHLYTICS")) {
       restoreToolWindowOrder(name, workBench, firstToolWindowName)
-    } else if (name.contains("VITALS") && StudioFlags.PLAY_VITALS_INSIGHT_IN_TOOLWINDOW.get()) {
+    } else if (name.contains("VITALS")) {
       restoreToolWindowOrder(name, workBench, firstToolWindowName)
     }
   }

@@ -1906,15 +1906,6 @@ public final class StudioFlags {
   // region App Insights
   private static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
 
-  public static final Flag<String> APP_INSIGHTS_AI_INSIGHT_ENDPOINT =
-    new StringFlag(
-      APP_INSIGHTS,
-      "app.insights.ai.insight.endpoint",
-      "App insights AI insight endpoint",
-      "Endpoint for getting AI insight",
-      "cloudaicompanion.googleapis.com"
-    );
-
   public static final Flag<Boolean> GEMINI_FETCH_REAL_INSIGHT =
     new BooleanFlag(
       APP_INSIGHTS,
@@ -1957,15 +1948,6 @@ public final class StudioFlags {
       "Set Crashlytics to be in integration test mode.",
       false);
 
-  public static final Flag<Boolean> CRASHLYTICS_INSIGHT_IN_TOOLWINDOW =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "crashlytics.show.insight.tool.window",
-      "Show insight toolwindow in Crashlytics",
-      "Show AI generated insights for Crashlytics issue in insight toolwindow",
-      true
-    );
-
   public static final Flag<String> PLAY_VITALS_GRPC_SERVER =
     new StringFlag(
       APP_INSIGHTS,
@@ -1974,30 +1956,6 @@ public final class StudioFlags {
       "Set Play Vitals gRpc server address, mainly used for testing purposes.",
       "playdeveloperreporting.googleapis.com");
 
-  public static final Flag<Boolean> PLAY_VITALS_GRPC_USE_TRANSPORT_SECURITY =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "play.vitals.grpc.use.transport.security",
-      "Use transport security",
-      "Set Play Vitals gRpc channel to use transport security",
-      true);
-
-  public static final Flag<Boolean> PLAY_VITALS_VCS_INTEGRATION_ENABLED =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "play.vitals.vcs.integration",
-      "Enable VCS integration for Play Vitals.",
-      "Enhance code navigation in the Play Vitals tab to aid crash investigation with the recorded VCS info",
-      true);
-
-  public static final Flag<Boolean> PLAY_VITALS_INSIGHT_IN_TOOLWINDOW =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "play.vitals.show.insight.tool.window",
-      "Show insight toolwindow in Play Vitals",
-      "Show AI generated insights for Play Vitals issue in insight toolwindow",
-      true
-    );
   // endregion App Insights
 
   // region App Links Assistant

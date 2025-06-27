@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
@@ -23,7 +22,6 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.adtui.workbench.WorkBenchManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
@@ -54,10 +52,7 @@ class AppInsightsContentPanelTest {
 
   @get:Rule
   val ruleChain: RuleChain =
-    RuleChain.outerRule(EdtRule())
-      .around(projectRule)
-      .around(controllerRule)
-      .around(FlagRule(StudioFlags.CRASHLYTICS_INSIGHT_IN_TOOLWINDOW, true))
+    RuleChain.outerRule(EdtRule()).around(projectRule).around(controllerRule)
 
   private val fakeToolWindowList =
     mutableListOf<AppInsightsToolWindowDefinition>().apply {
