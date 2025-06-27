@@ -51,7 +51,13 @@ internal class AndroidStudioDefaultToolWindowLayoutExtension : DefaultToolWindow
       addOrUpdate("Device Manager") { weight = 0.25f }
       addOrUpdate("Device Manager 2") { weight = 0.25f }
       addOrUpdate("Running Devices") { weight = 0.25f }
-      addOrUpdate("StudioBot") { weight = 0.25f }
+      addOrUpdate("StudioBot") {
+        // b/428227953: Open the Gemini tool window by default in Android Studio Cloud.
+        if (System.getenv("GOOGLE_CLOUD_WORKSTATIONS") != null) {
+          isVisible = true
+        }
+        weight = 0.25f
+      }
     }
 
     builder.bottom.apply {
