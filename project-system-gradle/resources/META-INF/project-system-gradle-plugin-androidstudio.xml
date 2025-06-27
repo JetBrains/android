@@ -31,7 +31,6 @@
                          key="settings.build.tools.display.name" bundle="messages.ExternalSystemBundle"/>
     <advancedSetting default="false" id="project.view.default" bundle="messages.AndroidBundle"
                      groupKey="group.advanced.settings.project.view"
-                     descriptionKey="advanced.setting.project.view.default.description"
                      service="com.android.tools.idea.gradle.projectView.AndroidProjectViewSettings"
                      property="defaultToProjectView"/>
     <applicationService
