@@ -140,15 +140,21 @@ public class StudioExceptionReport extends BaseStudioReport {
     }
   }
 
-  // Similar to ExceptionUtil.getRootCause, but attempts to avoid infinite recursion
   @NotNull
-  public static Throwable getRootCause(@NotNull Throwable t) {
+  public static Throwable getRootCause(@NotNull Throwable throwable) {
     int depth = 0;
-    while (depth++ < 20) {
-      if (t.getCause() == null) return t;
-      t = t.getCause();
+    Throwable rootCause = throwable;
+
+    while (true) {
+      // This loop shouldn't run indefinitely, but just in case it happens, set a limit here
+      if (depth++ == 1000) break;
+
+      if (rootCause.getCause() == null) break;
+
+      rootCause = rootCause.getCause();
     }
-    return t;
+
+    return rootCause;
   }
 
   @NotNull

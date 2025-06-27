@@ -85,10 +85,7 @@ class ExceptionDataCollection {
     fun calculateSignature(t: Throwable): String {
       val digest = MessageDigest.getInstance("SHA-1")
 
-      var rootCause = t
-      while (true) {
-        rootCause = rootCause.cause ?: break
-      }
+      var rootCause = StudioExceptionReport.getRootCause(t)
       val originalStackTrace = rootCause.stackTrace
 
       if (originalStackTrace.isEmpty()) {
