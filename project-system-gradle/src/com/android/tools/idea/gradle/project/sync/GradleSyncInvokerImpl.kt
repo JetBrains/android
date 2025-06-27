@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.project.AndroidNotification
-import com.intellij.ide.impl.isTrusted
+import com.intellij.ide.trustedProjects.TrustedProjects
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -41,7 +41,7 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
    */
   @Suppress("UnstableApiUsage")
   override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
-    if (!project.isTrusted()) {
+    if (!TrustedProjects.isProjectTrusted(project)) {
       LOG.info("Skip ${project.name} import, because project is not trusted", Throwable())
       listener?.syncSkipped(project)
       return

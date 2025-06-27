@@ -72,6 +72,10 @@
                         serviceImplementation="com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier"/>
     <execution.applicationRunLineMarkerHider implementation="com.android.tools.idea.run.AndroidRunMarkerHider"/>
     <postStartupActivity implementation="com.android.tools.idea.project.LibraryToolWindowInitializer"/>
+
+    <projectService serviceImplementation="com.android.tools.idea.stats.ToolWindowTrackerService"/>
+
+    <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
   </extensions>
 
   <applicationListeners>
@@ -125,10 +129,10 @@
       <add-to-group group-id="Internal.HeapAnalysis"/>
     </action>
 
-    <action class="com.android.tools.idea.diagnostics.heap.CollectMemoryUsageStatisticsAction" id="CollectMemoryUsageStatistics"
-            text="Collect Studio Components Memory Usage Statistics" internal="true">
-      <add-to-group group-id="Internal.HeapAnalysis"/>
-    </action>
+<!--    <action class="com.android.tools.idea.diagnostics.heap.CollectMemoryUsageStatisticsAction" id="CollectMemoryUsageStatistics"-->
+<!--            text="Collect Studio Components Memory Usage Statistics" internal="true">-->
+<!--      <add-to-group group-id="Internal.HeapAnalysis"/>-->
+<!--    </action>-->
 
     <group id="Internal.JavaFlightRecorder" text="Java Flight Recorder" popup="true" internal="true">
       <add-to-group group-id="Internal" anchor="after" relative-to-action="Internal.HeapAnalysis"/>
@@ -188,6 +192,10 @@
         class="com.android.tools.idea.actions.ResetUserIdAction"
         text="Reset Data Sharing User Identifier"
         description="Reset Data Sharing User Identifier"/>
+
+    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
+      <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -215,9 +223,16 @@
                      implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>
 
     <applicationConfigurable parentId="preferences.general"
-                             displayName="Memory Settings"
+                             bundle="messages.AndroidBundle"
+                             key="configurable.MemorySettingsConfigurable.display.name"
                              provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
                              id="memory.settings"/>
+
+    <!-- Note: in Idea this configurable has different groupId: build.android -->
+    <applicationConfigurable groupId="build" id="instant.run"
+                             provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"
+                             bundle="messages.AndroidBundle"
+                             key="configurable.DeploymentConfigurable.displayName"/>
 
     <statistic.eventLog.eventLoggerProvider implementation="com.android.tools.idea.stats.AndroidStudioStatisticsEventLoggerProvider"/>
     <projectService serviceInterface="com.intellij.codeInsight.NullableNotNullManager"
@@ -233,6 +248,12 @@
               topic="com.intellij.openapi.project.ProjectCloseListener"/>
     <listener class="com.android.tools.idea.stats.AndroidStudioUsageTracker$UsageTrackerAppLifecycleListener"
               topic="com.intellij.ide.AppLifecycleListener"/>
+    <listener class="com.android.tools.idea.stats.ToolWindowTrackerService$Companion$LazyListener"
+              topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener"/>
+    <listener class="com.android.tools.idea.navigator.ProjectViewListener"
+              activeInHeadlessMode="false"
+              activeInTestMode="false"
+              topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener"/>
   </applicationListeners>
   <projectListeners>
     <listener class="com.android.tools.idea.navigator.ProjectViewListener"

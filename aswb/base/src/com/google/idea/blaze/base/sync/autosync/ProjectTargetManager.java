@@ -45,7 +45,7 @@ public interface ProjectTargetManager {
 
   /**
    * Returns the {@link SyncStatus} of a given source file, or null if it can't be synced (e.g.
-   * doesn't have a parent BUILD package in the workspace).
+   * doesn't have a parent ~BUILD package in the workspace).
    */
   @Nullable
   SyncStatus getSyncStatus(File sourceFile);

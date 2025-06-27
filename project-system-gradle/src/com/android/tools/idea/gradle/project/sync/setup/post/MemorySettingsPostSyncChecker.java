@@ -118,7 +118,7 @@ public class MemorySettingsPostSyncChecker {
                            -1, -1, -1);
   }
 
-  static class MemorySettingsNotification extends Notification {
+  public static class MemorySettingsNotification extends Notification {
     public MemorySettingsNotification(String content) {
       super(NOTIFICATION_GROUP.getDisplayId(), "Memory Settings", content, NotificationType.INFORMATION);
     }

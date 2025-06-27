@@ -19,6 +19,7 @@ import com.android.ide.common.util.Cancelable
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.annotations.TestOnly
 import java.lang.ref.WeakReference
 import java.time.Duration
 import java.util.ArrayDeque
@@ -28,7 +29,6 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import org.jetbrains.annotations.TestOnly
 
 /**
  * An actions queue that will execute them once they get out of the LRU [maxLruPlaces] or after the

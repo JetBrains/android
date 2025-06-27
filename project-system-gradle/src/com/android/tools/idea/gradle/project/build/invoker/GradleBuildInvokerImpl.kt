@@ -83,7 +83,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.io.FileSystemUtil
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.RefreshQueue
@@ -594,7 +594,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       val isAsynchronous = !ApplicationManager.getApplication().isUnitTestMode
 
       for (outputRoot in allOutputs) {
-        val attributes = FileSystemUtil.getAttributes(FileUtil.toSystemDependentName(outputRoot))
+        val attributes = FileSystemUtil.getAttributes(FileUtilRt.toSystemDependentName(outputRoot));
         val vFile = fs.findFileByPath(outputRoot)
 
         if (vFile == null) {

@@ -15,21 +15,24 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.repository.api.*;
+import com.android.repository.api.PackageOperation;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.intellij.ui.SimpleTextAttributes;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import javax.swing.JTree;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a row in a table in {@link SdkUpdaterConfigurable} associated with a single package.
  * Can have three state: not installed, installed but with update available, and installed.
  */
-class DetailsTreeNode extends UpdaterTreeNode {
+public class DetailsTreeNode extends UpdaterTreeNode {
   private PackageNodeModel myModel;
   private final ChangeListener myChangeListener;
   private SdkUpdaterConfigurable myConfigurable;

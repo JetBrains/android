@@ -17,11 +17,10 @@ package com.android.tools.idea.observable.ui;
 
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.IntProperty;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import org.jetbrains.annotations.NotNull;
 
 
 /**

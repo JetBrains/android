@@ -299,9 +299,9 @@ class SceneViewPeerPanel(
     return Dimension(
       maxOf(sceneViewTopPanel.minimumSize.width, SCENE_VIEW_PEER_PANEL_MIN_WIDTH, centerPanelWidth),
       BOTTOM_BORDER_HEIGHT +
-        centerPanelHeight +
-        sceneViewTopPanel.minimumSize.height +
-        JBUI.scale(20),
+      centerPanelHeight +
+      sceneViewTopPanel.minimumSize.height +
+      JBUI.scale(20),
     )
   }
 
@@ -311,7 +311,7 @@ class SceneViewPeerPanel(
 
   private fun isHiddenInOrganizationGroup() =
     isOrganizationEnabled.value &&
-      sceneView.sceneManager.model.organizationGroup?.isOpened?.value == false
+    sceneView.sceneManager.model.organizationGroup?.isOpened?.value == false
 
   override fun uiDataSnapshot(sink: DataSink) {
     sink[SCENE_VIEW] = sceneView

@@ -15,12 +15,13 @@
  */
 package com.android.tools.rendering
 
+import com.intellij.DynamicBundle
+import org.jetbrains.annotations.NonNls
+import org.jetbrains.annotations.PropertyKey
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.text.MessageFormat
 import java.util.ResourceBundle
-import org.jetbrains.annotations.NonNls
-import org.jetbrains.annotations.PropertyKey
 
 /** Messages bundle. */
 object RenderingBundle {
@@ -30,7 +31,7 @@ object RenderingBundle {
     get() {
       var bundle = ourBundle?.get()
       if (bundle == null) {
-        bundle = ResourceBundle.getBundle(BUNDLE_NAME)
+        bundle = DynamicBundle.getResourceBundle(RenderingBundle::class.java.classLoader, BUNDLE_NAME)
         ourBundle = SoftReference(bundle)
       }
       return bundle

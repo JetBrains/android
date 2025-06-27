@@ -15,10 +15,11 @@
  */
 package com.android.tools.nativeSymbolizer
 
+import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.downloads.AndroidProfilerDownloader
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import java.io.File
 import java.io.IOException
@@ -77,7 +78,11 @@ fun getLlvmSymbolizerPath(): String {
   val result = if (StudioPathManager.isRunningFromSources()) {
     StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/$os/lldb/bin/$exe")
   } else {
-    Paths.get(PathManager.getHomePath(), "plugins/android-ndk/resources/lldb/bin/$exe")
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      Paths.get(PathManager.getHomePath(), "plugins/android-ndk/resources/lldb/bin/$exe")
+    } else {
+      AndroidProfilerDownloader.getInstance().getHostDir("plugins/android/resources/llvm-symbolizer/$os/$exe")
+    }
   }
   return result.toString()
 }

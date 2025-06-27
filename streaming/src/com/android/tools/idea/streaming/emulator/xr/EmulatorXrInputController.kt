@@ -37,11 +37,11 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.awt.Dimension
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.math.min
@@ -197,7 +197,7 @@ internal class EmulatorXrInputController(private val emulator: EmulatorControlle
 @Service(Service.Level.PROJECT)
 internal class EmulatorXrInputControllerService(project: Project): Disposable {
 
-  private val xrControllers = ConcurrentMap<EmulatorController, EmulatorXrInputController>()
+  private val xrControllers = ConcurrentHashMap<EmulatorController, EmulatorXrInputController>()
   private val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
 
   fun getXrInputController(emulator: EmulatorController): EmulatorXrInputController {

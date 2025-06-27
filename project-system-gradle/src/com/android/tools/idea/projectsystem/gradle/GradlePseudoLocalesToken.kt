@@ -21,7 +21,6 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.PseudoLocalesToken
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 
 class GradlePseudoLocalesToken: PseudoLocalesToken, GradleToken {
   override fun isPseudoLocalesEnabled(applicationProjectContext: ApplicationProjectContext): PseudoLocalesToken.PseudoLocalesState {

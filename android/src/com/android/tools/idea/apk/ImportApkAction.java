@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.apk;
 
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getManager;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+
 import com.android.tools.idea.apk.debugging.ApkDebugging;
 import com.android.tools.idea.project.CustomProjectTypeImporter;
 import com.google.common.annotations.VisibleForTesting;
@@ -34,12 +37,10 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getManager;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-
 public class ImportApkAction extends DumbAwareAction {
   @VisibleForTesting
-  @NonNls static final String LAST_IMPORTED_LOCATION = "last.apk.imported.location";
+  @NonNls
+  public static final String LAST_IMPORTED_LOCATION = "last.apk.imported.location";
 
   @NotNull private final PropertiesComponent myPropertiesComponent;
   @NotNull private final CustomProjectTypeImporter.MainImporter myProjectTypeImporter;
@@ -53,7 +54,7 @@ public class ImportApkAction extends DumbAwareAction {
   }
 
   @VisibleForTesting
-  ImportApkAction(@NotNull PropertiesComponent propertiesComponent,
+  public ImportApkAction(@NotNull PropertiesComponent propertiesComponent,
                   @NotNull CustomProjectTypeImporter.MainImporter projectTypeImporter,
                   @NotNull FileChooserDialogFactory fileChooserDialogFactory,
                   @NotNull RecentProjectsManager recentProjectsManager,
@@ -104,7 +105,7 @@ public class ImportApkAction extends DumbAwareAction {
   }
 
   @VisibleForTesting
-  static class FileChooserDialogFactory {
+  public static class FileChooserDialogFactory {
     @NotNull
     FileChooserDialog create(@NotNull ExternalSystemManager<?, ?, ?, ?, ?> externalSystemManager) {
       return new FileChooserDialogImpl(externalSystemManager.getExternalProjectDescriptor(), (Project)null);

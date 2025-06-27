@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.assistant.view;
 
-import javax.swing.*;
 import java.awt.event.ActionListener;
+import javax.swing.JButton;
 
 /**
  * Generic button used for navigating between cards. No display properties should be overridden here, make them directly or in a subclass.

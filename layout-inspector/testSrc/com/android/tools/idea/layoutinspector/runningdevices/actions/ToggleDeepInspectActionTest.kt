@@ -32,9 +32,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
-import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
+import java.nio.file.Path
 
 class ToggleDeepInspectActionTest {
   @get:Rule val projectRule = ProjectRule()

@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.lang.ASTNode;
 import javax.annotation.Nullable;
 
-/** Common interface for BUILD psi elements containing a list / sequence of child elements. */
+/** Common interface for ~BUILD psi elements containing a list / sequence of child elements. */
 public abstract class BuildListType<E extends BuildElement> extends BuildElementImpl {
 
   private final Class<E> elementClass;

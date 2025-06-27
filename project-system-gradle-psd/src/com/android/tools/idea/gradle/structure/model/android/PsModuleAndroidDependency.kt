@@ -16,7 +16,11 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
-import com.android.tools.idea.gradle.structure.model.*
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
+import com.android.tools.idea.gradle.structure.model.PsDeclaredModuleDependency
+import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsModuleDependency
+import com.android.tools.idea.gradle.structure.model.PsResolvedModuleDependency
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
 import javax.swing.Icon
 

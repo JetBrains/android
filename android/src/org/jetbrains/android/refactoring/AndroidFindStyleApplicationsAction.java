@@ -1,3 +1,4 @@
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.refactoring;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -19,11 +20,11 @@ import java.util.Map;
 import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.refactoring.errorreporter.ErrorReporter;
 import org.jetbrains.android.refactoring.errorreporter.ProjectBasedErrorReporter;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.refactoring.errorreporter.ErrorReporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -155,7 +156,7 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
     return new MyStyleData(style, styleName, facet, styleNameAttrValue);
   }
   
-  static class MyStyleData {
+  public static class MyStyleData {
     private final Style myStyle;
     private final String myName;
     private final XmlAttributeValue myNameAttrValue;
@@ -192,10 +193,10 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
     }
   }
 
-  static class MyTestConfig {
+  public static class MyTestConfig {
     private final AndroidFindStyleApplicationsProcessor.MyScope myScope;
 
-    MyTestConfig(@NotNull AndroidFindStyleApplicationsProcessor.MyScope scope) {
+    public MyTestConfig(@NotNull AndroidFindStyleApplicationsProcessor.MyScope scope) {
       myScope = scope;
     }
 

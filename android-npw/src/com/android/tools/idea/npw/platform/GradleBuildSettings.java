@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.npw.platform;
 
+import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
+import static com.android.repository.Revision.parseRevision;
+
 import com.android.repository.Revision;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
-import static com.android.repository.Revision.parseRevision;
 
 public class GradleBuildSettings {
   /**

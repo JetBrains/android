@@ -33,16 +33,16 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import java.util.Locale
-import java.util.concurrent.TimeUnit
-import javax.swing.event.ListDataEvent
-import javax.swing.event.ListDataListener
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import java.util.Locale
+import java.util.concurrent.TimeUnit
+import javax.swing.event.ListDataEvent
+import javax.swing.event.ListDataListener
 
 @RunsInEdt
 class ComboBoxPropertyEditorModelTest {

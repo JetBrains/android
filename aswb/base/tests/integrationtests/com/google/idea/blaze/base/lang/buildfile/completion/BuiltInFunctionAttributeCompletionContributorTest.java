@@ -52,7 +52,7 @@ public class BuiltInFunctionAttributeCompletionContributorTest
   public void testSimpleCompletion() throws Throwable {
     setRuleAndAttributes("sh_binary", "name", "deps", "srcs", "data");
 
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "sh_binary(");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "sh_binary(");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "sh_binary(".length());
@@ -65,7 +65,7 @@ public class BuiltInFunctionAttributeCompletionContributorTest
   public void testSimpleSingleCompletion() throws Throwable {
     setRuleAndAttributes("sh_binary", "name", "deps", "srcs", "data");
 
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "sh_binary(", "    nam");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "sh_binary(", "    nam");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 1, "    nam".length());
@@ -88,7 +88,7 @@ public class BuiltInFunctionAttributeCompletionContributorTest
 
     setRuleAndAttributes("sh_binary", "name", "deps", "srcs", "data");
 
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "java_binary(");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "java_binary(");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "java_binary(".length());
@@ -101,7 +101,7 @@ public class BuiltInFunctionAttributeCompletionContributorTest
   public void testNoCompletionInComment() throws Throwable {
     setRuleAndAttributes("sh_binary", "name", "deps", "srcs", "data");
 
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "sh_binary(#");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "sh_binary(#");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "sh_binary(#".length());
@@ -112,7 +112,7 @@ public class BuiltInFunctionAttributeCompletionContributorTest
   public void testNoCompletionAfterInteger() throws Throwable {
     setRuleAndAttributes("sh_binary", "name", "deps", "srcs", "data");
 
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "sh_binary(testonly = 1,");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "sh_binary(testonly = 1,");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "sh_binary(testonly = 1".length());
@@ -123,7 +123,7 @@ public class BuiltInFunctionAttributeCompletionContributorTest
   public void testDoNotShowExistingAttributesInAutocompleteSuggestions() throws Throwable {
     setRuleAndAttributes("sh_binary", "name", "deps", "srcs", "data");
 
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "sh_binary(name = 'bin', )");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "sh_binary(name = 'bin', )");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "sh_binary(name = 'bin', ".length());
@@ -139,7 +139,7 @@ public class BuiltInFunctionAttributeCompletionContributorTest
 
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("BUILD"),
+            new WorkspacePath("~BUILD"),
             "sh_binary(",
             "    nam = 'bin',",
             "    srcs = ['source.sh', 'other_source.sh'],",

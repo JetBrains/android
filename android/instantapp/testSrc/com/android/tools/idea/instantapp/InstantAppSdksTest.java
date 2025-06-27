@@ -30,7 +30,7 @@ import com.google.android.instantapps.sdk.api.TelemetryManager.OptInStatus;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.util.BuildNumber;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import java.io.File;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import org.jetbrains.android.AndroidTestCase;

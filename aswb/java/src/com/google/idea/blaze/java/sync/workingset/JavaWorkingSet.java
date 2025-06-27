@@ -29,11 +29,11 @@ import java.util.function.Predicate;
 /**
  * Computes the working set of files of directories from source control.
  *
- * <p>The working set is: - All new untracked directories (git only) - All modified BUILD files -
+ * <p>The working set is: - All new untracked directories (git only) - All modified ~BUILD files -
  * All modified java files
  *
- * <p>A rule is considered part of the working set if any of the following is true: - Its BUILD file
- * is modified - Its BUILD file is under a new directory - Any of its java files are modified - Any
+ * <p>A rule is considered part of the working set if any of the following is true: - Its ~BUILD file
+ * is modified - Its ~BUILD file is under a new directory - Any of its java files are modified - Any
  * of its java files are under a new directory
  *
  * <p>Rules in the working set get an expanded classpath of their direct deps, i.e. they temporarily

@@ -28,7 +28,7 @@ import com.google.idea.blaze.base.model.primitives.WorkspacePath;
  * targets. This builder accumulates attributes to a {@link TargetIdeInfo.Builder} which can be used
  * to build {@link TargetMap}.
  *
- * <p>During initialization, NbTarget infers the BUILD file the target belongs to from its label.
+ * <p>During initialization, NbTarget infers the ~BUILD file the target belongs to from its label.
  */
 public class NbTarget extends NbBaseTargetBuilder {
   private final TargetIdeInfo.Builder targetIdeInfoBuilder;
@@ -70,6 +70,6 @@ public class NbTarget extends NbBaseTargetBuilder {
   }
 
   private ArtifactLocation inferBuildFileLocation(String label) {
-    return makeSourceArtifact(NbTargetMapUtils.blazePackageForLabel(label) + "/BUILD");
+    return makeSourceArtifact(NbTargetMapUtils.blazePackageForLabel(label) + "/~BUILD");
   }
 }

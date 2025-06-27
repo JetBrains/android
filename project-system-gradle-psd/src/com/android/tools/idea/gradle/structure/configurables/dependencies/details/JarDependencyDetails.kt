@@ -20,8 +20,6 @@ import com.android.tools.idea.gradle.structure.model.PsBaseDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredJarDependency
 import com.android.tools.idea.gradle.structure.model.PsJarDependency
 import com.android.tools.idea.gradle.structure.model.PsModule
-import java.awt.event.FocusAdapter
-import java.awt.event.FocusEvent
 import javax.swing.JPanel
 
 class JarDependencyDetails(

@@ -24,12 +24,16 @@ import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.util.Collection;
 import java.util.Objects;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MemoryHeapView extends AspectObserver {
   @NotNull private final MemoryCaptureSelection mySelection;

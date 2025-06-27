@@ -16,13 +16,12 @@
 package com.android.tools.idea.gradle.structure.actions;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
-import com.intellij.ide.impl.TrustedProjects;
+import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -49,7 +48,7 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
     Project project = e.getProject();
      presentation.setEnabledAndVisible(e.getProject() != null);
      //noinspection UnstableApiUsage
-     if (project == null || !TrustedProjects.isTrusted(project)) {
+     if (project == null || !TrustedProjects.isProjectTrusted(project)) {
        presentation.setEnabled(false);
     }
 

@@ -20,7 +20,6 @@ import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.profilers.LegacyCpuProfilingHandler.registerDevice
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
 
 /**

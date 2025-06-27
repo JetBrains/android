@@ -16,9 +16,8 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>com.android.tools.design</id>
   <name>Android Design Tools</name>
-  <version>1.0</version>
   <category>Android</category>
-  <vendor>Google</vendor>
+  <vendor>JetBrains, Google</vendor>
 
   <description>Provides a suite of design tools for Android Studio</description>
   <resource-bundle>messages.AndroidDesignerActionsBundle</resource-bundle>
@@ -28,9 +27,15 @@
   <depends>org.jetbrains.kotlin</depends>
   <depends>com.intellij.java</depends>
 
+  <change-notes><![CDATA[
+    This release contains updates from Android Studio Ladybug Canary 7.
+
+    For detailed information, please refer to the release notes available at:
+    <a href="https://androidstudio.googleblog.com/2024/08/android-studio-ladybug-202421-canary-7.html">Android Studio Ladybug Canary 7</a>.]]>
+  </change-notes>
+
   <!-- This is temporary mechanism to mark certain plugins as K2-compatible. See IntelliJ commit cf213fb139 for details. -->
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <!--suppress PluginXmlValidity -->
     <supportsKotlinPluginMode supportsK2="true"/>
   </extensions>
 

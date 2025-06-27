@@ -339,7 +339,7 @@ class AgpUpgradeRefactoringProcessor(
     }
   }
 
-  override fun findUsages(): Array<UsageInfo> {
+  protected override fun findUsages(): Array<UsageInfo> {
     val usages = doFindUsages()
     trackProcessorUsage(FIND_USAGES, usages.size, projectBuildModel.context.allRequestedFiles.size)
     return usages
@@ -368,7 +368,7 @@ class AgpUpgradeRefactoringProcessor(
     return this.usages
   }
 
-  override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
+  protected override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
     val filtered = refUsages.get().filter {
       when (it) {
         is KotlinLanguageLevelUsageInfo, is JavaLanguageLevelUsageInfo ->

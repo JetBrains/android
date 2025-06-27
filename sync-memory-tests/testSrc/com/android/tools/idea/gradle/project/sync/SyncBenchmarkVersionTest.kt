@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.gradle.Version
-import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
+import com.android.test.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.BuildEnvironment

@@ -198,7 +198,7 @@ class OpenFileAtLocationQuickFix(val myFilePosition: FilePosition) : BuildIssueQ
 
     val projectFile = project.projectFile ?: return CompletableFuture.completedFuture<Any>(null)
     invokeLater {
-      val file = projectFile.parent.fileSystem.findFileByPath(myFilePosition.file.path)
+      val file = projectFile.parent.fileSystem.findFileByPath(myFilePosition.file!!.path)
       if (file != null) {
         val openFile = OpenFileDescriptor(project, file, myFilePosition.startLine, myFilePosition.startColumn, false)
         if (openFile.canNavigate()) {

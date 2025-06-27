@@ -29,7 +29,7 @@ public class BuildQuoteHandlerTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testClosingQuoteInserted() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "");
 
     editorTest.performTypingAction(file, '"');
     assertFileContents(file, "\"\"");
@@ -37,7 +37,7 @@ public class BuildQuoteHandlerTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testClosingSingleQuoteInserted() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "");
 
     editorTest.performTypingAction(file, '\'');
     assertFileContents(file, "''");
@@ -45,7 +45,7 @@ public class BuildQuoteHandlerTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testClosingTripleQuoteInserted() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "");
 
     editorTest.performTypingAction(file, '"');
     editorTest.performTypingAction(file, '"');
@@ -55,7 +55,7 @@ public class BuildQuoteHandlerTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testClosingTripleSingleQuoteInserted() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "");
 
     editorTest.performTypingAction(file, '\'');
     editorTest.performTypingAction(file, '\'');
@@ -65,7 +65,7 @@ public class BuildQuoteHandlerTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testOnlyCaretMovedWhenCompletingExistingClosingQuotes() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "'text<caret>'", "laterContents");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "'text<caret>'", "laterContents");
 
     testFixture.configureFromExistingVirtualFile(file.getVirtualFile());
 
@@ -77,7 +77,7 @@ public class BuildQuoteHandlerTest extends BuildFileIntegrationTestCase {
   @Test
   public void testOnlyCaretMovedWhenCompletingExistingClosingTripleQuotes() throws Throwable {
     BuildFile file =
-        createBuildFile(new WorkspacePath("BUILD"), "'''text<caret>'''", "laterContents");
+        createBuildFile(new WorkspacePath("~BUILD"), "'''text<caret>'''", "laterContents");
 
     testFixture.configureFromExistingVirtualFile(file.getVirtualFile());
 
@@ -97,7 +97,7 @@ public class BuildQuoteHandlerTest extends BuildFileIntegrationTestCase {
   @Test
   public void testAdditionalTripleQuotesNotInsertedWhenClosingQuotes() throws Throwable {
     BuildFile file =
-        createBuildFile(new WorkspacePath("BUILD"), "'''text''<caret>", "laterContents");
+        createBuildFile(new WorkspacePath("~BUILD"), "'''text''<caret>", "laterContents");
 
     testFixture.configureFromExistingVirtualFile(file.getVirtualFile());
 
@@ -108,7 +108,7 @@ public class BuildQuoteHandlerTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testAdditionalQuoteNotInsertedWhenClosingQuotes() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "'text<caret>", "laterContents");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "'text<caret>", "laterContents");
 
     testFixture.configureFromExistingVirtualFile(file.getVirtualFile());
 

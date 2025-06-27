@@ -67,7 +67,7 @@ public class ProjectViewLabelReferenceTest extends ProjectViewIntegrationTestCas
   public void testTargetReference() {
     PsiFile buildFile =
         workspace.createPsiFile(
-            new WorkspacePath("foo/bar/BUILD"), "java_library(", "    name = 'lib',", ")");
+            new WorkspacePath("foo/bar/~BUILD"), "java_library(", "    name = 'lib',", ")");
     PsiFile projectView =
         workspace.createPsiFile(new WorkspacePath(".bazelproject"), "targets:", "  //foo/bar:lib");
 

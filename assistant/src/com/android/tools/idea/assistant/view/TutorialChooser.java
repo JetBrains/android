@@ -16,19 +16,25 @@
 package com.android.tools.idea.assistant.view;
 
 import com.android.tools.idea.assistant.datamodel.AnalyticsProvider;
-import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBInsets;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Rectangle;
 import java.awt.event.ActionListener;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JPanel;
+import javax.swing.JTextPane;
+import javax.swing.Scrollable;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Introductory view for the assistant. Displays a welcome message as well as

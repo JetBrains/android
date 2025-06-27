@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.common.scene.draw;
 
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
-
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Stroke;
 
 /**
  * Draw the frame of a SceneComponent

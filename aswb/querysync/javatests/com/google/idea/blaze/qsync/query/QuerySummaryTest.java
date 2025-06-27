@@ -51,7 +51,7 @@ public class QuerySummaryTest {
     assertThat(qs.getSourceFilesMap().keySet())
         .containsExactly(
             Label.of(TestData.ROOT_PACKAGE + "/nodeps:TestClassNoDeps.java"),
-            Label.of(TestData.ROOT_PACKAGE + "/nodeps:BUILD"));
+            Label.of(TestData.ROOT_PACKAGE + "/nodeps:~BUILD"));
   }
 
   @Test
@@ -70,7 +70,7 @@ public class QuerySummaryTest {
         .containsExactly(
             Label.of(TestData.ROOT_PACKAGE + "/cc:TestClass.cc"),
             Label.of(TestData.ROOT_PACKAGE + "/cc:TestClass.h"),
-            Label.of(TestData.ROOT_PACKAGE + "/cc:BUILD"));
+            Label.of(TestData.ROOT_PACKAGE + "/cc:~BUILD"));
     assertThat(rule.copts()).containsExactly("-w");
   }
 
@@ -140,7 +140,7 @@ public class QuerySummaryTest {
   public void testBuildIncludes() throws IOException {
     QuerySummary qs =
         QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.BUILDINCLUDES_QUERY.getQueryOutputPath().toFile());
-    Label buildLabel = Label.of(TestData.ROOT_PACKAGE + "/buildincludes:BUILD");
+    Label buildLabel = Label.of(TestData.ROOT_PACKAGE + "/buildincludes:~BUILD");
     assertThat(qs.getSourceFilesMap()).containsKey(buildLabel);
     QueryData.SourceFile buildSrc = qs.getSourceFilesMap().get(buildLabel);
     assertThat(buildSrc.subincliudes())
@@ -151,13 +151,13 @@ public class QuerySummaryTest {
     assertThat(qs.getReverseSubincludeMap())
         .containsExactly(
             TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
-            TestData.ROOT.resolve("buildincludes/sub/includes/BUILD"),
+            TestData.ROOT.resolve("buildincludes/sub/includes/~BUILD"),
             TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
-            TestData.ROOT.resolve("buildincludes/sub/BUILD"),
+            TestData.ROOT.resolve("buildincludes/sub/~BUILD"),
             TestData.ROOT.resolve("buildincludes/sub/includes/includes.bzl"),
-            TestData.ROOT.resolve("buildincludes/BUILD"),
+            TestData.ROOT.resolve("buildincludes/~BUILD"),
             TestData.ROOT.resolve("buildincludes/sub/includes/includes2.bzl"),
-            TestData.ROOT.resolve("buildincludes/BUILD")
+            TestData.ROOT.resolve("buildincludes/~BUILD")
         );
   }
 
@@ -165,7 +165,7 @@ public class QuerySummaryTest {
   public void testBuildAllIncludes() throws IOException {
     QuerySummary qs =
         QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.BUILDINCLUDES_QUERY.getQueryOutputPath().toFile());
-    Label buildLabel = Label.of(TestData.ROOT_PACKAGE + "/buildincludes:BUILD");
+    Label buildLabel = Label.of(TestData.ROOT_PACKAGE + "/buildincludes:~BUILD");
     assertThat(qs.getSourceFilesMap()).containsKey(buildLabel);
     QueryData.SourceFile buildSrc = qs.getSourceFilesMap().get(buildLabel);
     assertThat(buildSrc.subincliudes())
@@ -185,7 +185,7 @@ public class QuerySummaryTest {
     QuerySummary qs = QuerySummaryImpl.create(QuerySpec.QueryStrategy.PLAIN, TestData.EMPTY_QUERY.getQueryOutputPath().toFile());
     assertThat(qs.getRulesMap()).isEmpty();
     assertThat(qs.getSourceFilesMap().keySet())
-        .containsExactly(Label.of(TestData.ROOT_PACKAGE + "/empty:BUILD"));
+        .containsExactly(Label.of(TestData.ROOT_PACKAGE + "/empty:~BUILD"));
     assertThat(qs.getPackages().size()).isEqualTo(1);
     assertThat(qs.getPackages().asPathSet()).containsExactly(TestData.ROOT.resolve("empty"));
   }

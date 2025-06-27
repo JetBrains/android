@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.transport;
 
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.downloads.AndroidProfilerDownloader;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.PathManager;
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,7 +103,8 @@ public final class DeployableFile {
     File childFile = new File(child);
     if (childFile.isAbsolute()) {
       return childFile;
-    } else {
+    }
+    else {
       return new File(parent, child);
     }
   }
@@ -113,7 +114,8 @@ public final class DeployableFile {
     if (myIsRunningFromSourcesSupplier.get()) {
       // Development mode
       return getDir(mySourcesRootSupplier.get(), myDevDir);
-    } else {
+    }
+    else {
       // Prod mode
       return getDir(myHomePathSupplier.get(), myReleaseDir);
     }
@@ -126,9 +128,15 @@ public final class DeployableFile {
     @NotNull private String myDevDir = Constants.PERFA_DEV_DIR;
     @Nullable private String myOnDeviceAbiFileNameFormat;
 
-    @NotNull private Supplier<Boolean> myIsRunningFromSourcesSupplier = StudioPathManager::isRunningFromSources;
-    @NotNull private Supplier<String> myHomePathSupplier = PathManager::getHomePath;
-    @NotNull private Supplier<String> mySourcesRootSupplier = StudioPathManager::getSourcesRoot;
+    @NotNull private Supplier<Boolean> myIsRunningFromSourcesSupplier = () -> {
+      return IdeInfo.getInstance().isAndroidStudio() && StudioPathManager.isRunningFromSources(); // should not use AOSP debug paths in IDEA
+    };
+
+    @NotNull private Supplier<String> myHomePathSupplier = () -> {
+      AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace();
+      return AndroidProfilerDownloader.getInstance().getPluginDir().getAbsolutePath();
+    };
+    @NotNull private Supplier<String> mySourcesRootSupplier = myHomePathSupplier;
 
     private boolean myExecutable = false;
 

@@ -64,6 +64,7 @@ import java.util.List;
  *          &lt;/automotiveApp&gt;
  *
  * </ul>
+ *
  */
 public class MyMusicService extends MediaBrowserServiceCompat {
 

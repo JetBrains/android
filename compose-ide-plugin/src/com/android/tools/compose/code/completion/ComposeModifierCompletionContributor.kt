@@ -56,7 +56,6 @@ import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
-import org.jetbrains.kotlin.idea.caches.resolve.util.getResolveScope
 import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory
 import org.jetbrains.kotlin.idea.completion.CollectRequiredTypesContextVariablesProvider
 import org.jetbrains.kotlin.idea.completion.CompletionSession
@@ -66,6 +65,7 @@ import org.jetbrains.kotlin.idea.completion.impl.k2.ImportStrategyDetector
 import org.jetbrains.kotlin.idea.completion.lookups.factories.KotlinFirLookupElementFactory
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.idea.core.isVisible
+import org.jetbrains.kotlin.idea.core.util.getResolveScope
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver

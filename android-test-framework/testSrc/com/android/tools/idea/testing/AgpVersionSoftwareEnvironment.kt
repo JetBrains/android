@@ -18,7 +18,7 @@
 package com.android.tools.idea.testing
 
 import com.android.SdkConstants
-import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
+import com.android.test.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
@@ -173,7 +173,8 @@ fun AgpVersionSoftwareEnvironment.withTargetSdk(
   )
 
 @JvmName("resolveAgpVersionSoftwareEnvironment")
-fun AgpVersionSoftwareEnvironment.resolve(): ResolvedAgpVersionSoftwareEnvironment {
+@JvmOverloads
+fun AgpVersionSoftwareEnvironment.resolve(sdk: Sdk? = null): ResolvedAgpVersionSoftwareEnvironment {
   val buildEnvironment = BuildEnvironment.getInstance()
 
   val jdkVersion: JavaSdkVersion? = jdkVersion
@@ -184,7 +185,7 @@ fun AgpVersionSoftwareEnvironment.resolve(): ResolvedAgpVersionSoftwareEnvironme
   val targetSdk: String = targetSdk ?: compileSdk
   val modelVersion: ModelVersion = modelVersion
 
-  val ideSdksJdk = IdeSdks.getInstance().jdk ?: error("IdeSdks.jdk is null")
+  val ideSdksJdk = sdk ?: IdeSdks.getInstance().jdk ?: error("IdeSdks.jdk is null")
   val resolvedJdkVersion =
     jdkVersion
       ?: ideSdksJdk.getJdkVersion()

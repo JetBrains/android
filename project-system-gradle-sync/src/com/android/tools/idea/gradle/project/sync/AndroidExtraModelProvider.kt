@@ -156,7 +156,7 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
 
   private fun populateDebugInfo(buildModel: GradleBuild, consumer: GradleModelConsumer) {
     val classLoader = javaClass.classLoader
-    if (classLoader is URLClassLoader) {
+    if(classLoader is URLClassLoader) {
       val classpath = classLoader.urLs.joinToString { url -> url.toURI()?.let { File(it).absolutePath }.orEmpty() }
       val debugInfo = IdeDebugInfoImpl(mapOf(AndroidExtraModelProvider::class.java.simpleName to classpath))
       consumer.consumeBuildModel(buildModel, debugInfo, IdeDebugInfo::class.java)

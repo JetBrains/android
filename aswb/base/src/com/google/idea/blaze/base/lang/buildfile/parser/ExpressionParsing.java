@@ -23,7 +23,7 @@ import com.google.idea.blaze.base.lang.buildfile.psi.BuildElementTypes;
 import com.intellij.lang.PsiBuilder;
 import java.util.EnumSet;
 
-/** For parsing expressions in BUILD files. */
+/** For parsing expressions in ~BUILD files. */
 public class ExpressionParsing extends Parsing {
 
   private static final ImmutableSet<TokenKind> LIST_TERMINATOR_SET =

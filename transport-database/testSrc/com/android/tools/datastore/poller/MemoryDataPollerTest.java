@@ -16,8 +16,7 @@
 package com.android.tools.datastore.poller;
 
 import static com.android.tools.profiler.proto.Memory.HeapDumpStatus.Status.SUCCESS;
-
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,12 +26,13 @@ import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.service.MemoryService;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Memory.TrackStatus;
 import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
-import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
@@ -49,8 +49,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -410,12 +408,6 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       }
       responseObserver.onNext(builder.build());
       responseObserver.onCompleted();
-    }
-
-    @Override
-    public void listHeapDumpInfos(ListDumpInfosRequest request,
-                                  StreamObserver<ListHeapDumpInfosResponse> responseObserver) {
-      super.listHeapDumpInfos(request, responseObserver);
     }
 
     @Override

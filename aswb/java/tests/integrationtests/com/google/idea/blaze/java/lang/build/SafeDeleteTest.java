@@ -44,7 +44,7 @@ public class SafeDeleteTest extends BuildFileIntegrationTestCase {
     PsiClass javaClass = PsiUtils.findFirstChildOfClassRecursive(javaFile, PsiClass.class);
 
     createBuildFile(
-        new WorkspacePath("com/google/BUILD"),
+        new WorkspacePath("com/google/~BUILD"),
         "java_library(",
         "    name = 'lib'",
         "    srcs = glob(['*.java'])",
@@ -68,7 +68,7 @@ public class SafeDeleteTest extends BuildFileIntegrationTestCase {
     PsiClass javaClass = PsiUtils.findFirstChildOfClassRecursive(javaFile, PsiClass.class);
 
     createBuildFile(
-        new WorkspacePath("com/google/BUILD"),
+        new WorkspacePath("com/google/~BUILD"),
         "java_library(",
         "    name = 'lib'",
         "    srcs = glob(['Test.java'])",

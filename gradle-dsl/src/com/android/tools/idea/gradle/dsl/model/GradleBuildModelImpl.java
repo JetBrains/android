@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.java.JavaDeclarativeModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.kotlin.KotlinModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
@@ -303,6 +304,12 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   public JavaModel java() {
     return getModel(JavaModel.class);
+  }
+
+  @NotNull
+  @Override
+  public JavaDeclarativeModel javaApplication() {
+    return getModel(JavaDeclarativeModel.class);
   }
 
   @NotNull

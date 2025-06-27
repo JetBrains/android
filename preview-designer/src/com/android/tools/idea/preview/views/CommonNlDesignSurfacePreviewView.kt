@@ -85,12 +85,12 @@ class CommonNlDesignSurfacePreviewView(
 
   private val workbench: WorkBench<DesignSurface<*>> =
     object :
-        WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable),
-        UiDataProvider {
-        override fun uiDataSnapshot(sink: DataSink) {
-          sink[DESIGN_SURFACE] = mainSurface
-        }
+      WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable),
+      UiDataProvider {
+      override fun uiDataSnapshot(sink: DataSink) {
+        sink[DESIGN_SURFACE] = mainSurface
       }
+    }
       .apply { init(mainPanelSplitter, mainSurface, listOf(), false) }
 
   @UiThread

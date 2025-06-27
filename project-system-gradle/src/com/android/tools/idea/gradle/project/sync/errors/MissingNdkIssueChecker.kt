@@ -26,12 +26,12 @@ import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
+import com.intellij.gradle.toolingExtension.util.GradleVersionUtil
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
-import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -70,7 +70,7 @@ class MissingNdkIssueChecker: GradleIssueChecker {
 
     val gradleVersion = issueData.buildEnvironment?.gradle?.gradleVersion;
 
-    if (gradleVersion != null && GradleVersion.version(gradleVersion).baseVersion <= GradleVersion.version("6.2")) {
+    if (gradleVersion != null && GradleVersionUtil.isGradleOlderOrSameAs(gradleVersion, "6.2")) {
       // If the version of AGP is too old to support android.ndkVersion then don't offer to download an NDK.
       // We can't know the AGP version when sync has failed so use older gradle version as a proxy.
       // Older AGP don't support android.ndkVersion so don't offer a hyperlink to set that value.

@@ -330,7 +330,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected void createCatalogFile(String name) throws IOException {
     VirtualFile gradlePath = myProjectBasePath.findChild("gradle");
     runWriteAction(() ->
-      gradlePath.createChildData(this, name)
+                     gradlePath.createChildData(this, name)
     );
   }
 

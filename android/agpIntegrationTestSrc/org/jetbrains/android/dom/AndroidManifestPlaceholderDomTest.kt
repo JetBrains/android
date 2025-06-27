@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.application.options.editor.WebEditorOptions
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
@@ -34,16 +35,25 @@ import org.jetbrains.android.dom.converters.ManifestPlaceholderConverter
  * @see ManifestPlaceholderConverter
  */
 class AndroidManifestPlaceholderDomTest: AndroidGradleTestCase() {
+  private var oldInsertQuotesForAttributeValue = false
 
   override fun setUp() {
     super.setUp()
 
     prepareProjectForImport(TestProjectPaths.BASIC)
 
+    oldInsertQuotesForAttributeValue = WebEditorOptions.getInstance().isInsertQuotesForAttributeValue
+    WebEditorOptions.getInstance().isInsertQuotesForAttributeValue = false // Android Studio has `false`, IJ has `true`. Use AS defaults.
+
     modifyGradleFiles("[hostName:\"www.example.com\"]")
     importProject()
     prepareProjectForTest(project, null)
     myFixture.allowTreeAccessForAllFiles()
+  }
+
+  override fun tearDown() {
+    WebEditorOptions.getInstance().isInsertQuotesForAttributeValue = oldInsertQuotesForAttributeValue
+    super.tearDown()
   }
 
   fun testApplicationIdCompletion() {

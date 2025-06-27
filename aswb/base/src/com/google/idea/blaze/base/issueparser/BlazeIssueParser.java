@@ -69,7 +69,7 @@ public class BlazeIssueParser {
                 new BlazeIssueParser.LinelessBuildParser(),
                 new BlazeIssueParser.ProjectViewLabelParser(projectViewSet),
                 new BlazeIssueParser.InvalidTargetProjectViewPackageParser(
-                    projectViewSet, "no such package '(.*)': BUILD file not found on package path"),
+                    projectViewSet, "no such package '(.*)': ~BUILD file not found on package path"),
                 new BlazeIssueParser.InvalidTargetProjectViewPackageParser(
                     projectViewSet, "no targets found beneath '(.*?)'"),
                 new BlazeIssueParser.InvalidTargetProjectViewPackageParser(
@@ -294,7 +294,7 @@ public class BlazeIssueParser {
 
   static class BuildParser extends SingleLineParser {
     BuildParser() {
-      super("^ERROR: (/.*?BUILD):([0-9]+):([0-9]+): (.*)$");
+      super("^ERROR: (/.*?~BUILD):([0-9]+):([0-9]+): (.*)$");
     }
 
     @Nullable
@@ -440,7 +440,7 @@ public class BlazeIssueParser {
             + "(.*: Process exited with status [0-9]+\\.)|"
             + "(build interrupted\\.)|"
             + "(Couldn't start the build. Unable to run tests.)|"
-            + "(/.*?BUILD:[0-9]+:[0-9]+: Couldn't build file .*)|"
+            + "(/.*?~BUILD:[0-9]+:[0-9]+: Couldn't build file .*)|"
             + "(.*))$";
 
     private GenericErrorParser() {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.utils.FileUtils
 import com.intellij.openapi.application.PathManager
 import org.junit.rules.ExternalResource

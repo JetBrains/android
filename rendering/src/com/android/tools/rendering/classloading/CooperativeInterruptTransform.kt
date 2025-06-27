@@ -16,9 +16,9 @@
 package com.android.tools.rendering.classloading
 
 import kotlin.reflect.jvm.javaMethod
-import org.objectweb.asm.*
-import org.objectweb.asm.commons.GeneratorAdapter
-import org.objectweb.asm.commons.Method
+import org.jetbrains.org.objectweb.asm.*
+import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter
+import org.jetbrains.org.objectweb.asm.commons.Method
 
 object CooperativeInterruptTransformLoopBreaker {
   @JvmStatic

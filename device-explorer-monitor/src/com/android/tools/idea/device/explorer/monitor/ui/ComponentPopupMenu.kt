@@ -16,12 +16,12 @@
 package com.android.tools.idea.device.explorer.monitor.ui
 
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.PopupMenuItem
-import javax.swing.JComponent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.ui.PopupHandler
-import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.PopupHandler
+import javax.swing.JComponent
 import javax.swing.JTable
 
 /**

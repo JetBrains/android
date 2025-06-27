@@ -20,7 +20,7 @@ import com.google.idea.blaze.base.lang.buildfile.language.BuildFileType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 
-/** The IElementTypes used by the BUILD language */
+/** The IElementTypes used by the ~BUILD language */
 public class BuildToken extends IElementType {
 
   private static ImmutableMap<TokenKind, BuildToken> types = createMap();

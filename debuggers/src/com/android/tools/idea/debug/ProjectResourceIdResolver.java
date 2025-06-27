@@ -95,7 +95,6 @@ public class ProjectResourceIdResolver implements ResourceIdResolver {
         try {
           MyPublicResourceIdMapBuilder builder = new MyPublicResourceIdMapBuilder();
           NanoXmlUtil.parse(publicXml.getInputStream(), builder);
-
           resourceIdMap.putAll(builder.getIdMap());
         }
         catch (IOException e) {
@@ -137,7 +136,7 @@ public class ProjectResourceIdResolver implements ResourceIdResolver {
 
 
   @VisibleForTesting
-  static class MyPublicResourceIdMapBuilder implements NanoXmlBuilder {
+  public static class MyPublicResourceIdMapBuilder implements NanoXmlBuilder {
     private final Int2ObjectMap<String> myIdMap = new Int2ObjectOpenHashMap<>(2250);
 
     private String myName;

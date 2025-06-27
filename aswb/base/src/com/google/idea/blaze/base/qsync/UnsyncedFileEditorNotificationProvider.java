@@ -49,7 +49,7 @@ public class UnsyncedFileEditorNotificationProvider implements EditorNotificatio
       new BoolExperiment("qsync.new.file.editor.notification", true);
 
   /**
-   * If true, shows an editor notification for any file in a package whose BUILD file has been
+   * If true, shows an editor notification for any file in a package whose ~BUILD file has been
    * modified since the last sync.
    */
   public static final BoolExperiment NOTIFY_ON_BUILD_FILE_CHANGES =
@@ -75,7 +75,7 @@ public class UnsyncedFileEditorNotificationProvider implements EditorNotificatio
       return editor ->
           getEditorNotificationPanel(
               project,
-              "BUILD files for this project have changed. The project may be out of sync.");
+              "~BUILD files for this project have changed. The project may be out of sync.");
     }
 
     Path path;

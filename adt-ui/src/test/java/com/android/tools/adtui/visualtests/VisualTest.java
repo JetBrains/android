@@ -21,15 +21,22 @@ import com.android.tools.adtui.model.FpsTimer;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.intellij.ui.components.JBPanel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.ChangeListener;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.LayoutManager;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.event.ChangeListener;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represent a Visual Test, containing a group of UI components, including charts. Classes

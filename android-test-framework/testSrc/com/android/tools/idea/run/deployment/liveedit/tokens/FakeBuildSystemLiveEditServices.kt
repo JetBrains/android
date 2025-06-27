@@ -22,7 +22,6 @@ import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices.ApplicationLiveEditServicesForTests
 import com.intellij.openapi.Disposable
 import com.intellij.testFramework.ExtensionTestUtil
-import com.intellij.util.asSafely
 
 class FakeBuildSystemLiveEditServices : BuildSystemLiveEditServices<AndroidProjectSystem, ApplicationProjectContext> {
   var testApplicationLiveEditServices: ApplicationLiveEditServices? = null

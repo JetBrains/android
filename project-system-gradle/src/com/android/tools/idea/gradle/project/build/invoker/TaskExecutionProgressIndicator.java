@@ -19,11 +19,11 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase;
 import org.jetbrains.annotations.NotNull;
 
-abstract class TaskExecutionProgressIndicator extends AbstractProgressIndicatorExBase {
+public abstract class TaskExecutionProgressIndicator extends AbstractProgressIndicatorExBase {
   @NotNull private final ExternalSystemTaskId myTaskId;
   @NotNull private final BuildStopper myBuildStopper;
 
-  TaskExecutionProgressIndicator(@NotNull ExternalSystemTaskId taskId, @NotNull BuildStopper buildStopper) {
+  public TaskExecutionProgressIndicator(@NotNull ExternalSystemTaskId taskId, @NotNull BuildStopper buildStopper) {
     myTaskId = taskId;
     myBuildStopper = buildStopper;
   }

@@ -8,10 +8,12 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 
 import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
@@ -22,6 +24,7 @@ import com.android.tools.tests.AdtTestProjectDescriptor;
 import com.android.tools.tests.AdtTestProjectDescriptors;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
+import com.intellij.application.options.CodeStyle;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.FacetManager;
@@ -63,6 +66,7 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -141,12 +145,16 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
       descriptor = AdtTestProjectDescriptors.defaultDescriptor()
         .withJavaVersion(languageLevel)
-        .withJdkPath(EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath());
+        .withJdkPath(TestUtils.getEmbeddedJdk17Path());
     } else {
       descriptor = myProjectDescriptor;
     }
 
-    WriteAction.runAndWait(this::cleanJdkTable);
+    Path jdkPath = TestUtils.getEmbeddedJdk17Path();
+    WriteAction.runAndWait(() -> {
+      cleanJdkTable();
+      setupJdk(jdkPath);
+    });
     moduleFixtureBuilder.setProjectDescriptor(descriptor);
 
     ArrayList<MyAdditionalModuleData> modules = new ArrayList<>();
@@ -187,7 +195,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     ArrayList<String> allowedRoots = new ArrayList<>();
     collectAllowedRoots(allowedRoots);
     registerAllowedRoots(allowedRoots, getTestRootDisposable());
-    mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
+    mySettings = CodeStyle.createTestSettings(CodeStyleSettingsManager.getSettings(getProject()));
     // Note: we apply the Android Studio code style so that tests running as the Android plugin in IDEA behave the same.
     applyAndroidCodeStyleSettings(mySettings);
     CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
@@ -219,6 +227,19 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
   }
 
+
+  private void setupJdk(Path path) {
+    assert path.isAbsolute() : "JDK path should be an absolute path: " + path;
+
+    VfsRootAccess.allowRootAccess(getTestRootDisposable(), path.toString());
+    @Nullable Sdk addedSdk = Jdks.getInstance().createAndAddJdk(path.toString());
+    if (addedSdk != null) {
+      Disposer.register(getTestRootDisposable(), () -> {
+        WriteAction.runAndWait(() -> ProjectJdkTable.getInstance().removeJdk(addedSdk));
+      });
+    }
+  }
+
   @Override
   protected void tearDown() throws Exception {
     try {
@@ -241,6 +262,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       mySettings = null;
 
       getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       try {

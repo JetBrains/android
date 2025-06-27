@@ -19,9 +19,8 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Comparator;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A comparator for {@link AndroidResFileNode} and {@link AndroidResGroupNode} objects, used to sort nodes of these two types which could

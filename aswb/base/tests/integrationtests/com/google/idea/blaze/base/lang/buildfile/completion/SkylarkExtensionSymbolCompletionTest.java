@@ -38,7 +38,7 @@ public class SkylarkExtensionSymbolCompletionTest extends BuildFileIntegrationTe
   public void testGlobalVariable() {
     workspace.createFile(new WorkspacePath("skylark.bzl"), "VAR = []");
     VirtualFile file =
-        createAndSetCaret(new WorkspacePath("BUILD"), "load(':skylark.bzl', '<caret>')");
+        createAndSetCaret(new WorkspacePath("~BUILD"), "load(':skylark.bzl', '<caret>')");
 
     assertThat(editorTest.completeIfUnique()).isTrue();
     assertFileContents(file, "load(':skylark.bzl', 'VAR')");
@@ -48,7 +48,7 @@ public class SkylarkExtensionSymbolCompletionTest extends BuildFileIntegrationTe
   public void testFunctionStatement() {
     workspace.createFile(new WorkspacePath("skylark.bzl"), "def fn(param):stmt");
     VirtualFile file =
-        createAndSetCaret(new WorkspacePath("BUILD"), "load(':skylark.bzl', '<caret>')");
+        createAndSetCaret(new WorkspacePath("~BUILD"), "load(':skylark.bzl', '<caret>')");
 
     assertThat(editorTest.completeIfUnique()).isTrue();
     assertFileContents(file, "load(':skylark.bzl', 'fn')");
@@ -57,7 +57,7 @@ public class SkylarkExtensionSymbolCompletionTest extends BuildFileIntegrationTe
   @Test
   public void testMultipleOptions() {
     workspace.createFile(new WorkspacePath("skylark.bzl"), "def fn(param):stmt", "VAR = []");
-    createAndSetCaret(new WorkspacePath("BUILD"), "load(':skylark.bzl', '<caret>')");
+    createAndSetCaret(new WorkspacePath("~BUILD"), "load(':skylark.bzl', '<caret>')");
 
     String[] options = editorTest.getCompletionItemsAsStrings();
     assertThat(options).asList().containsExactly("'fn'", "'VAR'");
@@ -69,7 +69,7 @@ public class SkylarkExtensionSymbolCompletionTest extends BuildFileIntegrationTe
         new WorkspacePath("skylark.bzl"),
         "java_library(name = 'lib')",
         "native.java_library(name = 'foo'");
-    createAndSetCaret(new WorkspacePath("BUILD"), "load(':skylark.bzl', '<caret>')");
+    createAndSetCaret(new WorkspacePath("~BUILD"), "load(':skylark.bzl', '<caret>')");
 
     assertThat(testFixture.completeBasic()).isEmpty();
   }
@@ -79,7 +79,7 @@ public class SkylarkExtensionSymbolCompletionTest extends BuildFileIntegrationTe
     workspace.createFile(new WorkspacePath("other.bzl"), "def function()");
     workspace.createFile(new WorkspacePath("skylark.bzl"), "load(':other.bzl', 'function')");
     VirtualFile file =
-        createAndSetCaret(new WorkspacePath("BUILD"), "load(':skylark.bzl', '<caret>')");
+        createAndSetCaret(new WorkspacePath("~BUILD"), "load(':skylark.bzl', '<caret>')");
 
     assertThat(editorTest.completeIfUnique()).isTrue();
     assertFileContents(file, "load(':skylark.bzl', 'function')");
@@ -91,7 +91,7 @@ public class SkylarkExtensionSymbolCompletionTest extends BuildFileIntegrationTe
         new WorkspacePath("other.bzl"), "def function():stmt", "def other_function():stmt");
     workspace.createFile(new WorkspacePath("skylark.bzl"), "load(':other.bzl', 'function')");
     VirtualFile file =
-        createAndSetCaret(new WorkspacePath("BUILD"), "load(':skylark.bzl', '<caret>')");
+        createAndSetCaret(new WorkspacePath("~BUILD"), "load(':skylark.bzl', '<caret>')");
 
     assertThat(editorTest.completeIfUnique()).isTrue();
     assertFileContents(file, "load(':skylark.bzl', 'function')");
@@ -105,7 +105,7 @@ public class SkylarkExtensionSymbolCompletionTest extends BuildFileIntegrationTe
         "GLOBAL_VAR = 2",
         "def _local_fn():stmt",
         "def global_fn():stmt");
-    createAndSetCaret(new WorkspacePath("BUILD"), "load(':skylark.bzl', '<caret>')");
+    createAndSetCaret(new WorkspacePath("~BUILD"), "load(':skylark.bzl', '<caret>')");
 
     String[] options = editorTest.getCompletionItemsAsStrings();
     assertThat(options).asList().containsExactly("'GLOBAL_VAR'", "'global_fn'");

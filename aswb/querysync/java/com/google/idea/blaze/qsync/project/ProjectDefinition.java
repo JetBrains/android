@@ -69,7 +69,7 @@ public abstract class ProjectDefinition {
 
   /**
    * System Excludes. Only available for Bazel projects to avoid scanning the system directories
-   * like bazel-bin, bazel-out, ... for BUILD files before ignoring them in the query invocation.
+   * like bazel-bin, bazel-out, ... for ~BUILD files before ignoring them in the query invocation.
    */
   public abstract ImmutableSet<Path> systemExcludes();
 
@@ -122,14 +122,14 @@ public abstract class ProjectDefinition {
 
   /**
    * Determines if a given absolute path is a valid path to query. A path is valid if it contains a
-   * BUILD file somewhere within it.
+   * ~BUILD file somewhere within it.
    *
    * <p>Emits warnings via context if any issues are found with the path.
    */
   private static boolean isValidPathForQuery(Context<?> context, Path candidate)
       throws IOException {
-    if (Files.exists(candidate.resolve("BUILD")) ||
-            Files.exists(candidate.resolve("BUILD.bazel"))) {
+    if (Files.exists(candidate.resolve("~BUILD")) ||
+            Files.exists(candidate.resolve("~BUILD.bazel"))) {
       return true;
     }
     if (!Files.isDirectory(candidate)) {
@@ -148,7 +148,7 @@ public abstract class ProjectDefinition {
         } else {
           if (child.toString().endsWith(".java") || child.toString().endsWith(".kt")) {
             context.output(
-                PrintOutput.log("WARNING: Sources found outside BUILD packages: " + child));
+                PrintOutput.log("WARNING: Sources found outside ~BUILD packages: " + child));
           }
         }
       }

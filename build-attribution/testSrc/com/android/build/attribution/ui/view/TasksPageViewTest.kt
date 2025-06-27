@@ -31,11 +31,9 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.tree.TreePathUtil
-import com.intellij.util.ui.StatusText
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -43,8 +41,6 @@ import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.Point
-import java.awt.Rectangle
 
 class TasksPageViewTest {
   @get:Rule

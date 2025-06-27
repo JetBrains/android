@@ -72,7 +72,7 @@ public class AllInBuildFileTestContextProviderTest extends BlazeRunConfiguration
 
     PsiFile buildFile =
         workspace.createPsiFile(
-            new WorkspacePath("java/com/google/test/BUILD"), "java_test(name='unit_tests'");
+            new WorkspacePath("java/com/google/test/~BUILD"), "java_test(name='unit_tests'");
 
     ConfigurationContext context = createContextFromPsi(buildFile);
     List<ConfigurationFromContext> configurations = context.getConfigurationsFromContext();

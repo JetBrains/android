@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult

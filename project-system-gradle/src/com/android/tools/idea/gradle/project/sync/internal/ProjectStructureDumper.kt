@@ -458,7 +458,6 @@ private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
     prop("intellijPluginRoot") { compilerArguments.intellijPluginRoot }
     prop("kotlinHome") { compilerArguments.kotlinHome }
     prop("languageVersion") { compilerArguments.languageVersion?.replaceKotlinMajorMinorVersion() }
-    prop("legacySmartCastAfterTry") { compilerArguments.legacySmartCastAfterTry.takeIf { it }?.toString() }
     prop("listPhases") { compilerArguments.listPhases.takeIf { it }?.toString() }
     prop("metadataVersion") { compilerArguments.metadataVersion }
     prop("multiPlatform") { compilerArguments.multiPlatform.takeIf { it }?.toString() }

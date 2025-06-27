@@ -15,11 +15,10 @@
  */
 package com.android.tools.datastore.poller;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 public class PollRunnerTest {
 

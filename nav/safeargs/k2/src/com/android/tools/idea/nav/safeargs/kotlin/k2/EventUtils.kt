@@ -17,13 +17,13 @@ package com.android.tools.idea.nav.safeargs.kotlin.k2
 
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
-import com.intellij.util.messages.Topic
 import org.jetbrains.kotlin.analysis.api.platform.analysisMessageBus
+import org.jetbrains.kotlin.analysis.api.platform.modification.KotlinModificationEvent
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
 import org.jetbrains.kotlin.idea.util.toKaModulesForModificationEvents
 
-internal fun <T : Any> Module.fireEvent(topic: Topic<T>, callEventHandler: T.(KaModule) -> Unit) =
+internal fun Module.fireModificationEvent(createEvent: (KaModule) -> KotlinModificationEvent) =
   runWriteAction {
-    val publisher = project.analysisMessageBus.syncPublisher(topic)
-    this@fireEvent.toKaModulesForModificationEvents().forEach { publisher.callEventHandler(it) }
+    val publisher = project.analysisMessageBus.syncPublisher(KotlinModificationEvent.TOPIC)
+    this@fireModificationEvent.toKaModulesForModificationEvents().forEach { publisher.onModification(createEvent(it)) }
   }

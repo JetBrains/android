@@ -27,7 +27,6 @@ import com.intellij.util.ui.JBUI
 import java.awt.Dimension
 import java.awt.FontMetrics
 import java.awt.Insets
-import java.lang.IllegalArgumentException
 import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JPanel

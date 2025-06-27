@@ -386,7 +386,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <fileTypeFactory implementation="com.google.idea.blaze.base.lang.buildfile.language.BuildFileTypeFactory"/>
     <annotator language="BUILD" implementationClass="com.google.idea.blaze.base.lang.buildfile.validation.HighlightingAnnotator"/>
-    <!--<annotator language="BUILD" implementationClass="com.google.idea.blaze.base.lang.buildfile.validation.LoadErrorAnnotator"/>-->
+    <!--<annotator language="~BUILD" implementationClass="com.google.idea.blaze.base.lang.buildfile.validation.LoadErrorAnnotator"/>-->
     <annotator language="BUILD" implementationClass="com.google.idea.blaze.base.lang.buildfile.validation.GlobErrorAnnotator"/>
     <annotator language="BUILD" implementationClass="com.google.idea.blaze.base.lang.buildfile.validation.BuiltInRuleAnnotator"/>
     <annotator language="BUILD" implementationClass="com.google.idea.blaze.base.lang.buildfile.validation.LoadStatementAnnotator"/>

@@ -19,10 +19,10 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.ApplicationTerminator
-import com.android.tools.idea.execution.common.RunConfigurationNotifier
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestOptions
 import com.android.tools.idea.project.FacetBasedApplicationProjectContext
@@ -57,6 +57,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.openapi.util.Computable
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -163,6 +164,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
 
 
   private fun getDeployTask(device: IDevice): DeployTask {
+    val installPathProvider = Computable { EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() }
     val packages = apkProvider.getApks(device)
     val pmInstallOptions = if (device.version.apiLevel >= 23) {
       "-t -g"

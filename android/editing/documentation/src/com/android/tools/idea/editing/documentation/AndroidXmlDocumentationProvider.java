@@ -1,3 +1,4 @@
+// Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.editing.documentation;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
@@ -389,7 +390,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     String[] values = definition.getValues();
 
     if (values.length > 0) {
-      if (builder.length() > 0) {
+      if (!builder.isEmpty()) {
         builder.append("<br>");
       }
       builder.append("Values: ");
@@ -409,7 +410,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     String docValue = definition.getDescriptionByParentStyleableName(parentStyleable);
 
     if (docValue != null && !docValue.isEmpty()) {
-      if (builder.length() > 0) {
+      if (!builder.isEmpty()) {
         builder.append("<br><br>");
       }
       builder.append(docValue);

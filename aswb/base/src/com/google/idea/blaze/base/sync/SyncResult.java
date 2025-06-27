@@ -20,7 +20,7 @@ public enum SyncResult {
   /** Full success */
   SUCCESS(true),
   /**
-   * The user has errors in their BUILD files, compilation errors, or a one of the shards fails to
+   * The user has errors in their ~BUILD files, compilation errors, or a one of the shards fails to
    * complete
    */
   PARTIAL_SUCCESS(true),

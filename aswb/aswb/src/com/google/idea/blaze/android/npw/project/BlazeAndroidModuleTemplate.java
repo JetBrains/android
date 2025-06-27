@@ -46,7 +46,7 @@ import org.jetbrains.android.facet.AndroidFacet;
  * <pre>
  * google3/
  * |-java/com/google/foo/bar/... (module root)
- * | |-BUILD
+ * | |-~BUILD
  * | |-AndroidManifest.xml (manifest directory)
  * | |-Baz.java (source directory of com.google.foo.bar.Baz)
  * | |-Baz.aidl (aidl directory, option 1)
@@ -54,7 +54,7 @@ import org.jetbrains.android.facet.AndroidFacet;
  * | | `-com/google/foo/bar/Baz.aidl (aidl directory, option 2)
  * | `-res/... (res directory, one of the few things required by the build system)
  * `-javatest/com/google/foo/bar/...
- *   |-BUILD
+ *   |-~BUILD
  *   `-BazTest.java (test directory of com.google.foo.bar.BazTest)
  * </pre>
  *

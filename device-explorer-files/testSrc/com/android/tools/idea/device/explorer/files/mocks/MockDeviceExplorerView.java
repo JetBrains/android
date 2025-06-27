@@ -16,12 +16,12 @@
 package com.android.tools.idea.device.explorer.files.mocks;
 
 import com.android.tools.idea.FutureValuesTracker;
-import com.android.tools.idea.device.explorer.files.DeviceFileExplorerModel;
 import com.android.tools.idea.device.explorer.files.DeviceExplorerModelListener;
-import com.android.tools.idea.device.explorer.files.DeviceFileExplorerView;
 import com.android.tools.idea.device.explorer.files.DeviceExplorerViewListener;
 import com.android.tools.idea.device.explorer.files.DeviceExplorerViewProgressListener;
 import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode;
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerModel;
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerView;
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerViewImpl;
 import com.intellij.openapi.actionSystem.ActionGroup;

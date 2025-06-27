@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
+import static com.android.tools.idea.navigator.nodes.ndk.includes.resolver.ResolverTests.PATH_TO_NDK;
+import static com.android.tools.idea.navigator.nodes.ndk.includes.resolver.ResolverTests.PATH_TO_SIDE_BY_SIDE_NDK;
+import static com.android.tools.idea.navigator.nodes.ndk.includes.resolver.ResolverTests.ROOT_OF_RELATIVE_INCLUDE_PATHS;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.navigator.nodes.ndk.includes.RealWorldExamples;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValues;
@@ -22,16 +27,10 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.utils.FileUtils;
-import org.junit.Test;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.navigator.nodes.ndk.includes.resolver.ResolverTests.PATH_TO_NDK;
-import static com.android.tools.idea.navigator.nodes.ndk.includes.resolver.ResolverTests.PATH_TO_SIDE_BY_SIDE_NDK;
-import static com.android.tools.idea.navigator.nodes.ndk.includes.resolver.ResolverTests.ROOT_OF_RELATIVE_INCLUDE_PATHS;
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 public class NdkIncludeResolverTest {
   // The main purpose of this test is to catch new components that may have been added to the NDK.

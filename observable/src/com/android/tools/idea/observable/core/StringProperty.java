@@ -16,8 +16,8 @@
 package com.android.tools.idea.observable.core;
 
 import com.android.tools.idea.observable.AbstractProperty;
-import com.android.tools.idea.observable.expressions.string.TrimExpression;
 import com.android.tools.idea.observable.expressions.string.IsEmptyExpression;
+import com.android.tools.idea.observable.expressions.string.TrimExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**

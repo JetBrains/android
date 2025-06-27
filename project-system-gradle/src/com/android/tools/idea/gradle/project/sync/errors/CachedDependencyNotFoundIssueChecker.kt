@@ -18,13 +18,12 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
-import com.intellij.build.issue.BuildIssue
-import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
-
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CACHED_DEPENDENCY_NOT_FOUND
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
+import com.intellij.build.issue.BuildIssue
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getRootCauseAndLocation
 import java.util.function.Consumer
 

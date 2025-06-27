@@ -40,7 +40,7 @@ public class BuildFile extends PsiFileBase implements BuildElement, DocStringOwn
   /** The blaze file type */
   public enum BlazeFileType {
     SkylarkExtension,
-    BuildPackage, // "BUILD", "BUILD.bazel"
+    BuildPackage, // "~BUILD", "~BUILD.bazel"
     Workspace, // the top-level WORKSPACE file
     MODULE, // the top-level MODULE.bazel file
   }
@@ -48,7 +48,7 @@ public class BuildFile extends PsiFileBase implements BuildElement, DocStringOwn
   public static String getBuildFileString(Project project, String filePath) {
     Label label = WorkspaceHelper.getBuildLabel(project, new File(filePath));
     if (label == null) {
-      return "BUILD file: " + filePath;
+      return "~BUILD file: " + filePath;
     }
     String labelString = label.toString();
     return labelString.replace(":__pkg__", "/" + PathUtil.getFileName(filePath));
@@ -66,7 +66,7 @@ public class BuildFile extends PsiFileBase implements BuildElement, DocStringOwn
   public BlazeFileType getBlazeFileType() {
     String fileName = getFileName();
     switch (fileName) {
-      case "BUILD":
+      case "~BUILD":
         return BlazeFileType.BuildPackage;
       case "WORKSPACE":
         return BlazeFileType.Workspace;
@@ -75,7 +75,7 @@ public class BuildFile extends PsiFileBase implements BuildElement, DocStringOwn
       case "SkylarkExtension":
         return BlazeFileType.SkylarkExtension;
     }
-    if (fileName.startsWith("BUILD")) {
+    if (fileName.startsWith("~BUILD")) {
       return BlazeFileType.BuildPackage;
     }
     if (fileName.startsWith("WORKSPACE")) {
@@ -124,7 +124,7 @@ public class BuildFile extends PsiFileBase implements BuildElement, DocStringOwn
   }
 
   /**
-   * The label of the containing blaze package (this is always the parent directory for BUILD files,
+   * The label of the containing blaze package (this is always the parent directory for ~BUILD files,
    * but may be a more distant ancestor for Skylark extensions)
    */
   @Nullable
@@ -133,7 +133,7 @@ public class BuildFile extends PsiFileBase implements BuildElement, DocStringOwn
     return parentPackage != null ? parentPackage.getPackageLabel() : null;
   }
 
-  /** The path for this file, formatted as a BUILD label. */
+  /** The path for this file, formatted as a ~BUILD label. */
   @Nullable
   public Label getBuildLabel() {
     BlazePackage containingPackage = getBlazePackage();

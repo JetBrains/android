@@ -52,7 +52,7 @@ public class BuiltInFunctionCompletionContributorTest extends BuildFileIntegrati
   public void testSimpleTopLevelCompletion() throws Throwable {
     setRules("rule_one", "rule_two");
 
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, 0);
@@ -66,7 +66,7 @@ public class BuiltInFunctionCompletionContributorTest extends BuildFileIntegrati
   public void testUniqueTopLevelCompletion() throws Throwable {
     setRules("rule_one", "rule_two");
 
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "rule_o");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "rule_o");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "rule_o".length());
@@ -103,7 +103,7 @@ public class BuiltInFunctionCompletionContributorTest extends BuildFileIntegrati
 
     String[] contents = {"rule_one(", "    name = \"lib\"", ""};
 
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), contents);
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), contents);
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 2, 0);
@@ -117,7 +117,7 @@ public class BuiltInFunctionCompletionContributorTest extends BuildFileIntegrati
   public void testNoCompletionInComment() throws Throwable {
     setRules("rule_one", "rule_two");
 
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "#rule");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "#rule");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "#rule".length());
@@ -129,7 +129,7 @@ public class BuiltInFunctionCompletionContributorTest extends BuildFileIntegrati
   public void testNoCompletionAfterInteger() throws Throwable {
     setRules("rule_one", "rule_two");
 
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "1");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "1");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "1".length());
@@ -139,7 +139,7 @@ public class BuiltInFunctionCompletionContributorTest extends BuildFileIntegrati
 
   @Test
   public void testGlobalFunctions() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "licen");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "licen");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, 5);
@@ -162,7 +162,7 @@ public class BuiltInFunctionCompletionContributorTest extends BuildFileIntegrati
             "c", new AttributeDefinition("c", Discriminator.STRING_DICT, true, null, null),
             "opt", new AttributeDefinition("opt", Discriminator.INTEGER, false, null, null)));
 
-    PsiFile file = testFixture.configureByText("BUILD", "rule_with<caret>");
+    PsiFile file = testFixture.configureByText("~BUILD", "rule_with<caret>");
     editorTest.completeIfUnique();
 
     assertFileContents(
@@ -184,7 +184,7 @@ public class BuiltInFunctionCompletionContributorTest extends BuildFileIntegrati
             "srcs", new AttributeDefinition("srcs", Discriminator.STRING_LIST, false, null, null),
             "deps", new AttributeDefinition("deps", Discriminator.STRING_LIST, false, null, null)));
 
-    PsiFile file = testFixture.configureByText("BUILD", "haskell_bin<caret>");
+    PsiFile file = testFixture.configureByText("~BUILD", "haskell_bin<caret>");
     editorTest.completeIfUnique();
 
     assertFileContents(
@@ -195,7 +195,7 @@ public class BuiltInFunctionCompletionContributorTest extends BuildFileIntegrati
   public void testParenthesesCompletionWhenTemplatesNotApplicable() {
     setRules("abc_rule");
 
-    PsiFile file = testFixture.configureByText("BUILD", "abc_<caret>");
+    PsiFile file = testFixture.configureByText("~BUILD", "abc_<caret>");
     editorTest.completeIfUnique();
 
     assertFileContents(file, "abc_rule()");

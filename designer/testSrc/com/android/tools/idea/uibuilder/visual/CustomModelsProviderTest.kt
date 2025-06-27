@@ -20,7 +20,7 @@ import com.android.resources.NightMode
 import com.android.resources.ScreenOrientation
 import com.android.resources.UiMode
 import com.android.sdklib.AndroidTargetHash
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.LayoutTestCase

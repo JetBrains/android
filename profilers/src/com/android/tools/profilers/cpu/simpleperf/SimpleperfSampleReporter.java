@@ -16,6 +16,8 @@
 package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.downloads.AndroidProfilerDownloader;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.tools.profilers.cpu.TracePreProcessor;
@@ -36,6 +38,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -128,15 +131,28 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
   String getSimpleperfBinaryPath() {
     String subDir = getSimpleperfBinarySubdirectory();
     String binaryName = getSimpleperfBinaryName();
-    if (StudioPathManager.isRunningFromSources()) {
-      // Running from sources, so use the prebuilts path. For example:
-      // $REPO/prebuilts/tools/windows/simpleperf/simpleperf.exe.
-      return StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/" + subDir + "/simpleperf/" + binaryName).toString();
-    }
-    else {
-      // Release build. For instance:
-      // $IDEA_HOME/plugins/android/resources/simpleperf/darwin-x86_64/simpleperf
-      return Paths.get(PathManager.getHomePath(), "plugins", "android", "resources", "simpleperf", subDir, binaryName).toString();
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      if (StudioPathManager.isRunningFromSources()) {
+        // Running from sources, so use the prebuilts path. For example:
+        // $REPO/prebuilts/tools/windows/simpleperf/simpleperf.exe.
+        return StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/" + subDir + "/simpleperf/" + binaryName).toString();
+      }
+      else {
+        // Release build. For instance:
+        // $IDEA_HOME/plugins/android/resources/simpleperf/darwin-x86_64/simpleperf
+        return Paths.get(PathManager.getHomePath(), "plugins", "android", "resources", "simpleperf", subDir, binaryName).toString();
+      }
+    } else {
+      final String simpleperfRelativePath = "plugins/android/resources/simpleperf/" + subDir + "/" + binaryName;
+      final Path simpleperfPath = AndroidProfilerDownloader.getInstance().getHostDir(simpleperfRelativePath).toPath();
+
+      if(!simpleperfPath.toFile().setExecutable(true)) {
+        getLogger().error("Unable to make simpleperf executable.");
+      }
+
+      return simpleperfPath
+        .toAbsolutePath()
+        .toString();
     }
   }
 

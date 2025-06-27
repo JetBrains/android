@@ -276,7 +276,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("android_binary")
                     .addSource(source("java/apps/example/MainActivity.java"))
                     .addSource(source("java/apps/example/subdir/SubdirHelper.java"))
@@ -331,7 +331,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/example:lib")
-                    .setBuildFile(source("java/example/BUILD"))
+                    .setBuildFile(source("java/example/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("java/example/Test.java"))
                     .setJavaInfo(
@@ -366,7 +366,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("android_binary")
                     .addSource(source("java/apps/example/MainActivity.java"))
                     .setAndroidInfo(
@@ -385,7 +385,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/libraries/example:example")
-                    .setBuildFile(source("java/libraries/example/BUILD"))
+                    .setBuildFile(source("java/libraries/example/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("java/libraries/example/SharedActivity.java"))
                     .setAndroidInfo(
@@ -403,7 +403,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/com/dontimport:example_debug")
-                    .setBuildFile(source("java/com/dontimport/BUILD"))
+                    .setBuildFile(source("java/com/dontimport/~BUILD"))
                     .setKind("android_binary")
                     .addSource(source("java/com/dontimport/MainActivity.java"))
                     .setAndroidInfo(
@@ -452,7 +452,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("android_binary")
                     .addSource(source("java/apps/example/MainActivity.java"))
                     .addSource(source("java/apps/example/subdir/SubdirHelper.java"))
@@ -471,7 +471,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//javatests/apps/example:example")
-                    .setBuildFile(source("javatests/apps/example/BUILD"))
+                    .setBuildFile(source("javatests/apps/example/~BUILD"))
                     .setKind("android_test")
                     .addSource(source("javatests/apps/example/ExampleTests.java"))
                     .setAndroidInfo(
@@ -520,7 +520,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("android_binary")
                     .addSource(source("java/apps/example/MainActivity.java"))
                     .addSource(source("java/apps/example/subdir/SubdirHelper.java"))
@@ -540,7 +540,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//thirdparty/some/library:library")
-                    .setBuildFile(source("/thirdparty/some/library/BUILD"))
+                    .setBuildFile(source("/thirdparty/some/library/~BUILD"))
                     .setKind("java_import")
                     .setJavaInfo(
                         JavaIdeInfo.builder()
@@ -575,7 +575,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("android_binary")
                     .addSource(source("java/apps/example/MainActivity.java"))
                     .addSource(source("java/apps/example/subdir/SubdirHelper.java"))
@@ -594,7 +594,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//javatests/apps/example:example")
-                    .setBuildFile(source("javatests/apps/example/BUILD"))
+                    .setBuildFile(source("javatests/apps/example/~BUILD"))
                     .setKind("java_test")
                     .addSource(source("javatests/apps/example/ExampleTests.java"))
                     .addDependency("//java/apps/example:example_debug")
@@ -642,7 +642,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("android_binary")
                     .addSource(source("java/apps/example/MainActivity.java"))
                     .addSource(source("java/apps/example/subdir/SubdirHelper.java"))
@@ -657,7 +657,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/library/something:something")
-                    .setBuildFile(source("java/library/something/BUILD"))
+                    .setBuildFile(source("java/library/something/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("java/library/something/SomeJavaFile.java"))
                     .setJavaInfo(
@@ -701,7 +701,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//lib:lib")
-                    .setBuildFile(source("lib/BUILD"))
+                    .setBuildFile(source("lib/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("lib/Lib.java"))
                     .addDependency("//lib2:lib2")
@@ -714,7 +714,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//lib2:lib2")
-                    .setBuildFile(source("lib2/BUILD"))
+                    .setBuildFile(source("lib2/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("lib2/Lib2.java"))
                     .addTag("intellij-import-target-output")
@@ -745,7 +745,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//lib:lib")
-                    .setBuildFile(source("lib/BUILD"))
+                    .setBuildFile(source("lib/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("lib/Lib.java"))
                     .addDependency("//lib2:lib2")
@@ -758,7 +758,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//lib2:lib2")
-                    .setBuildFile(source("lib2/BUILD"))
+                    .setBuildFile(source("lib2/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("lib2/Lib2.java"))
                     .addTag("aswb-import-as-library")
@@ -789,7 +789,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//lib:libsource")
-                    .setBuildFile(source("lib/BUILD"))
+                    .setBuildFile(source("lib/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("lib/Source.java"))
                     .setJavaInfo(JavaIdeInfo.builder())
@@ -798,7 +798,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//lib:lib0")
-                    .setBuildFile(source("lib/BUILD"))
+                    .setBuildFile(source("lib/~BUILD"))
                     .setKind("java_import")
                     .setJavaInfo(
                         JavaIdeInfo.builder()
@@ -809,7 +809,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//lib:lib1")
-                    .setBuildFile(source("lib/BUILD"))
+                    .setBuildFile(source("lib/~BUILD"))
                     .setKind("java_import")
                     .setJavaInfo(
                         JavaIdeInfo.builder()
@@ -837,7 +837,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//import:lib")
-                    .setBuildFile(source("import/BUILD"))
+                    .setBuildFile(source("import/~BUILD"))
                     .setKind("android_library")
                     .addSource(source("import/Lib.java"))
                     .setJavaInfo(JavaIdeInfo.builder())
@@ -846,7 +846,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//import:import")
-                    .setBuildFile(source("import/BUILD"))
+                    .setBuildFile(source("import/~BUILD"))
                     .setKind("java_library")
                     .addSource(gen("import/GenSource.java"))
                     .setJavaInfo(
@@ -858,7 +858,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//import:import_android")
-                    .setBuildFile(source("import/BUILD"))
+                    .setBuildFile(source("import/~BUILD"))
                     .setKind("android_library")
                     .addSource(gen("import/GenSource.java"))
                     .setJavaInfo(
@@ -889,7 +889,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//import:lib")
-                    .setBuildFile(source("import/BUILD"))
+                    .setBuildFile(source("import/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("import/Import.java"))
                     .addSource(gen("import/Import.java"))
@@ -918,7 +918,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//import:lib")
-                    .setBuildFile(source("import/BUILD"))
+                    .setBuildFile(source("import/~BUILD"))
                     .setKind("android_library")
                     .addSource(source("import/Lib.java"))
                     .setJavaInfo(JavaIdeInfo.builder())
@@ -927,7 +927,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//import:import")
-                    .setBuildFile(source("import/BUILD"))
+                    .setBuildFile(source("import/~BUILD"))
                     .setKind("java_library")
                     .addSource(gen("import/gen-src.jar"))
                     .setJavaInfo(
@@ -960,7 +960,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//import:lib")
-                    .setBuildFile(source("import/BUILD"))
+                    .setBuildFile(source("import/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("import/Lib.java"))
                     .setJavaInfo(JavaIdeInfo.builder())
@@ -968,7 +968,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//import:import")
-                    .setBuildFile(source("import/BUILD"))
+                    .setBuildFile(source("import/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("import/Import.java"))
                     .setJavaInfo(
@@ -989,7 +989,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
         .addTarget(
             TargetIdeInfo.builder()
                 .setLabel("//java/apps/example:example_debug")
-                .setBuildFile(source("java/apps/example/BUILD"))
+                .setBuildFile(source("java/apps/example/~BUILD"))
                 .setKind("java_library")
                 .addSource(source("java/apps/example/Test.java"))
                 .setJavaInfo(JavaIdeInfo.builder())
@@ -999,7 +999,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
                 .setLabel("//thirdparty/a:a")
                 .setKind("java_library")
                 .addSource(source("thirdparty/a/A.java"))
-                .setBuildFile(source("third_party/a/BUILD"))
+                .setBuildFile(source("third_party/a/~BUILD"))
                 .addDependency("//thirdparty/b:b")
                 .setJavaInfo(
                     JavaIdeInfo.builder()
@@ -1013,7 +1013,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
                 .setLabel("//thirdparty/b:b")
                 .setKind("java_library")
                 .addSource(source("thirdparty/b/B.java"))
-                .setBuildFile(source("third_party/b/BUILD"))
+                .setBuildFile(source("third_party/b/~BUILD"))
                 .addDependency("//thirdparty/c:c")
                 .setJavaInfo(
                     JavaIdeInfo.builder()
@@ -1027,7 +1027,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
                 .setLabel("//thirdparty/c:c")
                 .setKind("java_library")
                 .addSource(source("thirdparty/c/C.java"))
-                .setBuildFile(source("third_party/c/BUILD"))
+                .setBuildFile(source("third_party/c/~BUILD"))
                 .setJavaInfo(
                     JavaIdeInfo.builder()
                         .addJar(
@@ -1070,7 +1070,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("java/apps/example/Test.java"))
                     .setJavaInfo(JavaIdeInfo.builder())
@@ -1098,7 +1098,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("java/apps/example/Test.java"))
                     .setJavaInfo(JavaIdeInfo.builder())
@@ -1136,7 +1136,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("java/apps/example/Test.java"))
                     .setJavaInfo(JavaIdeInfo.builder())
@@ -1172,13 +1172,13 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:foo_java_proto")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("java_proto_library")
                     .addDependency("//java/apps/example:foo_proto"))
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:foo_proto")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("proto_library")
                     .addSource(source("java/apps/example/foo.proto"))
                     .setJavaInfo(
@@ -1208,7 +1208,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("java/apps/example/Test.java"))
                     .setJavaInfo(JavaIdeInfo.builder())
@@ -1250,7 +1250,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
                 ImmutableList.of(new WorkspacePath("java/apps/example/Test.java")),
                 ImmutableList.of(),
                 ImmutableList.of()),
-            Predicate.isEqual("BUILD"));
+            Predicate.isEqual("~BUILD"));
 
     BlazeJavaImportResult result = importWorkspace(workspaceRoot, targetMapBuilder, projectView);
     assertThat(
@@ -1272,7 +1272,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
         new JavaWorkingSet(
             workspaceRoot,
             new WorkingSet(ImmutableList.of(), ImmutableList.of(), ImmutableList.of()),
-            Predicate.isEqual("BUILD"));
+            Predicate.isEqual("~BUILD"));
 
     BlazeJavaImportResult result = importWorkspace(workspaceRoot, targetMapBuilder, projectView);
     assertThat(
@@ -1296,7 +1296,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("java/apps/example/Test.java"))
                     .setJavaInfo(JavaIdeInfo.builder())
@@ -1315,7 +1315,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//javatests/apps/example:example_debug_test")
-                    .setBuildFile(source("javatests/apps/example/BUILD"))
+                    .setBuildFile(source("javatests/apps/example/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("javatests/apps/example/Test.java"))
                     .setJavaInfo(JavaIdeInfo.builder())
@@ -1384,7 +1384,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("java/apps/example/Example.java"))
                     .setJavaInfo(
@@ -1416,7 +1416,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example")
                     .addTag(Tags.TARGET_TAG_EXCLUDE_TARGET)
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("java/apps/example/Example.java"))
                     .setJavaInfo(
@@ -1445,7 +1445,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("android_binary")
                     .addSource(source("java/apps/example/MainActivity.java"))
                     .addSource(source("java/apps/example/subdir/SubdirHelper.java"))
@@ -1460,7 +1460,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/library/something:something")
-                    .setBuildFile(source("java/library/something/BUILD"))
+                    .setBuildFile(source("java/library/something/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("java/library/something/SomeJavaFile.java"))
                     .setJavaInfo(
@@ -1489,7 +1489,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java:toolchain")
-                    .setBuildFile(source("java/BUILD"))
+                    .setBuildFile(source("java/~BUILD"))
                     .setKind("java_toolchain")
                     .setJavaToolchainIdeInfo(
                         JavaToolchainIdeInfo.builder()
@@ -1538,7 +1538,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/example:kotlinlib")
-                    .setBuildFile(source("java/example/BUILD"))
+                    .setBuildFile(source("java/example/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("Source.java"))
                     .addDependency("//java/lib:lib")
@@ -1549,7 +1549,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/lib:lib")
-                    .setBuildFile(source("java/lib/BUILD"))
+                    .setBuildFile(source("java/lib/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("Lib.java"))
                     .setJavaInfo(JavaIdeInfo.builder()));
@@ -1584,7 +1584,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/example:source")
-                    .setBuildFile(source("java/example/BUILD"))
+                    .setBuildFile(source("java/example/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("Source.java"))
                     .addDependency("//java/lib:lib")
@@ -1595,7 +1595,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/lib:lib")
-                    .setBuildFile(source("java/lib/BUILD"))
+                    .setBuildFile(source("java/lib/~BUILD"))
                     .setKind("java_library")
                     .addSource(source("Lib.java"))
                     .setJavaInfo(JavaIdeInfo.builder()));
@@ -1623,7 +1623,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("android_binary")
                     .addSource(source("java/apps/example/MainActivity.java"))
                     .addSource(source("java/apps/example/subdir/SubdirHelper.java"))
@@ -1659,7 +1659,7 @@ public class BlazeJavaWorkspaceImporterTest extends BlazeTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//java/apps/example:example_debug")
-                    .setBuildFile(source("java/apps/example/BUILD"))
+                    .setBuildFile(source("java/apps/example/~BUILD"))
                     .setKind("android_binary")
                     .addSource(source("java/apps/example/MainActivity.java"))
                     .addSource(source("java/apps/example/subdir/SubdirHelper.java"))

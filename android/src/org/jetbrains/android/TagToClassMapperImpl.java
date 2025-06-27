@@ -51,7 +51,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-class TagToClassMapperImpl implements TagToClassMapper {
+public class TagToClassMapperImpl implements TagToClassMapper {
   private static final Logger LOG = Logger.getInstance(TagToClassMapper.class);
 
   private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myInitialClassMaps = new HashMap<>();

@@ -38,7 +38,7 @@ public class GlobalWordIndexTest extends BuildFileIntegrationTestCase {
   @Test
   public void testWordsInComments() {
     VirtualFile file =
-        workspace.createFile(new WorkspacePath("java/com/google/BUILD"), "# words in comments");
+        workspace.createFile(new WorkspacePath("java/com/google/~BUILD"), "# words in comments");
     assertContainsWords(file, UsageSearchContext.IN_COMMENTS, "words", "in", "comments");
   }
 
@@ -46,7 +46,7 @@ public class GlobalWordIndexTest extends BuildFileIntegrationTestCase {
   public void testWordsInStrings() {
     VirtualFile file =
         workspace.createFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "name = \"long name with spaces\",",
             "src = [\"name_without_spaces\"]");
     assertContainsWords(
@@ -63,7 +63,7 @@ public class GlobalWordIndexTest extends BuildFileIntegrationTestCase {
   public void testWordsInCode() {
     VirtualFile file =
         workspace.createFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_library(",
             "name = \"long name with spaces\",",
             "src = [\"name_without_spaces\"]",

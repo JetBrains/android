@@ -19,9 +19,9 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.util.TraceClassVisitor
+import org.jetbrains.org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.ClassWriter
+import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
 
 class StringReplaceTestClass {
   val property = "PropertyValue"

@@ -29,8 +29,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Before
 import org.junit.Rule

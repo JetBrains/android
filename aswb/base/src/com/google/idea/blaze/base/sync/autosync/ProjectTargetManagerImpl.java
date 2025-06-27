@@ -82,7 +82,7 @@ class ProjectTargetManagerImpl implements ProjectTargetManager {
     }
     Label label = WorkspaceHelper.getBuildLabel(project, source);
     if (label == null) {
-      // can't find a parent BUILD package
+      // can't find a parent ~BUILD package
       return null;
     }
 

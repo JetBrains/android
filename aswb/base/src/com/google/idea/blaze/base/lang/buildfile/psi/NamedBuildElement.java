@@ -23,7 +23,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNameIdentifierOwner;
 import javax.annotation.Nullable;
 
-/** Base class for PsiNamedElements in BUILD files. */
+/** Base class for PsiNamedElements in ~BUILD files. */
 public abstract class NamedBuildElement extends BuildElementImpl implements PsiNameIdentifierOwner {
 
   public NamedBuildElement(ASTNode astNode) {

@@ -17,7 +17,6 @@
 package com.android.tools.idea.lang.rs;
 
 import com.intellij.lexer.FlexAdapter;
-
 import java.io.Reader;
 
 public class RenderscriptLexer extends FlexAdapter {

@@ -18,13 +18,12 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 import com.android.tools.idea.navigator.nodes.ndk.includes.RealWorldExamples;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
-import java.util.ArrayList;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 public class ResolverTests {
   static final String PATH_TO_NDK = "/path/to/ndk-bundle";

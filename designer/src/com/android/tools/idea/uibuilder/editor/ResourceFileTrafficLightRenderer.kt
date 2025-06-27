@@ -50,7 +50,7 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
   TrafficLightRenderer(file.project, editor) {
   private val severities = SeverityRegistrar.getSeverityRegistrar(project).allSeverities
   override val errorCounts = IntArray(severities.size)
-  
+
   init {
     val messageBusConnection = project.messageBus.connect(this)
     messageBusConnection.subscribe(

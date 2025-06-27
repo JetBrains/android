@@ -15,7 +15,7 @@
  */
 package com.android.tools.tests
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ContentEntry
@@ -26,6 +26,7 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.IdeaTestUtil
+import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder
 import com.intellij.testFramework.fixtures.DefaultLightProjectDescriptor
 import java.io.File
@@ -40,7 +41,7 @@ open class AdtTestProjectDescriptor(
   /** The Java language version to configure for the project. */
   val javaLanguageVersion: LanguageLevel = LanguageLevel.HIGHEST,
   /** The path to the JDK to use for the project. Defaults to a mock JDK. */
-  val jdkPath: Path = TestUtils.getMockJdk(),
+  val jdkPath: Path = TestUtils.getEmbeddedJdk17Path(),
 ) : DefaultLightProjectDescriptor() {
 
   private val jdk by lazy { IdeaTestUtil.createMockJdk("java 1.7", jdkPath.toString()) }
@@ -172,5 +173,11 @@ object AdtTestProjectDescriptors {
    */
   @JvmStatic
   @JvmName("defaultDescriptor")  // default is a reserved word in Java
-  fun default(): AdtTestProjectDescriptor = java()
+  fun default(): AdtTestProjectDescriptor {
+    // The java.awt.GraphicsEnvironment.LocalGE.createGE function depends on `java.awt.headless` being set to `true`.
+    // Therefore, we need to load TestApplicationManager here, since initialization of
+    // `com.intellij.ui.scale.JBUIScale.systemScaleFactor` assumes this to be set during tests.
+    TestApplicationManager.getInstance()
+    return java()
+  }
 }

@@ -32,8 +32,6 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.parentOfType
-import java.io.DataInput
-import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
@@ -42,6 +40,8 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
+import java.io.DataInput
+import java.io.DataOutput
 
 /**
  * Represents a method or parameter marked with @BindsInstance in Dagger.

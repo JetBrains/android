@@ -96,7 +96,7 @@ abstract class AbstractSafeArgsResolveExtensionTest {
         analyze(ktFile) {
           val symbol =
             if (caretReference != null) {
-              caretReference.resolveToSymbol() as TSymbol
+              caretReference.resolveToSymbols().single() as TSymbol
             } else {
               ktFile.symbol as TSymbol
             }

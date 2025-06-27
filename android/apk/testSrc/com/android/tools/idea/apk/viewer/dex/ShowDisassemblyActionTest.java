@@ -15,24 +15,23 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.tools.apk.analyzer.dex.PackageTreeCreator;
-import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
-import com.android.tools.proguard.ProguardMap;
-import java.text.ParseException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-
 import static com.android.tools.idea.apk.viewer.dex.GenerateProguardKeepRuleActionTest.getDexPath;
 import static com.android.tools.idea.apk.viewer.dex.GenerateProguardKeepRuleActionTest.getTestDexFile;
 import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.apk.analyzer.dex.PackageTreeCreator;
+import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
+import com.android.tools.proguard.ProguardMap;
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
+import org.junit.Test;
 
 public class ShowDisassemblyActionTest {
   private DexElementNode myPackageTree;

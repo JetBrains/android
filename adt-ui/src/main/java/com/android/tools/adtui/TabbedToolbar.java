@@ -25,7 +25,6 @@ import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Rectangle;

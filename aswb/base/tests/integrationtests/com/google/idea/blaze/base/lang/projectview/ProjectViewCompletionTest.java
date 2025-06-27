@@ -191,7 +191,7 @@ public class ProjectViewCompletionTest extends ProjectViewIntegrationTestCase {
 
   @Test
   public void testTargetCompletion() {
-    workspace.createFile(new WorkspacePath("BUILD"), "java_library(name = 'lib')");
+    workspace.createFile(new WorkspacePath("~BUILD"), "java_library(name = 'lib')");
 
     setInput("targets:", "  //:<caret>");
 

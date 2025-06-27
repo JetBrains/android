@@ -73,6 +73,7 @@ class AndroidStudioEventLogger(private val coroutineScope: CoroutineScope) : Sta
                           "file.types" to ::logFileType,
                           "file.types.usage" to ::logFileTypeUsage,
                           "kotlin.gradle.performance" to ::logKotlinGradlePerformance,
+                          "kotlin.gradle.performance_v2" to ::logKotlinGradlePerformance,
                           "kotlin.project.configuration" to ::logKotlinProjectConfiguration,
                           "reopen.project.startup.performance" to ::logReopenProjectStartupPerformance,
                           "run.configuration.exec" to ::logRunConfigurationExec,

@@ -15,7 +15,12 @@
  */
 package com.android.tools.datastore;
 
-import com.android.tools.idea.io.grpc.*;
+import com.android.tools.idea.io.grpc.CallOptions;
+import com.android.tools.idea.io.grpc.Channel;
+import com.android.tools.idea.io.grpc.ClientCall;
+import com.android.tools.idea.io.grpc.ClientInterceptor;
+import com.android.tools.idea.io.grpc.ForwardingClientCall;
+import com.android.tools.idea.io.grpc.MethodDescriptor;
 
 public class TestClientInterceptor implements ClientInterceptor {
 

@@ -23,9 +23,9 @@ import com.android.resources.NightMode
 import com.android.resources.ResourceType
 import com.android.resources.ScreenOrientation
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
 import com.intellij.testFramework.LightVirtualFile

@@ -109,7 +109,7 @@ public class BlazeUserSettingsConfigurable extends AutoConfigurable {
           .componentFactory(SimpleComponent::createCheckBox);
 
   private static final ConfigurableSetting<?, ?> FORMAT_BUILD_FILES_ON_SAVE =
-      setting("Automatically format BUILD/Starlark files on file save")
+      setting("Automatically format ~BUILD/Starlark files on file save")
           .getter(BlazeUserSettings::getFormatBuildFilesOnSave)
           .setter(BlazeUserSettings::setFormatBuildFilesOnSave)
           .componentFactory(SimpleComponent::createCheckBox);

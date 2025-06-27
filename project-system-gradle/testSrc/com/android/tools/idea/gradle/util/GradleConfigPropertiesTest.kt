@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.util
 
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.LightPlatformTestCase
-import org.jetbrains.plugins.gradle.properties.GRADLE_CACHE_DIR_NAME
-import org.jetbrains.plugins.gradle.properties.GRADLE_LOCAL_PROPERTIES_FILE_NAME
+import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_CACHE_DIR_NAME
+import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_LOCAL_PROPERTIES_FILE_NAME
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder

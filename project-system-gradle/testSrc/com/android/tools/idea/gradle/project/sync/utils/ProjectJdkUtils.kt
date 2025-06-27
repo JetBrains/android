@@ -33,9 +33,9 @@ import org.jetbrains.jps.model.serialization.JpsComponentLoader
 import org.jetbrains.plugins.gradle.properties.GRADLE_DAEMON_JVM_PROPERTIES_FILE_NAME
 import org.jetbrains.plugins.gradle.properties.GRADLE_FOLDER
 import org.jetbrains.plugins.gradle.properties.GRADLE_JAVA_HOME_PROPERTY
-import org.jetbrains.plugins.gradle.properties.GRADLE_PROPERTIES_FILE_NAME
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.settings.GradleSettings
+import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_PROPERTIES_FILE_NAME
 import java.io.File
 import java.nio.file.Paths
 

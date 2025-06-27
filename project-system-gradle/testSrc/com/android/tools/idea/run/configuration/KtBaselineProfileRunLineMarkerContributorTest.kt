@@ -66,7 +66,7 @@ class KtBaselineProfileRunLineMarkerContributorTest {
 
     StudioFlags.GENERATE_BASELINE_PROFILE_GUTTER_ICON.override(true)
 
-    // BaselineProfileRunLineMarkerContributor utilizes KtAnalysisSession that is not allowed to run on edt.
+    // BaselineProfileRunLineMarkerContributor utilizes `KaSession` that is not allowed to run on edt.
     // Since this is a test, we can enable this here.
     @OptIn(KaImplementationDetail::class)
     KaAnalysisPermissionRegistry.getInstance().isAnalysisAllowedOnEdt = true

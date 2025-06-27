@@ -16,8 +16,6 @@
 package com.android.tools.idea.observable.core;
 
 import com.android.tools.idea.observable.AbstractProperty;
-import com.android.tools.idea.observable.expressions.string.TrimExpression;
-import com.android.tools.idea.observable.expressions.string.IsEmptyExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -39,18 +37,6 @@ public final class StringValueProperty extends StringProperty {
   @Override
   public String get() {
     return myValue;
-  }
-
-  @NotNull
-  @Override
-  public ObservableBool isEmpty() {
-    return new IsEmptyExpression(this);
-  }
-
-  @NotNull
-  @Override
-  public ObservableString trim() {
-    return new TrimExpression(this);
   }
 
   @Override

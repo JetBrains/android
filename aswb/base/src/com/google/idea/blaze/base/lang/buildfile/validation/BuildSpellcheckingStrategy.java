@@ -22,7 +22,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy;
 import com.intellij.spellchecker.tokenizer.Tokenizer;
 
-/** A {@link SpellcheckingStrategy} for BUILD/bzl files */
+/** A {@link SpellcheckingStrategy} for ~BUILD/bzl files */
 public class BuildSpellcheckingStrategy extends SpellcheckingStrategy {
   @Override
   public boolean isMyContext(PsiElement element) {

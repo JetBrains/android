@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.jetbrains.rd.util.firstOrNull
 
 class PsAndroidArtifactCollection internal constructor(parent: PsVariant) : PsCollectionBase<PsAndroidArtifact, IdeArtifactName, PsVariant>(
   parent) {

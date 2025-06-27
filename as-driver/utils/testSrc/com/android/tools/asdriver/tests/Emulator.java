@@ -16,7 +16,7 @@
 package com.android.tools.asdriver.tests;
 
 import com.android.SdkConstants;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;

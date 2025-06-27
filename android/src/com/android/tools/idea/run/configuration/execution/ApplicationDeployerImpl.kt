@@ -155,4 +155,3 @@ interface ApplicationDeployListener {
     val TOPIC = Topic("Notification on application deployment", ApplicationDeployListener::class.java)
   }
 }
-

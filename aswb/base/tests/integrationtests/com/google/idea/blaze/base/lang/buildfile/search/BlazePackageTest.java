@@ -33,7 +33,7 @@ public class BlazePackageTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testFindPackage() {
-    BuildFile packageFile = createBuildFile(new WorkspacePath("java/com/google/BUILD"));
+    BuildFile packageFile = createBuildFile(new WorkspacePath("java/com/google/~BUILD"));
     PsiFile subDirFile =
       workspace.createPsiFile(new WorkspacePath("java/com/google/tools/test.txt"));
     BlazePackage blazePackage = BlazePackage.getContainingPackage(subDirFile);
@@ -43,8 +43,8 @@ public class BlazePackageTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testScopeDoesntCrossPackageBoundary() {
-    BuildFile pkg = createBuildFile(new WorkspacePath("java/com/google/BUILD"));
-    BuildFile subpkg = createBuildFile(new WorkspacePath("java/com/google/other/BUILD"));
+    BuildFile pkg = createBuildFile(new WorkspacePath("java/com/google/~BUILD"));
+    BuildFile subpkg = createBuildFile(new WorkspacePath("java/com/google/other/~BUILD"));
 
     BlazePackage blazePackage = BlazePackage.getContainingPackage(pkg);
     assertThat(blazePackage.buildFile).isEqualTo(pkg);
@@ -53,8 +53,8 @@ public class BlazePackageTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testScopeIncludesSubdirectoriesWhichAreNotBlazePackages() {
-    BuildFile pkg = createBuildFile(new WorkspacePath("java/com/google/BUILD"));
-    createBuildFile(new WorkspacePath("java/com/google/foo/bar/BUILD"));
+    BuildFile pkg = createBuildFile(new WorkspacePath("java/com/google/~BUILD"));
+    createBuildFile(new WorkspacePath("java/com/google/foo/bar/~BUILD"));
     PsiFile subDirFile = workspace.createPsiFile(new WorkspacePath("java/com/google/foo/test.txt"));
 
     BlazePackage blazePackage = BlazePackage.getContainingPackage(subDirFile);
@@ -64,8 +64,8 @@ public class BlazePackageTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testScopeLimitedToBlazeFiles() {
-    BuildFile pkg = createBuildFile(new WorkspacePath("java/com/google/BUILD"));
-    createBuildFile(new WorkspacePath("java/com/google/foo/bar/BUILD"));
+    BuildFile pkg = createBuildFile(new WorkspacePath("java/com/google/~BUILD"));
+    createBuildFile(new WorkspacePath("java/com/google/foo/bar/~BUILD"));
     PsiFile subDirFile = workspace.createPsiFile(new WorkspacePath("java/com/google/foo/test.txt"));
 
     BlazePackage blazePackage = BlazePackage.getContainingPackage(subDirFile);
@@ -75,7 +75,7 @@ public class BlazePackageTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testGetPackageRelativePath() {
-    BuildFile pkg = createBuildFile(new WorkspacePath("java/com/google/BUILD"));
+    BuildFile pkg = createBuildFile(new WorkspacePath("java/com/google/~BUILD"));
     BlazePackage blazePackage = BlazePackage.getContainingPackage(pkg);
     assertThat(blazePackage.getPackageRelativePath(workspaceRoot.path().resolve("java/com/google/Some.java").toString()))
       .isEqualTo("Some.java");

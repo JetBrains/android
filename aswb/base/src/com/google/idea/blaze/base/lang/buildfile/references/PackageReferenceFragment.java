@@ -74,7 +74,7 @@ public class PackageReferenceFragment extends PsiReferenceBase<StringLiteral> {
 
   @Override
   public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
-    return myElement; // renaming a BUILD file has no effect on the package label fragments
+    return myElement; // renaming a ~BUILD file has no effect on the package label fragments
   }
 
   @Override

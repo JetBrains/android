@@ -316,9 +316,9 @@ public class QuerySyncProject {
    *
    * @param context               Context
    * @param workspaceRelativePaths Workspace relative file paths to find targets for. A path may be a
-   *                              path to a source file, directory or BUILD file.
+   *                              path to a source file, directory or ~BUILD file.
    * @return Corresponding project targets. For a source file, this is the targets that build that
-   * file. For a BUILD file, it's the set or targets defined in that file. For a directory, it's
+   * file. For a ~BUILD file, it's the set or targets defined in that file. For a directory, it's
    * the set of all targets defined in all build packages within the directory (recursively).
    */
   public ImmutableSet<TargetsToBuild> getProjectTargets(BlazeContext context, Collection<Path> workspaceRelativePaths) {
@@ -499,7 +499,7 @@ public class QuerySyncProject {
 
   /**
    * Returns true if the file is in the project and has been added to the workspace since the last
-   * IDE sync operation (Sync Project with BUILD files), return false otherwise, or an empty {@link
+   * IDE sync operation (Sync Project with ~BUILD files), return false otherwise, or an empty {@link
    * Optional} if this information cannot be determined.
    *
    * <p>Newly added files are determined by the following conditions:

@@ -35,7 +35,7 @@ import com.intellij.psi.PsiElement;
 import java.util.EnumSet;
 
 /**
- * Provides simple validation of BUILD psi element types (e.g. is the type known to not resolve to a
+ * Provides simple validation of ~BUILD psi element types (e.g. is the type known to not resolve to a
  * string).<br>
  * We err on the side of avoiding spurious errors.
  */

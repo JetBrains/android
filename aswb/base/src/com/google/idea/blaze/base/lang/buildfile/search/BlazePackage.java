@@ -31,7 +31,7 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 /**
- * A Blaze package is a directory containing a BUILD file, plus all subdirectories which aren't
+ * A Blaze package is a directory containing a ~BUILD file, plus all subdirectories which aren't
  * themselves Blaze packages.
  */
 public class BlazePackage {
@@ -93,7 +93,7 @@ public class BlazePackage {
   /**
    * The search scope corresponding to this package (i.e. not crossing package boundaries).
    *
-   * @param onlyBlazeFiles if true, the scope is limited to BUILD and Skylark files.
+   * @param onlyBlazeFiles if true, the scope is limited to ~BUILD and Skylark files.
    */
   public GlobalSearchScope getSearchScope(boolean onlyBlazeFiles) {
     return new BlazePackageSearchScope(this, onlyBlazeFiles);
@@ -116,7 +116,7 @@ public class BlazePackage {
       .toString() : null;
   }
 
-  /** Formats the child file path as a BUILD label (i.e. "//package_path[:relative_path]") */
+  /** Formats the child file path as a ~BUILD label (i.e. "//package_path[:relative_path]") */
   @Nullable
   public Label getBuildLabelForChild(String filePath) {
     Label parentPackage = getPackageLabel();

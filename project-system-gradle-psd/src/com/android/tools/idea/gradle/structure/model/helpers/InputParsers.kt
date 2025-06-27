@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.ide.common.gradle.Version
 import com.android.sdklib.AndroidTargetHash
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
@@ -47,6 +48,7 @@ fun parseFile(text: String): Annotated<ParsedValue<File>> =
   else
     ParsedValue.Set.Parsed(File(text), DslText.Literal).annotated()
 
+@Suppress("HardCodedStringLiteral") //used only in tests
 inline fun <reified T : Any> parseEnum(text: String, parser: (String) -> T?): Annotated<ParsedValue<T>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
@@ -74,7 +76,7 @@ fun parseBoolean(text: String): Annotated<ParsedValue<Boolean>> =
       ParsedValue.Set.Parsed(parsed, DslText.Literal).annotated()
     else
       ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
-        .annotateWithError("Unknown boolean value: '$text'. Expected 'true' or 'false'")
+        .annotateWithError(AndroidGradlePsdBundle.message("android.error.boolean.value.invalid", text))
   }
 
 fun parseInt(text: String): Annotated<ParsedValue<Int>> =
@@ -86,7 +88,7 @@ fun parseInt(text: String): Annotated<ParsedValue<Int>> =
     }
     catch (ex: NumberFormatException) {
       ParsedValue.Set.Parsed<Int>(null, DslText.OtherUnparsedDslText(text))
-        .annotateWithError("'$text' is not a valid integer value")
+        .annotateWithError(AndroidGradlePsdBundle.message("android.error.integer.value.invalid", text))
     }
   }
 
@@ -96,7 +98,7 @@ fun parseLanguageLevel(text: String): Annotated<ParsedValue<LanguageLevel>> =
   else
     parseFromGradleString(text)?.let { ParsedValue.Set.Parsed(it, DslText.Literal).annotated() }
     ?: ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
-      .annotateWithError("'$text' is not a valid language level")
+      .annotateWithError(AndroidGradlePsdBundle.message("android.error.language.level.invalid", text))
 
 fun parseGradleVersion(text: String): Annotated<ParsedValue<Version>> =
   if (text == "")
@@ -107,7 +109,7 @@ fun parseGradleVersion(text: String): Annotated<ParsedValue<Version>> =
     }
     catch (ex: IllegalArgumentException) {
       ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
-        .annotateWithError("'$text' is not a valid version specification")
+        .annotateWithError(AndroidGradlePsdBundle.message("android.error.gradle.version.invalid.specification", text))
     }
 
 fun parseReferenceOnly(text: String): Annotated<ParsedValue<Unit>> =
@@ -115,7 +117,7 @@ fun parseReferenceOnly(text: String): Annotated<ParsedValue<Unit>> =
     ParsedValue.NotSet.annotated()
   else
     ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))
-      .annotateWithError("A signing config reference should be in a form of '\$configName'")
+      .annotateWithError(AndroidGradlePsdBundle.message("android.error.signing.config.reference.configname"))
 
 fun formatLanguageLevel(value: LanguageLevel): String = value.toJavaVersion().toString()
 

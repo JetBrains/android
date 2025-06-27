@@ -126,7 +126,7 @@ public class BlazePyRunConfigurationRunner implements BlazeCommandRunConfigurati
           Strings.nullToEmpty(
               getRunfilesPath(
                   executionInfo.executable, WorkspaceRoot.fromProjectSafe(env.getProject()))));
-      // BUILD file defined args
+      // ~BUILD file defined args
       List<String> args = new ArrayList<>(executionInfo.args);
 
       Sdk sdk = PySdkUtils.getPythonSdk(env.getProject());

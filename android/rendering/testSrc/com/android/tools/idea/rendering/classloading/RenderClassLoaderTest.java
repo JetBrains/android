@@ -86,7 +86,7 @@ public class RenderClassLoaderTest {
     Logger.setFactory(MyLoggerFactory.class);
     ourLoggerInstance = new DefaultLogger("") {
       @Override
-      public void error(@NonNls String message, @Nullable Throwable t, @NonNls @NotNull String... details) {
+      public void error(@NonNls String message, @Nullable Throwable t, @NonNls @NotNull String @NotNull ... details) {
         fail("Logger shouldn't receive any error calls");
       }
     };

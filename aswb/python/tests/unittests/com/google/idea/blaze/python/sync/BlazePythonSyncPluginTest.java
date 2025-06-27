@@ -61,7 +61,7 @@ public class BlazePythonSyncPluginTest extends BlazeTestCase {
         TargetMapBuilder.builder()
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//python:main_py2")
                     .setKind("py_binary")
                     .addSource(sourceRoot("test/main_py2.py"))
@@ -71,7 +71,7 @@ public class BlazePythonSyncPluginTest extends BlazeTestCase {
                             .setSrcsVersion(PythonSrcsVersion.SRC_PY2ONLY)))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//python:main_py3")
                     .setKind("py_binary")
                     .addSource(sourceRoot("test/main_py3.py"))
@@ -94,7 +94,7 @@ public class BlazePythonSyncPluginTest extends BlazeTestCase {
         TargetMapBuilder.builder()
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//python:main_py2")
                     .setKind("py_binary")
                     .addSource(sourceRoot("test/main_py2.py"))
@@ -104,7 +104,7 @@ public class BlazePythonSyncPluginTest extends BlazeTestCase {
                             .setSrcsVersion(PythonSrcsVersion.SRC_PY2ONLY)))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//python:main_py3")
                     .setKind("py_binary")
                     .addSource(sourceRoot("test/main_py3.py"))
@@ -127,7 +127,7 @@ public class BlazePythonSyncPluginTest extends BlazeTestCase {
         TargetMapBuilder.builder()
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//python:main_py2")
                     .setKind("py_binary")
                     .addSource(sourceRoot("test/main_py2.py"))
@@ -137,7 +137,7 @@ public class BlazePythonSyncPluginTest extends BlazeTestCase {
                             .setSrcsVersion(PythonSrcsVersion.SRC_PY2AND3)))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//python:main_py3")
                     .setKind("py_binary")
                     .addSource(sourceRoot("test/main_py3.py"))
@@ -160,7 +160,7 @@ public class BlazePythonSyncPluginTest extends BlazeTestCase {
         TargetMapBuilder.builder()
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//python:main_py2")
                     .setKind("py_binary")
                     .addSource(sourceRoot("test/main_py2.py"))
@@ -170,7 +170,7 @@ public class BlazePythonSyncPluginTest extends BlazeTestCase {
                             .setSrcsVersion(PythonSrcsVersion.SRC_PY2AND3)))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//python:main_py3")
                     .setKind("py_binary")
                     .addSource(sourceRoot("test/main_py3.py"))

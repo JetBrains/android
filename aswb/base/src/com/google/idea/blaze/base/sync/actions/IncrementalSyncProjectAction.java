@@ -37,7 +37,7 @@ import icons.BlazeIcons;
 import javax.annotation.Nullable;
 import javax.swing.Icon;
 
-/** Syncs the project with BUILD files. */
+/** Syncs the project with ~BUILD files. */
 public class IncrementalSyncProjectAction extends BlazeProjectSyncAction {
 
   public static final String ID = "Blaze.IncrementalSyncProject";
@@ -96,7 +96,7 @@ public class IncrementalSyncProjectAction extends BlazeProjectSyncAction {
   private static void showPopupNotification(Project project) {
     String message =
         String.format(
-            "Some relevant files (e.g. BUILD files, .blazeproject file) "
+            "Some relevant files (e.g. ~BUILD files, .blazeproject file) "
                 + "have changed since the last sync. "
                 + "Please press the 'Sync' button in the toolbar to re-sync your %s project.",
             ApplicationNamesInfo.getInstance().getFullProductName());

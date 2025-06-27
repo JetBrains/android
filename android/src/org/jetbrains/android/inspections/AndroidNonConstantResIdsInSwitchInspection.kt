@@ -23,10 +23,10 @@ import org.jetbrains.annotations.Nls
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 class AndroidNonConstantResIdsInSwitchInspection : LocalInspectionTool() {
-  override fun getGroupDisplayName(): @Nls String =
+  override fun getGroupDisplayName(): String =
     AndroidBundle.message("android.inspections.group.name")
 
-  override fun getDisplayName(): @Nls String =
+  override fun getDisplayName(): String =
     AndroidBundle.message("android.inspections.non.constant.res.ids.in.switch.name")
 
   override fun getShortName() = "AndroidNonConstantResIdsInSwitch"

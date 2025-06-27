@@ -1,0 +1,8 @@
+<idea-plugin>
+  <dependencies>
+    <plugin id="com.intellij.gradle"/>
+  </dependencies>
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <projectResolve implementation="com.android.tools.idea.gradle.dcl.lang.sync.GradleSchemaProjectResolver"/>
+  </extensions>
+</idea-plugin>

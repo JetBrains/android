@@ -172,7 +172,8 @@ public class RenderTask {
   /**
    * Executor to run the dispose tasks. The thread will run them sequentially.
    */
-  private static final ExecutorService ourDisposeService =
+  @VisibleForTesting
+  public static final ExecutorService ourDisposeService =
     AppExecutorUtil.createBoundedApplicationPoolExecutor("RenderTask Dispose Thread", 1);
 
   @NotNull RenderTaskAllocationTracker myTracker;

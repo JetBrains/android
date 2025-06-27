@@ -23,14 +23,23 @@ import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
 import com.intellij.debugger.impl.DebuggerUtilsEx;
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl;
-import com.sun.jdi.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import com.sun.jdi.ArrayReference;
+import com.sun.jdi.ArrayType;
+import com.sun.jdi.ByteValue;
+import com.sun.jdi.ClassType;
+import com.sun.jdi.Field;
+import com.sun.jdi.IntegerValue;
+import com.sun.jdi.Method;
+import com.sun.jdi.ObjectCollectedException;
+import com.sun.jdi.ObjectReference;
+import com.sun.jdi.ReferenceType;
+import com.sun.jdi.Value;
+import java.awt.Dimension;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Evaluator in the name BitmapEvaluatorProvider implies the use of the debugger evaluation mechanism to query the app for the desired
@@ -106,7 +115,7 @@ public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataPr
 
     double s = Math.max(currentDimensions.getHeight(), currentDimensions.getWidth()) / MAX_DIMENSION;
 
-    VirtualMachineProxyImpl vm = myEvaluationContext.getDebugProcess().getVirtualMachineProxy();
+    VirtualMachineProxyImpl vm = myEvaluationContext.getSuspendContext().getVirtualMachineProxy();
     Value dstWidth = DebuggerUtilsEx.createValue(vm, "int", (int)(currentDimensions.getWidth() / s));
     Value dstHeight = DebuggerUtilsEx.createValue(vm, "int", (int)(currentDimensions.getHeight() / s));
     Value filter = DebuggerUtilsEx.createValue(vm, "boolean", Boolean.FALSE);

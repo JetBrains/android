@@ -781,7 +781,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         }
       }
     }
-    if (builder.length() == 0) {
+    if (builder.isEmpty()) {
       return null;
     }
     return builder.toString().substring(0, builder.length() - 1);

@@ -18,12 +18,12 @@ package com.android.tools.idea.updater.configure;
 import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * ColumnInfo showing an icon indicating whether a row has been selected for download or deletion.

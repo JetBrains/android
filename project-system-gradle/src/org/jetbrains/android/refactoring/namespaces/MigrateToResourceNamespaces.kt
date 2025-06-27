@@ -169,7 +169,7 @@ class MigrateToResourceNamespacesProcessor(
 
   private val elementFactory = XmlElementFactory.getInstance(myProject)
 
-  override fun findUsages(): Array<out UsageInfo> {
+  protected override fun findUsages(): Array<out UsageInfo> {
     val progressIndicator = ProgressManager.getInstance().progressIndicator
 
     progressIndicator.text = AndroidBundle.message("android.refactoring.migrateto.namespaces.progress.analyze.xml")
@@ -337,7 +337,7 @@ class MigrateToResourceNamespacesProcessor(
             val namespace = findOrCreateNamespacePrefix(tag, inferredPackage)
             val resourceValue = usageInfo.resourceValue
             val newStringValue = usageInfo.converter.convertToString(
-              ResourceValue.referenceTo(
+               ResourceValue.referenceTo(
                 resourceValue.prefix,
                 namespace,
                 resourceValue.resourceType,
@@ -420,7 +420,7 @@ class MigrateToResourceNamespacesProcessor(
     )
   }
 
-  override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
+  protected override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
     // TODO(b/78765120): Report conflicts and any other issues. This method runs on the UI thread, so we need to do the actual work in [findUsages].
     return if (refUsages.get().isNotEmpty()) {
       true

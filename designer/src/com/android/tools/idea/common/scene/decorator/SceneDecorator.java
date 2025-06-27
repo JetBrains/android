@@ -22,9 +22,8 @@ import com.android.tools.idea.common.scene.draw.DrawComponentBackground;
 import com.android.tools.idea.common.scene.draw.DrawComponentFrame;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import java.awt.Rectangle;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The generic Scene Decorator

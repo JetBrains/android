@@ -29,8 +29,8 @@ import org.jetbrains.annotations.NotNull;
 /** Used to provide user-visible string when grouping 'find usages' results by type. */
 public class BuildUsageTypeProvider implements UsageTypeProviderEx {
   private static final UsageType IN_LOAD = new UsageType("Usage in load statement");
-  private static final UsageType IN_GLOB = new UsageType("Usage in BUILD glob");
-  private static final UsageType GENERIC = new UsageType("Usage in BUILD/Skylark file");
+  private static final UsageType IN_GLOB = new UsageType("Usage in ~BUILD glob");
+  private static final UsageType GENERIC = new UsageType("Usage in ~BUILD/Skylark file");
 
   @Override
   @Nullable

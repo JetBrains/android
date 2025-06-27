@@ -29,7 +29,7 @@ import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.testFramework.PlatformTestUtil
 import org.junit.Test
 
@@ -59,7 +59,7 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
           expect.that(buildIssue.description).contains("<a href=\"${it.id}\">Open File</a>")
           expect.that(it).isInstanceOf(OpenPluginBuildFileQuickFix::class.java)
           PlatformTestUtil.waitForFuture(it.runQuickFix(project, SimpleDataContext.getProjectContext(project)))
-          expect.that(FileEditorManagerEx.getInstanceEx(project).currentFile?.toIoFile()).isEqualTo(buildGradle)
+          expect.that(FileEditorManager.getInstance(project).currentFile?.toIoFile()).isEqualTo(buildGradle)
         }
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_COM_ANDROID_TOOLS_BUILD_GRADLE,
@@ -112,7 +112,7 @@ class MissingAndroidPluginFailureTest : AbstractIssueCheckerIntegrationTest() {
           expect.that(buildIssue.description).contains("<a href=\"${it.id}\">Open File</a>")
           expect.that(it).isInstanceOf(OpenPluginBuildFileQuickFix::class.java)
           PlatformTestUtil.waitForFuture(it.runQuickFix(project, SimpleDataContext.getProjectContext(project)))
-          expect.that(FileEditorManagerEx.getInstanceEx(project).currentFile?.toIoFile()).isEqualTo(buildGradle)
+          expect.that(FileEditorManager.getInstance(project).currentFile?.toIoFile()).isEqualTo(buildGradle)
         }
       },
       expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.MISSING_DEPENDENCY_COM_ANDROID_TOOLS_BUILD_GRADLE,

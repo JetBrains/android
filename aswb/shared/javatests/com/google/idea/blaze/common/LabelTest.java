@@ -101,8 +101,8 @@ public class LabelTest {
 
   @Test
   public void testToFilePath() {
-    Truth8.assertThat(Label.of("//package/path:BUILD").toFilePath())
-        .isEqualTo(Path.of("package/path/BUILD"));
+    Truth8.assertThat(Label.of("//package/path:~BUILD").toFilePath())
+        .isEqualTo(Path.of("package/path/~BUILD"));
   }
 
   @Test

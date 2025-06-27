@@ -171,7 +171,7 @@ public class QuerySyncAsyncFileListenerTest extends LightJavaCodeInsightFixtureT
   public void projectFileModified_buildFile_requestsSync() throws Exception {
     getFixture()
         .addFileToProject(
-            INCLUDED_DIRECTORY.resolve("BUILD").toString(), "java_library(name=\"java\",srcs=[])");
+            INCLUDED_DIRECTORY.resolve("~BUILD").toString(), "java_library(name=\"java\",srcs=[])");
 
     TestListener fileListener =
         new TestListener(getFixture().getProject(), mockSyncRequester)
@@ -181,7 +181,7 @@ public class QuerySyncAsyncFileListenerTest extends LightJavaCodeInsightFixtureT
         .addAsyncFileListener(fileListener, getFixture().getTestRootDisposable());
     verify(mockSyncRequester, never()).requestSync();
 
-    VirtualFile vf = getFixture().findFileInTempDir(INCLUDED_DIRECTORY.resolve("BUILD").toString());
+    VirtualFile vf = getFixture().findFileInTempDir(INCLUDED_DIRECTORY.resolve("~BUILD").toString());
     WriteAction.runAndWait(
         () ->
             vf.setBinaryContent(

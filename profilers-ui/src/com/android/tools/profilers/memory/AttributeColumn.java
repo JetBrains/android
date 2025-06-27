@@ -19,12 +19,12 @@ import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.intellij.ui.ColoredTreeCellRenderer;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.border.Border;
 import java.util.Comparator;
 import java.util.function.Supplier;
+import javax.swing.SortOrder;
+import javax.swing.SwingConstants;
+import javax.swing.border.Border;
+import org.jetbrains.annotations.NotNull;
 
 class AttributeColumn<T extends MemoryObject> {
   private final String myName;

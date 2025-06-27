@@ -61,7 +61,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public class AndroidTargetData {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidTargetData");
+  private static final Logger LOG = Logger.getInstance(AndroidTargetData.class);
 
   private final AndroidSdkData mySdkData;
   private final IAndroidTarget myTarget;

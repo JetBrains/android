@@ -129,7 +129,7 @@ public class BuildReferenceManager {
 
   /**
    * Finds all child directories. If exactly one is found, continue traversing (and appending to
-   * LookupElement string) until there are multiple options. Stops traversing at BUILD packages.
+   * LookupElement string) until there are multiple options. Stops traversing at ~BUILD packages.
    *
    * <p>Used for package path completion suggestions.
    */
@@ -177,7 +177,7 @@ public class BuildReferenceManager {
       if (validChildren.size() > 1) {
         return uniqueLookup[0] != null ? uniqueLookup : lookupsForFiles(validChildren, lookupData);
       }
-      // if we've already traversed a directory and this is a BUILD package, stop here
+      // if we've already traversed a directory and this is a ~BUILD package, stop here
       if (uniqueLookup[0] != null && hasBuildFile(children)) {
         return uniqueLookup;
       }

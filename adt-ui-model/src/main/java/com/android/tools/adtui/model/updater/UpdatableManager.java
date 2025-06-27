@@ -15,10 +15,9 @@
  */
 package com.android.tools.adtui.model.updater;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Manages a subset of {@link Updatable} belonging to an {@link Updater}.

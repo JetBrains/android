@@ -57,13 +57,13 @@ public class ReverseDependencyMapTest extends BlazeTestCase {
         builder
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//l:l1")
                     .setKind("proto_library")
                     .addDependency("//l:l2"))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//l:l2")
                     .setKind("proto_library"))
             .build();
@@ -84,19 +84,19 @@ public class ReverseDependencyMapTest extends BlazeTestCase {
         builder
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//l:l1")
                     .setKind("proto_library")
                     .addDependency("//l:l2")
                     .addDependency("//l:l3"))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//l:l2")
                     .setKind("proto_library"))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//l:l3")
                     .setKind("proto_library"))
             .build();
@@ -121,19 +121,19 @@ public class ReverseDependencyMapTest extends BlazeTestCase {
         builder
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//l:l1")
                     .setKind("proto_library")
                     .addDependency("//l:l3"))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//l:l2")
                     .addDependency("//l:l3")
                     .setKind("proto_library"))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//l:l3")
                     .setKind("proto_library"))
             .build();
@@ -158,30 +158,30 @@ public class ReverseDependencyMapTest extends BlazeTestCase {
         builder
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//l:l1")
                     .setKind("proto_library")
                     .addDependency("//l:l3"))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//l:l2")
                     .addDependency("//l:l3")
                     .setKind("proto_library"))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//l:l3")
                     .setKind("proto_library"))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//l:l4")
                     .addDependency("//l:l3")
                     .setKind("proto_library"))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("test/BUILD"))
+                    .setBuildFile(sourceRoot("test/~BUILD"))
                     .setLabel("//l:l5")
                     .addDependency("//l:l4")
                     .setKind("proto_library"))

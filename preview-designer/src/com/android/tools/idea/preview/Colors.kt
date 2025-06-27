@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.preview
 
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.JBColor
-import com.intellij.ui.NewUI
 import java.awt.Color
 
 object Colors {
@@ -33,5 +33,5 @@ object Colors {
    */
   @Suppress("UnstableApiUsage")
   val ACTIVE_BACKGROUND_COLOR: Color =
-    if (NewUI.isEnabled()) JBColor.PanelBackground else JBColor(0xCBD2D9, 0x46454D)
+    if (ExperimentalUI.isNewUI()) JBColor.PanelBackground else JBColor(0xCBD2D9, 0x46454D)
 }

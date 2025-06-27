@@ -73,7 +73,7 @@ public class JavaSyncTest extends BlazeSyncIntegrationTestCase {
         TargetMapBuilder.builder()
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("java/com/google/BUILD"))
+                    .setBuildFile(sourceRoot("java/com/google/~BUILD"))
                     .setLabel("//java/com/google:lib")
                     .setKind("java_library")
                     .addSource(sourceRoot("java/com/google/ClassWithUniqueName1.java"))
@@ -139,7 +139,7 @@ public class JavaSyncTest extends BlazeSyncIntegrationTestCase {
         TargetMapBuilder.builder()
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("java/com/google/BUILD"))
+                    .setBuildFile(sourceRoot("java/com/google/~BUILD"))
                     .setLabel("//java/com/google:lib")
                     .setKind("java_library")
                     .addSource(sourceRoot("java/com/google/Source.java"))
@@ -189,7 +189,7 @@ public class JavaSyncTest extends BlazeSyncIntegrationTestCase {
         TargetMapBuilder.builder()
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(sourceRoot("java/com/google/BUILD"))
+                    .setBuildFile(sourceRoot("java/com/google/~BUILD"))
                     .setLabel("//java/com/google:lib")
                     .setKind("java_library")
                     .addSource(sourceRoot("java/com/google/Source.java"))

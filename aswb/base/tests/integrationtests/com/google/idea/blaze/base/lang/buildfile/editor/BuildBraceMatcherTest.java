@@ -27,7 +27,7 @@ import org.junit.runners.JUnit4;
 public class BuildBraceMatcherTest extends BuildFileIntegrationTestCase {
 
   private PsiFile setInput(String... fileContents) {
-    return testFixture.configureByText("BUILD", Joiner.on("\n").join(fileContents));
+    return testFixture.configureByText("~BUILD", Joiner.on("\n").join(fileContents));
   }
 
   @Test

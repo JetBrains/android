@@ -28,7 +28,6 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;

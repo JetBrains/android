@@ -63,11 +63,9 @@ class AndroidStudioHelpTest : AndroidTestCase() {
       lastUrl = url
     }
 
-    override fun browse(file: File) {
-    }
+    override fun browse(file: File) { }
 
-    override fun browse(file: Path) {
-    }
+    override fun browse(file: Path) { }
 
     override fun browse(url: String, browser: WebBrowser?, project: Project?) {
       lastUrl = url

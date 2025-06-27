@@ -18,7 +18,6 @@ package com.android.tools.idea.projectsystem
 
 import com.android.annotations.concurrency.AnyThread
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
 
 /**

@@ -857,7 +857,7 @@ class LogcatFormatDialogTest {
 
   private inline fun <reified T : JComponent> DialogWrapper.findComponent(name: String): T {
     return TreeWalker(rootPane).descendants().filterIsInstance<T>().find { it.name == name }
-      ?: fail("${T::class.simpleName} named $name was not found")
+           ?: fail("${T::class.simpleName} named $name was not found")
   }
 
   private fun FakeUi.clickApply() =

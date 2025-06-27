@@ -17,7 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoThreadLocalsCleaner
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdks
@@ -35,9 +35,9 @@ import com.intellij.facet.FacetType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -462,13 +462,15 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
     mockitoCleaner.setup()
 
     userHome = System.getProperty("user.home")
-    val testSpecificName =
-      UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName.substringAfterLast('$')
-    // Reset user home directory.
-    System.setProperty(
-      "user.home",
-      FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home"),
-    )
+    // this leads to "File accessed outside allowed roots" exception in many test cases,
+    // since it doesn't allow us to access files in ~/.m2/repository, by overriding the user.home property.
+    //val testSpecificName =
+    //  UsefulTestCase.TEMP_DIR_MARKER + description.testClass.simpleName.substringAfterLast('$')
+    //// Reset user home directory.
+    //System.setProperty(
+    //  "user.home",
+    //  FileUtils.join(FileUtil.getTempDirectory(), testSpecificName, "nonexistent_user_home"),
+    //)
 
     // Disable antivirus checks on Windows.
     StudioFlags.ANTIVIRUS_METRICS_ENABLED.overrideForTest(false, testEnvironmentDisposable)
@@ -476,6 +478,15 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
 
     // Enable workspace model cache
     WorkspaceModelCacheImpl.forceEnableCaching(testEnvironmentDisposable)
+
+    try {
+      ProjectDataService.EP_NAME.point.extensionList.firstOrNull {
+        it.javaClass.name == "com.intellij.javaee.web.gradle.WebDetectionExclusionModuleDataService"
+      }?.let { ep ->
+        ProjectDataService.EP_NAME.point.unregisterExtension(ep.javaClass)
+      }
+    } catch (_: Throwable) {
+    }
   }
 
   override fun after(description: Description) {
@@ -724,7 +735,7 @@ private fun createJavaCodeInsightTestFixtureAndModels(
     override fun setUp() {
       javaCodeInsightTestFixture.setUp()
       prepareSdksForTests(javaCodeInsightTestFixture)
-      invokeAndWaitIfNeeded {
+      ApplicationManager.getApplication().invokeAndWait {
         // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and
         // cleaned after the test to behave
         // properly.
@@ -745,7 +756,7 @@ interface IntegrationTestEnvironmentRule : IntegrationTestEnvironment, TestRule 
 }
 
 class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) :
-  TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
+  TestRule by RuleChain.outerRule(EdtRule()).around(projectRule)!! {
   val project: Project
     get() = projectRule.project
 

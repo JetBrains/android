@@ -44,9 +44,9 @@ class OpenCorrespondingBuildFile extends BlazeProjectAction {
     navigateToTargetOrFile(project, vf);
   }
 
-  /** Returns true if a target or BUILD file could be found and navigated to. */
+  /** Returns true if a target or ~BUILD file could be found and navigated to. */
   private static void navigateToTargetOrFile(Project project, VirtualFile vf) {
-    // First, find the parent BUILD file. We don't want to navigate to labels in other packages
+    // First, find the parent ~BUILD file. We don't want to navigate to labels in other packages
     BlazePackage parentPackage = BuildFileUtils.getBuildFile(project, vf);
     if (parentPackage == null) {
       return;

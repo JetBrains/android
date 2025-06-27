@@ -28,6 +28,12 @@ import com.android.tools.property.panel.impl.model.util.FakeComboBoxUI
 import com.android.tools.property.panel.impl.model.util.FakeEnumSupport
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
@@ -38,12 +44,6 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
-import org.junit.ClassRule
-import org.junit.Rule
-import org.junit.Test
 
 internal class PsiPropertyDropDownTest {
 

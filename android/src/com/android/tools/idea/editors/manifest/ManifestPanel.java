@@ -39,7 +39,6 @@ import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
@@ -774,7 +773,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   @NotNull
-  static String getErrorHtml(final @NotNull AndroidFacet facet,
+  public static String getErrorHtml(final @NotNull AndroidFacet facet,
                              @NotNull String message,
                              @NotNull final SourceFilePosition position,
                              @NotNull HtmlLinkManager htmlLinkManager,
@@ -1099,7 +1098,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     return myToken.getExternalAndroidLibraryDisplayName(androidLibrary);
   }
 
-  static class ManifestTreeNode extends DefaultMutableTreeNode {
+  public static class ManifestTreeNode extends DefaultMutableTreeNode {
 
     public ManifestTreeNode(@NotNull Node obj) {
       super(obj);

@@ -26,7 +26,6 @@ import com.google.gson.JsonParser
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.io.HttpRequests
 import org.jetbrains.ide.PooledThreadExecutor
 import java.io.InputStream
 import java.nio.file.Path
@@ -48,7 +47,7 @@ object GradleVersionsRepository : NetworkCache(
     Logger.getInstance(GradleVersionsRepository::class.java).warn(message, throwable)
 
   fun getKnownVersionsFuture() : ListenableFuture<List<String>?> =
-    MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<List<String>?> { getKnownVersions() }
+    MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<List<String>?> { getKnownVersions() ?: emptyList() }
 
   @Slow
   fun getKnownVersions() : List<String>? = findData("")?.use { parseGradleVersionsResponse(it) }

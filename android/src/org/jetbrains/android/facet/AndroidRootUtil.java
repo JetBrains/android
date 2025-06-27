@@ -17,7 +17,7 @@
 package org.jetbrains.android.facet;
 
 import static com.intellij.openapi.util.io.FileUtil.getRelativePath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.toVirtualFileArray;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;

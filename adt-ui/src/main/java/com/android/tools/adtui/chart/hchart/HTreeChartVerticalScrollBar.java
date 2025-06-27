@@ -20,11 +20,10 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.intellij.ui.components.JBScrollBar;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A vertical scroll bar for {@link HTreeChart} that synchronizes with {@link HTreeChart#getYRange()}.

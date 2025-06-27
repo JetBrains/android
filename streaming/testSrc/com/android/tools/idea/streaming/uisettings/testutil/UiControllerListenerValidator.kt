@@ -23,7 +23,6 @@ import com.android.tools.idea.streaming.emulator.DEFAULT_FONT_SCALE
 import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
 import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
-import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListenerValidator.ListenerState
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.google.common.truth.Truth.assertThat
 

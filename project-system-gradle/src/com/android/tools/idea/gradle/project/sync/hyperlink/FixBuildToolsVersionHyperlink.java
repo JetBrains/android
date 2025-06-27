@@ -20,9 +20,8 @@ import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildTools
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class FixBuildToolsVersionHyperlink extends SyncIssueNotificationHyperlink {
   @NotNull private final List<VirtualFile> myBuildFiles;

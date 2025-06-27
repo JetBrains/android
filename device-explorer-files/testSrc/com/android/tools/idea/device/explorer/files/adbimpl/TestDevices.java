@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.device.explorer.files.adbimpl;
 
-import com.android.tools.idea.device.explorer.files.adbimpl.TestShellCommands;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("SpellCheckingInspection")

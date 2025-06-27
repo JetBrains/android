@@ -22,12 +22,12 @@ import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
-import java.io.DataInput
-import java.io.DataOutput
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
 import org.jetbrains.kotlin.idea.stubindex.KotlinTypeAliasByExpansionShortNameIndex
 import org.jetbrains.kotlin.name.ClassId
+import java.io.DataInput
+import java.io.DataOutput
 
 /**
  * Returns the list of index keys to search for a given type in priority order.

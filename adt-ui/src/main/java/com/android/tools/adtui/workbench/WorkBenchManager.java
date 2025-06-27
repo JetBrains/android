@@ -21,7 +21,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.ui.NewUI;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.util.ui.FocusUtil;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
@@ -30,7 +30,6 @@ import java.util.Optional;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
-import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * All the settings of an {@link AttachedToolWindow} are shared globally for all instances
@@ -49,7 +48,7 @@ public class WorkBenchManager implements Disposable {
 
   public WorkBenchManager() {
     myWorkBenches = Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
-    if (NewUI.isEnabled()) {
+    if (ExperimentalUI.isNewUI()) {
       FocusUtil.addFocusOwnerListener(this, evt -> findActiveToolWindow());
     }
   }

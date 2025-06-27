@@ -51,7 +51,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-abstract class AdaptiveIconGeneratorTest extends AndroidTestCase {
+public abstract class AdaptiveIconGeneratorTest extends AndroidTestCase {
   private final List<String> myWarnings = new ArrayList<>();
 
   protected AdaptiveIconGeneratorTest() {

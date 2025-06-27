@@ -245,7 +245,7 @@ public class ProjectViewVerifierTest extends BlazeTestCase {
 
     @CanIgnoreReturnValue
     MockFileOperationProvider addPackage(WorkspacePath file) {
-      addFile(new WorkspacePath(file + "/BUILD"));
+      addFile(new WorkspacePath(file + "/~BUILD"));
       addDirectory(file);
       return this;
     }

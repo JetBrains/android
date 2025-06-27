@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu.simpleperf
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.TracePreProcessor

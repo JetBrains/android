@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors
 
-import kotlin.test.fail
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
@@ -23,6 +22,7 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetPara
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Response
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsResponse
+import kotlin.test.fail
 
 // Note: The ComposeInspector doesn't have any events yet, but if they are added in the future,
 // change the

@@ -102,7 +102,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
             "}");
     KtClass testClass = findClass(testFile);
 
-    // Fake the BUILD file.
+    // Fake the ~BUILD file.
     TargetIdeInfo testTarget =
         TargetIdeInfo.builder()
             .setKind("kt_jvm_test")
@@ -133,7 +133,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
             "}");
     KtClass testClass = findClass(testFile);
 
-    // Fake the BUILD file.
+    // Fake the ~BUILD file.
     TargetIdeInfo testTarget =
         TargetIdeInfo.builder()
             .setKind("kt_jvm_test")
@@ -169,7 +169,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
             "}");
     KtNamedFunction firstMethod = findFirstMethod(testFile);
 
-    // Fake the BUILD file.
+    // Fake the ~BUILD file.
     TargetIdeInfo testTarget =
         TargetIdeInfo.builder()
             .setKind("kt_jvm_test")
@@ -202,7 +202,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
             "}");
     KtNamedFunction firstMethod = findFirstMethod(testFile);
 
-    // Fake the BUILD file.
+    // Fake the ~BUILD file.
     TargetIdeInfo testTarget =
         TargetIdeInfo.builder()
             .setKind("kt_jvm_test")
@@ -239,7 +239,7 @@ public class KotlinTestContextProviderTest extends BlazeRunConfigurationProducer
             "}");
     KtClass testClass = findClass(testFile);
 
-    // Fake the BUILD file. It's important that we don't directly include the test file in the
+    // Fake the ~BUILD file. It's important that we don't directly include the test file in the
     // sources of the actual test target as otherwise another source->target heuristic kicks in.
     String testLibraryTargetLabel = "//com/google/test:TestClass";
     TargetIdeInfo testLibraryTarget =

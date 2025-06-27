@@ -113,7 +113,7 @@ public class StringLiteral extends BuildElementImpl implements LiteralExpression
   }
 
   /**
-   * Labels are taken to reference: - the actual target they reference - the BUILD package specified
+   * Labels are taken to reference: - the actual target they reference - the ~BUILD package specified
    * before the colon (only if explicitly present)
    */
   @Override
@@ -160,7 +160,7 @@ public class StringLiteral extends BuildElementImpl implements LiteralExpression
     return new LabelReference(this, true);
   }
 
-  /** If this string is an attribute value within a BUILD rule, return the attribute type. */
+  /** If this string is an attribute value within a ~BUILD rule, return the attribute type. */
   @Nullable
   private String getParentAttributeName() {
     Keyword parentKeyword = PsiUtils.getParentOfType(this, Keyword.class, true);

@@ -19,8 +19,8 @@ import com.android.SdkConstants
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.HelpTooltip
-import javax.swing.JPanel
 import org.junit.Test
+import javax.swing.JPanel
 
 private const val SHORT_VALUE = "Hello World!"
 private val LONG_VALUE = "1234567890".repeat(1000)

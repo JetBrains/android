@@ -28,7 +28,6 @@ import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.ByteString
-import io.ktor.utils.io.core.toByteArray
 import java.nio.ByteBuffer
 import java.nio.ByteOrder.LITTLE_ENDIAN
 import java.time.Instant

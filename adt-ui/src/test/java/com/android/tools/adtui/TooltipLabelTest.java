@@ -15,12 +15,11 @@
  */
 package com.android.tools.adtui;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import javax.swing.JPanel;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.swing.*;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class TooltipLabelTest {
 

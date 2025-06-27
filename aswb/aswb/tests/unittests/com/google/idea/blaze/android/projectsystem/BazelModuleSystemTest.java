@@ -115,7 +115,7 @@ public class BazelModuleSystemTest extends BlazeTestCase {
     when(buildTargetPsi.getTextOffset()).thenReturn(1337);
 
     VirtualFile buildFile =
-        VirtualFileSystemProvider.getInstance().getSystem().findFileByPath("/foo/BUILD");
+        VirtualFileSystemProvider.getInstance().getSystem().findFileByPath("/foo/~BUILD");
     assertThat(buildFile).isNotNull();
     when(psiFile.getVirtualFile()).thenReturn(buildFile);
 
@@ -139,7 +139,7 @@ public class BazelModuleSystemTest extends BlazeTestCase {
         .thenReturn(null);
 
     VirtualFile buildFile =
-        VirtualFileSystemProvider.getInstance().getSystem().findFileByPath("/foo/BUILD");
+        VirtualFileSystemProvider.getInstance().getSystem().findFileByPath("/foo/~BUILD");
     assertThat(buildFile).isNotNull();
 
     BazelModuleSystem.create(module).registerDependency(APP_COMPAT_V7, DependencyType.IMPLEMENTATION);
@@ -219,7 +219,7 @@ public class BazelModuleSystemTest extends BlazeTestCase {
         BlazeLightResourceClassService.class, mock(BlazeLightResourceClassService.class));
 
     applicationServices.register(
-        VirtualFileSystemProvider.class, new MockVirtualFileSystemProvider("/foo/BUILD"));
+        VirtualFileSystemProvider.class, new MockVirtualFileSystemProvider("/foo/~BUILD"));
 
     AndroidResourceModuleRegistry moduleRegistry = new AndroidResourceModuleRegistry();
     moduleRegistry.put(
@@ -235,7 +235,7 @@ public class BazelModuleSystemTest extends BlazeTestCase {
                 TargetIdeInfo.builder()
                     .setLabel(Label.create("//foo:bar"))
                     .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
-                    .setBuildFile(ArtifactLocation.builder().setRelativePath("foo/BUILD").build())
+                    .setBuildFile(ArtifactLocation.builder().setRelativePath("foo/~BUILD").build())
                     .build())
             .build();
     ArtifactLocationDecoder decoder =

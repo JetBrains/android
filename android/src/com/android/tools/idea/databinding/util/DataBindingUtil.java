@@ -24,7 +24,6 @@ import com.android.tools.idea.databinding.index.ImportData;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionSupport;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;

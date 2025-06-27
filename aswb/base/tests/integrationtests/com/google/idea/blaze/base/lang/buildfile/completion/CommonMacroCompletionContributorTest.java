@@ -63,7 +63,7 @@ public class CommonMacroCompletionContributorTest extends BuildFileIntegrationTe
             .setFunctionNames(ImmutableList.of("bar", "baz"))
             .build());
 
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "");
     assertThat(getCompletionItems(file, 0, 0)).asList().containsAllOf("bar", "baz");
   }
 
@@ -76,7 +76,7 @@ public class CommonMacroCompletionContributorTest extends BuildFileIntegrationTe
             .build());
 
     BuildFile file =
-        createBuildFile(new WorkspacePath("BUILD"), "load(\"//somewhere:foo.bzl\", \"bar\"");
+        createBuildFile(new WorkspacePath("~BUILD"), "load(\"//somewhere:foo.bzl\", \"bar\"");
 
     String[] completionItems = getCompletionItems(file, 0, 0);
     assertThat(completionItems).asList().doesNotContain("bar");
@@ -91,7 +91,7 @@ public class CommonMacroCompletionContributorTest extends BuildFileIntegrationTe
             .setFunctionNames(ImmutableList.of("bar123"))
             .build());
 
-    PsiFile file = testFixture.configureByText("BUILD", "bar12<caret>");
+    PsiFile file = testFixture.configureByText("~BUILD", "bar12<caret>");
     editorTest.completeIfUnique();
 
     assertFileContents(file, "load(\"//foo/bar.bzl\", \"bar123\")", "bar123()");
@@ -114,7 +114,7 @@ public class CommonMacroCompletionContributorTest extends BuildFileIntegrationTe
             "java_library(name = 'abc')",
             "bar12<caret>");
 
-    PsiFile file = testFixture.configureByText("BUILD", Joiner.on('\n').join(contents));
+    PsiFile file = testFixture.configureByText("~BUILD", Joiner.on('\n').join(contents));
     editorTest.completeIfUnique();
 
     List<String> expectedOutput =

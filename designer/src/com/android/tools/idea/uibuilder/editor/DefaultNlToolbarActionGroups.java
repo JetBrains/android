@@ -64,7 +64,13 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(ActionManager.getInstance().getAction(LayoutEditorHelpAssistantAction.BUNDLE_ID));
+    AnAction assistantAction =
+      ActionManager.getInstance().getAction(LayoutEditorHelpAssistantAction.BUNDLE_ID);
+    // FIXME: IDEA-247246: add assistant to IDEA
+    if (assistantAction != null) {
+      group.add(assistantAction);
+    }
+
     return group;
   }
 

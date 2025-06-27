@@ -18,14 +18,14 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
-import com.intellij.build.issue.BuildIssue
-import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
-import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import java.net.SocketException
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CONNECTION_DENIED
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
+import com.intellij.build.issue.BuildIssue
+import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
+import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import java.net.SocketException
 import java.util.function.Consumer
 import java.util.regex.Pattern
 

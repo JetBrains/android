@@ -309,7 +309,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       Set<Label> buildTargets, BuildDependencyParameters parameters) {
     String aspectFileName = String.format("qs-%s.bzl", getProjectHash());
     ImmutableMap.Builder<Path, ByteSource> files = ImmutableMap.builder();
-    files.put(Path.of(INVOCATION_FILES_DIR + "/BUILD"), ByteSource.empty());
+    files.put(Path.of(INVOCATION_FILES_DIR + "/~BUILD"), ByteSource.empty());
     files.put(
         Path.of(INVOCATION_FILES_DIR + "/build_dependencies.bzl"),
         MoreFiles.asByteSource(getBundledAspectPath("build_dependencies.bzl")));

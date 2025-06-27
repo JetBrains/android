@@ -51,7 +51,7 @@ public class AffectedPackagesTest {
             .projectIncludes(ImmutableSet.of(Path.of("my/build")))
             .changedFiles(
                 ImmutableSet.of(
-                    new WorkspaceFileChange(Operation.MODIFY, Path.of("my/build/package1/BUILD"))))
+                    new WorkspaceFileChange(Operation.MODIFY, Path.of("my/build/package1/~BUILD"))))
             .build()
             .getAffectedPackages();
 
@@ -72,7 +72,7 @@ public class AffectedPackagesTest {
             .projectIncludes(ImmutableSet.of(Path.of("my/build")))
             .changedFiles(
                 ImmutableSet.of(
-                    new WorkspaceFileChange(Operation.ADD, Path.of("my/build/package2/BUILD"))))
+                    new WorkspaceFileChange(Operation.ADD, Path.of("my/build/package2/~BUILD"))))
             .build()
             .getAffectedPackages();
     expect.that(affected.isEmpty()).isFalse();
@@ -93,7 +93,7 @@ public class AffectedPackagesTest {
             .changedFiles(
                 ImmutableSet.of(
                     new WorkspaceFileChange(
-                        Operation.ADD, Path.of("my/build/package1/subpackage/BUILD"))))
+                        Operation.ADD, Path.of("my/build/package1/subpackage/~BUILD"))))
             .build()
             .getAffectedPackages();
 
@@ -120,9 +120,9 @@ public class AffectedPackagesTest {
             .changedFiles(
                 ImmutableSet.of(
                     new WorkspaceFileChange(
-                        Operation.DELETE, Path.of("my/build/package1/subpackage/BUILD")),
+                        Operation.DELETE, Path.of("my/build/package1/subpackage/~BUILD")),
                     new WorkspaceFileChange(
-                        Operation.ADD, Path.of("my/build/package1/subpackage/nested/BUILD"))))
+                        Operation.ADD, Path.of("my/build/package1/subpackage/nested/~BUILD"))))
             .build()
             .getAffectedPackages();
 
@@ -150,7 +150,7 @@ public class AffectedPackagesTest {
             .projectIncludes(ImmutableSet.of(Path.of("my/build")))
             .changedFiles(
                 ImmutableSet.of(
-                    new WorkspaceFileChange(Operation.DELETE, Path.of("my/build/package2/BUILD"))))
+                    new WorkspaceFileChange(Operation.DELETE, Path.of("my/build/package2/~BUILD"))))
             .build()
             .getAffectedPackages();
 
@@ -175,7 +175,7 @@ public class AffectedPackagesTest {
             .changedFiles(
                 ImmutableSet.of(
                     new WorkspaceFileChange(
-                        Operation.DELETE, Path.of("my/build/package1/subpackage/BUILD"))))
+                        Operation.DELETE, Path.of("my/build/package1/subpackage/~BUILD"))))
             .build()
             .getAffectedPackages();
 
@@ -204,9 +204,9 @@ public class AffectedPackagesTest {
             .changedFiles(
                 ImmutableSet.of(
                     new WorkspaceFileChange(
-                        Operation.DELETE, Path.of("my/build/package1/subpackage/BUILD")),
+                        Operation.DELETE, Path.of("my/build/package1/subpackage/~BUILD")),
                     new WorkspaceFileChange(
-                        Operation.DELETE, Path.of("my/build/package1/subpackage/nested/BUILD"))))
+                        Operation.DELETE, Path.of("my/build/package1/subpackage/nested/~BUILD"))))
             .build()
             .getAffectedPackages();
 
@@ -231,7 +231,7 @@ public class AffectedPackagesTest {
             .projectIncludes(ImmutableSet.of(Path.of("my/build/package1")))
             .changedFiles(
                 ImmutableSet.of(
-                    new WorkspaceFileChange(Operation.MODIFY, Path.of("my/build/package2/BUILD"))))
+                    new WorkspaceFileChange(Operation.MODIFY, Path.of("my/build/package2/~BUILD"))))
             .build()
             .getAffectedPackages();
     expect.that(affected.isEmpty()).isTrue();
@@ -252,7 +252,7 @@ public class AffectedPackagesTest {
             .projectExcludes(ImmutableSet.of(Path.of("my/build/package2")))
             .changedFiles(
                 ImmutableSet.of(
-                    new WorkspaceFileChange(Operation.MODIFY, Path.of("my/build/package2/BUILD"))))
+                    new WorkspaceFileChange(Operation.MODIFY, Path.of("my/build/package2/~BUILD"))))
             .build()
             .getAffectedPackages();
     expect.that(affected.isEmpty()).isTrue();
@@ -269,8 +269,8 @@ public class AffectedPackagesTest {
                 .addPackages("//my/build/package1:rule", "//my/build/package2:rule")
                 .addSubincludes(
                     ImmutableMultimap.<Label, Label>builder()
-                        .put(Label.of("//my/build/package1:BUILD"), Label.of("//my/build/package1:macro.bzl"))
-                        .put(Label.of("//my/build/package2:BUILD"), Label.of("//my/build/package1:macro.bzl"))
+                        .put(Label.of("//my/build/package1:~BUILD"), Label.of("//my/build/package1:macro.bzl"))
+                        .put(Label.of("//my/build/package2:~BUILD"), Label.of("//my/build/package1:macro.bzl"))
                         .build())
                 .build());
 
@@ -299,7 +299,7 @@ public class AffectedPackagesTest {
                 .addPackages("//my/build/package:rule")
                 .addSubincludes(
                     ImmutableMultimap.of(
-                        Label.of("//my/build/package:BUILD"), Label.of("//other/build/package1:macro.bzl")))
+                        Label.of("//my/build/package:~BUILD"), Label.of("//other/build/package1:macro.bzl")))
                 .build());
 
     AffectedPackages affected =
@@ -315,7 +315,7 @@ public class AffectedPackagesTest {
             .getAffectedPackages();
     // we edited a bzl file outside of the project:
     expect.that(affected.isIncomplete()).isTrue();
-    // but we can know that it affected a BUILD file inside a project:
+    // but we can know that it affected a ~BUILD file inside a project:
     expect.that(affected.getModifiedPackages()).containsExactly(Path.of("my/build/package"));
   }
 
@@ -403,7 +403,7 @@ public class AffectedPackagesTest {
             .projectIncludes(ImmutableSet.of(Path.of("my/build")))
             .changedFiles(
                 ImmutableSet.of(
-                    new WorkspaceFileChange(Operation.ADD, Path.of("my/build/newpackage/BUILD")),
+                    new WorkspaceFileChange(Operation.ADD, Path.of("my/build/newpackage/~BUILD")),
                     new WorkspaceFileChange(
                         Operation.ADD, Path.of("my/build/newpackage/NewClass.java"))))
             .build()
@@ -423,7 +423,7 @@ public class AffectedPackagesTest {
             .projectIncludes(ImmutableSet.of(Path.of("my/build")))
             .changedFiles(
                 ImmutableSet.of(
-                    new WorkspaceFileChange(Operation.ADD, Path.of("my/build/package/lib/BUILD")),
+                    new WorkspaceFileChange(Operation.ADD, Path.of("my/build/package/lib/~BUILD")),
                     new WorkspaceFileChange(
                         Operation.ADD, Path.of("my/build/package/lib/NewClass.java"))))
             .build()
@@ -464,7 +464,7 @@ public class AffectedPackagesTest {
             .projectIncludes(ImmutableSet.of(Path.of("my/build")))
             .changedFiles(
                 ImmutableSet.of(
-                    new WorkspaceFileChange(Operation.DELETE, Path.of("my/build/package/BUILD")),
+                    new WorkspaceFileChange(Operation.DELETE, Path.of("my/build/package/~BUILD")),
                     new WorkspaceFileChange(
                         Operation.DELETE, Path.of("my/build/package/NewClass.java"))))
             .build()
@@ -488,7 +488,7 @@ public class AffectedPackagesTest {
             .changedFiles(
                 ImmutableSet.of(
                     new WorkspaceFileChange(
-                        Operation.DELETE, Path.of("my/build/package/lib/BUILD")),
+                        Operation.DELETE, Path.of("my/build/package/lib/~BUILD")),
                     new WorkspaceFileChange(
                         Operation.ADD, Path.of("my/build/package/lib/NewClass.java"))))
             .build()
@@ -509,7 +509,7 @@ public class AffectedPackagesTest {
             .projectIncludes(ImmutableSet.of(Path.of("my/build")))
             .changedFiles(
                 ImmutableSet.of(
-                    new WorkspaceFileChange(Operation.DELETE, Path.of("my/build/package/BUILD")),
+                    new WorkspaceFileChange(Operation.DELETE, Path.of("my/build/package/~BUILD")),
                     new WorkspaceFileChange(
                         Operation.ADD, Path.of("my/build/package/NewClass.java"))))
             .build()
@@ -528,7 +528,7 @@ public class AffectedPackagesTest {
         QuerySummaryImpl.create(
             new QuerySummaryTestBuilder()
                 .addPackages("//my/build/package:rule", "//my/build/package/lib:rule")
-                .addBuildFileLabelsWithErrors("//my/build/package:BUILD")
+                .addBuildFileLabelsWithErrors("//my/build/package:~BUILD")
                 .build());
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
@@ -548,7 +548,7 @@ public class AffectedPackagesTest {
         QuerySummaryImpl.create(
             new QuerySummaryTestBuilder()
                 .addPackages("//my/build/package/lib1:rule", "//my/build/package/lib2:rule")
-                .addBuildFileLabelsWithErrors("//my/build/package/lib1:BUILD")
+                .addBuildFileLabelsWithErrors("//my/build/package/lib1:~BUILD")
                 .build());
     AffectedPackages affected =
         AffectedPackagesCalculator.builder()
@@ -558,7 +558,7 @@ public class AffectedPackagesTest {
             .changedFiles(
                 ImmutableSet.of(
                     new WorkspaceFileChange(
-                        Operation.DELETE, Path.of("my/build/package/lib1/BUILD"))))
+                        Operation.DELETE, Path.of("my/build/package/lib1/~BUILD"))))
             .build()
             .getAffectedPackages();
     expect.that(affected.isIncomplete()).isFalse();
@@ -583,7 +583,7 @@ public class AffectedPackagesTest {
             .projectIncludes(ImmutableSet.of(Path.of("")))
             .changedFiles(
                 ImmutableSet.of(
-                    new WorkspaceFileChange(Operation.MODIFY, Path.of("my/build/package1/BUILD"))))
+                    new WorkspaceFileChange(Operation.MODIFY, Path.of("my/build/package1/~BUILD"))))
             .build()
             .getAffectedPackages();
 

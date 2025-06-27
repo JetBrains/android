@@ -41,6 +41,7 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
+import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Font
 import java.io.File
@@ -50,7 +51,6 @@ import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
 import javax.swing.ToolTipManager
 import javax.swing.event.HyperlinkListener
-import org.jetbrains.annotations.TestOnly
 
 /** The side panel to show the detail of issue and its source code if available */
 class DesignerCommonIssueSidePanel(private val project: Project, parentDisposable: Disposable) :

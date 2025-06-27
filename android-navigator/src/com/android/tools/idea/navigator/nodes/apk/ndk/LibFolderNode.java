@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
+import static com.android.tools.idea.navigator.nodes.apk.SourceFolders.isInSourceFolder;
+import static com.intellij.icons.AllIcons.Modules.SourceRoot;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.intellij.ide.projectView.PresentationData;
@@ -26,20 +32,13 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidSourceType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
-import static com.android.tools.idea.navigator.nodes.apk.SourceFolders.isInSourceFolder;
-import static com.intellij.icons.AllIcons.Modules.SourceRoot;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import org.jetbrains.android.facet.AndroidSourceType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * "cpp" folder pointing to "lib".

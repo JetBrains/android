@@ -27,7 +27,6 @@ import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructurePr
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.TestModuleUtil;
-import com.android.tools.idea.testing.TestProjectPaths;
 import com.android.utils.FileUtils;
 import com.google.common.io.Files;
 import com.intellij.ide.projectView.ProjectViewSettings;
@@ -83,10 +82,11 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testGeneratedResources() throws Exception {
-    File projectRoot = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION);
+    File projectRoot = loadSimpleApplicationWithNoSync();
+
     Files.append(
       """
-
+        
         android {
           String resGeneratePath = "${buildDir}/generated/my_generated_resources/res"
             def generateResTask = tasks.create(name: 'generateMyResources').doLast {
@@ -94,9 +94,9 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                 mkdir(rawDir)
                 file("${rawDir}/sample_raw_resource").write("sample text")
             }
-
+        
             def resDir = files(resGeneratePath).builtBy(generateResTask)
-
+        
             applicationVariants.all { variant ->
                 variant.registerGeneratedResFolders(resDir)
             }
@@ -128,29 +128,29 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testGeneratedAssets() throws Exception {
-    File projectRoot = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION);
+    File projectRoot = loadSimpleApplicationWithNoSync();
     Files.append(
       """
-       
-       abstract class AssetGenerator extends DefaultTask {
-           @OutputDirectory
-           abstract DirectoryProperty getOutputDirectory();
-           @TaskAction
-           void run() {
-               def outputFile = new File(getOutputDirectory().get().getAsFile(), "foo.txt")
-               new FileWriter(outputFile).with {
-                   write("some text")
-                   flush()
-               }
-           }
-       }
-
-       def writeAssetTask = tasks.register("createAssets", AssetGenerator.class)
-       androidComponents {
-           onVariants(selector().all(),  { variant ->
-               variant.sources.assets.addGeneratedSourceDirectory(writeAssetTask, AssetGenerator::getOutputDirectory)
-           })
-       }""",
+        
+        abstract class AssetGenerator extends DefaultTask {
+            @OutputDirectory
+            abstract DirectoryProperty getOutputDirectory();
+            @TaskAction
+            void run() {
+                def outputFile = new File(getOutputDirectory().get().getAsFile(), "foo.txt")
+                new FileWriter(outputFile).with {
+                    write("some text")
+                    flush()
+                }
+            }
+        }
+        
+        def writeAssetTask = tasks.register("createAssets", AssetGenerator.class)
+        androidComponents {
+            onVariants(selector().all(),  { variant ->
+                variant.sources.assets.addGeneratedSourceDirectory(writeAssetTask, AssetGenerator::getOutputDirectory)
+            })
+        }""",
       new File(projectRoot, "app/build.gradle"),
       StandardCharsets.UTF_8);
     importProject();
@@ -258,7 +258,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
         ArrayList<String> newPath = new ArrayList<>(path);
         newPath.add(nodeName);
         result.add(newPath);
-      } else {
+      }
+      else {
         path.push(nodeName);
         getAllNodes(structure, child, path, result);
         path.pop();
@@ -281,7 +282,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     }
 
     @Override
-    protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
+    protected AbstractTreeNode<?> createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
       return new AndroidViewProjectNode(project, settings);
     }
 

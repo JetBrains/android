@@ -21,18 +21,14 @@ import com.android.tools.idea.analytics.SystemInfoStatsMonitor
 import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.res.StudioCodeVersionAdapter
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
-import com.intellij.analytics.AndroidStudioAnalytics
 import com.intellij.concurrency.JobScheduler
 import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.PluginSuggestionProvider
-import com.intellij.util.application
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.android.sdk.AndroidSdkUtils
@@ -52,7 +48,7 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
 
     // Initialize System Health Monitor after Analytics.
     coroutineScope.launch {
-      AndroidStudioSystemHealthMonitor.getInstance().start()
+      AndroidStudioSystemHealthMonitor.getInstance()?.start()
     }
 
     // TODO: Remove this once the issue has been properly fixed in the IntelliJ platform
@@ -68,17 +64,11 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
     // SystemInfoStatsMonitor collects
     SystemInfoStatsMonitor().start()
 
-    StudioCodeVersionAdapter.initialize()
-
     setupAndroidSdkForTests()
-    // these clutter the UX by suggesting paid JetBrains' products to users. As an example see b/409203679
-    removePluginSuggestionProviderExtension()
   }
 
   /** Sets up collection of Android Studio specific analytics.  */
   private fun setupAnalytics() {
-    AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher()
-
     UsageTracker.version = ApplicationInfo.getInstance().strictVersion
     UsageTracker.ideBrand = currentIdeBrand()
     if (ApplicationManager.getApplication().isInternal) {
@@ -97,10 +87,5 @@ class AndroidStudioInitializer(private val coroutineScope: CoroutineScope) : App
     invokeLater {
       AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.toString())
     }
-  }
-
-  private fun removePluginSuggestionProviderExtension() {
-    val ep = application.extensionArea.getExtensionPoint<PluginSuggestionProvider>("com.intellij.pluginSuggestionProvider")
-    ep.unregisterExtensions({ _, _ -> false }, false)
   }
 }

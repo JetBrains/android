@@ -66,14 +66,14 @@ public class QuerySummaryTestBuilder {
     Set<Label> sourceFiles =
         packages.stream()
             .map(Label::getPackage)
-            .map(p -> Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, p, Path.of("BUILD")))
+            .map(p -> Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, p, Path.of("~BUILD")))
             .collect(toCollection(HashSet::new));
     sourceFiles.addAll(includes.keySet());
 
     QuerySummaryImpl.Builder builder = QuerySummaryImpl.newBuilder();
     builder.putAllRules(
       packages.stream()
-        .filter(l -> !buildFilesWithErrors.contains(l.siblingWithName("BUILD")))
+        .filter(l -> !buildFilesWithErrors.contains(l.siblingWithName("~BUILD")))
         .map(l -> QueryData.Rule.builderForTests().label(l).ruleClass("java_library").build())
         .collect(toImmutableList()));
     builder.putAllSourceFiles(

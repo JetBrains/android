@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 
 /**
- * The built-in names available in the BUILD language. This is not a complete list, and is only
+ * The built-in names available in the ~BUILD language. This is not a complete list, and is only
  * intended to be used for syntax highlighting.
  *
  * <p>See https://docs.bazel.build/versions/master/skylark/lib/skylark-overview.html

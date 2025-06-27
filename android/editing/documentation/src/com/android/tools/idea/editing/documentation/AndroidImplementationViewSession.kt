@@ -130,13 +130,12 @@ class AndroidImplementationViewSession(
                 .getGotoDeclarationTargets(
                   resourceReferencePsiElement.resourceReference,
                   contextElement,
-                )
-                .map { PsiImplementationViewElement(it) }
-            }
-          },
-          ImplementationSearcher.getSearchingForImplementations(),
-          true,
-          contextElement.project,
+                ).map { PsiImplementationViewElement(it) }
+          }
+        },
+        ImplementationSearcher.getSearchingForImplementations(),
+        true,
+        contextElement.project,
         )
     }
 

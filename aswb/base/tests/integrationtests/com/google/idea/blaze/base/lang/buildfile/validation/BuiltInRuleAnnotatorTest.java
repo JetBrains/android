@@ -80,7 +80,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     setRules("java_library", "java_binary");
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"), "java_import(name = 'import',)");
+            new WorkspacePath("java/com/google/~BUILD"), "java_import(name = 'import',)");
 
     assertNoErrors(file);
   }
@@ -90,7 +90,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(JAVA_TEST.getName(), JAVA_TEST));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_test(",
             "    name = 'import',",
             "    srcs = ['src'],",
@@ -104,7 +104,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(CONFIG_SETTING.getName(), CONFIG_SETTING));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "config_setting(",
             "    name = 'setting',",
             "    values = {'key1', 'value1', 'key2', 'value2'},",
@@ -117,7 +117,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(CONFIG_SETTING.getName(), CONFIG_SETTING));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "config_setting(",
             "    name = 'setting',",
             "    values = 1,",
@@ -131,7 +131,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(JAVA_TEST.getName(), JAVA_TEST));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_test(",
             "    name = 'import',",
             "    srcs = glob(['src']),",
@@ -145,7 +145,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(JAVA_TEST.getName(), JAVA_TEST));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_test(",
             "    srcs = ['src'],",
             "    neverlink = 0,",
@@ -158,7 +158,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(JAVA_TEST.getName(), JAVA_TEST));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_test(",
             "    name = 'import',",
             "    srcs = 'src',",
@@ -176,7 +176,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(JAVA_TEST.getName(), JAVA_TEST));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_test(",
             "    name = ['import'],",
             "    srcs = ['src'],",
@@ -194,7 +194,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(JAVA_TEST.getName(), JAVA_TEST));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_test(",
             "    name = 'import',",
             "    srcs = ['src'],",
@@ -209,7 +209,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(JAVA_TEST.getName(), JAVA_TEST));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_test(",
             "    name = 'import',",
             "    srcs = ['src'],",
@@ -223,7 +223,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(JAVA_TEST.getName(), JAVA_TEST));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "ref = []",
             "java_test(",
             "    name = 'import',",
@@ -242,7 +242,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(JAVA_TEST.getName(), JAVA_TEST));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_test(",
             "    name = ('import' + '_suffix'),",
             ")");
@@ -254,7 +254,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(JAVA_TEST.getName(), JAVA_TEST));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"), "java_test(", "    name = (1),", ")");
+            new WorkspacePath("java/com/google/~BUILD"), "java_test(", "    name = (1),", ")");
     assertHasError(
         file,
         String.format(
@@ -267,7 +267,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(JAVA_TEST.getName(), JAVA_TEST));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"), "java_test(", "    name = (ref),", ")");
+            new WorkspacePath("java/com/google/~BUILD"), "java_test(", "    name = (ref),", ")");
     assertNoErrors(file);
   }
 
@@ -276,7 +276,7 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(JAVA_TEST.getName(), JAVA_TEST));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "def java_test(srcs=[], **kwargs):",
             "  native.java_test(srcs = srcs, **kwargs)");
     assertNoErrors(file);
@@ -287,13 +287,13 @@ public class BuiltInRuleAnnotatorTest extends BuildFileIntegrationTestCase {
     specProvider.setRules(ImmutableMap.of(JAVA_TEST.getName(), JAVA_TEST));
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/foo/BUILD"),
+            new WorkspacePath("java/com/foo/~BUILD"),
             "java_test(name = 'test', srcs = [':src'], extra_arg = [])");
     assertHasError(file, "Unrecognized attribute 'extra_arg' for rule type 'java_test'");
 
     file =
         createBuildFile(
-            new WorkspacePath("java/com/bar/BUILD"),
+            new WorkspacePath("java/com/bar/~BUILD"),
             "def java_test(srcs=[], **kwargs, extra_arg=[]):",
             "  native.java_test(srcs = srcs, **kwargs)",
             "java_test(name = 'test', srcs = [':src'], extra_arg = [])");

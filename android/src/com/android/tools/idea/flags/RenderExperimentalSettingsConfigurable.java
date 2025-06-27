@@ -16,7 +16,6 @@
 package com.android.tools.idea.flags;
 
 import com.android.tools.idea.rendering.RenderSettings;
-import com.intellij.openapi.options.UnnamedConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;

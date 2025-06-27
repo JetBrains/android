@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.ide
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver

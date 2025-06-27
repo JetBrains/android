@@ -34,7 +34,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 import java.util.concurrent.LinkedBlockingDeque
@@ -272,8 +272,8 @@ class LegacyCpuTraceCommandHandlerTest {
       }
       val mockDevice = mock(IDevice::class.java).apply {
         whenever(serialNumber).thenReturn("")
-        whenever(getClientName(ArgumentMatchers.anyInt())).thenReturn("TestClient")
-        whenever(getClient(ArgumentMatchers.anyString())).thenReturn(thisClient)
+        whenever(getClientName(Mockito.anyInt())).thenReturn("TestClient")
+        whenever(getClient(Mockito.anyString())).thenReturn(thisClient)
       }
       whenever(thisClient.clientData).thenReturn(mockClientData)
       whenever(thisClient.device).thenReturn(mockDevice)

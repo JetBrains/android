@@ -87,7 +87,7 @@ import org.jetbrains.annotations.TestOnly;
  * @param <T> Specifies the type of data controlled by this {@link WorkBench}.
  */
 public class WorkBench<T> extends JBLayeredPane implements Disposable {
-  private static Logger LOG = Logger.getInstance(WorkBench.class);
+  private static final Logger LOG = Logger.getInstance(WorkBench.class);
 
   private final String myName;
   private final PropertiesComponent myPropertiesComponent;
@@ -118,13 +118,8 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * @param parentDisposable the parent {@link Disposable} this WorkBench will be attached to.
    * @param delayTimeMs      milliseconds to wait before switching to the loading mode of the {@link WorkBench}.
    */
-  public WorkBench(@NotNull Project project,
-                   @NotNull String name,
-                   @Nullable FileEditor fileEditor,
-                   @NotNull Disposable parentDisposable,
-                   int delayTimeMs) {
-    this(project, name, fileEditor, InitParams.createParams(project), DetachedToolWindowManager.getInstance(project),
-         delayTimeMs);
+  public WorkBench(@NotNull Project project, @NotNull String name, @Nullable FileEditor fileEditor, @NotNull Disposable parentDisposable, int delayTimeMs) {
+    this(project, name, fileEditor, InitParams.createParams(project), DetachedToolWindowManager.getInstance(project), delayTimeMs);
 
     Disposer.register(parentDisposable, this);
   }
@@ -566,7 +561,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private void storeToolOrder(@NotNull Layout layout, @NotNull List<AttachedToolWindow<T>> tools) {
     StringBuilder builder = new StringBuilder();
     for (AttachedToolWindow tool : tools) {
-      if (builder.length() > 0) {
+      if (!builder.isEmpty()) {
         builder.append(",");
       }
       builder.append(tool.getToolName());
@@ -875,14 +870,14 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   }
 
   @VisibleForTesting
-  static class InitParams<T> {
+  public static class InitParams<T> {
     private final SideModel<T> myModel;
     private final ThreeComponentsSplitter mySplitter;
     private final MinimizedPanel<T> myLeftMinimizePanel;
     private final MinimizedPanel<T> myRightMinimizePanel;
 
     @VisibleForTesting
-    InitParams(@NotNull SideModel<T> model,
+    public InitParams(@NotNull SideModel<T> model,
                @NotNull ThreeComponentsSplitter splitter,
                @NotNull MinimizedPanel<T> leftMinimizePanel,
                @NotNull MinimizedPanel<T> rightMinimizePanel) {

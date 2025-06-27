@@ -18,7 +18,6 @@ package com.android.tools.idea.projectsystem.apk
 import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultProjectSystem
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.project.Project

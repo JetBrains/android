@@ -43,7 +43,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 
-/** Generates run/debug gutter icons for BUILD files. */
+/** Generates run/debug gutter icons for ~BUILD files. */
 public class BuildFileRunLineMarkerContributor extends RunLineMarkerContributor {
 
   private static final BoolExperiment enabled = new BoolExperiment("build.run.line.markers", true);

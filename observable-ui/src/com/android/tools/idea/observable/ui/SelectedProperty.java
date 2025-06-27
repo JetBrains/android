@@ -17,11 +17,10 @@ package com.android.tools.idea.observable.ui;
 
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.BoolProperty;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import javax.swing.AbstractButton;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link AbstractProperty} that wraps a Swing button and exposes its selected state (useful for

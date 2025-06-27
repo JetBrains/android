@@ -16,15 +16,14 @@
 package com.android.tools.adtui.chart.hchart;
 
 import com.android.tools.adtui.model.HNode;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.geom.Rectangle2D;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Implementation of {@link HTreeChartReducer} which combines all rectangles that are strictly inside a pixel into one rectangle.
  */
-class DefaultHTreeChartReducer<N extends HNode<N>> implements HTreeChartReducer<N> {
+public class DefaultHTreeChartReducer<N extends HNode<N>> implements HTreeChartReducer<N> {
   @Override
   public void reduce(@NotNull List<Rectangle2D.Float> rectangles, @NotNull List<N> nodes) {
     assert nodes.size() == rectangles.size();

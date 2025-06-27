@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.base.lang.buildfile.psi;
 
-/** Interface for all expression PSI elements in a BUILD file */
+/** Interface for all expression PSI elements in a ~BUILD file */
 public interface Expression extends BuildElement {
 
   Expression[] EMPTY_ARRAY = new Expression[0];

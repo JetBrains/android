@@ -42,7 +42,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 /**
- * For files not covered by project directories / targets, finds the relevant BUILD target and
+ * For files not covered by project directories / targets, finds the relevant ~BUILD target and
  * updates the .blazeproject 'targets' and 'directories' as required.
  */
 class AddSourceToProjectAction extends BlazeProjectAction {
@@ -164,7 +164,7 @@ class AddSourceToProjectAction extends BlazeProjectAction {
         && ((BuildFile) psiFile).getBlazeFileType() == BlazeFileType.BuildPackage) {
       return AddSourceToProjectHelper.packageCoveredByProjectTargets(context)
           ? null
-          : "Add BUILD package to project";
+          : "Add ~BUILD package to project";
     }
     if (!SourceToTargetProvider.hasProvider()) {
       return null;

@@ -18,7 +18,7 @@ package com.android.tools.idea.welcome.install
 import com.android.SdkConstants
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo

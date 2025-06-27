@@ -20,7 +20,7 @@ import com.intellij.psi.NavigatablePsiElement;
 import com.intellij.psi.PsiElement;
 import javax.annotation.Nullable;
 
-/** Base class for all BUILD file PSI elements */
+/** Base class for all ~BUILD file PSI elements */
 public interface BuildElement extends NavigatablePsiElement {
 
   @Nullable

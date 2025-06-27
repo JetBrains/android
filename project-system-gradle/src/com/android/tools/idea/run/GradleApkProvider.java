@@ -277,10 +277,10 @@ public final class GradleApkProvider implements ApkProvider {
               }
 
               ApkInfo apkInfo = collectAppBundleOutput(
-                  baseAndroidModel,
-                  baseAppModule,
-                  myOutputModelProvider,
-                  pkgName);
+                baseAndroidModel,
+                baseAppModule,
+                myOutputModelProvider,
+                pkgName);
               if (apkInfo != null) {
                 apkList.add(apkInfo);
               }
@@ -334,7 +334,7 @@ public final class GradleApkProvider implements ApkProvider {
   @NotNull
   private List<BaselineProfileDetails> getBaselineProfiles(GenericBuiltArtifacts builtArtifacts) {
     if (builtArtifacts == null) {
-        return emptyList();
+      return emptyList();
     }
 
     List<BaselineProfileDetails> bp = builtArtifacts.getBaselineProfiles();

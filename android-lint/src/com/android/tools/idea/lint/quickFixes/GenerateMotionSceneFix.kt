@@ -34,12 +34,12 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
-import java.io.IOException
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.uipreview.EditorUtil
 import org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist
+import java.io.IOException
 
 /**
  * Quickfix for generating a MotionScene file.

@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.apk;
 
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.Optional;
-import java.util.stream.Stream;
-import org.jetbrains.annotations.VisibleForTesting;
-
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import java.util.Optional;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public final class ContentEntryUtil {
   private ContentEntryUtil() {

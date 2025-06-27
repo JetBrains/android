@@ -57,7 +57,7 @@ import org.jetbrains.annotations.Nullable;
  * Once the {@link Image} is not being referenced anymore, it will be automatically returned to the pool.
  */
 @SuppressWarnings("ALL")
-class ImagePoolImpl implements ImagePool {
+public class ImagePoolImpl implements ImagePool {
   private static final Logger LOG = Logger.getInstance(ImagePoolImpl.class);
 
   private static final Bucket NULL_BUCKET = new Bucket();
@@ -462,7 +462,8 @@ class ImagePoolImpl implements ImagePool {
     myPool.clear();
   }
 
-  static class ImageImpl implements ImagePool.Image, DisposableImage {
+  @VisibleForTesting
+  public static class ImageImpl implements ImagePool.Image, DisposableImage {
     // Track dispose call when assertions are enabled
     private static final boolean ourTrackDisposeCall = ImageImpl.class.desiredAssertionStatus();
 
@@ -475,7 +476,7 @@ class ImagePoolImpl implements ImagePool {
 
     @VisibleForTesting
     @Nullable
-    BufferedImage myBuffer;
+    public BufferedImage myBuffer;
 
     final int myWidth;
     final int myHeight;

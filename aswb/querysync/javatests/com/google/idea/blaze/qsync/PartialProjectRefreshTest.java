@@ -50,7 +50,7 @@ public class PartialProjectRefreshTest {
         .putSourceFiles(
           new QueryData.SourceFile(Label.of("//my/build/package1:subpackage/AnotherClass.java"), ImmutableList.of()))
         .putSourceFiles(
-          new QueryData.SourceFile(Label.of("//my/build/package1:BUILD"), ImmutableList.of()))
+          new QueryData.SourceFile(Label.of("//my/build/package1:~BUILD"), ImmutableList.of()))
         .putRules(
           QueryData.Rule.builderForTests()
             .label(Label.of("//my/build/package2:rule"))
@@ -60,7 +60,7 @@ public class PartialProjectRefreshTest {
         .putSourceFiles(
           new QueryData.SourceFile(Label.of("//my/build/package2:Class2.java"), ImmutableList.of()))
         .putSourceFiles(
-          new QueryData.SourceFile(Label.of("//my/build/package2:BUILD"), ImmutableList.of()))
+          new QueryData.SourceFile(Label.of("//my/build/package2:~BUILD"), ImmutableList.of()))
         .build();
     PostQuerySyncData baseProject =
       PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build();
@@ -76,7 +76,7 @@ public class PartialProjectRefreshTest {
         .putSourceFiles(
           new QueryData.SourceFile(Label.of("//my/build/package1:NewClass.java"), ImmutableList.of()))
         .putSourceFiles(
-          new QueryData.SourceFile(Label.of("//my/build/package1:BUILD"), ImmutableList.of()))
+          new QueryData.SourceFile(Label.of("//my/build/package1:~BUILD"), ImmutableList.of()))
         .build();
 
     PartialProjectRefresh queryStrategy =
@@ -94,9 +94,9 @@ public class PartialProjectRefreshTest {
     assertThat(applied.getSourceFilesMap().keySet())
       .containsExactly(
         Label.of("//my/build/package1:NewClass.java"),
-        Label.of("//my/build/package1:BUILD"),
+        Label.of("//my/build/package1:~BUILD"),
         Label.of("//my/build/package2:Class2.java"),
-        Label.of("//my/build/package2:BUILD"));
+        Label.of("//my/build/package2:~BUILD"));
   }
 
   @Test
@@ -114,7 +114,7 @@ public class PartialProjectRefreshTest {
         .putSourceFiles(
           new QueryData.SourceFile(Label.of("//my/build/package1:subpackage/AnotherClass.java"), ImmutableList.of()))
         .putSourceFiles(
-          new QueryData.SourceFile(Label.of("//my/build/package1:BUILD"), ImmutableList.of()))
+          new QueryData.SourceFile(Label.of("//my/build/package1:~BUILD"), ImmutableList.of()))
         .putRules(
           QueryData.Rule.builderForTests()
             .label(Label.of("//my/build/package2:rule"))
@@ -124,7 +124,7 @@ public class PartialProjectRefreshTest {
         .putSourceFiles(
           new QueryData.SourceFile(Label.of("//my/build/package2:Class2.java"), ImmutableList.of()))
         .putSourceFiles(
-          new QueryData.SourceFile(Label.of("//my/build/package2:BUILD"), ImmutableList.of()))
+          new QueryData.SourceFile(Label.of("//my/build/package2:~BUILD"), ImmutableList.of()))
         .build();
     PostQuerySyncData baseProject =
       PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build();
@@ -143,7 +143,7 @@ public class PartialProjectRefreshTest {
       .containsExactly(Label.of("//my/build/package2:rule"));
     assertThat(applied.getSourceFilesMap().keySet())
       .containsExactly(
-        Label.of("//my/build/package2:Class2.java"), Label.of("//my/build/package2:BUILD"));
+        Label.of("//my/build/package2:Class2.java"), Label.of("//my/build/package2:~BUILD"));
   }
 
   @Test
@@ -159,7 +159,7 @@ public class PartialProjectRefreshTest {
         .putSourceFiles(
           new QueryData.SourceFile(Label.of("//my/build/package1:Class1.java"), ImmutableList.of()))
         .putSourceFiles(
-          new QueryData.SourceFile(Label.of("//my/build/package1:BUILD"), ImmutableList.of()))
+          new QueryData.SourceFile(Label.of("//my/build/package1:~BUILD"), ImmutableList.of()))
         .build();
     PostQuerySyncData baseProject =
       PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build();
@@ -174,7 +174,7 @@ public class PartialProjectRefreshTest {
         .putSourceFiles(
           new QueryData.SourceFile(Label.of("//my/build/package2:Class2.java"), ImmutableList.of()))
         .putSourceFiles(
-          new QueryData.SourceFile(Label.of("//my/build/package2:BUILD"), ImmutableList.of()))
+          new QueryData.SourceFile(Label.of("//my/build/package2:~BUILD"), ImmutableList.of()))
         .build();
 
     PartialProjectRefresh queryStrategy =
@@ -192,21 +192,21 @@ public class PartialProjectRefreshTest {
     assertThat(applied.getSourceFilesMap().keySet())
       .containsExactly(
         Label.of("//my/build/package1:Class1.java"),
-        Label.of("//my/build/package1:BUILD"),
+        Label.of("//my/build/package1:~BUILD"),
         Label.of("//my/build/package2:Class2.java"),
-        Label.of("//my/build/package2:BUILD"));
+        Label.of("//my/build/package2:~BUILD"));
   }
 
   @Test
   public void testDelta_packagesWithErrors() {
     QuerySummary base =
       QuerySummaryImpl.create(
-        Query.Summary.newBuilder().addPackagesWithErrors("//my/build/package:BUILD").build());
+        Query.Summary.newBuilder().addPackagesWithErrors("//my/build/package:~BUILD").build());
     PostQuerySyncData baseProject =
       PostQuerySyncData.EMPTY.toBuilder().setQuerySummary(base).build();
     QuerySummary delta =
       QuerySummaryImpl.create(
-        Query.Summary.newBuilder().addPackagesWithErrors("//my/build/package:BUILD").build());
+        Query.Summary.newBuilder().addPackagesWithErrors("//my/build/package:~BUILD").build());
 
     PartialProjectRefresh queryStrategy =
       new PartialProjectRefresh(

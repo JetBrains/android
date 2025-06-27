@@ -14,7 +14,7 @@ import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.PropertyUtilBase
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.Processor
-import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptSearchScope
+import org.jetbrains.kotlin.idea.base.scripting.projectStructure.KotlinScriptSearchScope
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory

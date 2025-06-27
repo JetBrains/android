@@ -18,8 +18,6 @@ package com.android.tools.adtui.toolwindow.splittingtabs.actions
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsBundle
 import com.android.tools.adtui.toolwindow.splittingtabs.actions.MoveTabAction.Direction.LEFT
 import com.android.tools.adtui.toolwindow.splittingtabs.actions.MoveTabAction.Direction.RIGHT
-import com.android.tools.adtui.toolwindow.splittingtabs.actions.MoveTabAction.Left
-import com.android.tools.adtui.toolwindow.splittingtabs.actions.MoveTabAction.Right
 import com.android.tools.adtui.toolwindow.splittingtabs.getPosition
 import com.intellij.ui.content.Content
 

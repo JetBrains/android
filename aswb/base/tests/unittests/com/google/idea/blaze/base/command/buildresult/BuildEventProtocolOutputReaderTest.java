@@ -202,7 +202,7 @@ public class BuildEventProtocolOutputReaderTest extends BlazeTestCase {
       ImmutableList.of(
         "/usr/local/code/ParserTest.java",
         "/usr/local/code/action_output.bzl",
-        "/usr/genfiles/BUILD.bazel");
+        "/usr/genfiles/~BUILD.bazel");
     var label = "//some:target";
     ImmutableList<BuildEvent.Builder> events =
       ImmutableList.of(

@@ -28,7 +28,7 @@ import com.intellij.openapi.project.Project;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.core.script.settings.KotlinScriptingSettings;
+import org.jetbrains.kotlin.idea.core.script.k1.settings.KotlinScriptingSettingsImpl;
 
 public final class AndroidStudioPreferences {
   private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Arrays.asList(
@@ -56,7 +56,7 @@ public final class AndroidStudioPreferences {
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       // Disable KotlinScriptingSettings.autoReloadConfigurations flag, avoiding unexpected re-sync project with kotlin scripts
       getAllDefinitions(project).forEach(scriptDefinition -> {
-        KotlinScriptingSettings settings = KotlinScriptingSettings.Companion.getInstance(project);
+        KotlinScriptingSettingsImpl settings = KotlinScriptingSettingsImpl.Companion.getInstance(project);
         if (settings.isScriptDefinitionEnabled(scriptDefinition) && settings.autoReloadConfigurations(scriptDefinition)) {
           settings.setAutoReloadConfigurations(scriptDefinition, false);
         }

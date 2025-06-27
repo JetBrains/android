@@ -153,7 +153,7 @@ private class LayoutInspectorActionGroup(
     add(AlphaSliderAction { layoutInspector.renderModel })
     if (
       !layoutInspector.isSnapshot &&
-        !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+      !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
     ) {
       add(Separator.getInstance())
       add(ToggleLiveUpdatesAction(layoutInspector))

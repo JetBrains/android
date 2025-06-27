@@ -27,10 +27,12 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
+import com.intellij.util.application
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
@@ -181,7 +183,9 @@ class ClearResourceCacheAfterFirstBuildTest {
   @Test
   fun cacheActuallyCleared() {
     val module = projectRule.module
-    Facets.createAndAddAndroidFacet(module)
+    application.invokeAndWait {
+      Facets.createAndAddAndroidFacet(module)
+    }
 
     val disposable = projectRule.testRootDisposable
 
@@ -206,7 +210,9 @@ class ClearResourceCacheAfterFirstBuildTest {
   @Test
   fun cacheDoesNotTriggerResourceInitialization() {
     val module = projectRule.module
-    Facets.createAndAddAndroidFacet(module)
+    application.invokeAndWait {
+      Facets.createAndAddAndroidFacet(module)
+    }
 
     clearResourceCacheAfterFirstBuild.syncSucceeded()
 

@@ -24,8 +24,8 @@ import com.android.tools.lint.checks.ApiDetector
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LintAction
-import javax.swing.JButton
 import org.jetbrains.android.AndroidTestCase
+import javax.swing.JButton
 
 class ProvideLintFeedbackPanelTest : AndroidTestCase() {
   fun testFeedback() {
