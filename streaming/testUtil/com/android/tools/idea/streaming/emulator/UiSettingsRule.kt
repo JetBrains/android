@@ -17,14 +17,13 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.adblib.DeviceSelector
 import com.android.adblib.testing.FakeAdbDeviceServices
-import com.android.adblib.testing.FakeAdbSession
 import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.adblib.testing.TestAdbLibService
+import com.android.tools.idea.adblib.testing.FakeAdbSessionRule
 import com.android.tools.idea.res.AppLanguageInfo
 import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.testing.ProjectServiceRule
@@ -62,7 +61,7 @@ class UiSettingsRule : ExternalResource() {
   private val nameRule = TestName()
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
-  private val adbServiceRule = ProjectServiceRule(projectRule, AdbLibService::class.java, TestAdbLibService(FakeAdbSession()))
+  private val fakeAdbSessionRule = FakeAdbSessionRule(projectRule)
   private val appServiceRule = ProjectServiceRule(projectRule, AppLanguageService::class.java, appLanguageServices)
 
   val project
@@ -215,7 +214,7 @@ class UiSettingsRule : ExternalResource() {
     }
 
   override fun apply(base: Statement, description: Description): Statement =
-    apply(base, description, nameRule, projectRule, emulatorRule, adbServiceRule, appServiceRule)
+    apply(base, description, nameRule, projectRule, emulatorRule, fakeAdbSessionRule, appServiceRule)
 
   private fun apply(base: Statement, description: Description, vararg rules: TestRule): Statement {
     var statement = super.apply(base, description)

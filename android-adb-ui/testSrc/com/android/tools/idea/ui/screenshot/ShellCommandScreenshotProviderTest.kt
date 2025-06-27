@@ -17,13 +17,10 @@ package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DeviceSelector
-import com.android.adblib.testing.FakeAdbSession
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.tools.adtui.ImageUtils
-import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.adblib.testing.TestAdbLibService
-import com.android.tools.idea.testing.ProjectServiceRule
+import com.android.tools.idea.adblib.testing.FakeAdbSessionRule
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -42,12 +39,12 @@ import javax.imageio.ImageIO
 internal class ShellCommandScreenshotProviderTest {
 
   private val projectRule = ProjectRule()
-  private val adbSession = FakeAdbSession()
+  private val fakeAdbSessionRule = FakeAdbSessionRule(projectRule)
 
   @get:Rule
-  val rule = RuleChain(projectRule, ProjectServiceRule(projectRule, AdbLibService::class.java, TestAdbLibService(adbSession)))
+  val rule = RuleChain(projectRule, fakeAdbSessionRule)
 
-  private val deviceServices = adbSession.deviceServices
+  private val deviceServices = fakeAdbSessionRule.adbSession.deviceServices
   private val serialNumber = "123"
   private val device = DeviceSelector.fromSerialNumber(serialNumber)
   private lateinit var screenshotProvider: ShellCommandScreenshotProvider
@@ -65,7 +62,6 @@ internal class ShellCommandScreenshotProviderTest {
     if (::screenshotProvider.isInitialized) {
       Disposer.dispose(screenshotProvider)
     }
-    runBlocking { adbSession.closeAndJoin() }
   }
 
   @Test

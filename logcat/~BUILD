@@ -68,6 +68,7 @@ iml_module(
         "//tools/base/process-monitor:studio.android.sdktools.process-monitor",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/android-adb:intellij.android.adb",
+        "//tools/adt/idea/android-adb:intellij.android.adb.testUtil",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/artwork:intellij.android.artwork",
