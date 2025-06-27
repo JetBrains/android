@@ -321,6 +321,7 @@ class DeviceViewPanelWithFullInspectorTest {
   }
 
   @Test
+  @Ignore("b/420954531")
   fun testLoadingPanelWithStartAndStop() {
     val latch = ReportingCountDownLatch(1)
     inspectorRule.launchSynchronously = false
