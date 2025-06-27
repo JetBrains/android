@@ -99,7 +99,6 @@ public class BazelQueryRunner implements QueryRunner {
     } else {
       commandBuilder.addBlazeFlags(queryExp);
     }
-    commandBuilder.setWorkspaceRoot(query.workspaceRoot());
     addExtraFlags(commandBuilder, invoker);
 
     syncQueryStatsBuilder.ifPresent(

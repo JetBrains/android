@@ -34,7 +34,7 @@ import java.util.Optional;
 public class FullProjectUpdate implements RefreshOperation {
 
   private final Context<?> context;
-  private final Path effectiveWorkspaceRoot;
+  private final Path workspaceRoot;
   private final ProjectDefinition projectDefinition;
   private final Optional<VcsState> vcsState;
   private final Optional<String> bazelVersion;
@@ -42,13 +42,13 @@ public class FullProjectUpdate implements RefreshOperation {
 
   public FullProjectUpdate(
     Context<?> context,
-    Path effectiveWorkspaceRoot,
+    Path workspaceRoot,
     ProjectDefinition definition,
     Optional<VcsState> vcsState,
     Optional<String> bazelVersion,
     QuerySpec.QueryStrategy queryStrategy) {
     this.context = context;
-    this.effectiveWorkspaceRoot = effectiveWorkspaceRoot;
+    this.workspaceRoot = workspaceRoot;
     this.projectDefinition = definition;
     this.vcsState = vcsState;
     this.bazelVersion = bazelVersion;
@@ -59,7 +59,7 @@ public class FullProjectUpdate implements RefreshOperation {
   public Optional<QuerySpec> getQuerySpec() throws IOException {
     return Optional.of(
       projectDefinition
-        .deriveQuerySpec(context, queryStrategy, effectiveWorkspaceRoot)
+        .deriveQuerySpec(context, queryStrategy, workspaceRoot)
         .supportedRuleClasses(BlazeQueryParser.getAllSupportedRuleClasses())
         .build());
   }

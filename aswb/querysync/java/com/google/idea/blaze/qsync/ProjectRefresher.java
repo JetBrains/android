@@ -36,19 +36,16 @@ public class ProjectRefresher {
   private final Path workspaceRoot;
   private final QuerySpec.QueryStrategy queryStrategy;
   private final Supplier<Optional<QuerySyncProjectSnapshot>> latestProjectSnapshotSupplier;
-  private final Supplier<Boolean> runQueryInWorkspaceExperiment;
 
   public ProjectRefresher(
       VcsStateDiffer vcsDiffer,
       Path workspaceRoot,
       QuerySpec.QueryStrategy queryStrategy,
-      Supplier<Optional<QuerySyncProjectSnapshot>> latestProjectSnapshotSupplier,
-      Supplier<Boolean> runQueryInWorkspaceExperiment) {
+      Supplier<Optional<QuerySyncProjectSnapshot>> latestProjectSnapshotSupplier) {
     this.vcsDiffer = vcsDiffer;
     this.workspaceRoot = workspaceRoot;
     this.queryStrategy = queryStrategy;
     this.latestProjectSnapshotSupplier = latestProjectSnapshotSupplier;
-    this.runQueryInWorkspaceExperiment = runQueryInWorkspaceExperiment;
   }
 
   public RefreshOperation startFullUpdate(
@@ -56,10 +53,7 @@ public class ProjectRefresher {
       ProjectDefinition spec,
       Optional<VcsState> vcsState,
       Optional<String> bazelVersion) {
-    Path effectiveWorkspaceRoot =
-      runQueryInWorkspaceExperiment.get() ? workspaceRoot : (
-        vcsState.flatMap(s -> s.workspaceSnapshotPath).orElse(workspaceRoot));
-    return new FullProjectUpdate(context, effectiveWorkspaceRoot, spec, vcsState, bazelVersion, queryStrategy);
+    return new FullProjectUpdate(context, workspaceRoot, spec, vcsState, bazelVersion, queryStrategy);
   }
 
   public RefreshOperation startPartialRefresh(
@@ -101,11 +95,8 @@ public class ProjectRefresher {
     }
     // TODO(mathewi) check affected.isIncomplete() and offer (or just do?) a full sync in that case.
 
-    Path effectiveWorkspaceRoot =
-      runQueryInWorkspaceExperiment.get() ? workspaceRoot : (
-        params.latestVcsState.flatMap(s -> s.workspaceSnapshotPath).orElse(workspaceRoot));
     return new PartialProjectRefresh(
-        effectiveWorkspaceRoot,
+        workspaceRoot,
         params.currentProject,
         params.latestVcsState,
         params.latestBazelVersion,

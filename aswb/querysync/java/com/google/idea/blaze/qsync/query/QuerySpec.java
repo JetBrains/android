@@ -131,8 +131,6 @@ public abstract class QuerySpec implements TruncatingFormattable {
 
   public abstract QueryStrategy queryStrategy();
 
-  public abstract Path workspaceRoot();
-
   /** The set of package patterns to include. */
   abstract ImmutableList<String> includes();
 
@@ -180,8 +178,6 @@ public abstract class QuerySpec implements TruncatingFormattable {
   @AutoValue.Builder
   public abstract static class Builder {
     public abstract Builder queryStrategy(QueryStrategy queryStrategy);
-
-    public abstract Builder workspaceRoot(Path workspaceRoot);
 
     abstract ImmutableList.Builder<String> includesBuilder();
 
