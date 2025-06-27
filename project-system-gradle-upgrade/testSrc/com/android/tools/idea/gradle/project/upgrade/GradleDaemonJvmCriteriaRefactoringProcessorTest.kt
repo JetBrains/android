@@ -17,12 +17,11 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.extensions.getPropertyPath
+import com.android.tools.idea.gradle.fixtures.createDaemonJvmPropertiesFile
 import com.android.tools.idea.gradle.toolchain.GradleDaemonJvmCriteriaTemplatesManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
-import com.intellij.openapi.project.guessProjectDir
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.VfsTestUtil
 import com.intellij.util.lang.JavaVersion
 import org.jetbrains.plugins.gradle.properties.GradleDaemonJvmPropertiesFile
 import org.junit.Assert.assertEquals
@@ -57,7 +56,7 @@ class GradleDaemonJvmCriteriaRefactoringProcessorTest {
 
   @Test
   fun `Given project with incompatible Daemon JVM criteria When running AUA Then upgrade criteria is required`() {
-    createDaemonJvmPropertiesFile("11")
+    project.createDaemonJvmPropertiesFile("11")
 
     GradleDaemonJvmCriteriaRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.11.0")).run {
       run()
@@ -67,7 +66,7 @@ class GradleDaemonJvmCriteriaRefactoringProcessorTest {
 
   @Test
   fun `Given project with invalid Daemon JVM criteria When running AUA Then upgrade criteria is required`() {
-    createDaemonJvmPropertiesFile("invalid")
+    project.createDaemonJvmPropertiesFile("invalid")
 
     GradleDaemonJvmCriteriaRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.11.0")).run {
       run()
@@ -77,7 +76,7 @@ class GradleDaemonJvmCriteriaRefactoringProcessorTest {
 
   @Test
   fun `Given project empty Daemon JVM criteria When running AUA Then upgrade criteria is required`() {
-    createDaemonJvmPropertiesFile(null)
+    project.createDaemonJvmPropertiesFile(null)
 
     GradleDaemonJvmCriteriaRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.11.0")).run {
       run()
@@ -87,7 +86,7 @@ class GradleDaemonJvmCriteriaRefactoringProcessorTest {
 
   @Test
   fun `Given project with incompatible Daemon JVM criteria but not supported criteria recommended Gradle version When running AUA Then upgrade criteria isn't required`() {
-    createDaemonJvmPropertiesFile("11")
+    project.createDaemonJvmPropertiesFile("11")
 
     GradleDaemonJvmCriteriaRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.0.0")).run {
       assertRefactorProcessorIsNoOp()
@@ -96,7 +95,7 @@ class GradleDaemonJvmCriteriaRefactoringProcessorTest {
 
   @Test
   fun `Given project with compatible Daemon JVM criteria When running AUA Then upgrade criteria isn't required`() {
-    createDaemonJvmPropertiesFile("17")
+    project.createDaemonJvmPropertiesFile("17")
 
     GradleDaemonJvmCriteriaRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("8.11.0")).run {
       assertRefactorProcessorIsNoOp()
@@ -110,9 +109,6 @@ class GradleDaemonJvmCriteriaRefactoringProcessorTest {
     }
   }
 
-  private fun createDaemonJvmPropertiesFile(version: String?) {
-    VfsTestUtil.createFile(project.guessProjectDir()!!, "gradle/gradle-daemon-jvm.properties", version?.let { "toolchainVersion=$version" }.orEmpty())
-  }
 
   private fun AgpUpgradeComponentRefactoringProcessor.assertRefactorProcessorIsNoOp() {
     assertTrue(findUsages().isEmpty())
