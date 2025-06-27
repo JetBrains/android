@@ -319,17 +319,19 @@ public class AndroidStudioErrorReportSubmitter extends ErrorReportSubmitter {
     return false;
   }
 
+  @SuppressWarnings("UnstableApiUsage")
   @Nullable
   private static KotlinCompilerCrash getKotlinCompilerCrashOrNull(@NotNull IdeaLoggingEvent loggingEvent) {
-    KotlinCompilerCrash kotlinCompilerCrash = null;
     if (loggingEvent.getThrowable() instanceof KotlinCompilerCrash) {
-      kotlinCompilerCrash = (KotlinCompilerCrash)loggingEvent.getThrowable();
+      return (KotlinCompilerCrash)loggingEvent.getThrowable();
     }
-    else if (loggingEvent.getData() instanceof LogMessage &&
-             ((LogMessage)loggingEvent.getData()).getThrowable() instanceof KotlinCompilerCrash) {
-      kotlinCompilerCrash = (KotlinCompilerCrash)((LogMessage)loggingEvent.getData()).getThrowable();
+    if (loggingEvent.getThrowable() != null && loggingEvent.getThrowable().getCause() instanceof KotlinCompilerCrash) {
+      return (KotlinCompilerCrash)loggingEvent.getThrowable().getCause();
     }
-    return kotlinCompilerCrash;
+    if (loggingEvent.getData() instanceof LogMessage &&
+        ((LogMessage)loggingEvent.getData()).getThrowable() instanceof KotlinCompilerCrash) {
+      return (KotlinCompilerCrash)((LogMessage)loggingEvent.getData()).getThrowable();
+    }
+    return null;
   }
-
 }
