@@ -16,14 +16,12 @@
 package com.google.idea.blaze.base.bazel;
 
 import com.android.tools.idea.sdk.IdeSdks;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Closer;
 import com.google.idea.blaze.base.async.process.ExternalTask;
 import com.google.idea.blaze.base.async.process.LineProcessingOutputStream;
 import com.google.idea.blaze.base.async.process.PrintOutputLineProcessor;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.BlazeCommandName;
-import com.google.idea.blaze.base.command.WorkspaceRootReplacement;
 import com.google.idea.blaze.base.command.buildresult.BuildEventProtocolUtils;
 import com.google.idea.blaze.base.command.buildresult.BuildResult;
 import com.google.idea.blaze.base.command.buildresult.GetArtifactsException;
@@ -37,7 +35,6 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.output.IssueOutput;
 import com.google.idea.blaze.base.settings.Blaze;
-import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.execution.ExecutionException;
@@ -126,8 +123,6 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
               String.format("intellij-bazel-%s-", blazeCommand.getName()), ".stdout");
       OutputStream out = closer.register(Files.newOutputStream(tempFile));
       WorkspaceRoot workspaceRoot = WorkspaceRoot.fromProject(project);
-      Function<String, String> rootReplacement =
-          WorkspaceRootReplacement.create(workspaceRoot.path(), blazeCommand);
       boolean isUnitTestMode = ApplicationManager.getApplication().isUnitTestMode();
       ExternalTask.Builder builder = ExternalTask.builder(workspaceRoot)
         .addBlazeCommand(blazeCommand)
@@ -136,7 +131,6 @@ public abstract class AbstractLocalInvoker extends AbstractBuildInvoker {
         .stderr(
           LineProcessingOutputStream.of(
             line -> {
-              line = rootReplacement.apply(line);
               // errors are expected, so limit logging to info level
               if (isUnitTestMode) {
                 // This is essential output in bazel-in-bazel tests if they fail.
