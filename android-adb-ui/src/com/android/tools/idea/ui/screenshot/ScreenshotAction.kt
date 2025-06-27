@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants.DOT_PNG
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.io.writeImage
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.adblib.AdbLibService
@@ -39,9 +40,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.io.IOException
 
-/**
- * Captures a screenshot of the device display.
- */
+/** Captures a screenshot of a device display. */
 class ScreenshotAction : DumbAwareAction(
   message("screenshot.action.title"),
   message("screenshot.action.description"),
@@ -57,7 +56,7 @@ class ScreenshotAction : DumbAwareAction(
   override fun actionPerformed(event: AnActionEvent) {
     val project = event.project ?: return
     val screenshotParameters = event.getData(ScreenshotParameters.DATA_KEY) ?: return
-    val displayId = event.getData(DISPLAY_ID_KEY) ?: 0
+    val displayId = event.getData(DISPLAY_ID_KEY) ?: PRIMARY_DISPLAY_ID
     val displayInfoProvider = event.getData(DISPLAY_INFO_PROVIDER_KEY)
     val serialNumber = screenshotParameters.serialNumber
 
