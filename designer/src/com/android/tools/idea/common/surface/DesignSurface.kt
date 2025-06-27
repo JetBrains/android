@@ -799,7 +799,7 @@ abstract class DesignSurface<T : SceneManager>(
   @UiThread
   private fun restoreZoomOrZoomToFit(): Boolean {
     if (!restorePreviousScale()) {
-      zoomController.zoomToFit()
+      notifyZoomToFit()
     }
     return true
   }
@@ -1011,7 +1011,7 @@ abstract class DesignSurface<T : SceneManager>(
         newModel?.let { listOf(it to getOrCreateSceneManager(it)) } ?: emptyList()
       )
       sceneManagers.forEach { it.requestRenderAndWait() }
-      withContext(uiThread) { restoreZoomOrZoomToFit() }
+      withContext(Dispatchers.EDT) { restoreZoomOrZoomToFit() }
     }
   }
 

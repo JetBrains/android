@@ -52,9 +52,10 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.TestActionEvent
-import com.intellij.ui.JBColor
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.JBColor.RED
+import com.intellij.util.ui.JBUI.Borders.customLine
 import java.awt.BorderLayout
+import java.awt.BorderLayout.CENTER
 import java.awt.EventQueue
 import java.awt.event.KeyEvent
 import java.nio.file.Paths
@@ -151,8 +152,8 @@ class NlDesignSurfaceZoomControlsTest {
     fakeUi = invokeAndWaitIfNeeded {
       val outerPanel =
         JPanel(BorderLayout()).apply {
-          border = JBUI.Borders.customLine(JBColor.RED)
-          add(surface, BorderLayout.CENTER)
+          this.border = customLine(RED)
+          add(surface, CENTER)
           setBounds(0, 0, 1000, 1000)
         }
 
@@ -193,6 +194,17 @@ class NlDesignSurfaceZoomControlsTest {
     val zoomInAction = zoomActionsToolbar.actions.filterIsInstance<ZoomInAction>().single()
     val zoomOutAction = zoomActionsToolbar.actions.filterIsInstance<ZoomOutAction>().single()
     val zoomToFitAction = zoomActionsToolbar.actions.filterIsInstance<ZoomToFitAction>().single()
+
+    // Verify zoom to fit on startup
+    run {
+      fakeUi.updateToolbardsAndFullRefresh()
+      ImageDiffUtil.assertImageSimilar(
+        getGoldenImagePath("zoomFit"),
+        asyncDisplayRule.renderInFakeUi(fakeUi),
+        0.1,
+        1,
+      )
+    }
 
     val event =
       TestActionEvent.createTestEvent(
