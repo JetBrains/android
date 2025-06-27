@@ -2668,7 +2668,7 @@ public final class StudioFlags {
       "default.project.view",
       "Show UI for default project view in settings",
       "Show UI for default project view in settings",
-      enabledUpTo(CANARY));
+      true);
   public static final Flag<Boolean> SHOW_BUILD_FILES_IN_MODULE_SETTINGS =
     new BooleanFlag(
       PROJECT_TOOL_WINDOW,
