@@ -2288,7 +2288,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
                     "Enable AutoScroll Button",
                     "When enabled, the chat will show a button on the timeline to toggle auto-scrolling.",
-                    enabledUpTo(DEV));
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_RESPONSE_CANCELLATION_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.response.cancellation.enabled",
