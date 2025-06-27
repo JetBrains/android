@@ -30,7 +30,6 @@ public class QuerySpecTest {
   public void testGetQueryExpression_includes_singlePath() {
     QuerySpec qs =
       QuerySpec.builder(QuerySpec.QueryStrategy.PLAIN)
-        .workspaceRoot(Path.of("/workspace/"))
         .includePath(Path.of("some/included/path"))
         .supportedRuleClasses(BlazeQueryParser.getAllSupportedRuleClasses())
         .build();
@@ -39,7 +38,7 @@ public class QuerySpecTest {
 
   @Test
   public void testGetQueryExpression_empty_query() {
-    QuerySpec qs = QuerySpec.builder(QuerySpec.QueryStrategy.PLAIN).workspaceRoot(Path.of("/workspace/"))
+    QuerySpec qs = QuerySpec.builder(QuerySpec.QueryStrategy.PLAIN)
       .supportedRuleClasses(BlazeQueryParser.getAllSupportedRuleClasses())
       .build();
     assertThat(qs.getQueryExpression()).isEmpty();
@@ -47,8 +46,7 @@ public class QuerySpecTest {
 
   @Test
   public void testGetQueryExpression_experimental_empty_query() {
-    QuerySpec qs = QuerySpec.builder(QuerySpec.QueryStrategy.FILTERING_TO_KNOWN_AND_USED_TARGETS
-      ).workspaceRoot(Path.of("/workspace/"))
+    QuerySpec qs = QuerySpec.builder(QuerySpec.QueryStrategy.FILTERING_TO_KNOWN_AND_USED_TARGETS)
       .supportedRuleClasses(BlazeQueryParser.getAllSupportedRuleClasses())
       .build();
     assertThat(qs.getQueryExpression()).isEmpty();
@@ -58,7 +56,6 @@ public class QuerySpecTest {
   public void testGetQueryExpression_includes_multiplePaths() {
     QuerySpec qs =
       QuerySpec.builder(QuerySpec.QueryStrategy.PLAIN)
-        .workspaceRoot(Path.of("/workspace/"))
         .includePath(Path.of("some/included/path"))
         .includePath(Path.of("another/included/path"))
         .supportedRuleClasses(BlazeQueryParser.getAllSupportedRuleClasses())
@@ -71,7 +68,6 @@ public class QuerySpecTest {
   public void testGetQueryExpression_includes_and_excludes() {
     QuerySpec qs =
       QuerySpec.builder(QuerySpec.QueryStrategy.PLAIN)
-        .workspaceRoot(Path.of("/workspace/"))
         .includePath(Path.of("some/included/path"))
         .includePath(Path.of("another/included/path"))
         .excludePath(Path.of("some/included/path/excluded"))
@@ -88,7 +84,6 @@ public class QuerySpecTest {
   public void testGetQueryExpression_experimental_includes_and_excludes() {
     QuerySpec qs =
       QuerySpec.builder(QuerySpec.QueryStrategy.FILTERING_TO_KNOWN_AND_USED_TARGETS)
-        .workspaceRoot(Path.of("/workspace/"))
         .includePath(Path.of("some/included/path"))
         .includePath(Path.of("another/included/path"))
         .excludePath(Path.of("some/included/path/excluded"))

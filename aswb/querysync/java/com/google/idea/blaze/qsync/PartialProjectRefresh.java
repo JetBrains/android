@@ -39,7 +39,7 @@ import java.util.Optional;
  */
 class PartialProjectRefresh implements RefreshOperation {
 
-  private final Path effectiveWorkspaceRoot;
+  private final Path workspaceRoot;
   private final PostQuerySyncData previousState;
   private final Optional<VcsState> currentVcsState;
   private final Optional<String> bazelVersion;
@@ -47,13 +47,13 @@ class PartialProjectRefresh implements RefreshOperation {
   @VisibleForTesting final ImmutableSet<Path> deletedPackages;
 
   PartialProjectRefresh(
-      Path effectiveWorkspaceRoot,
+      Path workspaceRoot,
       PostQuerySyncData previousState,
       Optional<VcsState> currentVcsState,
       Optional<String> bazelVersion,
       ImmutableSet<Path> modifiedPackages,
       ImmutableSet<Path> deletedPackages) {
-    this.effectiveWorkspaceRoot = effectiveWorkspaceRoot;
+    this.workspaceRoot = workspaceRoot;
     this.previousState = previousState;
     this.currentVcsState = currentVcsState;
     this.modifiedPackages = modifiedPackages;
@@ -70,7 +70,6 @@ class PartialProjectRefresh implements RefreshOperation {
     return Optional.of(
         QuerySpec.builder(this.previousState.querySummary().getQueryStrategy())
             .includePackages(modifiedPackages)
-            .workspaceRoot(effectiveWorkspaceRoot)
             .supportedRuleClasses(BlazeQueryParser.getAllSupportedRuleClasses())
             .build());
   }

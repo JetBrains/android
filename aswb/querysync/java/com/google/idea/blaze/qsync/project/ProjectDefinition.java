@@ -134,7 +134,7 @@ public abstract class ProjectDefinition {
   public QuerySpec.Builder deriveQuerySpec(
       Context<?> context, QuerySpec.QueryStrategy queryStrategy, Path workspaceRoot)
       throws IOException {
-    QuerySpec.Builder result = QuerySpec.builder(queryStrategy).workspaceRoot(workspaceRoot);
+    QuerySpec.Builder result = QuerySpec.builder(queryStrategy);
     for (Path include : projectIncludes()) {
       if (isValidPathForQuery(context, workspaceRoot.resolve(include))) {
         result.includePath(include);

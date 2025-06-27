@@ -68,7 +68,6 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * Loads a project, either from saved state or from a {@code .blazeproject} file, yielding a {@link
@@ -251,8 +250,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
             vcsHandler.map(it -> (VcsStateDiffer)it::diffVcsState).orElse(VcsStateDiffer.NONE),
             workspaceRoot.path(),
             enableExperimentalQuery.getValue(),
-            snapshotHolder::getCurrent,
-            runQueryInWorkspace::getValue);
+            snapshotHolder::getCurrent
+        );
     ProjectBuilder snapshotBuilder =
         new ProjectBuilder(
           executor,
