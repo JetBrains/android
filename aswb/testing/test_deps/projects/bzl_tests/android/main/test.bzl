@@ -49,7 +49,7 @@ def _android_binary_test_impl(env, target):
             # aswb:bazel-only-begin(java_package is not available in bazel)
             java_package = None,
             # aswb:bazel-only-end-and-replace-begin
-            # java_package = None,
+            # java_package = "*",
             # aswb:replace-end
             manifest = "*.xml",
             idl_class_jar = "",
