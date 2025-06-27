@@ -99,7 +99,6 @@ public interface ExternalTask {
     public Builder addBlazeCommand(BlazeCommand blazeCommand) {
       this.blazeCommand = blazeCommand;
       command.addAll(blazeCommand.toList());
-      blazeCommand.getEffectiveWorkspaceRoot().ifPresent(p -> workingDirectory = p.toFile());
       return this;
     }
 

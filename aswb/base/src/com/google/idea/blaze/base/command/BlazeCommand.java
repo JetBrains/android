@@ -34,19 +34,16 @@ public final class BlazeCommand {
   private final BlazeCommandName name;
   private final ImmutableList<String> blazeCmdlineFlags;
   private final ImmutableList<String> blazeStartupFlags;
-  private final Optional<Path> effectiveWorkspaceRoot;
 
   private BlazeCommand(
       String binaryPath,
       BlazeCommandName name,
       ImmutableList<String> blazeStartupFlags,
-      ImmutableList<String> blazeCmdlineFlags,
-      Optional<Path> effectiveWorkspaceRoot) {
+      ImmutableList<String> blazeCmdlineFlags) {
     this.binaryPath = binaryPath;
     this.name = name;
     this.blazeCmdlineFlags = blazeCmdlineFlags;
     this.blazeStartupFlags = blazeStartupFlags;
-    this.effectiveWorkspaceRoot = effectiveWorkspaceRoot;
   }
 
   public BlazeCommandName getName() {
@@ -68,10 +65,6 @@ public final class BlazeCommand {
         .add(name.toString())
         .addAll(blazeCmdlineFlags)
         .build();
-  }
-
-  public Optional<Path> getEffectiveWorkspaceRoot() {
-    return effectiveWorkspaceRoot;
   }
 
   @Override
@@ -96,7 +89,6 @@ public final class BlazeCommand {
     private final String binaryPath;
     private final BlazeCommandName name;
     private boolean invokeParallel;
-    private Path effectiveWorkspaceRoot;
     private final ImmutableList.Builder<String> blazeStartupFlags = ImmutableList.builder();
     private final ImmutableList.Builder<TargetExpression> targets = ImmutableList.builder();
     private final ImmutableList.Builder<String> blazeCmdlineFlags = ImmutableList.builder();
@@ -131,8 +123,7 @@ public final class BlazeCommand {
           binaryPath,
           name,
           blazeStartupFlags.build(),
-          getArguments(),
-          Optional.ofNullable(effectiveWorkspaceRoot));
+          getArguments());
     }
 
     public boolean isInvokeParallel() {
@@ -188,13 +179,6 @@ public final class BlazeCommand {
     @CanIgnoreReturnValue
     public BlazeCommand.Builder addBlazeStartupFlags(List<String> flags) {
       this.blazeStartupFlags.addAll(flags);
-      return this;
-    }
-
-    /** Sets the workspace root that the command should run in, overriding the project default. */
-    @CanIgnoreReturnValue
-    public BlazeCommand.Builder setWorkspaceRoot(Path root) {
-      this.effectiveWorkspaceRoot = root;
       return this;
     }
   }
