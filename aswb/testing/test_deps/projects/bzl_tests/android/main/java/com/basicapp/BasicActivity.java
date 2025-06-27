@@ -31,7 +31,7 @@ public class BasicActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.basic_activity);
 
-    final Button buttons[] = {
+    final Button[] buttons = {
       findViewById(R.id.button_id_fizz), findViewById(R.id.button_id_buzz),
     };
 

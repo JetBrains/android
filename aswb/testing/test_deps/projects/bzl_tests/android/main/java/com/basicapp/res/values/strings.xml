@@ -4,5 +4,7 @@
     <string name="app_name" translatable="false">basicapp</string>
     <string name="hello_world" translatable="false">Hello world!</string>
     <string name="action_settings" translatable="false">Settings</string>
+    <string name="fizz" translatable="false">fizz</string>
+    <string name="buzz" translatable="false">buzz</string>
 
 </resources>

@@ -13,11 +13,11 @@
         android:id="@+id/button_id_fizz"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:text="fizz" />
+        android:text="@string/fizz" />
      <Button
         android:id="@+id/button_id_buzz"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:text="buzz" />
+        android:text="@string/buzz" />
 
 </LinearLayout>
