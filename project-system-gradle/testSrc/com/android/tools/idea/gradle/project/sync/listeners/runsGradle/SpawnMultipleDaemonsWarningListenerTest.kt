@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.listeners.runsGradle
 
+import com.android.tools.idea.gradle.fixtures.createDaemonJvmPropertiesFile
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
@@ -27,8 +28,6 @@ import com.google.common.truth.Truth
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.guessProjectDir
-import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.replaceService
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
@@ -69,7 +68,7 @@ class SpawnMultipleDaemonsWarningListenerTest : AndroidGradleTestCase() {
     whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
     ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, testRootDisposable)
 
-    createDaemonJvmPropertiesFile(JdkConstants.JDK_EMBEDDED_VERSION)
+    project.createDaemonJvmPropertiesFile(JdkConstants.JDK_EMBEDDED_VERSION)
     loadSimpleApplication()
 
     notifications
@@ -83,7 +82,7 @@ class SpawnMultipleDaemonsWarningListenerTest : AndroidGradleTestCase() {
     whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
     ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, testRootDisposable)
 
-    createDaemonJvmPropertiesFile("invalid")
+    project.createDaemonJvmPropertiesFile("invalid")
     loadProjectAndExpectSyncError(TestProjectPaths.SIMPLE_APPLICATION)
 
     notifications
@@ -134,8 +133,4 @@ class SpawnMultipleDaemonsWarningListenerTest : AndroidGradleTestCase() {
     append("<br>", SelectJdkFromFileSystemHyperlink.Companion.create(project, project.basePath)?.toHtml())
     append("<br>", DoNotShowJdkHomeWarningAgainHyperlink().toHtml())
   }.toString()
-
-  private fun createDaemonJvmPropertiesFile(version: String?) {
-    VfsTestUtil.createFile(project.guessProjectDir()!!, "gradle/gradle-daemon-jvm.properties", version?.let { "toolchainVersion=$version" }.orEmpty())
-  }
 }

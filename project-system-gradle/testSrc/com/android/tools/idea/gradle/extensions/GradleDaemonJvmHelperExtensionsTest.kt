@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.extensions
 
-import com.intellij.openapi.project.guessProjectDir
+import com.android.tools.idea.gradle.fixtures.createDaemonJvmPropertiesFile
+import com.android.tools.idea.gradle.fixtures.createWrapperPropertiesFile
 import com.intellij.testFramework.LightPlatformTestCase
-import com.intellij.testFramework.VfsTestUtil
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 
@@ -26,8 +26,8 @@ class GradleDaemonJvmHelperExtensionsTest : LightPlatformTestCase() {
   fun testProjectNotUsingDaemonJvmCriteriaWithSupportedGradleVersion() {
     val gradleVersion = GradleVersion.version("8.10")
 
-    createDaemonJvmPropertiesFile(null)
-    createWrapperPropertiesFile(gradleVersion)
+    project.createDaemonJvmPropertiesFile(null)
+    project.createWrapperPropertiesFile(gradleVersion)
 
     assertFalse(GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project, project.basePath!!))
     assertFalse(GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project.basePath!!, gradleVersion))
@@ -36,8 +36,8 @@ class GradleDaemonJvmHelperExtensionsTest : LightPlatformTestCase() {
   fun testProjectUsingDaemonJvmCriteriaWithUnsupportedGradleVersion() {
     val gradleVersion = GradleVersion.version("8.7")
 
-    createDaemonJvmPropertiesFile("17")
-    createWrapperPropertiesFile(gradleVersion)
+    project.createDaemonJvmPropertiesFile("17")
+    project.createWrapperPropertiesFile(gradleVersion)
 
     assertFalse(GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project, project.basePath!!))
     assertFalse(GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project.basePath!!, gradleVersion))
@@ -46,24 +46,10 @@ class GradleDaemonJvmHelperExtensionsTest : LightPlatformTestCase() {
   fun testProjectUsingDaemonJvmCriteriaWithSupportedGradleVersion() {
     val gradleVersion = GradleVersion.version("8.10")
 
-    createDaemonJvmPropertiesFile("string version")
-    createWrapperPropertiesFile(gradleVersion)
+    project.createDaemonJvmPropertiesFile("string version")
+    project.createWrapperPropertiesFile(gradleVersion)
 
     assertFalse(GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project, project.basePath!!))
     assertFalse(GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project.basePath!!, gradleVersion))
-  }
-
-  private fun createDaemonJvmPropertiesFile(version: String?) {
-    VfsTestUtil.createFile(project.guessProjectDir()!!, "gradle/gradle-daemon-jvm.properties", version?.let { "toolchainVersion=$version" }.orEmpty())
-  }
-
-  private fun createWrapperPropertiesFile(version: GradleVersion) {
-    VfsTestUtil.createFile(project.guessProjectDir()!!, "gradle/wrapper/gradle-wrapper.properties", """
-      distributionBase=PROJECT
-      distributionPath=wrapper/dists
-      distributionUrl=https\://services.gradle.org/distributions/gradle-${version.version}-bin.zip
-      zipStoreBase=PROJECT
-      zipStorePath=wrapper/dists
-    """.trimIndent())
   }
 }
