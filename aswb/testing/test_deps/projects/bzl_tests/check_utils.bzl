@@ -103,7 +103,7 @@ def nested_struct_factory(actual, *, meta, attrs):
         attrs = attrs,
     )
     return struct(
-        acutal = _struct_subject,
+        actual = _struct_subject,
         contains_exactly = lambda *a, **k: _struct_contains_exactly(self, *a, **k),
     )
 
