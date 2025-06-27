@@ -38,6 +38,7 @@ import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.CTRL_DOWN_MASK
 import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_E
+import javax.swing.JPanel
 
 /** Executes an action. */
 fun executeAction(actionId: String, source: Component? = null, project: Project? = null, place: String = ActionPlaces.TOOLBAR,
@@ -84,7 +85,7 @@ fun updateAndGetActionPresentation(action: AnAction, event: AnActionEvent): Pres
 fun createTestEvent(source: Component? = null, project: Project? = null, place: String = ActionPlaces.KEYBOARD_SHORTCUT,
                     modifiers: Int = CTRL_DOWN_MASK, presentation: Presentation = Presentation(),
                     extra: DataSnapshotProvider? = null): AnActionEvent {
-  val inputEvent = KeyEvent(source, KEY_RELEASED, System.currentTimeMillis(), modifiers, VK_E, CHAR_UNDEFINED)
+  val inputEvent = KeyEvent(source ?: JPanel(), KEY_RELEASED, System.currentTimeMillis(), modifiers, VK_E, CHAR_UNDEFINED)
   val rootContext = extra.toDataContext(project?.let { getProjectContext(it) } ?: EMPTY_CONTEXT)
   val dataContext = createDataContext(source, rootContext)
   return AnActionEvent.createEvent(dataContext, presentation, place, ActionUiKind.NONE, inputEvent)
