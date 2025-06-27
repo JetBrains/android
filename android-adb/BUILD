@@ -98,6 +98,7 @@ iml_module(
     test_deps = [
         "//tools/adt/idea/.idea/libraries:junit4",
         "@intellij//:intellij-sdk",
+        "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver",
         "//tools/base/testutils:studio.android.sdktools.testutils",

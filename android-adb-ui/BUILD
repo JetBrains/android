@@ -58,6 +58,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/base/testutils:studio.android.sdktools.testutils",
         "//tools/adt/idea/android-adb:intellij.android.adb",
+        "//tools/adt/idea/android-adb:intellij.android.adb.testUtil",
         "//tools/adt/idea/android-adb-ui:intellij.android.adb.ui",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",

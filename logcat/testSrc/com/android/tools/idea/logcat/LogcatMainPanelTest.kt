@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.adblib.testing.FakeAdbSession
 import com.android.processmonitor.common.ProcessEvent.ProcessAdded
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
@@ -26,8 +25,7 @@ import com.android.tools.adtui.swing.FakeMouse.Button.CTRL_LEFT
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.PopupRule
 import com.android.tools.analytics.UsageTrackerRule
-import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.adblib.testing.TestAdbLibService
+import com.android.tools.idea.adblib.testing.FakeAdbSessionRule
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.actions.PopupActionGroupAction
@@ -154,11 +152,7 @@ class LogcatMainPanelTest {
         AndroidLogcatFormattingOptions::class.java,
         androidLogcatFormattingOptions,
       ),
-      ProjectServiceRule(
-        projectRule,
-        AdbLibService::class.java,
-        TestAdbLibService(FakeAdbSession()),
-      ),
+      FakeAdbSessionRule(projectRule),
       ProjectServiceRule(projectRule, LogcatService::class.java, fakeLogcatService),
       ProjectServiceRule(
         projectRule,

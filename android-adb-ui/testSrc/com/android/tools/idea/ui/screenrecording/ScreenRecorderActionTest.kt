@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.adblib.testing.FakeAdbSession
-import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.adblib.testing.TestAdbLibService
+import com.android.tools.idea.adblib.testing.FakeAdbSessionRule
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
@@ -43,7 +41,7 @@ class ScreenRecorderActionTest {
   @get:Rule
   val rule = RuleChain(
     projectRule,
-    ProjectServiceRule(projectRule, AdbLibService::class.java, TestAdbLibService(FakeAdbSession())),
+    FakeAdbSessionRule(projectRule),
     ProjectServiceRule(projectRule, ScreenRecordingSupportedCache::class.java, mockScreenRecordingSupportedCache),
   )
 
