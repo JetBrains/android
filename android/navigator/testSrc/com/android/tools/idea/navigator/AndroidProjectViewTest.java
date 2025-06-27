@@ -269,10 +269,13 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
     AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
     Project project = getProject();
+
+    System.setProperty("studio.projectview", "false");
+    settings.setDefaultToProjectView(true);
+
     TestUsageTracker testUsageTracker = new TestUsageTracker(new VirtualTimeScheduler());
     UsageTracker.setWriterForTest(testUsageTracker);
 
-    System.setProperty("studio.projectview", "false");
     settings.setDefaultToProjectView(false);
     assertThat(settings.isDefaultToProjectViewEnabled()).isTrue();
     when(ideInfo.isAndroidStudio()).thenReturn(true);
@@ -284,6 +287,9 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     when(ideInfo.isAndroidStudio()).thenReturn(true);
     when(ideInfo.isGameTools()).thenReturn(false);
     assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(AndroidStudio)").isFalse();
+
+    // Assert that event is not logged when setting is set to current value
+    settings.setDefaultToProjectView(true);
 
     List<AndroidStudioEvent> statsEvents = testUsageTracker.getUsages().stream()
       .map(usage -> usage.getStudioEvent())

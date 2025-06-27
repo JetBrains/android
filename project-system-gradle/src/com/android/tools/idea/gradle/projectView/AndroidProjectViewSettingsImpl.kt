@@ -39,8 +39,10 @@ class AndroidProjectViewSettingsImpl: AndroidProjectViewSettings, PersistentStat
   override var defaultToProjectView: Boolean
     get() = state.defaultToProjectView
     set(newValue) {
-      state.defaultToProjectView = newValue
-      trackDefaultViewSetting(newValue)
+      if (state.defaultToProjectView != newValue) {
+        state.defaultToProjectView = newValue
+        trackDefaultViewSetting(newValue)
+      }
     }
 
   override fun getState(): ProjectViewSettingsState = state
@@ -51,7 +53,6 @@ class AndroidProjectViewSettingsImpl: AndroidProjectViewSettings, PersistentStat
 
   override fun initializeComponent() {
     defaultToProjectView = state.defaultToProjectView
-    trackDefaultViewSetting(state.defaultToProjectView)
     super.initializeComponent()
   }
 
