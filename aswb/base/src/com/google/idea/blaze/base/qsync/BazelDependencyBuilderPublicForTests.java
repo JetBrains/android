@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.qsync;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
+import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
@@ -35,9 +36,12 @@ import org.jetbrains.annotations.VisibleForTesting;
 public interface BazelDependencyBuilderPublicForTests {
 
   @VisibleForTesting
-  BazelDependencyBuilder.BuildDependenciesBazelInvocationInfo getInvocationInfo(BlazeContext context,
-                                                                                Set<Label> buildTargets,
-                                                                                Collection<OutputGroup> outputGroups);
+  BazelDependencyBuilder.BuildDependenciesBazelInvocationInfo getInvocationInfo(
+    BlazeContext context,
+    Set<Label> buildTargets,
+    Set<BuildSystem.BuildInvoker.Capability> buildInvokerCapabilities,
+    Collection<OutputGroup> outputGroups
+  );
 
   @VisibleForTesting
   Path getBundledAspectPath(String filename);

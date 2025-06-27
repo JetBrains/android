@@ -25,6 +25,7 @@ import com.google.common.io.ByteSource;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.MockProjectViewManager;
 import com.google.idea.blaze.base.bazel.BazelBuildSystemProvider;
+import com.google.idea.blaze.base.bazel.LocalBazelInvoker;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
@@ -93,6 +94,7 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
     final var generatedAspectName = String.format("qs-%s.bzl", dependencyBuilder.getProjectHash());
     final var invocationFiles = dependencyBuilder.getInvocationFiles(
       ImmutableSet.of(Label.of("//target1:target1"), Label.of("//target2:target2")),
+      LocalBazelInvoker.CAPABILITIES,
       new BazelDependencyBuilder.BuildDependencyParameters(
         ImmutableList.of("dir1", "dir2"),
         ImmutableList.of("dir1/sub1"),
@@ -152,7 +154,8 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
     final var generatedTargetPatternName = Label.of(String.format("//.aswb:targets-%s.txt", dependencyBuilder.getProjectHash())).getName();
 
     final var invocationInfo =
-      dependencyBuilder.getInvocationInfo(BlazeContext.create(), targets, ImmutableSet.of(OutputGroup.ARTIFACT_INFO_FILE));
+      dependencyBuilder.getInvocationInfo(BlazeContext.create(), targets, LocalBazelInvoker.CAPABILITIES,
+                                          ImmutableSet.of(OutputGroup.ARTIFACT_INFO_FILE));
     ImmutableMap<Path, ByteSource> invocationFiles =
       invocationInfo.invocationWorkspaceFiles();
     assertThat(
