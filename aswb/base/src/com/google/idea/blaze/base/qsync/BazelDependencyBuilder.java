@@ -116,7 +116,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
 
   // Note, this is currently incompatible with the build API.
   public static final BoolExperiment buildUseTargetPatternFile =
-      new BoolExperiment("qsync.build.use.target.pattern.file", false);
+      new BoolExperiment("qsync.build.use.target.pattern.file", true);
 
   public static final StringExperiment aspectLocation =
       new StringExperiment("qsync.build.aspect.location");
@@ -194,11 +194,11 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
             "The IDE has been upgraded in the background. Bazel build aspect files maybe"
                 + " incompatible. Please restart the IDE.");
       }
-      final var buildDependenciesBazelInvocationInfo = getInvocationInfo(context, buildTargets, outputGroups);
+      BuildInvoker invoker = buildSystem.getBuildInvoker(project);
+      final var buildDependenciesBazelInvocationInfo = getInvocationInfo(context, buildTargets, invoker.getCapabilities(), outputGroups);
       prepareInvocationFiles(
           context, buildDependenciesBazelInvocationInfo.invocationWorkspaceFiles());
 
-      BuildInvoker invoker = buildSystem.getBuildInvoker(project);
 
       Optional<BuildDepsStats.Builder> buildDepsStatsBuilder =
           BuildDepsStatsScope.fromContext(context);
@@ -231,8 +231,12 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
 
   @VisibleForTesting
   @Override
-  public BuildDependenciesBazelInvocationInfo getInvocationInfo(BlazeContext context,
-                                                                Set<Label> buildTargets, Collection<OutputGroup> outputGroups) {
+  public BuildDependenciesBazelInvocationInfo getInvocationInfo(
+    BlazeContext context,
+    Set<Label> buildTargets,
+    Set<BuildSystem.BuildInvoker.Capability> buildInvokerCapabilities,
+    Collection<OutputGroup> outputGroups
+  ) {
     ImmutableList<String> includes =
         projectDefinition.projectIncludes().stream()
             .map(path -> "//" + path)
@@ -252,7 +256,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
             true,
             buildGeneratedSrcJars.getValue());
 
-    InvocationFiles invocationFiles = getInvocationFiles(buildTargets, parameters);
+    InvocationFiles invocationFiles = getInvocationFiles(buildTargets, buildInvokerCapabilities, parameters);
 
     ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     // TODO This is not SYNC_CONTEXT, but also not OTHER_CONTEXT, we need to decide what kind
@@ -301,7 +305,10 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
    */
   @VisibleForTesting
   public InvocationFiles getInvocationFiles(
-      Set<Label> buildTargets, BuildDependencyParameters parameters) {
+      Set<Label> buildTargets,
+      Set<BuildSystem.BuildInvoker.Capability> buildInvokerCapabilities,
+      BuildDependencyParameters parameters
+  ) {
     String aspectFileName = String.format("qs-%s.bzl", getProjectHash());
     ImmutableMap.Builder<Path, ByteSource> files = ImmutableMap.builder();
     files.put(Path.of(INVOCATION_FILES_DIR + "/BUILD"), ByteSource.empty());
@@ -318,7 +325,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
         Path.of(INVOCATION_FILES_DIR + "/" + aspectFileName),
         getByteSourceFromString(getBuildDependenciesParametersFileContent(parameters)));
     Optional<String> targetPatternFileWorkspaceRelativeFile;
-    if (buildUseTargetPatternFile.getValue()) {
+    if (buildUseTargetPatternFile.getValue() && buildInvokerCapabilities.contains(BuildInvoker.Capability.SUPPORT_TARGET_PATTERN_FILE)) {
       String patternsFileName = String.format("targets-%s.txt", getProjectHash());
       files.put(
           Path.of(INVOCATION_FILES_DIR + "/" + patternsFileName),
