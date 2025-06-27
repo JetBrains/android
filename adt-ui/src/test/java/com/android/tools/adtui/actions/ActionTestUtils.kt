@@ -24,7 +24,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.Toggleable
-import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.application.readAction
 import com.intellij.testFramework.TestActionEvent
 import java.awt.event.InputEvent
@@ -36,10 +35,10 @@ const val SEPARATOR_TEXT = "----------------------------------------------------
  */
 @JvmOverloads
 fun prettyPrintActions(
-  action: AnAction, filter: (action: AnAction) -> Boolean = { true }, presentationFactory: PresentationFactory? = null, dataContext: DataContext = DataContext.EMPTY_CONTEXT
+  action: AnAction, filter: (action: AnAction) -> Boolean = { true }, dataContext: DataContext = DataContext.EMPTY_CONTEXT
 ): String {
   val stringBuilder = StringBuilder()
-  prettyPrintActions(action, stringBuilder, 0, filter, presentationFactory, dataContext)
+  prettyPrintActions(action, stringBuilder, 0, filter, dataContext)
   return stringBuilder.toString()
 }
 
@@ -47,14 +46,14 @@ fun prettyPrintActions(
  * Run [prettyPrintActions] recursively.
  */
 private fun prettyPrintActions(
-  action: AnAction, sb: StringBuilder, depth: Int, filter: (action: AnAction) -> Boolean, presentationFactory: PresentationFactory?, dataContext: DataContext
+  action: AnAction, sb: StringBuilder, depth: Int, filter: (action: AnAction) -> Boolean, dataContext: DataContext
 ) {
-  appendActionText(sb, action, presentationFactory, depth, dataContext)
+  appendActionText(sb, action, depth, dataContext)
   (action as? DefaultActionGroup)?.let { group ->
     if (!group.isPopup) {
       // If it is not a popup, the actions in the group would be flatted.
       for (child in group.getChildren(ActionManager.getInstance())) {
-        appendActionText(sb, child, presentationFactory, depth, dataContext)
+        appendActionText(sb, child, depth, dataContext)
       }
     }
     else {
@@ -62,25 +61,25 @@ private fun prettyPrintActions(
         if (!filter(child)) {
           continue
         }
-        prettyPrintActions(child, sb, depth + 1, filter, presentationFactory, dataContext)
+        prettyPrintActions(child, sb, depth + 1, filter, dataContext)
       }
     }
   }
 }
 
-private fun appendActionText(sb: StringBuilder, action: AnAction, presentationFactory: PresentationFactory?, depth: Int, dataContext: DataContext) {
-  val text = action.toText(presentationFactory, dataContext)
+private fun appendActionText(sb: StringBuilder, action: AnAction, depth: Int, dataContext: DataContext) {
+  val text = action.toText(dataContext)
   for (i in 0 until depth) {
     sb.append("    ")
   }
   sb.append(text).append("\n")
 }
 
-private fun AnAction.toText(presentationFactory: PresentationFactory?, dataContext: DataContext): String {
+private fun AnAction.toText(dataContext: DataContext): String {
   if (this is Separator) {
     return SEPARATOR_TEXT
   }
-  val event = createTestActionEvent(this, presentationFactory = presentationFactory, dataContext = dataContext)
+  val event = createTestActionEvent(this, dataContext = dataContext)
   update(event)
   // Add a visual representation to selected actions.
   return "${if (Toggleable.isSelected(event.presentation)) "✔ " else ""}${event.presentation.text}"
@@ -93,10 +92,9 @@ private fun AnAction.toText(presentationFactory: PresentationFactory?, dataConte
 fun createTestActionEvent(
   action: AnAction,
   inputEvent: InputEvent? = null,
-  dataContext: DataContext = DataContext.EMPTY_CONTEXT,
-  presentationFactory: PresentationFactory? = null
+  dataContext: DataContext = DataContext.EMPTY_CONTEXT
 ): AnActionEvent {
-  val presentation = presentationFactory?.getPresentation(action) ?: action.templatePresentation.clone()
+  val presentation = action.templatePresentation.clone()
   return AnActionEvent.createEvent(dataContext, presentation, "", ActionUiKind.NONE, inputEvent)
 }
 
