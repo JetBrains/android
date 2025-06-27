@@ -316,6 +316,7 @@ class AgpUpgradeRefactoringProcessor(
     RemoveImplementationPropertiesRefactoringProcessor(this),
     BlockPreciseShrinkingProcessor(this),
     BlockResourceOptimizationsProcessor(this),
+    GradleDaemonJvmCriteriaRefactoringProcessor(this),
     // AGP 10.x
     BlockMinifyLocalDependenciesLibrariesProcessor(this),
     BlockR8StrictFullModeForKeepRulesProcessor(this),

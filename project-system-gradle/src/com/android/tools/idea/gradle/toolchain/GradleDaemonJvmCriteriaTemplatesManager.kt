@@ -44,13 +44,21 @@ object GradleDaemonJvmCriteriaTemplatesManager {
         completableFuture.complete(false)
       } else {
         val jvmCriteriaPropertiesFile = GradleDaemonJvmPropertiesFile.getPropertyPath(externalProjectPath).toFile()
-        FileUtils.createFile(jvmCriteriaPropertiesFile, propertiesContent)
+        FileUtils.writeToFile(jvmCriteriaPropertiesFile, propertiesContent)
         completableFuture.complete(true)
       }
     } catch (e: Exception) {
       completableFuture.completeExceptionally(e)
     }
     return completableFuture
+  }
+
+  fun canGeneratePropertiesFile(javaVersion: JavaVersion): Boolean {
+    return try {
+      getTemplateCriteriaPropertiesContent(javaVersion) != null
+    } catch (_: Exception) {
+      false
+    }
   }
 
   @VisibleForTesting

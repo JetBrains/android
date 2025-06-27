@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.AgpCompatibleJdkVersion
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.android.tools.idea.gradle.util.GradleWrapper
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
@@ -32,8 +33,11 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.util.lang.JavaVersion
+import org.gradle.util.GradleVersion
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
+import com.android.tools.idea.gradle.extensions.isProjectUsingDaemonJvmCriteria
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 
 class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
@@ -94,6 +98,11 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
+
+    // If project uses Daemon JVM criteria then GradleDaemonJvmCriteriaRefactoring will handle it
+    if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project.basePath, getCurrentProjectGradleVersion()))
+      return usages.toTypedArray()
+
     val currentCompatibleJdk = AgpCompatibleJdkVersion.getCompatibleJdkVersion(current)
     val newCompatibleJdk = AgpCompatibleJdkVersion.getCompatibleJdkVersion(new)
 
@@ -153,6 +162,11 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
       override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.projectJdkRefactoringProcessor.usageView.header")
     }
+  }
+
+  private fun getCurrentProjectGradleVersion(): GradleVersion? {
+    val currentGradleVersion = GradleWrapper.find(project)?.gradleVersion ?: return null
+    return GradleVersion.version(currentGradleVersion)
   }
 
   companion object {

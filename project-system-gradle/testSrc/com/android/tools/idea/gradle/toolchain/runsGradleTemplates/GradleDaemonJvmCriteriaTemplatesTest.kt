@@ -74,13 +74,7 @@ class GradleDaemonJvmCriteriaTemplatesTest(private val javaVersion: JavaVersion)
     @Parameterized.Parameters(name = "template {0} version")
     fun data(): Set<JavaVersion> {
       return JavaSdkVersion.entries
-        .filter {
-          try {
-            GradleDaemonJvmCriteriaTemplatesManager.getTemplateCriteriaPropertiesContent(it.maxLanguageLevel.toJavaVersion()) != null
-          } catch (_: Exception) {
-            return@filter false
-          }
-        }
+        .filter { GradleDaemonJvmCriteriaTemplatesManager.canGeneratePropertiesFile(it.maxLanguageLevel.toJavaVersion()) }
         .map { it.maxLanguageLevel.toJavaVersion() }
         // DEFAULT_JDK_VERSION is always added since validates missing default template given updated version
         .plus(IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.toJavaVersion()).toSet()
