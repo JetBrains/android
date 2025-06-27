@@ -19,7 +19,6 @@ import com.android.tools.adtui.actions.findActionByText
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationModelModule
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.StudioConfigurationModelModule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -27,8 +26,10 @@ import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.testFramework.TestActionEvent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.base.util.module
@@ -70,13 +71,8 @@ class DeviceMenuActionTest {
     val menuAction = DeviceMenuAction()
     menuAction.updateActions(dataContext)
     val actual =
-      withContext(uiThread) {
-        prettyPrintActions(
-          menuAction,
-          { action: AnAction -> !isAvdAction(action) },
-          null,
-          dataContext,
-        )
+      withContext(Dispatchers.EDT) {
+        prettyPrintActions(menuAction, { action: AnAction -> !isAvdAction(action) }, dataContext)
       }
 
     Truth.assertThat(actual.trimEnd())
@@ -212,7 +208,7 @@ class DeviceMenuActionTest {
     assertEquals("Pixel", configuration.device?.displayName)
 
     val pixelFoldAction = menuAction.findActionByText("Pixel Fold (841 × 701 dp, 420dpi)")!!
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       pixelFoldAction.actionPerformed(TestActionEvent.createTestEvent(dataContext))
     }
 
