@@ -516,6 +516,11 @@ studio_plugin(
         "@intellij//:com.intellij.cidr.lang.clangd",
         "@intellij//:com.intellij.gradle",
         "@intellij//:com.intellij.java",
+        "@intellij//:intellij.c.core",
+        "@intellij//:intellij.c.debugger",
+        "@intellij//:intellij.cidr.lang.base",
+        "@intellij//:intellij.cidr.projectModel",
+        "@intellij//:intellij.cidr.psi.base",
         "@intellij//:org.jetbrains.kotlin",
     ],
 )
