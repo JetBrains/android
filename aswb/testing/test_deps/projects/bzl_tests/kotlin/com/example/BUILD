@@ -1,9 +1,19 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_binary", "kt_jvm_library")
 load("//bzl_tests:test_fixture.bzl", "build_dependencies_deps_test_fixture")
 load(":test.bzl", "test_suite")
 
 package(
     default_visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "test_bzl",
+    srcs = ["test.bzl"],
+    deps = [
+        "//bzl_test/java/com/example:check_utils_bzl",
+        "@rules_testing//lib:analysis_test_bzl",
+    ],
 )
 
 kt_jvm_library(

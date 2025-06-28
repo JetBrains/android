@@ -19,7 +19,7 @@
 #include <string>
 
 class Simple {
-  std::string testString;
+  std::string test_string_;
 
  public:
   Simple();

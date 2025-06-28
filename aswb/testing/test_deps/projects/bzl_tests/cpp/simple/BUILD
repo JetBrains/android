@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//bzl_tests:test_fixture.bzl", "build_dependencies_deps_test_fixture")
@@ -5,6 +6,20 @@ load(":test.bzl", "test_suite")
 
 package(
     default_visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "test_bzl",
+    srcs = ["test.bzl"],
+    deps = [
+        ":check_utils_bzl",
+        "@rules_testing//lib:analysis_test_bzl",
+    ],
+)
+
+bzl_library(
+    name = "check_utils_bzl",
+    srcs = ["check_utils.bzl"],
 )
 
 cc_library(
@@ -25,7 +40,7 @@ cc_library(
 
 cc_binary(
     name = "simple",
-    srcs = ["simple.cc"],
+    srcs = ["simple_main.cc"],
 )
 
 build_dependencies_deps_test_fixture(

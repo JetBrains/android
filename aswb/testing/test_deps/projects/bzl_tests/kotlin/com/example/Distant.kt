@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.targets
+package com.example
 
 internal object Distant {
-  fun other() {}
+  fun method() {}
 }

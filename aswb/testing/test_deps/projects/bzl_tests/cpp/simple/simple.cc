@@ -13,5 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "bzl_tests/cpp/simple/simple.h"
 
-Simple::Simple() { testString = "test"; }
+Simple::Simple() { test_string_ = "test"; }
+
