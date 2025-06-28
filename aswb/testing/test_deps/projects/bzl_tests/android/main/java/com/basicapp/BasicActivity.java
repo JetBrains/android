@@ -38,6 +38,7 @@ public class BasicActivity extends Activity {
     for (var b : buttons) {
       b.setOnClickListener(
           new View.OnClickListener() {
+            @Override
             public void onClick(View v) {
               TextView tv = findViewById(R.id.text_hello);
               if (v.getId() == R.id.button_id_fizz) {

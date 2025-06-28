@@ -13,8 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example
-
-internal class FooMain {
-  var foo: Foo = Foo()
+int main(int argc, char* argv[]) {
 }
