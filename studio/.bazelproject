@@ -1,0 +1,34 @@
+directories:
+  tools/vendor/google3/aswb/
+  tools/adt/idea
+  tools/base
+  tools/vendor/google/asfg/ext/
+  tools/vendor/google/aswb/
+  tools/vendor/google/android-apk
+  tools/vendor/google/android-ndk
+  -.out
+  -tools/idea/out
+  -tools/adt/idea/ij-debugger-tests
+  -tools/vendor/google3/aswb/test_deps/projects/bazel-bin
+  -tools/vendor/google3/aswb/test_deps/projects/bazel-out
+  -tools/vendor/google3/aswb/test_deps/projects/bazel-projects
+  -tools/vendor/google3/aswb/test_deps/projects/bazel-testlogs
+
+targets:
+  //tools/adt/idea/studio/...
+
+workspace_type: java
+
+test_sources:
+  */unittests
+  */integrationtests
+  */testing/*src
+  */testSrc
+
+java_language_level: 17
+
+import_run_configurations:
+  tools/adt/idea/studio/studio.xml
+
+enable_code_analysis_on_sync: true
+
