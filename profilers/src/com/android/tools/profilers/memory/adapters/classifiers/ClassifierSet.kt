@@ -334,11 +334,11 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
    * @return the set that contains the `target`, or null otherwise.
    */
   fun findContainingClassifierSet(target: InstanceObject): ClassifierSet? = state.let { s -> when {
-    s is State.Coalesced && (target in s.snapshotInstances || target in s.deltaInstances) -> when (ensurePartitioned()) {
+    s is State.Coalesced && (target in s.snapshotInstances || target in s.deltaInstances) -> when (val forcedState = ensurePartitioned()) {
       is State.Coalesced -> this
-      is State.Partitioned -> childrenClassifierSets.firstNonNullResult { it.findContainingClassifierSet(target) }
+      is State.Partitioned -> forcedState.classifier.classifierSetSequence.asIterable().firstNonNullResult { it.findContainingClassifierSet(target) }
     }
-    s is State.Partitioned -> childrenClassifierSets.firstNonNullResult { it.findContainingClassifierSet(target) }
+    s is State.Partitioned -> s.classifier.classifierSetSequence.asIterable().firstNonNullResult { it.findContainingClassifierSet(target) }
     else -> null
   }}
 
