@@ -18,6 +18,8 @@ package com.android.tools.idea.layoutinspector
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.util.CommonAndroidUtil
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -39,7 +41,7 @@ class ShowLayoutInspectorAction :
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
-    return ActionUpdateThread.BGT
+    return ActionUpdateThread.EDT
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -52,6 +54,23 @@ class ShowLayoutInspectorAction :
   }
 
   private fun activateToolWindow(project: Project, toolWindowId: String) {
-    ToolWindowManager.getInstance(project).getToolWindow(toolWindowId)?.activate(null)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId)
+    toolWindow?.activate {
+      if (toolWindowId == LAYOUT_INSPECTOR_TOOL_WINDOW_ID) {
+        // We don't need to trigger toggle action for standalone layout inspector.
+        return@activate
+      }
+      val toggleLayoutInspectorAction =
+        ActionManager.getInstance()
+          .getAction("com.android.tools.idea.layoutinspector.toggle.layout.inspector.action")
+      ActionManager.getInstance()
+        .tryToExecute(
+          toggleLayoutInspectorAction,
+          null,
+          toolWindow.contentManager.selectedContent?.component,
+          ActionPlaces.TOOLBAR,
+          true,
+        )
+    }
   }
 }
