@@ -865,7 +865,7 @@ def _android_studio_os(ctx, platform, added_plugins, out):
     _lnzipper(ctx, out.basename, all_files.items(), out, attrs = attrs, keep_symlink = platform == MAC_ARM)
     return all_files
 
-def _experimental_runner(ctx, name, target_to_file, out):
+def _studio_runner(ctx, name, target_to_file, out):
     files = []
     expected = []
     for target, src in target_to_file.items():
@@ -959,9 +959,9 @@ def _android_studio_impl(ctx):
     _produce_update_message_html(ctx)
 
     host_platform = platform_by_name[ctx.attr.host_platform_name]
-    if ctx.attr.experimental_runner:
+    if not ctx.attr.legacy_runner:
         script = ctx.actions.declare_file("%s/%s.py" % (ctx.attr.name, ctx.attr.name))
-        _experimental_runner(
+        _studio_runner(
             ctx,
             ctx.attr.name,
             all_files[host_platform],
@@ -999,7 +999,7 @@ _android_studio = rule(
         "codesign_entitlements": attr.label(allow_single_file = True),
         "compress": attr.bool(),
         "essential_plugins": attr.string_list(),
-        "experimental_runner": attr.bool(default = False),
+        "legacy_runner": attr.bool(default = False),
         "files_linux": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "files_mac": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "files_mac_arm": attr.label_keyed_string_dict(allow_files = True, default = {}),
