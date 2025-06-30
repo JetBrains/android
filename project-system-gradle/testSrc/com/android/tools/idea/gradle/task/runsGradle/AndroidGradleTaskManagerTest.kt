@@ -17,14 +17,18 @@ package com.android.tools.idea.gradle.task.runsGradle
 
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.hookExecuteTasks
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.ExternalSystemFacadeManager
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 
@@ -74,6 +78,33 @@ class AndroidGradleTaskManagerTest {
       expect.that(capturedRequests.getOrNull(1)?.project).isSameAs(project)
       expect.that(capturedRequests.getOrNull(1)?.rootProjectPath).isEqualTo(path.resolve("app"))
       expect.that(capturedRequests.getOrNull(1)?.gradleTasks).isEqualTo(listOf("assembleDebug"))
+    }
+  }
+
+  @Test
+  fun `Given invalid java home settings When executing any task Then no exception was thrown since invalid path is not specified to TAPI`() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.open {
+      var capturedException: Exception? = null
+      val executionSettings = ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(
+        project, project.basePath!!, GradleConstants.SYSTEM_ID
+      ).apply {
+        tasks = listOf(":help")
+        javaHome = "invalid"
+      }
+
+      AndroidGradleTaskManager().executeTasks(
+        project.basePath!!,
+        ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
+        executionSettings,
+        object : ExternalSystemTaskNotificationListener {
+          override fun onFailure(projectPath: String, id: ExternalSystemTaskId, exception: java.lang.Exception) {
+            capturedException = exception
+          }
+        }
+      )
+
+      assertNull(capturedException)
     }
   }
 }

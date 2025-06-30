@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.build.invoker
 import com.android.builder.model.PROPERTY_ATTRIBUTION_FILE_LOCATION
 import com.android.builder.model.PROPERTY_INVOKED_FROM_IDE
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.BuildContext
@@ -30,7 +29,6 @@ import com.android.tools.idea.gradle.project.build.attribution.getAgpAttribution
 import com.android.tools.idea.gradle.project.build.attribution.isBuildAttributionEnabledForProject
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
-import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
@@ -38,8 +36,6 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.hasCause
 import com.android.tools.idea.gradle.util.addAndroidStudioPluginVersion
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.projectsystem.toReason
-import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.sdk.SelectSdkDialog
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.tracer.Trace
 import com.google.common.base.Stopwatch
@@ -56,7 +52,6 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.compiler.CompilerManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
@@ -80,7 +75,6 @@ import com.intellij.openapi.wm.ex.ProgressIndicatorEx
 import com.intellij.openapi.wm.ex.StatusBarEx
 import com.intellij.openapi.wm.ex.WindowManagerEx
 import com.intellij.ui.AppIcon
-import com.intellij.ui.AppUIUtil
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.ArrayUtil
 import com.intellij.util.ExceptionUtil
@@ -441,31 +435,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
       if (error.contains("Build cancelled")) {
         return
       }
-      val showErrorTask = Runnable {
-        myErrorCount++
-
-        // This is temporary. Once we have support for hyperlinks in "Messages" window, we'll show the error message the with a
-        // hyperlink to set the JDK home.
-        // For now we show the "Select SDK" dialog, but only giving the option to set the JDK path.
-        if (IdeInfo.getInstance().isAndroidStudio && error.startsWith("Supplied javaHome is not a valid folder")) {
-          val ideSdks = IdeSdks.getInstance()
-          val androidHome = ideSdks.androidSdkPath
-          val androidSdkPath = androidHome?.path
-          val selectSdkDialog = SelectSdkDialog(null, androidSdkPath)
-          selectSdkDialog.isModal = true
-          if (selectSdkDialog.showAndGet()) {
-            val jdkHome = selectSdkDialog.jdkHome
-            UIUtil.invokeLaterIfNeeded {
-              myRequest.project.basePath?.let { gradleRootPath ->
-                runWriteAction {
-                  GradleJdkConfigurationUtils.setProjectGradleJdk(myRequest.project, gradleRootPath, jdkHome)
-                }
-              }
-            }
-          }
-        }
-      }
-      AppUIUtil.invokeLaterIfProjectAlive(myRequest.project, showErrorTask)
+      myErrorCount++
     }
 
     private fun notifyGradleInvocationCompleted(buildState: GradleBuildState, durationMillis: Long) {
