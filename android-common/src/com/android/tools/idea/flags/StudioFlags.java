@@ -1720,7 +1720,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> APP_INSPECTION_USE_EXPERIMENTAL_DATABASE_INSPECTOR = new BooleanFlag(
     APP_INSPECTION, "use.experimental.database.inspector", "Use experimental Database Inspector",
     "Use experimental Database Inspector",
-    enabledUpTo(CANARY)
+    true
   );
   // endregion
 
@@ -2277,7 +2277,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
                     "Enable AutoScroll Button",
                     "When enabled, the chat will show a button on the timeline to toggle auto-scrolling.",
-                    enabledUpTo(CANARY));
+                    enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_RESPONSE_CANCELLATION_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.response.cancellation.enabled",
