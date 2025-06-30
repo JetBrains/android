@@ -1185,7 +1185,7 @@ class ComposePreviewRepresentation(
     if (previewModeManager.mode.value.isFocus) {
       surface.interactionPane.isVisible = false
     }
-    activeResizePanelInFocusMode?.clearPanelAndHidePanel()
+    activeResizePanelInFocusMode?.clearAndHide()
   }
 
   private fun requestRefresh(
@@ -1590,7 +1590,7 @@ class ComposePreviewRepresentation(
           composeWorkBench.focusMode =
             activeResizePanelInFocusMode?.let { resizePanel ->
               FocusMode(composeWorkBench.mainSurface, resizePanel).apply {
-                addSelectionListener { resizePanel.clearPanelAndHidePanel() }
+                addSelectionListener { resizePanel.clearAndHide() }
               }
             } ?: FocusMode(composeWorkBench.mainSurface)
         }

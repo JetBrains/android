@@ -23,95 +23,82 @@ import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.configurations.ConversionUtil
 import com.android.tools.configurations.deviceSizeDp
 import com.android.tools.configurations.updateScreenSize
+import com.android.tools.idea.actions.CONFIGURATIONS
+import com.android.tools.idea.actions.DeviceChangeListener
+import com.android.tools.idea.actions.DeviceMenuAction
+import com.android.tools.idea.actions.HAS_BEEN_RESIZED
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.compose.preview.analytics.resizeMode
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.previewElement
-import com.android.tools.idea.configurations.DeviceGroup
-import com.android.tools.idea.configurations.ReferenceDevice
-import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.preview.Colors
-import com.android.tools.idea.preview.util.getSdkDevices
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.visual.getDeviceGroupsSortedAsMap
 import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataSink
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.ui.popup.ListSeparator
-import com.intellij.openapi.ui.popup.PopupStep
-import com.intellij.openapi.ui.popup.util.BaseListPopupStep
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBEmptyBorder
-import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBUI.scale
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
-import java.awt.Point
+import java.awt.event.ActionListener
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.text.NumberFormat
+import java.text.ParseException
 import java.util.Objects
-import javax.swing.Icon
-import javax.swing.JButton
+import javax.swing.JComponent
 import javax.swing.JFormattedTextField
+import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.text.NumberFormatter
 import org.jetbrains.annotations.TestOnly
 
-private const val textFieldWidth = 60
+private const val TEXT_FIELD_WIDTH = 60
 
-private const val minimumSizeDp = 1
-private const val maximumSizeDp = 5000
+private const val MINIMUM_SIZE_DP = 1
+private const val MAXIMUM_SIZE_DP = 5000
 
 /**
  * Panel that allows resizing the preview by selecting a device or entering custom dimensions. It is
  * displayed in the toolbar of the Compose Preview.
+ *
+ * The panel looks like: [ Device Picker ▼ ] [ WidthTF ] x [ HeightTF ] dp [X]
  */
-class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Disposable {
+class ResizePanel(parentDisposable: Disposable) :
+  JBPanel<ResizePanel>(), Disposable, UiDataProvider {
 
-  /*
-   * Declares the UI components that constitute the ResizePanel.
-   * These components are arranged horizontally using a FlowLayout, creating
-   * the visual structure for device selection, custom dimension input, and panel visibility control:
-   *
-   * [ Device Picker ▼ ]  [ WidthTF ] x [ HeightTF ] dp  [X]
-   * (devicePickerBtn)    (widthTxtF) (x) (heightTxtF) (unitLbl) (closeBtn)
-   *
-   * - devicePickerButton: Displays the current device/state (e.g., "Pixel 5", "Custom")
-   * and triggers a popup list of devices for selection.
-   * - widthTextField:    Text field for manually inputting the desired width in dp.
-   * - xLabel:            A simple label displaying the 'x' character as a separator.
-   * - heightTextField:   Text field for manually inputting the desired height in dp.
-   * - unitLabel:         A label displaying the measurement unit, typically "dp".
-   * - closeButton:       A button to hide this ResizePanel and revert the preview to its original device/state.
-   */
-  private val devicePickerButton: JButton
-  private val widthTextField: JFormattedTextField
-  private val xLabel: JBLabel
-  private val heightTextField: JFormattedTextField
-  private val unitLabel: JBLabel
-  private val closeButton: JButton
+  private val log = Logger.getInstance(ResizePanel::class.java)
 
-  private var currentPopupListItems: List<DropDownListItem> = emptyList()
   private var currentModuleForList: Module? = null
   private var currentFocusedPreviewElement: PsiComposePreviewElementInstance? = null
   private var currentSceneManager: LayoutlibSceneManager? = null
 
-  private var isUpdatingFromConfig = false
   private var currentConfiguration: Configuration? = null
 
   private var originalDeviceSnapshot: Device? = null
   private var originalDeviceStateSnapshot: State? = null
-  private val LOG = Logger.getInstance(ResizePanel::class.java)
 
   /**
    * Indicates whether the preview has been resized using this panel at least once since the panel
@@ -123,7 +110,7 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
   /**
    * Listener responsible for reacting to device configuration changes to trigger a re-render of the
    * preview and update its LayoutParams. This instance is created and managed by ResizePanel for
-   * the current [SceneManager].
+   * the current [com.android.tools.idea.common.scene.SceneManager].
    */
   private var renderTriggerListener: ConfigurationResizeListener? = null
 
@@ -155,64 +142,36 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     border = JBEmptyBorder(2)
     background = Colors.DEFAULT_BACKGROUND_COLOR
 
-    // Create a new panel for the flowing components
+    // The main action group for the toolbar. Does not include the close button.
+    val mainActionGroup =
+      DefaultActionGroup().apply {
+        add(DevicePickerAction())
+        add(DimensionInputsAction())
+      }
+
+    val actionToolbar =
+      ActionManager.getInstance().createActionToolbar(ActionPlaces.TOOLBAR, mainActionGroup, true)
+    actionToolbar.targetComponent = this
+    actionToolbar.component.isOpaque = false // Make the toolbar itself transparent
+
     val flowingComponentsPanel =
-      JBPanel<JBPanel<*>>(FlowLayout(FlowLayout.CENTER, JBUI.scale(4), JBUI.scale(2)))
-    flowingComponentsPanel.isOpaque = false
+      JBPanel<JBPanel<*>>(FlowLayout(FlowLayout.CENTER, scale(4), scale(2))).apply {
+        isOpaque = false
+        add(actionToolbar.component)
+      }
 
-    devicePickerButton = setupDevicePickerButton()
-
-    val formatter = NumberFormatter(NumberFormat.getIntegerInstance())
-    formatter.minimum = minimumSizeDp
-    formatter.maximum = maximumSizeDp
-    widthTextField = JFormattedTextField(formatter)
-    heightTextField = JFormattedTextField(formatter)
-
-    xLabel = JBLabel("x")
-    unitLabel = JBLabel(SdkConstants.UNIT_DP)
-    closeButton = getCloseButton()
-
-    val textFieldPreferredWidth = JBUI.scale(textFieldWidth)
-    widthTextField.preferredSize =
-      Dimension(textFieldPreferredWidth, widthTextField.preferredSize.height)
-    heightTextField.preferredSize =
-      Dimension(textFieldPreferredWidth, heightTextField.preferredSize.height)
-
-    // Add most components to the new flowing panel
-    flowingComponentsPanel.add(devicePickerButton)
-    flowingComponentsPanel.add(widthTextField)
-    flowingComponentsPanel.add(xLabel)
-    flowingComponentsPanel.add(heightTextField)
-    flowingComponentsPanel.add(unitLabel)
-
-    // Add the flowing panel to the center and the close button to the east
     add(flowingComponentsPanel, BorderLayout.CENTER)
+
+    val closeButton = createCloseButton()
     add(closeButton, BorderLayout.EAST)
-
     Disposer.register(parentDisposable, this)
-    clearAndDisablePanel()
-
-    setUpTextFieldListeners()
+    isEnabled = false
     isVisible = false
   }
 
-  private fun getCloseButton(): JButton {
-    val closeButton = JButton(AllIcons.Actions.Close)
-    closeButton.isBorderPainted = false
-    closeButton.isContentAreaFilled = false
-    closeButton.isOpaque = false
-    closeButton.toolTipText = message("resize.panel.hide.revert.tooltip")
-    closeButton.addActionListener { revertResizingAndHidePanel() }
-    return closeButton
-  }
-
-  /**
-   * Reverts the preview to its original device and state, and hides the resize panel. This action
-   * is triggered by the close button.
-   */
-  private fun revertResizingAndHidePanel() {
-    revertResizing()
-    isVisible = false
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[CONFIGURATIONS] = listOfNotNull(currentConfiguration)
+    sink[HAS_BEEN_RESIZED] = hasBeenResized
   }
 
   /**
@@ -231,7 +190,7 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
   }
 
   /** Clears the panel's state, removing any existing configuration and hiding it. */
-  fun clearPanelAndHidePanel() {
+  fun clearAndHide() {
     currentConfiguration?.removeListener(resizePanelUiUpdaterListener)
     renderTriggerListener?.let { existingListener ->
       Disposer.dispose(existingListener)
@@ -247,106 +206,19 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
   }
 
   /**
-   * Sets up listeners for the width and height text fields to update the device configuration when
-   * dimensions are changed by the user.
+   * Handles the selection of a device from the device picker dropdown. Updates the current
+   * configuration's effective device and logs the event.
    *
-   * Updates are triggered under the following conditions, provided the panel is not currently being
-   * updated programmatically (`isUpdatingFromConfig` is false) and a valid `currentConfiguration`
-   * exists:
-   * - When either the width or height text field loses focus after a potential edit.
-   * - When an action event (pressing Enter) occurs in either text field.
+   * @param selectedItem The selected [Device].
    */
-  private fun setUpTextFieldListeners() {
-    val dimensionChangeListener =
-      object : FocusAdapter() {
-        override fun focusLost(e: FocusEvent?) {
-          if (isUpdatingFromConfig || currentConfiguration == null) return
-          updateConfigurationFromTextFields()
-        }
-      }
-    widthTextField.addFocusListener(dimensionChangeListener)
-    heightTextField.addFocusListener(dimensionChangeListener)
-    widthTextField.addActionListener {
-      if (!isUpdatingFromConfig && currentConfiguration != null) updateConfigurationFromTextFields()
-    }
-    heightTextField.addActionListener {
-      if (!isUpdatingFromConfig && currentConfiguration != null) updateConfigurationFromTextFields()
-    }
-  }
-
-  private fun setupDevicePickerButton(): JButton {
-    val button = JButton()
-    button.text = message("device.name.custom")
-    button.icon = AllIcons.General.ArrowDown
-    button.horizontalAlignment = SwingConstants.RIGHT
-    button.horizontalTextPosition = SwingConstants.LEFT
-
-    button.isBorderPainted = false
-    button.isContentAreaFilled = false
-    button.isOpaque = false
-
-    button.addActionListener {
-      val step = DeviceListPopupStep(currentPopupListItems, this::handleDeviceSelectionFromPopup)
-      val popup = JBPopupFactory.getInstance().createListPopup(step)
-      popup.show(RelativePoint(button, Point(0, button.height)))
-    }
-    return button
-  }
-
-  private fun handleDeviceSelectionFromPopup(selectedItem: DropDownListItem) {
-    if (currentConfiguration == null && selectedItem !is DropDownListItem.OriginalItem) return
-
-    if (selectedItem is DropDownListItem.OriginalItem) {
-      revertResizing()
-    } else if (selectedItem is DropDownListItem.DeviceItem) {
-      currentConfiguration?.setEffectiveDevice(
-        selectedItem.device,
-        selectedItem.device.defaultState,
-      )
-      ComposeResizeToolingUsageTracker.logResizeStopped(
-        currentSceneManager?.scene?.designSurface,
-        currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
-        ResizeComposePreviewEvent.ResizeSource.DROPDOWN,
-        selectedItem.device.id,
-      )
-    }
-  }
-
-  /**
-   * Builds the base list of items for the device picker popup, consisting of reference and SDK
-   * devices grouped by their categories.
-   *
-   * The resulting list serves as the primary content for the device selection popup. Other dynamic
-   * items, like an "Original" device option, may be added to this base list by the caller before
-   * displaying the popup. If the provided [module] is null, an empty list is returned.
-   *
-   * @param module The [Module] context used to retrieve the available devices.
-   * @return A [List] of [DropDownListItem]s, structured with headers for each device group and
-   *   device items within those groups. Returns an empty list if [module] null.
-   */
-  private fun buildBasePopupListItems(module: Module?): List<DropDownListItem> {
-    val popupItems = mutableListOf<DropDownListItem>()
-
-    val referenceDevices = ReferenceDevice.getWindowSizeDevices()
-    if (referenceDevices.isNotEmpty()) {
-      popupItems.add(
-        DropDownListItem.DeviceGroupHeaderItem(DeviceGroup.CANONICAL_DEVICE.displayName)
-      )
-      referenceDevices.forEach { device -> popupItems.add(DropDownListItem.DeviceItem(device)) }
-    }
-
-    val sdkDevices = module?.let { getSdkDevices(it) } ?: emptyList()
-    val groupedDisplayDevices: Map<DeviceGroup, List<Device>> = groupDevices(sdkDevices)
-
-    val sortedGroupedDeviceMap = getDeviceGroupsSortedAsMap(groupedDisplayDevices)
-
-    sortedGroupedDeviceMap.forEach { (group, devicesInGroup) ->
-      if (devicesInGroup.isNotEmpty()) {
-        popupItems.add(DropDownListItem.DeviceGroupHeaderItem(group.displayName))
-        devicesInGroup.forEach { device -> popupItems.add(DropDownListItem.DeviceItem(device)) }
-      }
-    }
-    return popupItems
+  private fun handleDeviceSelection(selectedItem: Device) {
+    currentConfiguration?.setEffectiveDevice(selectedItem, selectedItem.defaultState)
+    ComposeResizeToolingUsageTracker.logResizeStopped(
+      currentSceneManager?.scene?.designSurface,
+      currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
+      ResizeComposePreviewEvent.ResizeSource.DROPDOWN,
+      selectedItem.id,
+    )
   }
 
   /**
@@ -357,7 +229,7 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
    *   or null if none.
    */
   fun setSceneManager(sceneManager: LayoutlibSceneManager?) {
-    clearPanelAndHidePanel()
+    clearAndHide()
 
     currentSceneManager = sceneManager
     val model = sceneManager?.model
@@ -387,7 +259,7 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
    * 1. The preview is in "shrink mode" (showDecorations = false).
    * 2. The original @Preview annotation did not specify explicit widthDp or heightDp.
    */
-  private fun isOriginalPreviewSizeModeWrap(): Boolean { // Renamed
+  private fun isOriginalPreviewSizeModeWrap(): Boolean {
     val element = currentFocusedPreviewElement ?: return false
 
     val isShrinkMode = !element.displaySettings.showDecoration
@@ -404,167 +276,221 @@ class ResizePanel(parentDisposable: Disposable) : JBPanel<ResizePanel>(), Dispos
     return originalDefinesNoExplicitDimensions
   }
 
-  private fun setEnabledIncludingChildren(enabled: Boolean) {
-    isEnabled = enabled
-    listOf(devicePickerButton, widthTextField, xLabel, heightTextField, unitLabel).forEach {
-      it.isEnabled = enabled
-    }
-  }
-
-  private fun clearAndDisablePanel() {
-    isUpdatingFromConfig = true
-    devicePickerButton.text = message("device.name.custom")
-    currentPopupListItems = emptyList()
-    widthTextField.text = ""
-    heightTextField.text = ""
-    setEnabledIncludingChildren(false)
-    isUpdatingFromConfig = false
-  }
-
-  private fun updateConfigurationFromTextFields() {
-    val config = currentConfiguration ?: return
-    val newWidthDp = widthTextField.value as? Int
-    val newHeightDp = heightTextField.value as? Int
-
-    if (newWidthDp != null && newHeightDp != null && newWidthDp > 0 && newHeightDp > 0) {
-      val (currentConfigWidthDp, currentConfigHeightDp) = config.deviceSizeDp()
-      if (newWidthDp == currentConfigWidthDp && newHeightDp == currentConfigHeightDp) {
-        return
-      }
-      val dpi = config.density.dpiValue
-      if (dpi <= 0) {
-        LOG.warn("Cannot update screen size, invalid DPI: $dpi")
-        return
-      }
-      config.updateScreenSize(
-        ConversionUtil.dpToPx(newWidthDp, dpi),
-        ConversionUtil.dpToPx(newHeightDp, dpi),
-      )
-      ComposeResizeToolingUsageTracker.logResizeStopped(
-        currentSceneManager?.scene?.designSurface,
-        currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
-        newWidthDp,
-        newHeightDp,
-        dpi,
-        ResizeComposePreviewEvent.ResizeSource.TEXT_FIELD,
-      )
-    }
-  }
-
   private fun updatePanelFromConfiguration() {
     val config = currentConfiguration
-    invokeLaterIfNeeded { updatePanelFromConfigurationInternal(config) }
-  }
-
-  private fun updatePanelFromConfigurationInternal(config: Configuration?) {
-    isUpdatingFromConfig = true
-
-    if (config == null || config.deviceState == null) {
-      clearAndDisablePanel()
-      isUpdatingFromConfig = false
-      return
+    invokeLaterIfNeeded {
+      if (config == null || config.deviceState == null) {
+        isEnabled = false
+        return@invokeLaterIfNeeded
+      }
+      // The ActionToolbar will automatically update the actions via their update methods.
+      // No need to manually trigger updates here.
+      isEnabled = true
     }
-
-    val baseItems = buildBasePopupListItems(currentModuleForList)
-    val finalPopupItems = mutableListOf<DropDownListItem>()
-    if (hasBeenResized && originalDeviceSnapshot != null) {
-      finalPopupItems.add(DropDownListItem.OriginalItem)
-    }
-    finalPopupItems.addAll(baseItems)
-    currentPopupListItems = finalPopupItems
-
-    val targetDevice = config.cachedDevice
-    if (targetDevice != null && targetDevice.id != Configuration.CUSTOM_DEVICE_ID) {
-      devicePickerButton.text = targetDevice.displayName
-    } else {
-      devicePickerButton.text = message("device.name.custom")
-    }
-
-    val (wDp, hDp) = config.deviceSizeDp()
-    widthTextField.value = wDp
-    heightTextField.value = hDp
-
-    setEnabledIncludingChildren(true)
-
-    devicePickerButton.isEnabled =
-      currentPopupListItems.any { it !is DropDownListItem.DeviceGroupHeaderItem }
-    isUpdatingFromConfig = false
   }
 
   override fun dispose() {
-    clearPanelAndHidePanel()
+    clearAndHide()
   }
 
   @TestOnly
   fun getCurrentPreviewElementForTest(): PsiComposePreviewElementInstance? {
     return currentFocusedPreviewElement
   }
-}
-
-/**
- * Represents the different types of items that can appear in the device picker dropdown. This
- * includes actual devices, headers for device groups, and special command items.
- */
-sealed class DropDownListItem {
-  /**
-   * Represents a non-selectable header in the device dropdown list, used to visually categorize a
-   * group of [DeviceItem]s.
-   *
-   * @param displayName The text to be displayed for this group header (e.g., "Phones", "Tablets").
-   */
-  data class DeviceGroupHeaderItem(val displayName: String) : DropDownListItem()
 
   /**
-   * Represents a selectable device in the dropdown list.
-   *
-   * @param device The actual [Device] instance.
+   * An action that displays a device picker dropdown. This action delegates the creation of the
+   * dropdown and the handling of the device selection to a [DeviceMenuAction] to reuse the complex
+   * logic for building the device menu.
    */
-  data class DeviceItem(val device: Device) : DropDownListItem()
+  private inner class DevicePickerAction :
+    DumbAwareAction("Device", "Select a device to resize the preview", AllIcons.General.ArrowDown),
+    CustomComponentAction {
+    private val deviceMenuAction =
+      DeviceMenuAction(
+        object : DeviceChangeListener {
+          override fun onDeviceChanged(oldDevice: Device?, newDevice: Device) {
+            handleDeviceSelection(newDevice)
+          }
 
-  /**
-   * Represents the special "Original" command item in the dropdown list, allowing the user to
-   * revert to the original device configuration.
-   */
-  object OriginalItem : DropDownListItem()
-}
+          override fun onRevertToOriginal() {
+            revertResizing()
+          }
+        }
+      )
 
-private class DeviceListPopupStep(
-  items: List<DropDownListItem>,
-  private val onSelectionCallback: (DropDownListItem) -> Unit,
-) : BaseListPopupStep<DropDownListItem>(null, items) {
+    override fun actionPerformed(e: AnActionEvent) {
+      deviceMenuAction.actionPerformed(e)
+    }
 
-  override fun getTextFor(value: DropDownListItem): String {
-    return when (value) {
-      is DropDownListItem.DeviceGroupHeaderItem -> value.displayName
-      is DropDownListItem.DeviceItem -> value.device.displayName
-      is DropDownListItem.OriginalItem -> message("device.name.original")
+    override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
+      val button =
+        ActionButtonWithText(this, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+      button.isFocusable = true
+      button.setHorizontalTextPosition(SwingConstants.LEADING) // Set text to be before the icon
+      return button
+    }
+
+    override fun update(e: AnActionEvent) {
+      deviceMenuAction.update(e)
+      e.presentation.isEnabled = this@ResizePanel.isEnabled
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.BGT
     }
   }
 
-  override fun getIconFor(value: DropDownListItem): Icon? = null
-
-  override fun onChosen(selectedValue: DropDownListItem, finalChoice: Boolean): PopupStep<*>? {
-    if (isSelectable(selectedValue)) {
-      onSelectionCallback(selectedValue)
-    }
-    return super.onChosen(selectedValue, finalChoice)
-  }
-
-  override fun isSelectable(value: DropDownListItem): Boolean {
-    return value !is DropDownListItem.DeviceGroupHeaderItem
-  }
-
   /**
-   * Determines if a [ListSeparator] should be rendered above the given [value] in the popup list.
-   *
-   * A separator is added before any [DropDownListItem.DeviceGroupHeaderItem] unless it is the first
-   * item in the entire list. This helps visually distinguish the start of new device categories.
+   * A [CustomComponentAction] that creates and manages the dimension input fields (width and
+   * height).
    */
-  override fun getSeparatorAbove(value: DropDownListItem): ListSeparator? {
-    val currentIndex = values.indexOf(value)
-    if (value is DropDownListItem.DeviceGroupHeaderItem && currentIndex > 0) {
-      return ListSeparator()
+  private inner class DimensionInputsAction : DumbAwareAction(), CustomComponentAction {
+    private val widthTextField = createDimensionTextField()
+    private val heightTextField = createDimensionTextField()
+
+    init {
+      setUpTextFieldListeners()
     }
-    return null
+
+    override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
+      val panel =
+        JPanel(FlowLayout(FlowLayout.CENTER, scale(4), scale(2))).apply {
+          isOpaque = false
+          add(widthTextField)
+          add(JBLabel("x"))
+          add(heightTextField)
+          add(JBLabel(SdkConstants.UNIT_DP))
+        }
+
+      // Initial update of the text fields
+      updateTextFieldsFromConfiguration()
+
+      return panel
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.BGT
+    }
+
+    override fun update(e: AnActionEvent) {
+      val isEnabled = this@ResizePanel.isEnabled
+      e.presentation.isEnabled = isEnabled
+      widthTextField.isEnabled = isEnabled
+      heightTextField.isEnabled = isEnabled
+      updateTextFieldsFromConfiguration()
+    }
+
+    private fun updateTextFieldsFromConfiguration() {
+      val config = currentConfiguration ?: return
+      val (wDp, hDp) = config.deviceSizeDp()
+      if (widthTextField.value != wDp) {
+        widthTextField.value = wDp
+      }
+      if (heightTextField.value != hDp) {
+        heightTextField.value = hDp
+      }
+    }
+
+    private fun createDimensionTextField(): JFormattedTextField {
+      val formatter =
+        NumberFormatter(NumberFormat.getIntegerInstance().apply { isGroupingUsed = false }).apply {
+          minimum = MINIMUM_SIZE_DP
+          maximum = MAXIMUM_SIZE_DP
+        }
+      return JFormattedTextField(formatter).apply {
+        preferredSize = Dimension(scale(TEXT_FIELD_WIDTH), preferredSize.height)
+      }
+    }
+
+    /**
+     * Commits the current text in the input fields and applies the changes to the configuration.
+     * This method is called when the user presses Enter or when the text fields lose focus.
+     */
+    private fun applyTextFieldChanges() {
+      try {
+        widthTextField.commitEdit()
+        heightTextField.commitEdit()
+      } catch (ex: ParseException) {
+        // Ignore parse errors, the old value will be kept.
+      }
+      updateConfigurationFromTextFields()
+    }
+
+    private fun setUpTextFieldListeners() {
+      val onEnterListener = ActionListener { applyTextFieldChanges() }
+      widthTextField.addActionListener(onEnterListener)
+      heightTextField.addActionListener(onEnterListener)
+
+      val focusListener =
+        object : FocusAdapter() {
+          override fun focusLost(e: FocusEvent?) {
+            applyTextFieldChanges()
+          }
+        }
+      widthTextField.addFocusListener(focusListener)
+      heightTextField.addFocusListener(focusListener)
+    }
+
+    private fun updateConfigurationFromTextFields() {
+      val config = currentConfiguration ?: return
+      val newWidthDp = widthTextField.value as? Int
+      val newHeightDp = heightTextField.value as? Int
+
+      if (newWidthDp != null && newHeightDp != null && newWidthDp > 0 && newHeightDp > 0) {
+        val (currentConfigWidthDp, currentConfigHeightDp) = config.deviceSizeDp()
+        if (newWidthDp == currentConfigWidthDp && newHeightDp == currentConfigHeightDp) {
+          return
+        }
+        val dpi = config.density.dpiValue
+        if (dpi <= 0) {
+          log.warn("Cannot update screen size, invalid DPI: $dpi")
+          return
+        }
+        config.updateScreenSize(
+          ConversionUtil.dpToPx(newWidthDp, dpi),
+          ConversionUtil.dpToPx(newHeightDp, dpi),
+        )
+        ComposeResizeToolingUsageTracker.logResizeStopped(
+          currentSceneManager?.scene?.designSurface,
+          currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
+          newWidthDp,
+          newHeightDp,
+          dpi,
+          ResizeComposePreviewEvent.ResizeSource.TEXT_FIELD,
+        )
+      }
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {
+      // This action is just for showing the component, it doesn't have a direct action
+    }
+  }
+
+  /** Creates and configures the close button. */
+  private fun createCloseButton(): JComponent {
+    val closeAction = CloseAction()
+    val closeButton =
+      ActionButton(
+          closeAction,
+          closeAction.templatePresentation.clone(),
+          ActionPlaces.TOOLBAR,
+          ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
+        )
+        .apply { isFocusable = true }
+
+    // Wrap the close button in a panel to prevent it from being stretched by the BorderLayout.
+    return JBPanel<Nothing>(FlowLayout(FlowLayout.CENTER, 0, 0)).apply {
+      isOpaque = false
+      add(closeButton)
+    }
+  }
+
+  private inner class CloseAction :
+    DumbAwareAction(message("resize.panel.hide.revert.tooltip"), null, AllIcons.Actions.Close) {
+    override fun actionPerformed(e: AnActionEvent) {
+      revertResizing()
+      this@ResizePanel.isVisible = false
+    }
   }
 }
