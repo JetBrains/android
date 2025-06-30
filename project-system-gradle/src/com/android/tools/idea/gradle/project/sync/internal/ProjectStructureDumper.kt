@@ -94,7 +94,7 @@ fun ProjectDumper.dumpProject(project: Project) {
       head("LIBRARY_TABLE")
       nest {
         libraries.filterIsInstance<LibraryBridgeImpl>()
-          .filter { it.externalSource != null }
+          //.filter { it.externalSource != null }
           .sortedBy { it.name }.forEach { dump(it) }
       }
     }
