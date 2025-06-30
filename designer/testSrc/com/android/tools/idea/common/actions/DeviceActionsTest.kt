@@ -19,6 +19,7 @@ import com.android.sdklib.devices.Device
 import com.android.tools.idea.actions.CONFIGURATIONS
 import com.android.tools.idea.actions.DeviceChangeListener
 import com.android.tools.idea.actions.DeviceMenuAction
+import com.android.tools.idea.actions.HAS_BEEN_RESIZED
 import com.android.tools.idea.actions.SetDeviceAction
 import com.android.tools.idea.common.surface.TestDesignSurface
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -29,8 +30,10 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.TestActionEvent
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -101,11 +104,46 @@ class PreviousDeviceActionTest {
   }
 }
 
+class RevertToOriginalActionTest {
+  @JvmField @Rule val appRule = ApplicationRule()
+
+  @JvmField @Rule val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
+
+  @Test
+  fun testRevertToOriginalActionIsTriggered() {
+    var revertToOriginalCalled = false
+    val listener =
+      object : DeviceChangeListener {
+        override fun onRevertToOriginal() {
+          revertToOriginalCalled = true
+        }
+      }
+
+    val file = projectRule.fixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
+    val configManager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
+    val config = configManager.getConfiguration(file.virtualFile)
+
+    val dataContext =
+      SimpleDataContext.builder()
+        .add(CONFIGURATIONS, listOf(config))
+        .add(HAS_BEEN_RESIZED, true)
+        .build()
+
+    val menuAction = DeviceMenuAction(listener).apply { updateActions(dataContext) }
+    val revertAction =
+      menuAction.getChildren(ActionManager.getInstance()).first { it.templateText == "Original" }
+
+    revertAction.actionPerformed(TestActionEvent.createTestEvent(revertAction))
+
+    assertTrue(revertToOriginalCalled)
+  }
+}
+
 private fun getSetDeviceActions(dataContext: DataContext): List<SetDeviceAction> {
   val menuAction =
     DeviceMenuAction(
         object : DeviceChangeListener {
-          override fun onDeviceChanged(oldDevice: Device?, newDevice: Device?) {}
+          override fun onDeviceChanged(oldDevice: Device?, newDevice: Device) {}
         }
       )
       .apply { updateActions(dataContext) }
