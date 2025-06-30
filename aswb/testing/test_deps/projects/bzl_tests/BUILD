@@ -13,7 +13,10 @@ bzl_library(
 bzl_library(
     name = "check_utils_bzl",
     srcs = ["check_utils.bzl"],
-    deps = ["@bazel_skylib//lib:types_bzl"],
+    deps = [
+        "@bazel_skylib//lib:types",
+        "@rules_testing//lib/private:struct_subject_bzl",
+    ],
 )
 
 build_test(

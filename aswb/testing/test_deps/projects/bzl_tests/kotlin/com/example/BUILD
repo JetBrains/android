@@ -11,7 +11,9 @@ bzl_library(
     name = "test_bzl",
     srcs = ["test.bzl"],
     deps = [
-        "//bzl_test/java/com/example:check_utils_bzl",
+        "//bzl_tests:check_utils_bzl",
+        "//bzl_tests:test_fixture_bzl",
+        "//bzl_tests/java/com/example:check_utils_bzl",
         "@rules_testing//lib:analysis_test_bzl",
     ],
 )
