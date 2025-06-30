@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.projectView
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.projectView.AndroidProjectViewSettings.Companion.PROJECT_VIEW_KEY
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ProjectViewDefaultViewEvent
 import com.intellij.openapi.components.BaseState
@@ -63,8 +62,7 @@ class AndroidProjectViewSettingsImpl: AndroidProjectViewSettings, PersistentStat
 
   // Used by AdvancedSettingsImpl to configure enabling this setting
   fun isDefaultToProjectViewEnabled(): Boolean {
-    // This setting is disabled when "studio.projectview=true" custom property is set
-    return StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS.get() && !java.lang.Boolean.getBoolean(PROJECT_VIEW_KEY)
+    return StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS.get()
   }
 
   private fun trackDefaultViewSetting(setting: Boolean) {
