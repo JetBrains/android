@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.emulator.control.ImageFormat
 import com.android.io.writeImage
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.ImageUtils.ellipticalClip
 import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.idea.concurrency.createCoroutineScope
@@ -34,6 +35,7 @@ import com.android.tools.idea.ui.screenshot.ScreenshotDecorator
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
 import com.android.tools.idea.ui.screenshot.ScreenshotProvider
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
+import com.android.tools.idea.ui.screenshot.getScreenshotScale
 import com.google.common.base.Throwables.throwIfUnchecked
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -88,14 +90,14 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
             val screenshotDecorator = EmulatorScreenshotDecorator(skin)
             val framingOptions = if (displayId == PRIMARY_DISPLAY_ID && skin != null) listOf(AvdFrame()) else listOf()
             val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
-            val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
+            val processedImage = ImageUtils.scale(screenshotDecorator.decorate(screenshotImage, decoration), getScreenshotScale())
             val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
             processedImage.writeImage("PNG", file)
             val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:
                 throw IOException("Unable to save screenshot")
             val screenshotProvider = EmulatorScreenshotProvider(emulatorController, displayId, displayInfoProvider)
             ApplicationManager.getApplication().invokeLater {
-              val viewer = ScreenshotViewer(project, screenshotImage, backingFile, screenshotProvider, screenshotDecorator,
+              val viewer = ScreenshotViewer(project, screenshotImage, processedImage, backingFile, screenshotProvider, screenshotDecorator,
                                             framingOptions, 0, false, dialogLocationArbiter)
               viewer.show()
             }

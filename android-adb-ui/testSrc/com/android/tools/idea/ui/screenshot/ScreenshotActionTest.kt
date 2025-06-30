@@ -46,7 +46,6 @@ import com.intellij.testFramework.TemporaryDirectory
 import org.intellij.images.ui.ImageComponent
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -92,7 +91,6 @@ class ScreenshotActionTest {
     } while (dialog != null)
   }
 
-  @Ignore("b/428704440")
   @Test
   fun testWithDisplayInfoProvider() {
     // Prepare.

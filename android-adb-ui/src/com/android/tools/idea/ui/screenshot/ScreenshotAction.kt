@@ -19,6 +19,7 @@ import com.android.SdkConstants.DOT_PNG
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.io.writeImage
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
@@ -72,7 +73,7 @@ class ScreenshotAction : DumbAwareAction(
           val screenshotDecorator = screenshotParameters.screenshotDecorator
           val framingOptions = screenshotParameters.getFramingOptions(screenshotImage)
           val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
-          val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
+          val processedImage = ImageUtils.scale(screenshotDecorator.decorate(screenshotImage, decoration), getScreenshotScale())
           val file = FileUtil.createTempFile("screenshot", DOT_PNG).toPath()
           processedImage.writeImage("PNG", file)
           val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:
@@ -85,7 +86,7 @@ class ScreenshotAction : DumbAwareAction(
           val allowImageRotation = displayInfoProvider == null && screenshotParameters.deviceType == DeviceType.HANDHELD
 
           ApplicationManager.getApplication().invokeLater {
-            val viewer = ScreenshotViewer(project, screenshotImage, backingFile, screenshotProvider, screenshotDecorator,
+            val viewer = ScreenshotViewer(project, screenshotImage, processedImage, backingFile, screenshotProvider, screenshotDecorator,
                                           framingOptions, defaultFrame, allowImageRotation)
             Disposer.register(viewer.disposable, screenshotProvider)
             viewer.show()

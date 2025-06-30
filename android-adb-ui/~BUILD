@@ -16,6 +16,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker",
         "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
+        "//tools/base/common:studio.android.sdktools.common",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe",

@@ -102,3 +102,4 @@ internal fun convertFilenameTemplateFromOldFormat(oldTemplate: String): String {
     .replace("%p", "<project>")
 }
 
+fun getScreenshotScale() = DeviceScreenshotSettings.getInstance().scale
