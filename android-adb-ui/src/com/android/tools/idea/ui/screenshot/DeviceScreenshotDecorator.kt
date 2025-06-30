@@ -57,9 +57,11 @@ class DeviceScreenshotDecorator : ScreenshotDecorator {
   }
 
   private fun getSkinDefinition(skinFolder: Path, displaySize: Dimension?): SkinDefinition? {
-    val skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(skinFolder)
-    if (skinDefinition != null || displaySize == null) {
-      return skinDefinition
+    if (Files.exists(skinFolder.resolve("layout"))) {
+      val skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(skinFolder)
+      if (skinDefinition != null || displaySize == null) {
+        return skinDefinition
+      }
     }
     val subfolderInfo = skinSubfolderInfo.computeIfAbsent(skinFolder) {
       getSubfolderSkinInfo(skinFolder)
