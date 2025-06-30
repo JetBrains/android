@@ -19,6 +19,7 @@ import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DeviceSelector
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
+import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.adblib.testing.FakeAdbSessionRule
 import com.intellij.openapi.util.Disposer
@@ -33,6 +34,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
+import java.nio.file.Files
 import javax.imageio.ImageIO
 
 /** Test for [ShellCommandScreenshotProvider]. */
@@ -54,7 +56,7 @@ internal class ShellCommandScreenshotProviderTest {
 
   @Before
   fun setUp() {
-    deviceServices.configureShellCommand(device, "dumpsys display", dumpsysOutput)
+    deviceServices.configureShellCommand(device, "dumpsys display", getDumpsysOutput("AutomotiveWithDistantDisplays"))
   }
 
   @After
@@ -100,12 +102,5 @@ internal class ShellCommandScreenshotProviderTest {
   }
 }
 
-private val dumpsysOutput = """
-  DisplayDeviceInfo{"Built-in Screen": uniqueId="local:4619827259835644672", 1080 x 600, modeId 1, defaultModeId 1, supportedModes [{id=1, width=1080, height=600, fps=60.000004, alternativeRefreshRates=[]}], colorMode 0, supportedColorModes [0], hdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}, allmSupported false, gameContentTypeSupported false, density 120, 120.0 x 120.0 dpi, appVsyncOff 1000000, presDeadline 16666666, touch INTERNAL, rotation 0, type INTERNAL, address {port=0, model=0x401cec6a7a2b7b}, deviceProductInfo DeviceProductInfo{name=EMU_display_0, manufacturerPnpId=GGL, productId=1, modelYear=null, manufactureDate=ManufactureDate{week=27, year=2006}, connectionToSinkType=0}, state ON, committedState ON, frameRateOverride , brightnessMinimum 0.0, brightnessMaximum 1.0, brightnessDefault 0.39763778, FLAG_ALLOWED_TO_BE_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, installOrientation 0}
-    mCurrentLayerStack=0
-    mPhysicalDisplayId=4619827259835644672
-
-  DisplayDeviceInfo{"HDMI Screen": uniqueId="local:4619827551948147201", 400 x 600, modeId 2, defaultModeId 2, supportedModes [{id=2, width=400, height=600, fps=160.0, alternativeRefreshRates=[]}], colorMode 0, supportedColorModes [0], hdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}, allmSupported false, gameContentTypeSupported false, density 120, 120.0 x 120.0 dpi, appVsyncOff 2000000, presDeadline 6250000, touch EXTERNAL, rotation 0, type EXTERNAL, address {port=1, model=0x401cecae7d6e8a}, deviceProductInfo DeviceProductInfo{name=EMU_display_1, manufacturerPnpId=GGL, productId=1, modelYear=null, manufactureDate=ManufactureDate{week=27, year=2006}, connectionToSinkType=0}, state ON, committedState ON, frameRateOverride , brightnessMinimum 0.0, brightnessMaximum 1.0, brightnessDefault 0.5, FLAG_ALLOWED_TO_BE_DEFAULT_DISPLAY, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, FLAG_PRIVATE, FLAG_PRESENTATION, FLAG_OWN_CONTENT_ONLY, installOrientation 0}
-    mCurrentLayerStack=2
-    mPhysicalDisplayId=4619827551948147201
-"""
+private fun getDumpsysOutput(filename: String): String =
+    Files.readString(resolveWorkspacePathUnchecked("tools/adt/idea/android-adb-ui/testData/dumpsys/$filename.txt"))
