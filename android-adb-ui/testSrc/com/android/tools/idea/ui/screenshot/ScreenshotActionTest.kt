@@ -54,6 +54,7 @@ import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
+import java.nio.file.Files
 import java.nio.file.Path
 import javax.imageio.ImageIO
 import kotlin.time.Duration.Companion.seconds
@@ -97,7 +98,7 @@ class ScreenshotActionTest {
     // Prepare.
     val testImage = createTestImage(1840, 2208, Color.CYAN)
     deviceServices.configureShellV2Command(device, "screencap -p", testImage.toPngBytes(), emptyByteBuffer, 0)
-    deviceServices.configureShellCommand(device, "dumpsys display", DUMPSYS_OUTPUT)
+    deviceServices.configureShellCommand(device, "dumpsys display", getDumpsysOutput("PixelFoldRotated90"))
 
     val screenshotParameters = ScreenshotParameters(serialNumber, DeviceType.HANDHELD, "Pixel Fold")
 
@@ -178,17 +179,7 @@ private fun BufferedImage.toPngBytes(): ByteBuffer {
   return ByteBuffer.wrap(stream.toByteArray())
 }
 
-private const val GOLDEN_FILE_PATH = "tools/adt/idea/android-adb-ui/testData/ScreenshotActionTest/golden"
+private fun getDumpsysOutput(filename: String): String =
+    Files.readString(resolveWorkspacePathUnchecked("tools/adt/idea/android-adb-ui/testData/dumpsys/$filename.txt"))
 
-private const val DUMPSYS_OUTPUT = """
-  DisplayDeviceInfo{"Inner Display": uniqueId="local:4619827677550801152", 2208 x 1840, modeId 2, renderFrameRate 120.00001, hasArrSupport false, frameRateCategoryRate FrameRateCategoryRate {normal=60.0, high=90.0}, supportedRefreshRates [60.0, 120.00001], defaultModeId 2, userPreferredModeId -1, supportedModes [{id=1, width=2208, height=1840, fps=60.0, vsync=60.0, synthetic=false, alternativeRefreshRates=[120.00001], supportedHdrTypes=[2, 3, 4]}, {id=2, width=2208, height=1840, fps=120.00001, vsync=120.00001, synthetic=false, alternativeRefreshRates=[60.0], supportedHdrTypes=[2, 3, 4]}], colorMode 0, supportedColorModes [0, 7, 9], hdrCapabilities HdrCapabilities{mSupportedHdrTypes=[2, 3, 4], mMaxLuminance=1000.0, mMaxAverageLuminance=120.0, mMinLuminance=5.0E-4}, isForceSdr false, allmSupported false, gameContentTypeSupported false, density 420, 378.94 x 379.967 dpi, appVsyncOff 6233332, presDeadline 11500000, touch INTERNAL, rotation 0, type INTERNAL, address {port=0, model=0x401ceccbbbeef1}, deviceProductInfo DeviceProductInfo{name=Common Panel, manufacturerPnpId=GGL, productId=0, modelYear=null, manufactureDate=ManufactureDate{week=1, year=1990}, connectionToSinkType=1}, state ON, committedState ON, frameRateOverride , brightnessMinimum 0.0, brightnessMaximum 1.0, brightnessDefault 0.138, brightnessDim 0.05, hdrSdrRatio 1.0, roundedCorners RoundedCorners{[RoundedCorner{position=TopLeft, radius=52, center=Point(52, 52)}, RoundedCorner{position=TopRight, radius=52, center=Point(2156, 52)}, RoundedCorner{position=BottomRight, radius=48, center=Point(2160, 1792)}, RoundedCorner{position=BottomLeft, radius=48, center=Point(48, 1792)}]}, FLAG_ALLOWED_TO_BE_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, FLAG_TRUSTED, installOrientation 1, displayShape DisplayShape{ spec=1581572949 displayWidth=2208 displayHeight=1840 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}}
-    mCurrentLayerStack=0
-    mCurrentFlags=1
-    mCurrentOrientation=1
-    mPhysicalDisplayId=4619827677550801152
-  DisplayDeviceInfo{"Outer Display": uniqueId="local:4619827677550801153", 1080 x 2092, modeId 4, renderFrameRate 120.00001, hasArrSupport false, frameRateCategoryRate FrameRateCategoryRate {normal=60.0, high=90.0}, supportedRefreshRates [60.0, 120.00001], defaultModeId 3, userPreferredModeId -1, supportedModes [{id=3, width=1080, height=2092, fps=60.0, vsync=60.0, synthetic=false, alternativeRefreshRates=[120.00001], supportedHdrTypes=[2, 3, 4]}, {id=4, width=1080, height=2092, fps=120.00001, vsync=120.00001, synthetic=false, alternativeRefreshRates=[60.0], supportedHdrTypes=[2, 3, 4]}], colorMode 0, supportedColorModes [0, 7, 9], hdrCapabilities HdrCapabilities{mSupportedHdrTypes=[2, 3, 4], mMaxLuminance=1000.0, mMaxAverageLuminance=120.0, mMinLuminance=5.0E-4}, isForceSdr false, allmSupported false, gameContentTypeSupported false, density 420, 409.432 x 408.744 dpi, appVsyncOff 6233332, presDeadline 11500000, cutout DisplayCutout{insets=Rect(0, 133 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(503, 0 - 577, 133), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2092 physicalDisplayWidth=1080 physicalDisplayHeight=2092 density={2.625} cutoutSpec={m 576.2,66.53 a 36.5,36.5 0 0 1 -36.5,36.5 36.5,36.5 0 0 1 -36.5,-36.5 36.5,36.5 0 0 1 36.5,-36.5 36.5,36.5 0 0 1 36.5,36.5 z @left} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}} sideOverrides={}}, touch INTERNAL, rotation 0, type INTERNAL, address {port=1, model=0x401ceccbbbeef1}, deviceProductInfo DeviceProductInfo{name=Common Panel, manufacturerPnpId=GGL, productId=0, modelYear=null, manufactureDate=ManufactureDate{week=1, year=1990}, connectionToSinkType=1}, state OFF, committedState OFF, frameRateOverride , brightnessMinimum 0.0, brightnessMaximum 1.0, brightnessDefault 0.11519199, brightnessDim 0.05, hdrSdrRatio 1.0, roundedCorners RoundedCorners{[RoundedCorner{position=TopLeft, radius=91, center=Point(91, 91)}, RoundedCorner{position=TopRight, radius=91, center=Point(989, 91)}, RoundedCorner{position=BottomRight, radius=91, center=Point(989, 2001)}, RoundedCorner{position=BottomLeft, radius=91, center=Point(91, 2001)}]}, FLAG_ALLOWED_TO_BE_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, FLAG_TRUSTED, installOrientation 0, displayShape DisplayShape{ spec=-901299633 displayWidth=1080 displayHeight=2092 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}}
-    mCurrentLayerStack=-1
-    mCurrentFlags=0
-    mCurrentOrientation=0
-    mPhysicalDisplayId=4619827677550801153
-"""
+private const val GOLDEN_FILE_PATH = "tools/adt/idea/android-adb-ui/testData/ScreenshotActionTest/golden"

@@ -26,7 +26,7 @@ class DumpsysDisplayDeviceInfoParserTest {
 
   @Test
   fun testPixelFold() {
-    val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(getTestData("PixelFold"))
+    val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(getDumpsysOutput("PixelFold"))
     assertThat(displayInfo).containsExactly(
       DisplayDeviceInfo(0, 4619827677550801152, Dimension(2208, 1840), 0, 420, false)
     )
@@ -34,7 +34,7 @@ class DumpsysDisplayDeviceInfoParserTest {
 
   @Test
   fun testAutomotiveWithDistantDisplays() {
-    val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(getTestData("AutomotiveWithDistantDisplays"))
+    val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(getDumpsysOutput("AutomotiveWithDistantDisplays"))
     assertThat(displayInfo).containsExactly(
       DisplayDeviceInfo(0, 4619827259835644672, Dimension(1080, 600), 0, 120, false),
       DisplayDeviceInfo(2, 4619827551948147201, Dimension(400, 600), 0, 120, false),
@@ -44,14 +44,12 @@ class DumpsysDisplayDeviceInfoParserTest {
 
   @Test
   fun testRoundWatch() {
-    val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(getTestData("RoundWatch"))
+    val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(getDumpsysOutput("RoundWatch"))
     assertThat(displayInfo).containsExactly(
       DisplayDeviceInfo(0, 4619827259835644672, Dimension(454, 454), 0, 320, true)
     )
   }
 }
 
-private fun getTestData(name: String): String =
-  Files.readString(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/$name.txt"))
-
-private const val TEST_DATA_PATH = "tools/adt/idea/android-adb-ui/testData/DumpsysDisplayDeviceInfoParserTest"
+private fun getDumpsysOutput(filename: String): String =
+    Files.readString(resolveWorkspacePathUnchecked("tools/adt/idea/android-adb-ui/testData/dumpsys/$filename.txt"))
