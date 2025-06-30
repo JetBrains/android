@@ -1894,7 +1894,7 @@ public final class StudioFlags {
       "direct.access.show.oem.lab.devices",
       "Show OEM lab devices",
       "OEM lab devices are available to users.",
-      enabledUpTo(CANARY));
+      true);
 
   // endregion Firebase Test Lab
 
