@@ -192,7 +192,10 @@ private fun Project.dumpAllIdeModels() : Sequence<String> {
       // without the dependencies, whereas that's not the case formerly.
       dumpAllVariants = false,
       // IdeModelDumper dump the root project structure by default, we don't want that here
-      dumpRootModuleProjectStructure = false
+      dumpRootModuleProjectStructure = false,
+      // IdeModelDumper dumps only one entry from each linked group to prevent noise, but we should
+      // compare everything here.
+      dumpAllLinkedModules = true
   )
 
   return dumper.toString().nameProperties()
