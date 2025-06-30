@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
+import com.android.io.writeImage
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.dispatchInvocationEventsFor
 import com.android.testutils.waitForCondition
@@ -32,6 +33,7 @@ import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
+import com.android.tools.idea.testing.override
 import com.android.tools.idea.ui.save.PostSaveAction
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT
@@ -105,6 +107,7 @@ class ScreenshotViewerTest {
   fun setUp() {
     UIManager.setLookAndFeel(DarculaLaf())
     settings.loadState(DeviceScreenshotSettings())
+    service<ScreenshotConfiguration>()::frameScreenshot.override(true, projectRule.disposable)
   }
 
   @After
@@ -144,7 +147,7 @@ class ScreenshotViewerTest {
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
     val imageComponent = ui.getComponent<ImageComponent>()
-    waitForCondition(2.seconds) { imageComponent.document.value != null }
+    waitForCondition(2.seconds) { imageComponent.document.value?.width == 50 }
     val image = imageComponent.document.value
     assertThat(image.width).isEqualTo(50)
     assertThat(image.height).isEqualTo(100)
@@ -421,7 +424,7 @@ class ScreenshotViewerTest {
   @Test
   fun testScreenshotUsageIsTracked_CopyClipboard_Phone() {
     assumeFalse(SystemInfo.isWindows) // b/356410902
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2400), 420)
+    val screenshotImage = ScreenshotImage(createImage(1080, 2280), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2400), 420)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
     val copyClipboardButton = ui.getComponent<JButton> { it.text == "Copy to Clipboard" }
@@ -486,10 +489,13 @@ class ScreenshotViewerTest {
                                      screenshotDecorator: ScreenshotDecorator,
                                      screenshotProvider: ScreenshotProvider = TestScreenshotProvider(screenshotImage, testRootDisposable),
                                      framingOptions: List<FramingOption> = listOf(testFrame)): ScreenshotViewer {
+    val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
+    val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
     val backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
+    processedImage.writeImage("PNG", backingFile)
     val screenshotFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(backingFile)!!
-    val viewer = ScreenshotViewer(projectRule.project, screenshotImage, screenshotFile, screenshotProvider, screenshotDecorator,
-                                  framingOptions, 0, allowImageRotation = true)
+    val viewer = ScreenshotViewer(projectRule.project, screenshotImage, processedImage, screenshotFile, screenshotProvider,
+                                  screenshotDecorator, framingOptions, 0, allowImageRotation = true)
     viewer.show()
     return viewer
   }
