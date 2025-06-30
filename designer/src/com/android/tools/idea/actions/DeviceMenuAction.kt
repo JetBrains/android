@@ -27,8 +27,7 @@ import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.avd.showAddDeviceDialog
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.configurations.CanonicalDeviceType
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
@@ -50,11 +49,13 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.openapi.util.text.StringUtil
 import icons.StudioIcons
@@ -64,11 +65,14 @@ import javax.swing.Icon
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
 import kotlin.math.roundToInt
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidPluginDisposable
 
 private val PIXEL_DEVICE_COMPARATOR =
   PixelDeviceComparator(VarianceComparator.reversed()).reversed()
+
+val HAS_BEEN_RESIZED = DataKey.create<Boolean>("has_been_resized")
 
 internal val DEVICE_ID_TO_TOOLTIPS =
   mapOf(
@@ -78,14 +82,14 @@ internal val DEVICE_ID_TO_TOOLTIPS =
     DEVICE_CLASS_DESKTOP_ID to DEVICE_CLASS_DESKTOP_TOOLTIP,
   )
 
-private val EMPTY_DEVICE_CHANGE_LISTENER =
-  object : DeviceChangeListener {
-    override fun onDeviceChanged(oldDevice: Device?, newDevice: Device?) {}
-  }
+private val EMPTY_DEVICE_CHANGE_LISTENER = object : DeviceChangeListener {}
 
 /**
- * New device menu for layout editor. Because we are going to deprecate [DeviceMenuAction], some of
- * the duplicated codes are not shared between them.
+ * A dropdown menu action that allows the user to select a device for the preview configuration. The
+ * menu is dynamically populated with a list of available devices, including reference devices,
+ * custom AVDs, and generic devices.
+ *
+ * @param deviceChangeListener A listener that is notified when the user selects a new device.
  */
 class DeviceMenuAction(
   private val deviceChangeListener: DeviceChangeListener = EMPTY_DEVICE_CHANGE_LISTENER
@@ -97,7 +101,10 @@ class DeviceMenuAction(
   ) {
 
   override fun actionPerformed(e: AnActionEvent) {
-    val button = e.presentation.getClientProperty(COMPONENT_KEY) as? ActionButton ?: return
+    val button =
+      (e.presentation.getClientProperty(COMPONENT_KEY) as? ActionButton)
+        ?: (e.inputEvent?.component as? ActionButton)
+        ?: return
     updateActions(e.dataContext)
 
     val toolbar = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.POPUP, this)
@@ -152,7 +159,13 @@ class DeviceMenuAction(
 
   public override fun updateActions(context: DataContext): Boolean {
     removeAll()
-    context.getData(CONFIGURATIONS)?.firstOrNull()?.let { createDeviceMenuList(it) }
+    val configuration = context.getData(CONFIGURATIONS)?.firstOrNull() ?: return true
+    val hasBeenResized = context.getData(HAS_BEEN_RESIZED) ?: false
+    if (hasBeenResized) {
+      add(RevertToOriginalAction(deviceChangeListener))
+      addSeparator()
+    }
+    createDeviceMenuList(configuration)
     return true
   }
 
@@ -437,9 +450,9 @@ class AddDeviceDefinitionAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val config = e.dataContext.getData(CONFIGURATIONS)?.firstOrNull() ?: return
     val project = ConfigurationManager.getFromConfiguration(config).project
-    val coroutineScope = AndroidCoroutineScope(AndroidPluginDisposable.getProjectInstance(project))
+    val coroutineScope = AndroidPluginDisposable.getProjectInstance(project).createCoroutineScope()
 
-    coroutineScope.launch(uiThread) {
+    coroutineScope.launch(Dispatchers.EDT) {
       val avdInfo = showAddDeviceDialog(project, e.componentToRestoreFocusTo()) ?: return@launch
       val device = config.settings.createDeviceForAvd(avdInfo) ?: return@launch
       config.setDevice(device, true)
@@ -627,6 +640,13 @@ open class SetDeviceAction(
   }
 }
 
+private class RevertToOriginalAction(private val deviceChangeListener: DeviceChangeListener) :
+  AnAction("Original") {
+  override fun actionPerformed(e: AnActionEvent) {
+    deviceChangeListener.onRevertToOriginal()
+  }
+}
+
 private class SetWearDeviceAction(
   title: String,
   updatePresentationCallback: Consumer<AnActionEvent>,
@@ -738,7 +758,9 @@ private class SetAvdAction(
 
 /** The callback when device is changed by the [DeviceAction]. */
 interface DeviceChangeListener {
-  fun onDeviceChanged(oldDevice: Device?, newDevice: Device?)
+  fun onDeviceChanged(oldDevice: Device?, newDevice: Device) {}
+
+  fun onRevertToOriginal() {}
 }
 
 /**

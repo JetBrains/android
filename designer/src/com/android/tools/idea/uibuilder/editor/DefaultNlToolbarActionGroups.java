@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.ColorBlindModeAction;
+import com.android.tools.idea.actions.DeviceChangeListener;
 import com.android.tools.idea.actions.DeviceMenuAction;
 import com.android.tools.idea.actions.LocaleMenuAction;
 import com.android.tools.idea.actions.OrientationMenuAction;
@@ -116,7 +118,19 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(systemUiModeAction);
 
     group.addSeparator();
-    DeviceMenuAction menuAction = new DeviceMenuAction((oldDevice, newDevice) -> mySurface.notifyZoomToFit());
+    DeviceMenuAction menuAction =
+        new DeviceMenuAction(
+            new DeviceChangeListener() {
+              @Override
+              public void onDeviceChanged(@NotNull Device oldDevice, @NotNull Device newDevice) {
+                mySurface.notifyZoomToFit();
+              }
+
+              @Override
+              public void onRevertToOriginal() {
+                mySurface.notifyZoomToFit();
+              }
+            });
     appendShortcutText(menuAction, NextDeviceAction.getInstance());
     group.add(menuAction);
 
