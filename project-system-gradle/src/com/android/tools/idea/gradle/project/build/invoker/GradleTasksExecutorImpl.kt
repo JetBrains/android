@@ -30,7 +30,7 @@ import com.android.tools.idea.gradle.project.build.attribution.getAgpAttribution
 import com.android.tools.idea.gradle.project.build.attribution.isBuildAttributionEnabledForProject
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
-import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
@@ -458,7 +458,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             UIUtil.invokeLaterIfNeeded {
               myRequest.project.basePath?.let { gradleRootPath ->
                 runWriteAction {
-                  JdkUtils.setProjectGradleJdk(myRequest.project, gradleRootPath, jdkHome)
+                  GradleJdkConfigurationUtils.setProjectGradleJdk(myRequest.project, gradleRootPath, jdkHome)
                 }
               }
             }

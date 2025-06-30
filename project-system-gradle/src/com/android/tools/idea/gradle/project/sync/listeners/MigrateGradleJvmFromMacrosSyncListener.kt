@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.project.sync.listeners
 
 import com.android.tools.idea.gradle.extensions.isProjectUsingDaemonJvmCriteria
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
-import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
+import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
+import kotlin.io.path.absolutePathString
 
 private val LOG = Logger.getInstance(MigrateGradleJvmFromMacrosSyncListener::class.java)
 
@@ -46,7 +48,8 @@ class MigrateGradleJvmFromMacrosSyncListener : GradleSyncListenerWithRoot {
     when (projectRootSettings?.gradleJvm) {
       ExternalSystemJdkUtil.USE_PROJECT_JDK, null ->
         setProjectGradleJvmWithProjectJdk(project, projectRootSettings) ?: WriteAction.computeAndWait<Unit, Throwable> {
-          JdkUtils.setProjectGradleJvmToUseEmbeddedJdk(project, rootProjectPath)
+          val embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath.absolutePathString()
+          GradleJdkConfigurationUtils.setProjectGradleJdk(project, rootProjectPath, embeddedJdkPath)
         }?.let { gradleJvm ->
           LOG.info("Project Gradle root: $rootProjectPath gradleJvm updated from ${ExternalSystemJdkUtil.USE_PROJECT_JDK} to $gradleJvm")
         }

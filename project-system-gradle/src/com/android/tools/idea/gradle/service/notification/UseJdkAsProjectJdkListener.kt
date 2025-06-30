@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification
 
-import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.projectsystem.toReason
@@ -51,6 +51,6 @@ class UseJdkAsProjectJdkListener(private val project: Project, private val defau
 
   @VisibleForTesting
   fun changeGradleProjectSetting() {
-    JdkUtils.setProjectGradleJdkWithSingleGradleRoot(project, defaultJdkPath)
+    GradleJdkConfigurationUtils.setProjectGradleJdkWithSingleGradleRoot(project, defaultJdkPath)
   }
 }

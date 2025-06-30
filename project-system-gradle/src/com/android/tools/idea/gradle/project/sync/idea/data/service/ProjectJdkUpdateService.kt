@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service
 
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectJdkUpdateData
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_JDK_UPDATE
-import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.android.tools.idea.gradle.project.sync.jdk.ProjectJdkUtils
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
@@ -46,7 +46,7 @@ class ProjectJdkUpdateService : AbstractProjectDataService<ProjectJdkUpdateData,
     // This method ends up configuring the project JDK, this is a critic moment since different parts require it like KMP
     // setup for this reason we should wait for its execution, to avoid flaky tests and unexpected behaviour.
     ExternalSystemApiUtil.executeProjectChangeAction(true, project) {
-      JdkUtils.updateProjectJdkWithPath(project, toImport.single().data.jdkPath)
+      ProjectJdkUtils.updateProjectJdkWithPath(project, toImport.single().data.jdkPath)
     }
   }
 }

@@ -69,7 +69,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectJdkUpda
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter
-import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
 import com.android.tools.idea.gradle.project.sync.stackTraceAsMultiLineMessage
 import com.android.tools.idea.gradle.project.sync.toException
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
@@ -314,7 +314,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(linkedExternalProjectPath, gradleVersion)) {
       gradleProject.javaLanguageSettings.jdk.javaHome.absolutePath
     } else {
-      JdkUtils.getMaxVersionJdkPathFromAllGradleRoots(project)
+      GradleJdkConfigurationUtils.getMaxVersionJdkPathFromAllGradleRoots(project)
     } ?.let { gradleJdkPath ->
       projectDataNode.createChild(AndroidProjectKeys.PROJECT_JDK_UPDATE, ProjectJdkUpdateData(gradleJdkPath))
     }
