@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.AgpCompatibleJdkVersion
-import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
@@ -37,6 +36,7 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import com.android.tools.idea.gradle.extensions.isProjectUsingDaemonJvmCriteria
+import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 
 class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -184,7 +184,7 @@ class UpdateJdkUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     fun setJdkAsProjectJdk(path: String) {
       // we are within a write action both during refactoring and during Undo.
-      JdkUtils.setProjectGradleJdkWithSingleGradleRoot(processor.project, path)
+      GradleJdkConfigurationUtils.setProjectGradleJdkWithSingleGradleRoot(processor.project, path)
     }
     setJdkAsProjectJdk(newJdkPath)
     UndoHook(

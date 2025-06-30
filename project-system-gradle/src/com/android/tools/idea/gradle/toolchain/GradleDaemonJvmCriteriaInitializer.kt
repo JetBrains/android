@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.toolchain
 
 import com.android.tools.idea.gradle.extensions.getRecommendedJavaVersion
-import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.jdk.GradleDefaultJvmCriteriaStore
+import com.android.tools.idea.gradle.project.sync.jdk.ProjectJdkUtils
 import com.intellij.openapi.project.Project
 import org.gradle.util.GradleVersion
 import org.jetbrains.annotations.SystemIndependent
@@ -35,7 +35,7 @@ class GradleDaemonJvmCriteriaInitializer(
     if (useDefault) {
       GradleDefaultJvmCriteriaStore.daemonJvmCriteria?.let {
         // Because of IDEA-369696 issue projectSdk is required to run updateDaemonJvm task
-        JdkUtils.setUpEmbeddedJdkAsProjectJdk(project)
+        ProjectJdkUtils.setUpEmbeddedJdkAsProjectJdk(project)
         return updateProjectDaemonJvmCriteria(project, externalProjectPath, it)
       }
     }

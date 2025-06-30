@@ -17,10 +17,11 @@ package com.android.tools.idea.gradle.project.sync.jdk.exceptions.base
 
 import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
-import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.gradle.jdk.GradleDefaultJdkPathStore
+import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
+import com.android.tools.idea.gradle.project.sync.jdk.ProjectJdkUtils
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.notification.NotificationType
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
@@ -51,9 +52,9 @@ abstract class GradleJdkException(
       .firstOrNull { ExternalSystemJdkUtil.isValidJdk(it.path) }
       ?.run {
         gradleJvm?.let {
-          JdkUtils.updateProjectGradleJvm(project, gradleRootPath, it)
+          ProjectJdkUtils.updateProjectGradleJvm(project, gradleRootPath, it)
         } ?: run {
-          JdkUtils.setProjectGradleJdk(project, gradleRootPath, path)
+          GradleJdkConfigurationUtils.setProjectGradleJdk(project, gradleRootPath, path)
         }
 
         val jdkVersion = JavaSdk.getInstance().getVersionString(path)  ?: "<unknown>"

@@ -19,7 +19,7 @@ import com.android.tools.idea.flags.StudioFlags.GRADLE_USES_LOCAL_JAVA_HOME_FOR_
 import com.android.tools.idea.gradle.config.GradleConfigManager
 import com.android.tools.idea.gradle.extensions.isDaemonJvmCriteriaRequiredForNewProjects
 import com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState
-import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.android.tools.idea.gradle.project.sync.jdk.ProjectJdkUtils
 import com.android.tools.idea.gradle.toolchain.GradleDaemonJvmCriteriaInitializer
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -100,6 +100,6 @@ class GradleJdkConfigurationInitializer private constructor() {
 
   private fun setUpProjectJdkAsGradleJvm(project: Project, projectSettings: GradleProjectSettings) {
     projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
-    JdkUtils.setUpEmbeddedJdkAsProjectJdk(project)
+    ProjectJdkUtils.setUpEmbeddedJdkAsProjectJdk(project)
   }
 }

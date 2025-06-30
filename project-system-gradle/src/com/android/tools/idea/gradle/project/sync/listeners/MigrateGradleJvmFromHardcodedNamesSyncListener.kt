@@ -17,10 +17,11 @@ package com.android.tools.idea.gradle.project.sync.listeners
 
 import com.android.tools.idea.gradle.extensions.isProjectUsingDaemonJvmCriteria
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
-import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
 import com.android.tools.idea.sdk.DefaultAndroidGradleJvmNames.ANDROID_STUDIO_DEFAULT_JDK_NAME
 import com.android.tools.idea.sdk.DefaultAndroidGradleJvmNames.ANDROID_STUDIO_JAVA_HOME_NAME
 import com.android.tools.idea.sdk.DefaultAndroidGradleJvmNames.EMBEDDED_JDK_NAME
+import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
@@ -28,6 +29,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.GradleSettings
+import kotlin.io.path.absolutePathString
 
 private val LOG = Logger.getInstance(MigrateGradleJvmFromHardcodedNamesSyncListener::class.java)
 
@@ -46,8 +48,9 @@ open class MigrateGradleJvmFromHardcodedNamesSyncListener : GradleSyncListenerWi
     val projectRootSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(rootProjectPath)
     when (projectRootSettings?.gradleJvm) {
       EMBEDDED_JDK_NAME, ANDROID_STUDIO_DEFAULT_JDK_NAME -> WriteAction.computeAndWait<Unit, Throwable> {
-        JdkUtils.setProjectGradleJvmToUseEmbeddedJdk(project, rootProjectPath).let { gradleJvm ->
-          LOG.info("Project Gradle root: $rootProjectPath gradleJvm updated from ${projectRootSettings.gradleJvm} to $gradleJvm")
+        IdeSdks.getInstance().embeddedJdkPath.absolutePathString().run {
+          GradleJdkConfigurationUtils.setProjectGradleJdk(project, rootProjectPath, this)
+          LOG.info("Project Gradle root: $rootProjectPath gradleJvm updated from ${projectRootSettings.gradleJvm} to $this")
         }
       }
       ANDROID_STUDIO_JAVA_HOME_NAME -> {

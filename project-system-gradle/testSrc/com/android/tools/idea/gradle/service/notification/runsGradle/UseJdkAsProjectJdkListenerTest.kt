@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.service.notification.runsGradle
 
 import com.android.mockito.kotlin.mockStatic
-import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
 import com.android.tools.idea.gradle.service.notification.UseJdkAsProjectJdkListener
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -39,9 +39,9 @@ class UseJdkAsProjectJdkListenerTest {
     val suffix = ".id.suffix"
     val listener = UseJdkAsProjectJdkListener(project, jdkPath, suffix)
     assertThat(listener.id).isEqualTo("${UseJdkAsProjectJdkListener.baseId()}$suffix")
-    mockStatic<JdkUtils>().use {
+    mockStatic<GradleJdkConfigurationUtils>().use {
       listener.changeGradleProjectSetting()
-      it.verify { JdkUtils.setProjectGradleJdk(eq(project), eq(project.basePath.orEmpty()), eq(jdkPath)) }
+      it.verify { GradleJdkConfigurationUtils.setProjectGradleJdk(eq(project), eq(project.basePath.orEmpty()), eq(jdkPath)) }
     }
   }
 }
