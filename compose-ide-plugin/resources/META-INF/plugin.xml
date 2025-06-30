@@ -28,10 +28,10 @@
   <depends>com.intellij.modules.json</depends>
 
   <change-notes><![CDATA[
-    This release contains updates from Android Studio Narwhal RC1.
+    This release contains updates from Android Studio Narwhal STABLE.
 
     For detailed information, please refer to the release notes available at:
-    <a href="https://androidstudio.googleblog.com/2025/06/android-studio-narwhal-202511-rc-1-now.html">Android Studio Narwhal RC1</a>.]]>
+    <a href="https://androidstudio.googleblog.com/2025/06/android-studio-narwhal-202511-now.html">Android Studio Narwhal</a>.]]>
   </change-notes>
 
   <extensions defaultExtensionNs="com.intellij">
