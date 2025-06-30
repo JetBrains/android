@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,25 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.psi.PsiFile
 
-data class LiveEditCompilerInput(val file: PsiFile, val oldState: PsiState?, val vibe: String? = null)
+data class VibeTransformerResult(
+  var result: String = "",
+  var error: String = ""
+)
+
+interface VibeTransformer {
+  suspend fun transformVibe(file: PsiFile, vibe: String): VibeTransformerResult
+}
+
+interface VibeTransformerProvider {
+  fun createVibeTransformer() : VibeTransformer
+
+  companion object {
+    val EP_NAME: ExtensionPointName<VibeTransformerProvider> =
+      ExtensionPointName.create(
+        "com.android.tools.idea.run.deployment.liveedit.vibeTransformerProvider"
+      )
+  }
+}

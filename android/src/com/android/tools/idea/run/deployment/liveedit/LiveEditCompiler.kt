@@ -26,14 +26,17 @@ import com.android.tools.idea.run.deployment.liveedit.k2.LiveEditCompilerForK2
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.google.common.collect.HashMultimap
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.konan.file.isBitcode
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.Optional
 
@@ -134,6 +137,50 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
     // A keystroke writes the PSI trees so running with runInReadActionWithWriteActionPriority yield exactly the interrupt policy we need.
 
     var success = true
+
+    var needVibeImplementations = changedFiles.values().any { it.vibe != null }
+    if (needVibeImplementations) {
+      val transformer = VibeTransformerProvider.EP_NAME.extensions.firstOrNull()?.createVibeTransformer()
+      if (transformer == null) {
+        // Unlikely given a valid Studio install.
+        throw LiveEditUpdateException.internalErrorVibeEdit("No extension for: " + VibeTransformerProvider.EP_NAME.name)
+      }
+
+      // TODO: Need better implementation for multiple prompts?
+      //  What happens when Studio bot has multiple mutation for a given file?
+      //  This could happen if Studio bot choose to send a mutation for us and before Live Edit completes, the read action got cancelled
+      //  and then Studio bot send us another one. Possible solution is have some sort of time stamp and we combine the prompts somehow.
+      //  For now, we can just concat the two prompts if needed.
+
+      for (file in changedFiles.keySet()) {
+
+        // For now just join all the prompts together if we have multiple vibe prompt attached to a file.
+        val changes = changedFiles[file]
+        val prompt = changes.mapNotNull{it.vibe}.joinToString(separator = "\n\n")
+
+        // TODO: Consider making Live Edit a suspendable call as well.
+        val result = runBlocking { transformer.transformVibe (file, prompt) }
+
+        if (result.error.isNotEmpty()) {
+          throw LiveEditUpdateException.internalErrorVibeEdit(result.error)
+        }
+
+        WriteCommandAction.runWriteCommandAction(project) {
+          file.viewProvider.document.setText(result.result)
+        }
+
+      }
+
+      // TODO: FIX THIS!
+
+      // After we replaced the VIBE body from the result of AIDA,
+      // we are racing against the K2 FIR analysis (I think).
+
+      // I think the analysis is also a Read action so Live Edit might finish
+      // before the analysis is fully done?
+      Thread.sleep(1000)
+    }
+
     if (giveWritePriority) {
       success = progressManager.runInReadActionWithWriteActionPriority(compileCmd, progressManager.progressIndicator)
     } else {

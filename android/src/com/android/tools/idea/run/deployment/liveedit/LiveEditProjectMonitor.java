@@ -567,7 +567,7 @@ public class LiveEditProjectMonitor implements Disposable {
         }
 
         PsiState state = psiSnapshots.get(file);
-        inputs.add(new LiveEditCompilerInput(file, state));
+        inputs.add(new LiveEditCompilerInput(file, state, null));
       }
 
       compiled = compiler

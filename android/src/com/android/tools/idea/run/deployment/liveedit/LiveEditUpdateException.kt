@@ -76,6 +76,9 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     INTERNAL_ERROR_FILE_CODE_GEN("Internal Error", "%", false, Status.INTERNAL_ERROR_FILE_CODE_GEN),
     INTERNAL_ERROR_FILE_COMPILE_COMMAND_EXCEPTION("Internal Error", "%", false, Status.INTERNAL_ERROR_FILE_COMPILE_COMMAND_EXCEPTION),
     INTERNAL_ERROR_FILE_MULTI_MODULE("Internal Error", "%", false, Status.INTERNAL_ERROR_FILE_MULTI_MODULE),
+
+    // TODO: Use this for all Vibe Edit related errors for now. Sort out what we should actually report once we are closer to shipping.
+    INTERNAL_ERROR_VIBE_EDIT_FAILURE("Vibe Edit Failure", "%", false, Status.INTERNAL_ERROR),
   }
 
   companion object {
@@ -106,6 +109,8 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
 
     fun internalErrorFileOutsideModule(file: PsiFile) =
       LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_OUTSIDE_MODULE, "KtFile outside targeted module found in code generation", file.name, null)
+
+    fun internalErrorVibeEdit(details: String) = LiveEditUpdateException(Error.INTERNAL_ERROR_VIBE_EDIT_FAILURE, details, null, null)
 
     fun kotlinEap() = LiveEditUpdateException(Error.KOTLIN_EAP,"Live Edit does not support running with this Kotlin Plugin version"+
                                                                " and will only work with the bundled Kotlin Plugin", null, null)
