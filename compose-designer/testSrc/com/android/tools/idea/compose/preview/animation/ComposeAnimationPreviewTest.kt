@@ -441,6 +441,38 @@ class ComposeAnimationPreviewTest : InspectorTests() {
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
+  fun addAndRemoveAllAnimations() = runTest {
+    val animationPreview = createAnimationPreview(backgroundScope)
+
+    animationPreview.addAnimation(createComposeAnimation("1"))
+    animationPreview.addAnimation(createComposeAnimation("2"))
+    animationPreview.removeAllAnimations().join()
+    advanceUntilIdle()
+    assertEquals(0, animationPreview.animations.size)
+
+    animationPreview.addAnimation(createComposeAnimation("3"))
+    animationPreview.addAnimation(createComposeAnimation("4")).join()
+    advanceUntilIdle()
+    assertEquals(2, animationPreview.animations.size)
+    assertEquals(listOf("3", "4"), animationPreview.animations.map { it.animation.label })
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
+  fun addAndRemoveAnimation() = runTest {
+    val animationPreview = createAnimationPreview(backgroundScope)
+
+    val animation = createComposeAnimation("1")
+    animationPreview.addAnimation(animation)
+    animationPreview.removeAnimation(animation)
+    animationPreview.addAnimation(createComposeAnimation("2")).join()
+    advanceUntilIdle()
+    assertEquals(1, animationPreview.animations.size)
+    assertEquals("2", animationPreview.animations.first().animation.label)
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
   fun childrenAreDisposed() = runTest {
     val scope = backgroundScope.createChildScope()
     val animationPreview =

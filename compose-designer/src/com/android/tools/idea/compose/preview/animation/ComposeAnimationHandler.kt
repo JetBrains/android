@@ -41,4 +41,10 @@ interface ComposeAnimationHandler {
    * Meaning that it can no longer be controlled.
    */
   fun removeAnimation(animation: ComposeAnimation): Job
+
+  /**
+   * Notifies the handler that all [ComposeAnimation]s are removed from the Composable. Meaning that
+   * they can no longer be controlled.
+   */
+  fun removeAllAnimations(): Job
 }
