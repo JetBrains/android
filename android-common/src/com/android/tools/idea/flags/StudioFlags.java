@@ -2414,6 +2414,12 @@ public final class StudioFlags {
                     "When enabled, a set of tools allowing the agent to query for the Gradle project structure will be included by default.",
                     enabledUpTo(DEV));
 
+  public static final Flag<Boolean> STUDIOBOT_SUGGESTION_SMART_GROUPING_ENABLED =
+    new BooleanFlag(STUDIOBOT, "suggestion.smart.grouping.enabled",
+                    "Enable smart grouping of suggestions that are accepted or rejected together",
+                    "When enabled, individual chunks of suggestions may be grouped together using heuristic logic into semantic chunks that can be accepted or rejected together.",
+                    false);
+
   public static final Flag<Boolean> GEMINI_AGENT_MODE =
     new BooleanFlag(STUDIOBOT, "agent.mode",
                     "Enable agent mode.",
