@@ -97,7 +97,9 @@ fun ProjectDumper.dumpAndroidIdeModel(
   // Only the selected variant will be dumped otherwise
   dumpAllVariants: Boolean = true,
   // Whether to include the project structure of the root module first as a header
-  dumpRootModuleProjectStructure: Boolean = true
+  dumpRootModuleProjectStructure: Boolean = true,
+  // Whether to dump all modules in a linked group
+  dumpAllLinkedModules: Boolean = false,
 ) {
   val projectRoot = File(project.basePath!!)
   nest(projectRoot, "PROJECT") {
@@ -117,13 +119,13 @@ fun ProjectDumper.dumpAndroidIdeModel(
           GradleFacet.getInstance(module)?.gradleModuleModel?.let {
             // Skip all but holders to prevent needless spam in the snapshots. All modules
             // point to the same facet.
-            if (!module.isHolderModule()) return@let
+            if (!dumpAllLinkedModules && !module.isHolderModule()) return@let
             dump(it)
           }
           GradleAndroidModel.get(module)?.let { it ->
             // Skip all but holders to prevent needless spam in the snapshots. All modules
             // point to the same facet.
-            if (!module.isHolderModule()) return@let
+            if (!dumpAllLinkedModules && !module.isHolderModule()) return@let
             head("CurrentVariantReportedVersions")
             nest {
               StudioAndroidModuleInfo.getInstance(module)?.minSdkVersion?.dump("minSdk")

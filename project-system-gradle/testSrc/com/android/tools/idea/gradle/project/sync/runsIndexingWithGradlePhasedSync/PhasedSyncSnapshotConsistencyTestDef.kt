@@ -126,7 +126,10 @@ private fun getProjectSpecificIdeModelIssues(testProject: TestProject) = when(te
   TestProject.NEW_SYNC_KOTLIN_TEST -> setOf(
     "generated/source/kaptKotlin",
   )
-
+  // TODO(b/428221750) BytecodeTransforms is missing for phased sync entities
+  TestProject.BASIC_WITH_EMPTY_SETTINGS_FILE -> setOf(
+    "/BytecodeTransforms",
+  )
   else -> emptySet()
 }
 
