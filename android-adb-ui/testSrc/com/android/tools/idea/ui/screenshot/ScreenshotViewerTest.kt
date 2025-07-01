@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.screenshot
 
-import com.android.SdkConstants
+import com.android.SdkConstants.DOT_PNG
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.io.writeImage
 import com.android.sdklib.deviceprovisioner.DeviceType
@@ -352,7 +352,7 @@ class ScreenshotViewerTest {
     StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(false, testRootDisposable)
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2400), 420)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
-    val tempFile = FileUtil.createTempFile("saved_screenshot", SdkConstants.DOT_PNG)
+    val tempFile = FileUtil.createTempFile("saved_screenshot", DOT_PNG)
     overrideSaveFileDialog(tempFile)
 
     viewer.clickDefaultButton()
@@ -399,7 +399,7 @@ class ScreenshotViewerTest {
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
     val clipComboBox = ui.getComponent<JComboBox<*>>()
-    val tempFile = FileUtil.createTempFile("saved_screenshot", SdkConstants.DOT_PNG)
+    val tempFile = FileUtil.createTempFile("saved_screenshot", DOT_PNG)
     overrideSaveFileDialog(tempFile)
 
     clipComboBox.selectFirstMatch("Play Store Compatible")
@@ -489,7 +489,7 @@ class ScreenshotViewerTest {
                                      framingOptions: List<FramingOption> = listOf(testFrame)): ScreenshotViewer {
     val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
     val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
-    val backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
+    val backingFile = FileUtil.createTempFile("screenshot", DOT_PNG).toPath()
     processedImage.writeImage("PNG", backingFile)
     val screenshotFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(backingFile)!!
     val viewer = ScreenshotViewer(projectRule.project, screenshotImage, processedImage, screenshotFile, screenshotProvider,
