@@ -205,9 +205,22 @@ class ToggleLayoutInspectorActionTest {
     assertThat(fakeActionEvent.presentation.description).isEmpty()
   }
 
+  @Test
+  fun testActionPerformedShowsDiscoverPopUpWhenDeviceIdIsNull() = withEmbeddedLayoutInspector {
+    var isTriggered = false
+    val toggleLayoutInspectorAction =
+      ToggleLayoutInspectorAction(showNotificationDiscovery = { isTriggered = true })
+
+    val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent(deviceId = null)
+
+    toggleLayoutInspectorAction.actionPerformed(fakeActionEvent)
+
+    assertThat(isTriggered).isTrue()
+  }
+
   private fun AnAction.getFakeActionEvent(
     deviceSerialNumber: String = "serial_number",
-    deviceId: DeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber),
+    deviceId: DeviceId? = DeviceId.ofPhysicalDevice(deviceSerialNumber),
   ): AnActionEvent {
     val contentPanelContainer = JPanel()
     val contentPanel = BorderLayoutPanel()
