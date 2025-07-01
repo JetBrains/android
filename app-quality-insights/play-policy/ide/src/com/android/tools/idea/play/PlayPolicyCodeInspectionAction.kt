@@ -41,11 +41,16 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.plus
 import com.intellij.ui.dsl.gridLayout.UnscaledGaps
 import com.intellij.ui.dsl.gridLayout.UnscaledGapsY
+import com.jetbrains.rd.util.LogLevel
+import com.jetbrains.rd.util.getLogger
 import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JEditorPane
 
 class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy", "Play Policy") {
+
+  private val logger
+    get() = getLogger<PlayPolicyCodeInspectionAction>()
 
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -79,6 +84,16 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
         InspectionToolsSupplier.Simple(toolWrappers),
         rootProfile,
       )
+    if (toolWrappers.isNotEmpty()) {
+      logger.log(
+        LogLevel.Info,
+        "${toolWrappers.size} rules are loaded for Play Policy Insights.",
+        null,
+      )
+    } else {
+      logger.log(LogLevel.Warn, "Failed to load rules for Play Policy Insights.", null)
+    }
+
     super.runInspections(project, scope)
   }
 
