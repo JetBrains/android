@@ -45,6 +45,7 @@ import com.android.tools.idea.backup.BackupManager.Source
 import com.android.tools.idea.backup.DialogFactory.DialogButton
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.util.absoluteInProject
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.ide.BrowserUtil
@@ -206,11 +207,7 @@ internal constructor(
     listener: BackupProgressListener?,
     notify: Boolean,
   ): BackupResult {
-    val path =
-      when {
-        backupFile.isAbsolute -> backupFile
-        else -> Path.of(project.basePath ?: "", backupFile.pathString)
-      }
+    val path = backupFile.absoluteInProject(project)
     logger.debug("Restoring from $path on '${serialNumber}'")
     val result = backupService.restore(serialNumber, path, listener)
     val operation = message("restore")
