@@ -38,12 +38,10 @@ void XrSimulatedInputManager::InitializeStatics(Jni jni) {
     if (xr_simulated_input_manager_.IsNull()) {
       string value =
           RTrim(ExecuteShellCommand("getprop persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env"));
-      if (value != "true" && value != "1") {
-        Log::Fatal(XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING,
-                   "The property persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env is not set to true");
-      }
-      xr_simulated_input_manager_ = ServiceManager::GetServiceAsInterface(
-          jni, "xrsimulatedinputmanager", "android/services/xr/simulatedinputmanager/IXrSimulatedInputManager");
+      const char* message = value != "true" && value != "1" ?
+          "The property persist.device_config.com_android_xr.com.android.xr.flags.enable_xr_simulated_env is not set to true" :
+          "The \"xrsimulatedinputmanager\" service is not running. Run 'adb shell stop && adb shell start' to start it.";
+      Log::Fatal(XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING, "%s", message);
     }
     JClass clazz = xr_simulated_input_manager_.GetClass();
     inject_head_rotation_method_ = clazz.GetMethod("injectHeadRotation", "([F)V");
