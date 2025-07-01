@@ -244,8 +244,8 @@ class ColumnTreeUI(
     val indent =
       defaultPainter.getControlOffset(control, 2, false) -
         defaultPainter.getControlOffset(control, 1, false)
-    val spaceForControlLine = indent - control.width / 2 - JBUIScale.scale(4)
-    if (depth > 1 && spaceForControlLine > JBUIScale.scale(4)) {
+    val spaceForControlLine = indent - control.width / 2 - JBUIScale.scale(ICON_DEFAULT_PADDING)
+    if (depth > 1 && spaceForControlLine > JBUIScale.scale(ICON_DEFAULT_PADDING)) {
       val lineY = bounds.y + bounds.height / 2
       val leftX =
         table.tree
@@ -255,7 +255,8 @@ class ColumnTreeUI(
           ?.minus(control.width / 2)
           ?.minus(JBUIScale.scale(1))
       val rightX =
-        if (isLeaf) bounds.x - JBUIScale.scale(4) else bounds.x - control.width - JBUIScale.scale(4)
+        if (isLeaf) bounds.x - JBUIScale.scale(ICON_DEFAULT_PADDING)
+        else bounds.x - control.width - JBUIScale.scale(ICON_DEFAULT_PADDING)
 
       g.color = hashColor
       if (leftX != null && leftX < rightX) {
