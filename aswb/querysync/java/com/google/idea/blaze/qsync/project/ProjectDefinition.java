@@ -132,8 +132,7 @@ public abstract class ProjectDefinition {
    * queried.
    */
   public QuerySpec.Builder deriveQuerySpec(
-      Context<?> context, QuerySpec.QueryStrategy queryStrategy, Path workspaceRoot)
-      throws IOException {
+      Context<?> context, QuerySpec.QueryStrategy queryStrategy, Path workspaceRoot) {
     QuerySpec.Builder result = QuerySpec.builder(queryStrategy);
     for (Path include : projectIncludes()) {
       if (isValidPathForQuery(context, workspaceRoot.resolve(include))) {
@@ -158,8 +157,7 @@ public abstract class ProjectDefinition {
    *
    * <p>Emits warnings via context if any issues are found with the path.
    */
-  private static boolean isValidPathForQuery(Context<?> context, Path candidate)
-      throws IOException {
+  private static boolean isValidPathForQuery(Context<?> context, Path candidate) {
     if (Files.exists(candidate.resolve("BUILD")) ||
             Files.exists(candidate.resolve("BUILD.bazel"))) {
       return true;
@@ -184,6 +182,10 @@ public abstract class ProjectDefinition {
           }
         }
       }
+    }
+    catch (IOException ex) {
+      context.output(PrintOutput.error("Failed to list content of %s due to %s", candidate, ex.getMessage()));
+      return false;
     }
     return valid;
   }

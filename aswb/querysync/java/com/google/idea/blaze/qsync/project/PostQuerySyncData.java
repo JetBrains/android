@@ -16,7 +16,6 @@
 package com.google.idea.blaze.qsync.project;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.query.Query;
