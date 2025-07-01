@@ -52,10 +52,13 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
+import com.intellij.ui.components.fields.IntegerField
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI.scale
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
@@ -65,14 +68,14 @@ import java.awt.FlowLayout
 import java.awt.event.ActionListener
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
-import java.text.NumberFormat
-import java.text.ParseException
 import java.util.Objects
 import javax.swing.JComponent
-import javax.swing.JFormattedTextField
 import javax.swing.JPanel
 import javax.swing.SwingConstants
-import javax.swing.text.NumberFormatter
+import javax.swing.event.DocumentEvent
+import javax.swing.text.AbstractDocument
+import javax.swing.text.AttributeSet
+import javax.swing.text.DocumentFilter
 import org.jetbrains.annotations.TestOnly
 
 private const val TEXT_FIELD_WIDTH = 60
@@ -137,6 +140,8 @@ class ResizePanel(parentDisposable: Disposable) :
     true
   }
 
+  private val dimensionInputsAction = DimensionInputsAction()
+
   init {
     layout = BorderLayout()
     border = JBEmptyBorder(2)
@@ -146,7 +151,7 @@ class ResizePanel(parentDisposable: Disposable) :
     val mainActionGroup =
       DefaultActionGroup().apply {
         add(DevicePickerAction())
-        add(DimensionInputsAction())
+        add(dimensionInputsAction)
       }
 
     val actionToolbar =
@@ -179,6 +184,7 @@ class ResizePanel(parentDisposable: Disposable) :
    * close button or selects the "Original" device option from the dropdown.
    */
   private fun revertResizing() {
+    dimensionInputsAction.resetErrors()
     currentSceneManager?.sceneRenderConfiguration?.clearOverrideRenderSize = true
     currentSceneManager?.forceNextResizeToWrapContent = isOriginalPreviewSizeModeWrap()
     currentConfiguration?.setEffectiveDevice(originalDeviceSnapshot, originalDeviceStateSnapshot)
@@ -212,6 +218,7 @@ class ResizePanel(parentDisposable: Disposable) :
    * @param selectedItem The selected [Device].
    */
   private fun handleDeviceSelection(selectedItem: Device) {
+    dimensionInputsAction.resetErrors()
     currentConfiguration?.setEffectiveDevice(selectedItem, selectedItem.defaultState)
     ComposeResizeToolingUsageTracker.logResizeStopped(
       currentSceneManager?.scene?.designSurface,
@@ -346,11 +353,18 @@ class ResizePanel(parentDisposable: Disposable) :
    * height).
    */
   private inner class DimensionInputsAction : DumbAwareAction(), CustomComponentAction {
-    private val widthTextField = createDimensionTextField()
-    private val heightTextField = createDimensionTextField()
+    private val widthTextField = createDimensionTextField("Width")
+    private val heightTextField = createDimensionTextField("Height")
 
     init {
       setUpTextFieldListeners()
+    }
+
+    fun resetErrors() {
+      widthTextField.putClientProperty("JComponent.outline", null)
+      widthTextField.toolTipText = null
+      heightTextField.putClientProperty("JComponent.outline", null)
+      heightTextField.toolTipText = null
     }
 
     override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
@@ -382,84 +396,121 @@ class ResizePanel(parentDisposable: Disposable) :
     }
 
     private fun updateTextFieldsFromConfiguration() {
+      if (widthTextField.hasFocus() || heightTextField.hasFocus()) {
+        return
+      }
       val config = currentConfiguration ?: return
       val (wDp, hDp) = config.deviceSizeDp()
-      if (widthTextField.value != wDp) {
-        widthTextField.value = wDp
-      }
-      if (heightTextField.value != hDp) {
-        heightTextField.value = hDp
-      }
-    }
-
-    private fun createDimensionTextField(): JFormattedTextField {
-      val formatter =
-        NumberFormatter(NumberFormat.getIntegerInstance().apply { isGroupingUsed = false }).apply {
-          minimum = MINIMUM_SIZE_DP
-          maximum = MAXIMUM_SIZE_DP
+      if (widthTextField.getClientProperty("JComponent.outline") != "error") {
+        if (widthTextField.value != wDp) {
+          widthTextField.value = wDp
         }
-      return JFormattedTextField(formatter).apply {
-        preferredSize = Dimension(scale(TEXT_FIELD_WIDTH), preferredSize.height)
+      }
+      if (heightTextField.getClientProperty("JComponent.outline") != "error") {
+        if (heightTextField.value != hDp) {
+          heightTextField.value = hDp
+        }
       }
     }
 
-    /**
-     * Commits the current text in the input fields and applies the changes to the configuration.
-     * This method is called when the user presses Enter or when the text fields lose focus.
-     */
-    private fun applyTextFieldChanges() {
-      try {
-        widthTextField.commitEdit()
-        heightTextField.commitEdit()
-      } catch (ex: ParseException) {
-        // Ignore parse errors, the old value will be kept.
+    private fun createDimensionTextField(valueName: String): IntegerField {
+      return IntegerField(valueName, MINIMUM_SIZE_DP, MAXIMUM_SIZE_DP).apply {
+        preferredSize = Dimension(scale(TEXT_FIELD_WIDTH), preferredSize.height)
+        (document as? AbstractDocument)?.documentFilter =
+          object : DocumentFilter() {
+            override fun insertString(
+              fb: FilterBypass,
+              offset: Int,
+              string: String,
+              attr: AttributeSet?,
+            ) {
+              if (string.all { it.isDigit() }) {
+                super.insertString(fb, offset, string, attr)
+              }
+            }
+
+            override fun replace(
+              fb: FilterBypass,
+              offset: Int,
+              length: Int,
+              text: String?,
+              attrs: AttributeSet?,
+            ) {
+              if (text?.all { it.isDigit() } != false) {
+                super.replace(fb, offset, length, text, attrs)
+              }
+            }
+          }
+        document.addDocumentListener(
+          object : DocumentAdapter() {
+            override fun textChanged(e: DocumentEvent) {
+              validate(this@apply)
+            }
+          }
+        )
       }
-      updateConfigurationFromTextFields()
     }
 
     private fun setUpTextFieldListeners() {
-      val onEnterListener = ActionListener { applyTextFieldChanges() }
+      val onEnterListener = ActionListener {
+        if (validate(widthTextField) && validate(heightTextField)) {
+          updateConfigurationFromTextFields()
+        }
+      }
       widthTextField.addActionListener(onEnterListener)
       heightTextField.addActionListener(onEnterListener)
 
       val focusListener =
         object : FocusAdapter() {
           override fun focusLost(e: FocusEvent?) {
-            applyTextFieldChanges()
+            if (validate(widthTextField) && validate(heightTextField)) {
+              updateConfigurationFromTextFields()
+            }
           }
         }
       widthTextField.addFocusListener(focusListener)
       heightTextField.addFocusListener(focusListener)
     }
 
+    private fun validate(field: IntegerField): Boolean {
+      try {
+        field.validateContent()
+        field.putClientProperty("JComponent.outline", null)
+        field.toolTipText = null
+        return true
+      } catch (e: ConfigurationException) {
+        field.putClientProperty("JComponent.outline", "error")
+        field.toolTipText = e.localizedMessage
+        return false
+      }
+    }
+
     private fun updateConfigurationFromTextFields() {
       val config = currentConfiguration ?: return
-      val newWidthDp = widthTextField.value as? Int
-      val newHeightDp = heightTextField.value as? Int
+      val newWidthDp = widthTextField.value
+      val newHeightDp = heightTextField.value
 
-      if (newWidthDp != null && newHeightDp != null && newWidthDp > 0 && newHeightDp > 0) {
-        val (currentConfigWidthDp, currentConfigHeightDp) = config.deviceSizeDp()
-        if (newWidthDp == currentConfigWidthDp && newHeightDp == currentConfigHeightDp) {
-          return
-        }
-        val dpi = config.density.dpiValue
-        if (dpi <= 0) {
-          log.warn("Cannot update screen size, invalid DPI: $dpi")
-          return
-        }
-        config.updateScreenSize(
-          ConversionUtil.dpToPx(newWidthDp, dpi),
-          ConversionUtil.dpToPx(newHeightDp, dpi),
-        )
-        ComposeResizeToolingUsageTracker.logResizeStopped(
-          currentSceneManager?.scene?.designSurface,
-          currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
-          newWidthDp,
-          newHeightDp,
-          dpi,
-          ResizeComposePreviewEvent.ResizeSource.TEXT_FIELD,
-        )
+      val (currentConfigWidthDp, currentConfigHeightDp) = config.deviceSizeDp()
+      if (newWidthDp == currentConfigWidthDp && newHeightDp == currentConfigHeightDp) {
+        return
       }
+      val dpi = config.density.dpiValue
+      if (dpi <= 0) {
+        log.warn("Cannot update screen size, invalid DPI: $dpi")
+        return
+      }
+      config.updateScreenSize(
+        ConversionUtil.dpToPx(newWidthDp, dpi),
+        ConversionUtil.dpToPx(newHeightDp, dpi),
+      )
+      ComposeResizeToolingUsageTracker.logResizeStopped(
+        currentSceneManager?.scene?.designSurface,
+        currentSceneManager?.resizeMode ?: ResizeComposePreviewEvent.ResizeMode.COMPOSABLE_RESIZE,
+        newWidthDp,
+        newHeightDp,
+        dpi,
+        ResizeComposePreviewEvent.ResizeSource.TEXT_FIELD,
+      )
     }
 
     override fun actionPerformed(e: AnActionEvent) {
