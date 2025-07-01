@@ -30,10 +30,6 @@ import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.customization.CustomActionsSchema
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationGroup
-import com.intellij.notification.NotificationGroupManager
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -53,7 +49,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -75,19 +70,9 @@ class ToggleLayoutInspectorActionTest {
 
   private lateinit var toolWindowManager: FakeToolWindowManager
 
-  private lateinit var fakeNotificationGroupManager: FakeNotificationGroupManager
-
   @Before
   fun setUp() {
     LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.clear()
-
-    fakeNotificationGroupManager = FakeNotificationGroupManager()
-    ApplicationManager.getApplication()
-      .replaceService(
-        NotificationGroupManager::class.java,
-        fakeNotificationGroupManager,
-        displayViewRule.disposable,
-      )
 
     tab1 =
       TabInfo(
@@ -220,25 +205,9 @@ class ToggleLayoutInspectorActionTest {
     assertThat(fakeActionEvent.presentation.description).isEmpty()
   }
 
-  @Test
-  fun testActionPerformedShowsDiscoverPopUpWhenDeviceIdIsNull() = withEmbeddedLayoutInspector {
-    val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
-    val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent(deviceId = null)
-
-    toggleLayoutInspectorAction.actionPerformed(fakeActionEvent)
-
-    verify(fakeNotificationGroupManager.mockNotificationGroup)
-      .createNotification(
-        "Layout Inspector is embedded in the Running Devices window.",
-        "Launch or connect a device to start inspecting.",
-        NotificationType.INFORMATION,
-      )
-    verify(fakeNotificationGroupManager.mockNotification).notify(any())
-  }
-
   private fun AnAction.getFakeActionEvent(
     deviceSerialNumber: String = "serial_number",
-    deviceId: DeviceId? = DeviceId.ofPhysicalDevice(deviceSerialNumber),
+    deviceId: DeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber),
   ): AnActionEvent {
     val contentPanelContainer = JPanel()
     val contentPanel = BorderLayoutPanel()
@@ -285,32 +254,4 @@ class ToggleLayoutInspectorActionTest {
 
     override fun disable() {}
   }
-}
-
-private class FakeNotificationGroupManager : NotificationGroupManager {
-  val mockNotification = mock<Notification>()
-  val mockNotificationGroup = mock<NotificationGroup>()
-
-  init {
-    whenever(mockNotificationGroup.createNotification(any(), any(), any<NotificationType>()))
-      .thenAnswer { mockNotification }
-  }
-
-  override fun getNotificationGroup(groupId: String): NotificationGroup {
-    return when (groupId) {
-      "LAYOUT_INSPECTOR_DISCOVERY" -> mockNotificationGroup
-      else -> throw IllegalArgumentException("Unexpected groupId: $groupId")
-    }
-  }
-
-  override fun isGroupRegistered(groupId: String): Boolean {
-    return when (groupId) {
-      "LAYOUT_INSPECTOR_DISCOVERY" -> true
-      else -> false
-    }
-  }
-
-  override fun getRegisteredNotificationGroups() = mutableListOf(mockNotificationGroup)
-
-  override fun isRegisteredNotificationId(notificationId: String) = false
 }

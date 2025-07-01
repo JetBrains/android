@@ -18,10 +18,15 @@ package com.android.tools.idea.layoutinspector
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.google.common.truth.Truth.assertThat
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
@@ -32,11 +37,12 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
-import org.jetbrains.android.refactoring.project
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class ShowLayoutInspectorActionTest {
 
@@ -47,6 +53,7 @@ class ShowLayoutInspectorActionTest {
   @get:Rule val chain = RuleChain(applicationRule, projectRule, disposableRule)
 
   private lateinit var fakeToolWindowManager: FakeToolWindowManager
+  private lateinit var fakeNotificationGroupManager: FakeNotificationGroupManager
 
   @Before
   fun setUp() {
@@ -56,6 +63,14 @@ class ShowLayoutInspectorActionTest {
       fakeToolWindowManager,
       disposableRule.disposable,
     )
+
+    fakeNotificationGroupManager = FakeNotificationGroupManager()
+    ApplicationManager.getApplication()
+      .replaceService(
+        NotificationGroupManager::class.java,
+        fakeNotificationGroupManager,
+        disposableRule.disposable,
+      )
 
     // This line avoids the error: UnindexedFilesScannerExecutorImpl is initialized during dispose
     IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
@@ -122,4 +137,32 @@ private class FakeToolWindow(project: Project) :
   override fun isActive(): Boolean {
     return isActive
   }
+}
+
+private class FakeNotificationGroupManager : NotificationGroupManager {
+  val mockNotification = mock<Notification>()
+  val mockNotificationGroup = mock<NotificationGroup>()
+
+  init {
+    whenever(mockNotificationGroup.createNotification(any(), any(), any<NotificationType>()))
+      .thenAnswer { mockNotification }
+  }
+
+  override fun getNotificationGroup(groupId: String): NotificationGroup {
+    return when (groupId) {
+      "LAYOUT_INSPECTOR_DISCOVERY" -> mockNotificationGroup
+      else -> throw IllegalArgumentException("Unexpected groupId: $groupId")
+    }
+  }
+
+  override fun isGroupRegistered(groupId: String): Boolean {
+    return when (groupId) {
+      "LAYOUT_INSPECTOR_DISCOVERY" -> true
+      else -> false
+    }
+  }
+
+  override fun getRegisteredNotificationGroups() = mutableListOf(mockNotificationGroup)
+
+  override fun isRegisteredNotificationId(notificationId: String) = false
 }
