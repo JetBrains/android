@@ -28,7 +28,7 @@ object DumpsysDisplayDeviceInfoParser {
     val logicalIdRegex = Regex("\\WmCurrentLayerStack=(\\d+)")
     val physicalIdRegex = Regex("\\WmPhysicalDisplayId=(\\d+)")
     val sizeRegex = Regex("\\W(\\d+) x (\\d+)\\W")
-    val orientationRegex = Regex("\\Wrotation (\\d+)\\W")
+    val orientationRegex = Regex("\\WmCurrentOrientation=(\\d+)")
     val densityRegex = Regex("\\Wdensity (\\d+)\\W")
     val isRoundRegex = Regex("\\WFLAG_ROUND\\W")
     while (match != null) {
