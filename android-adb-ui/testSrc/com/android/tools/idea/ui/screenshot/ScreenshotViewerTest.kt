@@ -136,7 +136,6 @@ class ScreenshotViewerTest {
 
   @Test
   fun testResolutionChange() {
-    assumeFalse(SystemInfo.isWindows) // b/356410902
     StudioFlags.SCREENSHOT_RESIZING.overrideForTest(true, testRootDisposable)
     val settings = DeviceScreenshotSettings.getInstance()
     assertThat(settings.scale == 1.0)
@@ -488,7 +487,7 @@ class ScreenshotViewerTest {
                                      screenshotProvider: ScreenshotProvider = TestScreenshotProvider(screenshotImage, testRootDisposable),
                                      framingOptions: List<FramingOption> = listOf(testFrame)): ScreenshotViewer {
     val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
-    val processedImage = screenshotDecorator.decorate(screenshotImage, decoration)
+    val processedImage = ImageUtils.scale(screenshotDecorator.decorate(screenshotImage, decoration), getScreenshotScale())
     val backingFile = FileUtil.createTempFile("screenshot", DOT_PNG).toPath()
     processedImage.writeImage("PNG", backingFile)
     val screenshotFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(backingFile)!!
