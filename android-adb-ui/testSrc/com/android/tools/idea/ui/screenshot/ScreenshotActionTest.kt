@@ -80,7 +80,7 @@ class ScreenshotActionTest {
 
   @Before
   fun setUp() {
-    service<ScreenshotConfiguration>()::frameScreenshot.override(true, projectRule.disposable)
+    service<DeviceScreenshotSettings>()::frameScreenshot.override(true, projectRule.disposable)
   }
 
   @After
@@ -129,6 +129,31 @@ class ScreenshotActionTest {
       it[ScreenshotParameters.DATA_KEY] = screenshotParameters
       it[DISPLAY_ID_KEY] = PRIMARY_DISPLAY_ID
       it[DISPLAY_INFO_PROVIDER_KEY] = displayInfoProvider
+    }
+
+    // Act.
+    executeAction(action, project = project, extra = dataSnapshotProvider)
+
+    // Assert.
+    val screenshotViewer = waitForScreenshotViewer()
+    val ui = FakeUi(screenshotViewer.rootPane)
+    val imageComponent = ui.getComponent<ImageComponent>()
+    waitForCondition(2.seconds) { imageComponent.document.value != null }
+    assertMatchesGolden(imageComponent.document.value, "PixelFoldRotated90")
+  }
+
+  @Test
+  fun testWithoutDisplayInfoProvider() {
+    // Prepare.
+    val testImage = createTestImage(1840, 2208, Color.CYAN)
+    deviceServices.configureShellV2Command(device, "screencap -p", testImage.toPngBytes(), emptyByteBuffer, 0)
+    deviceServices.configureShellCommand(device, "dumpsys display", getDumpsysOutput("PixelFoldRotated90"))
+
+    val screenshotParameters = ScreenshotParameters(serialNumber, DeviceType.HANDHELD, "Pixel Fold")
+
+    val dataSnapshotProvider = DataSnapshotProvider {
+      it[ScreenshotParameters.DATA_KEY] = screenshotParameters
+      it[DISPLAY_ID_KEY] = PRIMARY_DISPLAY_ID
     }
 
     // Act.

@@ -33,6 +33,14 @@ class DumpsysDisplayDeviceInfoParserTest {
   }
 
   @Test
+  fun testPixelFoldRotated90() {
+    val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(getDumpsysOutput("PixelFoldRotated90"))
+    assertThat(displayInfo).containsExactly(
+      DisplayDeviceInfo(0, 4619827677550801152, Dimension(2208, 1840), 1, 420, false)
+    )
+  }
+
+  @Test
   fun testAutomotiveWithDistantDisplays() {
     val displayInfo = DumpsysDisplayDeviceInfoParser.getActiveDisplays(getDumpsysOutput("AutomotiveWithDistantDisplays"))
     assertThat(displayInfo).containsExactly(

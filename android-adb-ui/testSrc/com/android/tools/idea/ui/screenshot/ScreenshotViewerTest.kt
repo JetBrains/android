@@ -33,7 +33,6 @@ import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
-import com.android.tools.idea.testing.override
 import com.android.tools.idea.ui.save.PostSaveAction
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT
@@ -107,7 +106,6 @@ class ScreenshotViewerTest {
   fun setUp() {
     UIManager.setLookAndFeel(DarculaLaf())
     settings.loadState(DeviceScreenshotSettings())
-    service<ScreenshotConfiguration>()::frameScreenshot.override(true, projectRule.disposable)
   }
 
   @After
@@ -378,7 +376,7 @@ class ScreenshotViewerTest {
     StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(true, testRootDisposable)
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2400), 420)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
-    service<ScreenshotConfiguration>().postSaveAction = PostSaveAction.NONE
+    service<DeviceScreenshotSettings>().saveConfig.postSaveAction = PostSaveAction.NONE
 
     viewer.clickDefaultButton()
 
@@ -470,7 +468,7 @@ class ScreenshotViewerTest {
   fun testScreenshotViewerWithoutFramingOptionsDoesNotAttemptToSelectFrameOption() {
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, "Watch", PRIMARY_DISPLAY_ID, Dimension(454, 454), 320,
                                           isRoundDisplay = true)
-    service<ScreenshotConfiguration>().frameScreenshot = true
+    service<DeviceScreenshotSettings>().frameScreenshot = true
 
     // test that no exceptions are thrown
     createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator(), framingOptions = listOf())

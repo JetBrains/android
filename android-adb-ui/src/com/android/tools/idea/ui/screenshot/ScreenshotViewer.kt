@@ -591,7 +591,7 @@ class ScreenshotViewer(
 
     fun getDefaultDecoration(screenshotImage: ScreenshotImage, screenshotDecorator: ScreenshotDecorator,
                              defaultFramingOption: FramingOption?): ScreenshotDecorationOption {
-      val frameScreenshot = service<ScreenshotConfiguration>().frameScreenshot
+      val frameScreenshot = service<DeviceScreenshotSettings>().frameScreenshot
       // Clipping is available when either the postprocessor supports it or for round devices.
       val canClipDeviceMask = screenshotDecorator.canClipToDisplayShape || screenshotImage.isRoundDisplay
       // DAC specifies a 384x384 minimum size requirement but that requirement is actually not enforced.
