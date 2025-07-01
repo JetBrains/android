@@ -22,12 +22,14 @@ import com.android.tools.idea.insights.Event
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import java.awt.BorderLayout
-import java.awt.Component
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.MouseListener
 import javax.swing.JPanel
 
@@ -45,9 +47,10 @@ class AppInsightsContentPanel(
   workBenchFactory: (Disposable) -> WorkBench<AppInsightsToolWindowContext> = {
     WorkBench(project, name, null, it)
   },
-  createCenterPanel: ((Int) -> Unit) -> Component,
+  createCenterPanel: () -> PanelWithHeaderComponent,
 ) : JPanel(BorderLayout()), Disposable {
   private val issuesTableView: AppInsightsIssuesTableView
+  private val centerPanel: PanelWithHeaderComponent = createCenterPanel()
 
   init {
     Disposer.register(parentDisposable, this)
@@ -56,7 +59,7 @@ class AppInsightsContentPanel(
       AppInsightsIssuesTableView(issuesModel, projectController, cellRenderer, tableMouseListener)
     Disposer.register(this, issuesTableView)
     val mainContentPanel = JPanel(BorderLayout())
-    mainContentPanel.add(createCenterPanel(issuesTableView::setHeaderHeight))
+    mainContentPanel.add(centerPanel)
 
     val splitter =
       ThreeComponentsSplitter(false, true).apply {
@@ -69,8 +72,22 @@ class AppInsightsContentPanel(
           lastSize = minSize
         }
       }
+
     splitter.isFocusCycleRoot = false
     val workBench = workBenchFactory(this)
+    val componentAdapter =
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent) {
+          invokeLater {
+            issuesTableView.setHeaderHeight(workBench.attachedToolWindowHeaderHeight)
+            centerPanel.setHeaderHeight(workBench.attachedToolWindowHeaderHeight)
+            splitter.revalidate()
+          }
+        }
+      }
+    splitter.addDividerResizeListener(componentAdapter)
+    splitter.addComponentListener(componentAdapter)
+
     workBench.addWorkBenchToolWindowListener { visibleWindows ->
       secondaryToolWindows.forEach { it.updateVisibility(it.name in visibleWindows) }
     }

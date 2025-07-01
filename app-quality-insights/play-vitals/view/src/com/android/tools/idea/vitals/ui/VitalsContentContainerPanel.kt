@@ -130,7 +130,7 @@ class VitalsContentContainerPanel(
         VITALS_WORKBENCH_NAME,
         toolWindowList,
       ) {
-        VitalsIssueDetailsPanel(projectController, project, it, this, tracker)
+        VitalsIssueDetailsPanel(projectController, project, this, tracker)
       },
       MAIN_CARD,
     )

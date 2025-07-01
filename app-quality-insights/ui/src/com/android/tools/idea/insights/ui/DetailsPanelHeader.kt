@@ -29,7 +29,6 @@ import com.intellij.ui.util.preferredWidth
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
-import java.awt.Dimension
 import java.awt.Font
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -170,11 +169,6 @@ class DetailsPanelHeader(
         }
       }
     )
-  }
-
-  override fun updateUI() {
-    super.updateUI()
-    preferredSize = Dimension(0, commonToolbarHeight())
   }
 
   fun clear() {

@@ -335,6 +335,16 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myPanel.putClientProperty(ToolContent.TOOL_CONTENT_KEY, myContent);
   }
 
+  /**
+   * Returns the height of the header by getting the component at NORTH
+   * position in the layout.
+   * @return header height
+   */
+  public int getHeaderHeight() {
+    BorderLayout layout = (BorderLayout) myPanel.getLayout();
+    return layout.getLayoutComponent(BorderLayout.NORTH).getHeight();
+  }
+
   @Override
   public void restore() {
     if (!isDetached() && isMinimized()) {

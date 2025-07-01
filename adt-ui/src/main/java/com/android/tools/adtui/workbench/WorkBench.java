@@ -772,6 +772,19 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myWorkBenchToolWindowListeners.add(listener);
   }
 
+  /**
+   * Gets the header height of the attached tool window.
+   * @return Header height of the toolwindow.
+   */
+  public int getAttachedToolWindowHeaderHeight() {
+    return myModel
+      .getAllTools()
+      .stream()
+      .findFirst()
+      .map(AttachedToolWindow::getHeaderHeight)
+      .orElse(0);
+  }
+
   @TestOnly
   @Nullable
   public List<JComponent> getTopComponents(Side side) {

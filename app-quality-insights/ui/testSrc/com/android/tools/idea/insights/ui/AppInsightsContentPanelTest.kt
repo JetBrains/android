@@ -92,7 +92,9 @@ class AppInsightsContentPanelTest {
       null,
       { workBench },
     ) {
-      JLabel()
+      object : PanelWithHeaderComponent() {
+        override fun setHeaderHeight(height: Int) = Unit
+      }
     }
 
     assertThat(propertiesComponent.isValueSet("$name.workbench.toolwindow.order.updated")).isTrue()
@@ -109,7 +111,9 @@ class AppInsightsContentPanelTest {
       null,
       { workBench },
     ) {
-      JLabel()
+      object : PanelWithHeaderComponent() {
+        override fun setHeaderHeight(height: Int) = Unit
+      }
     }
 
     assertThat(propertiesComponent.isValueSet("$name.workbench.toolwindow.order.updated")).isTrue()

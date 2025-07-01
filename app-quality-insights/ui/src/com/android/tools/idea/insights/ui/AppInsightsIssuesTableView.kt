@@ -39,6 +39,7 @@ import com.intellij.ui.TableSpeedSearch
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.table.TableView
+import com.intellij.ui.util.preferredWidth
 import com.intellij.util.containers.Convertor
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.TimerUtil
@@ -83,6 +84,7 @@ class AppInsightsIssuesTableView(
       )
     tableHeader = table.tableHeader
     tableHeader.reorderingAllowed = false
+    tableHeader.preferredSize = Dimension(0, commonToolbarHeight())
     loadingPanel.add(table.tableHeader, TabularLayout.Constraint(0, 0))
     loadingPanel.add(
       ScrollPaneFactory.createScrollPane(table, true),
@@ -249,7 +251,8 @@ class AppInsightsIssuesTableView(
   }
 
   fun setHeaderHeight(height: Int) {
-    tableHeader.preferredSize = Dimension(0, height)
+    tableHeader.preferredSize = Dimension(tableHeader.preferredWidth, height)
+    tableHeader.invalidate()
   }
 
   override fun dispose() = Unit

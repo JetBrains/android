@@ -43,6 +43,7 @@ import com.android.tools.idea.insights.ui.DetailsTabbedPane
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
 import com.android.tools.idea.insights.ui.ISSUE_DETAILS_PANEL_MIN_SIZE
+import com.android.tools.idea.insights.ui.PanelWithHeaderComponent
 import com.android.tools.idea.insights.ui.REQUEST_SOURCE_KEY
 import com.android.tools.idea.insights.ui.SELECTED_EVENT_KEY
 import com.android.tools.idea.insights.ui.StackTraceConsole
@@ -62,15 +63,15 @@ import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
+import com.intellij.ui.util.preferredWidth
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.CardLayout
+import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Graphics
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Box
@@ -151,10 +152,9 @@ private val DefaultVitalsDetailsState =
 class VitalsIssueDetailsPanel(
   controller: AppInsightsProjectLevelController,
   private val project: Project,
-  val headerHeightUpdatedCallback: (Int) -> Unit,
   parentDisposable: Disposable,
   private val tracker: AppInsightsTracker,
-) : JPanel(BorderLayout()), DataProvider {
+) : PanelWithHeaderComponent(), DataProvider {
   private val scope = AndroidCoroutineScope(parentDisposable)
   private val detailsState =
     controller.state
@@ -307,13 +307,6 @@ class VitalsIssueDetailsPanel(
         }
     scrollPane.border = IdeBorderFactory.createBorder(SideBorder.NONE)
     stackTraceConsole.onStackPrintedListener = { scrollPane.verticalScrollBar.value = 0 }
-    header.addComponentListener(
-      object : ComponentAdapter() {
-        override fun componentResized(e: ComponentEvent?) {
-          headerHeightUpdatedCallback(header.height)
-        }
-      }
-    )
     add(header, BorderLayout.NORTH)
     mainPanel.add(scrollPane, MAIN_CARD)
     mainPanel.add(transparentPanel(), EMPTY_CARD)
@@ -417,6 +410,10 @@ class VitalsIssueDetailsPanel(
       SELECTED_EVENT_KEY.`is`(dataId) -> detailsState.value.selectedIssue?.sampleEvent
       else -> null
     }
+
+  override fun setHeaderHeight(height: Int) {
+    header.preferredSize = Dimension(header.preferredWidth, height)
+  }
 }
 
 private fun <T> MultiSelection<WithCount<T>>.getSelectedValueOrEmpty() =
