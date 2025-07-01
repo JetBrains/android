@@ -16,101 +16,18 @@
 package com.android.tools.idea.gservices
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gservices.DevServicesDeprecationStatus.DEPRECATED
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus.SUPPORTED
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus.UNSUPPORTED
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.Date
 import com.android.tools.idea.serverflags.protos.DevServicesDeprecationMetadata
-import com.intellij.openapi.components.service
 import com.intellij.util.text.DateFormatUtil
 import java.time.LocalDate
-import java.time.ZoneId
 import java.util.Calendar
 
 private const val DEV_SERVICES_DIR_NAME = "dev_services"
 private const val SERVICE_NAME_PLACEHOLDER = "<service_name>"
-private const val DEFAULT_SERVICE_NAME = "This service"
 private const val DATE_PLACEHOLDER = "<date>"
-
-/**
- * Status of services that rely on backend APIs for the current build of the IDE. Our SLA is to
- * support features that rely on backend APIs for a period of about a year past the release of a
- * specific IDE version. Beyond that timeline, users must upgrade to a newer IDE version to continue
- * using those features.
- *
- * See go/android-studio-developer-services-compat-policy and go/as-kill-feature-past-deadline.
- */
-enum class DevServicesDeprecationStatus {
-  /** Developer services are within the support window and available to user. */
-  SUPPORTED,
-
-  /**
-   * Developer services are deprecated and will be removed soon. Service remains available to user.
-   */
-  DEPRECATED,
-
-  /** Developer Services are no longer supported and not available to user. */
-  UNSUPPORTED;
-
-  companion object {
-    fun fromProto(status: DevServicesDeprecationMetadata.Status) =
-      when (status) {
-        // Unknown implies the flag is unavailable. To be on the safe side, we let the service stay
-        // SUPPORTED.
-        DevServicesDeprecationMetadata.Status.STATUS_UNKNOWN,
-        DevServicesDeprecationMetadata.Status.SUPPORTED -> SUPPORTED
-        DevServicesDeprecationMetadata.Status.DEPRECATED -> DEPRECATED
-        DevServicesDeprecationMetadata.Status.UNSUPPORTED -> UNSUPPORTED
-      }
-  }
-}
-
-interface DevServicesDeprecationDataProvider {
-  /**
-   * Returns the current deprecation policy data for a service of the given name.
-   *
-   * @param serviceName Name of the service
-   * @param userFriendlyServiceName Name of the service that will be substituted and shown to the
-   *   user
-   */
-  fun getCurrentDeprecationData(
-    serviceName: String,
-    userFriendlyServiceName: String = DEFAULT_SERVICE_NAME,
-  ): DevServicesDeprecationData
-
-  companion object {
-    fun getInstance() = service<DevServicesDeprecationDataProvider>()
-  }
-}
-
-data class DevServicesDeprecationData(
-  // Header of the deprecation message
-  val header: String,
-  // Description of the deprecation message
-  val description: String,
-  // Link to provide more info
-  val moreInfoUrl: String,
-  // Show the update action button
-  val showUpdateAction: Boolean,
-  // Deprecation status of the service
-  val status: DevServicesDeprecationStatus,
-  // Date at which the service changes status
-  val date: LocalDate? = null,
-) {
-  fun isDeprecated() = status == DEPRECATED
-
-  fun isUnsupported() = status == UNSUPPORTED
-
-  fun isSupported() = status == SUPPORTED
-
-  fun formattedDate(): String =
-    date?.let {
-      DateFormatUtil.formatDate(
-        java.util.Date.from(it.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())
-      )
-    } ?: ""
-}
 
 /** Provides [DevServicesDeprecationStatus] based on server flags. */
 class ServerFlagBasedDevServicesDeprecationDataProvider : DevServicesDeprecationDataProvider {
