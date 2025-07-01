@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
-import com.android.SdkConstants
+import com.android.SdkConstants.DOT_PNG
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.emulator.control.ImageFormat
 import com.android.io.writeImage
@@ -91,7 +91,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
             val framingOptions = if (displayId == PRIMARY_DISPLAY_ID && skin != null) listOf(AvdFrame()) else listOf()
             val decoration = ScreenshotViewer.getDefaultDecoration(screenshotImage, screenshotDecorator, framingOptions.firstOrNull())
             val processedImage = ImageUtils.scale(screenshotDecorator.decorate(screenshotImage, decoration), getScreenshotScale())
-            val file = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
+            val file = FileUtil.createTempFile("screenshot", DOT_PNG).toPath()
             processedImage.writeImage("PNG", file)
             val backingFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file) ?:
                 throw IOException("Unable to save screenshot")
