@@ -51,8 +51,6 @@ public class BazelQueryRunner implements QueryRunner {
       new BoolExperiment("query.sync.run.query.remotely", false);
 
   private static final Logger logger = Logger.getInstance(BazelQueryRunner.class);
-  // TODO b/374906681 - The 130000 figure comes from the command runner. Move it to the invoker instead of hardcoding.
-  private static final int MAX_QUERY_EXP_LENGTH = 130000;
   private final Project project;
   private final BuildSystem buildSystem;
 
@@ -72,9 +70,6 @@ public class BazelQueryRunner implements QueryRunner {
     ImmutableSet.Builder<BuildInvoker.Capability> capabilityBuilder = new ImmutableSet.Builder<>();
     if (PREFER_REMOTE_QUERIES.getValue()) {
       capabilityBuilder.add(BuildInvoker.Capability.RUN_REMOTE_QUERIES);
-      if (queryExp.length() > MAX_QUERY_EXP_LENGTH) {
-        capabilityBuilder.add(BuildInvoker.Capability.SUPPORT_QUERY_FILE);
-      }
     }
     BuildInvoker invoker = buildSystem.getBuildInvoker(project, capabilityBuilder.build()).orElseThrow();
     Optional<SyncQueryStats.Builder> syncQueryStatsBuilder = SyncQueryStatsScope.fromContext(context);
@@ -88,7 +83,7 @@ public class BazelQueryRunner implements QueryRunner {
     commandBuilder.addBlazeFlags(query.getQueryFlags());
     commandBuilder.addBlazeFlags("--keep_going");
     Path tempDirectoryPath = Path.of(project.getBasePath(), "tmp");
-    if (queryExp.length() > MAX_QUERY_EXP_LENGTH) {
+    if (invoker.getCapabilities().contains(BuildInvoker.Capability.SUPPORT_QUERY_FILE)) {
       try {
         // Query is too long, write it to a file.
         Path tmpFile =
