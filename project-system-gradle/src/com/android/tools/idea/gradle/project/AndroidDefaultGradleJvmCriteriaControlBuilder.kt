@@ -22,12 +22,13 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil.INSETS
 import com.intellij.openapi.externalSystem.util.PaintAwarePanel
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.lang.JavaVersion
 import com.intellij.util.ui.GridBag
 import com.intellij.util.ui.JBUI
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.jps.model.java.LanguageLevel
+import org.jetbrains.plugins.gradle.jvmcompat.GradleJvmSupportMatrix
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import org.jetbrains.plugins.gradle.service.settings.GradleDaemonJvmCriteriaView
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -84,9 +85,9 @@ class AndroidDefaultGradleJvmCriteriaControlBuilder(
 
   private fun createDefaultGradleJvmCriteriaView() = GradleDaemonJvmCriteriaView(
     criteria = GradleDaemonJvmCriteria(IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.feature().toString(), null),
-      versionsDropdownList = LanguageLevel.JDK_1_8.toJavaVersion().feature..LanguageLevel.HIGHEST.toJavaVersion().feature,
-      vendorDropdownList =  JvmVendor.KnownJvmVendor.entries.filter { it != JvmVendor.KnownJvmVendor.UNKNOWN },
-      displayAdvancedSettings = true,
-      disposable = disposable
-    )
+    versionsDropdownList = GradleJvmSupportMatrix.getAllSupportedJavaVersionsByIdea().map(JavaVersion::feature),
+    vendorDropdownList =  JvmVendor.KnownJvmVendor.entries.filter { it != JvmVendor.KnownJvmVendor.UNKNOWN },
+    displayAdvancedSettings = true,
+    disposable = disposable
+  )
 }
