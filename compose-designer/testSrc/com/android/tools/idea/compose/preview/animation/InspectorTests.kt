@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.rendering.RenderTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
@@ -26,11 +26,11 @@ import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.runInEdtAndGet
+import kotlinx.coroutines.CoroutineScope
 import org.junit.Before
 import org.junit.Rule
 
@@ -76,20 +76,20 @@ open class InspectorTests {
       psiFilePointer = SmartPointerManager.createPointer(psiFile)
     }
 
-    animationPreview =
-      ComposeAnimationPreview(
-          surface.project,
-          ComposeAnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
-          { surface.model?.let { surface.getSceneManager(it) } },
-          surface,
-          psiFilePointer,
-        )
-        .also {
-          it.animationClock = AnimationClock(TestClock())
-          Disposer.register(parentDisposable, it)
-        }
+    animationPreview = createAnimationPreview(projectRule.testRootDisposable.createCoroutineScope())
 
     // Create VisualLintService early to avoid it being created at the time of project disposal
     VisualLintService.getInstance(projectRule.project)
   }
+
+  protected fun createAnimationPreview(scope: CoroutineScope) =
+    ComposeAnimationPreview(
+        scope,
+        surface.project,
+        NoopComposeAnimationTracker,
+        { surface.model?.let { surface.getSceneManager(it) } },
+        surface,
+        psiFilePointer,
+      )
+      .also { it.animationClock = AnimationClock(TestClock()) }
 }

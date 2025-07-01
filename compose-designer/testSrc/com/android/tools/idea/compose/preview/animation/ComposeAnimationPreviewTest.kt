@@ -19,19 +19,25 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.compose.preview.animation.TestUtils.createComposeAnimation
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findLabel
 import com.android.tools.idea.compose.preview.animation.managers.ComposeAnimationManager
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.idea.preview.animation.AllTabPanel
 import com.android.tools.idea.preview.animation.AnimationCard
 import com.android.tools.idea.preview.animation.LabelCard
 import com.android.tools.idea.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
+import com.android.tools.idea.preview.animation.TimelinePanel
 import com.android.tools.idea.preview.animation.UnsupportedAnimationManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.observable.util.whenDisposed
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.util.containers.getIfSingle
@@ -40,7 +46,12 @@ import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JComponent
 import javax.swing.JSlider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -426,6 +437,39 @@ class ComposeAnimationPreviewTest : InspectorTests() {
     assertNull(animationPreview.tabbedPane.parent)
     assertEquals(0, animationPreview.animations.size)
     assertEquals(0, animationPreview.animationPreviewCardsCount())
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @Test
+  fun childrenAreDisposed() = runTest {
+    val scope = backgroundScope.createChildScope()
+    val animationPreview =
+      createAnimationPreview(scope).apply { this.component.size = Dimension(200, 200) }
+    animationPreview.addAnimation(createComposeAnimation("1")).join()
+    animationPreview.addAnimation(createComposeAnimation("2")).join()
+    animationPreview.addAnimation(createComposeAnimation("3")).join()
+
+    val ui =
+      withContext(Dispatchers.EDT) {
+        val ui = FakeUi(animationPreview.component)
+        ui.layoutAndDispatchEvents()
+        ui.updateToolbarsIfNecessary()
+        ui
+      }
+
+    var disposeCount = 0
+
+    animationPreview.component.findDescendant<AllTabPanel>()!!.let {
+      it.whenDisposed { disposeCount++ }
+    }
+    animationPreview.component.findDescendant<TimelinePanel>()!!.let {
+      it.sliderUI.elements.forEach { element -> element.whenDisposed { disposeCount++ } }
+    }
+    scope.cancel()
+    withContext(Dispatchers.EDT) { ui.layoutAndDispatchEvents() }
+    advanceUntilIdle()
+    // One AllTabPanel's dispose call and three TimelinePanel's dispose calls.
+    assertEquals(4, disposeCount)
   }
 
   private fun ComposeAnimationPreview.getAnimationTitleAt(index: Int): String =

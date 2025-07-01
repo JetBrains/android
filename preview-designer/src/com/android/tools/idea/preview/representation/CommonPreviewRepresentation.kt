@@ -894,10 +894,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     LOG.debug("Starting animation inspector mode on: $element")
     invalidateAndRefresh()
     withContext(Dispatchers.Main) {
-      createAnimationInspector(element)?.also {
-        Disposer.register(this@CommonPreviewRepresentation, it)
-        currentAnimationPreview = it
-      }
+      createAnimationInspector(element)?.also { currentAnimationPreview = it }
     }
     ActivityTracker.getInstance().inc()
   }
@@ -909,10 +906,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   private suspend fun stopAnimationInspector() {
     LOG.debug("Stopping animation inspector mode")
-    currentAnimationPreview?.let {
-      // The animation inspector should be disposed on the Dispatchers.Main
-      withContext(Dispatchers.Main) { Disposer.dispose(it) }
-    }
+    currentAnimationPreview?.cancelScope()
     currentAnimationPreview = null
     invalidateAndRefresh()
   }
