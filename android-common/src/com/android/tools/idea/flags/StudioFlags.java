@@ -2270,13 +2270,13 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "prompt.library.rules",
                     "Enable Rules Prompt Library",
                     "When enabled, add Rules section to prompt library settings screen.",
-                    enabledUpTo(CANARY));
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> STUDIOBOT_PROMPT_LIBRARY_CHAT_LOOKUP_ENABLED =
     new BooleanFlag(STUDIOBOT, "prompt.library.chat.lookup",
                     "Show Saved Prompts in chat lookup",
                     "When enabled, add Rules section to lookup popup.",
-                    enabledUpTo(CANARY));
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> STUDIOBOT_MCP_HOST_ENABLED =
     new BooleanFlag(STUDIOBOT, "mcp.host.enabled",
@@ -2312,7 +2312,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion.override",
                     "Allow users to override prompt for suggesting commit messages",
                     "Enables the \"Commit Message Generation\" in Prompt Library setting",
-                    enabledUpTo(CANARY));
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> README_GENERATION =
     new BooleanFlag(STUDIOBOT, "readme.generation",
