@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.play
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.forceRegisterThirdPartyIssues
@@ -24,6 +25,7 @@ import com.intellij.codeInspection.actions.CodeInspectionAction
 import com.intellij.codeInspection.ex.InspectionProfileImpl
 import com.intellij.codeInspection.ex.InspectionToolsSupplier
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.updateSettings.impl.UpdateChecker
@@ -44,6 +46,12 @@ import javax.swing.JComponent
 import javax.swing.JEditorPane
 
 class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy", "Play Policy") {
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isEnabledAndVisible = StudioFlags.ENABLE_PLAY_POLICY_INSIGHTS.get()
+  }
+
   override fun runInspections(project: Project, scope: AnalysisScope) {
     val rootProfile = InspectionProjectProfileManager.getInstance(project).currentProfile
 
@@ -127,9 +135,9 @@ class PlayPolicyCodeInspectionAction : CodeInspectionAction("Inspect Play Policy
             .customize(UnscaledGaps(2, 2, 2, 5))
 
           text(
-              "Play policy insights beta is intended to provide helpful pre-review guidance" +
-                " to enable a smoother app submission experience" +
-                " It doesn't cover every policy or provide final app review decisions." +
+              "Play Policy Insights (Beta) is intended to provide helpful pre-review guidance" +
+                " to enable a smoother app submission experience." +
+                " It does not cover every policy or provide final app review decisions." +
                 " Always review the full policy in the" +
                 " <a href=http://goo.gle/play-policy-center>Policy Center</a> to ensure compliance."
             )
