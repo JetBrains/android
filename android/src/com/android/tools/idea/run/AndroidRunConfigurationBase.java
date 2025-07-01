@@ -156,7 +156,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return errors;
     }
 
+    if (isTestConfiguration()) {
+      Module androidTestModule = getModuleForAndroidTestRunConfiguration(module);
+      if (androidTestModule != null) module = androidTestModule;
+
+    }
+    else {
+      module = getModuleForAndroidRunConfiguration(module);
+    }
     AndroidFacet facet = AndroidFacet.getInstance(module);
+
     if (facet == null) {
       // Can't proceed.
       return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("no.facet.error", module.getName())));
@@ -293,7 +302,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       module = getModuleForAndroidRunConfiguration(module);
     }
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null : "Enforced by fatal validation check in checkConfiguration."; // TODO no longer quite true in theory
+    assert facet != null : "Enforced by fatal validation check in checkConfiguration.";
 
     stats.setDebuggable(LaunchUtils.canDebugApp(facet));
     stats.setExecutor(executor.getId());
