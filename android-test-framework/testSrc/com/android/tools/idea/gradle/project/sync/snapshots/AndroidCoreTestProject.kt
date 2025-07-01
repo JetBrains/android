@@ -103,10 +103,9 @@ enum class AndroidCoreTestProject(
   SIMPLE_APPLICATION(TestProjectPaths.SIMPLE_APPLICATION),
   SIMPLE_APPLICATION_DEPENDENCY_ERROR(TestProjectPaths.SIMPLE_APPLICATION,
     patch = {
-      // Set two flavors as default
+      // Refer to an absurd dependency version
       it.resolve("app/build.gradle").apply {
         replaceInContent("com.google.guava:guava:19.0", "com.google.guava:guava:99999.9999")
-
       }
     },
     expectedSyncIssues = setOf(SyncIssue.TYPE_UNRESOLVED_DEPENDENCY)
