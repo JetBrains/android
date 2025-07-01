@@ -68,6 +68,8 @@ import org.jetbrains.annotations.TestOnly
 
 private const val HOVER_CELL = "component.tree.hover.cell"
 const val TREE_OFFSET = "tree.offset"
+// The padding around the arrow icon used to collapse/expand a node.
+internal const val ICON_DEFAULT_PADDING = 4
 
 internal class Cell(val row: Int, val column: Int) {
   fun equalTo(otherRow: Int, otherColumn: Int) = otherRow == row && otherColumn == column
@@ -405,6 +407,33 @@ class TreeTableImpl(
     return if (row >= 0 && column >= 0) Cell(row, column) else null
   }
 
+  /**
+   * Determines if a mouse click at a given x-coordinate occurred within the expand/collapse icon
+   * area of a tree cell.
+   */
+  private fun isClickWithinToggleIcon(cell: Cell, xCoord: Int): Boolean {
+    val path = tree.getPathForRow(cell.row)
+    val node = path?.lastPathComponent
+    val model = tree.model
+
+    if (model.isLeaf(node)) {
+      return false
+    }
+
+    val ui = tree.ui as BasicTreeUI
+
+    // the x coordinate of the icon left side - padding.
+    val leftX =
+      tree.getRowBounds(cell.row).x -
+        JBUIScale.scale(ICON_DEFAULT_PADDING) -
+        if (tree.isExpanded(cell.row)) ui.expandedIcon.iconWidth else ui.collapsedIcon.iconWidth
+
+    // the starting x-coordinate for the node's actual content within the row - offset.
+    val rightX = tree.getRowBounds(cell.row).x - JBUIScale.scale(2)
+
+    return xCoord >= leftX && xCoord <= rightX
+  }
+
   private inner class DataUpdateHandler(private val selectionModel: TreeTableSelectionModelImpl) :
     TreeTableModelImplAdapter() {
     override fun treeChanged(event: TreeModelEvent) {
@@ -467,7 +496,8 @@ class TreeTableImpl(
         val cell = position(event.x, event.y) ?: return
         val item = getValueAt(cell.row, cell.column)
         when {
-          cell.column == 0 && event.clickCount == 2 -> doubleClick(item)
+          cell.column == 0 && event.clickCount == 2 && !isClickWithinToggleIcon(cell, event.x) ->
+            doubleClick(item)
           cell.column > 0 && event.clickCount == 1 -> {
             val bounds = getCellRect(cell.row, cell.column, true)
             extraColumns[cell.column - 1].performAction(item, this@TreeTableImpl, bounds)
