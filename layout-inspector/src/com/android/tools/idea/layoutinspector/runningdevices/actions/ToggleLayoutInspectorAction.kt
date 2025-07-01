@@ -23,13 +23,17 @@ import com.android.tools.idea.layoutinspector.settings.STUDIO_RELEASE_NOTES_EMBE
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.intellij.ide.BrowserUtil
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
+import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.JComponent
+import org.jetbrains.annotations.TestOnly
 
 /** Action used to turn Layout Inspector on and off in Running Devices tool window. */
 
@@ -39,7 +43,12 @@ import javax.swing.JComponent
  */
 const val EMBEDDED_LAYOUT_INSPECTOR_MIN_API = 29
 
-class ToggleLayoutInspectorAction :
+class ToggleLayoutInspectorAction(
+  @TestOnly
+  private val showNotificationDiscovery: (Project) -> Unit = {
+    showLayoutInspectorDiscoveryPopUp(it)
+  }
+) :
   ToggleAction(
     "Toggle Layout Inspector",
     "Toggles Layout Inspection on and off for this device.",
@@ -72,6 +81,16 @@ class ToggleLayoutInspectorAction :
 
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.EDT
+  }
+
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
+    val deviceId = DEVICE_ID_KEY.getData(e.dataContext)
+    if (deviceId == null) {
+      showNotificationDiscovery(project)
+    } else {
+      super.actionPerformed(e)
+    }
   }
 
   override fun update(e: AnActionEvent) {
@@ -136,4 +155,16 @@ class ToggleLayoutInspectorAction :
       BrowserUtil.browse(STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL)
     }
   }
+}
+
+private fun showLayoutInspectorDiscoveryPopUp(project: Project) {
+  val notificationGroup =
+    NotificationGroupManager.getInstance().getNotificationGroup("LAYOUT_INSPECTOR_DISCOVERY")
+  val notification =
+    notificationGroup.createNotification(
+      LayoutInspectorBundle.message("layout.inspector.discovery.title"),
+      LayoutInspectorBundle.message("layout.inspector.discovery.description"),
+      NotificationType.INFORMATION,
+    )
+  notification.notify(project)
 }
