@@ -19,6 +19,7 @@
 #include <string>
 
 class Simple {
+ private:
   std::string test_string_;
 
  public:
