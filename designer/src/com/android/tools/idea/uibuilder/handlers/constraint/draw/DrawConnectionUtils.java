@@ -19,6 +19,7 @@ import static com.intellij.util.ui.JBUI.scale;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.ScenePicker;
+import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.intellij.util.ui.JBFont;
 import java.awt.BasicStroke;
 import java.awt.Canvas;
@@ -1146,12 +1147,93 @@ public class DrawConnectionUtils {
       FontMetrics metrics = g.getFontMetrics();
       Rectangle2D rect = metrics.getStringBounds(string, g);
       float sx = (float)(x + MARGIN_SPACING);
-      float sy = (float)((y2 + y1) / 2 + rect.getHeight() / 2 - metrics.getDescent());
+      float sy = (float)((float)(y2 + y1) / 2 + rect.getHeight() / 2 - metrics.getDescent());
       if (isReference) {
         g.setFont(sFontReference);
       }
       g.drawString(string, sx, sy);
       g.setFont(previousFont);
     }
+  }
+
+  public static void drawChain(Graphics2D g,
+                               boolean hover,
+                               @SwingCoordinate int startX,
+                               @SwingCoordinate int startY,
+                               @SwingCoordinate int endX,
+                               @SwingCoordinate int endY,
+                               @SwingCoordinate int scaleSource,
+                               @SwingCoordinate int scaleDest,
+                               int sourceDirection,
+                               int destDirection,
+                               ScenePicker.Writer picker,
+                               Object secondarySelector,
+                               ColorSet color,
+                               int modeTo) {
+    boolean flipChain = (endX + endY > startX + startY);
+    GeneralPath path = new GeneralPath();
+    float x1, y1, x2, y2, x3, y3, x4, y4;
+    int localStartX = flipChain ? endX : startX;
+    int localStartY = flipChain ? endY : startY;
+    int localEndX = flipChain ? startX : endX;
+    int localEndY = flipChain ? startY : endY;
+    int localSourceDirection = flipChain ? destDirection : sourceDirection;
+    int localDestDirection = flipChain ? sourceDirection : destDirection;
+
+    if (hover) {
+      GeneralPath hoverPath = new GeneralPath(path);
+      g.setColor(DrawConnection.modeGetConstraintsColor(DrawConnection.MODE_WILL_HOVER, color));
+      Stroke tmpStroke = g.getStroke();
+      g.setStroke(DrawConnection.myHoverStroke);
+      hoverPath.moveTo(x1 = localStartX, y1 = localStartY);
+      hoverPath.curveTo(x2 = localStartX + scaleSource * DrawConnection.dirDeltaX[localSourceDirection],
+                        y2 = localStartY + scaleSource * DrawConnection.dirDeltaY[localSourceDirection],
+                        x3 = localEndX + scaleDest * DrawConnection.dirDeltaX[localDestDirection],
+                        y3 = localEndY + scaleDest * DrawConnection.dirDeltaY[localDestDirection],
+                        x4 = localEndX, y4 = localEndY);
+      g.draw(hoverPath);
+      hoverPath.reset();
+      g.setStroke(tmpStroke);
+    }
+    path.moveTo(x1 = localStartX, y1 = localStartY);
+    path.curveTo(x2 = localStartX + scaleSource * DrawConnection.dirDeltaX[localSourceDirection],
+                y2 = localStartY + scaleSource * DrawConnection.dirDeltaY[localSourceDirection],
+                x3 = localEndX + scaleDest * DrawConnection.dirDeltaX[localDestDirection],
+                y3 = localEndY + scaleDest * DrawConnection.dirDeltaY[localDestDirection],
+                x4 = localEndX, y4 = localEndY);
+    if (picker != null && secondarySelector != null) {
+      picker.addCurveTo(secondarySelector, 4, (int)x1, (int)y1, (int)x2, (int)y2, (int)x3, (int)y3, (int)x4, (int)y4, 4);
+    }
+    g.setStroke(DrawConnection.getStroke(DrawConnection.StrokeType.CHAIN, flipChain, modeTo));
+    g.draw(path);
+  }
+
+  public static Stroke getStroke(DrawConnection.StrokeType strokeType,
+                                 boolean flip_chain,
+                                 int mode,
+                                 Stroke thickChainStroke1,
+                                 Stroke thickChainStroke2,
+                                 Stroke chainStroke1,
+                                 Stroke chainStroke2,
+                                 Stroke thickSpringStroke,
+                                 Stroke springStroke,
+                                 Stroke thickDashStroke,
+                                 Stroke dashStroke,
+                                 Stroke thickNormalStroke,
+                                 Stroke normalStroke) {
+    boolean thick = (mode == DrawConnection.MODE_DELETING ||
+                     mode == DrawConnection.MODE_CONSTRAINT_SELECTED ||
+                     mode == DrawConnection.MODE_COMPUTED);
+    return switch (strokeType) {
+      case CHAIN -> {
+        if (thick) {
+          yield flip_chain ? thickChainStroke1 : thickChainStroke2;
+        }
+        yield flip_chain ? chainStroke1 : chainStroke2;
+      }
+      case SPRING -> thick ? thickSpringStroke : springStroke;
+      case DASH -> thick ? thickDashStroke : dashStroke;
+      default -> thick ? thickNormalStroke : normalStroke;
+    };
   }
 }

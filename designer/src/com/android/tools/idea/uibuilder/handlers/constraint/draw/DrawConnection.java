@@ -31,7 +31,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.GeneralPath;
 
@@ -93,13 +92,13 @@ public class DrawConnection implements DrawCommand {
   int myModeFrom; // use to describe various display modes 0=default 1 = Source selected
   int myModeTo;
   long myStateChangeTime;
-  static Stroke myBackgroundStroke = new BasicStroke(scale(8));
+  public static Stroke myBackgroundStroke = new BasicStroke(scale(8));
   static Stroke myDashStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{scale(4), scale(6)}, 0f);
   static Stroke mySpringStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{scale(4), scale(4)}, 0f);
   static Stroke myChainStroke1 = new FancyStroke(FancyStroke.Type.HALF_CHAIN1, scale(2.5f), scale(9), 1);
   static Stroke myChainStroke2 = new FancyStroke(FancyStroke.Type.HALF_CHAIN2, scale(2.5f), scale(9), 1);
   static Stroke myNormalStroke = new BasicStroke(scale(1));
-  static Stroke myHoverStroke = new BasicStroke(scale(12), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND);
+  public static Stroke myHoverStroke = new BasicStroke(scale(12), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND);
 
   static Stroke myThickDashStroke =
     new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{scale(4), scale(6)}, 0f);
@@ -279,21 +278,10 @@ public class DrawConnection implements DrawCommand {
   }
 
   static Stroke getStroke(StrokeType strokeType, boolean flip_chain, int mode) {
-    boolean thick = (mode == MODE_DELETING || mode == MODE_CONSTRAINT_SELECTED || mode == MODE_COMPUTED);
-    switch (strokeType) {
-      case CHAIN:
-        if (thick) {
-          return flip_chain ? myThickChainStroke1 : myThickChainStroke2;
-        }
-        return flip_chain ? myChainStroke1 : myChainStroke2;
-      case SPRING:
-        return thick ? myThickSpringStroke : mySpringStroke;
-      case DASH:
-        return thick ? myThickDashStroke : myDashStroke;
-      case NORMAL:
-        return thick ? myThickNormalStroke : myNormalStroke;
-    }
-    return thick ? myThickNormalStroke : myNormalStroke;
+    return DrawConnectionUtils.getStroke(strokeType, flip_chain, mode, myThickChainStroke1, myThickChainStroke2, myChainStroke1,
+                                         myChainStroke2,
+                                         myThickSpringStroke, mySpringStroke, myThickDashStroke, myDashStroke, myThickNormalStroke,
+                                         myNormalStroke);
   }
 
   public static Color modeGetMarginColor(int mode, ColorSet color) {
@@ -335,9 +323,6 @@ public class DrawConnection implements DrawCommand {
                              int modeFrom,
                              int modeTo,
                              long stateChange) {
-
-    Shape originalClip = null;
-
     boolean animate = false;
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     Color constraintColor = modeGetConstraintsColor(modeTo, color);
@@ -451,64 +436,14 @@ public class DrawConnection implements DrawCommand {
     g.setStroke(getStroke(StrokeType.NORMAL, false, modeTo));
     switch (connectionType) {
       case TYPE_CHAIN:
-        boolean flip_chain = (endx + endy > startx + starty);
-        if (flip_chain) {
-          float x1, y1, x2, y2, x3, y3, x4, y4;
-          if (hover) {
-            GeneralPath hoverPath = new GeneralPath(ourPath);
-            g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
-            Stroke tmpStroke = g.getStroke();
-            g.setStroke(myHoverStroke);
-            hoverPath.moveTo(x1 = startx, y1 = starty);
-            hoverPath.curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection],
-                              y2 = starty + scale_source * dirDeltaY[sourceDirection],
-                              x3 = endx + scale_dest * dirDeltaX[destDirection],
-                              y3 = endy + scale_dest * dirDeltaY[destDirection],
-                              x4 = endx, y4 = endy);
-            g.draw(hoverPath);
-            hoverPath.reset();
-            g.setStroke(tmpStroke);
-          }
-          ourPath.moveTo(x1 = startx, y1 = starty);
-          ourPath.curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection],
-                          y2 = starty + scale_source * dirDeltaY[sourceDirection],
-                          x3 = endx + scale_dest * dirDeltaX[destDirection],
-                          y3 = endy + scale_dest * dirDeltaY[destDirection],
-                          x4 = endx, y4 = endy);
-          if (picker != null && secondarySelector != null) {
-            picker.addCurveTo(secondarySelector, 4, (int)x1, (int)y1, (int)x2, (int)y2, (int)x3, (int)y3, (int)x4, (int)y4, 4);
-          }
-        }
-        else {
-          float x1, y1, x2, y2, x3, y3, x4, y4;
-          if (hover) {
-            GeneralPath hoverPath = new GeneralPath(ourPath);
-            g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));
-            Stroke tmpStroke = g.getStroke();
-            g.setStroke(myHoverStroke);
-            hoverPath.moveTo(x1 = endx, y1 = endy);
-            hoverPath.curveTo(x2 = endx + scale_source * dirDeltaX[destDirection],
-                              y2 = endy + scale_source * dirDeltaY[destDirection],
-                              x3 = startx + scale_dest * dirDeltaX[sourceDirection],
-                              y3 = starty + scale_dest * dirDeltaY[sourceDirection],
-                              x4 = startx, y4 = starty);
-            g.draw(hoverPath);
-            hoverPath.reset();
-            g.setStroke(tmpStroke);
-          }
-          ourPath.moveTo(x1 = endx, y1 = endy);
-          ourPath.curveTo(x2 = endx + scale_source * dirDeltaX[destDirection],
-                          y2 = endy + scale_source * dirDeltaY[destDirection],
-                          x3 = startx + scale_dest * dirDeltaX[sourceDirection],
-                          y3 = starty + scale_dest * dirDeltaY[sourceDirection],
-                          x4 = startx, y4 = starty);
-          if (picker != null && secondarySelector != null) {
-            picker.addCurveTo(secondarySelector, 4, (int)x1, (int)y1, (int)x2, (int)y2, (int)x3, (int)y3, (int)x4, (int)y4, 4);
-          }
-        }
         g.setColor(constraintColor);
-        g.setStroke(getStroke(StrokeType.CHAIN, flip_chain, modeTo));
-        g.draw(ourPath);
+        // Draw curved line twice mirroring so it looks like a chain
+        DrawConnectionUtils
+          .drawChain(g, hover, startx, starty, endx, endy, scale_source, scale_dest, sourceDirection, destDirection, picker,
+                     secondarySelector, color, modeTo);
+        DrawConnectionUtils
+          .drawChain(g, hover, endx, endy, startx, starty, scale_source, scale_dest, destDirection, sourceDirection, picker,
+                     secondarySelector, color, modeTo);
         if (modeTo == MODE_DELETING) {
           DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
           g.fillPolygon(xPoints, yPoints, 3);
