@@ -151,7 +151,7 @@ class DeviceMenuActionTest {
               ------------------------------------------------------
               Generic Devices
                   Small Phone (360 × 640 dp, xhdpi)
-                  Resizable (411 × 914 dp, 420dpi)
+                  Resizable (Experimental) (411 × 914 dp, 420dpi)
                   Medium Tablet (1280 × 800 dp, xhdpi)
                   Medium Phone (411 × 914 dp, 420dpi)
                   8" Fold-out (838 × 945 dp, 420dpi)
