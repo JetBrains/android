@@ -2,10 +2,17 @@ directories:
   tools/vendor/google3/aswb/
   tools/adt/idea
   tools/base
+  tools/studio/google/cloud/testing
+  tools/studio/google/cloud/tools
   tools/vendor/google/asfg/ext/
   tools/vendor/google/aswb/
   tools/vendor/google/android-apk
   tools/vendor/google/android-ndk
+  tools/vendor/google/directaccess-client
+  tools/vendor/google/firebase
+  tools/vendor/google/git4insights
+  tools/vendor/google/ml/aiplugin
+  tools/vendor/google/url-assistant
   -.out
   -tools/idea/out
   -tools/adt/idea/ij-debugger-tests
