@@ -26,7 +26,6 @@ import com.android.tools.preview.config.DEVICE_BY_NAME_PREFIX
 import com.android.tools.preview.config.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.preview.config.PARAMETER_DEVICE
 import com.android.tools.preview.config.Preview.DeviceSpec
-import com.android.tools.preview.config.asNewDeviceSpec
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalQuickFixOnPsiElement
 import com.intellij.codeInspection.ProblemDescriptor
@@ -183,7 +182,7 @@ object DeviceSpecCheck {
     val deviceValueExpression =
       annotation.findDeclaredAttributeValue(PARAMETER_DEVICE) ?: return Passed
     val deviceValue =
-      deviceValueExpression.evaluateString()?.asNewDeviceSpec()
+      deviceValueExpression.evaluateString()
         ?: return failedCheck("Can't get string literal of 'device' value")
 
     val sourcePsi = annotation.sourcePsi ?: return failedCheck("Can't get sourcePsi")
