@@ -183,12 +183,10 @@ class TreeSettingsActionsTest {
     RecompositionCounts.setSelected(event, true)
     assertThat(treeSettings.showRecompositions).isEqualTo(true)
     verify(event.treePanel())!!.updateRecompositionColumnVisibility()
-    verify(event.treePanel())!!.resetRecompositionCounts()
 
     RecompositionCounts.setSelected(event, false)
     assertThat(treeSettings.showRecompositions).isEqualTo(false)
     verify(event.treePanel(), times(2))!!.updateRecompositionColumnVisibility()
-    verify(event.treePanel(), times(2))!!.resetRecompositionCounts()
 
     // Disconnect and check modifying setting:
     isConnected = false
