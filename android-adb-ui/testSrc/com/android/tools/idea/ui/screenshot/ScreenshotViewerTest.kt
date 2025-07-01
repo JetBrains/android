@@ -119,7 +119,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testResizing() {
-    assumeFalse(SystemInfo.isWindows) // b/355613188
+    assumeFalse(SystemInfo.isWindows) // b/356410902
     val screenshotImage =
         ScreenshotImage(createImage(100, 200), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2400), 420)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
@@ -136,6 +136,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testResolutionChange() {
+    assumeFalse(SystemInfo.isWindows) // b/356410902
     StudioFlags.SCREENSHOT_RESIZING.overrideForTest(true, testRootDisposable)
     val settings = DeviceScreenshotSettings.getInstance()
     assertThat(settings.scale == 1.0)
