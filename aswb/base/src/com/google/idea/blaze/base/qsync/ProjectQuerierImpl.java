@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.base.qsync;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.idea.blaze.base.async.executor.BlazeExecutor;
@@ -64,7 +63,7 @@ public class ProjectQuerierImpl implements ProjectQuerier {
    */
   @Override
   public PostQuerySyncData fullQuery(ProjectDefinition projectDef, BlazeContext context)
-      throws IOException, BuildException {
+      throws BuildException {
 
     Optional<VcsState> vcsState = getVcsState(context);
     SyncQueryStatsScope.fromContext(context)
@@ -116,7 +115,7 @@ public class ProjectQuerierImpl implements ProjectQuerier {
   @Override
   public PostQuerySyncData update(
       ProjectDefinition currentProjectDef, PostQuerySyncData previousState, BlazeContext context)
-      throws IOException, BuildException {
+      throws BuildException {
 
     Optional<VcsState> vcsState = getVcsState(context);
     SyncQueryStatsScope.fromContext(context)

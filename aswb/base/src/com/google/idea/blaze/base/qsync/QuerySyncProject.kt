@@ -127,18 +127,14 @@ class QuerySyncProject(
     context: BlazeContext,
     lastQuery: PostQuerySyncData?,
   ): CoreSyncResult {
-    try {
-      SaveUtil.saveAllFiles()
-      val postQuerySyncData =
-        if (lastQuery == null)
-          projectQuerier.fullQuery(projectDefinition, context)
-        else
-          projectQuerier.update(projectDefinition, lastQuery, context)
-      val graph = buildGraphData(postQuerySyncData, context)
-      return CoreSyncResult(postQuerySyncData, graph)
-    } catch (e: IOException) {
-      throw BuildException(e)
-    }
+    SaveUtil.saveAllFiles()
+    val postQuerySyncData =
+      if (lastQuery == null)
+        projectQuerier.fullQuery(projectDefinition, context)
+      else
+        projectQuerier.update(projectDefinition, lastQuery, context)
+    val graph = buildGraphData(postQuerySyncData, context)
+    return CoreSyncResult(postQuerySyncData, graph)
   }
 
   /**

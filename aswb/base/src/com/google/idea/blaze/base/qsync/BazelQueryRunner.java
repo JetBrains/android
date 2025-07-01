@@ -62,8 +62,7 @@ public class BazelQueryRunner implements QueryRunner {
   }
 
   @Override
-  public QuerySummary runQuery(QuerySpec query, BlazeContext context)
-      throws IOException, BuildException {
+  public QuerySummary runQuery(QuerySpec query, BlazeContext context) throws BuildException {
     Stopwatch timer = Stopwatch.createStarted();
     String queryExp = query.getQueryExpression().orElse(null);
     if (queryExp == null) {
@@ -88,15 +87,22 @@ public class BazelQueryRunner implements QueryRunner {
     BlazeCommand.Builder commandBuilder = BlazeCommand.builder(invoker, BlazeCommandName.QUERY);
     commandBuilder.addBlazeFlags(query.getQueryFlags());
     commandBuilder.addBlazeFlags("--keep_going");
+    Path tempDirectoryPath = Path.of(project.getBasePath(), "tmp");
     if (queryExp.length() > MAX_QUERY_EXP_LENGTH) {
-      // Query is too long, write it to a file.
-      Path tmpFile =
+      try {
+        // Query is too long, write it to a file.
+        Path tmpFile =
           Files.createTempFile(
-              Files.createDirectories(Path.of(project.getBasePath(), "tmp")), "query", ".txt");
-      tmpFile.toFile().deleteOnExit();
-      Files.writeString(tmpFile, queryExp, StandardOpenOption.WRITE);
-      commandBuilder.addBlazeFlags("--query_file", tmpFile.toString());
-    } else {
+            Files.createDirectories(tempDirectoryPath), "query", ".txt");
+        tmpFile.toFile().deleteOnExit();
+        Files.writeString(tmpFile, queryExp, StandardOpenOption.WRITE);
+        commandBuilder.addBlazeFlags("--query_file", tmpFile.toString());
+      }
+      catch (IOException ex) {
+        throw new BuildException("Failed to write a query file to:" + tempDirectoryPath, ex);
+      }
+    }
+    else {
       commandBuilder.addBlazeFlags(queryExp);
     }
     addExtraFlags(commandBuilder, invoker);
@@ -118,6 +124,9 @@ public class BazelQueryRunner implements QueryRunner {
         context.setHasWarnings();
       }
       return querySummary;
+    }
+    catch (IOException ex) {
+      throw new BuildException("Failed to read query result", ex);
     }
   }
 

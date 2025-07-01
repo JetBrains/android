@@ -19,10 +19,8 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
-import java.io.IOException;
 
 /** A query sync service that knows how to run queries on bazel projects. */
 public interface QueryRunner {
-
-  QuerySummary runQuery(QuerySpec query, BlazeContext context) throws IOException, BuildException;
+  QuerySummary runQuery(QuerySpec query, BlazeContext context) throws BuildException;
 }

@@ -36,7 +36,7 @@ import java.util.Optional;
 public interface RefreshOperation {
 
   /** Returns the spec of the query to be run for this strategy. */
-  Optional<QuerySpec> getQuerySpec() throws IOException;
+  Optional<QuerySpec> getQuerySpec();
 
   /** Creates the new project snapshot. */
   PostQuerySyncData createPostQuerySyncData(QuerySummary output);
