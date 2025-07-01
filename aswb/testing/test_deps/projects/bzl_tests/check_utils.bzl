@@ -318,7 +318,7 @@ def _str_subject_equals(self, other):
         index = other.index("*")
         prefix = other[0:index]
         suffix = other[index + 1:]
-        if self.actual.startswith(prefix) and self.actual.endswith(suffix):
+        if self.actual and self.actual.startswith(prefix) and self.actual.endswith(suffix):
             return
     self.meta.add_failure(
         "expected: {}".format(other),
