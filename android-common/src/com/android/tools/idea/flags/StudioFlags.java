@@ -2394,6 +2394,12 @@ public final class StudioFlags {
                     "When enabled, individual chunks of suggestions may be grouped together using heuristic logic into semantic chunks that can be accepted or rejected together.",
                     false);
 
+  public static final Flag<Boolean> STUDIOBOT_DEPLOY_TOOLS_BY_DEFAULT =
+    new BooleanFlag(STUDIOBOT, "include.deploy.tools.by.default",
+                    "Enable using Deployment Agent tools by default",
+                    "When enabled, a set of tools allowing the agent to use deployment tools like Live Edit will be included by default.",
+                    enabledUpTo(DEV));
+
   public static final Flag<Boolean> GEMINI_AGENT_MODE =
     new BooleanFlag(STUDIOBOT, "agent.mode",
                     "Enable agent mode.",

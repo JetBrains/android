@@ -61,6 +61,7 @@ import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -489,6 +490,23 @@ public class LiveEditProjectMonitor implements Disposable {
     mainThreadExecutor.schedule(this::doOnManualLETrigger, 0, TimeUnit.MILLISECONDS);
   }
 
+  @Trace
+  public void onAgentTrigger(String path, String vibe) {
+    // We want to flush out all pending changes if we can.
+    doOnManualLETrigger();
+
+    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(path);
+    if (virtualFile == null) {
+      throw LiveEditUpdateException.Companion.internalErrorVibeEdit(path + " not found in local file system.");
+    }
+    PsiFile file = PsiManager.getInstance(project).findFile(virtualFile);
+
+    // TODO: Add LiveEditEvent.Mode.AGENT_TOOL_VIBE
+    while(!processChanges(project, List.of(file), LiveEditEvent.Mode.MANUAL, vibe)) {
+      LOGGER.info("Vibe Edit ProcessChanges was interrupted");
+    }
+  }
+
   @VisibleForTesting
   void doOnManualLETrigger() {
 
@@ -542,11 +560,20 @@ public class LiveEditProjectMonitor implements Disposable {
     mainThreadExecutor.submit(() -> {}).get(timeoutMillis, TimeUnit.MILLISECONDS);
   }
 
+  private boolean processChanges(Project project, List<PsiFile> changedFiles, LiveEditEvent.Mode mode) {
+    return processChanges(project, changedFiles, mode, null);
+  }
+
   @Trace
   /**
    * @return true is the changes were successfully processed (without being interrupted). Otherwise, false.
    */
-  private boolean processChanges(Project project, List<PsiFile> changedFiles, LiveEditEvent.Mode mode) {
+  private boolean processChanges(Project project, List<PsiFile> changedFiles, LiveEditEvent.Mode mode, String vibe) {
+    if (vibe != null && changedFiles.size() != 1) {
+      // This is unlikely to happen.
+      throw LiveEditUpdateException.Companion.internalErrorVibeEdit("Vibe Edit mode only support one change at time.");
+    }
+
     LiveEditEvent.Builder event = LiveEditEvent.newBuilder().setMode(mode);
 
     long start = System.nanoTime();
@@ -567,7 +594,7 @@ public class LiveEditProjectMonitor implements Disposable {
         }
 
         PsiState state = psiSnapshots.get(file);
-        inputs.add(new LiveEditCompilerInput(file, state, null));
+        inputs.add(new LiveEditCompilerInput(file, state, vibe));
       }
 
       compiled = compiler

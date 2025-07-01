@@ -123,6 +123,20 @@ interface LiveEditService : Disposable {
 
   fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode)
   fun toggleLiveEditMode(oldMode: LiveEditTriggerMode, newMode: LiveEditTriggerMode)
+
+  /**
+   * Trigger a Live Edit update based on the pending changes (current file in auto, all pending changes in manual)
+   *
+   * Note that this call is async
+   */
   fun triggerLiveEdit()
+
+  /**
+   * Trigger a Live Edit update of a given file and a prompt string for Studio Bot code transformer before updating.
+   *
+   * Note that, unlike triggerLiveEdit(), this call is a sync call. We have the option to inform the agent what exactly happened.
+   */
+  fun triggerVibeEdit(pathString: String, prompt: String)
+
   fun notifyLiveEditAvailability(device: IDevice)
 }
