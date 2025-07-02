@@ -17,6 +17,7 @@ package com.android.tools.idea.deviceprovisioner
 
 import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.fakeadbserver.DeviceState
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.deviceprovisioner.DefaultProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.tools.idea.concurrency.createChildScope
@@ -73,7 +74,14 @@ class DeviceProvisionerLeakTest {
 
     val deviceState =
       fakeAdbProvider.fakeAdb.fakeAdbServer
-        .connectDevice("1", "Google", "Pixel", "13", "33", DeviceState.HostConnectionType.USB)
+        .connectDevice(
+          "1",
+          "Google",
+          "Pixel",
+          "13",
+          AndroidApiLevel(33),
+          DeviceState.HostConnectionType.USB,
+        )
         .get()
     deviceState.deviceStatus = DeviceState.DeviceStatus.ONLINE
 

@@ -32,6 +32,7 @@ import java.util.function.Consumer;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Form that displays the list of devices available to pair via pairing code.
@@ -46,8 +47,14 @@ public class PairingCodeContentPanel {
   @NotNull private JBScrollPane myDeviceListScrollPane;
   private JBLabel myDeviceLineupLabel;
   @NotNull List<PairingCodeDevicePanel> myPanels = new ArrayList<>();
+  private final String myMdnsDevice;
 
   public PairingCodeContentPanel() {
+    this(null);
+  }
+
+  public PairingCodeContentPanel(@Nullable String mdnsDevice) {
+    myMdnsDevice = mdnsDevice;
     setupUI();
     myDeviceList.setLayout(new VerticalFlowLayout());
 
@@ -189,7 +196,12 @@ public class PairingCodeContentPanel {
     myDeviceLineupLabel = new JBLabel();
     myDeviceLineupLabel.setHorizontalTextPosition(0);
     myDeviceLineupLabel.setIconTextGap(0);
-    myDeviceLineupLabel.setText("Searching for devices...");
+    // TODO(b/412571872) remove this hack, implement custom UI for available pairable devices (pending input from UX session).
+    if (myMdnsDevice == null) {
+      myDeviceLineupLabel.setText("Searching for devices...");
+    } else {
+      myDeviceLineupLabel.setText(String.format("Waiting for %s to enter pairing mode...", myMdnsDevice));
+    }
     myDeviceLineupLabel.setVerticalTextPosition(3);
     myEmptyPanel.add(myDeviceLineupLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,

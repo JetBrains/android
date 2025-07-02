@@ -36,9 +36,9 @@ public final class GeneratedTarget {
     return String.format("%s:%s (%s)", label, macro.lineNumber, ruleType);
   }
 
-  /** Data specifying a macro call in a BUILD file. */
+  /** Data specifying a macro call in a ~BUILD file. */
   public static class MacroData {
-    /** The 1-indexed line number of the macro within the BUILD file. */
+    /** The 1-indexed line number of the macro within the ~BUILD file. */
     public final int lineNumber;
     /** The function name. */
     public final String macroFunction;

@@ -49,6 +49,6 @@ class MultiplatformKgpMinVersionValidator : Validator<Optional<KotlinGradlePlugi
 
   companion object {
     private val MINIMUM_SUPPORTED_KOTLIN_MULTIPLATFORM_VERSION =
-      KotlinGradlePluginVersion.parse("1.9.20")!!
+      KotlinGradlePluginVersion.parse("2.0.0")!!
   }
 }

@@ -71,7 +71,7 @@ public class CPrefetchFileSourceTest extends BlazeIntegrationTestCase {
                 TargetMapBuilder.builder()
                     .addTarget(
                         TargetIdeInfo.builder()
-                            .setBuildFile(sourceRoot("java/com/google/BUILD"))
+                            .setBuildFile(sourceRoot("java/com/google/~BUILD"))
                             .setLabel("//java/com/google:lib")
                             .setKind("cc_library")
                             .addSource(sourceRoot("java/com/google/native.cc"))
@@ -111,7 +111,7 @@ public class CPrefetchFileSourceTest extends BlazeIntegrationTestCase {
                 TargetMapBuilder.builder()
                     .addTarget(
                         TargetIdeInfo.builder()
-                            .setBuildFile(sourceRoot("third_party/library/BUILD"))
+                            .setBuildFile(sourceRoot("third_party/library/~BUILD"))
                             .setLabel("//third_party/library:dep")
                             .setKind("cc_library")
                             .setCInfo(
@@ -159,7 +159,7 @@ public class CPrefetchFileSourceTest extends BlazeIntegrationTestCase {
                 TargetMapBuilder.builder()
                     .addTarget(
                         TargetIdeInfo.builder()
-                            .setBuildFile(sourceRoot("third_party/library/BUILD"))
+                            .setBuildFile(sourceRoot("third_party/library/~BUILD"))
                             .setLabel("//third_party/library:lib")
                             .setKind("java_library")
                             .addSource(sourceRoot("third_party/library/Library.java")))

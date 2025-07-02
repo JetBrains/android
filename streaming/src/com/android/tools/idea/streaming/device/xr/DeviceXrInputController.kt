@@ -20,16 +20,18 @@ import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.getNormalizedScrollAmount
 import com.android.tools.idea.streaming.device.DeviceClient
+import com.android.tools.idea.streaming.device.DeviceController.XrEnvironmentListener
 import com.android.tools.idea.streaming.device.XrAngularVelocityMessage
 import com.android.tools.idea.streaming.device.XrRotationMessage
+import com.android.tools.idea.streaming.device.XrSetPassthroughCoefficientMessage
 import com.android.tools.idea.streaming.device.XrTranslationMessage
 import com.android.tools.idea.streaming.device.XrVelocityMessage
 import com.android.tools.idea.streaming.xr.AbstractXrInputController
+import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import io.ktor.util.collections.ConcurrentMap
@@ -42,15 +44,15 @@ import kotlin.math.min
  * Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough.
  * Thread safe.
  */
-internal class DeviceXrInputController(private val deviceClient: DeviceClient) : AbstractXrInputController() {
+internal class DeviceXrInputController(private val deviceClient: DeviceClient) : AbstractXrInputController(), XrEnvironmentListener {
 
   init {
     Disposer.register(deviceClient, this)
   }
 
   override suspend fun setPassthrough(passthroughCoefficient: Float) {
-    // TODO: Implement when IXrSimulatedInputManager supports it.
-    thisLogger().error("This operation is not implemented yet")
+    val controlMessage = XrSetPassthroughCoefficientMessage(passthroughCoefficient)
+    deviceClient.deviceController?.sendControlMessage(controlMessage)
   }
 
   @UiThread
@@ -142,6 +144,14 @@ internal class DeviceXrInputController(private val deviceClient: DeviceClient) :
       val controlMessage = XrAngularVelocityMessage(omegaX, omegaY)
       deviceClient.deviceController?.sendControlMessage(controlMessage)
     }
+  }
+
+  override fun onXrPassthroughCoefficientChanged(passthroughCoefficient: Float) {
+    this.passthroughCoefficient = passthroughCoefficient
+  }
+
+  override fun onXrEnvironmentChanged(environment: XrEnvironment) {
+    this.environment = environment
   }
 
   override fun dispose() {

@@ -49,6 +49,8 @@ class TestBasePreviewElement<T>(
       showBackground = showBackground,
       backgroundColor = backgroundColor,
       displayPositioning = displayPositioning,
+      organizationGroup = "",
+      organizationName = "",
     )
   override val previewBody = null
 

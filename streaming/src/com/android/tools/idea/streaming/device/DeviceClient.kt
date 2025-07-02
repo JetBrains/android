@@ -231,26 +231,27 @@ internal class DeviceClient(
     val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
     val port = (asyncChannel.localAddress as InetSocketAddress).port
     logger.debug("Using port $port")
+    var channels: Channels? = null
     SuspendingServerSocketChannel(asyncChannel).use { serverSocketChannel ->
       val socketName = "screen-sharing-agent-$port"
-      var channels: Channels? = null
       ClosableReverseForwarding(deviceSelector, adbSession, SocketSpec.LocalAbstract(socketName), SocketSpec.Tcp(port)).use {
         it.startForwarding()
         agentPushed.await()
         startAgent(connection, deviceSelector, adbSession, socketName, maxVideoSize, initialDisplayOrientation, startVideoStream)
-        channels = connectChannels(serverSocketChannel)
+        channels = connectChannels(connection, serverSocketChannel)
         // Port forwarding can be removed since the already established connections will continue to work without it.
       }
-      channels?.let { channels ->
-        connection.deviceController = DeviceController(connection, channels.controlChannel)
-        connection.videoDecoder = VideoDecoder(channels.videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker)
-            .apply { start(startVideoStream) }
-        connection.audioDecoder = channels.audioChannel?.let { AudioDecoder(it, clientScope).apply { start(isAudioStreamingEnabled()) } }
+    }
 
-        if (isAudioStreamingSupported() && !isRemoteDevice()) {
-          val messageBusConnection = ApplicationManager.getApplication().messageBus.connect(this)
-          messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, DeviceMirroringSettingsListener { updateAudioStreaming() })
-        }
+    if (channels != null) {
+      connection.deviceController = DeviceController(connection, channels.controlChannel)
+      connection.videoDecoder = VideoDecoder(channels.videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker)
+          .apply { start(startVideoStream) }
+      connection.audioDecoder = channels.audioChannel?.let { AudioDecoder(it, clientScope).apply { start(isAudioStreamingEnabled()) } }
+
+      if (isAudioStreamingSupported() && !isRemoteDevice()) {
+        val messageBusConnection = ApplicationManager.getApplication().messageBus.connect(this)
+        messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, DeviceMirroringSettingsListener { updateAudioStreaming() })
       }
     }
 
@@ -293,7 +294,7 @@ internal class DeviceClient(
     }
   }
 
-  private suspend fun connectChannels(serverSocketChannel: SuspendingServerSocketChannel): Channels {
+  private suspend fun connectChannels(connection: Disposable, serverSocketChannel: SuspendingServerSocketChannel): Channels {
     return withVerboseTimeout(getConnectionTimeout(), "Device agent is not responding") {
       var videoChannel: SuspendingSocketChannel? = null
       var controlChannel: SuspendingSocketChannel? = null
@@ -301,7 +302,7 @@ internal class DeviceClient(
       // The channels are distinguished by single-byte markers, 'V' for video and 'C' for control.
       // Read the markers after establishing connection to assign the channels appropriately.
       val numChannels = if (isAudioStreamingSupported()) 3 else 2
-      val deferredChannels = Array(numChannels) { _ -> serverSocketChannel.acceptAndReadMarker() }
+      val deferredChannels = Array(numChannels) { _ -> serverSocketChannel.acceptAndReadMarker(connection) }
       for (deferred in deferredChannels) {
         val (channel, marker) = deferred.await()
         when (marker) {
@@ -325,9 +326,9 @@ internal class DeviceClient(
     }
   }
 
-  private suspend fun SuspendingServerSocketChannel.acceptAndReadMarker():
+  private suspend fun SuspendingServerSocketChannel.acceptAndReadMarker(connection: Disposable):
       Deferred<Pair<SuspendingSocketChannel, Byte>> {
-    val channel = acceptAndEnsureClosing()
+    val channel = acceptAndEnsureClosing(connection)
     return coroutineScope { async { Pair(channel, readChannelMarker(channel)) } }
   }
 
@@ -425,7 +426,7 @@ internal class DeviceClient(
                 (if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) DEBUG_LAYOUT_UI_SETTINGS else 0) or
                 (if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) GESTURE_NAVIGATION_UI_SETTINGS else 0) or
                 (if (StudioFlags.DEVICE_MIRRORING_USE_UINPUT.get()) USE_UINPUT else 0) or
-                (if (isEmulator && deviceConfig.deviceType == DeviceType.XR) DEVICE_IS_XR else 0) // Workaround for b/406870742.
+                (if (deviceConfig.deviceType == DeviceType.XR) DEVICE_IS_XR else 0) // Workaround for b/406870742 and b/408280128.
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
     val maxBitRate = calculateMaxBitRate()
     val maxBitRateArg = if (maxBitRate > 0) " --max_bit_rate=$maxBitRate" else ""
@@ -602,8 +603,8 @@ internal class DeviceClient(
     }
   }
 
-  private suspend fun SuspendingServerSocketChannel.acceptAndEnsureClosing(): SuspendingSocketChannel =
-      accept().also { Disposer.register(this@DeviceClient, DisposableCloser(it)) }
+  private suspend fun SuspendingServerSocketChannel.acceptAndEnsureClosing(disposable: Disposable): SuspendingSocketChannel =
+      accept().also { Disposer.register(disposable, DisposableCloser(it)) }
 
   private data class Channels(
     var videoChannel: SuspendingSocketChannel,

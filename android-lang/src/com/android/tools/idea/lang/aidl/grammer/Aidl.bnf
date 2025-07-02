@@ -253,7 +253,7 @@ private type_params ::= name_component (COMMA name_component)*
 
 // TODO: Make this match the AIDL grammar (allow annotations inside type bounds etc)
 
-type_element ::= annotation_list VOID_KEYWORD | annotation_list ((primitiveType | class_or_interface_type) (LBRACKET RBRACKET)*)
+type_element ::= annotation_list VOID_KEYWORD | annotation_list ((primitiveType | class_or_interface_type) (LBRACKET const_expr? RBRACKET)*)
 {
   recoverWhile="type_recover"
 }

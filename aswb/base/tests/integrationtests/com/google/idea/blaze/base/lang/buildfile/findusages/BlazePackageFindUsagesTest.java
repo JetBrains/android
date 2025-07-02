@@ -37,11 +37,11 @@ public class BlazePackageFindUsagesTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testDirectReferenceFound() {
-    BuildFile foo = createBuildFile(new WorkspacePath("java/com/google/foo/BUILD"));
+    BuildFile foo = createBuildFile(new WorkspacePath("java/com/google/foo/~BUILD"));
 
     BuildFile bar =
         createBuildFile(
-            new WorkspacePath("java/com/google/bar/BUILD"),
+            new WorkspacePath("java/com/google/bar/~BUILD"),
             "package_group(name = \"grp\", packages = [\"//java/com/google/foo\"])");
 
     PsiReference[] references = FindUsages.findAllReferences(foo);
@@ -56,11 +56,11 @@ public class BlazePackageFindUsagesTest extends BuildFileIntegrationTestCase {
   public void testLabelFragmentReferenceFound() {
     BuildFile foo =
         createBuildFile(
-            new WorkspacePath("java/com/google/foo/BUILD"), "java_library(name = \"lib\")");
+            new WorkspacePath("java/com/google/foo/~BUILD"), "java_library(name = \"lib\")");
 
     BuildFile bar =
         createBuildFile(
-            new WorkspacePath("java/com/google/bar/BUILD"),
+            new WorkspacePath("java/com/google/bar/~BUILD"),
             "java_library(name = \"lib2\", exports = [\"//java/com/google/foo:lib\"])");
 
     PsiReference[] references = FindUsages.findAllReferences(foo);
@@ -76,7 +76,7 @@ public class BlazePackageFindUsagesTest extends BuildFileIntegrationTestCase {
   public void testInternalReferencesResolve() {
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_library(name = \"lib\")",
             "java_library(name = \"other\", deps = [\"//java/com/google:lib\"])");
 

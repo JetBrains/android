@@ -16,7 +16,10 @@
 package com.android.tools.idea.npw.assetstudio.ui;
 
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
+import static com.android.tools.idea.npw.assetstudio.ui.SliderUtils.bindTwoWay;
+import static com.android.tools.idea.npw.assetstudio.ui.SliderUtils.inRange;
 
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.IconGenerator.Shape;
@@ -41,13 +44,11 @@ import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
-import com.android.tools.idea.observable.expressions.string.FormatExpression;
 import com.android.tools.idea.observable.ui.ColorProperty;
 import com.android.tools.idea.observable.ui.EnabledProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
-import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.rendering.DrawableRenderer;
@@ -137,6 +138,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   private JRadioButton myNotTrimmedRadioButton;
   private JPanel myTrimOptionsPanel;
   private JSlider myPaddingSlider;
+  private JTextField myPaddingValueTextField;
   private JLabel myPaddingValueLabel;
   private JPanel myAssetRadioButtonsPanel;
   private JPanel myPaddingSliderPanel;
@@ -197,6 +199,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
 
   @NotNull private final AndroidIconType myIconType;
   @NotNull private final IconGenerator myIconGenerator;
+  @NotNull private final ValidatorPanel myValidatorPanel;
   @NotNull private final String myDefaultOutputName;
 
   @NotNull private final BindingsManager myGeneralBindings = new BindingsManager();
@@ -220,13 +223,15 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
    * Initializes a panel which can generate few kinds of Android icons.
    */
   public ConfigureIconPanel(@NotNull Disposable disposableParent, @NotNull AndroidFacet facet,
-                            @NotNull AndroidIconType iconType, int minSdkVersion, @Nullable DrawableRenderer renderer) {
+                            @NotNull AndroidIconType iconType, int minSdkVersion, @NotNull ValidatorPanel validatorPanel,
+                            @Nullable DrawableRenderer renderer) {
     super(new BorderLayout());
     setupUI();
 
     myIconType = iconType;
     myDefaultOutputName = myIconType.toOutputName("name");
     myIconGenerator = createIconGenerator(facet.getModule().getProject(), iconType, minSdkVersion, renderer);
+    myValidatorPanel = validatorPanel;
 
     myTextAssetEditor.getAsset().setDefaultText("Aa");
 
@@ -276,6 +281,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
                                                     myImageRadioButton, myClipartRadioButton, myTextRadioButton);
 
     initializeListenersAndBindings();
+    initializeValidators();
 
     Disposer.register(disposableParent, this);
     for (AssetComponent<?> assetComponent : myAssetPanelMap.values()) {
@@ -481,13 +487,20 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
                              new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                  GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                  false));
+    myPaddingValueTextField = new JTextField();
+    myPaddingValueTextField.setHorizontalAlignment(4);
+    myPaddingValueTextField.setText("100");
+    myPaddingSliderPanel.add(myPaddingValueTextField,
+                                      new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                          new Dimension(30, -1), null, 0, false));
     myPaddingValueLabel = new JLabel();
     myPaddingValueLabel.setHorizontalAlignment(4);
-    myPaddingValueLabel.setText("100 %");
+    myPaddingValueLabel.setText("%");
     myPaddingSliderPanel.add(myPaddingValueLabel,
-                             new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                             new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                  GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                 new Dimension(40, -1), null, 0, false));
+                                                 new Dimension(-1, -1), null, 0, false));
     final Spacer spacer2 = new Spacer();
     myPaddingSliderPanel.add(spacer2, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                           GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
@@ -794,9 +807,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   }
 
   private void initializeListenersAndBindings() {
-    IntProperty paddingPercent = new SliderValueProperty(myPaddingSlider);
-    StringProperty paddingValueString = new TextProperty(myPaddingValueLabel);
-    myGeneralBindings.bind(paddingValueString, new FormatExpression("%d %%", paddingPercent));
+    IntProperty paddingPercent = bindTwoWay(myGeneralBindings, myPaddingSlider, myPaddingValueTextField);
 
     myForegroundColor = new ColorProperty(myForegroundColorPanel);
     myBackgroundColor = ObjectProperty.wrap(new ColorProperty(myBackgroundColorPanel));
@@ -894,6 +905,12 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
       myGeneralBindings.bind(e.getKey(), e.getValue());
     }
     myListeners.listenAll(layoutProperties.keySet()).with(() -> SwingUtilities.updateComponentTreeUI(myAllOptionsPanel));
+  }
+
+  private void initializeValidators() {
+    myValidatorPanel.registerValidator(
+      new TextProperty(myPaddingValueTextField), inRange(myPaddingSlider, "Padding scale")
+    );
   }
 
   @NotNull

@@ -150,7 +150,10 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     private final WeakReference<PsiFile> mySourceFileReference;
     private final WeakReference<HtmlLinkManager> myLinkManagerReference;
 
-    private LinkHandler(@NotNull HtmlLinkManager linkManager, @Nullable EditorDesignSurface surface, @NotNull Module module, @NotNull PsiFile sourceFile) {
+    private LinkHandler(@NotNull HtmlLinkManager linkManager,
+                        @Nullable EditorDesignSurface surface,
+                        @NotNull Module module,
+                        @NotNull PsiFile sourceFile) {
       myLinkManagerReference = new WeakReference<>(linkManager);
       myEditorDesignSurfaceReference = new WeakReference<>(surface);
       myModuleReference = new WeakReference<>(module);
@@ -1041,9 +1044,18 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         builder.add(", ");
       }
       else if (CLASS_COMPOSE_VIEW_ADAPTER.equals(className)) {
-        builder.addLink("Add ui-tooling library dependency to the project",
+        builder.add(
+          "This is likely due to a missing ui-tooling dependency in your project configuration. If your active variant is debug: ");
+        builder.addLink("Add the ui-tooling library to your project's dependencies",
                         myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING));
-        builder.add(", ");
+        builder.add(". If you are using a release variant and require previews: ");
+        builder.addLink("Add the ui-tooling dependency as an implementation dependency",
+                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING));
+        builder.add(
+          ". Note that including ui-tooling in a release build will increase your APK size and potentially build time. ");
+        builder.add(
+          "Remember to remove this dependency from your release configuration after you have finished using the preview features. ");
+        builder.add("Alternatively, you can try to:  ");
       }
       else if (CLASS_TILE_SERVICE_VIEW_ADAPTER.equals(className)) {
         builder.addLink("Add tiles-tooling library dependency to the project",

@@ -27,10 +27,8 @@ public interface AidlDottedName extends AidlNamedElement {
   @NotNull
   List<AidlNameComponent> getNameComponentList();
 
-  @NotNull
-  PsiElement getNameIdentifier();
+  @NotNull PsiElement getNameIdentifier();
 
-  @NotNull
-  String getQualifiedName();
+  @NotNull String getQualifiedName();
 
 }

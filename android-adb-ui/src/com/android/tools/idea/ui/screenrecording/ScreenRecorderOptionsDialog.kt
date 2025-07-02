@@ -92,7 +92,7 @@ internal class ScreenRecorderOptionsDialog(
           text(message("screenrecord.options.save.directory"))
           text(saveLocation)
             .applyToComponent { saveLocationText = this }
-          button(message("configure.save.button.text")) { configureSave() }
+          link(message("configure.save.button.text")) { configureSave() }
             .align(AlignX.RIGHT)
         }
       }
@@ -137,6 +137,6 @@ internal class ScreenRecorderOptionsDialog(
   }
 
   companion object {
-    private const val SCREEN_RECORDER_DIMENSIONS_KEY: @NonNls String = "ScreenshotRecorder.Options.Dimensions"
+    private const val SCREEN_RECORDER_DIMENSIONS_KEY: @NonNls String = "ScreenRecorderOptionsDialog"
   }
 }

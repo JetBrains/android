@@ -76,6 +76,8 @@ class AndroidJavaDebuggerFallbackTest {
         AndroidJavaDebugger(),
         AndroidDebuggerState(),
       )
+    Thread.sleep(250); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
+
     assertThat(session).isNotNull()
     assertThat(client.clientData.pid).isAtLeast(0)
     assertThat(session.sessionName).isEqualTo("Java Only (${client.clientData.pid})")

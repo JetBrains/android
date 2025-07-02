@@ -51,7 +51,7 @@ public class ArgumentCompletionContributorTest extends BuildFileIntegrationTestC
             () -> {
               BuildFile file =
                   createBuildFile(
-                      new WorkspacePath("BUILD"),
+                      new WorkspacePath("~BUILD"),
                       "def function(name, deps, srcs):",
                       "  # empty function",
                       "function(de");
@@ -74,7 +74,7 @@ public class ArgumentCompletionContributorTest extends BuildFileIntegrationTestC
             () -> {
               BuildFile file =
                   createBuildFile(
-                      new WorkspacePath("BUILD"),
+                      new WorkspacePath("~BUILD"),
                       "def function(name, deps, srcs):",
                       "  # empty function",
                       "function(name = \"lib\")");
@@ -97,7 +97,7 @@ public class ArgumentCompletionContributorTest extends BuildFileIntegrationTestC
             () -> {
               BuildFile file =
                   createBuildFile(
-                      new WorkspacePath("BUILD"),
+                      new WorkspacePath("~BUILD"),
                       "def function(name, deps, srcs):",
                       "  # empty function",
                       "function(#");

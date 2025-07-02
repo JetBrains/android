@@ -41,19 +41,40 @@ data class ComposeViewInfo(
 fun ComposeViewInfo.findHitWithDepth(
   x: Int,
   y: Int,
-  depth: Int = 0,
-): Collection<Pair<Int, ComposeViewInfo>> =
-  if (containsPoint(x, y)) {
-    listOf(Pair(depth, this)) + children.flatMap { it.findHitWithDepth(x, y, depth + 1) }.toList()
-  } else {
-    listOf()
-  }
+): Collection<Pair<Int, ComposeViewInfo>> {
+  val hitsWithDepth = mutableListOf<Pair<Int, ComposeViewInfo>>()
+  val stack = mutableListOf<Pair<Int, ComposeViewInfo>>()
 
+  // Add top level
+  stack.push(Pair(0, this))
+
+  while (stack.isNotEmpty()) {
+    val current = stack.pop()
+    val currentViewInfo = current.second
+
+    // Add to results if it contains point
+    if (currentViewInfo.containsPoint(x, y)){
+      hitsWithDepth.push(current)
+    }
+
+    // Add all children to stack
+    currentViewInfo.children.forEach { child ->
+      stack.push(Pair(current.first + 1, child))
+    }
+  }
+  return hitsWithDepth
+}
+
+/**
+ * Traverses the compose view tree to compile a list of view information that contain the
+ * specified x, y coordinates, along with their corresponding depth in the tree hierarchy.
+ */
 fun List<ComposeViewInfo>.findHitWithDepth(
   x: Int,
   y: Int,
-  depth: Int = 0,
-): Collection<Pair<Int, ComposeViewInfo>> = flatMap { it.findHitWithDepth(x, y, depth) }
+): Collection<Pair<Int, ComposeViewInfo>> {
+  return flatMap { it.findHitWithDepth(x, y) }
+}
 
 fun List<ComposeViewInfo>.findSmallestHit(
   @AndroidCoordinate x: Int,

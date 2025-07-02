@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_HDR_YES
 import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_WIDE_COLOR_GAMUT_YES
 import com.android.tools.idea.layoutinspector.resource.KEYBOARDHIDDEN_NO
@@ -74,7 +75,7 @@ class FromProtoConversionTest {
         }
         .build()
 
-    val folderConfiguration = proto.convert(29)
+    val folderConfiguration = proto.convert(AndroidApiLevel(29))
 
     assertThat(folderConfiguration.qualifierString)
       .isEqualTo(

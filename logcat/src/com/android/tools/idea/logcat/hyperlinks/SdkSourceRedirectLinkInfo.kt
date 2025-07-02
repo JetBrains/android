@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.sources.SdkSourcePositionFinder
 import com.intellij.execution.ExecutionBundle
@@ -41,7 +42,7 @@ internal class SdkSourceRedirectLinkInfo(
   private val project: Project,
   @VisibleForTesting val files: List<VirtualFile>,
   private val descriptor: OpenFileDescriptor,
-  @VisibleForTesting val apiLevel: Int,
+  @VisibleForTesting val apiLevel: AndroidApiLevel,
 ) : HyperlinkInfoBase(), FileHyperlinkInfo {
   override fun navigate(project: Project, hyperlinkLocationPoint: RelativePoint?) {
     val psiManager = PsiManager.getInstance(project)

@@ -312,7 +312,7 @@ class TerminateAppActionsTest {
           "manufacturer",
           device.model,
           device.release,
-          device.sdk.toString(),
+          device.apiLevel,
           USB,
         )
         .also { it.deviceStatus = DeviceState.DeviceStatus.DEVICE }

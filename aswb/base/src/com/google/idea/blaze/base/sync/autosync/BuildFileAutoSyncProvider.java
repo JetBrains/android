@@ -31,7 +31,7 @@ class BuildFileAutoSyncProvider implements AutoSyncProvider {
 
   @Override
   public boolean isSyncSensitiveFile(Project project, VirtualFile file) {
-    // we'll just assume any BUILD file being modified is in the project
+    // we'll just assume any ~BUILD file being modified is in the project
     return isBuildFile(project, file);
   }
 

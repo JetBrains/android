@@ -1,4 +1,3 @@
-load("@exec_properties//:constants.bzl", "RBE_CPU_8")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
@@ -38,7 +37,6 @@ iml_test(
     data = profilers_test_common_data + [
         "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -60,7 +58,6 @@ iml_test(
     data = profilers_test_common_data + [
         "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -82,7 +79,6 @@ iml_test(
     data = profilers_test_common_data + [
         "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -104,7 +100,6 @@ iml_test(
     data = profilers_test_common_data + [
         "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -126,7 +121,6 @@ iml_test(
     data = profilers_test_common_data + [
         "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -148,7 +142,6 @@ iml_test(
     data = profilers_test_common_data + [
         "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -168,7 +161,6 @@ iml_test(
     name = "SystemTraceTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],
@@ -184,7 +176,6 @@ iml_test(
     name = "HeapDumpTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -204,7 +195,6 @@ iml_test(
     name = "CallstackSampleTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],
@@ -220,7 +210,6 @@ iml_test(
     name = "NativeAllocationsTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -239,7 +228,6 @@ iml_test(
     name = "JavaKotlinMethodRecordingTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [],
@@ -255,7 +243,6 @@ iml_test(
     name = "LiveViewTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],
@@ -271,7 +258,6 @@ iml_test(
     name = "JavaKotlinAllocationsTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -291,7 +277,6 @@ iml_test(
     name = "StartupSystemTraceTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -311,7 +296,6 @@ iml_test(
     name = "StartupJavaKotlinMethodRecordingTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -331,7 +315,6 @@ iml_test(
     name = "StartupNativeAllocationsTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -355,7 +338,6 @@ iml_test(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/android-31",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -378,7 +360,6 @@ iml_test(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/android-31",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -397,7 +378,6 @@ iml_test(
     name = "ImportAndExportTraceTest",
     timeout = "long",
     data = profilers_test_common_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],

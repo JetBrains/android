@@ -27,7 +27,7 @@ import org.junit.runners.JUnit4;
 public class BuildIndentOnEnterTest extends BuildFileIntegrationTestCase {
 
   private void setInput(String... fileContents) {
-    testFixture.configureByText("BUILD", Joiner.on("\n").join(fileContents));
+    testFixture.configureByText("~BUILD", Joiner.on("\n").join(fileContents));
   }
 
   private void pressEnterAndAssertResult(String... resultingFileContents) {

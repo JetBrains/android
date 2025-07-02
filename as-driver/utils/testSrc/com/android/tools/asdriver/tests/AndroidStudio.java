@@ -531,6 +531,17 @@ public class AndroidStudio extends Ide {
     };
   }
 
+  public void waitForGlobalInspections() throws IOException, InterruptedException {
+    waitForGlobalInspections(1, TimeUnit.HOURS);
+  }
+
+  public void waitForGlobalInspections(long timeout, TimeUnit unit) throws IOException, InterruptedException {
+    TestLogger.log("Waiting up to %d %s for global inspections run", timeout, unit);
+    Matcher matcher = install.getIdeaLog()
+      .waitForMatchingLine(".*GlobalInspectionContextImpl - Code inspection finished. Took (.*) ms", timeout, unit);
+    TestLogger.log("Global inspections took %sms", matcher.group(1));
+  }
+
   public void waitForBuild() throws IOException, InterruptedException {
     // "Infinite" timeout
     waitForBuild(1, TimeUnit.DAYS);
@@ -708,7 +719,8 @@ public class AndroidStudio extends Ide {
    */
   public enum DataContextSource {
     DEFAULT(ASDriver.ExecuteActionRequest.DataContextSource.DEFAULT),
-    SELECTED_TEXT_EDITOR(ASDriver.ExecuteActionRequest.DataContextSource.SELECTED_TEXT_EDITOR);
+    SELECTED_TEXT_EDITOR(ASDriver.ExecuteActionRequest.DataContextSource.SELECTED_TEXT_EDITOR),
+    ACTIVE_TOOL_WINDOW(ASDriver.ExecuteActionRequest.DataContextSource.ACTIVE_TOOL_WINDOW);
 
     // This is the underlying proto enum that we do not want to expose as part of the API.
     private final ASDriver.ExecuteActionRequest.DataContextSource dataContextSource;

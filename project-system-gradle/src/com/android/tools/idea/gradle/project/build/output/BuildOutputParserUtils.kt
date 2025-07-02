@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.google.common.base.Splitter
 import com.intellij.build.output.BuildOutputInstantReader
 import java.util.regex.Pattern
 
@@ -46,5 +47,41 @@ object BuildOutputParserUtils {
       return matcher.group("gradleFullTaskName")
     }
     return null
+  }
+}
+
+
+/**
+ * A simple [BuildOutputInstantReader] useful for parsing already read message and for build output parsing tests.
+ *
+ * This reader simply takes an input and splits it around any newlines, omitting empty strings,
+ * which mimics the behavior of [BuildOutputInstantReaderImpl]
+ */
+class LinesBuildOutputInstantReader(
+  private val lines: List<String>,
+  private val parentEventId: Any
+) : BuildOutputInstantReader {
+  constructor(input: String, parentEventId: Any) :
+    this(Splitter.on("\n").omitEmptyStrings().split(input).toList(), parentEventId)
+
+  var currentIndex: Int = -1
+    private set
+
+  override fun getParentEventId() = parentEventId
+
+  override fun readLine(): String? {
+    currentIndex++
+    return if (currentIndex >= lines.size) {
+      null
+    }
+    else lines[currentIndex]
+  }
+
+  override fun pushBack() {
+    pushBack(1)
+  }
+
+  override fun pushBack(numberOfLines: Int) {
+    currentIndex -= numberOfLines
   }
 }

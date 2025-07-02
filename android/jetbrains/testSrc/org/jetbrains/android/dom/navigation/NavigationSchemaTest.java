@@ -560,14 +560,14 @@ public class NavigationSchemaTest extends AndroidTestCase {
   public void testListeners() throws Exception {
     NavigationSchema schema = NavigationSchema.get(myModule);
     Runnable failingListener = () -> fail("shouldn't run listener");
-    NavigationSchema.addSchemaRebuildListener(myModule, failingListener);
+    NavigationSchema.addSchemaRebuildListener(myFixture.getTestRootDisposable(), myModule, failingListener);
     schema.rebuildSchema().get();
     NavigationSchema.removeSchemaRebuildListener(myModule, failingListener);
 
     Semaphore didRun = new Semaphore(1);
     didRun.acquire();
     Runnable checkListener = () -> didRun.release();
-    NavigationSchema.addSchemaRebuildListener(myModule, checkListener);
+    NavigationSchema.addSchemaRebuildListener(myFixture.getTestRootDisposable(), myModule, checkListener);
     addClass("import androidx.navigation.*;\n" +
              "@Navigator.Name(\"activity_sub\")\n" +
              "public class TestListeners extends ActivityNavigator {}\n");

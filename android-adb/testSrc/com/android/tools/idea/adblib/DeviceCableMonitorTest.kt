@@ -18,6 +18,7 @@ package com.android.tools.idea.adblib
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.intellij.facet.impl.FacetUtil
 import com.intellij.notification.Notification
@@ -64,7 +65,7 @@ class DeviceCableMonitorTest {
       manufacturer = "Google",
       model = "Pixel7",
       release = "eng",
-      sdk = "34",
+      sdk = AndroidApiLevel(34),
       abi = "x85_64",
       hostConnectionType = DeviceState.HostConnectionType.USB,
       maxSpeedMbps = 5000L,

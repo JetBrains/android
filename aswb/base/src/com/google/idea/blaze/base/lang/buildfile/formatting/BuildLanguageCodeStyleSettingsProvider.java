@@ -22,7 +22,7 @@ import com.intellij.lang.Language;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider;
 
-/** Allows BUILD language-specific code style settings */
+/** Allows ~BUILD language-specific code style settings */
 public class BuildLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvider {
 
   @Override
@@ -40,7 +40,7 @@ public class BuildLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSet
     return "# Code sample live editing\n"
         + "# is not supported until\n"
         + "# we have a proper formatter implemented.\n\n"
-        + "# Please create a new BUILD file\n"
+        + "# Please create a new ~BUILD file\n"
         + "# to see changes in effect.";
   }
 

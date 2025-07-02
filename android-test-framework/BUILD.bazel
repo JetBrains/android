@@ -84,6 +84,9 @@ jvm_library(
     "@lib//:kotlinc-kotlin-scripting-compiler-impl",
     "//plugins/kotlin/base/scripting.k1",
     "//plugins/kotlin/base/scripting.k1:scripting.k1_test_lib",
+    "//platform/backend/workspace",
+    "//platform/workspace/jps",
+    "//platform/workspace/storage",
   ]
 )
 

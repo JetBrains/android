@@ -132,7 +132,7 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
 
     BlazeImportSettingsManager importSettingsManager = new BlazeImportSettingsManager(project);
     BlazeImportSettings settings =
-        new BlazeImportSettings("", "", "", "", BuildSystemName.Blaze, ProjectType.ASPECT_SYNC);
+        new BlazeImportSettings("", "", "", "", "", BuildSystemName.Blaze, ProjectType.ASPECT_SYNC);
     importSettingsManager.setImportSettings(settings);
     projectServices.register(BlazeImportSettingsManager.class, importSettingsManager);
 
@@ -163,12 +163,6 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
   @Test
   public void testProviderIsApplicable() {
     assertThat(provider.isApplicable(project)).isTrue();
-  }
-
-  @Test
-  public void testProviderNotApplicableIfNotBlaze() {
-    BlazeImportSettingsManager.getInstance(project).loadState(null);
-    assertThat(provider.isApplicable(project)).isFalse();
   }
 
   @Test
@@ -211,19 +205,19 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
                 + "<DL>"
                 + "<DD>-&nbsp;"
                 + "com/google/example/dependency/generated/res "
-                + "from <A HREF=\"file:///src/com/google/example/dependency/BUILD\">"
+                + "from <A HREF=\"file:///src/com/google/example/dependency/~BUILD\">"
                 + "//com/google/example:generated</A>"
                 + "<DD>-&nbsp;"
                 + "com/google/example/main/generated/res "
-                + "from <A HREF=\"file:///src/com/google/example/main/BUILD\">"
+                + "from <A HREF=\"file:///src/com/google/example/main/~BUILD\">"
                 + "//com/google/example:main</A>"
                 + "<DD>-&nbsp;"
                 + "com/google/example/transitive/generated/one/res "
-                + "from <A HREF=\"file:///src/com/google/example/transitive/BUILD\">"
+                + "from <A HREF=\"file:///src/com/google/example/transitive/~BUILD\">"
                 + "//com/google/example/transitive:generated</A>"
                 + "<DD>-&nbsp;"
                 + "com/google/example/transitive/generated/two/res "
-                + "from <A HREF=\"file:///src/com/google/example/transitive/BUILD\">"
+                + "from <A HREF=\"file:///src/com/google/example/transitive/~BUILD\">"
                 + "//com/google/example/transitive:generated</A>"
                 + "</DL>"
                 + "Please avoid using generated resources, then "
@@ -243,7 +237,7 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
 
     assertThat(nonStandardManifestNameIssue.getHtmlContent())
         .isEqualTo(
-            "<A HREF=\"file:///src/com/google/example/main/BUILD\">"
+            "<A HREF=\"file:///src/com/google/example/main/~BUILD\">"
                 + "//com/google/example:main</A> "
                 + "uses a non-standard name for the Android manifest: "
                 + "<A HREF=\"file:///src/com/google/example/main/WeirdManifest.xml\">"
@@ -284,28 +278,28 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
 
     assertThat(missingClassDependenciesIssue.getHtmlContent())
         .isEqualTo(
-            "<A HREF=\"file:///src/com/google/example/BUILD\">"
+            "<A HREF=\"file:///src/com/google/example/~BUILD\">"
                 + "//com/google/example:resources</A> "
                 + "contains resource files that reference these classes:"
                 + "<DL>"
                 + "<DD>-&nbsp;"
                 + "<A HREF=\"openClass:com.google.example.independent.Library2View\">"
                 + "com.google.example.independent.Library2View</A> "
-                + "from <A HREF=\"file:///src/com/google/example/BUILD\">"
+                + "from <A HREF=\"file:///src/com/google/example/~BUILD\">"
                 + "//com/google/example/independent:library2</A> "
                 + "<DD>-&nbsp;"
                 + "<A HREF=\"openClass:com.google.example.independent.LibraryView\">"
                 + "com.google.example.independent.LibraryView</A> "
-                + "from <A HREF=\"file:///src/com/google/example/BUILD\">"
+                + "from <A HREF=\"file:///src/com/google/example/~BUILD\">"
                 + "//com/google/example/independent:library</A> "
                 + "<DD>-&nbsp;"
                 + "<A HREF=\"openClass:com.google.example.independent.LibraryView2\">"
                 + "com.google.example.independent.LibraryView2</A> "
-                + "from <A HREF=\"file:///src/com/google/example/BUILD\">"
+                + "from <A HREF=\"file:///src/com/google/example/~BUILD\">"
                 + "//com/google/example/independent:library</A> "
                 + "</DL>"
                 + "Please fix your dependencies so that "
-                + "<A HREF=\"file:///src/com/google/example/BUILD\">"
+                + "<A HREF=\"file:///src/com/google/example/~BUILD\">"
                 + "//com/google/example:resources</A> "
                 + "correctly depends on these classes, then "
                 + "<A HREF=\"action:sync\">sync the project</A> and "
@@ -402,10 +396,10 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
         artifact("com/google/unrelated/generated/res", false);
     ArtifactLocation unrelatedSourceResource = artifact("com/google/unrelated/source/res", true);
 
-    ArtifactLocation mainBuildFile = artifact("com/google/example/main/BUILD", true);
-    ArtifactLocation dependencyBuildFile = artifact("com/google/example/dependency/BUILD", true);
-    ArtifactLocation transitiveBuildFile = artifact("com/google/example/transitive/BUILD", true);
-    ArtifactLocation unrelatedBuildFile = artifact("com/google/unrelated/BUILD", true);
+    ArtifactLocation mainBuildFile = artifact("com/google/example/main/~BUILD", true);
+    ArtifactLocation dependencyBuildFile = artifact("com/google/example/dependency/~BUILD", true);
+    ArtifactLocation transitiveBuildFile = artifact("com/google/example/transitive/~BUILD", true);
+    ArtifactLocation unrelatedBuildFile = artifact("com/google/unrelated/~BUILD", true);
 
     AndroidResourceModuleRegistry registry = AndroidResourceModuleRegistry.getInstance(project);
     registry.put(
@@ -535,7 +529,7 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
 
     ArtifactLocation mainManifest = artifact("com/google/example/main/WeirdManifest.xml", true);
     ArtifactLocation mainResource = artifact("com/google/example/main/res", true);
-    ArtifactLocation mainBuildFile = artifact("com/google/example/main/BUILD", true);
+    ArtifactLocation mainBuildFile = artifact("com/google/example/main/~BUILD", true);
 
     AndroidResourceModuleRegistry registry = AndroidResourceModuleRegistry.getInstance(project);
     registry.put(
@@ -566,12 +560,12 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
 
     ArtifactLocation mainManifest = artifact("com/google/example/main/AndroidManifest.xml", true);
     ArtifactLocation mainResource = artifact("com/google/example/main/res", true);
-    ArtifactLocation mainBuildFile = artifact("com/google/example/main/BUILD", true);
+    ArtifactLocation mainBuildFile = artifact("com/google/example/main/~BUILD", true);
 
     ArtifactLocation dependencyManifest =
         artifact("com/google/example/dependency/MyManifest.xml", true);
     ArtifactLocation dependencyResource = artifact("com/google/example/dependency/res", true);
-    ArtifactLocation dependencyBuildFile = artifact("com/google/example/dependency/BUILD", true);
+    ArtifactLocation dependencyBuildFile = artifact("com/google/example/dependency/~BUILD", true);
 
     AndroidResourceModuleRegistry registry = AndroidResourceModuleRegistry.getInstance(project);
     registry.put(
@@ -621,7 +615,7 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
 
     ArtifactLocation manifest = artifact("com/google/example/AndroidManifest.xml", true);
     ArtifactLocation resources = artifact("com/google/example/res", true);
-    ArtifactLocation buildFile = artifact("com/google/example/BUILD", true);
+    ArtifactLocation buildFile = artifact("com/google/example/~BUILD", true);
 
     AndroidResourceModuleRegistry registry = AndroidResourceModuleRegistry.getInstance(project);
     registry.put(

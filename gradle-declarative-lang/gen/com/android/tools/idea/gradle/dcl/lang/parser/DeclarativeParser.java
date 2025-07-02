@@ -438,6 +438,12 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // <<afterClosingRParen>>
+  static boolean factory_recover(PsiBuilder b, int l) {
+    return afterClosingRParen(b, l + 1);
+  }
+
+  /* ********************************************************** */
   // token
   public static boolean identifier(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "identifier")) return false;
@@ -536,15 +542,27 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // simple_literal OP_TO expression
+  // simple_literal pair_operator expression
   public static boolean pair(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "pair")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, PAIR, "<pair>");
     r = simple_literal(b, l + 1);
-    r = r && consumeToken(b, OP_TO);
+    r = r && pair_operator(b, l + 1);
     r = r && expression(b, l + 1);
     exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // OP_TO
+  public static boolean pair_operator(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "pair_operator")) return false;
+    if (!nextTokenIs(b, OP_TO)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, OP_TO);
+    exit_section_(b, m, PAIR_OPERATOR, r);
     return r;
   }
 
@@ -552,7 +570,6 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
   // identifier OP_LPAREN argumentsList OP_RPAREN
   static boolean private_factory(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "private_factory")) return false;
-    if (!nextTokenIs(b, TOKEN)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_);
     r = identifier(b, l + 1);
@@ -560,7 +577,7 @@ public class DeclarativeParser implements PsiParser, LightPsiParser {
     p = r; // pin = 2
     r = r && report_error_(b, argumentsList(b, l + 1));
     r = p && consumeToken(b, OP_RPAREN) && r;
-    exit_section_(b, l, m, r, p, null);
+    exit_section_(b, l, m, r, p, DeclarativeParser::factory_recover);
     return r || p;
   }
 

@@ -37,7 +37,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   @Test
   public void testNormalGlob() {
     BuildFile file =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(['**/*.java'])");
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(['**/*.java'])");
 
     assertNoErrors(file);
   }
@@ -46,7 +46,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   public void testNamedIncludeArgument() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"), "glob(include = ['**/*.java'])");
+            new WorkspacePath("java/com/google/~BUILD"), "glob(include = ['**/*.java'])");
 
     assertNoErrors(file);
   }
@@ -55,7 +55,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   public void testAllArguments() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "glob(['**/*.java'], exclude = ['test/*.java'], exclude_directories = 0)");
 
     assertNoErrors(file);
@@ -65,7 +65,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   public void testEmptyExcludeList() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"), "glob(['**/*.java'], exclude = [])");
+            new WorkspacePath("java/com/google/~BUILD"), "glob(['**/*.java'], exclude = [])");
 
     assertNoErrors(file);
   }
@@ -73,7 +73,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   @Test
   public void testNoIncludesError() {
     BuildFile file =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(exclude = ['BUILD'])");
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(exclude = ['~BUILD'])");
 
     assertHasError(file, "Glob expression must contain at least one included string");
   }
@@ -82,7 +82,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   public void testSingletonExcludeArgumentError() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"), "glob(['**/*.java'], exclude = 'BUILD')");
+            new WorkspacePath("java/com/google/~BUILD"), "glob(['**/*.java'], exclude = '~BUILD')");
 
     assertHasError(file, "Glob parameter 'exclude' must be a list of strings");
   }
@@ -90,7 +90,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   @Test
   public void testSingletonIncludeArgumentError() {
     BuildFile file =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(include = '**/*.java')");
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(include = '**/*.java')");
 
     assertHasError(file, "Glob parameter 'include' must be a list of strings");
   }
@@ -99,7 +99,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   public void testInvalidExcludeDirectoriesValue() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "glob(['**/*.java'], exclude = ['test/*.java'], exclude_directories = true)");
 
     assertHasError(file, "exclude_directories parameter to glob must be 0 or 1");
@@ -109,7 +109,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   public void testUnrecognizedArgumentError() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "glob(['**/*.java'], exclude = ['test/*.java'], extra = 1)");
 
     assertHasError(file, "Unrecognized glob argument");
@@ -118,7 +118,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   @Test
   public void testInvalidListArgumentValue() {
     BuildFile file =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(include = foo)");
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(include = foo)");
 
     assertHasError(file, "Glob parameter 'include' must be a list of strings");
   }
@@ -127,7 +127,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   public void testLocalVariableReference() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"), "foo = ['*.java']", "glob(include = foo)");
+            new WorkspacePath("java/com/google/~BUILD"), "foo = ['*.java']", "glob(include = foo)");
 
     assertNoErrors(file);
   }
@@ -137,7 +137,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
     createBuildFile(new WorkspacePath("java/com/foo/vars.bzl"), "LIST_VAR = ['*']");
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load('//java/com/foo:vars.bzl', 'LIST_VAR')",
             "glob(include = LIST_VAR)");
 
@@ -150,7 +150,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
         new WorkspacePath("java/com/foo/vars.bzl"), "LIST_VAR = ['*']", "def function()");
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load('//java/com/foo:vars.bzl', 'LIST_VAR', 'function')",
             "glob(include = function)");
 
@@ -160,7 +160,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   @Test
   public void testUnresolvedReferenceExpression() {
     BuildFile file =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(include = ref)");
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(include = ref)");
 
     assertHasError(file, "Glob parameter 'include' must be a list of strings");
   }
@@ -168,7 +168,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   @Test
   public void testPossibleListExpressionFuncallExpression() {
     BuildFile file =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(include = fn.list)");
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(include = fn.list)");
 
     assertNoErrors(file);
   }
@@ -177,7 +177,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   public void testPossibleListExpressionParameter() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "def function(param1, param2):",
             "    glob(include = param1)");
 
@@ -188,7 +188,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   public void testNestedGlobs() {
     // blaze accepts nested globs
     BuildFile file =
-        createBuildFile(new WorkspacePath("java/com/google/BUILD"), "glob(glob(['*.java']))");
+        createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "glob(glob(['*.java']))");
 
     assertNoErrors(file);
   }
@@ -197,7 +197,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   public void testKnownInvalidResolvedListExpression() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "bool_literal = True",
             "glob(bool_literal)");
 
@@ -208,7 +208,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   public void testKnownInvalidResolvedString() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "bool_literal = True",
             "glob([bool_literal])");
 
@@ -219,7 +219,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   public void testPossibleStringLiteralIfStatement() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "glob(include = ['*.java', if test : a else b])");
 
     // we don't know what the IfStatement evaluates to
@@ -230,7 +230,7 @@ public class GlobValidationTest extends BuildFileIntegrationTestCase {
   public void testPossibleStringLiteralParameter() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "def function(param1, param2):",
             "    glob(include = [param1])");
 

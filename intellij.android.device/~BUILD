@@ -14,13 +14,8 @@ iml_module(
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
         "//tools/base/sdklib:studio.android.sdktools.sdklib",
-        "//tools/adt/idea/android-common:intellij.android.common",
-        "//tools/adt/idea/android:intellij.android.core",
-        "//tools/adt/idea/wizard:intellij.android.wizard",
-        "//tools/adt/idea/wizard-model:intellij.android.wizard.model",
         "//tools/adt/idea/artwork:intellij.android.artwork",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner",
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
-        "//tools/adt/idea/android-adb:intellij.android.adb",
     ],
 )

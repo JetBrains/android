@@ -20,6 +20,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
@@ -148,7 +149,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
       // lock device model to only allow connections to this device
       value.layoutInspector.deviceModel?.forcedDeviceSerialNumber = value.deviceId.serialNumber
-      value.layoutInspector.foregroundProcessDetection?.start()
+      value.layoutInspector.foregroundProcessDetection?.start(value.deviceId.serialNumber)
 
       val selectedDevice =
         value.layoutInspector.deviceModel?.devices?.find {
@@ -346,13 +347,18 @@ private fun Project.getLayoutInspector(): LayoutInspector {
   return LayoutInspectorProjectService.getInstance(this).getLayoutInspector()
 }
 
-private fun createRendererPanel(
+@VisibleForTesting
+fun createRendererPanel(
   layoutInspector: LayoutInspector,
   tabComponents: TabComponents,
+  statsProvider: () -> SessionStatistics = { layoutInspector.currentClient.stats },
 ): LayoutInspectorRenderer {
   val isXrDevice = tabComponents.displayView.deviceType == DeviceType.XR
   val useOnDeviceRendering =
     isXrDevice || StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ON_DEVICE_RENDERING.get()
+
+  statsProvider().setOnDeviceRendering(useOnDeviceRendering)
+
   return if (useOnDeviceRendering) {
     val renderModel =
       OnDeviceRendererModel(

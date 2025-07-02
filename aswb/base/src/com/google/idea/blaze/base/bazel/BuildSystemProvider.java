@@ -116,7 +116,7 @@ public interface BuildSystemProvider {
   /** Directories containing artifacts produced during the build process. */
   ImmutableList<String> buildArtifactDirectories(WorkspaceRoot root);
 
-  /** The URL providing the built-in BUILD rule's documentation, if one can be found. */
+  /** The URL providing the built-in ~BUILD rule's documentation, if one can be found. */
   @Nullable
   String getRuleDocumentationUrl(RuleDefinition rule);
 
@@ -134,8 +134,8 @@ public interface BuildSystemProvider {
   String getLanguageSupportDocumentationUrl(String relativeDocName);
 
   /**
-   * The BUILD filenames supported by this build system, in decreasing order of preference (e.g. if
-   * both BUILD and BUILD.bazel exist in a directory, bazel ignores the former).
+   * The ~BUILD filenames supported by this build system, in decreasing order of preference (e.g. if
+   * both ~BUILD and ~BUILD.bazel exist in a directory, bazel ignores the former).
    */
   ImmutableList<String> possibleBuildFileNames();
 
@@ -150,13 +150,13 @@ public interface BuildSystemProvider {
     return SUPPORTED_EXTENSIONS;
   }
 
-  /** Check if the given filename is a valid BUILD file name. */
+  /** Check if the given filename is a valid ~BUILD file name. */
   default boolean isBuildFile(String fileName) {
     return possibleBuildFileNames().contains(fileName);
   }
 
   /**
-   * Check if the given directory has a child with a valid BUILD file name, and if so, returns the
+   * Check if the given directory has a child with a valid ~BUILD file name, and if so, returns the
    * first such file.
    */
   @Nullable
@@ -172,7 +172,7 @@ public interface BuildSystemProvider {
   }
 
   /**
-   * Check if the given directory has a child with a valid BUILD file name, and if so, returns the
+   * Check if the given directory has a child with a valid ~BUILD file name, and if so, returns the
    * first such file.
    */
   @Nullable

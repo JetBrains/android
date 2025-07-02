@@ -16,9 +16,11 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.test.testutils.TestUtils
+import com.android.sdklib.AndroidApiLevel
+import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.adb.FakeAdbServiceRule
+import com.android.tools.idea.adb.PreInitAndroidDebugBridgeRule
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.FakeEmulator
@@ -64,7 +66,7 @@ class DeviceFileDropHandlerTest {
   private val adbRule = FakeAdbRule()
   private val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
   @get:Rule
-  val ruleChain = RuleChain(projectRule, adbRule, adbServiceRule, emulatorRule, EdtRule())
+  val ruleChain = RuleChain(projectRule, PreInitAndroidDebugBridgeRule(), adbRule, adbServiceRule, emulatorRule, EdtRule())
   @get:Rule
   val tempDirRule = TemporaryDirectoryRule()
 
@@ -127,7 +129,7 @@ class DeviceFileDropHandlerTest {
   }
 
   private fun attachDevice() =
-      adbRule.attachDevice("emulator-${emulator.serialPort}", "Google", "Pixel 3 XL", "Sweet dessert", "29")
+      adbRule.attachDevice("emulator-${emulator.serialPort}", "Google", "Pixel 3 XL", "Sweet dessert", AndroidApiLevel(29))
 
   private fun createDropTarget(): DnDTarget {
     var nullableTarget: DnDTarget? = null

@@ -24,6 +24,7 @@ import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.Projects;
 import com.android.tools.idea.navigator.nodes.AndroidViewNodeProvider;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
@@ -79,10 +80,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupport {
   // Note: This value is duplicated in ProjectViewImpl.java to set the default view to be the Android project view.
   public static final String ID = AndroidProjectView.ID;
+  public static final String PROJECT_VIEW_DEFAULT_KEY = "studio.projectview";
 
   private AtomicBoolean isProcessingChanges = new AtomicBoolean(false);
 
@@ -351,6 +354,19 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
       }
       return null;
     });
+  }
+
+  @Override
+  public boolean isDefaultPane(@NotNull Project project) {
+    return isDefaultPane(project, IdeInfo.getInstance());
+  }
+
+  @VisibleForTesting
+  boolean isDefaultPane(@NotNull Project project, @NotNull IdeInfo ideInfo) {
+    if ((!ideInfo.isAndroidStudio()) && (!ideInfo.isGameTools())) {
+      return super.isDefaultPane(project);
+    }
+    return !Boolean.getBoolean(PROJECT_VIEW_DEFAULT_KEY);
   }
 
   private boolean isTopModuleDirectoryOrParent(@NotNull VirtualFile directory) {

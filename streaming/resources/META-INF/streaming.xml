@@ -270,35 +270,29 @@
       <reference ref="android.streaming.xr.passthrough"/>
     </group>
 
-    <group id="ContextMenuVirtualDevice">
-      <reference ref="android.streaming.ui.settings"/>
-      <!-- Placeholder group for placing the Wear Health Services button registered in a separate module. -->
-      <reference ref="android.emulator.wear.health.services"/>
-      <separator/>
-      <reference ref="android.device.screenshot"/>
-      <reference ref="android.device.screen.record"/>
-      <separator/>
+    <group id="ContextMenuOnlyVirtualDevice">
       <reference ref="android.streaming.backup"/>
       <separator/>
       <reference ref="android.emulator.snapshots"/>
       <reference ref="android.emulator.extended.controls"/>
     </group>
 
-    <group id="ContextMenuPhysicalDevice">
-      <reference ref="android.streaming.ui.settings"/>
-      <separator/>
-      <reference ref="android.device.screenshot"/>
-      <reference ref="android.device.screen.record"/>
-      <separator/>
+    <group id="ContextMenuOnlyPhysicalDevice">
       <reference ref="android.streaming.backup"/>
     </group>
 
     <group id="StreamingContextMenuVirtualDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuEnabledActionGroup">
-      <reference ref="ContextMenuVirtualDevice"/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
+      <separator/>
+      <reference ref="ContextMenuOnlyVirtualDevice"/>
     </group>
 
     <group id="StreamingContextMenuPhysicalDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuEnabledActionGroup">
-      <reference ref="ContextMenuPhysicalDevice"/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
+      <separator/>
+      <reference ref="ContextMenuOnlyPhysicalDevice"/>
     </group>
 
     <group id="StreamingToolbarVirtualDevice">
@@ -328,8 +322,14 @@
       <reference ref="android.streaming.xr.navigation.group"/>
       <reference ref="android.streaming.input.mode.group"/>
       <reference ref="android.streaming.xr.passthrough.group"/>
+      <reference ref="android.streaming.ui.settings"/>
+      <reference ref="android.emulator.wear.health.services"/>
+      <separator/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
       <group id="InToolbarContextMenuVirtualDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuDisabledActionGroup">
-        <reference ref="ContextMenuVirtualDevice"/>
+        <separator/>
+        <reference ref="ContextMenuOnlyVirtualDevice"/>
       </group>
     </group>
 
@@ -352,8 +352,13 @@
       <reference ref="android.streaming.xr.navigation.group"/>
       <reference ref="android.streaming.input.mode.group"/>
       <reference ref="android.streaming.xr.passthrough.group"/>
+      <reference ref="android.streaming.ui.settings"/>
+      <separator/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
       <group id="InToolbarContextMenuPhysicalDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuDisabledActionGroup">
-        <reference ref="ContextMenuPhysicalDevice"/>
+        <separator/>
+        <reference ref="ContextMenuOnlyPhysicalDevice"/>
       </group>
       <separator/>
       <reference ref="android.device.reservation.extend"/>

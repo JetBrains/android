@@ -373,7 +373,7 @@ class ViewLayoutInspectorClient(
     val snapshotMetadata =
       SnapshotMetadata(
         snapshotVersion = APP_INSPECTION_SNAPSHOT_VERSION,
-        apiLevel = processDescriptor.device.apiLevel,
+        apiLevel = processDescriptor.device.apiLevel.majorVersion,
         processName = processDescriptor.name,
         liveDuringCapture = isFetchingContinuously,
         source = Metadata.Source.STUDIO,

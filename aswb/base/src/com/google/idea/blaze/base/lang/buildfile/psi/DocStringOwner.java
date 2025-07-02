@@ -17,7 +17,7 @@ package com.google.idea.blaze.base.lang.buildfile.psi;
 
 import javax.annotation.Nullable;
 
-/** BUILD psi element which can have docstring. */
+/** ~BUILD psi element which can have docstring. */
 public interface DocStringOwner extends BuildElement {
 
   @Nullable

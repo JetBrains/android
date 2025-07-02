@@ -71,7 +71,7 @@ public class CandidatePackageFinderTest {
         .thenReturn(streamOfLines("//package/path/a", "//package/path/b", "//package/path"));
 
     ImmutableList<CandidatePackage> unused =
-        cpf.getCandidatePackages(Path.of("package/path/BUILD"), () -> {});
+        cpf.getCandidatePackages(Path.of("package/path/~BUILD"), () -> {});
 
     ImmutableList<String> args = commandCaptor.getValue().build().toArgumentList();
     expect.that(args).containsAllOf("--output", "package", "//package/path/...").inOrder();
@@ -83,13 +83,13 @@ public class CandidatePackageFinderTest {
         new CandidatePackageFinder(
             ideProject, buildInvoker, tempDir.getRoot().toPath(), BlazeContext.create());
 
-    Files.write(tempDir.newFolder("package", "path").toPath().resolve("BUILD"), new byte[] {});
+    Files.write(tempDir.newFolder("package", "path").toPath().resolve("~BUILD"), new byte[] {});
 
     when(buildInvoker.invokeQuery(commandCaptor.capture(), any()))
         .thenReturn(streamOfLines("//package/path/a", "//package/path/b", "//package/path"));
 
     ImmutableList<CandidatePackage> unused =
-        cpf.getCandidatePackages(Path.of("package/path/BUILD"), () -> {});
+        cpf.getCandidatePackages(Path.of("package/path/~BUILD"), () -> {});
 
     ImmutableList<String> args = commandCaptor.getValue().build().toArgumentList();
     expect.that(args).containsAllOf("--output", "package", "//package/path/...").inOrder();

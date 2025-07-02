@@ -298,3 +298,19 @@ class BlockUnifiedTestPlatformProcessor: AbstractBlockPropertyUnlessNoOpProcesso
   override val noOpValue = true
   override fun getRefactoringId() = "com.android.tools.agp.upgrade.unifiedTestPlatformBlockProperty"
 }
+
+/**
+ * Processor that blocks AGP upgrades if android.r8.strictFullModeForKeepRules is used after AGP 10.0.0-alpha01
+ */
+class BlockR8StrictFullModeForKeepRulesProcessor: AbstractBlockPropertyWithPreviousDefaultProcessor {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
+  constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
+  override val defaultChangedVersion: AgpVersion
+    get() = R8StrictFullModeForKeepRulesDefaultRefactoringProcessor.DEFAULT_CHANGED
+  override val featureName = "R8 strict full mode for keep rules"
+  override val propertyKey = "android.r8.strictFullModeForKeepRules"
+  override val propertyRemovedVersion = AgpVersion.parse("10.0.0-alpha01")
+  override val componentKind = UpgradeAssistantComponentKind.BLOCK_R8_STRICT_FULL_MODE_FOR_KEEP_RULES_PRESENT
+  override val noOpValue = true
+  override fun getRefactoringId() = "com.android.tools.agp.upgrade.strictFullModeForKeepRulesBlockProperty"
+}

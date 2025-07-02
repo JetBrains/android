@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.flags.junit.FlagRule
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
@@ -85,7 +86,7 @@ class ComposeLayoutInspectorClientTest {
           override val model = "model"
           override val serial = "emulator-1234"
           override val isEmulator = true
-          override val apiLevel = 30
+          override val apiLevel = AndroidApiLevel(30)
           override val version = "10.0.0"
           override val codename: String? = null
         }
@@ -114,7 +115,7 @@ class ComposeLayoutInspectorClientTest {
       processDescriptor.device.manufacturer,
       processDescriptor.device.model,
       processDescriptor.device.version,
-      processDescriptor.device.apiLevel.toString(),
+      processDescriptor.device.apiLevel,
       "arm64-v8a",
       emptyMap(),
       DeviceState.HostConnectionType.LOCAL,

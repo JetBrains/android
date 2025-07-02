@@ -64,7 +64,7 @@ public class BuildColorsPage
 
   @Override
   public String getDisplayName() {
-    return Blaze.defaultBuildSystemName() + " BUILD files";
+    return Blaze.defaultBuildSystemName() + " ~BUILD files";
   }
 
   @Override

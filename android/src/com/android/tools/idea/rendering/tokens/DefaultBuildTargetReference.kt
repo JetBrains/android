@@ -46,10 +46,6 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
     override fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
       return DefaultBuildTargetReference(module)
     }
-
-    override fun fromModuleOnly(module: Module): BuildTargetReference {
-      return DefaultBuildTargetReference(module)
-    }
   }
 
   /**

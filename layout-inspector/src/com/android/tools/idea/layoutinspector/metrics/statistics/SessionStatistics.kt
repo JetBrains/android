@@ -75,6 +75,10 @@ interface SessionStatistics {
   /** A debugger was detected. Indicate if the debugger [isPaused] during attach. */
   fun debuggerInUse(isPaused: Boolean)
 
+  fun setOnDeviceRendering(enabled: Boolean)
+
+  fun isXr(isXr: Boolean)
+
   /** Live mode changed. */
   var currentModeIsLive: Boolean
 
@@ -197,6 +201,14 @@ class SessionStatisticsImpl(
 
   override fun debuggerInUse(isPaused: Boolean) {
     attach.debuggerInUse(isPaused)
+  }
+
+  override fun setOnDeviceRendering(enabled: Boolean) {
+    attach.setOnDeviceRendering(enabled)
+  }
+
+  override fun isXr(isXr: Boolean) {
+    attach.isXr(isXr)
   }
 
   override var currentModeIsLive: Boolean

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.devices
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.google.common.annotations.VisibleForTesting
@@ -27,12 +28,13 @@ data class Device @VisibleForTesting constructor(
   val serialNumber: String,
   val isOnline: Boolean,
   val release: String,
-  val sdk: Int,
-  val sdkMinor: Int,
+  val apiLevel: AndroidApiLevel,
   val featureLevel: Int,
   val model: String,
   val type: DeviceType?,
 ) {
+  val sdk: Int
+    get() = apiLevel.majorVersion
 
   val isEmulator: Boolean = serialNumber.startsWith("emulator-")
 
@@ -53,8 +55,7 @@ data class Device @VisibleForTesting constructor(
         serialNumber,
         isOnline,
         release.normalizeVersion(),
-        androidVersion.androidApiLevel.majorVersion,
-        androidVersion.androidApiLevel.minorVersion,
+        androidVersion.androidApiLevel,
         androidVersion.featureLevel,
         model,
         type,
@@ -76,8 +77,7 @@ data class Device @VisibleForTesting constructor(
         serialNumber,
         isOnline,
         release.normalizeVersion(),
-        androidVersion.androidApiLevel.majorVersion,
-        androidVersion.androidApiLevel.minorVersion,
+        androidVersion.androidApiLevel,
         androidVersion.featureLevel,
         model = avdName.substringBefore(" API "),
         type,

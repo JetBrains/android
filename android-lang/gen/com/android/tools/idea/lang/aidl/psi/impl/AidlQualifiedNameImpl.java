@@ -51,26 +51,22 @@ public class AidlQualifiedNameImpl extends AidlNamedElementImpl implements AidlQ
   }
 
   @Override
-  @NotNull
-  public PsiElement getNameIdentifier() {
+  public @NotNull PsiElement getNameIdentifier() {
     return AidlPsiUtil.getNameIdentifier(this);
   }
 
   @Override
-  @NotNull
-  public String getQualifiedName() {
+  public @NotNull String getQualifiedName() {
     return AidlPsiUtil.getQualifiedName(this);
   }
 
   @Override
-  @Nullable
-  public PsiElement resolve() {
+  public @Nullable PsiElement resolve() {
     return AidlPsiUtil.resolve(this);
   }
 
   @Override
-  @NotNull
-  public PsiReference getReference() {
+  public @NotNull PsiReference getReference() {
     return AidlPsiUtil.getReference(this);
   }
 

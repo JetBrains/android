@@ -28,7 +28,7 @@ import com.android.tools.profilers.taskbased.task.TaskGridModel
 abstract class TaskEntranceTabModel(val profilers: StudioProfilers) {
   private val ongoingSessionEndedObserver = AspectObserver()
 
-  val taskGridModel: TaskGridModel = TaskGridModel()
+  val taskGridModel: TaskGridModel = TaskGridModel(profilers)
 
   val selectedTaskType get() = taskGridModel.selectedTaskType.value
   val taskHandlers get() = profilers.taskHandlers

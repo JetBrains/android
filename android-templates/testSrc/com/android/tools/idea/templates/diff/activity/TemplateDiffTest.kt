@@ -770,18 +770,14 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   @Test
-  fun testGeminiStarter() {
-    checkCreateTemplate(
-      "Gemini API Starter",
-      withSpecificKotlin,
-      templateStateCustomizer = mapOf("API Key" to "abcd"),
-    )
+  fun testXRBasicHeadsetActivity() {
+    checkCreateTemplate("Basic Headset Activity", withSpecificKotlin)
   }
 
-   @Test
-   fun testXRBasicHeadsetActivity() {
-    checkCreateTemplate("Basic Headset Activity", withSpecificKotlin)
-   }
+  @Test
+  fun testJourneysFile() {
+    checkCreateTemplate("Journey File")
+  }
 }
 
 typealias TemplateStateCustomizer = Map<String, Any>

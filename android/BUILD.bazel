@@ -236,6 +236,7 @@ jvm_library(
     "@lib//:kotlinc-analysis-api-k2-provided",
     "@lib//:jgoodies-forms",
     "//spellchecker/xml",
+    "//plugins/kotlin/base/fir/project-structure",
     ":artifactResolver-m31_provided",
   ],
   exports = ["//android/build-common"],
@@ -474,6 +475,8 @@ jvm_library(
     "@lib//:kotlinc-analysis-api",
     "//plugins/kotlin/bundled-compiler-plugins-support",
     "@lib//:kotlinc-kotlin-compiler-fe10",
+    "//platform/ui.jcef",
+    "@lib//:assert_j",
   ],
   runtime_deps = [
     ":core-tests_test_resources",

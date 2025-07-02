@@ -554,17 +554,18 @@ class InspectorModel(
     }
 
     /**
-     * Called when the view has changed on the device. All the information from the [newNode] is
-     * copied into the [oldNode].
+     * Called when the view has changed on the device.
+     *
+     * Attempt to keep the same [ViewNode] instances after a model update. This will allow the
+     * component tree to keep the expanded nodes expanded. We also need to compute the recomposition
+     * changes for each [ComposeViewNode].
      */
     private fun ViewNode.WriteAccess.update(
       oldNode: ViewNode,
       parent: ViewNode?,
       newNode: ViewNode,
     ): Boolean {
-      var modified = (parent != oldNode.parent) || !sameChildren(oldNode, newNode)
-      // TODO: should changes below cause modified to be set to true?
-      // Maybe each view should have its own modification listener that can listen for such changes?
+      oldNode.drawId = newNode.drawId
       oldNode.qualifiedName = newNode.qualifiedName
       oldNode.layout = newNode.layout
       oldNode.layoutBounds = newNode.layoutBounds
@@ -579,36 +580,50 @@ class InspectorModel(
         oldNode.composeOffset = newNode.composeOffset
         oldNode.composeLineNumber = newNode.composeLineNumber
         oldNode.composeFlags = newNode.composeFlags
+        oldNode.anchorHash = newNode.anchorHash
         oldNode.recompositions.update(newNode.recompositions)
       }
-
+      val oldChildren = oldNode.children.toList()
       oldNode.children.clear()
-      // Don't update or clear the drawChildren at this point. They will be refreshed by a listener
-      // after the update is complete,
-      // and we can continue using the old ones for view sizing calculations until that happens.
 
+      // Don't update or clear the drawChildren at this point. They will be refreshed by a listener
+      // after the update is complete, and we can continue using the old ones for view sizing
+      // calculations until that happens.
+
+      var modified = oldChildren.size != newNode.children.size
+      var index = 0
       for (newChild in newNode.children) {
-        val oldChild = oldNodes[newChild.drawId]
+        // First attempt to identify the oldNode by drawId.
+        // If that fails attempt to match by index and name since [ComposeViewNode] may have
+        // generated a new drawId e.g. after a live update.
+        val oldChild =
+          oldNodes[newChild.drawId]
+            ?: oldChildren.getOrNull(index)?.takeIf { newChild.isSimilarAndUnused(it) }
         if (oldChild != null && oldChild.javaClass == newChild.javaClass) {
+          oldNodes.remove(oldChild.drawId)
           modified = update(oldChild, oldNode, newChild) || modified
           oldNode.children.add(oldChild)
-          oldNodes.remove(newChild.drawId)
+          oldChild.parent = oldNode
         } else {
           modified = true
           oldNode.children.add(newChild)
           newChild.parent = oldNode
         }
+        index++
       }
       return modified
     }
 
-    private fun ViewNode.WriteAccess.sameChildren(oldNode: ViewNode?, newNode: ViewNode?): Boolean {
-      if (oldNode?.children?.size != newNode?.children?.size) {
+    private fun ViewNode.isSimilarAndUnused(other: ViewNode): Boolean {
+      if (!oldNodes.contains(other.drawId)) {
+        return false // Already used elsewhere
+      }
+      if (qualifiedName != other.qualifiedName) {
         return false
       }
-      return oldNode?.children?.indices?.all {
-        oldNode.children[it].drawId == newNode?.children?.get(it)?.drawId
-      } ?: true
+      return if (this is ComposeViewNode && other is ComposeViewNode) {
+        composeFilename == other.composeFilename && composePackageHash == other.composePackageHash
+      } else javaClass == other.javaClass
     }
   }
 }

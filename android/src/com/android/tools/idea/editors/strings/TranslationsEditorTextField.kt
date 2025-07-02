@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.editors.strings
 
+import com.android.tools.adtui.stdui.OUTLINE_PROPERTY
 import com.android.tools.idea.editors.strings.table.StringResourceTable
+import com.intellij.ui.DocumentAdapter
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.util.function.IntSupplier
+import javax.swing.event.DocumentEvent
 
 /** A text field that can be wired up to edit a particular column in a [StringResourceTable]. */
 internal class TranslationsEditorTextField(
   private val table: StringResourceTable,
-  private val columnSupplier: IntSupplier
+  private val columnSupplier: IntSupplier,
+  private val validator: (String) -> String? // return an error string if validation field fails
 ) : MinimumWidthTextField() {
   private var lastSavedValue: String? = null
 
@@ -39,14 +43,29 @@ internal class TranslationsEditorTextField(
         saveText()
       }
     })
+    document.addDocumentListener(object : DocumentAdapter() {
+      override fun textChanged(event: DocumentEvent) {
+        updateErrorState()
+      }
+    })
   }
 
   private fun saveText() {
     // Make sure both listeners do not save the same value twice.
     // When creating new entries in a strings file, that could lead to multiple resources being created.
     if (table.hasSelectedCell() && text != lastSavedValue) {
-      lastSavedValue = text;
-      table.model.setValueAt(text, table.selectedModelRowIndex, columnSupplier.asInt)
+      val error = updateErrorState()
+      if (error.isNullOrEmpty()) {
+        lastSavedValue = text;
+        table.model.setValueAt(text, table.selectedModelRowIndex, columnSupplier.asInt)
+      }
     }
+  }
+
+  private fun updateErrorState(): String? {
+    val error = validator(text)
+    putClientProperty(OUTLINE_PROPERTY, if (error.isNullOrEmpty()) null else "error")
+    toolTipText = error
+    return error
   }
 }

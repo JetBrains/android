@@ -326,6 +326,8 @@ jvm_library(
     "//android/gradle-declarative-lang-sync",
     "//android/gradle-declarative-lang-flags",
     "//android/testartifacts",
+    "//platform/eel",
+    "//platform/eel-provider",
   ],
   runtime_deps = [
     ":projectSystem-gradle-tests_test_resources",

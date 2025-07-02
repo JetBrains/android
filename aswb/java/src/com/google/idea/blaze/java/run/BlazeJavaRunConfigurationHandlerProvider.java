@@ -15,23 +15,26 @@
  */
 package com.google.idea.blaze.java.run;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.model.primitives.Kind;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationHandler;
 import com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationHandlerProvider;
 import com.google.idea.blaze.java.sync.source.JavaLikeLanguage;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
 /** Java-specific handler provider for {@link BlazeCommandRunConfiguration}s. */
 public class BlazeJavaRunConfigurationHandlerProvider
     implements BlazeCommandRunConfigurationHandlerProvider {
 
-  private static final ImmutableSet<Kind> RELEVANT_RULE_KINDS =
-      JavaLikeLanguage.getAllDebuggableKinds();
-
   static boolean supportsKind(@Nullable Kind kind) {
-    return RELEVANT_RULE_KINDS.contains(kind);
+    return JavaLikeLanguage.EP_NAME.getExtensionList().stream()
+      .mapMulti(BlazeJavaRunConfigurationHandlerProvider::languageToKinds)
+      .anyMatch(k -> k.equals(kind));
+  }
+
+  private static void languageToKinds(JavaLikeLanguage language, Consumer<Kind> consumer) {
+    language.getDebuggableKinds().forEach(consumer);
   }
 
   @Override

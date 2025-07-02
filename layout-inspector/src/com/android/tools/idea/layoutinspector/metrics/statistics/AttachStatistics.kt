@@ -39,6 +39,8 @@ class AttachStatistics(
   private var pausedDuringAttach = false
   private var errorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
   private var composeErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
+  private var isOnDeviceRenderingEnabled = false
+  private var isXr = false
 
   private var attachStartTimeMs: Instant? = null
   private var attachEndTimeMs: Instant? = null
@@ -84,6 +86,8 @@ class AttachStatistics(
           0
         }
       it.attachDurationMs = durationMs
+      it.isOnDeviceRenderEnabled = isOnDeviceRenderingEnabled
+      it.isXr = isXr
     }
   }
 
@@ -115,6 +119,14 @@ class AttachStatistics(
   fun debuggerInUse(isPaused: Boolean) {
     debugging = true
     pausedDuringAttach = pausedDuringAttach || isPaused
+  }
+
+  fun setOnDeviceRendering(enabled: Boolean) {
+    isOnDeviceRenderingEnabled = enabled
+  }
+
+  fun isXr(isXr: Boolean) {
+    this.isXr = isXr
   }
 
   private fun assertErrorNotGeneric(errorCode: AttachErrorCode) {

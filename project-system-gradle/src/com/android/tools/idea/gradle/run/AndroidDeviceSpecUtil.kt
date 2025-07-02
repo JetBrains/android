@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("AndroidDeviceSpecUtil")
+
 package com.android.tools.idea.gradle.run
 
 import com.android.ide.common.repository.AgpVersion
@@ -33,13 +34,61 @@ import java.io.Writer
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
+sealed class ProcessedDeviceSpec {
 
-data class AndroidDeviceSpecImpl @JvmOverloads constructor (
+  sealed class SingleDeviceSpec : ProcessedDeviceSpec() {
+    object NoDevices : SingleDeviceSpec()
+    class TargetDeviceSpec(val deviceSpec: AndroidDeviceSpec) : SingleDeviceSpec() {
+      fun writeToJsonTempFile(
+        writeLanguages: Boolean,
+        moduleAgpVersions: List<AgpVersion> = emptyList(),
+      ): File {
+        return writeSingleJsonFile("target-device-spec.json", deviceSpec, writeLanguages, moduleAgpVersions)
+      }
+    }
+  }
+
+  class MultipleDeviceSpec(val deviceSpecs: List<AndroidDeviceSpec>) : ProcessedDeviceSpec() {
+    fun writeToMultipleJsonTempFiles(
+      writeLanguages: Boolean,
+      moduleAgpVersions: List<AgpVersion> = emptyList()
+    ): List<File> {
+      return deviceSpecs.mapIndexed { index, spec ->
+        writeSingleJsonFile("device-spec-$index.json", spec, writeLanguages, moduleAgpVersions)
+      }
+    }
+  }
+
+  companion object {
+    private fun writeSingleJsonFile(
+      filename: String,
+      spec: AndroidDeviceSpec,
+      writeLanguages: Boolean,
+      moduleAgpVersions: List<AgpVersion>
+    ): File {
+      val jsonString = StringWriter().use {
+        spec.writeJson(writeLanguages, it, moduleAgpVersions)
+        it.flush()
+        it.toString()
+      }
+      log.info("Device spec file generated: $jsonString")
+
+      val tempDir = File(System.getProperty("java.io.tmpdir"))
+      val tempFile = File(tempDir, filename)
+      FileUtil.writeToFile(tempFile, jsonString)
+      tempFile.deleteOnExit()
+      return tempFile
+    }
+  }
+}
+
+
+data class AndroidDeviceSpecImpl @JvmOverloads constructor(
   /**
    * The common version of the device or devices.
    * Null when combining multiple devices with different versions, or when the version is unknown.
    */
-  override val  commonVersion: AndroidVersion?,
+  override val commonVersion: AndroidVersion?,
   /**
    * The minimum version of the device or devices.
    * Null if the device version is unknown.
@@ -49,8 +98,7 @@ data class AndroidDeviceSpecImpl @JvmOverloads constructor (
   override val abis: List<String> = emptyList(),
   val supportsSdkRuntimeProvider: () -> Boolean = { false },
   override val deviceSerials: List<String> = emptyList(),
-  val languagesProvider: () -> List<String> = { emptyList() }
-) : AndroidDeviceSpec {
+  val languagesProvider: () -> List<String> = { emptyList() }) : AndroidDeviceSpec {
   override val supportsSdkRuntime: Boolean get() = supportsSdkRuntimeProvider()
   override val languages: List<String> get() = languagesProvider()
 }
@@ -65,29 +113,66 @@ const val DEVICE_SPEC_TIMEOUT_SECONDS = 10L
  * of installed languages using the [getLanguages] method. The [timeout] and [unit]
  * parameters are used in that case to ensure each request has a timeout.
  */
-@JvmOverloads
-fun createSpec(
+
+fun createDeviceSpecs(
   devices: List<AndroidDevice>,
   timeout: Long = DEVICE_SPEC_TIMEOUT_SECONDS,
   unit: TimeUnit = TimeUnit.SECONDS,
-  notification: (title: String, message: String) -> Unit = { _, _ -> }
-): AndroidDeviceSpec? {
+): ProcessedDeviceSpec.MultipleDeviceSpec {
+
+  if (devices.isEmpty()) return ProcessedDeviceSpec.MultipleDeviceSpec(emptyList())
+
+  val deviceSpecList = devices.map { device ->
+    var density: Density? = null
+    val version = if (device.version == AndroidVersion.DEFAULT) null else device.version
+
+    if (device.supportsMultipleScreenFormats()) {
+      log.info("Creating spec for resizable device ${device.name}")
+    }
+    else {
+      density = Density.create(device.density)
+    }
+    val preferredAbi = device.appPreferredAbi
+    val abis = if (StudioFlags.RISC_V.get() && preferredAbi != null) {
+      listOf(preferredAbi)
+    }
+    else {
+      device.abis.map { it.toString() }
+    }
+    log.info("Creating spec for device ${device.name} with ABIs: ${abis.ifEmpty { "<none specified>" }}")
+    val deviceSerial = devices.mapNotNull { if (device.isRunning) device.launchedDevice.get().serialNumber else null }
+    val supportsSdkRuntime = device.supportsSdkRuntime
+    if (supportsSdkRuntime) {
+      log.info("Creating spec for ${device.name}.")
+    }
+    else {
+      log.info("Creating spec for ${device.name} without privacy sandbox support.")
+    }
+
+    AndroidDeviceSpecImpl(version, version, density, abis, supportsSdkRuntimeProvider = { supportsSdkRuntime },
+                          languagesProvider = { combineDeviceLanguages(listOf(device), timeout, unit) }, deviceSerials = deviceSerial)
+  }
+  return ProcessedDeviceSpec.MultipleDeviceSpec(deviceSpecList)
+}
+
+@JvmOverloads
+fun createTargetDeviceSpec(devices: List<AndroidDevice>,
+                           timeout: Long = DEVICE_SPEC_TIMEOUT_SECONDS,
+                           unit: TimeUnit = TimeUnit.SECONDS,
+                           notification: (title: String, message: String) -> Unit = { _, _ -> }): ProcessedDeviceSpec.SingleDeviceSpec {
   if (devices.isEmpty()) {
-    return null
+    return ProcessedDeviceSpec.SingleDeviceSpec.NoDevices
   }
 
   val versions = devices.map { it.version }.toSet()
-  val hasUnknownVersions = versions.contains(AndroidVersion.DEFAULT)
-  // Find the common value of the device version to pass to the build.
+  val hasUnknownVersions = versions.contains(AndroidVersion.DEFAULT) // Find the common value of the device version to pass to the build.
   // Null if there are multiple distinct versions, or the version is unknown.
-  val version = if (hasUnknownVersions) null else versions.singleOrNull()
-  // Find the minimum value of the build API level for making other decisions
+  val version = if (hasUnknownVersions) null else versions.singleOrNull() // Find the minimum value of the build API level for making other decisions
   // If the API level of any device is not known, do not commit to a version
   val minVersion = if (hasUnknownVersions) null else versions.minWithOrNull(Ordering.natural())!!
 
   var density: Density? = null
-  var abis: List<String> = emptyList()
-  // If we are building for only one physical device, pass the density and the ABI
+  var abis: List<String> = emptyList() // If we are building for only one physical device, pass the density and the ABI
   if (devices.size == 1) {
     val device = devices[0]
 
@@ -102,34 +187,32 @@ fun createSpec(
     abis = if (StudioFlags.RISC_V.get() && preferredAbi != null) {
       listOf(preferredAbi)
     }
-    else {
-      // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
+    else { // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
       device.abis.map { it.toString() }
     }
     log.info("Creating spec for " + device.name + " with ABIs: " + abis.ifEmpty { "<none specified>" })
   }
   else {
-    if (StudioFlags.RISC_V.get() &&
-        devices.any { device -> device.appPreferredAbi != null && device.abis.size > 1 }) {
+    if (StudioFlags.RISC_V.get() && devices.any { device -> device.appPreferredAbi != null && device.abis.size > 1 }) {
       notification.invoke("Preferred ABI", "Preferred ABI may not be respected when building for multiple devices.")
     }
     log.info("Creating spec for multiple devices")
   }
 
   val deviceSerials = devices.mapNotNull { if (it.isRunning) it.launchedDevice.get().serialNumber else null }
-  val allDevicesSupportSdkRuntime =  devices.all { it.supportsSdkRuntime }
+  val allDevicesSupportSdkRuntime = devices.all { it.supportsSdkRuntime }
   if (allDevicesSupportSdkRuntime) {
     log.info("Creating spec for privacy sandbox enabled device.")
-  } else {
+  }
+  else {
     log.info("Creating spec for device without privacy sandbox support.")
   }
 
-  return AndroidDeviceSpecImpl(
-    version, minVersion, density, abis,
-    supportsSdkRuntimeProvider = { allDevicesSupportSdkRuntime },
-    languagesProvider = { combineDeviceLanguages(devices, timeout, unit) },
-    deviceSerials = deviceSerials
-  )
+  val deviceSpec = AndroidDeviceSpecImpl(version, minVersion, density, abis, supportsSdkRuntimeProvider = { allDevicesSupportSdkRuntime },
+                                         languagesProvider = { combineDeviceLanguages(devices, timeout, unit) },
+                                         deviceSerials = deviceSerials)
+
+  return ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec(deviceSpec)
 }
 
 /**
@@ -145,7 +228,9 @@ private fun combineDeviceLanguages(devices: List<AndroidDevice>, timeout: Long, 
     // So we must ensure to never use 0 "nanos" if the caller wants the minimal timeout.
     val nanos = Math.max(1, unit.toNanos(timeout))
     val duration = Duration.ofNanos(nanos)
-    val languageSets = devices.map { it.launchedDevice.get(timeout, unit).getLanguages(duration) }
+    val languageSets = devices.map {
+      it.launchedDevice.get(timeout, unit).getLanguages(duration)
+    }
     // Note: If we get an empty list from any device, we want to return an empty list instead of the
     // union of all languages, to ensure we don't have missing language splits on that device.
     if (languageSets.any { it.isEmpty() }) {
@@ -204,14 +289,9 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer, mo
       }
       writer.endArray()
     }
-    if (supportsSdkRuntime &&
-        // The DeviceConfig 'sdk_runtime' field exists in > AGP 7.4.0, the field is not recognised by older AGP versions.
+    if (supportsSdkRuntime && // The DeviceConfig 'sdk_runtime' field exists in > AGP 7.4.0, the field is not recognised by older AGP versions.
         moduleAgpVersions.all { it.isAtLeast(7, 4, 0) }) {
-      writer.name("sdk_runtime")
-        .beginObject()
-        .name("supported")
-        .value(supportsSdkRuntime)
-        .endObject()
+      writer.name("sdk_runtime").beginObject().name("supported").value(supportsSdkRuntime).endObject()
     }
     if (writeLanguages) {
       if (!languages.isEmpty()) {
@@ -229,17 +309,3 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer, mo
 
 private val log: Logger
   get() = Logger.getInstance(AndroidDeviceSpec::class.java)
-
-fun AndroidDeviceSpec.writeToJsonTempFile(writeLanguages: Boolean, moduleAgpVersions: List<AgpVersion> = emptyList()): File {
-  val jsonString = StringWriter().use {
-    writeJson(writeLanguages, it, moduleAgpVersions)
-    it.flush()
-    it.toString()
-  }
-  log.info("Device spec file generated: $jsonString")
-
-  // TODO: It'd be nice to clean this up sooner than at exit.
-  val tempFile = FileUtil.createTempFile("device-spec", ".json", true)
-  FileUtil.writeToFile(tempFile, jsonString)
-  return tempFile
-}

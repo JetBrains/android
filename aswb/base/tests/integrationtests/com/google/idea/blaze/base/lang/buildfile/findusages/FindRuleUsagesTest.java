@@ -43,7 +43,7 @@ public class FindRuleUsagesTest extends BuildFileIntegrationTestCase {
   public void testLocalReferences() {
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_library(name = \"target\")",
             "top_level_ref = \":target\"",
             "java_library(name = \"other\", deps = [\":target\"]");
@@ -72,7 +72,7 @@ public class FindRuleUsagesTest extends BuildFileIntegrationTestCase {
   public void testLocalFullReference() {
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_library(name = \"target\")",
             "java_library(name = \"other\", deps = [\"//java/com/google:target\"]");
 
@@ -90,11 +90,11 @@ public class FindRuleUsagesTest extends BuildFileIntegrationTestCase {
   public void testNonLocalReferences() {
     BuildFile targetFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/foo/BUILD"), "java_library(name = \"target\")");
+            new WorkspacePath("java/com/google/foo/~BUILD"), "java_library(name = \"target\")");
 
     BuildFile refFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/bar/BUILD"),
+            new WorkspacePath("java/com/google/bar/~BUILD"),
             "java_library(name = \"ref\", exports = [\"//java/com/google/foo:target\"])");
 
     FuncallExpression target = targetFile.findChildByClass(FuncallExpression.class);
@@ -111,12 +111,12 @@ public class FindRuleUsagesTest extends BuildFileIntegrationTestCase {
   public void testFindUsagesWorksFromNameString() {
     BuildFile targetFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/foo/BUILD"),
+            new WorkspacePath("java/com/google/foo/~BUILD"),
             "java_library(name = \"tar<caret>get\")");
 
     BuildFile refFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/bar/BUILD"),
+            new WorkspacePath("java/com/google/bar/~BUILD"),
             "java_library(name = \"ref\", exports = [\"//java/com/google/foo:target\"])");
 
     testFixture.configureFromExistingVirtualFile(targetFile.getVirtualFile());
@@ -138,10 +138,10 @@ public class FindRuleUsagesTest extends BuildFileIntegrationTestCase {
     // reference ":target" from another build file (missing package path in label)
     BuildFile targetFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/foo/BUILD"), "java_library(name = \"target\")");
+            new WorkspacePath("java/com/google/foo/~BUILD"), "java_library(name = \"target\")");
 
     createBuildFile(
-        new WorkspacePath("java/com/google/bar/BUILD"),
+        new WorkspacePath("java/com/google/bar/~BUILD"),
         "java_library(name = \"ref\", exports = [\":target\"])");
 
     FuncallExpression target = targetFile.findChildByClass(FuncallExpression.class);

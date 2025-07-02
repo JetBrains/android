@@ -41,7 +41,7 @@ internal class BackupFileHistory(private val project: Project) {
   }
 
   fun setFileHistory(history: List<String>) {
-    setProperty(history)
+    setProperty(history.map { Path.of(it).relativeToProject(project).pathString })
   }
 
   private fun setProperty(value: List<String>) {
@@ -52,5 +52,5 @@ internal class BackupFileHistory(private val project: Project) {
   private fun List<String>.filterValid() =
     map { Path.of(it).absoluteInProject(project) }
       .filter { it.exists() && !it.isDirectory() }
-      .map { it.pathString }
+      .map { it.relativeToProject(project).pathString }
 }

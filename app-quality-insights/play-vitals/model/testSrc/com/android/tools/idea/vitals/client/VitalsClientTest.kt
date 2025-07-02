@@ -19,7 +19,6 @@ import com.android.testutils.time.FakeClock
 import com.android.tools.idea.insights.Caption
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.DataPoint
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.DeviceType
@@ -45,7 +44,6 @@ import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.ai.codecontext.CodeContext
-import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.client.AiInsightClient
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
@@ -606,37 +604,6 @@ class VitalsClientTest {
         event = ISSUE1.sampleEvent,
       )
     assertThat(rawInsight).isEqualTo(expectedRequest.toString())
-  }
-
-  @Test
-  fun `fetch insight caches new insights`() = runBlocking {
-    val cache = AppInsightsCacheImpl()
-    val fakeAiClient =
-      object : AiInsightClient {
-        override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight {
-          return DEFAULT_AI_INSIGHT
-        }
-      }
-    val client =
-      VitalsClient(
-        projectRule.project,
-        projectRule.disposable,
-        cache,
-        ForwardingInterceptor,
-        TestVitalsGrpcClient(),
-        fakeAiClient,
-      )
-
-    client.fetchInsight(
-      TEST_CONNECTION_1,
-      ISSUE1.id,
-      null,
-      ISSUE1.issueDetails.fatality,
-      ISSUE1.sampleEvent,
-      TimeIntervalFilter.ONE_DAY,
-    )
-    assertThat(cache.getAiInsight(TEST_CONNECTION_1, ISSUE1.id, null, CodeContextData.DISABLED))
-      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
   }
 
   @Test

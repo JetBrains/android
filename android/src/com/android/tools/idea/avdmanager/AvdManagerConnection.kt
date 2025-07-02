@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager
 
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.IDevice
-import com.android.io.CancellableFileIo
 import com.android.prefs.AndroidLocationsException
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.ProgressIndicator
@@ -64,22 +63,18 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
-import com.intellij.openapi.progress.util.ProgressWindow
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.platform.ide.progress.withBackgroundProgress
+import com.intellij.platform.util.progress.reportProgress
+import com.intellij.platform.util.progress.withProgressText
 import com.intellij.util.net.ProxyConfiguration
 import com.intellij.util.net.ProxyConfiguration.StaticProxyConfiguration
 import com.intellij.util.net.ProxyCredentialStore
 import com.intellij.util.net.ProxySettings
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -90,6 +85,14 @@ import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 import kotlin.io.path.listDirectoryEntries
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
 
 /**
  * A wrapper class for communicating with [AvdManager] and exposing helper functions for dealing
@@ -152,10 +155,9 @@ constructor(
           if (success) {
             service<RunningAvdTracker>().shuttingDown(avd.id)
             try {
+              // Wait for the emulator process to terminate.
               termination.get()
-            }
-            catch (_: Exception) {
-            } // Wait for the emulator process to terminate.
+            } catch (_: Exception) {}
           }
         }
       }
@@ -247,13 +249,12 @@ constructor(
     when (code) {
       AccelerationErrorCode.ALREADY_INSTALLED ->
         return continueToStartAvd(project, info, requestType, factory)
-      AccelerationErrorCode.TOOLS_UPDATE_REQUIRED,
       AccelerationErrorCode.PLATFORM_TOOLS_UPDATE_ADVISED,
-      AccelerationErrorCode
-        .SYSTEM_IMAGE_UPDATE_ADVISED -> // Launch the virtual device with possibly degraded
-        // performance even if there are updates
+      AccelerationErrorCode.SYSTEM_IMAGE_UPDATE_ADVISED ->
+        // Launch the virtual device with possibly degraded performance even if there are updates
         // noinspection DuplicateBranchesInSwitch
         return continueToStartAvd(project, info, requestType, factory)
+      AccelerationErrorCode.EMULATOR_UPDATE_REQUIRED,
       AccelerationErrorCode.NO_EMULATOR_INSTALLED ->
         return handleAccelerationError(project, info, requestType, code)
       else -> {
@@ -276,7 +277,7 @@ constructor(
     avd: AvdInfo,
     requestType: AvdLaunchListener.RequestType,
     factory: EmulatorCommandBuilderFactory,
-  ): IDevice {
+  ): IDevice = coroutineScope {
     var avd = avd
     val emulator = emulator
     if (emulator == null) {
@@ -299,8 +300,7 @@ constructor(
       if (ProcessHandleProvider.getProcessHandle(pid)?.isAlive == true) {
         // TODO: Bring the running emulator's window to the front.
         throw AvdIsAlreadyRunningException(avd.displayName, pid)
-      }
-      else {
+      } else {
         avdManager.deleteLockFiles(avd)
       }
     }
@@ -323,51 +323,42 @@ constructor(
         throw DeviceActionException(String.format("Error launching emulator %1\$s", avdName), e)
       }
 
-    // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise,
-    // show it.
-    val p =
-      if (emulator.isQemu2)
-        BackgroundableProcessIndicator(project, "Launching emulator", null, "", false)
-      else ProgressWindow(false, true, project)
-    p.isIndeterminate = false
-    p.setDelayInMillis(0)
-
-    // It takes >= 8 seconds to start the Emulator. Display a small progress indicator otherwise it
-    // seems like the action wasn't invoked and users tend to click multiple times on it, ending up
-    // with several instances of the emulator.
-    ApplicationManager.getApplication().executeOnPooledThread {
-      try {
-        p.start()
-        p.text = "Starting AVD..."
-        var d = 0.0
-        while (d < 1) {
-          p.fraction = d
-          Thread.sleep(100)
-          if (processHandler.isProcessTerminated) {
-            break
+    // It takes >= 8 seconds to start the Emulator. Display a small progress indicator; otherwise,
+    // it seems like the action wasn't invoked.
+    val progressJob = launch {
+      if (project != null) {
+        withBackgroundProgress(project, "Launching emulator") {
+          reportProgress(80) { reporter ->
+            withProgressText("Starting AVD...") {
+              repeat(80) {
+                reporter.itemStep { delay(100) }
+                if (processHandler.isProcessTerminated) {
+                  return@withProgressText
+                }
+              }
+            }
           }
-          d += 1.0 / 80
         }
-      } catch (ignore: InterruptedException) {} finally {
-        p.stop()
-        p.processFinish()
       }
     }
+    try {
+      // Send notification that the device has been launched.
+      val messageBus = project?.messageBus ?: ApplicationManager.getApplication().messageBus
+      messageBus
+        .syncPublisher(AvdLaunchListener.TOPIC)
+        .avdLaunched(avd, commandLine, requestType, project)
 
-    // Send notification that the device has been launched.
-    val messageBus = project?.messageBus ?: ApplicationManager.getApplication().messageBus
-    messageBus
-      .syncPublisher(AvdLaunchListener.TOPIC)
-      .avdLaunched(avd, commandLine, requestType, project)
-
-    return EmulatorConnectionListener.getDeviceForEmulator(
-        project,
-        avd.name,
-        processHandler,
-        5,
-        TimeUnit.MINUTES,
-      )
-      .await()
+      return@coroutineScope EmulatorConnectionListener.getDeviceForEmulator(
+          project,
+          avd.name,
+          processHandler,
+          5,
+          TimeUnit.MINUTES,
+        )
+        .await()
+    } finally {
+      progressJob.cancel()
+    }
   }
 
   protected open fun newEmulatorCommand(
@@ -396,10 +387,6 @@ constructor(
 
   /** Write HTTP Proxy information to a temporary file. */
   private fun writeParameterFile(): Path? {
-    if (!emulator!!.hasStudioParamsSupport()) {
-      return null
-    }
-
     // These are defined in the HTTP Proxy section of the Settings dialog.
     // We can only use static HTTP proxies; ignore the other types.
     val config =
@@ -480,8 +467,8 @@ constructor(
   }
 
   /**
-   * Kills the emulator if it is running and deletes all AVD files and subdirectories except the ones that were created
-   * when the AVD itself was created.
+   * Kills the emulator if it is running and deletes all AVD files and subdirectories except the
+   * ones that were created when the AVD itself was created.
    */
   @Slow
   fun wipeUserData(avdInfo: AvdInfo): Boolean {
@@ -607,18 +594,6 @@ constructor(
     }
 
     @JvmStatic
-    fun doesSystemImageSupportQemu2(description: SystemImageDescription): Boolean {
-      val location = description.systemImage.location
-      try {
-        CancellableFileIo.list(location).use { files ->
-          return files.anyMatch { it.fileName.toString().startsWith("kernel-ranchu") }
-        }
-      } catch (e: IOException) {
-        return false
-      }
-    }
-
-    @JvmStatic
     fun getRequiredSystemImagePath(avdInfo: AvdInfo): String? {
       val imageSystemDir = avdInfo.properties[ConfigKey.IMAGES_1] ?: return null
       return StringUtil.trimEnd(
@@ -628,8 +603,6 @@ constructor(
     }
   }
 }
-
-private fun OptionalLong.orNull(): Long? = if (isPresent) asLong else null
 
 internal fun StaticProxyConfiguration.toStudioParams(
   credentialStore: ProxyCredentialStore

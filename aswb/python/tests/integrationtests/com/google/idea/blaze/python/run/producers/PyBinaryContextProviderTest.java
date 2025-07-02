@@ -50,7 +50,7 @@ public class PyBinaryContextProviderTest extends BlazeRunConfigurationProducerTe
             "if __name__ == '__main__':",
             "  main()");
 
-    workspace.createFile(new WorkspacePath("py/bin/BUILD"), "py_binary(name = 'main')");
+    workspace.createFile(new WorkspacePath("py/bin/~BUILD"), "py_binary(name = 'main')");
 
     MockBlazeProjectDataBuilder builder = MockBlazeProjectDataBuilder.builder(workspaceRoot);
     builder.setTargetMap(

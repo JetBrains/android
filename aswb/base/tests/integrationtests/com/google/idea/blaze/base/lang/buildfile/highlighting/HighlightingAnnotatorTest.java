@@ -34,7 +34,7 @@ public class HighlightingAnnotatorTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testBuiltInNamesSimple() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "None");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "None");
 
     ReferenceExpression ref = file.findChildByClass(ReferenceExpression.class);
     assertThat(ref.getText()).isEqualTo("None");
@@ -50,7 +50,7 @@ public class HighlightingAnnotatorTest extends BuildFileIntegrationTestCase {
   @Test
   public void testBuiltInNames() throws Throwable {
     BuildFile file =
-        createBuildFile(new WorkspacePath("BUILD"), "a = True", "b = False", "type(a)");
+        createBuildFile(new WorkspacePath("~BUILD"), "a = True", "b = False", "type(a)");
 
     List<ReferenceExpression> refs =
         PsiUtils.findAllChildrenOfClassRecursive(file, ReferenceExpression.class);

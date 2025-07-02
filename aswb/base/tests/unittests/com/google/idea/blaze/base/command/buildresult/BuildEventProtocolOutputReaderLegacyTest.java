@@ -193,7 +193,7 @@ public class BuildEventProtocolOutputReaderLegacyTest extends BlazeTestCase {
         ImmutableList.of(
             "/usr/local/code/ParserTest.java",
             "/usr/local/code/action_output.bzl",
-            "/usr/genfiles/BUILD.bazel");
+            "/usr/genfiles/~BUILD.bazel");
 
     ImmutableList<BuildEvent.Builder> events =
         ImmutableList.of(

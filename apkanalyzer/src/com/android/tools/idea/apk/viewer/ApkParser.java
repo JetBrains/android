@@ -209,7 +209,7 @@ public class ApkParser {
     byte[] decodedContent = doc.getBytes(StandardCharsets.UTF_8);
     try (ByteArrayInputStream stream = new ByteArrayInputStream(decodedContent)) {
       ManifestData data = AndroidManifestParser.parse(stream);
-      return new AndroidApplicationInfo(data.getPackage(), data.getVersionName(), data.getVersionCode());
+      return new AndroidApplicationInfo(data.getPackage(), data.getVersionName(), data.getVersionCode(), data.getExtractNativeLibs());
     }
   }
 

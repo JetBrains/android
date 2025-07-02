@@ -37,7 +37,7 @@ internal class ScreenRecorderPersistentOptionsTest {
     assertThat(options.width).isEqualTo(0)
     assertThat(options.timeLimitSec).isEqualTo(300)
     assertThat(persistentOptions.saveLocation).isEqualTo("\$USER_HOME$/Desktop")
-    assertThat(persistentOptions.filenameTemplate).isEqualTo("Screen_recording_%Y%M%D_%H%m%S")
+    assertThat(persistentOptions.filenameTemplate).isEqualTo("Screen_recording_<yyyy><MM><dd>_<HH><mm><ss>")
     assertThat(persistentOptions.recordingCount).isEqualTo(0)
   }
 

@@ -65,6 +65,8 @@ interface EnvironmentContext {
 
   fun isInTest(): Boolean
 
+  fun cleanLayoutlibNativeMemory()
+
   val downloadableFontCacheService: DownloadableFontCacheService
 
   /**

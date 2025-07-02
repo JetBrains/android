@@ -21,7 +21,7 @@ import icons.BlazeIcons;
 import javax.annotation.Nullable;
 import javax.swing.Icon;
 
-/** BUILD file type */
+/** ~BUILD file type */
 public class BuildFileType extends LanguageFileType {
 
   public static final BuildFileType INSTANCE = new BuildFileType();
@@ -39,7 +39,7 @@ public class BuildFileType extends LanguageFileType {
 
   @Override
   public String getDescription() {
-    return Blaze.defaultBuildSystemName() + " BUILD language";
+    return Blaze.defaultBuildSystemName() + " ~BUILD language";
   }
 
   @Override

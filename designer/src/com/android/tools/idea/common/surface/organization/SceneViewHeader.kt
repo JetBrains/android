@@ -39,12 +39,23 @@ private const val widthOffsetPx = 30
 /** Maximum width allowed for the header */
 private const val maxHeaderWidth = 5000
 
-/** Header for the group of previews. */
+/**
+ * Header for the group of previews.
+ *
+ * @param _isVisible indicates [SceneViewHeader] visibility. Previews in this organization group
+ *   might not be available at all (not just hidden in collapsed state). For example in UI Check or
+ *   if other filtering is enabled. In this case header should also be filtered out.
+ */
 class SceneViewHeader(
   parentContainer: JComponent,
   organizationGroup: OrganizationGroup,
+  private val _isVisible: () -> Boolean,
   createComposeHeader: (OrganizationGroup) -> JComponent,
 ) : JPanel(BorderLayout()), PositionablePanel {
+
+  override fun isVisible(): Boolean {
+    return _isVisible()
+  }
 
   init {
     isOpaque = false

@@ -39,7 +39,7 @@ public class RuleTargetCompletionTest extends BuildFileIntegrationTestCase {
   public void testLocalTarget() throws Throwable {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_library(name = 'lib')",
             "java_library(",
             "    name = 'test',",
@@ -61,7 +61,7 @@ public class RuleTargetCompletionTest extends BuildFileIntegrationTestCase {
 
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "custom_rule(name = 'lib')",
             "java_library(",
             "    name = 'test',",
@@ -79,7 +79,7 @@ public class RuleTargetCompletionTest extends BuildFileIntegrationTestCase {
   public void testIgnoreContainingTarget() throws Throwable {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_library(",
             "    name = 'lib',",
             "    deps = [':']");
@@ -95,7 +95,7 @@ public class RuleTargetCompletionTest extends BuildFileIntegrationTestCase {
   public void testNotCodeCompletionInNameField() throws Throwable {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_library(name = 'lib')",
             "java_library(",
             "    name = 'l'",
@@ -111,11 +111,11 @@ public class RuleTargetCompletionTest extends BuildFileIntegrationTestCase {
   @Test
   public void testNonLocalTarget() throws Throwable {
     createBuildFile(
-        new WorkspacePath("java/com/google/foo/BUILD"), "java_library(name = 'foo_lib')");
+        new WorkspacePath("java/com/google/foo/~BUILD"), "java_library(name = 'foo_lib')");
 
     BuildFile bar =
         createBuildFile(
-            new WorkspacePath("java/com/google/bar/BUILD"),
+            new WorkspacePath("java/com/google/bar/~BUILD"),
             "java_library(",
             "    name = 'bar_lib',",
             "    deps = '//java/com/google/foo:')");
@@ -130,11 +130,11 @@ public class RuleTargetCompletionTest extends BuildFileIntegrationTestCase {
   @Test
   public void testNonLocalRulesNotCompletedWithoutColon() throws Throwable {
     createBuildFile(
-        new WorkspacePath("java/com/google/foo/BUILD"), "java_library(name = 'foo_lib')");
+        new WorkspacePath("java/com/google/foo/~BUILD"), "java_library(name = 'foo_lib')");
 
     BuildFile bar =
         createBuildFile(
-            new WorkspacePath("java/com/google/bar/BUILD"),
+            new WorkspacePath("java/com/google/bar/~BUILD"),
             "java_library(",
             "    name = 'bar_lib',",
             "    deps = '//java/com/google/foo')");
@@ -150,7 +150,7 @@ public class RuleTargetCompletionTest extends BuildFileIntegrationTestCase {
   public void testPackageLocalRulesCompletedWithoutColon() throws Throwable {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_library(name = 'lib')",
             "java_library(",
             "    name = 'test',",
@@ -170,11 +170,11 @@ public class RuleTargetCompletionTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testLocalPathIgnoredForNonLocalLabels() throws Throwable {
-    createBuildFile(new WorkspacePath("java/BUILD"), "java_library(name = 'root_rule')");
+    createBuildFile(new WorkspacePath("java/~BUILD"), "java_library(name = 'root_rule')");
 
     BuildFile otherPackage =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_library(",
             "java_library(name = 'other_rule')",
             "    name = 'lib',",

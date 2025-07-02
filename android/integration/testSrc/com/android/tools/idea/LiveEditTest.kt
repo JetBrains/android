@@ -82,7 +82,7 @@ class LiveEditTest {
 
           // Open the file ahead of time so that Live Edit is ready when we want to make a change
           val path = project.targetProject.resolve("app/src/main/java/com/example/liveedittest/MainActivity.kt")
-          studio.openFile(project.getTargetProject().getFileName().toString(), path.toString())
+          studio.openFile("LiveEditTest", path.toString())
 
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()

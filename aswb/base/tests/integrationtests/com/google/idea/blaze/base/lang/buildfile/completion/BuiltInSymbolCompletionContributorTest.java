@@ -49,7 +49,7 @@ public class BuiltInSymbolCompletionContributorTest extends BuildFileIntegration
 
   @Test
   public void testSimpleTopLevelCompletion() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, 0);
@@ -61,7 +61,7 @@ public class BuiltInSymbolCompletionContributorTest extends BuildFileIntegration
 
   @Test
   public void testUniqueTopLevelCompletion() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "PACKAGE_N");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "PACKAGE_N");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "PACKAGE_N".length());
@@ -75,7 +75,7 @@ public class BuiltInSymbolCompletionContributorTest extends BuildFileIntegration
 
   @Test
   public void testNoCompletionInComment() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "#PACK");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "#PACK");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "#PACK".length());
@@ -85,7 +85,7 @@ public class BuiltInSymbolCompletionContributorTest extends BuildFileIntegration
 
   @Test
   public void testNoCompletionAfterInteger() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "123");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "123");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "123".length());
@@ -95,7 +95,7 @@ public class BuiltInSymbolCompletionContributorTest extends BuildFileIntegration
 
   @Test
   public void testNoCompletionInFuncall() throws Throwable {
-    BuildFile file = createBuildFile(new WorkspacePath("BUILD"), "java_library()");
+    BuildFile file = createBuildFile(new WorkspacePath("~BUILD"), "java_library()");
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 0, "java_library(".length());

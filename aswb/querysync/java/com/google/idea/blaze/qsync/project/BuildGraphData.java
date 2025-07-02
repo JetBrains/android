@@ -41,7 +41,7 @@ public interface BuildGraphData {
     JVM, CC
   }
 
-  /** A set of all the BUILD files */
+  /** A set of all the ~BUILD files */
   PackageSet packages();
 
   /**
@@ -139,9 +139,9 @@ public interface BuildGraphData {
    *
    * @param context Context
    * @param workspaceRelativePath Workspace relative file path to find targets for. This may be a
-   *     source file, directory or BUILD file.
+   *     source file, directory or ~BUILD file.
    * @return Corresponding project targets. For a source file, this is the targets that build that
-   *     file. For a BUILD file, it's the set or targets defined in that file. For a directory, it's
+   *     file. For a ~BUILD file, it's the set or targets defined in that file. For a directory, it's
    *     the set of all targets defined in all build packages within the directory (recursively).
    */
   TargetsToBuild getProjectTargets(Context<?> context, Path workspaceRelativePath);

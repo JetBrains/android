@@ -25,8 +25,8 @@ import com.android.testutils.retryUntilPassing
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
-import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorId
@@ -93,7 +93,7 @@ class OpenWearHealthServicesPanelActionTest {
     val dataContext =
       SimpleDataContext.builder()
         .add(CommonDataKeys.PROJECT, projectRule.project)
-        .add(EMULATOR_VIEW_KEY, emulatorView)
+        .add(DISPLAY_VIEW_KEY, emulatorView)
         .add(EMULATOR_CONTROLLER_KEY, emulatorController)
         .build()
 

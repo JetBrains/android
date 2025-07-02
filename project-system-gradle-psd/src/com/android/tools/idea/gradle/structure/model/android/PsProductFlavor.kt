@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.helpers.formatUnit
-import com.android.tools.idea.gradle.structure.model.helpers.installedSdksAsInts
-import com.android.tools.idea.gradle.structure.model.helpers.installedSdksAsStrings
+import com.android.tools.idea.gradle.structure.model.helpers.maxSdkValues
+import com.android.tools.idea.gradle.structure.model.helpers.minSdkValues
 import com.android.tools.idea.gradle.structure.model.helpers.parseAny
 import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
 import com.android.tools.idea.gradle.structure.model.helpers.parseFile
@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.helpers.proGuardFileValues
 import com.android.tools.idea.gradle.structure.model.helpers.productFlavorMatchingFallbackValues
 import com.android.tools.idea.gradle.structure.model.helpers.signingConfigs
+import com.android.tools.idea.gradle.structure.model.helpers.targetSdkValues
 import com.android.tools.idea.gradle.structure.model.helpers.toIntOrString
 import com.android.tools.idea.gradle.structure.model.helpers.withProFileSelector
 import com.android.tools.idea.gradle.structure.model.meta.ListProperty
@@ -171,7 +172,7 @@ open class PsProductFlavor(
       getter = { asInt() },
       setter = { setValue(it) },
       parser = ::parseInt,
-      knownValuesGetter = ::installedSdksAsInts
+      knownValuesGetter = ::maxSdkValues
     )
 
     val minSdkVersion: SimpleProperty<PsProductFlavor, String> = property(
@@ -182,7 +183,7 @@ open class PsProductFlavor(
       getter = { asString() },
       setter = { setValue(it.toIntOrString()) },
       parser = ::parseString,
-      knownValuesGetter = ::installedSdksAsStrings
+      knownValuesGetter = ::minSdkValues
     )
 
     val multiDexEnabled: SimpleProperty<PsProductFlavor, Boolean> = property(
@@ -215,7 +216,7 @@ open class PsProductFlavor(
       getter = { asString() },
       setter = { setValue(it.toIntOrString()) },
       parser = ::parseString,
-      knownValuesGetter = ::installedSdksAsStrings
+      knownValuesGetter = ::targetSdkValues
 
     )
 

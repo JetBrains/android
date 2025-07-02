@@ -109,6 +109,7 @@ jvm_library(
     "@lib//:kotlinc-analysis-api-provided",
     "//plugins/kotlin/code-insight/api",
     "//android/backup:backup-api",
+    "//android/android-adb:adb-tests_test_lib",
   ]
 )
 

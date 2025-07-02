@@ -20,8 +20,6 @@ import com.android.backup.BackupService
 import com.android.tools.idea.backup.BackupManager.Companion.NOTIFICATION_GROUP
 import com.android.tools.idea.backup.PostBackupDialog.Mode.EXISTING_CONFIG
 import com.android.tools.idea.backup.PostBackupDialog.Mode.NEW_CONFIG
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.intellij.execution.RunManager
@@ -127,7 +125,7 @@ internal class PostBackupDialog(private val project: Project, private val backup
       runManager.createConfiguration("Restore", AndroidRunConfigurationType::class.java)
     runManager.setUniqueNameIfNeeded(settings.configuration)
     val applicationId = BackupService.getMetadata(backupPath).applicationId
-    val module = findModule(applicationId)
+    val module = project.findHolderModule(applicationId)
     if (module != null) {
       val config = settings.configuration as AndroidRunConfiguration
       config.setModule(module)
@@ -179,12 +177,4 @@ internal class PostBackupDialog(private val project: Project, private val backup
       return component
     }
   }
-
-  private fun findModule(applicationId: String) =
-    project
-      .getProjectSystem()
-      .findModulesWithApplicationId(applicationId)
-      .firstOrNull()
-      ?.getModuleSystem()
-      ?.getHolderModule()
 }

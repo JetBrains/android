@@ -25,7 +25,7 @@ import java.util.EnumSet;
 import java.util.Set;
 import javax.annotation.Nullable;
 
-/** Base class for BUILD file component parsers */
+/** Base class for ~BUILD file component parsers */
 public abstract class Parsing {
 
   // Keywords that exist in Python which we don't parse.

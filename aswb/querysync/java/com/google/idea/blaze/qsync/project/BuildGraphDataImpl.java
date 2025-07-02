@@ -362,7 +362,7 @@ public record BuildGraphDataImpl(
       private static PackageSet computePackages(Storage storage) {
         PackageSet.Builder packages = new PackageSet.Builder();
         for (Label sourceFile : storage.sourceFileLabels()) {
-          if (sourceFile.getName().equals(Path.of("BUILD")) || sourceFile.getName().equals(Path.of("BUILD.bazel"))) {
+          if (sourceFile.getName().equals(Path.of("~BUILD")) || sourceFile.getName().equals(Path.of("~BUILD.bazel"))) {
             // TODO: b/334110669 - support Bazel workspaces.
             packages.add(sourceFile.getPackage());
           }
@@ -481,15 +481,15 @@ public record BuildGraphDataImpl(
    *
    * @param context Context
    * @param workspaceRelativePath Workspace relative file path to find targets for. This may be a
-   *     source file, directory or BUILD file.
+   *     source file, directory or ~BUILD file.
    * @return Corresponding project targets. For a source file, this is the targets that build that
-   *     file. For a BUILD file, it's the set or targets defined in that file. For a directory, it's
+   *     file. For a ~BUILD file, it's the set or targets defined in that file. For a directory, it's
    *     the set of all targets defined in all build packages within the directory (recursively).
    */
   @Override
   public TargetsToBuild getProjectTargets(Context<?> context, Path workspaceRelativePath) {
     // TODO: relativize here.
-    if (workspaceRelativePath.endsWith("BUILD")) {
+    if (workspaceRelativePath.endsWith("~BUILD")) {
       Path packagePath = workspaceRelativePath.getParent();
       return TargetsToBuild.targetGroup(storage.allTargets().get(packagePath));
     } else {
@@ -507,12 +507,7 @@ public record BuildGraphDataImpl(
         return TargetsToBuild.forSourceFile(targetOwner, workspaceRelativePath);
       }
     } else {
-      context.output(
-          PrintOutput.error("Can't find any supported targets for %s", workspaceRelativePath));
-      context.output(
-          PrintOutput.error(
-              "If this is a newly added supported rule, please re-sync your project."));
-      context.setHasWarnings();
+      return TargetsToBuild.forUnknownSourceFile(workspaceRelativePath);
     }
     return TargetsToBuild.None.INSTANCE;
   }

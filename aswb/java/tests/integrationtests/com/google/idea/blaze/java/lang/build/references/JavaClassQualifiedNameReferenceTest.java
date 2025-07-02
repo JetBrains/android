@@ -47,7 +47,7 @@ public class JavaClassQualifiedNameReferenceTest extends BuildFileIntegrationTes
 
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_binary(",
             "    name = 'binary',",
             "    main_class = 'com.google.bin.Main',",

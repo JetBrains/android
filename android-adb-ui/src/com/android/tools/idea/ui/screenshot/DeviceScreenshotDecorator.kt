@@ -29,9 +29,7 @@ import java.awt.image.BufferedImage
 import java.nio.file.Files
 import java.nio.file.Path
 
-/**
- * Screenshot framer accepting a [DeviceFramingOption].
- */
+/** Screenshot framer accepting a [DeviceFramingOption]. */
 class DeviceScreenshotDecorator : ScreenshotDecorator {
 
   /** Keys are skin folders, values are skin subfolders keyed by the corresponding display sizes. */
@@ -59,7 +57,7 @@ class DeviceScreenshotDecorator : ScreenshotDecorator {
     val skinDefinition = getSkinDefinition(skinFolder, screenshotImage.displaySize) ?: return image
     val w = image.width
     val h = image.height
-    val skin = skinDefinition.createScaledLayout(w, h, screenshotImage.screenshotRotationQuadrants)
+    val skin = skinDefinition.createScaledLayout(w, h, screenshotImage.screenshotOrientationQuadrants)
     val frameRectangle = skin.frameRectangle
     @Suppress("UndesirableClassUsage")
     val result = BufferedImage(frameRectangle.width, frameRectangle.height, BufferedImage.TYPE_INT_ARGB)

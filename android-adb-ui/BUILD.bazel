@@ -91,6 +91,7 @@ jvm_library(
     "//plugins/webp",
     "@lib//:kotlinc-kotlin-compiler-common",
     "//android/intellij.android.testutils:testutils_test_lib",
+    "@lib//:guava",
   ]
 )
 

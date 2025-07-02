@@ -35,8 +35,7 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -91,8 +90,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -300,8 +298,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -451,8 +448,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.app.main
-        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -636,8 +632,7 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/project.awesomeandroidlibrary.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -690,8 +685,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.awesomeandroidlibrary.main
-        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/project.awesomeandroidlibrary.androidTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -879,8 +873,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/awesomeandroidlibrary/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/project.awesomeandroidlibrary.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1011,8 +1004,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.awesomeandroidlibrary.main
-        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/project.awesomeandroidlibrary.unitTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1173,8 +1165,7 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.contentLib [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/contentLib/project.contentLib.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -1199,8 +1190,7 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/contentLib/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/contentLib/project.contentLib.main.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -1275,8 +1265,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.contentLib.main
-        ModuleFile                    : <PROJECT>/.idea/modules/contentLib/project.contentLib.test.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE

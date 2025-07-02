@@ -28,7 +28,7 @@ import com.intellij.psi.PsiFile;
 import java.io.File;
 import javax.annotation.Nullable;
 
-/** Runs all tests in a single selected BUILD file. */
+/** Runs all tests in a single selected ~BUILD file. */
 class AllInBuildFileTestContextProvider implements TestContextProvider {
 
   @Nullable

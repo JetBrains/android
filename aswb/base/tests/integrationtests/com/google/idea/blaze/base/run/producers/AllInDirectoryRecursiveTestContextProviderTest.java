@@ -74,7 +74,7 @@ public class AllInDirectoryRecursiveTestContextProviderTest
     PsiDirectory directory =
         workspace.createPsiDirectory(new WorkspacePath("java/com/google/test"));
     workspace.createPsiFile(
-        new WorkspacePath("java/com/google/test/BUILD"), "java_test(name='unit_tests'");
+        new WorkspacePath("java/com/google/test/~BUILD"), "java_test(name='unit_tests'");
 
     ConfigurationContext context = createContextFromPsi(directory);
     List<ConfigurationFromContext> configurations = context.getConfigurationsFromContext();

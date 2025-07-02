@@ -22,7 +22,7 @@ import com.intellij.lang.PsiBuilder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.tree.IElementType;
 
-/** For parsing statements in BUILD files. */
+/** For parsing statements in ~BUILD files. */
 public class StatementParsing extends Parsing {
 
   private static final ImmutableSet<TokenKind> STATEMENT_TERMINATOR_SET =

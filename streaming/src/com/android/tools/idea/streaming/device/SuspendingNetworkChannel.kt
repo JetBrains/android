@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.SocketAddress
@@ -32,7 +33,7 @@ import kotlin.coroutines.CoroutineContext
 abstract class SuspendingNetworkChannel<T : NetworkChannel>(val networkChannel: T) : SuspendingCloseable {
 
   override suspend fun close() {
-    withContextWithoutLoggingExceptions(Dispatchers.IO) {
+    withContextWithoutLoggingExceptions(SupervisorJob() + Dispatchers.IO) {
       try {
         networkChannel.close()
       }

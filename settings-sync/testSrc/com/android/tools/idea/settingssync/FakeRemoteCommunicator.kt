@@ -18,16 +18,21 @@ package com.android.tools.idea.settingssync
 import com.android.tools.idea.settingssync.onboarding.USER_EMAIL
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.settingsSync.core.AbstractServerCommunicator
+import com.intellij.settingsSync.core.FileState
 import com.intellij.settingsSync.core.InvalidVersionIdException
 import com.intellij.settingsSync.core.SettingsSnapshot
+import com.intellij.settingsSync.core.SettingsSnapshot.MetaInfo
 import com.intellij.settingsSync.core.SettingsSyncPushResult
 import com.intellij.settingsSync.core.SettingsSyncRemoteCommunicator
 import com.intellij.settingsSync.core.auth.SettingsSyncAuthService
 import com.intellij.settingsSync.core.communicator.SettingsSyncCommunicatorProvider
 import com.intellij.settingsSync.core.communicator.SettingsSyncUserData
+import com.intellij.settingsSync.core.getLocalApplicationInfo
+import com.intellij.settingsSync.core.plugins.SettingsSyncPluginsState
 import java.awt.Component
 import java.io.ByteArrayInputStream
 import java.io.InputStream
+import java.time.Instant
 import java.util.concurrent.CountDownLatch
 import javax.swing.Icon
 import kotlinx.io.IOException
@@ -35,6 +40,16 @@ import kotlinx.io.IOException
 private val LOG = Logger.getInstance(FakeRemoteCommunicator::class.java)
 private const val DISCONNECTED_ERROR = "disconnected"
 
+internal val SAMPLE_SNAPSHOT =
+  SettingsSnapshot(
+    metaInfo = MetaInfo(Instant.now(), getLocalApplicationInfo()),
+    fileStates = emptySet<FileState>(),
+    plugins = SettingsSyncPluginsState(emptyMap()),
+    settingsFromProviders = emptyMap(),
+    additionalFiles = emptySet<FileState>(),
+  )
+
+// Mostly copied from JB
 internal class FakeRemoteCommunicator(override val userId: String) : AbstractServerCommunicator() {
   private val filesAndVersions = mutableMapOf<String, Version>()
   private val versionIdStorage = mutableMapOf<String, String>()
@@ -60,9 +75,9 @@ internal class FakeRemoteCommunicator(override val userId: String) : AbstractSer
 
   override fun readFileInternal(filePath: String): Pair<InputStream?, String?> {
     checkConnected()
-    val version = filesAndVersions[filePath] ?: throw IOException("file $filePath is not found")
+    val version = filesAndVersions[filePath] ?: return Pair(null, null)
     versionIdStorage.put(filePath, version.versionId)
-    LOG.warn("Put version '${version.versionId}' for file $filePath (after read)")
+    LOG.info("Put version '${version.versionId}' for file $filePath (after read)")
     return Pair(ByteArrayInputStream(version.content), version.versionId)
   }
 
@@ -81,7 +96,7 @@ internal class FakeRemoteCommunicator(override val userId: String) : AbstractSer
     val version = Version(content.readAllBytes())
     filesAndVersions[filePath] = version
     versionIdStorage.put(filePath, version.versionId)
-    LOG.warn("Put version '${version.versionId}' for file $filePath (after write)")
+    LOG.info("Put version '${version.versionId}' for file $filePath (after write)")
     return version.versionId
   }
 
@@ -95,7 +110,7 @@ internal class FakeRemoteCommunicator(override val userId: String) : AbstractSer
     checkConnected()
     filesAndVersions - filePath
     versionIdStorage.remove(filePath)
-    LOG.warn("Removed version for file $filePath")
+    LOG.info("Removed version for file $filePath")
   }
 
   fun awaitForPush(testExecution: () -> Unit): PushResult {
@@ -117,6 +132,10 @@ internal class FakeRemoteCommunicator(override val userId: String) : AbstractSer
 
   fun deleteAllFiles() {
     filesAndVersions.clear()
+  }
+
+  fun prepareFileOnServer(snapshot: SettingsSnapshot) {
+    push(snapshot, force = true, expectedServerVersionId = null)
   }
 
   private class Version(val content: ByteArray, val versionId: String) {

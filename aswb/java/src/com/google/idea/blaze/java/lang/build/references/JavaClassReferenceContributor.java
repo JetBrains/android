@@ -20,7 +20,7 @@ import com.intellij.psi.PsiReferenceRegistrar;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassReferenceProvider;
 import com.intellij.psi.util.ClassKind;
 
-/** Provides BUILD references to java classes from fully-qualified class names. */
+/** Provides ~BUILD references to java classes from fully-qualified class names. */
 public class JavaClassReferenceContributor extends PsiReferenceContributor {
 
   @Override

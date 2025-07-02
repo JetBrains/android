@@ -61,7 +61,7 @@ public class BlazeSyncStatusStateManager
   }
 
   static class BlazeSyncStatusState {
-    /** has a BUILD file changed since the last sync started */
+    /** has a ~BUILD file changed since the last sync started */
     public volatile boolean dirty = false;
 
     public volatile boolean lastSyncFailed = false;

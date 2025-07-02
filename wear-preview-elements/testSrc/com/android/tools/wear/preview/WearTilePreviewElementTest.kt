@@ -34,6 +34,8 @@ class WearTilePreviewElementTest {
             showDecoration =   false,
             showBackground =  false,
             backgroundColor =  "0xffabcd",
+            organizationGroup =  "organization group",
+            organizationName =  "organization name"
           ),
         previewElementDefinition = 1,
         previewBody = 2,
@@ -52,6 +54,8 @@ class WearTilePreviewElementTest {
             showDecoration =   false,
             showBackground =  false,
             backgroundColor =  "0xffabcd",
+            organizationGroup =  "organization group",
+            organizationName =  "organization name"
           ),
         previewElementDefinition = 1,
         previewBody = 2,
@@ -75,6 +79,8 @@ class WearTilePreviewElementTest {
             showDecoration =   false,
             showBackground =  false,
             backgroundColor =  "0xffabcd",
+            organizationGroup =  "organization group",
+            organizationName =  "organization name"
           ),
         previewElementDefinition = 1,
         previewBody = 2,
@@ -91,6 +97,8 @@ class WearTilePreviewElementTest {
        showDecoration =  true,
       showBackground =   true,
         backgroundColor = "0xffffff",
+       organizationGroup =  "organization group",
+       organizationName =  "organization name"
       )
     val newConfig =
       PreviewConfiguration.Companion.cleanAndGet(
@@ -127,6 +135,8 @@ class WearTilePreviewElementTest {
             showDecoration =   false,
             showBackground =  false,
             backgroundColor =  "0xffabcd",
+            organizationGroup =  "organization group",
+            organizationName =  "organization name"
           ),
         previewElementDefinition = null,
         previewBody = null,
@@ -164,6 +174,8 @@ class WearTilePreviewElementTest {
             showDecoration =   false,
             showBackground =  false,
             backgroundColor =  null,
+            organizationGroup =  "organization group",
+            organizationName =  "organization name"
           ),
         previewElementDefinition = null,
         previewBody = null,

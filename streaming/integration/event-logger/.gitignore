@@ -1,0 +1,15 @@
+/.idea/assetWizardSettings.xml
+/.idea/caches
+/.idea/emulatorDisplays.xml
+/.idea/libraries
+/.idea/modules.xml
+/.idea/navEditor.xml
+/.idea/workspace.xml
+/build
+/captures
+*.iml
+.DS_Store
+.externalNativeBuild
+.cxx
+.gradle
+local.properties

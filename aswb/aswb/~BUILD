@@ -13,6 +13,7 @@ load(
 )
 load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
+    "aswb_library",
     "combine_visibilities",
     "intellij_plugin",
     "intellij_plugin_library",
@@ -93,14 +94,15 @@ java_library(
     ],
 )
 
-java_library(
+aswb_library(
     name = "aswb_lib",
     srcs = glob(
         [
             "src/**/*.java",
-            "src/com/google/idea/blaze/android/run/binary/tasks/*.java",
+            "src/**/*.kt",
         ],
     ),
+    lint_enabled = False,  # TODO: b/414804974 - Enable when violations resolved.
     resources = glob(
         [
             "resources/**/*",
@@ -196,8 +198,6 @@ intellij_integration_test_suite(
         ],
     ),
     data = [
-        "testdata/golden.png",
-        "testdata/ic_banner.png",
         "tools/adt/idea/android/annotations/empty_file",
     ],
     plugins = [

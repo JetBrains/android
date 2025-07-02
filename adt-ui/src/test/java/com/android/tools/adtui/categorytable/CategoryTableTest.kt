@@ -30,12 +30,13 @@ import com.intellij.testFramework.TestApplicationManager
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.util.preferredWidth
-import org.junit.Rule
-import org.junit.Test
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.SortOrder
 import javax.swing.SwingUtilities.convertPoint
+import org.junit.Rule
+import org.junit.Test
+import java.awt.Dimension
 
 @RunsInEdt
 class CategoryTableTest {
@@ -525,6 +526,9 @@ class CategoryTableTest {
     assertThat(scrollPane.verticalScrollBar.isVisible).isTrue()
     assertThat(scrollPane.verticalScrollBar.width).isGreaterThan(0)
     assertThat(table.width).isEqualTo(widthWithoutScrollbar - scrollPane.verticalScrollBar.width)
+
+    assertThat(table.preferredSize).isNotNull()
+    assertThat(table.maximumSize).isEqualTo(Dimension(Short.MAX_VALUE.toInt(), Short.MAX_VALUE.toInt()))
   }
 
   @Test

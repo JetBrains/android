@@ -215,6 +215,7 @@ jvm_library(
     "@lib//:kotlin-test",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared",
     "//plugins/kotlin/code-insight/live-templates-shared:kotlin-code-insight-live-templates-shared_test_lib",
+    "//platform/external-system-api:externalSystem",
   ]
 )
 

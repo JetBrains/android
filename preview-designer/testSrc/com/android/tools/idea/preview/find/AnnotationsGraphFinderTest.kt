@@ -35,9 +35,6 @@ import org.junit.Test
 class AnnotationsGraphFinderTest {
   @get:Rule val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
 
-  private val project
-    get() = projectRule.project
-
   private val fixture
     get() = projectRule.fixture
 

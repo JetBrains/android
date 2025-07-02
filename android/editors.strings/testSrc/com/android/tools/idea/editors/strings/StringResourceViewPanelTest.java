@@ -88,6 +88,12 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     myPanel = new StringResourceViewPanel(myFacet, getTestRootDisposable(), () -> myStringResourceWriter);
     myTable = myPanel.getTable();
 
+    // Make tables opaque to avoid graphics interaction during scrolling:
+    myTable.getFrozenTable().setOpaque(false);
+    myTable.getScrollableTable().setOpaque(false);
+    myTable.getFrozenTable().getTableHeader().setOpaque(false);
+    myTable.getScrollableTable().getTableHeader().setOpaque(false);
+
     VirtualFile resourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
     myRepository = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory));
     myPanel.getTable().setModel(new StringResourceTableModel(Utils.createStringRepository(myRepository, getProject()), getProject()));
@@ -279,9 +285,6 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       }
     }, getTestRootDisposable());
 
-    // Set the first table to opaque to avoid graphics interaction during scrolling:
-    myTable.getFrozenTable().setOpaque(false);
-
     // Set a selection to enable more actions:
     myTable.getFrozenTable().changeSelection(2, 3, false, false);
 
@@ -388,8 +391,8 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     // Initial state:
     assertThat(myPanel.myDefaultValueTextField.isEnabled()).isFalse();
 
-    myPanel.getTable().getFrozenTable().setUI(new HeadlessTableUI());
-    myPanel.getTable().getScrollableTable().setUI(new HeadlessTableUI());
+    myTable.getFrozenTable().setUI(new HeadlessTableUI());
+    myTable.getScrollableTable().setUI(new HeadlessTableUI());
     myPanel.getLoadingPanel().setSize(1200, 2000);
     FakeUi ui = new FakeUi(myPanel.getLoadingPanel(), 1.0, true, getTestRootDisposable());
 

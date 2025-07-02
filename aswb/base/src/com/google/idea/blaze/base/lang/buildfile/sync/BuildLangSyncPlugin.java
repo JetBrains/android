@@ -90,7 +90,7 @@ public class BuildLangSyncPlugin implements BlazeSyncPlugin {
         Scope.push(
             parentContext,
             (context) -> {
-              context.push(new TimingScope("BUILD language spec", EventType.BlazeInvocation));
+              context.push(new TimingScope("~BUILD language spec", EventType.BlazeInvocation));
               BuildLanguageSpec spec = parseLanguageSpec(project, projectViewSet, context);
               if (spec != null) {
                 return new LanguageSpecResult(spec, System.currentTimeMillis());
@@ -106,7 +106,7 @@ public class BuildLangSyncPlugin implements BlazeSyncPlugin {
       ProjectViewSet projectViewSet,
       BlazeContext context) {
     BuildInvoker invoker =
-        Blaze.getBuildSystemProvider(project).getBuildSystem().getDefaultInvoker(project);
+        Blaze.getBuildSystemProvider(project).getBuildSystem().getBuildInvoker(project);
     try {
       ListenableFuture<byte[]> future =
           BlazeInfoRunner.getInstance()

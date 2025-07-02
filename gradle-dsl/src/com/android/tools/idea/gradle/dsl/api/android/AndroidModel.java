@@ -168,4 +168,7 @@ public interface AndroidModel extends GradleBlockModel {
 
   @NotNull
   BuildFeaturesModel buildFeatures();
+
+  @NotNull
+  UseLibrariesModel useLibraries();
 }

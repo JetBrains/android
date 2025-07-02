@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Tests for auto-popup code completion in BUILD files. */
+/** Tests for auto-popup code completion in ~BUILD files. */
 @RunWith(JUnit4.class)
 public class BuildFileAutoCompletionTest extends BuildFileIntegrationTestCase {
 
@@ -53,10 +53,10 @@ public class BuildFileAutoCompletionTest extends BuildFileIntegrationTestCase {
   public void testNoPopupAfterNumber() throws Throwable {
     completionTester.runWithAutoPopupEnabled(
             () -> {
-              createBuildFile(new WorkspacePath("java/com/foo/BUILD"));
+              createBuildFile(new WorkspacePath("java/com/foo/~BUILD"));
               BuildFile file =
                   createBuildFile(
-                      new WorkspacePath("BUILD"),
+                      new WorkspacePath("~BUILD"),
                       "java_library(",
                       "    name = 'lib',",
                       "    testonly = ");

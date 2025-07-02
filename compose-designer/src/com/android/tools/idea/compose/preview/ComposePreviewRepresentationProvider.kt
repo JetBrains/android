@@ -25,11 +25,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.actions.ComposeFilterShowHistoryAction
-import com.android.tools.idea.compose.preview.actions.ComposeFilterTextAction
 import com.android.tools.idea.compose.preview.actions.ComposeNotificationGroup
-import com.android.tools.idea.compose.preview.actions.ComposeViewControlAction
-import com.android.tools.idea.compose.preview.actions.ComposeViewSingleWordFilter
 import com.android.tools.idea.compose.preview.actions.RevertToOriginalSizeAction
 import com.android.tools.idea.compose.preview.actions.SavePreviewInNewSizeAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
@@ -39,10 +35,13 @@ import com.android.tools.idea.compose.preview.actions.visibleOnlyInUiCheck
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.PreviewViewSingleWordFilter
+import com.android.tools.idea.preview.actions.CommonViewControlAction
 import com.android.tools.idea.preview.actions.GroupSwitchAction
+import com.android.tools.idea.preview.actions.PreviewFilterShowHistoryAction
+import com.android.tools.idea.preview.actions.PreviewFilterTextAction
 import com.android.tools.idea.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
-import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
 import com.android.tools.idea.preview.actions.visibleOnlyInFocus
@@ -66,7 +65,6 @@ import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
@@ -102,22 +100,19 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         StopInteractivePreviewAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
         StopAnimationInspectorAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
         StopUiCheckPreviewAction(),
-        StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled { ComposeFilterShowHistoryAction() },
-        StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled {
-          ComposeFilterTextAction(ComposeViewSingleWordFilter())
-        }, // TODO(b/292057010) Enable group filtering for Focus mode.
-        GroupSwitchAction(
-            isEnabled = { !isPreviewRefreshing(it.dataContext) },
-            isVisible = {
-              it.dataContext.findPreviewManager(COMPOSE_PREVIEW_MANAGER)?.isFilterEnabled != true
-            },
-          )
+        GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) })
           .visibleOnlyInDefaultPreview(),
-        ComposeViewControlAction().visibleOnlyInStaticPreview(),
+        CommonViewControlAction().visibleOnlyInStaticPreview(),
         SavePreviewInNewSizeAction().visibleOnlyInFocus(),
         RevertToOriginalSizeAction().visibleOnlyInFocus(),
         Separator.getInstance().visibleOnlyInUiCheck(),
         UiCheckDropDownAction().visibleOnlyInUiCheck(),
+        StudioFlags.PREVIEW_FILTER.ifEnabled {
+          PreviewFilterShowHistoryAction().visibleOnlyInStaticPreview()
+        },
+        StudioFlags.PREVIEW_FILTER.ifEnabled {
+          PreviewFilterTextAction(PreviewViewSingleWordFilter()).visibleOnlyInStaticPreview()
+        },
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
       )
     ) {
@@ -256,11 +251,6 @@ internal val PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE =
   DataKey.create<PsiComposePreviewElementInstance>("$PREFIX.PreviewElement")
 
 @TestOnly fun getComposePreviewManagerKeyForTests() = COMPOSE_PREVIEW_MANAGER
-
-/** Returns whether the filter of preview is enabled. */
-internal fun isPreviewFilterEnabled(context: DataContext): Boolean {
-  return COMPOSE_PREVIEW_MANAGER.getData(context)?.isFilterEnabled ?: false
-}
 
 private fun EditorMode?.getVisibility(defaultValue: PreferredVisibility) =
   when (this) {

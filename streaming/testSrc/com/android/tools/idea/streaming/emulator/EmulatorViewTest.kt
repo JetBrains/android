@@ -101,9 +101,11 @@ import java.awt.Point
 import java.awt.PointerInfo
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
+import java.awt.event.InputEvent.ALT_DOWN_MASK
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_BACK_SPACE
@@ -114,6 +116,7 @@ import java.awt.event.KeyEvent.VK_END
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
 import java.awt.event.KeyEvent.VK_HOME
+import java.awt.event.KeyEvent.VK_J
 import java.awt.event.KeyEvent.VK_KP_DOWN
 import java.awt.event.KeyEvent.VK_KP_LEFT
 import java.awt.event.KeyEvent.VK_KP_RIGHT
@@ -123,6 +126,7 @@ import java.awt.event.KeyEvent.VK_M
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
+import java.awt.event.KeyEvent.VK_S
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_TAB
@@ -131,6 +135,7 @@ import java.nio.file.Path
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
 import javax.swing.JScrollPane
+import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -429,7 +434,7 @@ class EmulatorViewTest {
     replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
 
     mockFocusManager.processKeyEvent(
-        view, KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
+        view, KeyEvent(view, KEY_PRESSED, System.nanoTime(), SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
 
     verify(mockFocusManager, atLeast(1)).focusNextComponent(eq(view))
   }
@@ -711,13 +716,50 @@ class EmulatorViewTest {
     fakeUi.render()
 
     var call: GrpcCallRecord? = null
-    for (rotation in listOf(1, 1, -1, -1)) {
-      fakeUi.mouse.wheel(100, 100, rotation)
-      if (call == null) {
-        call = fakeEmulator.getNextGrpcCall(2.seconds)
-        assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    for (shift in booleanArrayOf(false, true)) {
+      val axis = if (shift) "x" else "y"
+      if (shift) {
+        fakeUi.keyboard.press(VK_SHIFT)
       }
-      assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("wheel_event { dy: ${-rotation * 25} }")
+      for (rotation in intArrayOf(1, -1)) {
+        fakeUi.mouse.wheel(100, 100, rotation)
+        if (call == null) {
+          call = fakeEmulator.getNextGrpcCall(2.seconds)
+          assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+        }
+        assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("wheel_event { d$axis: ${-rotation * 30} }")
+      }
+      if (shift) {
+        fakeUi.keyboard.release(VK_SHIFT)
+      }
+    }
+  }
+
+  @Test
+  fun testTouchpadScrolling() {
+    view = emulatorViewRule.newEmulatorView()
+    fakeUi = FakeUi(createScrollPane(view))
+
+    fakeUi.root.size = Dimension(200, 300)
+    fakeUi.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame()
+    fakeUi.render()
+
+    var call: GrpcCallRecord? = null
+    var cumulativeRotation = 0.0
+    for (sign in intArrayOf(1, -1)) {
+      for (i in 1..100) {
+        fakeUi.mouse.wheel(100, 100, 0, 0.1 * sign.toDouble())
+        cumulativeRotation += 0.06 * sign
+        if (cumulativeRotation.absoluteValue >= 1) {
+          cumulativeRotation -= sign
+          if (call == null) {
+            call = fakeEmulator.getNextGrpcCall(2.seconds)
+            assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+          }
+          assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("wheel_event { dy: ${-sign} }")
+        }
+      }
     }
   }
 
@@ -725,11 +767,11 @@ class EmulatorViewTest {
   fun testKeysForMnemonicsShouldNotBeConsumed() {
     view = emulatorViewRule.newEmulatorView()
 
-    val altMPressedEvent = KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, VK_M, VK_M.toChar())
+    val altMPressedEvent = KeyEvent(view, KEY_PRESSED, System.nanoTime(), ALT_DOWN_MASK, VK_M, VK_M.toChar())
     KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(view, altMPressedEvent)
     assertThat(altMPressedEvent.isConsumed).isFalse()
 
-    val altMReleasedEvent = KeyEvent(view, KEY_RELEASED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, VK_M, VK_M.toChar())
+    val altMReleasedEvent = KeyEvent(view, KEY_RELEASED, System.nanoTime(), ALT_DOWN_MASK, VK_M, VK_M.toChar())
     KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(view, altMReleasedEvent)
     assertThat(altMReleasedEvent.isConsumed).isFalse()
   }
@@ -749,9 +791,8 @@ class EmulatorViewTest {
     val keymapManager = KeymapManager.getInstance()
     keymapManager.activeKeymap.addShortcut("android.streaming.hardware.input", KeyboardShortcut.fromString("control shift J"))
 
-    assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.nanoTime(),
-                                                    KeyEvent.SHIFT_DOWN_MASK or KeyEvent.CTRL_DOWN_MASK, KeyEvent.VK_J,
-                                                    KeyEvent.CHAR_UNDEFINED))).isFalse()
+    assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.nanoTime(), SHIFT_DOWN_MASK or CTRL_DOWN_MASK, VK_J,
+                                                    CHAR_UNDEFINED))).isFalse()
   }
 
   @Test
@@ -767,10 +808,10 @@ class EmulatorViewTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"Control\" }")
 
-    fakeUi.keyboard.press(KeyEvent.VK_S)
+    fakeUi.keyboard.press(VK_S)
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"s\" }")
 
-    fakeUi.keyboard.release(KeyEvent.VK_S)
+    fakeUi.keyboard.release(VK_S)
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"s\" }")
 
     fakeUi.keyboard.release(VK_CONTROL)

@@ -29,7 +29,6 @@ import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.LayoutNode
 import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.PanelState
-import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
 import com.android.tools.idea.streaming.core.SplitNode
 import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.core.StreamingDevicePanel
@@ -39,6 +38,10 @@ import com.android.tools.idea.streaming.core.installFileDropHandler
 import com.android.tools.idea.streaming.core.sizeWithoutInsets
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListener
+import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
+import com.android.tools.idea.ui.screenrecording.ScreenRecordingParameters
+import com.android.tools.idea.ui.screenshot.ScreenshotAction
+import com.android.tools.idea.ui.screenshot.ScreenshotParameters
 import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ActivityTracker
@@ -65,8 +68,7 @@ internal class DeviceToolWindowPanel(
   private val project: Project,
   val deviceHandle: DeviceHandle,
   val deviceClient: DeviceClient,
-) : StreamingDevicePanel(
-    DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID) {
+) : StreamingDevicePanel<DeviceDisplayPanel>(DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID) {
 
   val deviceSerialNumber: String
     get() = deviceClient.deviceSerialNumber
@@ -76,16 +78,22 @@ internal class DeviceToolWindowPanel(
 
   override val description: String
     get() {
-      val properties = deviceClient.deviceConfig.deviceProperties
-      val api = properties.androidVersion?.apiStringWithoutExtension ?: "${deviceClient.deviceConfig.apiLevel}"
+      val properties = deviceConfig.deviceProperties
+      val api = properties.androidVersion?.apiStringWithoutExtension ?: "${deviceConfig.apiLevel}"
       return "${properties.title} API $api ${"($deviceSerialNumber)".htmlColored(JBColor.GRAY)}"
     }
 
   override val icon: Icon
-    get() = ExecutionUtil.getLiveIndicator(deviceClient.deviceConfig.deviceProperties.icon)
+    get() = ExecutionUtil.getLiveIndicator(deviceConfig.deviceProperties.icon)
 
   override val deviceType: DeviceType
-    get() = deviceClient.deviceConfig.deviceType
+    get() = deviceConfig.deviceType
+
+  private val deviceConfig: DeviceConfiguration
+    get() = deviceClient.deviceConfig
+
+  private val deviceController
+    get() = deviceClient.deviceController
 
   val component: JComponent
     get() = this
@@ -104,7 +112,6 @@ internal class DeviceToolWindowPanel(
   private var contentDisposable: Disposable? = null
   override var primaryDisplayView: DeviceView? = null
     private set
-  private val displayPanels = Int2ObjectRBTreeMap<DeviceDisplayPanel>()
 
   private val deviceStateListener = object : DeviceController.DeviceStateListener {
     override fun onSupportedDeviceStatesChanged(deviceStates: List<FoldingState>) {
@@ -159,7 +166,7 @@ internal class DeviceToolWindowPanel(
       override fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState) {
         when (connectionState) {
           ConnectionState.CONNECTED -> {
-            deviceClient.deviceController?.apply {
+            deviceController?.apply {
               Disposer.register(disposable) {
                 removeDisplayListener(displayConfigurator)
                 removeDeviceStateListener(deviceStateListener)
@@ -172,7 +179,7 @@ internal class DeviceToolWindowPanel(
             showContextMenuAdvertisementIfNecessary(disposable)
           }
           ConnectionState.DISCONNECTED -> {
-            deviceClient.deviceController?.apply {
+            deviceController?.apply {
               displayConfigurator.reconfigureDisplayPanels(emptyList())
               removeDisplayListener(displayConfigurator)
               removeDeviceStateListener(deviceStateListener)
@@ -214,9 +221,17 @@ internal class DeviceToolWindowPanel(
     super.uiDataSnapshot(sink)
     sink[DEVICE_VIEW_KEY] = primaryDisplayView
     sink[DEVICE_CLIENT_KEY] = deviceClient
-    sink[DEVICE_CONTROLLER_KEY] = deviceClient.deviceController
+    sink[DEVICE_CONTROLLER_KEY] = deviceController
     sink[DEVICE_HANDLE_KEY] = deviceHandle
+    sink[ScreenshotAction.SCREENSHOT_PARAMETERS_KEY] = deviceController?.let { createScreenshotOptions() }
+    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = deviceController?.let { createScreenRecorderParameters(it) }
   }
+
+  private fun createScreenshotOptions(): ScreenshotParameters =
+      ScreenshotParameters(deviceSerialNumber, deviceConfig.deviceType, deviceConfig.deviceModel)
+
+  private fun createScreenRecorderParameters(deviceController: DeviceController): ScreenRecordingParameters =
+      ScreenRecordingParameters(deviceSerialNumber, deviceClient.deviceName, deviceConfig.featureLevel, deviceController, null)
 
   private inner class DisplayConfigurator : DeviceController.DisplayListener {
 
@@ -228,7 +243,7 @@ internal class DeviceToolWindowPanel(
       contentDisposable?.let {
         it.createCoroutineScope().launch {
           val displays = try {
-            deviceClient.deviceController?.getDisplayConfigurations() ?: return@launch
+            deviceController?.getDisplayConfigurations() ?: return@launch
           }
           catch (_: TimeoutException) {
             thisLogger().warn("Timed out waiting for display configurations from ${deviceClient.deviceName}")

@@ -182,6 +182,7 @@ jvm_library(
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
     "//android/project-system",
+    "//android/android-adb:adb-tests_test_lib",
   ],
   runtime_deps = [
     "@lib//:android-streaming-test_util-ffmpeg-linux-x64",
@@ -274,6 +275,7 @@ jvm_library(
     "//plugins/webp",
     "//android/project-system",
     "@lib//:mockito-kotlin",
+    "//android/android-adb:adb-tests_test_lib",
   ],
   runtime_deps = [
     "@lib//:android-streaming-tests-ffmpeg-linux-x64",

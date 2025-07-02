@@ -46,6 +46,7 @@ import com.google.common.collect.Range
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.jewel.ui.component.Text
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -154,6 +155,31 @@ class DeviceTableTest {
 
     composeTestRule.onNodeWithText(TestDevices.pixelFold.name).assertDoesNotExist()
     composeTestRule.onNodeWithText(TestDevices.automotive.name).assertIsDisplayed()
+  }
+
+  @Test
+  fun filterCustomRenderer() {
+    composeTestRule.setContent {
+      val source = TestDeviceSource()
+      source.apply { TestDevices.allTestDevices.forEach { add(it) } }
+      val filterState = TestDeviceFilterState()
+      val devices = source.profiles.value.value
+      DeviceTable(
+        devices,
+        columns = testDeviceTableColumns,
+        filterContent = {
+          SetFilter(
+            Manufacturer.uniqueValuesOf(devices),
+            filterState.oemFilter,
+            renderer = { Text("$it custom renderer") },
+          )
+        },
+        filterState = filterState,
+      )
+    }
+
+    composeTestRule.onNodeWithText("Google custom renderer").assertExists()
+    composeTestRule.onNodeWithText("Samsung custom renderer").assertExists()
   }
 
   @OptIn(ExperimentalTestApi::class)

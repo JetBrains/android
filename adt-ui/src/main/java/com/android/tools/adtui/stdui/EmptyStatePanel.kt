@@ -33,7 +33,11 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 class UrlData(val text: String, val url: String)
-class ActionData(val text: String, val callback: () -> Unit)
+class ActionData(
+  val text: String,
+  val icon: Icon? = null,
+  val callback: () -> Unit,
+)
 
 sealed class Chunk
 class IconChunk(val icon: Icon) : Chunk()
@@ -104,6 +108,9 @@ private fun createInstructionsPanel(
 
   if (actionData != null) {
     instructions.add(NewRowInstruction(12))
+    actionData.icon?.let {
+      instructions.add(IconInstruction(it, 5, null))
+    }
     instructions.add(HyperlinkInstruction(textMetrics.font, actionData.text, actionData.callback))
   }
 

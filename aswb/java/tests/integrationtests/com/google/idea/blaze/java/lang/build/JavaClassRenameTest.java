@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Tests that BUILD file references are correctly updated when performing rename refactors. */
+/** Tests that ~BUILD file references are correctly updated when performing rename refactors. */
 @RunWith(JUnit4.class)
 public class JavaClassRenameTest extends BuildFileIntegrationTestCase {
 
@@ -40,7 +40,7 @@ public class JavaClassRenameTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("com/google/foo/BUILD"),
+            new WorkspacePath("com/google/foo/~BUILD"),
             "java_library(name = \"ref2\", srcs = [\"JavaClass.java\"])");
 
     new RenameProcessor(getProject(), javaFile.getClasses()[0], "NewName", false, false).run();

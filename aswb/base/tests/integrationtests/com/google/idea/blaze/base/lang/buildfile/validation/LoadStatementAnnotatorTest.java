@@ -39,7 +39,7 @@ public class LoadStatementAnnotatorTest extends BuildFileIntegrationTestCase {
   public void testNoWarningsInNormalLoad() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load('//tools/ide/build_test.bzl', 'build_test')",
             "load(':local_file.bzl', 'symbol')");
     assertNoAnnotations(file);
@@ -49,14 +49,14 @@ public class LoadStatementAnnotatorTest extends BuildFileIntegrationTestCase {
   public void testNoWarningsInExternalLoad() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load('@tools//ide:build_test.bzl', 'build_test')");
     assertNoAnnotations(file);
   }
 
   @Test
   public void testNoWarningsWhenTyping() {
-    BuildFile file = createBuildFile(new WorkspacePath("java/com/google/BUILD"), "load('/')");
+    BuildFile file = createBuildFile(new WorkspacePath("java/com/google/~BUILD"), "load('/')");
     assertNoAnnotations(file);
   }
 
@@ -64,7 +64,7 @@ public class LoadStatementAnnotatorTest extends BuildFileIntegrationTestCase {
   public void testWarningForDeprecatedFormat() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load('/tools/ide/build_test.bzl', 'build_test')");
     assertHasAnnotation(
         file,
@@ -76,7 +76,7 @@ public class LoadStatementAnnotatorTest extends BuildFileIntegrationTestCase {
   public void testErrorForUnrecognizedFormat() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"), "load('not a skylark label', 'symbol')");
+            new WorkspacePath("java/com/google/~BUILD"), "load('not a skylark label', 'symbol')");
     assertHasAnnotation(
         file, "Invalid load syntax: missing Starlark module.", HighlightSeverity.ERROR);
   }
@@ -85,7 +85,7 @@ public class LoadStatementAnnotatorTest extends BuildFileIntegrationTestCase {
   public void testErrorForPrivateSymbols() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"), "load(':skylark.bzl', '_local_symbol')");
+            new WorkspacePath("java/com/google/~BUILD"), "load(':skylark.bzl', '_local_symbol')");
     assertHasAnnotation(
         file, "Symbol '_local_symbol' is private and cannot be imported.", HighlightSeverity.ERROR);
   }

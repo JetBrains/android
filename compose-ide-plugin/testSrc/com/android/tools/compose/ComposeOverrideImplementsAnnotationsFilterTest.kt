@@ -19,7 +19,6 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
-import com.intellij.openapi.command.WriteCommandAction
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.Before
@@ -68,9 +67,7 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
     val intention =
       fixture.availableIntentions.singleOrNull { it.familyName == "Implement members" }
         ?: error("Intention not found")
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      intention.invoke(fixture.project, fixture.editor, file)
-    }
+    fixture.launchAction(intention)
 
     fixture.checkResult(
       // language=kotlin
@@ -121,9 +118,7 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
     val intention =
       fixture.availableIntentions.singleOrNull { it.familyName == "Implement members" }
         ?: error("Intention not found")
-    WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      intention.invoke(fixture.project, fixture.editor, file)
-    }
+    fixture.launchAction(intention)
 
     val argumentType =
       if (KotlinPluginModeProvider.isK2Mode()) "@Composable (() -> Unit)"

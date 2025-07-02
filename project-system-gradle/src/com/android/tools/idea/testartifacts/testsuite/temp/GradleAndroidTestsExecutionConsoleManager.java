@@ -48,6 +48,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ObjectUtils;
+import java.time.Clock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.execution.filters.ReRunTaskFilter;
@@ -90,7 +91,7 @@ public final class GradleAndroidTestsExecutionConsoleManager
     }
     if (!(configuration instanceof ExternalSystemRunConfiguration)) return null;
 
-    AndroidTestSuiteView consoleView = new AndroidTestSuiteView(project, project, null);
+    AndroidTestSuiteView consoleView = new AndroidTestSuiteView(project, project, null, null, null, Clock.systemDefaultZone(), false);
 
     if (task instanceof ExternalSystemExecuteTaskTask) {
       consoleView.addMessageFilter(new ReRunTaskFilter((ExternalSystemExecuteTaskTask)task, env));

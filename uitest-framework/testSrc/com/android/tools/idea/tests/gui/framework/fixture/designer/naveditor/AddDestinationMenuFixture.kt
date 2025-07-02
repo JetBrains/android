@@ -30,13 +30,13 @@ import org.fest.swing.core.Robot
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
 import javax.swing.JPanel
+import kotlin.jvm.java
 
-class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddDestinationMenu) :
+class AddDestinationMenuFixture private constructor(private val robot: Robot, private val menu: AddDestinationMenu, target: JPanel) :
   ComponentFixture<AddDestinationMenuFixture, JPanel>(
     AddDestinationMenuFixture::class.java,
     robot,
-    DESTINATION_MENU_MAIN_PANEL_NAME,
-    JPanel::class.java
+    target
   ) {
 
   fun selectDestination(label: String) {
@@ -66,4 +66,21 @@ class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddD
   }
 
   fun isBalloonVisible() = menu.isBalloonVisible()
+
+  companion object {
+    private fun findMenuPanel(robot: Robot): JPanel? =
+      robot.finder().findByName(DESTINATION_MENU_MAIN_PANEL_NAME, JPanel::class.java, true)
+
+    @JvmStatic
+    fun create(robot: Robot, menu: AddDestinationMenu): AddDestinationMenuFixture {
+      var targetMenuPanel: JPanel? = null
+      Wait.seconds(10)
+        .expecting("Menu is populated")
+        .until {
+          targetMenuPanel = findMenuPanel(robot)
+          targetMenuPanel != null
+        }
+      return AddDestinationMenuFixture(robot, menu, targetMenuPanel!!)
+    }
+  }
 }

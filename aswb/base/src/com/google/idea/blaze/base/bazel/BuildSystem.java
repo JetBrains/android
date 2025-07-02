@@ -31,6 +31,7 @@ import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.exception.BuildException;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import java.io.InputStream;
 import java.util.Optional;
@@ -69,13 +70,14 @@ public interface BuildSystem {
 
     enum Capability {
       /**
-       * Capability to build Android Instrumentation Test APK
-       */
-      BUILD_AIT,
-      /**
        * Capability to invoke blaze/bazel via CLI
        */
       SUPPORT_CLI,
+
+      /**
+       * Can return a process handler
+       */
+      RETURN_PROCESS_HANDLER,
       /**
        * Capability to run parallel builds
        */
@@ -85,19 +87,26 @@ public interface BuildSystem {
        */
       RUN_REMOTE_QUERIES,
       /**
+       * Capability to run blaze/bazel query command with --query_file flag
+       */
+      SUPPORT_QUERY_FILE,
+      /**
        * Capability to debug Android local test
        */
-      DEBUG_LOCAL_TEST
+      ATTACH_JAVA_DEBUGGER
     }
 
-    default ImmutableSet<Capability> getCapabilities() {
-      throw new UnsupportedOperationException("This invoker does not support capabilities.");
-    }
+    ImmutableSet<Capability> getCapabilities();
 
     /**
      * Runs a blaze command, parses the build results into a {@link BlazeBuildOutputs} object.
      */
     BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException;
+
+    /**
+     * Runs a blaze command and returns a process handler, which can be used by the IDE to control its execution.
+     */
+    ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) throws BuildException;
 
     /**
      * Runs a blaze query command.
@@ -141,9 +150,14 @@ public interface BuildSystem {
   Optional<BuildInvoker> getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements);
 
   /**
-   * Get a Blaze invoker.
+   * Get a Blaze invoker. Returns the parallel invoker if the sync strategy is PARALLEL and the system supports it (for legacy sync);
+   * otherwise returns the standard invoker.
    */
   default BuildInvoker getBuildInvoker(Project project) {
+    if (Blaze.getProjectType(project) != ProjectType.QUERY_SYNC
+        && getSyncStrategy(project) == SyncStrategy.PARALLEL) {
+      return getBuildInvoker(project, ImmutableSet.of(BuildInvoker.Capability.BUILD_PARALLEL_SHARDS)).orElseThrow();
+    }
     return getBuildInvoker(project, ImmutableSet.of()).orElseThrow();
   }
 
@@ -162,18 +176,6 @@ public interface BuildSystem {
    * Get bazel only version. Returns empty if it's not bazel project.
    */
   Optional<String> getBazelVersionString(BlazeInfo blazeInfo);
-
-  /**
-   * Returns the parallel invoker if the sync strategy is PARALLEL and the system supports it;
-   * otherwise returns the standard invoker.
-   */
-  default BuildInvoker getDefaultInvoker(Project project) {
-    if (Blaze.getProjectType(project) != ProjectType.QUERY_SYNC
-        && getSyncStrategy(project) == SyncStrategy.PARALLEL) {
-      return getBuildInvoker(project, ImmutableSet.of(BuildInvoker.Capability.BUILD_PARALLEL_SHARDS)).orElseThrow();
-    }
-    return getBuildInvoker(project);
-  }
 
   /**
    * Returns invocation link for the given invocation ID.

@@ -67,18 +67,8 @@ private fun KaSession.renderValueParameters(
   append(")")
 }
 
-private fun KaSession.isRequired(valueParamSymbol: KaValueParameterSymbol): Boolean {
-  if (valueParamSymbol.hasDefaultValue) return false
-
-  // TODO(274145999): When we check it with a real AS instance, determine if we can drop this hacky
-  // solution or not.
-  // The KaValueParameterSymbol we get when running this from [ComposableItemPresentationProvider]
-  // for some reason says that optional
-  // Composable parameters don't declare a default value, which is incorrect. At the moment, the
-  // only way I've found to determine that
-  // they're truly optional is by looking at their text.
-  return valueParamSymbol.psi?.text?.endsWith("/* = compiled code */") != true
-}
+private fun KaSession.isRequired(valueParamSymbol: KaValueParameterSymbol): Boolean =
+  !valueParamSymbol.hasDefaultValue
 
 internal fun KaSession.isRequiredTrailingLambda(valueParamSymbol: KaValueParameterSymbol): Boolean {
   // Since vararg is not a function type parameter, we have to return false for a parameter with a

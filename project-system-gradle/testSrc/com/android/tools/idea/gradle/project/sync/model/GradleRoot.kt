@@ -23,11 +23,13 @@ import org.jetbrains.annotations.SystemIndependent
  * @param name The gradle root name
  * @param ideaGradleJdk The jdk.table.xml entry name or macro defined on [ExternalSystemJdkUtil] used to configure the gradle java for sync
  * @param gradleLocalJavaHome The java.home absolute path located on .gradle/config.properties
+ * @param gradleDaemonToolchain The Daemon JVM criteria config which will take precedence over the [ideaGradleJdk] if defined
  * @param modulesPath A list containing the gradle root modules absolute path
  */
 data class GradleRoot(
   val name: String = "",
   val ideaGradleJdk: String? = null,
   val gradleLocalJavaHome: @SystemIndependent String? = null,
+  val gradleDaemonToolchain: GradleDaemonToolchain? = null,
   val modulesPath: List<String> = listOf()
 )

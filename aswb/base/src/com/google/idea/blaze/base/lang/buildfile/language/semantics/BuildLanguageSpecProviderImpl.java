@@ -145,7 +145,7 @@ public class BuildLanguageSpecProviderImpl implements BuildLanguageSpecProvider 
 
   private ListenableFuture<BuildLanguageSpec> fetchBuildLanguageSpec(BlazeContext context) {
     BuildInvoker invoker =
-        Blaze.getBuildSystemProvider(project).getBuildSystem().getDefaultInvoker(project);
+        Blaze.getBuildSystemProvider(project).getBuildSystem().getBuildInvoker(project);
     ListenableFuture<byte[]> future =
         BlazeInfoRunner.getInstance()
             .runBlazeInfoGetBytes(
@@ -168,7 +168,7 @@ public class BuildLanguageSpecProviderImpl implements BuildLanguageSpecProvider 
 
   private ListenableFuture<String> fetchBlazeRelease(BlazeContext context) {
     BuildInvoker invoker =
-        Blaze.getBuildSystemProvider(project).getBuildSystem().getDefaultInvoker(project);
+        Blaze.getBuildSystemProvider(project).getBuildSystem().getBuildInvoker(project);
     ListenableFuture<byte[]> future =
         BlazeInfoRunner.getInstance()
             .runBlazeInfoGetBytes(project, invoker, context, ImmutableList.of(), BlazeInfo.RELEASE);
@@ -178,7 +178,7 @@ public class BuildLanguageSpecProviderImpl implements BuildLanguageSpecProvider 
         BlazeExecutor.getInstance().getExecutor());
   }
 
-  /** {@link SyncListener} for fetching BUILD language specs after sync, if needed */
+  /** {@link SyncListener} for fetching ~BUILD language specs after sync, if needed */
   public static class Listener implements SyncListener {
 
     // Callback is specific to query sync
@@ -202,7 +202,7 @@ public class BuildLanguageSpecProviderImpl implements BuildLanguageSpecProvider 
 
       ProgressManager.getInstance()
           .run(
-              new Backgroundable(project, "Fetching BUILD language spec") {
+              new Backgroundable(project, "Fetching ~BUILD language spec") {
                 @Override
                 public void run(@NotNull ProgressIndicator progressIndicator) {
                   provider.fetchLanguageSpecIfNeeded(context);

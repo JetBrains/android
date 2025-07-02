@@ -75,7 +75,7 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
   @Override
   public RenderJarInfo buildRenderJar(BlazeContext context, Set<Label> buildTargets)
       throws IOException, BuildException {
-    BuildInvoker invoker = buildSystem.getDefaultInvoker(project);
+    BuildInvoker invoker = buildSystem.getBuildInvoker(project);
     ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     List<String> additionalBlazeFlags =
         BlazeFlags.blazeFlags(
@@ -171,8 +171,8 @@ public class BazelRenderJarBuilder implements RenderJarBuilder {
       Files.createDirectories(generatedAspect.getParent());
     }
     Files.writeString(generatedAspect, getAspect().read());
-    // bazel asks BUILD file exists with the .bzl file. It's ok that BUILD file contains nothing.
-    Path buildPath = generatedAspect.resolveSibling("BUILD");
+    // bazel asks ~BUILD file exists with the .bzl file. It's ok that ~BUILD file contains nothing.
+    Path buildPath = generatedAspect.resolveSibling("~BUILD");
     if (!Files.exists(buildPath)) {
       Files.createFile(buildPath);
     }

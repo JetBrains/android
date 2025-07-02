@@ -39,7 +39,7 @@ import java.util.Arrays;
 import java.util.Set;
 import javax.annotation.Nullable;
 
-/** BUILD-file utility methods used by actions. */
+/** ~BUILD-file utility methods used by actions. */
 final class BuildFileUtils {
   private BuildFileUtils() {}
 

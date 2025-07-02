@@ -51,9 +51,13 @@ public class WiFiPairingContentPanel {
     myQrCodePanel.setContent(component);
   }
 
-  public void setPairingCodeComponent(@NotNull JComponent component) {
+  public void setPairingCodeComponent(@NotNull JComponent component, String mdnsService) {
     myPairingCodePanel.setContent(component);
-    myPairingCodePanel.setAsyncProcessText("Available Wi-Fi devices");
+    if (mdnsService != null) {
+      myPairingCodePanel.setAsyncProcessText("Waiting for Pairing mode");
+    } else {
+      myPairingCodePanel.setAsyncProcessText("Available Wi-Fi devices");
+    }
   }
 
   private void setupUI() {

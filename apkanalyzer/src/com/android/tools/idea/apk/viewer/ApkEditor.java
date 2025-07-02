@@ -17,7 +17,6 @@ package com.android.tools.idea.apk.viewer;
 
 import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
 import static com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt.IS_PAGE_ALIGN_ENABLED;
-import static com.android.tools.idea.apk.viewer.pagealign.AlignmentFindingKt.getAlignmentFinding;
 import static com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil.withChecksDisabledForSupplier;
 
 import com.android.SdkConstants;
@@ -46,7 +45,6 @@ import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
@@ -69,6 +67,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.JComponent;
@@ -82,6 +82,8 @@ import org.jetbrains.annotations.VisibleForTesting;
 public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkViewPanel.Listener {
   private final Project myProject;
   private final VirtualFile myBaseFile;
+  @NotNull
+  private String myBaseFileHash = "";
   private final VirtualFile myRoot;
   private final AndroidApplicationInfoProvider myApplicationInfoProvider;
   private ApkViewPanel myApkViewPanel;
@@ -130,12 +132,12 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       @Override
       public void after(@NotNull List<? extends VFileEvent> events) {
         String basePath = myBaseFile.getPath();
-        String contents = safeReadContents(myBaseFile.toNioPath());
         for (VFileEvent event : events) {
           if (FileUtil.pathsEqual(basePath, event.getPath())) {
             if (myBaseFile.isValid()) { // If the file is deleted, the editor is automatically closed.
-              if (!contents.equals(safeReadContents(Path.of(event.getPath())))) {
-                refreshApk(baseFile);
+              String hash = generateHash(myBaseFile.toNioPath());
+              if (hash == null || !hash.equals(myBaseFileHash)) {
+                refreshApk(myBaseFile);
               }
             }
           }
@@ -147,12 +149,21 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     mySplitter.setSecondComponent(new EmptyPanel().getComponent());
   }
 
-  private static String safeReadContents(Path path) {
+  @Nullable
+  private static String generateHash(Path path) {
     try {
-      return Files.readString(path);
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      byte[] bytes = Files.readAllBytes(path);
+      byte[] hashBytes = digest.digest(bytes);
+      StringBuilder hashString = new StringBuilder();
+      for (byte b : hashBytes) {
+        // Append each byte as a two-character hexadecimal string.
+        hashString.append(String.format("%02x", b));
+      }
+      return hashString.toString();
     }
-    catch (IOException e) {
-      return "";
+    catch (NoSuchAlgorithmException | IOException e) {
+      return null;
     }
   }
 
@@ -162,7 +173,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   }
 
   private void refreshApk(@NotNull VirtualFile apkVirtualFile) {
-    ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Reading APK contents") {
+    Task.Backgroundable task = new Task.Backgroundable(myProject, "Reading APK contents") {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         disposeArchive();
@@ -182,6 +193,10 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
             mySplitter.setFirstComponent(myApkViewPanel.getContainer());
             selectionChanged(null);
           });
+          String hash = generateHash(apkVirtualFile.toNioPath());
+          if (hash != null) {
+            myBaseFileHash = hash;
+          }
         }
         catch (IOException e) {
           getLog().error(e);
@@ -189,7 +204,8 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
           mySplitter.setFirstComponent(new JBLabel(e.toString()));
         }
       }
-    });
+    };
+    task.queue();
   }
 
   /**
@@ -314,7 +330,9 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       // If there are multiple, then give precedence to other viewers.
       if (nodes.length == 1 && nodes[0] != null) {
         ArchiveEntry archiveEntry = nodes[0].getData();
-        AlignmentFinding alignment = AlignmentFindingKt.getAlignmentFinding(archiveEntry);
+        AlignmentFinding alignment = AlignmentFindingKt.getAlignmentFinding(
+          archiveEntry,
+          myApkViewPanel.getTreeModel().getExtractNativeLibs());
         if (alignment.getHasWarning()) {
           return new AlignmentWarningViewer();
         }

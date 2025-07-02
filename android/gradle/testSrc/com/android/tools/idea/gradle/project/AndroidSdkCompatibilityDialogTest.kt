@@ -42,9 +42,7 @@ class AndroidSdkCompatibilityDialogTest {
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
   @get:Rule val rule = RuleChain(projectRule, HeadlessDialogRule())
 
-  private fun findDialog(): AndroidSdkCompatibilityDialog? {
-    return findModelessDialog { it is AndroidSdkCompatibilityDialog } as AndroidSdkCompatibilityDialog?
-  }
+  private fun findDialog(): AndroidSdkCompatibilityDialog? = findModelessDialog<AndroidSdkCompatibilityDialog>()
 
   @Test
   fun `test dialog content with same channel recommendation`() {

@@ -77,7 +77,6 @@ enum class ModelFeature(
   SUPPORTS_ADDITIONAL_CLASSIFIER_ARTIFACTS_MODEL(AgpVersion.parse("3.5.0")),
   HAS_INSTANT_APP_COMPATIBLE_IN_V1_MODELS(AgpVersion.parse("3.3.0-alpha10")),
   HAS_V2_MODELS(AgpVersion.parse("7.2.0-alpha01")),
-  HAS_SOURCES_JAVADOC_AND_SAMPLES_IN_VARIANT_DEPENDENCIES(AgpVersion.parse("8.1.0-alpha08")),
   SUPPORTS_PARALLEL_SYNC(
     enabledForModelVersions = ImmutableRangeSet.of(Range.atLeast(ModelVersion(8, 0))),
     alsoEnabledForAgpVersions = ImmutableRangeSet.builder<AgpVersion>().add(Range.atLeast(AgpVersion.parse("7.3.0-alpha04"))).add(
@@ -100,7 +99,9 @@ enum class ModelFeature(
   HAS_DATA_BINDING(ModelVersion(9)),
   HAS_PROJECT_GRAPH_MODEL(ModelVersion(10, 0)),
   HAS_GENERATED_ASSETS(ModelVersion(11, 0)),
-  HAS_FLAT_DEPENDENCY_MODEL(ModelVersion(12, 0))
+  HAS_FLAT_DEPENDENCY_MODEL(ModelVersion(12, 0)),
+  // ModelVersion(13, 0) is taken by I217c809052b867642de145041de50b5578bc09f5
+  HAS_SOURCES_LIST_AND_JAVADOC_IN_VARIANT_DEPENDENCIES(ModelVersion(14, 0)),
   ;
 
   init {
@@ -264,8 +265,7 @@ internal class BasicV2AndroidModuleGradleProject(
         val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
           ?: error("Cannot get GradlePropertiesModel (V2) for project '$gradleProject'")
 
-        val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncActionOptions.syncTestMode,
-                                          syncActionOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport)
+        val modelCache = modelCacheV2Impl(internedModels, modelVersions, syncActionOptions.syncTestMode)
         val rootBuildId = buildInfo.buildPathMap[":"] ?: error("Root build (':') not found")
         val androidProjectResult =
           AndroidProjectResult.V2Project(
@@ -285,7 +285,8 @@ internal class BasicV2AndroidModuleGradleProject(
               buildRuntimeClasspathForLibraryScreenshotTests = syncActionOptions.flags.studioFlagBuildRuntimeClasspathForLibraryScreenshotTests
             ),
             useFlatDependencyGraphModel = syncActionOptions.flags.studioFlagUseFlatDependencyGraphModel
-                                          && modelVersions[ModelFeature.HAS_FLAT_DEPENDENCY_MODEL]
+                                          && modelVersions[ModelFeature.HAS_FLAT_DEPENDENCY_MODEL],
+            additionalArtifactsInModel = syncActionOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport,
           )
 
         return androidProjectResult.mapCatching { androidProjectResult ->

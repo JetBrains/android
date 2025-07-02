@@ -1,7 +1,0 @@
-
-directories:
-  tools/adt/idea/aswb/aswb/testdata/projects/gencode_twowaydeps/project
-
-android_sdk_platform: android-34
-
-

@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
+import com.android.adblib.AdbServerConfiguration
+import com.android.adblib.AdbServerController
 import com.android.adblib.AdbSession
 import com.android.adblib.DeviceSelector
 import com.android.adblib.connectedDevicesTracker
+import com.android.adblib.ddmlibcompatibility.AdbLibAndroidDebugBridge
 import com.android.adblib.ddmlibcompatibility.AdbLibIDeviceManagerFactory
 import com.android.adblib.isOnline
 import com.android.adblib.serialNumber
@@ -26,6 +29,7 @@ import com.android.ddmlib.AdbInitOptions
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.ClientState
 import com.android.fakeadbserver.DeviceState
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -36,6 +40,7 @@ import com.android.tools.idea.device.explorer.monitor.mocks.MockProjectApplicati
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
 import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
 import com.android.tools.idea.device.explorer.monitor.processes.safeProcessName
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -44,6 +49,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.registerOrReplaceServiceInstance
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -175,6 +181,10 @@ class DeviceMonitorControllerImplTest {
   fun attachDebuggerToProcesses() = runBlocking(AndroidDispatchers.uiThread) {
     try {
       // Prepare
+      if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()) {
+        setAndroidDebugBridgeDelegateToAdblibWithSession(
+          deviceProvisionerRule.adbSession, deviceProvisionerRule.fakeAdb.fakeAdbServer.port)
+      }
       AndroidDebugBridge.enableFakeAdbServerMode(deviceProvisionerRule.fakeAdb.fakeAdbServer.port)
       val adbInitOptions =
         AdbInitOptions.builder().setClientSupportEnabled(true)
@@ -208,6 +218,22 @@ class DeviceMonitorControllerImplTest {
       AndroidDebugBridge.terminate()
       AndroidDebugBridge.disableFakeAdbServerMode()
     }
+  }
+
+  private fun setAndroidDebugBridgeDelegateToAdblibWithSession(adbSession: AdbSession, port: Int) {
+    val adbServerConfiguration =
+      MutableStateFlow(
+        AdbServerConfiguration(
+          adbPath = null,
+          serverPort = port,
+          isUserManaged = false,
+          isUnitTest = true,
+          envVars = emptyMap(),
+        )
+      )
+    val adbServerController =
+      AdbServerController.createServerController(adbSession.host, adbServerConfiguration)
+    AndroidDebugBridge.resetForTests(AdbLibAndroidDebugBridge(adbSession, adbServerController, adbServerConfiguration))
   }
 
   @Test
@@ -320,7 +346,7 @@ class DeviceMonitorControllerImplTest {
       manufacturer = "Google",
       deviceModel = "Pixel 10",
       release = "8.0",
-      sdk = "30",
+      sdk = AndroidApiLevel(30),
       hostConnectionType = DeviceState.HostConnectionType.USB
     )
     deviceState.deviceStatus = DeviceState.DeviceStatus.ONLINE

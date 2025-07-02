@@ -22,6 +22,13 @@ jvm_library(
     "//platform/util",
     "//plugins/kotlin/gradle/gradle-tooling/impl",
     "//plugins/gradle/tooling-extension-impl:toolingExtension-impl",
+    "//platform/workspace/jps",
+    "//platform/external-system-rt:externalSystem-rt",
+    "//platform/external-system-api:externalSystem",
+    "//platform/backend/workspace",
+    "//platform/workspace/storage",
+    "//java/java-impl:impl",
+    "//plugins/gradle",
   ]
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.sync` end

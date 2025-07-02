@@ -90,8 +90,8 @@ internal class PreviewSurfaceActionManager(
     actionGroup.add(ViewInFocusModeAction(mousePosition.x, mousePosition.y))
     // Add toolbar actions in the context-menu as a redundant entry point
     getSceneViewContextToolbarActions().takeIf { it.isNotEmpty() }?.forEach { actionGroup.add(it) }
-    // Send Preview to Studio Bot and ask to fix it
-    if (StudioFlags.COMPOSE_SEND_PREVIEW_TO_STUDIO_BOT.get()) {
+    // Add action to transform UI with AI
+    if (StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI.get()) {
       ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {
         actionGroup.add(it.createSendPreviewAction())
       }

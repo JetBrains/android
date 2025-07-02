@@ -210,6 +210,8 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
         writer.append(String.format("-Denable.bleak=true%n"));
         writer.append(String.format("-Dbleak.jvmti.enabled=true%n"));
         writer.append(String.format("-Didea.disposer.debug=on%n"));
+        // BLeak requires more memory since it's keeping track of various live objects
+        writer.append(String.format("-Xmx4G%n"));
       }
       catch (IOException ignored) {
         throw new IllegalStateException("BLeak JVMTI agent not found");

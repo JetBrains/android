@@ -155,6 +155,7 @@ class ComposePreviewViewImplTest {
   private lateinit var mainFileSmartPointer: SmartPsiElementPointer<PsiFile>
   private lateinit var previewView: ComposePreviewView
   private lateinit var fakeUi: FakeUi
+  private val fakeStudioBotActionFactory = FakeStudioBotActionFactory()
 
   private val geminiPluginApi =
     object : GeminiPluginApi {
@@ -186,7 +187,7 @@ class ComposePreviewViewImplTest {
       .registerExtension(GeminiPluginApi.EP_NAME, geminiPluginApi, projectRule.testRootDisposable)
     ExtensionTestUtil.maskExtensions(
       ComposeStudioBotActionFactory.EP_NAME,
-      listOf(FakeStudioBotActionFactory()),
+      listOf(fakeStudioBotActionFactory),
       projectRule.testRootDisposable,
     )
     runBlocking(Dispatchers.EDT) {
@@ -345,45 +346,35 @@ class ComposePreviewViewImplTest {
   }
 
   @Test
-  fun `empty preview state when generate all previews is disabled`() = runBlocking {
+  fun `empty preview state when flag is disabled`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(false)
-    previewView.hasRendered = true
-    previewView.hasContent = false
-    runBlocking { previewView.updateVisibilityAndNotifications() }
-
-    var instructionPanel: InstructionsPanel? = null
-    delayUntilCondition(250) {
-      instructionPanel = (fakeUi.findComponent<InstructionsPanel> { it.isShowing })
-      instructionPanel != null
-    }
-
-    retryUntilPassing(2.seconds) {
-      assertEquals(
-        """
-        No preview found.
-        Add preview by annotating Composables with @Preview
-        [Using the Compose preview]
-      """
-          .trimIndent(),
-        instructionPanel?.toDisplayText(),
-      )
-    }
-  }
-
-  @Test
-  fun `empty preview state when generate all previews is enabled and context-sharing disabled`() {
+    geminiPluginApi.contextAllowed = true
     checkEmptyPreviewState(false)
   }
 
   @Test
-  fun `empty preview state when both generate all previews and context-sharing are enabled`() {
+  fun `empty preview state when context-sharing is disabled`() {
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
+    geminiPluginApi.contextAllowed = false
+    checkEmptyPreviewState(false)
+  }
+
+  @Test
+  fun `empty preview state when preview generator is null`() {
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
+    geminiPluginApi.contextAllowed = true
+    fakeStudioBotActionFactory.isNullPreviewGeneratorAction = true
+    checkEmptyPreviewState(false)
+  }
+
+  @Test
+  fun `empty preview state when flag and context-sharing are enabled`() {
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
+    geminiPluginApi.contextAllowed = true
     checkEmptyPreviewState(true)
   }
 
-  private fun checkEmptyPreviewState(contextSharingEnabled: Boolean) = runBlocking {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
-    geminiPluginApi.contextAllowed = contextSharingEnabled
-
+  private fun checkEmptyPreviewState(showAutoGenerateAction: Boolean) = runBlocking {
     previewView.hasRendered = true
     previewView.hasContent = false
     runBlocking { previewView.updateVisibilityAndNotifications() }
@@ -399,7 +390,7 @@ class ComposePreviewViewImplTest {
         No preview found.
         Add preview by annotating Composables with @Preview
         [Using the Compose preview]
-        ${if (contextSharingEnabled) "[Auto-generate Compose Previews for this file]" else ""}
+        ${if (showAutoGenerateAction) "[Auto-generate Compose Previews for this file]" else ""}
       """
           .trimIndent()
           .trim(),
@@ -597,12 +588,15 @@ class ComposePreviewViewImplTest {
 }
 
 class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
+
+  var isNullPreviewGeneratorAction = false
+
   private val fakeAction =
     object : AnAction() {
       override fun actionPerformed(e: AnActionEvent) {}
     }
 
-  override fun createPreviewGenerator() = fakeAction
+  override fun createPreviewGenerator() = if (isNullPreviewGeneratorAction) null else fakeAction
 
   override fun createSendPreviewAction() = fakeAction
 }

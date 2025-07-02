@@ -225,7 +225,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       if (Content.TEMPORARY_REMOVED_KEY.get(content, false)) {
         return
       }
-      val panel = content.component as? StreamingDevicePanel ?: return
+      val panel = content.component as? StreamingDevicePanel<*> ?: return
       if (!initialContentUpdate) {
         when (panel) {
           is EmulatorToolWindowPanel -> panel.emulator.shutdown()
@@ -262,7 +262,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       projectProperties.setValue(DEVICE_FRAME_VISIBLE_PROPERTY, value, DEVICE_FRAME_VISIBLE_DEFAULT)
       for (contentManager in contentManagers) {
         for (i in 0 until contentManager.contentCount) {
-          (contentManager.getContent(i)?.component as? StreamingDevicePanel)?.setDeviceFrameVisible(value)
+          (contentManager.getContent(i)?.component as? StreamingDevicePanel<*>)?.setDeviceFrameVisible(value)
         }
       }
     }
@@ -273,7 +273,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       projectProperties.setValue(ZOOM_TOOLBAR_VISIBLE_PROPERTY, value, ZOOM_TOOLBAR_VISIBLE_DEFAULT)
       for (contentManager in contentManagers) {
         for (i in 0 until contentManager.contentCount) {
-          (contentManager.getContent(i)?.component as? StreamingDevicePanel)?.zoomToolbarVisible = value
+          (contentManager.getContent(i)?.component as? StreamingDevicePanel<*>)?.zoomToolbarVisible = value
         }
       }
     }
@@ -468,7 +468,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
       // Restore content of visible panels.
       for (content in contentManager.selectedContents) {
-        val panel = content.component as? StreamingDevicePanel ?: continue
+        val panel = content.component as? StreamingDevicePanel<*> ?: continue
         if (!panel.hasContent) {
           panel.createContent(deviceFrameVisible, savedUiState[panel.id])
         }
@@ -497,7 +497,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     recentAvdLaunches.invalidateAll()
 
     for (contentManager in contentManagers) {
-      val panel = contentManager.selectedContent?.component as? StreamingDevicePanel ?: continue
+      val panel = contentManager.selectedContent?.component as? StreamingDevicePanel<*> ?: continue
       savedUiState[panel.id] = panel.destroyContent()
     }
   }
@@ -525,7 +525,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
    * content manager if [targetContentManager] is null. Returns the added [Content] object or null
    * in case of an error.
    */
-  private fun addPanel(panel: StreamingDevicePanel, targetContentManager: ContentManager? = null): Content? {
+  private fun addPanel(panel: StreamingDevicePanel<*>, targetContentManager: ContentManager? = null): Content? {
     val contentManager = targetContentManager ?: toolWindow.contentManager
     val placeholderContent = contentManager.placeholderContent
 
@@ -619,7 +619,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       for (i in 0 until contentManager.contentCount) {
         val content = contentManager.getContent(i) ?: break
         val panel = content.component
-        if (panel is StreamingDevicePanel) {
+        if (panel is StreamingDevicePanel<*>) {
           if (content.isSelected) {
             if (!panel.hasContent) {
               // The panel became visible - create its content.
@@ -1049,7 +1049,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
     private fun JComponent.isNonXrDevicePanel(): Boolean =
-        this is StreamingDevicePanel && deviceType != DeviceType.XR
+        this is StreamingDevicePanel<*> && deviceType != DeviceType.XR
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
   }

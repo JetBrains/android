@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.jdk.integration
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
 import com.android.tools.idea.gradle.project.sync.model.ExpectedGradleRoot
+import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment
@@ -31,6 +32,7 @@ import com.android.tools.idea.testing.JdkConstants.JDK_11
 import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_VERSION
 import com.android.tools.idea.testing.JdkConstants.JDK_INVALID_PATH
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK
@@ -114,6 +116,17 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
         expectedProjectJdkName = JDK_EMBEDDED,
         expectedProjectJdkPath = JDK_EMBEDDED_PATH
       )
+    }
+
+  @Test
+  fun `Given gradleJdk as '#USE_PROJECT_JDK' and daemon JVM criteria When sync project Then gradleJdk got unconfigured`() =
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        ideaGradleJdk = USE_PROJECT_JDK,
+        gradleDaemonToolchain = GradleDaemonToolchain(JDK_EMBEDDED_VERSION)
+      )
+    ) {
+      syncAssertingUndefinedGradleJdK()
     }
 
   @Test

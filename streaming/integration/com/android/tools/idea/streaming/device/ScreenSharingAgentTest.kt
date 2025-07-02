@@ -406,7 +406,7 @@ class ScreenSharingAgentTest {
     private val emptyDeviceConfiguration =
       DeviceConfiguration(DeviceProperties.buildForTest {
         icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-        androidVersion = AndroidVersion(30)
+        androidVersion = AndroidVersion(30, 0)
         manufacturer = "Google"
         model = "Pixel 5"
         isRemote = false

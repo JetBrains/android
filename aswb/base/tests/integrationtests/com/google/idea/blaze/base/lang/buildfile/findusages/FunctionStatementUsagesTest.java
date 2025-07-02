@@ -62,7 +62,7 @@ public class FunctionStatementUsagesTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load(",
             "\"//java/com/google:build_defs.bzl\",",
             "\"function\"",
@@ -87,7 +87,7 @@ public class FunctionStatementUsagesTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load(",
             "\"//java/com/google/tools:build_defs.bzl\",",
             "\"function\"",

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.service.LogcatService
 import java.time.Duration
@@ -37,7 +38,7 @@ internal class FakeLogcatService : LogcatService {
 
   override suspend fun readLogcat(
     serialNumber: String,
-    sdk: Int,
+    sdk: AndroidApiLevel,
     duration: Duration,
     newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {

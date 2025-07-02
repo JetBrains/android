@@ -26,7 +26,7 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Font
 import javax.swing.JComponent
 
-private const val TITLE = "Device Settings Shortcuts"
+private const val TITLE = "Device Settings"
 
 internal class UiSettingsHeader(
   private val model: UiSettingsModel

@@ -478,14 +478,14 @@ public abstract class QuerySummaryImpl implements QuerySummary {
   public ImmutableSet<Path> getPackagesWithErrors() {
     return proto().getPackagesWithErrorsList().stream()
         .map(Label::of)
-        .map(Label::getPackage) // The packages are BUILD file labels.
+        .map(Label::getPackage) // The packages are ~BUILD file labels.
         .collect(toImmutableSet());
   }
 
   /**
    * Returns the set of build packages in the query output.
    *
-   * <p>The packages are workspace relative paths that contain a BUILD file.
+   * <p>The packages are workspace relative paths that contain a ~BUILD file.
    */
   @Memoized
   @Override
@@ -498,7 +498,7 @@ public abstract class QuerySummaryImpl implements QuerySummary {
   }
 
   /**
-   * Returns a map of .bzl file labels to BUILD file labels that include them.
+   * Returns a map of .bzl file labels to ~BUILD file labels that include them.
    *
    * <p>This is used to determine, for example, which build files include a given .bzl file.
    */
@@ -518,7 +518,7 @@ public abstract class QuerySummaryImpl implements QuerySummary {
   }
 
   /**
-   * Returns the set of labels of all files includes from BUILD files.
+   * Returns the set of labels of all files includes from ~BUILD files.
    */
   @Memoized
   @Override
@@ -532,7 +532,7 @@ public abstract class QuerySummaryImpl implements QuerySummary {
    * Returns the parent package of a given build package.
    *
    * <p>The parent package is not necessarily the same as the parent path: it may be an indirect
-   * parent if there are paths that are not build packages (e.g. contain no BUILD file).
+   * parent if there are paths that are not build packages (e.g. contain no ~BUILD file).
    */
   @Override
   public Optional<Path> getParentPackage(Path buildPackage) {
@@ -591,7 +591,7 @@ public abstract class QuerySummaryImpl implements QuerySummary {
     public Builder putAllPackagesWithErrors(Set<Path> packagesWithErrors) {
       packagesWithErrors.stream()
           // TODO: b/334110669 - Consider multi workspace-builds.
-          .map(p -> Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, p, "BUILD"))
+          .map(p -> Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, p, "~BUILD"))
           .map(Label::toString)
           .map(QuerySummaryImpl::intern)
           .forEach(builder::addPackagesWithErrors);
@@ -601,7 +601,7 @@ public abstract class QuerySummaryImpl implements QuerySummary {
     public Builder putPackagesWithErrors(Path packageWithErrors) {
       builder.addPackagesWithErrors(
           intern(
-              Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, packageWithErrors, "BUILD")
+              Label.fromWorkspacePackageAndName(Label.ROOT_WORKSPACE, packageWithErrors, "~BUILD")
                   .toString()));
       return this;
     }

@@ -64,6 +64,6 @@ public class NbAndroidInstrumentationTestTarget extends NbBaseTargetBuilder {
   }
 
   private static ArtifactLocation inferBuildFileLocation(String label) {
-    return makeSourceArtifact(NbTargetMapUtils.blazePackageForLabel(label) + "/BUILD");
+    return makeSourceArtifact(NbTargetMapUtils.blazePackageForLabel(label) + "/~BUILD");
   }
 }

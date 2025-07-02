@@ -79,14 +79,21 @@ class ProjectSystemService(val project: Project): PersistentStateComponent<Proje
     fun getInstance(project: Project): ProjectSystemService {
       return project.getService(ProjectSystemService::class.java)!!
     }
+
     @JvmStatic
-    fun projectSystemOpenProjectTask(id: String, forceOpenInNewFrame: Boolean, projectToClose: Project?): OpenProjectTask =
+    @JvmOverloads
+    fun projectSystemOpenProjectTask(
+      id: String,
+      forceOpenInNewFrame: Boolean,
+      projectToClose: Project?,
+      beforeOpen: suspend ((Project) -> Boolean) = { true },
+    ): OpenProjectTask =
       OpenProjectTask {
         this.forceOpenInNewFrame = forceOpenInNewFrame
         this.projectToClose = projectToClose
-        beforeOpen = { project ->
+        this.beforeOpen = { project ->
           project.service<ProjectSystemService>().setProviderId(id)
-          true
+          beforeOpen(project)
         }
       }
   }

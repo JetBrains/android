@@ -16,6 +16,8 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.ide.common.resources.escape.xml.CharacterDataEscaper;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import java.awt.Component;
@@ -28,6 +30,8 @@ import javax.swing.text.JTextComponent;
 import org.jetbrains.annotations.NotNull;
 
 public final class StringTableCellEditor extends DefaultCellEditor {
+  private boolean myIsEditingKeyValue = false;
+
   StringTableCellEditor() {
     this(new JTextField());
   }
@@ -53,19 +57,42 @@ public final class StringTableCellEditor extends DefaultCellEditor {
     JComponent component = (JComponent)super.getTableCellEditorComponent(table, value, selected, row, column);
 
     component.setBorder(new LineBorder(JBColor.BLACK));
-
+    component.setToolTipText(null);
+    myIsEditingKeyValue = isKeyColumn(table, column);
     return component;
   }
 
   @Override
   public boolean stopCellEditing() {
     try {
-      CharacterDataEscaper.escape((String)getCellEditorValue());
+      String value = (String)getCellEditorValue();
+      if (myIsEditingKeyValue) {
+        IdeResourceNameValidator nameValidator = IdeResourceNameValidator.forResourceName(ResourceType.STRING);
+        String error = nameValidator.getErrorText(value);
+        if (error != null) {
+          throw new IllegalArgumentException(error);
+        }
+      }
+      else {
+        CharacterDataEscaper.escape(value);
+      }
       return super.stopCellEditing();
     }
     catch (IllegalArgumentException exception) {
       getComponent().setBorder(new LineBorder(JBColor.RED));
+      String message = myIsEditingKeyValue ? exception.getMessage() : "Invalid value";
+      getComponent().setToolTipText(message);
       return false;
     }
+  }
+
+  private boolean isKeyColumn(@NotNull JTable table, int column) {
+    if (column != 0) {
+      return false;
+    }
+    if (!(table instanceof SubTable<?> subTable)) {
+      return false;
+    }
+    return subTable == subTable.getFrozenColumnTable().getFrozenTable();
   }
 }

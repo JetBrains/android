@@ -64,7 +64,7 @@
     <runConfigurationProducer
         implementation="com.google.idea.blaze.android.run.producers.BlazeFilterAndroidTestRunConfigurationProducer"
         order="first"/>
-    <projectOpenProcessor implementation="com.google.idea.blaze.android.project.AndroidBlazeProjectOpenProcessor"/>
+    <projectOpenProcessor implementation="com.google.idea.blaze.android.project.BazelProjectOpenProcessor"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.android.actions">
@@ -83,6 +83,7 @@
     <extensionPoint qualifiedName="com.google.idea.blaze.ComposeStatusProvider" interface="com.google.idea.blaze.android.compose.ComposeStatusProvider"/>
     <extensionPoint qualifiedName="com.google.idea.blaze.android.ApkBuildStepProvider" interface="com.google.idea.blaze.android.run.ApkBuildStepProvider" />
     <extensionPoint qualifiedName="com.google.idea.blaze.NativeSymbolFinder" interface="com.google.idea.blaze.android.run.NativeSymbolFinder" />
+    <extensionPoint qualifiedName="com.google.idea.blaze.projectInitializerForTesting" interface="com.google.idea.blaze.android.project.BazelProjectOpenProcessor$BazelProjectInitializerForTesting" />.
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.google.idea.blaze">

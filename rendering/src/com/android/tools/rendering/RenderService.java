@@ -297,8 +297,6 @@ final public class RenderService implements Disposable {
      */
     private Collection<String> classesToPreload = Collections.emptyList();
 
-    private Collection<String> immediateClassesToPreload = Collections.emptyList();
-
     /**
      * Additional bytecode transform to apply to project classes when loaded.
      */
@@ -334,6 +332,11 @@ final public class RenderService implements Disposable {
      */
     private boolean useCustomInflater = true;
     private RenderTask.TestEventListener myTestEventListener = RenderTask.NOP_TEST_EVENT_LISTENER;
+    /**
+     * Value to be set to Settings.Global.ANIMATOR_DURATION_SCALE.
+     * This value is a multiplier of the animations's speed.
+     */
+    private float animationDurationScale = 1f;
 
     private RenderTaskBuilder(@NotNull RenderModelModule module,
                               @NotNull Configuration configuration,
@@ -353,16 +356,6 @@ final public class RenderService implements Disposable {
     @NotNull
     public RenderTaskBuilder preloadClasses(Collection<String> classesToPreload) {
       this.classesToPreload = classesToPreload;
-      return this;
-    }
-
-    /**
-     * Forces immediate preloading classes in RenderTask after creation.
-     * This is used to overcome an issue with the ClassNotFoundException.
-     */
-    @NotNull
-    public RenderTaskBuilder preloadImmediateClasses(Collection<String> immediateClassesToPreload) {
-      this.immediateClassesToPreload = immediateClassesToPreload;
       return this;
     }
 
@@ -452,6 +445,14 @@ final public class RenderService implements Disposable {
     @NotNull
     public RenderTaskBuilder disableToolsVisibilityAndPosition() {
       this.showWithToolsVisibilityAndPosition = false;
+      return this;
+    }
+
+    /**
+     * Disables animations by setting the animation duration scale to 0.
+     */
+    public RenderTaskBuilder disableAnimation() {
+      this.animationDurationScale = 0f;
       return this;
     }
 
@@ -618,7 +619,7 @@ final public class RenderService implements Disposable {
                            myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, immediateClassesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, myTestEventListener);
+                           classesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, myTestEventListener, animationDurationScale);
           if (myXmlFile != null) {
             task.setXmlFile(myXmlFile);
           }

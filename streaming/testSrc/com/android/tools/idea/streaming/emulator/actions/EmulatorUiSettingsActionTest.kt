@@ -205,7 +205,7 @@ class EmulatorUiSettingsActionTest {
     return findDialog()!!
   }
 
-  private fun findDialog() = findModelessDialog { it is UiSettingsDialog && it.isShowing }
+  private fun findDialog() = findModelessDialog<UiSettingsDialog> { it.isShowing }
 
   private fun simulateDarkTheme(on: Boolean) {
     val state = if (on) "yes" else "no"

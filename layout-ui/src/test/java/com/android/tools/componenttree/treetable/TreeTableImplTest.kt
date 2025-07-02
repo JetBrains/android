@@ -830,6 +830,43 @@ class TreeTableImplTest {
     assertThat(renderer2.fragments[0].text).endsWith("...")
   }
 
+  @Test
+  fun testModelUpdates() {
+    val table = createTreeTable()
+    var selection: Any? = null
+    table.treeTableSelectionModel.addSelectionListener { newSelection ->
+      selection = newSelection.singleOrNull()
+    }
+    setScrollPaneSize(table, 300, 800)
+    table.tree.expandRow(0)
+    table.tree.expandRow(1)
+    table.setRowSelectionInterval(0, 0)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(selection).isEqualTo(item1)
+
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    focusManager.focusOwner = table
+    val ui = FakeUi(table)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(selection).isEqualTo(item2)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(selection).isEqualTo(style1)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(selection).isEqualTo(item3)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(selection).isEqualTo(style1)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(selection).isEqualTo(item2)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(selection).isEqualTo(item1)
+  }
+
   private fun foregroundOf(
     table: JTable,
     column: Int,

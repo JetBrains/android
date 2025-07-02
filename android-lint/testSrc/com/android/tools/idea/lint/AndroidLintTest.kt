@@ -17,6 +17,7 @@ package com.android.tools.idea.lint
 
 import com.android.AndroidProjectTypes
 import com.android.SdkConstants
+import com.android.ide.common.repository.FakeGoogleMavenRepositoryV2Host
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GoogleMavenRepositoryV2
 import com.android.ide.common.repository.GradleVersion
@@ -1059,7 +1060,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
           "</com.android.support>\n",
       )
     val repository = StubGoogleMavenRepository(cache)
-    val repositoryV2 = GoogleMavenRepositoryV2.create()
+    val repositoryV2 = GoogleMavenRepositoryV2.create(FakeGoogleMavenRepositoryV2Host())
     val disposable = Disposer.newDisposable()
     IdeComponents(null, disposable)
       .replaceApplicationService(

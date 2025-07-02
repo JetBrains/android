@@ -82,7 +82,7 @@ class InspectorClientLauncher(
     ): InspectorClientLauncher {
 
       val appInspectionInspectorClientFactory = ClientFactory { params ->
-        if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
+        if (params.process.device.apiLevel.majorVersion >= AndroidVersion.VersionCodes.Q) {
           // Only Q+ devices support image updates which is used by the app inspection agent
           AppInspectionInspectorClient(
             params.process,

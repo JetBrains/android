@@ -214,7 +214,16 @@ class SceneViewPanel(
             .map { group ->
               components.filterIsInstance<SceneViewHeader>().firstOrNull {
                 it.positionableAdapter.organizationGroup == group
-              } ?: withContext(uiThreadDispatcher) { createHeader(group) }
+              }
+                ?: withContext(uiThreadDispatcher) {
+                  // Previews in this organization group might not be available at all (not just
+                  // hidden in collapsed state).
+                  // For example in UI Check or in other filtering as available.
+                  // In this case header should also be filtered out.
+                  val groupViews =
+                    sceneViews.filter { it.sceneManager.model.organizationGroup == group }
+                  createHeader(group) { groupViews.any { it.isVisible } }
+                }
             }
             .forEach { header ->
               orderedComponents
@@ -284,10 +293,11 @@ class SceneViewPanel(
   }
 
   @UiThread
-  private fun createHeader(group: OrganizationGroup): SceneViewHeader {
+  private fun createHeader(group: OrganizationGroup, isVisible: () -> Boolean): SceneViewHeader {
     return SceneViewHeader(
       this@SceneViewPanel,
       group,
+      isVisible,
       if (useTestNonComposeHeaders) ::createTestOrganizationHeader else ::createOrganizationHeader,
     )
   }

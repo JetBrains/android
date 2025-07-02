@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.repositories
 
+import com.android.ide.common.repository.FakeGoogleMavenRepositoryV2Host
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GoogleMavenRepositoryV2
 import com.android.testutils.file.createInMemoryFileSystem
@@ -42,7 +43,7 @@ class RepositoryUrlManagerCachingTest {
 
   private val networkRepo = TestGoogleMavenRepository()
   private val localRepo = TestGoogleMavenRepository()
-  private val googleMavenRepositoryV2 = GoogleMavenRepositoryV2.create()
+  private val googleMavenRepositoryV2 = GoogleMavenRepositoryV2.create(FakeGoogleMavenRepositoryV2Host())
   private val repositoryUrlManager = RepositoryUrlManager(
     networkRepo,
     localRepo  /* force repository checks */,

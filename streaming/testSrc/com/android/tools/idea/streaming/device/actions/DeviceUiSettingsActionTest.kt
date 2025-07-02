@@ -156,7 +156,7 @@ class DeviceUiSettingsActionTest {
     return findDialog()!!
   }
 
-  private fun findDialog() = findModelessDialog { it is UiSettingsDialog && it.isShowing }
+  private fun findDialog() = findModelessDialog<UiSettingsDialog> { it.isShowing }
 
   private fun createTestMouseEvent(action: AnAction, view: DeviceView): AnActionEvent {
     val keyEvent = createTestKeyEvent(view)

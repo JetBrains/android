@@ -151,7 +151,7 @@ public class PartialSyncAction extends BlazeProjectSyncAction {
               ImmutableSet.of());
     }
 
-    // otherwise, check whether there's a parent BUILD file and return the source files unchanged,
+    // otherwise, check whether there's a parent ~BUILD file and return the source files unchanged,
     // relying on sync to derive the targets
     if (path == null) {
       return null;

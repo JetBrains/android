@@ -90,7 +90,7 @@ import org.mockito.kotlin.whenever
 import java.io.File
 
 @RunsInEdt
-class ContentManagerImplTest {
+class UpgradeAssistantContentManagerTest {
   val currentAgpVersion = AgpVersion.parse("4.1.0")
   val latestAgpVersion = AgpVersions.latestKnown
 
@@ -213,8 +213,8 @@ class ContentManagerImplTest {
       """
         Upgrade
           Accept the new R8 default of full mode
-          Enable buildConfig build feature
           Preserve transitive R classes
+          Enable buildConfig build feature
           Preserve constant R class values
           Upgrade AGP dependency from $currentAgpVersion to $latestAgpVersion
       """.trimIndent()
@@ -639,8 +639,8 @@ class ContentManagerImplTest {
           Upgrade
             Upgrade project JDK for running Gradle
             Accept the new R8 default of full mode
-            Enable buildConfig build feature
             Preserve transitive R classes
+            Enable buildConfig build feature
             Preserve constant R class values
             Upgrade AGP dependency from 7.3.0 to 8.0.0
       """.trimIndent()

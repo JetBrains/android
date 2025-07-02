@@ -15,10 +15,22 @@
  */
 package com.android.tools.idea.streaming.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.streaming.device.actions.DeviceAllAppsButtonAction
 import com.android.tools.idea.streaming.device.actions.DeviceHomeButtonAction
+import com.android.tools.idea.streaming.emulator.actions.EmulatorAllAppsButtonAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorHomeButtonAction
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAware
 
-/**
- * Simulates pressing the Home button on an Android device.
- */
-internal class StreamingHomeButtonAction : StreamingPushButtonAction(EmulatorHomeButtonAction(), DeviceHomeButtonAction())
+/** Simulates pressing the Home button on an Android device. */
+internal class StreamingHomeButtonAction : DelegatingPushButtonAction(HomeButtonAction(), AllAppsButtonAction()), DumbAware {
+
+  override fun getDelegate(event: AnActionEvent): AnAction =
+    delegates[if (getDeviceType(event) == DeviceType.XR) 1 else 0]
+}
+
+private class HomeButtonAction : StreamingPushButtonAction(EmulatorHomeButtonAction(), DeviceHomeButtonAction())
+
+private class AllAppsButtonAction : StreamingPushButtonAction(EmulatorAllAppsButtonAction(), DeviceAllAppsButtonAction())

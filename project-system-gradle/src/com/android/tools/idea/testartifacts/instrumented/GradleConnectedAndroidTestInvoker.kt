@@ -24,7 +24,8 @@ import com.android.tools.idea.flags.StudioFlags.API_OPTIMIZATION_ENABLE
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.run.createSpec
+import com.android.tools.idea.gradle.run.ProcessedDeviceSpec
+import com.android.tools.idea.gradle.run.createTargetDeviceSpec
 import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
@@ -36,9 +37,9 @@ import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFr
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
-import com.android.tools.utp.UtpAndroidGradleTaskManagerExtension
 import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
+import com.android.tools.utp.UtpAndroidGradleTaskManagerExtension
 import com.google.common.base.Joiner
 import com.intellij.build.BuildContentManager
 import com.intellij.execution.ExecutionListener
@@ -143,7 +144,8 @@ class GradleConnectedAndroidTestInvoker(
         super.onTaskOutput(id, text, stdOut)
         if (stdOut) {
           outputLineProcessor.append(text)
-        } else {
+        }
+        else {
           androidTestSuiteView.printlnError(text)
         }
       }
@@ -200,7 +202,8 @@ class GradleConnectedAndroidTestInvoker(
             retentionConfiguration,
             extraInstrumentationOptions
           )
-        } else {
+        }
+        else {
           // If Gradle task run finished before the test suite starts, show error
           // in the Build output tool window.
           if (!testSuiteStartedOnAnyDevice && !testRunIsCancelled.get()) {
@@ -255,13 +258,15 @@ class GradleConnectedAndroidTestInvoker(
     backgroundTaskExecutor {
       try {
         gradleTaskManagerFactory().executeTasks(path.path, externalTaskId, gradleExecutionSettings, listener)
-      } catch (e: ExternalSystemException) {
+      }
+      catch (e: ExternalSystemException) {
         // No-op.
         // If there is a failing test case, the test task finished in failed state
         // that ends up with ExternalSystemException to be thrown on Windows.
         // On Linux and Mac OS, GradleTaskManager doesn't throw ExternalSystemException
         // for failed task and it calls listener.onFailure() callback instead.
-      } finally {
+      }
+      finally {
         // When a Gradle task fails, GradleTaskManager.executeTasks method may throw
         // an ExternalSystemException without calling onEnd() or onFailure() callback.
         // This often happens on Windows.
@@ -296,18 +301,21 @@ class GradleConnectedAndroidTestInvoker(
       if (retentionConfiguration.enabled == EnableRetention.YES) {
         withArgument("-P$RETENTION_ENABLE_PROPERTY=${retentionConfiguration.maxSnapshots}")
         withArgument("-P$RETENTION_COMPRESS_SNAPSHOT_PROPERTY=${retentionConfiguration.compressSnapshots}")
-      } else if (retentionConfiguration.enabled == EnableRetention.NO) {
+      }
+      else if (retentionConfiguration.enabled == EnableRetention.NO) {
         withArgument("-P$RETENTION_ENABLE_PROPERTY=0")
       }
 
       // Add a test filter.
       if (testRegex.isNotBlank()) {
         withArgument("-Pandroid.testInstrumentationRunnerArguments.tests_regex=$testRegex")
-      } else if (testPackageName != "" || testClassName != "") {
+      }
+      else if (testPackageName != "" || testClassName != "") {
         var testTypeArgs = "-Pandroid.testInstrumentationRunnerArguments"
         if (testPackageName != "") {
           testTypeArgs += ".package=$testPackageName"
-        } else if (testClassName != "") {
+        }
+        else if (testClassName != "") {
           testTypeArgs += ".class=$testClassName"
           if (testMethodName != "") {
             testTypeArgs += "#$testMethodName"
@@ -352,20 +360,34 @@ class GradleConnectedAndroidTestInvoker(
   //       a shared utility class and them it from both places.
   private fun getDeviceSpecificArguments(): List<String> {
     val deviceFutures = executionEnvironment.getCopyableUserData(DeviceFutures.KEY)?.devices ?: emptyList()
-    val deviceSpec = createSpec(deviceFutures) ?: return emptyList()
+    val deviceSpec = createTargetDeviceSpec(deviceFutures)
 
     val deviceSpecificArguments = mutableListOf<String>()
-    deviceSpec.commonVersion?.let { version ->
-      val deviceApiOptimization = API_OPTIMIZATION_ENABLE.get() && GradleExperimentalSettings.getInstance().ENABLE_GRADLE_API_OPTIMIZATION
-      if (deviceApiOptimization) {
-        deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API, version.apiLevel.toString()))
-        version.codename?.let { codename ->
-          deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, codename))
+
+    when (deviceSpec) {
+      is ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec -> {
+        val spec = deviceSpec.deviceSpec
+
+        spec.commonVersion?.let { version ->
+          val deviceApiOptimization = API_OPTIMIZATION_ENABLE.get() &&
+                                      GradleExperimentalSettings.getInstance().ENABLE_GRADLE_API_OPTIMIZATION
+
+          if (deviceApiOptimization) {
+            deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API, version.apiLevel.toString()))
+            if (version.isPreview) {
+              version.codename?.let { codename ->
+                deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, codename))
+              }
+            }
+          }
+        }
+
+        if (spec.abis.isNotEmpty()) {
+          deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(spec.abis)))
         }
       }
-    }
-    if (deviceSpec.abis.isNotEmpty()) {
-      deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.abis)))
+
+      is ProcessedDeviceSpec.SingleDeviceSpec.NoDevices -> return emptyList()
     }
 
     return deviceSpecificArguments

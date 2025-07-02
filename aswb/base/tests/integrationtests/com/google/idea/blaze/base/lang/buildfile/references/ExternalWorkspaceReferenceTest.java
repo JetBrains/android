@@ -48,7 +48,7 @@ public class ExternalWorkspaceReferenceTest extends BuildFileIntegrationTestCase
   public void testExternalWorkspaceTargetReference() {
     BuildFile workspaceBuildFile =
         createBuildFile(
-            new WorkspacePath("BUILD"),
+            new WorkspacePath("~BUILD"),
             "java_library(",
             "    name = 'lib',",
             "    exports = ['@junit//:jar'],",
@@ -57,7 +57,7 @@ public class ExternalWorkspaceReferenceTest extends BuildFileIntegrationTestCase
         (BuildFile)
             createFileInExternalWorkspace(
                 "junit",
-                new WorkspacePath("BUILD"),
+                new WorkspacePath("~BUILD"),
                 "java_import(",
                 "    name = 'jar',",
                 "    jars = ['junit-4.11.jar'],",
@@ -75,7 +75,7 @@ public class ExternalWorkspaceReferenceTest extends BuildFileIntegrationTestCase
   public void testExternalWorkspaceTargetReferenceShortForm() {
     BuildFile workspaceBuildFile =
         createBuildFile(
-            new WorkspacePath("BUILD"),
+            new WorkspacePath("~BUILD"),
             "java_library(",
             "    name = 'lib',",
             "    exports = ['@junit'],",
@@ -84,7 +84,7 @@ public class ExternalWorkspaceReferenceTest extends BuildFileIntegrationTestCase
         (BuildFile)
             createFileInExternalWorkspace(
                 "junit",
-                new WorkspacePath("BUILD"),
+                new WorkspacePath("~BUILD"),
                 "java_import(",
                 "    name = 'junit',",
                 "    jars = ['junit-4.11.jar'],",
@@ -104,7 +104,7 @@ public class ExternalWorkspaceReferenceTest extends BuildFileIntegrationTestCase
         (BuildFile)
             createFileInExternalWorkspace(
                 "junit",
-                new WorkspacePath("BUILD"),
+                new WorkspacePath("~BUILD"),
                 "java_import(",
                 "    name = 'jar',",
                 "    jars = ['junit-4.11.jar'],",
@@ -127,7 +127,7 @@ public class ExternalWorkspaceReferenceTest extends BuildFileIntegrationTestCase
         (BuildFile)
             createFileInExternalWorkspace(
                 "junit",
-                new WorkspacePath("BUILD"),
+                new WorkspacePath("~BUILD"),
                 "java_import(",
                 "    name = 'target',",
                 "    jars = ['junit-4.11.jar'],",
@@ -152,7 +152,7 @@ public class ExternalWorkspaceReferenceTest extends BuildFileIntegrationTestCase
             ")");
     BuildFile referencingFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/pkg/BUILD"),
+            new WorkspacePath("java/com/google/pkg/~BUILD"),
             "rule(",
             "    name = 'other',",
             "    dep = '@w3c_css_sac//jar'",

@@ -97,12 +97,9 @@ internal class RestoreAppAction(
     }
   }
 
-  private suspend fun getDeviceSerialNumber(e: AnActionEvent): String? {
+  private fun getDeviceSerialNumber(e: AnActionEvent): String? {
     val project = e.project ?: return null
-    return when (e.place) {
-      "StreamingToolbarVirtualDevice" -> SERIAL_NUMBER_KEY.getData(e.dataContext)
-      else -> actionHelper.getDeployTargetSerial(project)
-    }
+    return SERIAL_NUMBER_KEY.getData(e.dataContext) ?: actionHelper.getDeployTargetSerial(project)
   }
 
   internal sealed class Config {
@@ -126,7 +123,7 @@ internal class RestoreAppAction(
     abstract val presentation: Presentation
   }
 
-  private suspend fun Project.showDialog(message: String) {
+  private fun Project.showDialog(message: String) {
     dialogFactory.showDialog(this@showDialog, message("restore.file.action.error.title"), message)
   }
 }

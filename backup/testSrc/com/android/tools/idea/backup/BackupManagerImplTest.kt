@@ -39,6 +39,7 @@ import com.android.tools.idea.backup.testing.findComponent
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.testing.NotificationRule
 import com.android.tools.idea.testing.NotificationRule.NotificationInfo
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.BACKUP_USAGE
 import com.google.wireless.android.sdk.stats.BackupUsageEvent
@@ -98,6 +99,7 @@ internal class BackupManagerImplTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       usageTrackerRule,
       notificationRule,
       HeadlessDialogRule(),
@@ -114,18 +116,19 @@ internal class BackupManagerImplTest {
       project.basePath?.let { Path.of(it) }?.resolve("file.backup")
         ?: fail("Project base path unavailable")
     backupFile.deleteIfExists()
+    val apps = setOf("app1", "app2", "app3")
     val backupService = BackupService.getInstance(FakeAdbServicesFactory("app3"))
     project.replaceService(
       ProjectAppsProvider::class.java,
       object : ProjectAppsProvider {
         override fun getApplicationIds(): Set<String> {
-          return setOf("app1", "app2", "app3")
+          return apps
         }
       },
       disposableRule.disposable,
     )
     val backupManagerImpl =
-      BackupManagerImpl(project, backupService, fakeDialogFactory, mockVirtualFileManager)
+      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
     val serialNumber = "serial"
 
     createModalDialogAndInteractWithIt({
@@ -134,7 +137,7 @@ internal class BackupManagerImplTest {
         "app2",
         RUN_CONFIG,
         notify = true,
-        isBackupEnabled = true,
+        apps.associateWith { true },
       )
     }) { dialogWrapper ->
       val dialog = dialogWrapper as BackupDialog
@@ -173,7 +176,7 @@ internal class BackupManagerImplTest {
     backupFile.toFile().deleteOnExit()
     val backupService = BackupService.getInstance(FakeAdbServicesFactory("com.app"))
     val backupManagerImpl =
-      BackupManagerImpl(project, backupService, fakeDialogFactory, mockVirtualFileManager)
+      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
     val mockProcessHandler =
       mock<ProcessHandler>().apply {
         val sessionInfo = AndroidSessionInfo.create(this, emptyList(), "com.app")
@@ -220,7 +223,7 @@ internal class BackupManagerImplTest {
       disposableRule.disposable,
     )
     val backupManagerImpl =
-      BackupManagerImpl(project, backupService, fakeDialogFactory, mockVirtualFileManager)
+      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
     val serialNumber = "serial"
 
     val result =
@@ -278,7 +281,7 @@ internal class BackupManagerImplTest {
       disposableRule.disposable,
     )
     val backupManagerImpl =
-      BackupManagerImpl(project, backupService, fakeDialogFactory, mockVirtualFileManager)
+      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
     val serialNumber = "serial"
 
     val result =
@@ -309,7 +312,7 @@ internal class BackupManagerImplTest {
   @Test
   fun restore_success_absolutePath(): Unit = runBlocking {
     val backupService = BackupService.getInstance(FakeAdbServicesFactory("com.app"))
-    val backupManagerImpl = BackupManagerImpl(project, backupService, fakeDialogFactory)
+    val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory)
     val serialNumber = "serial"
     val backupFile = backupFileHelper.createBackupFile("com.app", "11223344556677889900", CLOUD)
 
@@ -324,7 +327,7 @@ internal class BackupManagerImplTest {
   fun restore_success_relativePath(): Unit = runBlocking {
     val backupService = BackupService.getInstance(FakeAdbServicesFactory("com.app"))
     val projectPath = project.basePath?.let { Path.of(it) } ?: fail("Project base path unavailable")
-    val backupManagerImpl = BackupManagerImpl(project, backupService, fakeDialogFactory)
+    val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory)
     val serialNumber = "serial"
     val backupFile = backupFileHelper.createBackupFile("com.app", "11223344556677889900", CLOUD)
     val relativePath = backupFile.relativeTo(projectPath)
@@ -353,7 +356,7 @@ internal class BackupManagerImplTest {
           )
         }
       )
-    val backupManagerImpl = BackupManagerImpl(project, backupService, fakeDialogFactory)
+    val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory)
     val serialNumber = "serial"
     val backupFile = backupFileHelper.createBackupFile("com.app", "11223344556677889900", CLOUD)
 
@@ -395,7 +398,7 @@ internal class BackupManagerImplTest {
           )
         }
       )
-    val backupManagerImpl = BackupManagerImpl(project, backupService, fakeDialogFactory)
+    val backupManagerImpl = backupManagerImpl(backupService, fakeDialogFactory)
     val serialNumber = "serial"
     val backupFile = backupFileHelper.createBackupFile("com.app", "11223344556677889900", CLOUD)
 
@@ -429,6 +432,40 @@ internal class BackupManagerImplTest {
     assertThat(this.content).isEqualTo(text)
     assertThat(this.type).isEqualTo(type)
     assertThat(this.actions.map { it::class.java.simpleName }).isEqualTo(actions.asList())
+  }
+
+  @Test
+  fun backup_nonDebuggableApp(): Unit = runBlocking {
+    val backupService = BackupService.getInstance(FakeAdbServicesFactory("app"))
+    val backupManagerImpl =
+      backupManagerImpl(backupService, fakeDialogFactory, mockVirtualFileManager)
+    val serialNumber = "serial"
+
+    backupManagerImpl.showBackupDialog(serialNumber, "other-app", RUN_CONFIG, notify = true)
+
+    assertThat(fakeDialogFactory.dialogs)
+      .containsExactly(
+        DialogData(
+          "Cannot Backup App Data",
+          "Application \"other-app\" is not debuggable and is not supported.",
+        )
+      )
+  }
+
+  private fun backupManagerImpl(
+    backupService: BackupService,
+    dialogFactory: DialogFactory,
+    virtualFileManager: VirtualFileManager = VirtualFileManager.getInstance(),
+  ): BackupManagerImpl {
+    return BackupManagerImpl(
+      project,
+      backupService,
+      object : DeviceChecker {
+        override suspend fun isDeviceSupported(serialNumber: String) = true
+      },
+      dialogFactory,
+      virtualFileManager,
+    )
   }
 }
 

@@ -225,6 +225,7 @@ void Agent::Initialize(const vector<string>& args) {
   device_type_ = HasBuildCharacteristic("watch", build_characteristics) ? DeviceType::WATCH :
                  HasBuildCharacteristic("xr", build_characteristics) || (flags_ & DEVICE_IS_XR)? DeviceType::XR :
                  DeviceType::GENERIC;
+  Log::D("Device type: %d", device_type_);
 }
 
 void Agent::Run(const vector<string>& args) {

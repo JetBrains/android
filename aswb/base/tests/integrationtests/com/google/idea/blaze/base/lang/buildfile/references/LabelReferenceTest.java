@@ -43,7 +43,7 @@ public class LabelReferenceTest extends BuildFileIntegrationTestCase {
   public void testExternalFileReference() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "exports_files([\"test.txt\", \"//java/com/google:plugin.xml\"])");
 
     PsiFile txtFile = workspace.createPsiFile(new WorkspacePath("java/com/google/test.txt"));
@@ -60,7 +60,7 @@ public class LabelReferenceTest extends BuildFileIntegrationTestCase {
   public void testLocalRuleReference() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_library(name = \"lib\")",
             "java_library(name = \"foo\", deps = [\":lib\"])",
             "java_library(name = \"bar\", deps = [\"//java/com/google:lib\"])");
@@ -85,11 +85,11 @@ public class LabelReferenceTest extends BuildFileIntegrationTestCase {
   @Test
   public void testTargetInAnotherPackageResolves() {
     BuildFile targetFile =
-        createBuildFile(new WorkspacePath("java/com/google/foo/BUILD"), "rule(name = \"target\")");
+        createBuildFile(new WorkspacePath("java/com/google/foo/~BUILD"), "rule(name = \"target\")");
 
     BuildFile referencingFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/bar/BUILD"),
+            new WorkspacePath("java/com/google/bar/~BUILD"),
             "rule(name = \"other\", dep = \"//java/com/google/foo:target\")");
 
     FuncallExpression target = targetFile.findRule("target");
@@ -104,11 +104,11 @@ public class LabelReferenceTest extends BuildFileIntegrationTestCase {
   public void testRuleNameDoesntCrossPackageBoundaries() {
     BuildFile targetFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/pkg/subpkg/BUILD"), "rule(name = \"target\")");
+            new WorkspacePath("java/com/google/pkg/subpkg/~BUILD"), "rule(name = \"target\")");
 
     BuildFile referencingFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/pkg/BUILD"),
+            new WorkspacePath("java/com/google/pkg/~BUILD"),
             "rule(name = \"other\", dep = \":subpkg/target\")");
 
     Argument.Keyword depArgument = referencingFile.findRule("other").getKeywordArgument("dep");
@@ -124,11 +124,11 @@ public class LabelReferenceTest extends BuildFileIntegrationTestCase {
   @Test
   public void testLabelWithImplicitRuleName() {
     BuildFile targetFile =
-        createBuildFile(new WorkspacePath("java/com/google/foo/BUILD"), "rule(name = \"foo\")");
+        createBuildFile(new WorkspacePath("java/com/google/foo/~BUILD"), "rule(name = \"foo\")");
 
     BuildFile referencingFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/bar/BUILD"),
+            new WorkspacePath("java/com/google/bar/~BUILD"),
             "rule(name = \"other\", dep = \"//java/com/google/foo\")");
 
     FuncallExpression target = targetFile.findRule("foo");
@@ -142,7 +142,7 @@ public class LabelReferenceTest extends BuildFileIntegrationTestCase {
   @Test
   public void testAbsoluteLabelInSkylarkExtension() {
     BuildFile targetFile =
-        createBuildFile(new WorkspacePath("java/com/google/foo/BUILD"), "rule(name = \"foo\")");
+        createBuildFile(new WorkspacePath("java/com/google/foo/~BUILD"), "rule(name = \"foo\")");
 
     BuildFile referencingFile =
         createBuildFile(
@@ -160,13 +160,13 @@ public class LabelReferenceTest extends BuildFileIntegrationTestCase {
   @Test
   public void testRulePreferredOverFile() {
     BuildFile targetFile =
-        createBuildFile(new WorkspacePath("java/com/foo/BUILD"), "java_library(name = 'lib')");
+        createBuildFile(new WorkspacePath("java/com/foo/~BUILD"), "java_library(name = 'lib')");
 
     workspace.createDirectory(new WorkspacePath("java/com/foo/lib"));
 
     BuildFile referencingFile =
         createBuildFile(
-            new WorkspacePath("java/com/google/bar/BUILD"),
+            new WorkspacePath("java/com/google/bar/~BUILD"),
             "java_library(",
             "    name = 'bar',",
             "    src = glob(['**/*.java'])," + "    deps = ['//java/com/foo:lib'],",
@@ -190,7 +190,7 @@ public class LabelReferenceTest extends BuildFileIntegrationTestCase {
     // if it's pointing to a target element different from the 'find usages target'
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "java_library(name = \"lib\")",
             "java_library(name = \"foo\", deps = [\":lib\"])");
 

@@ -66,7 +66,8 @@ class StudioAdbLibSCacheJdwpSessionPipelineTest : AdbLibToolsJdwpTestBase() {
     )
     val jdwpSessionInfo = createJdwpProxySession(pid = 11)
     val jdwpProcess = jdwpSessionInfo.process
-    val debuggerSocketAddress = jdwpProcess.jdwpProxySocketServer.proxyStatus.socketAddress
+    val debuggerSocketAddress =
+      jdwpProcess.jdwpProxySocketServer.proxyStatus.socketAddress.getOrThrow()
 
     // Act
     val jdwpSession1 = jdwpSessionInfo.debuggerJdwpSession
@@ -77,7 +78,8 @@ class StudioAdbLibSCacheJdwpSessionPipelineTest : AdbLibToolsJdwpTestBase() {
     CoroutineTestUtils.yieldUntil {
       !jdwpProcess.jdwpProxySocketServer.proxyStatus.isExternalDebuggerAttached
     }
-    val debuggerSocketAddress2 = jdwpProcess.jdwpProxySocketServer.proxyStatus.socketAddress
+    val debuggerSocketAddress2 =
+      jdwpProcess.jdwpProxySocketServer.proxyStatus.socketAddress.getOrThrow()
 
     // Open 2nd session
     val jdwpSession2 = attachDebuggerSession(jdwpProcess)

@@ -33,6 +33,7 @@ class WiFiPairingDialog(
   canBeParent: Boolean,
   ideModalityType: DialogWrapper.IdeModalityType,
   hyperlinkListener: HyperlinkListener,
+  mdnsService: String?,
 ) {
   private val dialog: SimpleDialog
   private val pairingPanel: WiFiPairingPanel
@@ -50,7 +51,7 @@ class WiFiPairingDialog(
         centerPanelProvider = { createCenterPanel() },
       )
     dialog = SimpleDialog(options)
-    pairingPanel = WiFiPairingPanel(dialog.disposable, hyperlinkListener)
+    pairingPanel = WiFiPairingPanel(dialog.disposable, hyperlinkListener, mdnsService)
     dialog.init()
   }
 

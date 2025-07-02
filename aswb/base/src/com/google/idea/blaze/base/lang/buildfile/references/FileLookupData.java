@@ -41,9 +41,9 @@ public class FileLookupData {
 
   /** The type of path string format */
   public enum PathFormat {
-    /** BUILD label without a leading '//', which can only reference targets in the same package. */
+    /** ~BUILD label without a leading '//', which can only reference targets in the same package. */
     PackageLocal,
-    /** a BUILD label with leading '//', which can reference targets in other packages. */
+    /** a ~BUILD label with leading '//', which can reference targets in other packages. */
     NonLocal,
     /** a path string which can reference any files, and has no leading '//'. */
     NonLocalWithoutInitialBackslashes,
@@ -163,7 +163,7 @@ public class FileLookupData {
         new NullableLazyValue<Icon>() {
           @Override
           protected Icon compute() {
-            if (file.findChild("BUILD") != null) {
+            if (file.findChild("~BUILD") != null) {
               return BlazeIcons.BuildFile;
             }
             if (file.isDirectory()) {

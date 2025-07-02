@@ -32,7 +32,7 @@ import com.intellij.psi.PsiFile;
 import java.util.List;
 import org.junit.Before;
 
-/** BUILD file specific integration test base */
+/** ~BUILD file specific integration test base */
 public abstract class BuildFileIntegrationTestCase extends BlazeIntegrationTestCase {
   protected EditorTestHelper editorTest;
 

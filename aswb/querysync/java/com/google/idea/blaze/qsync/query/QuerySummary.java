@@ -47,19 +47,19 @@ public interface QuerySummary {
   /**
    * Returns the set of build packages in the query output.
    *
-   * <p>The packages are workspace relative paths that contain a BUILD file.
+   * <p>The packages are workspace relative paths that contain a ~BUILD file.
    */
   PackageSet getPackages();
 
   /**
-   * Returns a map of .bzl file labels to BUILD file labels that include them.
+   * Returns a map of .bzl file labels to ~BUILD file labels that include them.
    *
    * <p>This is used to determine, for example, which build files include a given .bzl file.
    */
   ImmutableMultimap<Path, Path> getReverseSubincludeMap();
 
   /**
-   * Returns the set of labels of all files includes from BUILD files.
+   * Returns the set of labels of all files includes from ~BUILD files.
    */
   ImmutableSet<Label> getAllBuildIncludedFiles();
 
@@ -67,7 +67,7 @@ public interface QuerySummary {
    * Returns the parent package of a given build package.
    *
    * <p>The parent package is not necessarily the same as the parent path: it may be an indirect
-   * parent if there are paths that are not build packages (e.g. contain no BUILD file).
+   * parent if there are paths that are not build packages (e.g. contain no ~BUILD file).
    */
   Optional<Path> getParentPackage(Path buildPackage);
 

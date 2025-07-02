@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import androidx.work.inspection.WorkManagerInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol.Intent
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.PendingIntent.Type.BROADCAST
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.ui.HideablePanel
@@ -43,6 +44,10 @@ import com.intellij.ui.InplaceButton
 import com.intellij.ui.components.ActionLink
 import com.intellij.util.containers.isEmpty
 import icons.StudioIcons
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JTextArea
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,10 +60,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JTextArea
 
 class EntryDetailsViewTest {
   private class TestIdeServices : AppInspectionIdeServicesAdapter() {
@@ -275,33 +276,40 @@ class EntryDetailsViewTest {
 
   @Test
   fun alarmEntrySelected() = runBlocking {
-    val event = client.sendBackgroundTaskEvent(0) {
-      taskId = 1
-      alarmSetBuilder.apply {
-        type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
-        intervalMs = 5000
-        windowMs = 0
+    val event =
+      client.sendBackgroundTaskEvent(0) {
+        taskId = 1
+        alarmSetBuilder.apply {
+          type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
+          intervalMs = 5000
+          windowMs = 0
+          operationBuilder.apply {
+            creatorPackage = "creator.package"
+            creatorUid = 100
+            type = BROADCAST
+            flags = 0xc000000
+            requestCode = 12
+            intentBuilderList.apply {
+              addIntent(
+                Intent.newBuilder().apply {
+                  action = "action"
+                  data = "data"
+                  addAllCategories(listOf("c1", "c2"))
+                  componentNameBuilder.apply {
+                    packageName = "component-package"
+                    className = "component-class"
+                  }
+                  type = "type"
+                  flags = 0x8000
+                  extras = "extras"
+                }
+              )
+            }
+          }
+        }
+        stacktrace =
+          "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
       }
-      alarmSetBuilder.operationBuilder.apply {
-        creatorPackage = "creator.package"
-        creatorUid = 100
-        type = BROADCAST
-        flags = 0xc000000
-        requestCode = 12
-      }
-      alarmSetBuilder.operationBuilder.intentBuilder.apply {
-        action = "action"
-        data = "data"
-        addAllCategories(listOf("c1", "c2"))
-        componentNameBuilder.packageName = "component-package"
-        componentNameBuilder.className = "component-class"
-        type = "type"
-        flags = 0x8000
-        extras = "extras"
-      }
-
-      stacktrace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:27)"
-    }
     val alarmSet = event.backgroundTaskEvent.alarmSet
 
     withContext(uiDispatcher) {

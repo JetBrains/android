@@ -73,7 +73,8 @@ fun <T : Any> previewAnnotationToPreviewElement(
       showDecoration = showDecorations,
       showBackground = showBackground,
       backgroundColor = backgroundColorString,
-      organizationGroup = null,
+      organizationGroup = composableMethod,
+      organizationName = baseName,
     )
 
   val parameters = getPreviewParameters(annotatedMethod.parameterAnnotations)

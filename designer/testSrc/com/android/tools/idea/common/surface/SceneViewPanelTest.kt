@@ -509,6 +509,59 @@ class SceneViewPanelTest {
     sceneViews.forEach { Disposer.dispose(it.sceneManager) }
   }
 
+  @Test
+  fun createPanelWithOrganizationAndFilterPreviews(): Unit = runTest {
+    val group1 = OrganizationGroup("1", "1")
+    val group2 = OrganizationGroup("1", "1")
+    val allSceneViews =
+      listOf(
+        createSceneView { group1 },
+        createSceneView { group1 },
+        createSceneView { group2 },
+        createSceneView { group2 },
+      )
+    var sceneViews = allSceneViews.toImmutableList()
+
+    val panel =
+      SceneViewPanel(
+          backgroundScope,
+          StandardTestDispatcher(testScheduler),
+          sceneViewProvider = { sceneViews },
+          interactionLayersProvider = { emptyList() },
+          actionManagerProvider = { TestActionManager(Mockito.mock()) },
+          shouldRenderErrorsPanel = { false },
+          layoutManager = TestLayoutManager(organizationEnabled = true),
+        )
+        .apply {
+          setNoComposeHeadersForTests()
+          size = Dimension(300, 300)
+        }
+    panel.updateComponents()
+    runCurrent()
+    advanceUntilIdle()
+
+    val headers = panel.findAllDescendants<SceneViewHeader>().toImmutableList()
+    assertEquals(2, headers.count())
+    assertTrue { headers[0].isVisible }
+    assertTrue { headers[1].isVisible }
+
+    // Filter out preview.
+    sceneViews[0].isVisible = false
+    sceneViews[1].isVisible = false
+
+    // Only one header is visible.
+    assertFalse { headers[0].isVisible }
+    assertTrue { headers[1].isVisible }
+
+    // Show just one preview again.
+    sceneViews[0].isVisible = true
+
+    assertTrue { headers[0].isVisible }
+    assertTrue { headers[1].isVisible }
+
+    sceneViews.forEach { Disposer.dispose(it.sceneManager) }
+  }
+
   private class TestLayoutManager(organizationEnabled: Boolean) :
     PositionableContentLayoutManager(), LayoutManagerSwitcher {
 

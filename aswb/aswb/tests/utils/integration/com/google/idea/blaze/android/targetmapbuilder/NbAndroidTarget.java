@@ -205,7 +205,7 @@ public class NbAndroidTarget extends NbBaseTargetBuilder {
    * <p>Blaze requires an Android manifest for any android_binary rule and for any android_library
    * which also defines resource files or assets. If the Android manifest isn't explicitly set by
    * calling this method but is required for this target, NbAndroidTarget will assume the manifest
-   * is AndroidManifest.xml in the same directory as this target's BUILD file.
+   * is AndroidManifest.xml in the same directory as this target's ~BUILD file.
    */
   public NbAndroidTarget manifest(String manifestLabel) {
     hasCustomManifest = true;

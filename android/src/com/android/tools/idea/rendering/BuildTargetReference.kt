@@ -27,6 +27,7 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.LightVirtualFile
 
 /**
  * An entity that encapsulates the notion of a build target reference.
@@ -86,7 +87,8 @@ interface BuildTargetReference {
      */
     @JvmStatic
     fun gradleOnly(module: Module): BuildTargetReference {
-      return module.project.buildTargets.fromModuleOnly(module)
+      // The Gradle implementation of BuildTargets doesn't use the virtual file. Pass in a light implementation.
+      return module.project.buildTargets.from(module, LightVirtualFile())
     }
   }
 }

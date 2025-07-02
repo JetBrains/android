@@ -44,11 +44,24 @@ class PairDevicesUsingWiFiService(private val project: Project) : Disposable {
     // Nothing to do
   }
 
-  fun createPairingDialogController(): WiFiPairingController {
+  fun createPairingDialogController(mdnsService: String? = null): WiFiPairingController {
     val model = WiFiPairingModel()
     val view =
-      WiFiPairingViewImpl(project, notificationService, model, WiFiPairingHyperlinkListener)
-    return WiFiPairingControllerImpl(project, this, devicePairingService, notificationService, view)
+      WiFiPairingViewImpl(
+        project,
+        notificationService,
+        model,
+        WiFiPairingHyperlinkListener,
+        mdnsService,
+      )
+    return WiFiPairingControllerImpl(
+      project,
+      this,
+      devicePairingService,
+      notificationService,
+      view,
+      mdnsService = mdnsService,
+    )
   }
 
   val isFeatureEnabled: Boolean

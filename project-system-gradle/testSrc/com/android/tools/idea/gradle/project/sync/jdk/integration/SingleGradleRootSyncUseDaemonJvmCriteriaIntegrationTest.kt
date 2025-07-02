@@ -16,20 +16,20 @@
 package com.android.tools.idea.gradle.project.sync.jdk.integration
 
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
+import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplication
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
+import com.android.tools.idea.testing.JdkConstants.JDK_17
+import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
-import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_VERSION
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -56,10 +56,7 @@ class SingleGradleRootSyncUseDaemonJvmCriteriaIntegrationTest {
     jdkIntegrationTest.run(
       project = SimpleApplication(
         ideaGradleJdk = USE_JAVA_HOME,
-        gradleDaemonJvmCriteria = GradleDaemonJvmCriteria(
-          version = "invalid",
-          vendor = null
-        ),
+        gradleDaemonToolchain = GradleDaemonToolchain("invalid")
       ),
       environment = TestEnvironment(
         environmentVariables = mapOf(JAVA_HOME to JDK_EMBEDDED_PATH)
@@ -76,19 +73,15 @@ class SingleGradleRootSyncUseDaemonJvmCriteriaIntegrationTest {
     }
 
   @Test
-  fun `Given valid Daemon Jvm criteria using JDK_EMBEDDED version When import project Then projectJdk is configured with JDK_EMBEDDED`() =
+  fun `Given valid Daemon Jvm criteria as 17 version and Jetbrains vendor When import project Then projectJdk is configured with matching criteria JDK`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(
-        gradleDaemonJvmCriteria = GradleDaemonJvmCriteria(
-          version = JDK_EMBEDDED_VERSION,
-          vendor = null
-        ),
+        gradleDaemonToolchain = GradleDaemonToolchain("17", "Jetbrains")
       )
     ) {
       syncWithAssertion(
-        expectedGradleJdkName = JDK_EMBEDDED,
-        expectedProjectJdkName = JDK_EMBEDDED,
-        expectedProjectJdkPath = JDK_EMBEDDED_PATH
+        expectedProjectJdkName = JDK_17,
+        expectedProjectJdkPath = JDK_17_PATH
       )
     }
 }

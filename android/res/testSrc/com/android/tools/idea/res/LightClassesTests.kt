@@ -449,6 +449,38 @@ abstract class SingleModuleLightClassesTestBase {
   }
 
   @Test
+  fun kotlinCompletion_b412606827() {
+    val activity =
+      myFixture.addFileToProject(
+        "/src/p1/p2/sub/test.kt",
+        // language=kotlin
+        """
+      package p1.p2.sub
+
+      import android.app.Activity
+      import android.os.Bundle
+
+      class MainActivity : Activity() {
+        override fun onCreate(savedInstanceState: Bundle?) {
+          super.onCreate(savedInstanceState)
+          R${caret}.string.appString
+        }
+      }
+      """
+          .trimIndent(),
+      )
+
+    myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+    myFixture.doHighlighting()
+
+    val intentions = myFixture.filterAvailableIntentions("Import")
+    assertThat(intentions).hasSize(1)
+    myFixture.launchAction(intentions.single())
+
+    assertThat(activity.text).contains("\nimport p1.p2.R\n")
+  }
+
+  @Test
   fun styleableAttrResourceNamesCompletion_java() {
     myFixture.addFileToProject(
       "/res/values/styles.xml",

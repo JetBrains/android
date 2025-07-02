@@ -306,6 +306,7 @@ class DeviceToolWindowPanelTest {
     // Check XR-specific actions.
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Toggle Passthrough" }).isNotNull()
+
     val xrInputController = DeviceXrInputController.getInstance(project, panel.deviceClient)
     assertAppearance("XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
@@ -322,6 +323,27 @@ class DeviceToolWindowPanelTest {
       assertThat(xrInputController.inputMode).isEqualTo(mode)
       assertThat(hardwareInputStateStorage.isHardwareInputEnabled(displayView.deviceId)).isEqualTo(mode == XrInputMode.HARDWARE)
     }
+
+    val button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Home" }
+    fakeUi.mousePressOn(button)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_ALL_APPS, 0))
+    fakeUi.mouseRelease()
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_ALL_APPS, 0))
+
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Reset View" })
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrRecenterMessage())
+
+    waitForCondition(2.seconds) { xrInputController.passthroughCoefficient >= 0 }
+    assertThat(xrInputController.passthroughCoefficient).isEqualTo(0f)
+    val togglePassthroughButton = fakeUi.getComponent<ActionButton> { it.action.templateText == "Toggle Passthrough" }
+    assertThat(togglePassthroughButton.isEnabled).isTrue()
+    assertThat(togglePassthroughButton.isSelected).isFalse()
+    fakeUi.mouseClickOn(togglePassthroughButton)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrSetPassthroughCoefficientMessage(1F))
+    waitForCondition(2.seconds) { xrInputController.passthroughCoefficient != 0f }
+    assertThat(xrInputController.passthroughCoefficient).isEqualTo(1f)
+    fakeUi.updateToolbarsIfNecessary()
+    assertThat(togglePassthroughButton.isSelected).isTrue()
 
     val toggleAction = ToggleFloatingXrToolbarAction()
     toggleAction.actionPerformed(createTestEvent(displayView, project, ActionPlaces.TOOLWINDOW_POPUP))

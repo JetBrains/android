@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.adblib.DeviceSelector
 import com.android.fakeadbserver.DeviceState
+import com.android.flags.junit.FlagRule
 import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
 import com.android.repository.impl.meta.RepositoryPackages
@@ -24,6 +25,7 @@ import com.android.repository.impl.meta.TypeDetails
 import com.android.repository.testframework.FakePackage
 import com.android.repository.testframework.FakeRepoManager
 import com.android.resources.Density
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.SystemImageTags.PLAY_STORE_TAG
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.ConfigKey
@@ -1146,9 +1148,12 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectionRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule = LayoutInspectorRule(listOf(mock()), projectRule) { false }
+  // Fake emulator set up by `LayoutInspectorRule` doesn't play well with adblib
+  private val flagRule = FlagRule(StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE, false)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
+  val ruleChain =
+    RuleChain.outerRule(flagRule).around(projectRule).around(inspectionRule).around(inspectorRule)!!
 
   @Test
   fun testApi29VersionBanner() = runBlocking {
@@ -1331,7 +1336,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
             override val model = "model"
             override val serial = "emulator-$apiLevel"
             override val isEmulator = true
-            override val apiLevel = apiLevel
+            override val apiLevel = AndroidApiLevel(apiLevel)
             override val version = "10.0.0"
             override val codename: String? = null
           }
@@ -1348,7 +1353,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       processDescriptor.device.manufacturer,
       processDescriptor.device.model,
       processDescriptor.device.version,
-      processDescriptor.device.apiLevel.toString(),
+      processDescriptor.device.apiLevel,
       processDescriptor.abiCpuArch,
       emptyMap(),
       DeviceState.HostConnectionType.LOCAL,

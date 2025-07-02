@@ -145,11 +145,11 @@ unique_ptr<u16string> Base128InputStream::ReadString16() {
 }
 
 float Base128InputStream::ReadFloat() {
-  // Float will be sent as a 32-bit integer in network byte order as per IEEE 754 standard.
-  float f;
-  int32_t f_as_int32 = ReadFixed32();
-  memcpy(&f, &f_as_int32, sizeof f);
-  return f;
+  // Float is written a 32-bit integer in little endian byte order as per IEEE 754 standard.
+  float value;
+  int32_t value_as_int32 = ReadFixed32();
+  memcpy(&value, &value_as_int32, sizeof value);
+  return value;
 }
 
 int32_t Base128InputStream::ReadFixed32() {

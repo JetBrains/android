@@ -33,6 +33,7 @@ import com.android.tools.idea.wizard.template.Constraint.APP_PACKAGE
 import com.android.tools.idea.wizard.template.Constraint.CLASS
 import com.android.tools.idea.wizard.template.Constraint.DRAWABLE
 import com.android.tools.idea.wizard.template.Constraint.EXISTS
+import com.android.tools.idea.wizard.template.Constraint.JOURNEY
 import com.android.tools.idea.wizard.template.Constraint.KOTLIN_FUNCTION
 import com.android.tools.idea.wizard.template.Constraint.LAYOUT
 import com.android.tools.idea.wizard.template.Constraint.MODULE
@@ -89,7 +90,7 @@ private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, 
   PACKAGE -> "$name is not set to a valid package name"
   MODULE -> "$name is not set to a valid module name"
   KOTLIN_FUNCTION -> "$name is not set to a valid function name"
-  DRAWABLE, NAVIGATION, STRING, LAYOUT -> {
+  DRAWABLE, NAVIGATION, STRING, LAYOUT, JOURNEY -> {
     val rft = c.toResourceFolderType()
     val resourceNameError = IdeResourceNameValidator.forFilename(rft).getErrorText(value)
     if (resourceNameError == null)
@@ -128,10 +129,11 @@ fun StringParameter.validateStringType(
     URI_AUTHORITY -> !value.matches("$URI_AUTHORITY_REGEX(;$URI_AUTHORITY_REGEX)*".toRegex())
     ACTIVITY, CLASS, PACKAGE, KOTLIN_FUNCTION -> !isValidFullyQualifiedJavaIdentifier(fqName)
     APP_PACKAGE -> AndroidUtils.validateAndroidPackageName(value) != null
-    DRAWABLE, NAVIGATION, STRING, LAYOUT, VALUES -> {
+    DRAWABLE, NAVIGATION, STRING, LAYOUT, VALUES, JOURNEY -> {
       val rft = c.toResourceFolderType()
       IdeResourceNameValidator.forFilename(rft).getErrorText(value) != null
     }
+
     SOURCE_SET_FOLDER, MODULE -> false // may only violate uniqueness
     UNIQUE, EXISTS -> false // not applicable
   }
@@ -192,6 +194,14 @@ fun StringParameter.validateStringType(
         val vFile = VfsUtil.findFileByIoFile(file, true)
         facet.sourceProviders.getForFile(vFile) != null
       }
+    JOURNEY -> {
+      module ?: return false
+      val moduleRootDir = AndroidRootUtil.findModuleRootFolderPath(module) ?: return false
+      val journeysDir = moduleRootDir
+        .resolve("src")
+        .resolve("journeysTest")
+      return journeysDir.resolve("$value.xml").exists()
+    }
       NONEMPTY, STRING, URI_AUTHORITY -> false
       UNIQUE, EXISTS -> false // not applicable
     }
@@ -275,6 +285,7 @@ fun Constraint.toResourceFolderType(): ResourceFolderType = when (this) {
   STRING, VALUES -> ResourceFolderType.VALUES
   LAYOUT -> ResourceFolderType.LAYOUT
   NAVIGATION -> ResourceFolderType.NAVIGATION
+  JOURNEY -> ResourceFolderType.XML
   else -> throw IllegalArgumentException("There is no matching ResourceFolderType for $this constraint")
 }
 

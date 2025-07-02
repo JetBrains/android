@@ -71,6 +71,8 @@ categories: {
     package_names: "com.android.tools.profiler"
     package_names: "com.android.tools.idea.profilers"
     package_names: "com.android.tools.perflib"
+    package_names: "com.android.tools.adtui.trackgroup"
+    package_names: "com.android.tools.adtui.model.trackgroup"
     package_names: "trebuchet.io"
   }
   components: {

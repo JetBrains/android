@@ -27,6 +27,7 @@ java_proto_library(
         "//tools/adt/idea/aswb/base:__subpackages__",
         "//tools/adt/idea/aswb/cpp:__subpackages__",
         "//tools/adt/idea/aswb/querysync:__subpackages__",
+        "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",
     ],
 )
 

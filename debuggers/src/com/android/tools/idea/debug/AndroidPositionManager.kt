@@ -134,7 +134,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
     // Since we have an Android SDK file, return the SDK source if it's available.
     // Otherwise, return a generated file with a comment indicating that sources are unavailable.
     return SdkSourcePositionFinder.getInstance(project)
-      .getSourcePosition(myAndroidVersion.apiLevel, file, DebuggerUtilsEx.getLineNumber(location, true))
+      .getSourcePosition(myAndroidVersion.androidApiLevel, file, DebuggerUtilsEx.getLineNumber(location, true))
   }
 
   // This override only exists for the purpose of changing visibility for invocation via tests.

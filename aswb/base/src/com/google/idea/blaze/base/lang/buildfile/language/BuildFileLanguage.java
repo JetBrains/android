@@ -17,18 +17,18 @@ package com.google.idea.blaze.base.lang.buildfile.language;
 
 import com.intellij.lang.Language;
 
-/** BUILD file language */
+/** ~BUILD file language */
 public class BuildFileLanguage extends Language {
 
   public static final BuildFileLanguage INSTANCE = new BuildFileLanguage();
 
   private BuildFileLanguage() {
-    super("BUILD", "text/python");
+    super("~BUILD", "text/python");
   }
 
   @Override
   public String getDisplayName() {
-    return "BUILD file";
+    return "~BUILD file";
   }
 
   @Override

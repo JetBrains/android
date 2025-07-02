@@ -55,7 +55,7 @@ import javax.annotation.Nullable;
 /**
  * Inserts indents as appropriate when enter is pressed.
  *
- * <p>This is a substitute for implementing a full FormattingModel for the BUILD language. If we
+ * <p>This is a substitute for implementing a full FormattingModel for the ~BUILD language. If we
  * ever decide to do that, this code should be removed.
  *
  * <p>By now, there's a better way to implement custom indent handling: {@link

@@ -39,7 +39,6 @@ import com.android.tools.idea.gradle.structure.model.meta.KnownValues
 import com.android.tools.idea.gradle.structure.model.meta.ListProperty
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
-import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
 import com.android.tools.idea.gradle.util.GradleVersionsRepository
@@ -55,27 +54,23 @@ import java.io.File
 fun booleanValues(model: Any?): ListenableFuture<List<ValueDescriptor<Boolean>>> =
   immediateFuture(listOf(ValueDescriptor(value = false), ValueDescriptor(value = true)))
 
-fun installedSdksAsStrings(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
-  immediateFuture(installedEnvironments().androidSdks)
+fun minSdkValues(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> = immediateFuture(androidSdkSuggestions().minSdks)
 
-fun installedSdksAsInts(model: Any?): ListenableFuture<List<ValueDescriptor<Int>>> =
-  immediateFuture(installedEnvironments().androidSdks
-                    .mapNotNull {
-                      it.value.getText { toString() }.toIntOrNull()?.let { intValue ->
-                        ValueDescriptor(intValue, it.description)
-                      }
-                    })
+fun targetSdkValues(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> = immediateFuture(androidSdkSuggestions().targetSdks)
 
-fun installedBuildTools(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
-  immediateFuture(installedEnvironments().buildTools)
+fun maxSdkValues(model: Any?): ListenableFuture<List<ValueDescriptor<Int>>> =
+  immediateFuture(androidSdkSuggestions().maxSdks)
+
+fun buildToolsVersionValues(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
+  immediateFuture(androidSdkSuggestions().buildTools)
 
 fun ndkVersionValues(model: PsAndroidModule?): ListenableFuture<List<ValueDescriptor<String>>> {
   val defaultNdkVersion = model?.resolvedNativeModel?.defaultNdkVersion?.let { ValueDescriptor(it) }
-  return immediateFuture((listOfNotNull(defaultNdkVersion) + installedEnvironments().ndks).distinct())
+  return immediateFuture((listOfNotNull(defaultNdkVersion) + androidSdkSuggestions().ndks).distinct())
 }
 
-fun installedCompiledApis(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
-  immediateFuture(installedEnvironments().compiledApis)
+fun compileSdkValues(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
+  immediateFuture(androidSdkSuggestions().compileSdks)
 
 fun languageLevels(model: PsAndroidModule): ListenableFuture<List<ValueDescriptor<LanguageLevel>>> {
   val languageLevels = mutableListOf(

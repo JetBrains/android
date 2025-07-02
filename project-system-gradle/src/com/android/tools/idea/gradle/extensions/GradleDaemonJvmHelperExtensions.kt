@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.extensions
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.intellij.openapi.project.Project
 import org.gradle.util.GradleVersion
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import kotlin.io.path.Path
@@ -37,7 +39,15 @@ fun GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(
 ): Boolean {
   if (rootProjectPath == null) return false
 
-  val settings = GradleSettings.getInstance(project)
-  val projectSettings = settings.getLinkedProjectSettings(rootProjectPath) ?: return false
-  return isProjectUsingDaemonJvmCriteria(projectSettings)
+  GradleSettings.getInstance(project).getLinkedProjectSettings(rootProjectPath)?.let {
+   return isProjectUsingDaemonJvmCriteria(it)
+  }
+
+  GradleInstallationManager.getInstance().guessBuildLayoutParameters(project, rootProjectPath).gradleVersion?.let {
+    return isProjectUsingDaemonJvmCriteria(rootProjectPath, it)
+  }
+
+  return GradleSyncStateHolder.getInstance(project).lastSyncedGradleVersion?.let {
+    isProjectUsingDaemonJvmCriteria(rootProjectPath, it)
+  } ?: false
 }

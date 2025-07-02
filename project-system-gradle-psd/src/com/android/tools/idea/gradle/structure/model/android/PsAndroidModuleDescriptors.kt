@@ -45,7 +45,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidModule
     setter = { setValue(it.toIntOrNull() ?: it) },
     parser = ::parseString,
     matcher = ::matchHashStrings,
-    knownValuesGetter = ::installedCompiledApis
+    knownValuesGetter = ::compileSdkValues
   )
 
   val buildToolsVersion: SimpleProperty<PsAndroidModule, String> = property(
@@ -56,7 +56,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidModule
     getter = { asString() },
     setter = { setValue(it) },
     parser = ::parseString,
-    knownValuesGetter = ::installedBuildTools,
+    knownValuesGetter = ::buildToolsVersionValues,
     variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
   )
 

@@ -77,7 +77,7 @@ public class BazelPyImportResolverStrategyTest extends PyImportResolverStrategyT
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//foo:foo")
-                    .setBuildFile(source("foo/BUILD"))
+                    .setBuildFile(source("foo/~BUILD"))
                     .setKind("py_library")
                     .addSource(source("foo/lib/bar.py")))
             .build());

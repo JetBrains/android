@@ -509,6 +509,7 @@ android-studio/lib/jna/amd64/jnidispatch.dll
 android-studio/lib/jps-model.jar
 android-studio/lib/kotlinx-coroutines-slf4j-1.8.0-intellij.jar
 android-studio/lib/lib.jar
+android-studio/lib/modules/intellij.debugger.streams.core.jar
 android-studio/lib/modules/intellij.grid.core.impl.jar
 android-studio/lib/modules/intellij.grid.csv.core.impl.jar
 android-studio/lib/modules/intellij.grid.impl.jar
@@ -544,8 +545,9 @@ android-studio/lib/modules/intellij.platform.inline.completion.jar
 android-studio/lib/modules/intellij.platform.jewel.foundation.jar
 android-studio/lib/modules/intellij.platform.jewel.ideLafBridge.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.core.jar
-android-studio/lib/modules/intellij.platform.jewel.markdown.extension.gfmAlerts.jar
-android-studio/lib/modules/intellij.platform.jewel.markdown.extension.gfmTables.jar
+android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmAlerts.jar
+android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmStrikethrough.jar
+android-studio/lib/modules/intellij.platform.jewel.markdown.extensions.gfmTables.jar
 android-studio/lib/modules/intellij.platform.jewel.markdown.ideLafBridgeStyling.jar
 android-studio/lib/modules/intellij.platform.jewel.ui.jar
 android-studio/lib/modules/intellij.platform.kernel.backend.jar
@@ -778,8 +780,6 @@ android-studio/plugins/Kotlin/kotlinc/META-INF/MANIFEST.MF
 android-studio/plugins/Kotlin/kotlinc/bin/kapt
 android-studio/plugins/Kotlin/kotlinc/bin/kapt.bat
 android-studio/plugins/Kotlin/kotlinc/bin/kotlin
-android-studio/plugins/Kotlin/kotlinc/bin/kotlin-dce-js
-android-studio/plugins/Kotlin/kotlinc/bin/kotlin-dce-js.bat
 android-studio/plugins/Kotlin/kotlinc/bin/kotlin.bat
 android-studio/plugins/Kotlin/kotlinc/bin/kotlinc
 android-studio/plugins/Kotlin/kotlinc/bin/kotlinc-js
@@ -793,7 +793,7 @@ android-studio/plugins/Kotlin/kotlinc/lib/android-extensions-compiler.jar
 android-studio/plugins/Kotlin/kotlinc/lib/android-extensions-runtime.jar
 android-studio/plugins/Kotlin/kotlinc/lib/annotations-13.0.jar
 android-studio/plugins/Kotlin/kotlinc/lib/assignment-compiler-plugin.jar
-android-studio/plugins/Kotlin/kotlinc/lib/compose-compiler.jar
+android-studio/plugins/Kotlin/kotlinc/lib/compose-compiler-plugin.jar
 android-studio/plugins/Kotlin/kotlinc/lib/js.engines.jar
 android-studio/plugins/Kotlin/kotlinc/lib/jvm-abi-gen.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing-cli.jar
@@ -1650,7 +1650,6 @@ android-studio/plugins/android/lib/workmanager_inspector_proto.jar
 android-studio/plugins/android/resources/androidAnnotations.jar
 android-studio/plugins/android/resources/apks/ComplicationWatchFace.apk
 android-studio/plugins/android/resources/app-inspection/backgroundtask-inspection.jar
-android-studio/plugins/android/resources/app-inspection/compose-ui-inspection.jar
 android-studio/plugins/android/resources/app-inspection/database-inspector.jar
 android-studio/plugins/android/resources/app-inspection/layoutinspector-view-inspection.jar
 android-studio/plugins/android/resources/app-inspection/network-inspector.jar
@@ -2007,9 +2006,9 @@ android-studio/plugins/cidr-clangFormat-plugin/lib/cidr-clangFormat-plugin.jar
 android-studio/plugins/cidr-debugger-plugin/lib/cidr-debugger-plugin.jar
 android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
 android-studio/plugins/compose-ide-plugin/lib/compose-ide-plugin.jar
+android-studio/plugins/compose-ide-plugin/lib/modules/intellij.compose.ide.plugin.gradleTooling.rt.jar
 android-studio/plugins/configurationScript/lib/configurationScript.jar
 android-studio/plugins/copyright/lib/copyright.jar
-android-studio/plugins/debugger-streams-core/lib/debugger-streams-core.jar
 android-studio/plugins/design-tools/lib/design-tools.jar
 android-studio/plugins/design-tools/lib/design-tools.so.jar
 android-studio/plugins/design-tools/lib/layoutlib.jar
@@ -2332,6 +2331,9 @@ android-studio/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 android-studio/plugins/gemini/lib/libv1internal_java_rest.jar
 android-studio/plugins/gemini/lib/opencensus-api-0.31.1.jar
 android-studio/plugins/gemini/lib/opencensus-contrib-http-util-0.31.1.jar
+android-studio/plugins/gemini/lib/proto-models-1.0.jar
+android-studio/plugins/gemini/lib/wire-runtime-jvm-5.3.1.jar
+android-studio/plugins/gemini/resources/recorder-release-androidTest.apk
 android-studio/plugins/git4insights/lib/git4insights.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
@@ -2369,7 +2371,7 @@ android-studio/plugins/gradle/lib/ant/ant-swing.jar
 android-studio/plugins/gradle/lib/ant/ant-testutil.jar
 android-studio/plugins/gradle/lib/ant/ant-xz.jar
 android-studio/plugins/gradle/lib/ant/ant.jar
-android-studio/plugins/gradle/lib/gradle-api-8.14-milestone-7.jar
+android-studio/plugins/gradle/lib/gradle-api-9.0-milestone-1.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-api.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-impl.jar
 android-studio/plugins/gradle/lib/gradle.jar
@@ -2419,6 +2421,7 @@ android-studio/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
 android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
 android-studio/plugins/maven-server/lib/maven-server.jar
+android-studio/plugins/performanceTesting/lib/modules/intellij.performanceTesting.frontend.jar
 android-studio/plugins/performanceTesting/lib/performanceTesting.jar
 android-studio/plugins/platform-images/lib/platform-images.jar
 android-studio/plugins/platform-langInjection/lib/java-langInjection-jps.jar
@@ -2448,6 +2451,7 @@ android-studio/plugins/terminal/shell-integrations/zsh/zdotdir/.zlogin
 android-studio/plugins/terminal/shell-integrations/zsh/zdotdir/.zprofile
 android-studio/plugins/terminal/shell-integrations/zsh/zdotdir/.zshenv
 android-studio/plugins/terminal/shell-integrations/zsh/zdotdir/.zshrc
+android-studio/plugins/terminal/shell-integrations/zsh/zdotdir/source-original.zsh
 android-studio/plugins/terminal/shell-integrations/zsh/zsh-integration.zsh
 android-studio/plugins/test-recorder/lib/swt.jar
 android-studio/plugins/test-recorder/lib/test-recorder.jar
@@ -2838,6 +2842,7 @@ android-studio/plugins/turboComplete/lib/turboComplete.jar
 android-studio/plugins/url-assistant/lib/url-assistant.jar
 android-studio/plugins/url-assistant/lib/url-assistant.so.jar
 android-studio/plugins/url-assistant/lib/urlassistant_proto.jar
+android-studio/plugins/vcs-git-commit-modal/lib/vcs-git-commit-modal.jar
 android-studio/plugins/vcs-git/lib/git4idea-rt.jar
 android-studio/plugins/vcs-git/lib/vcs-git.jar
 android-studio/plugins/vcs-github-IC/lib/vcs-github.jar

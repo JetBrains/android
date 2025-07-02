@@ -12,6 +12,7 @@ jvm_library(
   module_name = "intellij.android.gradle.declarative.lang.flags",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  kotlinc_opts = "@community//:k8",
   deps = [
     "@lib//:kotlin-stdlib",
     "//platform/util",

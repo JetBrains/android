@@ -31,7 +31,7 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
   static class State {
 
     /** Default query sync enabled settings, used when we are out of beta. */
-    public UseQuerySyncSection.UseQuerySync enabled = UseQuerySyncSection.UseQuerySync.TRUE;
+    public Boolean enabled = true;
 
     public boolean showDetailedInformationInEditor = true;
 
@@ -47,11 +47,11 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
   }
 
   public void enableUseQuerySync(boolean enabled) {
-    state.enabled = enabled ? UseQuerySyncSection.UseQuerySync.TRUE : UseQuerySyncSection.UseQuerySync.FALSE;
+    state.enabled = enabled;
   }
 
   public boolean useQuerySync() {
-    return state.enabled != UseQuerySyncSection.UseQuerySync.FALSE;
+    return state.enabled;
   }
 
   public void enableShowDetailedInformationInEditor(boolean showDetailedInformationInEditor) {

@@ -20,6 +20,7 @@ import com.android.adblib.testingutils.CloseablesRule
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.testutils.MockitoCleanerRule
+import com.android.tools.idea.adb.PreInitAndroidDebugBridgeRule
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
@@ -56,8 +57,9 @@ abstract class AndroidConfigurationExecutorBaseTest {
   val chain = RuleChain
     .outerRule(cleaner)
     .around(closeables)
-    .around(fakeAdbRule)
     .around(projectRule)
+    .around(PreInitAndroidDebugBridgeRule())
+    .around(fakeAdbRule)
 
   val project: Project
     get() = projectRule.project

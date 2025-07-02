@@ -29,6 +29,7 @@ class WiFiPairingViewImpl(
   private val notificationService: WiFiPairingNotificationService,
   override val model: WiFiPairingModel,
   hyperlinkListener: HyperlinkListener,
+  mdnsService: String?,
 ) : WiFiPairingView {
   private val dlg: WiFiPairingDialog
   private val listeners = ArrayList<WiFiPairingView.Listener>()
@@ -36,7 +37,14 @@ class WiFiPairingViewImpl(
   init {
     // Note: No need to remove the listener, as the Model and View have the same lifetime
     model.addListener(ModelListener())
-    dlg = WiFiPairingDialog(project, true, DialogWrapper.IdeModalityType.IDE, hyperlinkListener)
+    dlg =
+      WiFiPairingDialog(
+        project,
+        true,
+        DialogWrapper.IdeModalityType.IDE,
+        hyperlinkListener,
+        mdnsService,
+      )
     dlg.pairingCodePairInvoked = { service ->
       listeners.forEach { it.onPairingCodePairAction(service) }
     }

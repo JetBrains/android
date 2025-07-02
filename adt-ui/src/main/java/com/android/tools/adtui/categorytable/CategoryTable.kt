@@ -79,6 +79,11 @@ class CategoryTable<T : Any>(
   val emptyStatePanel: JComponent? = null,
 ) : JBPanel<CategoryTable<T>>(), Scrollable {
 
+  init {
+    // We don't use a layout manager; see doLayout()
+    layout = null
+  }
+
   /** The listener called when a category row is clicked. */
   var categoryRowMouseClickListener: CategoryRowMouseClickListener<T> =
     DefaultCategoryRowMouseClickListener()

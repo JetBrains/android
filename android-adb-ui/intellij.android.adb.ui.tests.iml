@@ -38,6 +38,7 @@
     <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.adb.ui" />
 </module>

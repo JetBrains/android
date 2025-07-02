@@ -529,10 +529,12 @@ LIBRARY_TABLE
         artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
         artifactAddress               : junit:junit:4.12@jar
         component                     : junit:junit:4.12
+        - srcJars                     : <M2>/junit/junit/4.12/junit-4.12-sources.jar
     - library                     : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
         component                     : org.hamcrest:hamcrest-core:1.3
+        - srcJars                     : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
     - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
@@ -545,6 +547,8 @@ LIBRARY_TABLE
         artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
         artifactAddress               : org.jetbrains:annotations:13.0@jar
         component                     : org.jetbrains:annotations:13.0
+        docJar                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-javadoc.jar
+        - srcJars                     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
     - library                     : <ROOT>/firstapp::app@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>/firstapp
         projectPath                   : :app
@@ -715,6 +719,7 @@ MODULE                        : My_First_App
                                 kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                                 kotlinCompilerPluginClasspathRelease    : <empty>
                                 kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
+                                kotlinInternalAbiValidation   : <empty>
                                 kotlinKlibCommonizerClasspath : <empty>
                                 kotlinNativeCompilerPluginClasspath     : <empty>
                                 lintChecks                    : <empty>
@@ -760,6 +765,8 @@ MODULE                        : My_First_App
                                 releaseUnitTestRuntimeOnly    : <empty>
                                 releaseWearApp                : <empty>
                                 runtimeOnly                   : <empty>
+                                swiftExportClasspath          : <empty>
+                                swiftExportClasspathResolvable          : <empty>
                                 testAnnotationProcessor       : <empty>
                                 testApi                       : <empty>
                                 testApiDependenciesMetadata   : <empty>
@@ -952,6 +959,7 @@ MODULE                        : My_First_App
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
+                        kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
@@ -994,6 +1002,8 @@ MODULE                        : My_First_App
                         releaseWearApp                : <empty>
                         releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -2143,8 +2153,8 @@ MODULE                        : My_First_App.app
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
-            minor                         : 1
-            patch                         : 20
+            minor                         : 2
+            patch                         : 0
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -3271,8 +3281,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
-            minor                         : 1
-            patch                         : 20
+            minor                         : 2
+            patch                         : 0
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties

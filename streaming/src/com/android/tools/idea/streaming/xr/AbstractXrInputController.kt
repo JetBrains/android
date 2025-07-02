@@ -16,11 +16,12 @@
 package com.android.tools.idea.streaming.xr
 
 import com.android.annotations.concurrency.UiThread
-import com.android.emulator.control.XrOptions
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.utils.TraceUtils.simpleId
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.KeyEvent
@@ -39,6 +40,7 @@ import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
+import java.lang.Thread.currentThread
 import kotlin.math.PI
 
 /**
@@ -47,7 +49,7 @@ import kotlin.math.PI
  */
 internal abstract class AbstractXrInputController : Disposable {
 
-  @Volatile var environment: XrOptions.Environment? = null
+  @Volatile var environment: XrEnvironment? = null
     set(value) {
       requireNotNull(value)
       if (field != value) {
@@ -66,6 +68,10 @@ internal abstract class AbstractXrInputController : Disposable {
 
   @Volatile var inputMode: XrInputMode =
       if (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) XrInputMode.HAND else XrInputMode.HARDWARE
+    get() {
+      b415832959Logger?.info("${currentThread()} $simpleId.inputMode.get() returning $field")
+      return field
+    }
     @UiThread set(value) {
       if (field != value) {
         if (!areNavigationKeysEnabled(value)) {
@@ -73,6 +79,7 @@ internal abstract class AbstractXrInputController : Disposable {
           mouseDragReferencePoint = null
         }
         field = value
+        b415832959Logger?.info("${currentThread()} $simpleId.inputMode.set($value)")
       }
     }
 
@@ -384,3 +391,6 @@ internal enum class XrInputMode {
   /** Relative mouse y coordinate controls moving forward and back. */
   LOCATION_IN_SPACE_Z,
 }
+
+internal val b415832959Logger =
+    if (StudioFlags.EMBEDDED_EMULATOR_B415832959_LOGGING.get()) Logger.getInstance("b/415832959") else null

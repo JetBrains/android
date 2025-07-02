@@ -45,7 +45,7 @@ public class BlazeBuildFileRunConfigurationProducerTest
   public void testProducedFromFuncallExpression() {
     PsiFile buildFile =
         workspace.createPsiFile(
-            new WorkspacePath("java/com/google/test/BUILD"), "java_test(name='unit_tests'");
+            new WorkspacePath("java/com/google/test/~BUILD"), "java_test(name='unit_tests'");
 
     FuncallExpression target =
         PsiUtils.findFirstChildOfClassRecursive(buildFile, FuncallExpression.class);
@@ -70,7 +70,7 @@ public class BlazeBuildFileRunConfigurationProducerTest
   public void testTestSuiteMacroNameRecognized() {
     PsiFile buildFile =
         workspace.createPsiFile(
-            new WorkspacePath("java/com/google/test/BUILD"),
+            new WorkspacePath("java/com/google/test/~BUILD"),
             "random_junit4_test_suites(name='gen_tests'");
 
     FuncallExpression target =
@@ -94,7 +94,7 @@ public class BlazeBuildFileRunConfigurationProducerTest
   public void testProducedWhenInsideFuncallExpression() {
     PsiFile buildFile =
         workspace.createPsiFile(
-            new WorkspacePath("java/com/google/test/BUILD"), "java_test(name='unit_tests'");
+            new WorkspacePath("java/com/google/test/~BUILD"), "java_test(name='unit_tests'");
 
     StringLiteral nameString =
         PsiUtils.findFirstChildOfClassRecursive(buildFile, StringLiteral.class);
@@ -119,7 +119,7 @@ public class BlazeBuildFileRunConfigurationProducerTest
   public void testConfigFromContextRecognizesItsOwnConfig() {
     PsiFile buildFile =
         workspace.createPsiFile(
-            new WorkspacePath("java/com/google/test/BUILD"), "java_test(name='unit_tests'");
+            new WorkspacePath("java/com/google/test/~BUILD"), "java_test(name='unit_tests'");
 
     StringLiteral nameString =
         PsiUtils.findFirstChildOfClassRecursive(buildFile, StringLiteral.class);
@@ -137,7 +137,7 @@ public class BlazeBuildFileRunConfigurationProducerTest
   public void testConfigWithDifferentLabelIgnored() {
     PsiFile buildFile =
         workspace.createPsiFile(
-            new WorkspacePath("java/com/google/test/BUILD"), "java_test(name='unit_tests'");
+            new WorkspacePath("java/com/google/test/~BUILD"), "java_test(name='unit_tests'");
 
     StringLiteral nameString =
         PsiUtils.findFirstChildOfClassRecursive(buildFile, StringLiteral.class);
@@ -158,7 +158,7 @@ public class BlazeBuildFileRunConfigurationProducerTest
   public void testConfigWithTestFilterIgnored() {
     PsiFile buildFile =
         workspace.createPsiFile(
-            new WorkspacePath("java/com/google/test/BUILD"), "java_test(name='unit_tests'");
+            new WorkspacePath("java/com/google/test/~BUILD"), "java_test(name='unit_tests'");
 
     StringLiteral nameString =
         PsiUtils.findFirstChildOfClassRecursive(buildFile, StringLiteral.class);

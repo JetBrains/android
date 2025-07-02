@@ -168,7 +168,14 @@ object JdkUtils {
     return suggestedJdkName
   }
 
-  private fun updateProjectGradleJvm(
+  /**
+   * Update gradleJvm of project linked settings stored under .idea/gradle.xml which indicates where JDK is located when current
+   * Gradle JDK configuration is resolved to execute build
+   * @param project Project to be modified
+   * @param gradleRootPath Gradle project root absolute path
+   * @param gradleJvm This can be supported macros like #JAVA_HOME, #GRADLE_LOCAL_JAVA_HOME but also jdk.table.xml entries
+   */
+  fun updateProjectGradleJvm(
     project: Project,
     gradleRootPath: @SystemIndependent String,
     gradleJvm: String

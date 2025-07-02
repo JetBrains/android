@@ -151,6 +151,11 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
 
   private final NavDesignSurfaceZoomController myZoomController;
 
+  private final Runnable onSchemaChange = () -> {
+    SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
+    if (manager != null) manager.requestRender();
+  };
+
   @TestOnly
   public NavDesignSurface(@NotNull Project project) {
     this(project, null);
@@ -309,6 +314,13 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
 
   @Override
   public void setModel(@Nullable NlModel model) {
+    NlModel oldModel = Iterables.getOnlyElement(getModels(), null);
+    if (oldModel != null) {
+      NavigationSchema.removeSchemaRebuildListener(oldModel.getModule(), onSchemaChange);
+    }
+    if (model != null) {
+      NavigationSchema.addSchemaRebuildListener(this, model.getModule(), onSchemaChange);
+    }
     super.setModel(model);
     NavUsageTracker.Companion.getInstance(model)
       .createEvent(OPEN_FILE)

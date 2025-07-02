@@ -655,34 +655,43 @@ LIBRARY_TABLE
         artifact                      : <M2>/com/google/dagger/dagger/2.6/dagger-2.6.jar
         artifactAddress               : com.google.dagger:dagger:2.6@jar
         component                     : com.google.dagger:dagger:2.6
+        - srcJars                     : <M2>/com/google/dagger/dagger/2.6/dagger-2.6-sources.jar
     - library                     : com.squareup:javawriter:2.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
         artifactAddress               : com.squareup:javawriter:2.1.1@jar
         component                     : com.squareup:javawriter:2.1.1
+        - srcJars                     : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1-sources.jar
     - library                     : javax.inject:javax.inject:1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
         artifactAddress               : javax.inject:javax.inject:1@jar
         component                     : javax.inject:javax.inject:1
+        - srcJars                     : <M2>/javax/inject/javax.inject/1/javax.inject-1-sources.jar
     - library                     : junit:junit:4.12 (IdeJavaLibraryImpl)
         artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
         artifactAddress               : junit:junit:4.12@jar
         component                     : junit:junit:4.12
+        - srcJars                     : <M2>/junit/junit/4.12/junit-4.12-sources.jar
     - library                     : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
         artifactAddress               : net.sf.kxml:kxml2:2.3.0@jar
         component                     : net.sf.kxml:kxml2:2.3.0
+        docJar                        : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-javadoc.jar
+        - srcJars                     : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar
     - library                     : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
         component                     : org.hamcrest:hamcrest-core:1.3
+        - srcJars                     : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar
     - library                     : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-integration:1.3@jar
         component                     : org.hamcrest:hamcrest-integration:1.3
+        - srcJars                     : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3-sources.jar
     - library                     : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
         component                     : org.hamcrest:hamcrest-library:1.3
+        - srcJars                     : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3-sources.jar
     - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
@@ -695,6 +704,8 @@ LIBRARY_TABLE
         artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
         artifactAddress               : org.jetbrains:annotations:13.0@jar
         component                     : org.jetbrains:annotations:13.0
+        docJar                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-javadoc.jar
+        - srcJars                     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
     - library                     : <ROOT>::app@localDebug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :app
@@ -908,6 +919,7 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspathRemoteDebugUnitTest  : <empty>
                         kotlinCompilerPluginClasspathRemoteRelease        : <empty>
                         kotlinCompilerPluginClasspathRemoteReleaseUnitTest          : <empty>
+                        kotlinInternalAbiValidation   : <empty>
                         kotlinKaptWorkerDependencies  : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -1125,6 +1137,8 @@ MODULE                        : MainActivity
                         remoteRuntimeOnly             : <empty>
                         remoteWearApp                 : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1320,6 +1334,7 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspath : <empty>
                         kotlinCompilerPluginClasspathMain       : <empty>
                         kotlinCompilerPluginClasspathTest       : <empty>
+                        kotlinInternalAbiValidation   : <empty>
                         kotlinKaptWorkerDependencies  : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
@@ -1332,6 +1347,8 @@ MODULE                        : MainActivity
                         - runtimeElements             : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         - runtimeElements-published   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1559,6 +1576,7 @@ MODULE                        : MainActivity
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
+                        kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
@@ -1604,6 +1622,8 @@ MODULE                        : MainActivity
                         releaseUnitTestRuntimeOnly    : <empty>
                         releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -2525,8 +2545,8 @@ MODULE                        : MainActivity.app
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
-            minor                         : 1
-            patch                         : 20
+            minor                         : 2
+            patch                         : 0
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -2604,8 +2624,8 @@ MODULE                        : MainActivity.javaLib
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true
             test
                 compilerArguments             : K2JVMCompilerArguments
@@ -2628,15 +2648,15 @@ MODULE                        : MainActivity.javaLib
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
-            minor                         : 1
-            patch                         : 20
+            minor                         : 2
+            patch                         : 0
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
@@ -3761,8 +3781,8 @@ MODULE                        : MainActivity.lib
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
-            minor                         : 1
-            patch                         : 20
+            minor                         : 2
+            patch                         : 0
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties

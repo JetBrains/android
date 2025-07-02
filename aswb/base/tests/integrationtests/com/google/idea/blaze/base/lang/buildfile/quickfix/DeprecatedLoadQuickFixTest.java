@@ -39,7 +39,7 @@ public class DeprecatedLoadQuickFixTest extends BuildFileIntegrationTestCase {
   public void testParentDirectoryHasNoBuildFile() {
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load('/java/com/google/subdir/build_defs', 'symbol')");
 
     StringLiteral string = PsiUtils.findFirstChildOfClassRecursive(file, StringLiteral.class);
@@ -50,12 +50,12 @@ public class DeprecatedLoadQuickFixTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testBlazePackageIsParentDirectory() {
-    workspace.createPsiFile(new WorkspacePath("foo/bar/BUILD"));
+    workspace.createPsiFile(new WorkspacePath("foo/bar/~BUILD"));
     workspace.createPsiFile(new WorkspacePath("foo/bar/build_defs.bzl"));
 
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"), "load('/foo/bar/build_defs', 'symbol')");
+            new WorkspacePath("java/com/google/~BUILD"), "load('/foo/bar/build_defs', 'symbol')");
 
     StringLiteral string = PsiUtils.findFirstChildOfClassRecursive(file, StringLiteral.class);
     applyQuickFix(string);
@@ -65,12 +65,12 @@ public class DeprecatedLoadQuickFixTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testNormalLoadStatementUntouched() {
-    workspace.createPsiFile(new WorkspacePath("foo/bar/BUILD"));
+    workspace.createPsiFile(new WorkspacePath("foo/bar/~BUILD"));
     workspace.createPsiFile(new WorkspacePath("foo/bar/build_defs.bzl"));
 
     BuildFile file =
         createBuildFile(
-            new WorkspacePath("java/com/google/BUILD"),
+            new WorkspacePath("java/com/google/~BUILD"),
             "load('//foo/bar:build_defs.bzl', 'symbol')");
 
     StringLiteral string = PsiUtils.findFirstChildOfClassRecursive(file, StringLiteral.class);
@@ -83,7 +83,7 @@ public class DeprecatedLoadQuickFixTest extends BuildFileIntegrationTestCase {
   public void testRelativeLoadStatementUntouched() {
     workspace.createPsiFile(new WorkspacePath("foo/bar/build_defs.bzl"));
     BuildFile file =
-        createBuildFile(new WorkspacePath("foo/bar/BUILD"), "load(':build_defs.bzl', 'symbol')");
+        createBuildFile(new WorkspacePath("foo/bar/~BUILD"), "load(':build_defs.bzl', 'symbol')");
 
     StringLiteral string = PsiUtils.findFirstChildOfClassRecursive(file, StringLiteral.class);
     String prevString = string.getStringContents();

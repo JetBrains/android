@@ -186,6 +186,19 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
     doTest(true, true)
   }
 
+  fun testArgumentErrorRecovery(){
+    doTest(true, false)
+  }
+
+  fun testEndFileArgumentErrorRecovery(){
+    doTest(true, false)
+  }
+
+  // make sure we pa
+  fun testFunctionsWithComments(){
+    doTest(true, true)
+  }
+
   fun testPropertyDotNewlineFunction() {
     doTest(true, false)
     val entries = getDeclarativeEntries()

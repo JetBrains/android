@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.DEFAULT_VALUE_COLUMN;
+import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN;
+
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.escape.xml.CharacterDataEscaper;
+import com.android.resources.ResourceType;
 import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.editors.strings.action.AddKeyAction;
@@ -31,6 +36,7 @@ import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableListener;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.StringResourceWriter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
@@ -46,7 +52,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.components.JBTextField;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -65,8 +70,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.LayoutFocusTraversalPolicy;
 import javax.swing.SwingConstants;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.text.JTextComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -98,6 +101,7 @@ public class StringResourceViewPanel implements Disposable {
   private DeleteStringAction myDeleteAction;
   private CopyAllSelectedAction myCopyAllAction;
 
+  private final IdeResourceNameValidator myKeyNameValidator;
   private final Supplier<StringResourceWriter> myStringResourceWriterFactory;
 
   @VisibleForTesting
@@ -108,6 +112,7 @@ public class StringResourceViewPanel implements Disposable {
   ) {
     myFacet = facet;
     myStringResourceWriterFactory = stringResourceWriterFactory;
+    myKeyNameValidator = IdeResourceNameValidator.forResourceName(ResourceType.STRING);
     Disposer.register(parentDisposable, this);
 
     initTable();
@@ -156,18 +161,8 @@ public class StringResourceViewPanel implements Disposable {
   public void addUpdateListenerToNewStringResourceModel() {
     // Each of the listeners below will be converted to delegate listeners on the new StringResourceModel.
     // There is no need to remove these listeners since we are throwing the model away on the next model update.
-    myTable.getFrozenTable().getModel().addTableModelListener(new TableModelListener() {
-      @Override
-      public void tableChanged(TableModelEvent e) {
-        updateViewPanel();
-      }
-    });
-    myTable.getScrollableTable().getModel().addTableModelListener(new TableModelListener() {
-      @Override
-      public void tableChanged(TableModelEvent e) {
-        updateViewPanel();
-      }
-    });
+    myTable.getFrozenTable().getModel().addTableModelListener(e -> updateViewPanel());
+    myTable.getScrollableTable().getModel().addTableModelListener(e -> updateViewPanel());
   }
 
   public Project getProject() {
@@ -286,14 +281,13 @@ public class StringResourceViewPanel implements Disposable {
   }
 
   private void initKeyTextField() {
-    myKeyTextField = new TranslationsEditorTextField(myTable, () -> StringResourceTableModel.KEY_COLUMN);
-
+    myKeyTextField = new TranslationsEditorTextField(myTable, () -> KEY_COLUMN, myKeyNameValidator::getErrorText);
     myKeyTextField.setEnabled(false);
     myKeyTextField.setName("keyTextField");
   }
 
   private void initDefaultValueTextField() {
-    JTextField textField = new TranslationsEditorTextField(myTable, () -> StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+    JTextField textField = new TranslationsEditorTextField(myTable, () -> DEFAULT_VALUE_COLUMN, this::validateValue);
     new TranslationsEditorPasteAction().registerCustomShortcutSet(textField, this);
 
     myDefaultValueTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);
@@ -304,7 +298,7 @@ public class StringResourceViewPanel implements Disposable {
   }
 
   private void initTranslationTextField() {
-    JTextField textField = new TranslationsEditorTextField(myTable, myTable::getSelectedModelColumnIndex);
+    JTextField textField = new TranslationsEditorTextField(myTable, myTable::getSelectedModelColumnIndex, this::validateValue);
     new TranslationsEditorPasteAction().registerCustomShortcutSet(textField, this);
 
     myTranslationTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);
@@ -312,6 +306,16 @@ public class StringResourceViewPanel implements Disposable {
     myTranslationTextField.setButtonIcon(StudioIcons.Common.EDIT);
     myTranslationTextField.setEnabled(false);
     myTranslationTextField.setName("translationTextField");
+  }
+
+  private String validateValue(@NotNull String value) {
+    try {
+      CharacterDataEscaper.escape(value);
+      return null;
+    }
+    catch (IllegalArgumentException ignore) {
+      return "Invalid value";
+    }
   }
 
   private void initPanel() {
@@ -431,10 +435,9 @@ public class StringResourceViewPanel implements Disposable {
     else {
       setTextAndEditable(myXmlTextField, data.getStringResource(key).getTagText(locale), false);
     }
-    // TODO: Keys are not editable; we want them to be refactor operations
-    setTextAndEditable(myKeyTextField, key.getName(), false);
+    setTextAndEditable(myKeyTextField, key.getName(), true);
 
-    String defaultValue = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+    String defaultValue = (String)model.getValueAt(row, DEFAULT_VALUE_COLUMN);
     boolean defaultValueEditable = isValueEditableInline(defaultValue); // don't allow editing multiline chars in a text field
     setTextAndEditable(myDefaultValueTextField.getTextField(), defaultValue, defaultValueEditable);
     myDefaultValueTextField.setButtonEnabled(true);
@@ -486,7 +489,7 @@ public class StringResourceViewPanel implements Disposable {
       int column = myTable.getSelectedModelColumnIndex();
 
       StringResourceTableModel model = myTable.getModel();
-      String value = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+      String value = (String)model.getValueAt(row, DEFAULT_VALUE_COLUMN);
 
       Locale locale = model.getLocale(column);
       String translation = locale == null ? null : (String)model.getValueAt(row, column);
@@ -494,7 +497,7 @@ public class StringResourceViewPanel implements Disposable {
       MultilineStringEditorDialog d = new MultilineStringEditorDialog(myFacet, model.getKey(row).getName(), value, locale, translation);
       if (d.showAndGet()) {
         if (!StringUtil.equals(value, d.getDefaultValue())) {
-          model.setValueAt(d.getDefaultValue(), row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+          model.setValueAt(d.getDefaultValue(), row, DEFAULT_VALUE_COLUMN);
           setTextAndEditable(myDefaultValueTextField.getTextField(), d.getDefaultValue(), isValueEditableInline(d.getDefaultValue()));
         }
 

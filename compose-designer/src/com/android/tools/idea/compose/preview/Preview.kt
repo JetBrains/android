@@ -305,6 +305,8 @@ class ComposePreviewRepresentation(
   private val project
     get() = psiFilePointer.project
 
+  override val caretNavigationHandler = CaretNavigationHandlerImpl()
+
   private val previewBuildListenersManager =
     PreviewBuildListenersManager(
       isFastPreviewSupported = true,
@@ -484,7 +486,6 @@ class ComposePreviewRepresentation(
             }
             emptyUiCheckPanel.setHasErrors(count > 0)
             VisualLintUsageTracker.getInstance().trackVisiblePreviews(count, facet)
-            surface.zoomController.zoomToFit()
             surface.repaint()
           }
         } else {
@@ -630,8 +631,6 @@ class ComposePreviewRepresentation(
       invalidate()
       requestRefresh()
     }
-
-  override var isFilterEnabled: Boolean = false
 
   private val dataProvider = DataProvider {
     when (it) {
@@ -939,47 +938,6 @@ class ComposePreviewRepresentation(
   }
 
   // endregion
-
-  override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
-    if (StudioFlags.COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION.get())
-      staticNavHandler.onCaretMoved(event.newPosition.line + 1)
-    if (PreviewEssentialsModeManager.isEssentialsModeEnabled) return
-    if (isModificationTriggered) return // We do not move the preview while the user is typing
-    if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
-    if (mode.value is PreviewMode.Interactive) return
-    // If we have not changed line, ignore
-    if (event.newPosition.line == event.oldPosition.line) return
-    val offset = event.editor.logicalPositionToOffset(event.newPosition)
-
-    lifecycleManager.executeIfActive {
-      launch(uiThread) {
-        val filePreviewElements =
-          withContext(workerThread) { composePreviewFlowManager.allPreviewElementsFlow.value }
-        // Workaround for b/238735830: The following withContext(uiThread) should not be needed but
-        // the code below ends up being executed
-        // in a worker thread under some circumstances so we need to prevent that from happening by
-        // forcing the context switch.
-        withContext(uiThread) {
-          when (filePreviewElements) {
-            is FlowableCollection.Uninitialized -> {}
-            is FlowableCollection.Present -> {
-              filePreviewElements.collection
-                .find { element ->
-                  element.previewBody?.psiRange.containsOffset(offset) ||
-                    element.previewElementDefinition?.psiRange.containsOffset(offset)
-                }
-                ?.let { selectedPreviewElement ->
-                  surface.models.find {
-                    previewElementModelAdapter.modelToElement(it) == selectedPreviewElement
-                  }
-                }
-                ?.let { surface.scrollToVisible(it, true) }
-            }
-          }
-        }
-      }
-    }
-  }
 
   override fun dispose() {
     isDisposed.set(true)
@@ -1600,6 +1558,7 @@ class ComposePreviewRepresentation(
           it.tracker.closeAnimationInspector()
         }
         currentAnimationPreview = null
+        ComposeAnimationSubscriber.setHandler(null)
         requestVisibilityAndNotificationsUpdate()
       }
       is PreviewMode.Focus -> {
@@ -1626,6 +1585,58 @@ class ComposePreviewRepresentation(
   }
 
   private var currentAnimationPreview: ComposeAnimationPreview? = null
+
+  /**
+   * Manages the preview's response to caret movements, including highlighting components at the
+   * caret's position and scrolling components into view.
+   */
+  inner class CaretNavigationHandlerImpl() : PreviewRepresentation.CaretNavigationHandler {
+    override var isNavigatingToCode: Boolean = false
+
+    override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
+      if (StudioFlags.COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION.get() && !isNavigatingToCode) {
+        staticNavHandler.onCaretMoved(event.newPosition.line + 1)
+      }
+
+      // If isNavigatingToCode was true it was correctly handled above so we should reset it
+      isNavigatingToCode = false
+      if (PreviewEssentialsModeManager.isEssentialsModeEnabled) return
+      if (isModificationTriggered) return // We do not move the preview while the user is typing
+      if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
+      if (mode.value is PreviewMode.Interactive) return
+      // If we have not changed line, ignore
+      if (event.newPosition.line == event.oldPosition.line) return
+      val offset = event.editor.logicalPositionToOffset(event.newPosition)
+
+      lifecycleManager.executeIfActive {
+        launch(uiThread) {
+          val filePreviewElements =
+            withContext(workerThread) { composePreviewFlowManager.allPreviewElementsFlow.value }
+          // Workaround for b/238735830: The following withContext(uiThread) should not be needed
+          // but the code below ends up being executed in a worker thread under some circumstances
+          // so we need to prevent that from happening by forcing the context switch.
+          withContext(uiThread) {
+            when (filePreviewElements) {
+              is FlowableCollection.Uninitialized -> {}
+              is FlowableCollection.Present -> {
+                filePreviewElements.collection
+                  .find { element ->
+                    element.previewBody?.psiRange.containsOffset(offset) ||
+                      element.previewElementDefinition?.psiRange.containsOffset(offset)
+                  }
+                  ?.let { selectedPreviewElement ->
+                    surface.models.find {
+                      previewElementModelAdapter.modelToElement(it) == selectedPreviewElement
+                    }
+                  }
+                  ?.let { surface.scrollToVisible(it, true) }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
   private interface ComposeAnimationListener {
     companion object {

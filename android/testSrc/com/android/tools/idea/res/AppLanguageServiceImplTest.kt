@@ -17,6 +17,7 @@ package com.android.tools.idea.res
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.ide.common.resources.configuration.LocaleQualifier
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
@@ -76,7 +77,7 @@ class AppLanguageServiceImplTest {
     val extensionPoint = ApplicationManager.getApplication().extensionArea.getExtensionPoint(PseudoLocalesToken.EP_NAME)
     extensionPoint.unregisterExtension(GradlePseudoLocalesToken::class.java)
     extensionPoint.registerExtension(pseudoLocalesToken, projectRule.testRootDisposable)
-    val state = adbRule.attachDevice(serialNumber, "Google", "Pixel6", "versionX", "33")
+    val state = adbRule.attachDevice(serialNumber, "Google", "Pixel6", "versionX", AndroidApiLevel(33))
     state.startClient(12, 24, "com.example.one", isWaiting = true)
     state.startClient(14, 28, "com.example.two", isWaiting = true)
   }

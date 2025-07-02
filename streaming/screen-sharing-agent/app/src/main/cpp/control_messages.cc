@@ -78,6 +78,15 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case XrVelocityMessage::TYPE:
       return unique_ptr<ControlMessage>(XrVelocityMessage::Deserialize(stream));
 
+    case XrRecenterMessage::TYPE:
+      return unique_ptr<ControlMessage>(XrRecenterMessage::Deserialize(stream));
+
+    case XrSetPassthroughCoefficientMessage::TYPE:
+      return unique_ptr<ControlMessage>(XrSetPassthroughCoefficientMessage::Deserialize(stream));
+
+    case XrSetEnvironmentMessage::TYPE:
+      return unique_ptr<ControlMessage>(XrSetEnvironmentMessage::Deserialize(stream));
+
     case DisplayConfigurationRequest::TYPE:
       return unique_ptr<ControlMessage>(DisplayConfigurationRequest::Deserialize(stream));
 
@@ -219,6 +228,23 @@ XrVelocityMessage* XrVelocityMessage::Deserialize(Base128InputStream& stream) {
   return new XrVelocityMessage(x, y, z);
 }
 
+XrRecenterMessage* XrRecenterMessage::Deserialize(Base128InputStream& stream) {
+  return new XrRecenterMessage();
+}
+
+XrSetPassthroughCoefficientMessage* XrSetPassthroughCoefficientMessage::Deserialize(Base128InputStream& stream) {
+  float passthrough_coefficient = stream.ReadFloat();
+  return new XrSetPassthroughCoefficientMessage(passthrough_coefficient);
+}
+
+XrSetEnvironmentMessage* XrSetEnvironmentMessage::Deserialize(Base128InputStream& stream) {
+  int32_t environment = stream.ReadInt32();
+  if (environment < 0) {
+    Log::Fatal(INVALID_CONTROL_MESSAGE, "Invalid environment value %d", environment);
+  }
+  return new XrSetEnvironmentMessage(environment);
+}
+
 DisplayConfigurationRequest* DisplayConfigurationRequest::Deserialize(Base128InputStream& stream) {
   int32_t request_id = stream.ReadInt32();
   return new DisplayConfigurationRequest(request_id);
@@ -321,6 +347,16 @@ string DisplayAddedOrChangedNotification::ToDebugString() const {
 void DisplayRemovedNotification::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteInt32(display_id_);
+}
+
+void XrPassthroughCoefficientChangedNotification::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteFloat(passthrough_coefficient_);
+}
+
+void XrEnvironmentChangedNotification::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteInt32(static_cast<int32_t>(environment_));
 }
 
 void UiSettingsRequest::Serialize(Base128OutputStream& stream) const {

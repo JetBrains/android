@@ -27,7 +27,6 @@
 #include "accessors/motion_event.h"
 #include "accessors/surface_control.h"
 #include "accessors/xr_simulated_input_event_manager.h"
-#include "accessors/xr_simulated_input_manager.h"
 #include "agent.h"
 #include "flags.h"
 #include "jvm.h"
@@ -121,9 +120,7 @@ bool SetDisplayPowerMode(Jni jni, JObject&& display_token, DisplayPowerMode powe
 Controller::Controller(int socket_fd)
     : socket_fd_(socket_fd),
       input_stream_(SocketReader(socket_fd, duration_cast<milliseconds>(SOCKET_READ_TIMEOUT).count()), BUFFER_SIZE),
-      output_stream_(SocketWriter(socket_fd, "control", duration_cast<milliseconds>(SOCKET_WRITE_TIMEOUT).count()), BUFFER_SIZE),
-      clipboard_listener_(this),
-      device_state_listener_(this) {
+      output_stream_(SocketWriter(socket_fd, "control", duration_cast<milliseconds>(SOCKET_WRITE_TIMEOUT).count()), BUFFER_SIZE) {
   try {
     output_stream_.WriteByte('C');
     output_stream_.Flush();
@@ -146,7 +143,10 @@ Controller::~Controller() {
 
 void Controller::Stop() {
   if (device_supports_multiple_states_) {
-    DeviceStateManager::RemoveDeviceStateListener(&device_state_listener_);
+    DeviceStateManager::RemoveDeviceStateListener(this);
+  }
+  if (Agent::device_type() == DeviceType::XR) {
+    XrSimulatedInputManager::RemoveEnvironmentListener(this);
   }
   ui_settings_.Reset(nullptr);
   stopped = true;
@@ -176,7 +176,7 @@ void Controller::Initialize() {
   const vector<DeviceState>& device_states = DeviceStateManager::GetSupportedDeviceStates(jni_);
   if (!device_states.empty()) {
     device_supports_multiple_states_ = true;
-    DeviceStateManager::AddDeviceStateListener(&device_state_listener_);
+    DeviceStateManager::AddDeviceStateListener(this);
     int32_t device_state_identifier = DeviceStateManager::GetDeviceStateIdentifier(jni_);
     Log::D("Controller::Initialize: device_state_identifier=%d", device_state_identifier);
     SupportedDeviceStatesNotification supported_device_states_notification(device_states, device_state_identifier);
@@ -191,6 +191,10 @@ void Controller::Initialize() {
 
   DisplayManager::AddDisplayListener(jni_, this);
   current_displays_ = GetDisplays();
+
+  if (Agent::device_type() == DeviceType::XR) {
+    XrSimulatedInputManager::AddEnvironmentListener(jni_, this);
+  }
 }
 
 void Controller::InitializeVirtualKeyboard() {
@@ -251,9 +255,11 @@ void Controller::Run() {
         if (max_synced_clipboard_length_ != 0) {
           SendClipboardChangedNotification();
         }
-
         if (device_supports_multiple_states_) {
           SendDeviceStateNotification();
+        }
+        if (Agent::device_type() == DeviceType::XR) {
+          SendXrEnvironmentNotification();
         }
 
         if (poll_displays_until_ != steady_clock::time_point()) {
@@ -354,6 +360,18 @@ void Controller::ProcessMessage(const ControlMessage& message) {
 
     case XrVelocityMessage::TYPE:
       ProcessXrVelocity((const XrVelocityMessage&) message);
+      break;
+
+    case XrRecenterMessage::TYPE:
+      XrRecenter((const XrRecenterMessage&) message);
+      break;
+
+    case XrSetPassthroughCoefficientMessage::TYPE:
+      XrSetPassthroughCoefficient((const XrSetPassthroughCoefficientMessage&) message);
+      break;
+
+    case XrSetEnvironmentMessage::TYPE:
+      XrSetEnvironment((const XrSetEnvironmentMessage&) message);
       break;
 
     case DisplayConfigurationRequest::TYPE:
@@ -724,14 +742,14 @@ void Controller::StartClipboardSync(const StartClipboardSyncMessage& message) {
   bool was_stopped = max_synced_clipboard_length_ == 0;
   max_synced_clipboard_length_ = message.max_synced_length();
   if (was_stopped) {
-    clipboard_manager->AddClipboardListener(&clipboard_listener_);
+    clipboard_manager->AddClipboardListener(this);
   }
 }
 
 void Controller::StopClipboardSync() {
   if (max_synced_clipboard_length_ != 0) {
     ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
-    clipboard_manager->RemoveClipboardListener(&clipboard_listener_);
+    clipboard_manager->RemoveClipboardListener(this);
     max_synced_clipboard_length_ = 0;
     last_clipboard_text_.resize(0);
   }
@@ -783,6 +801,46 @@ void Controller::ProcessXrVelocity(const XrVelocityMessage& message) {
   XrSimulatedInputManager::InjectHeadMovementVelocity(jni_, data);
 }
 
+void Controller::XrRecenter(const XrRecenterMessage& message) {
+  XrSimulatedInputManager::Recenter(jni_);
+}
+
+void Controller::XrSetPassthroughCoefficient(const XrSetPassthroughCoefficientMessage& message) {
+  XrSimulatedInputManager::SetPassthroughCoefficient(jni_, message.passthrough_coefficient());
+}
+
+void Controller::XrSetEnvironment(const XrSetEnvironmentMessage& message) {
+  XrSimulatedInputManager::SetEnvironment(jni_, message.environment());
+}
+
+void Controller::OnPassthroughCoefficientChanged(float passthrough_coefficient) {
+  xr_passthrough_coefficient_ = passthrough_coefficient;
+}
+
+void Controller::OnEnvironmentChanged(int32_t environment) {
+  xr_environment_ - environment;
+}
+
+void Controller::SendXrEnvironmentNotification() {
+  float passthrough_coefficient = xr_passthrough_coefficient_;
+  if (passthrough_coefficient != sent_xr_passthrough_coefficient_) {
+    Log::D("Sending XrPassthroughCoefficientChangedNotification(%.3g)", passthrough_coefficient);
+    XrPassthroughCoefficientChangedNotification notification(passthrough_coefficient);
+    notification.Serialize(output_stream_);
+    output_stream_.Flush();
+    sent_xr_passthrough_coefficient_ = passthrough_coefficient;
+  }
+
+  int32_t environment = xr_environment_;
+  if (environment != sent_xr_environment_) {
+    Log::D("Sending XrEnvironmentChangedNotification(%d)", environment);
+    XrEnvironmentChangedNotification notification(environment);
+    notification.Serialize(output_stream_);
+    output_stream_.Flush();
+    sent_xr_environment_ = environment;
+  }
+}
+
 void Controller::InjectXrMotionEvent(const JObject& motion_event) {
   XrSimulatedInputEventManager::InjectMotionEvent(jni_, motion_event);
   JThrowable exception = jni_.GetAndClearException();
@@ -805,12 +863,12 @@ void Controller::OnDeviceStateChanged(int32_t device_state) {
 
 void Controller::SendDeviceStateNotification() {
   int32_t device_state = device_state_identifier_;
-  if (device_state != previous_device_state_) {
+  if (device_state != sent_device_state_) {
     Log::D("Sending DeviceStateNotification(%d)", device_state);
     DeviceStateNotification notification(device_state);
     notification.Serialize(output_stream_);
     output_stream_.Flush();
-    previous_device_state_ = device_state;
+    sent_device_state_ = device_state;
     // Many OEMs don't produce QPR releases, so their phones may be affected by b/303684492
     // that was fixed in Android 14 QPR1.
     if (Agent::feature_level() == 34 && Agent::device_manufacturer() != GOOGLE) {
@@ -998,18 +1056,6 @@ map<int32_t, DisplayInfo> Controller::GetDisplays() {
     }
   }
   return displays;
-}
-
-Controller::ClipboardListener::~ClipboardListener() = default;
-
-void Controller::ClipboardListener::OnPrimaryClipChanged() {
-  controller_->OnPrimaryClipChanged();
-}
-
-Controller::DeviceStateListener::~DeviceStateListener() = default;
-
-void Controller::DeviceStateListener::OnDeviceStateChanged(int32_t device_state) {
-  controller_->OnDeviceStateChanged(device_state);
 }
 
 }  // namespace screensharing

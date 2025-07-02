@@ -37,7 +37,7 @@ public class SkylarkExtensionCompletionTest extends BuildFileIntegrationTestCase
   @Test
   public void testSimpleCase() {
     workspace.createFile(new WorkspacePath("skylark.bzl"));
-    VirtualFile file = createAndSetCaret(new WorkspacePath("BUILD"), "load(':<caret>'");
+    VirtualFile file = createAndSetCaret(new WorkspacePath("~BUILD"), "load(':<caret>'");
 
     assertThat(editorTest.completeIfUnique()).isTrue();
     assertFileContents(file, "load(':skylark.bzl'");
@@ -45,7 +45,7 @@ public class SkylarkExtensionCompletionTest extends BuildFileIntegrationTestCase
 
   @Test
   public void testSelfNotInResults() {
-    workspace.createFile(new WorkspacePath("BUILD"));
+    workspace.createFile(new WorkspacePath("~BUILD"));
     createAndSetCaret(new WorkspacePath("self.bzl"), "load(':<caret>'");
 
     assertThat(testFixture.completeBasic()).isEmpty();
@@ -54,7 +54,7 @@ public class SkylarkExtensionCompletionTest extends BuildFileIntegrationTestCase
   @Test
   public void testSelfNotInResults2() {
     workspace.createFile(new WorkspacePath("skylark.bzl"));
-    workspace.createFile(new WorkspacePath("BUILD"));
+    workspace.createFile(new WorkspacePath("~BUILD"));
     VirtualFile file = createAndSetCaret(new WorkspacePath("self.bzl"), "load(':<caret>'");
 
     assertThat(editorTest.completeIfUnique()).isTrue();
@@ -65,10 +65,10 @@ public class SkylarkExtensionCompletionTest extends BuildFileIntegrationTestCase
   public void testNoRulesInResults() {
     workspace.createFile(new WorkspacePath("java/com/google/foo/skylark.bzl"));
     workspace.createFile(
-        new WorkspacePath("java/com/google/foo/BUILD"), "java_library(name = 'foo')");
+        new WorkspacePath("java/com/google/foo/~BUILD"), "java_library(name = 'foo')");
     VirtualFile file =
         createAndSetCaret(
-            new WorkspacePath("java/com/google/bar/BUILD"), "load('//java/com/google/foo:<caret>'");
+            new WorkspacePath("java/com/google/bar/~BUILD"), "load('//java/com/google/foo:<caret>'");
 
     assertThat(editorTest.completeIfUnique()).isTrue();
     assertFileContents(file, "load('//java/com/google/foo:skylark.bzl'");
@@ -76,7 +76,7 @@ public class SkylarkExtensionCompletionTest extends BuildFileIntegrationTestCase
     // now check that the rule would have been picked up outside of the 'load' context
     file =
         createAndSetCaret(
-            new WorkspacePath("java/com/google/baz/BUILD"), "'//java/com/google/foo:<caret>'");
+            new WorkspacePath("java/com/google/baz/~BUILD"), "'//java/com/google/foo:<caret>'");
 
     assertThat(editorTest.completeIfUnique()).isTrue();
     assertFileContents(file, "'//java/com/google/foo:foo'");
@@ -87,7 +87,7 @@ public class SkylarkExtensionCompletionTest extends BuildFileIntegrationTestCase
     workspace.createFile(new WorkspacePath("java/com/google/foo/text.txt"));
 
     createAndSetCaret(
-        new WorkspacePath("java/com/google/bar/BUILD"), "load('//java/com/google/foo:<caret>'");
+        new WorkspacePath("java/com/google/bar/~BUILD"), "load('//java/com/google/foo:<caret>'");
 
     assertThat(testFixture.completeBasic()).isEmpty();
   }
@@ -96,7 +96,7 @@ public class SkylarkExtensionCompletionTest extends BuildFileIntegrationTestCase
   public void testLabelStartsWithColon() {
     workspace.createFile(new WorkspacePath("java/com/google/skylark.bzl"));
     VirtualFile file =
-        createAndSetCaret(new WorkspacePath("java/com/google/BUILD"), "load(':<caret>'");
+        createAndSetCaret(new WorkspacePath("java/com/google/~BUILD"), "load(':<caret>'");
 
     assertThat(editorTest.completeIfUnique()).isTrue();
     assertFileContents(file, "load(':skylark.bzl'");
@@ -107,7 +107,7 @@ public class SkylarkExtensionCompletionTest extends BuildFileIntegrationTestCase
     workspace.createFile(new WorkspacePath("java/com/google/skylark.bzl"));
     VirtualFile file =
         createAndSetCaret(
-            new WorkspacePath("java/com/google/BUILD"), "load('//java/com/google:<caret>'");
+            new WorkspacePath("java/com/google/~BUILD"), "load('//java/com/google:<caret>'");
 
     assertThat(editorTest.completeIfUnique()).isTrue();
     assertFileContents(file, "load('//java/com/google:skylark.bzl'");
@@ -118,7 +118,7 @@ public class SkylarkExtensionCompletionTest extends BuildFileIntegrationTestCase
     workspace.createFile(new WorkspacePath("java/com/google/skylark.bzl"));
     VirtualFile file =
         createAndSetCaret(
-            new WorkspacePath("java/com/google/BUILD"), "load('//java/com/google<caret>'");
+            new WorkspacePath("java/com/google/~BUILD"), "load('//java/com/google<caret>'");
 
     assertThat(editorTest.completeIfUnique()).isTrue();
     assertFileContents(file, "load('//java/com/google:skylark.bzl'");
@@ -128,7 +128,7 @@ public class SkylarkExtensionCompletionTest extends BuildFileIntegrationTestCase
   public void testDirectoryCompletionInLoadStatement() {
     workspace.createFile(new WorkspacePath("java/com/google/skylark.bzl"));
     VirtualFile file =
-        createAndSetCaret(new WorkspacePath("java/com/google/BUILD"), "load('//<caret>'");
+        createAndSetCaret(new WorkspacePath("java/com/google/~BUILD"), "load('//<caret>'");
 
     assertThat(editorTest.completeIfUnique()).isTrue();
     assertFileContents(file, "load('//java/com/google'");
@@ -142,7 +142,7 @@ public class SkylarkExtensionCompletionTest extends BuildFileIntegrationTestCase
     workspace.createFile(new WorkspacePath("java/com/google/skylark.bzl"));
     workspace.createFile(new WorkspacePath("java/com/google/other.bzl"));
     createAndSetCaret(
-        new WorkspacePath("java/com/google/BUILD"), "load('//java/com/google:<caret>'");
+        new WorkspacePath("java/com/google/~BUILD"), "load('//java/com/google:<caret>'");
 
     String[] strings = editorTest.getCompletionItemsAsStrings();
     assertThat(strings).hasLength(2);
@@ -155,7 +155,7 @@ public class SkylarkExtensionCompletionTest extends BuildFileIntegrationTestCase
   // are relative to the parent blaze package directory
   @Test
   public void testRelativePathInSubdirectory() {
-    workspace.createFile(new WorkspacePath("java/com/google/BUILD"));
+    workspace.createFile(new WorkspacePath("java/com/google/~BUILD"));
     workspace.createFile(
         new WorkspacePath("java/com/google/nonPackageSubdirectory/skylark.bzl"),
         "def function(): return");

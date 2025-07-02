@@ -68,7 +68,6 @@ public class NlComponentFixture {
       .map(model -> mySurface.getSceneManager(model).getScene())
       .map(scene -> new SceneFixture(myRobot, scene))
       .map(scene -> scene.findSceneComponentByNlComponent(myComponent))
-      .filter(Objects::nonNull)
       .findFirst().orElse(null);
   }
 

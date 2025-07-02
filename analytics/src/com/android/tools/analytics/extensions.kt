@@ -23,7 +23,6 @@ import com.android.ide.common.util.isMdnsAutoConnectTls
 import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.stats.AnonymizerUtil
-import com.google.common.base.Strings
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.intellij.openapi.diagnostic.getOrLogException
@@ -100,12 +99,12 @@ private fun getApplicationId(project: Project): String? {
 fun deviceToDeviceInfo(device: IDevice): DeviceInfo {
   return DeviceInfo.newBuilder()
     .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(device.serialNumber))
-    .setBuildTags(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_TAGS)))
-    .setBuildType(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_TYPE)))
-    .setBuildVersionRelease(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_VERSION)))
-    .setBuildApiLevelFull(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)))
+    .setBuildTags(device.getProperty(IDevice.PROP_BUILD_TAGS) ?: "")
+    .setBuildType(device.getProperty(IDevice.PROP_BUILD_TYPE) ?: "")
+    .setBuildVersionRelease(device.getProperty(IDevice.PROP_BUILD_VERSION) ?: "")
+    .setBuildApiLevelFull(device.getProperty(IDevice.PROP_BUILD_API_LEVEL_FULL) ?: device.getProperty(IDevice.PROP_BUILD_API_LEVEL) ?: "")
     .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI)))
-    .setManufacturer(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)))
+    .setManufacturer(device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER) ?: "")
     .setDeviceType(if (device.isEmulator) DeviceInfo.DeviceType.LOCAL_EMULATOR else DeviceInfo.DeviceType.LOCAL_PHYSICAL)
     .setMdnsConnectionType(when {
                              device.isMdnsAutoConnectUnencrypted -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
@@ -113,7 +112,7 @@ fun deviceToDeviceInfo(device: IDevice): DeviceInfo {
                              else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
                            })
     .addAllCharacteristics(device.hardwareCharacteristics)
-    .setModel(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MODEL))).build()
+    .setModel(device.getProperty(IDevice.PROP_DEVICE_MODEL) ?: "").build()
 }
 
 private val LOG = logger<AndroidStudioEvent>()

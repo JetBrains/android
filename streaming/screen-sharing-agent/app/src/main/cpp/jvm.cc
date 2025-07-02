@@ -93,7 +93,7 @@ bool JObject::CallBooleanMethod(JNIEnv* jni_env, jmethodID method, ...) const {
 int32_t JObject::CallIntMethod(jmethodID method, ...) const {
   va_list args;
   va_start(args, method);
-  jboolean result = GetJni()->CallIntMethodV(ref_, method, args);
+  int32_t result = GetJni()->CallIntMethodV(ref_, method, args);
   va_end(args);
   return result;
 }
@@ -101,7 +101,39 @@ int32_t JObject::CallIntMethod(jmethodID method, ...) const {
 int32_t JObject::CallIntMethod(JNIEnv* jni_env, jmethodID method, ...) const {
   va_list args;
   va_start(args, method);
-  jboolean result = jni_env->CallIntMethodV(ref_, method, args);
+  int32_t result = jni_env->CallIntMethodV(ref_, method, args);
+  va_end(args);
+  return result;
+}
+
+int8_t JObject::CallByteMethod(jmethodID method, ...) const {
+  va_list args;
+  va_start(args, method);
+  int8_t result = GetJni()->CallIntMethodV(ref_, method, args);
+  va_end(args);
+  return result;
+}
+
+int8_t JObject::CallByteMethod(JNIEnv* jni_env, jmethodID method, ...) const {
+  va_list args;
+  va_start(args, method);
+  int8_t result = jni_env->CallByteMethodV(ref_, method, args);
+  va_end(args);
+  return result;
+}
+
+float JObject::CallFloatMethod(jmethodID method, ...) const {
+  va_list args;
+  va_start(args, method);
+  float result = GetJni()->CallIntMethodV(ref_, method, args);
+  va_end(args);
+  return result;
+}
+
+float JObject::CallFloatMethod(JNIEnv* jni_env, jmethodID method, ...) const {
+  va_list args;
+  va_start(args, method);
+  float result = jni_env->CallByteMethodV(ref_, method, args);
   va_end(args);
   return result;
 }

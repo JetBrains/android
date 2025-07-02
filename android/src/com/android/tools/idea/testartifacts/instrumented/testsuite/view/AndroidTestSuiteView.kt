@@ -94,6 +94,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.paint.LinePainter2D
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.PathUtil
+import com.intellij.util.messages.Topic
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -146,7 +147,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   private val toolWindowId: String? = null,
   private val runConfiguration: RunConfiguration? = null,
   private val myClock: Clock = Clock.systemDefaultZone(),
-  @VisibleForTesting val myIsImportedResult: Boolean = false
+  @VisibleForTesting val myIsImportedResult: Boolean = false,
 ) : ConsoleView,
     UserDataHolderBase(),
     BuildViewSettingsProvider,
@@ -217,6 +218,10 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   // If not null, this value is used as the test execution time instead of a measured
   // duration by myClock.
   var testExecutionDurationOverride: Duration? = null
+
+  private var eventPublisher: AndroidTestResultListener? = myProject.messageBus.syncPublisher(
+    ANDROID_TEST_SUITE_TOPIC
+  )
 
   init {
     val androidTestResultsUserPreferencesManager: AndroidTestResultsUserPreferencesManager? = if (runConfiguration is AndroidTestRunConfiguration) {
@@ -395,6 +400,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
 
   @AnyThread
   override fun onTestSuiteScheduled(device: AndroidDevice) {
+    eventPublisher?.onTestSuiteScheduled(device)
     AppUIUtil.invokeOnEdt {
       if (myTestStartTimeMillis == 0L) {
         myTestStartTimeMillis = myClock.millis()
@@ -418,6 +424,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
 
   @AnyThread
   override fun onTestSuiteStarted(device: AndroidDevice, testSuite: AndroidTestSuite) {
+    eventPublisher?.onTestSuiteStarted(device, testSuite)
     AppUIUtil.invokeOnEdt {
       scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
       myStartedDevices.add(device)
@@ -429,6 +436,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   override fun onTestCaseStarted(device: AndroidDevice,
                                  testSuite: AndroidTestSuite,
                                  testCase: AndroidTestCase) {
+    eventPublisher?.onTestCaseStarted(device, testSuite, testCase)
     AppUIUtil.invokeOnEdt {
       scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
       myResultsTableView.addTestCase(device, testCase)
@@ -440,6 +448,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   override fun onTestCaseFinished(device: AndroidDevice,
                                   testSuite: AndroidTestSuite,
                                   testCase: AndroidTestCase) {
+    eventPublisher?.onTestCaseFinished(device, testSuite, testCase)
     AppUIUtil.invokeOnEdt {
       scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
       // Include a benchmark output to a raw output console for backward compatibility.
@@ -468,8 +477,10 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
   }
 
+
   @AnyThread
   override fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {
+    eventPublisher?.onTestSuiteFinished(device, testSuite)
     AppUIUtil.invokeOnEdt {
       scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
       myFinishedDevices.add(device)
@@ -500,6 +511,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
 
   @AnyThread
   override fun onRerunScheduled(device: AndroidDevice) {
+    eventPublisher?.onRerunScheduled(device)
     AppUIUtil.invokeOnEdt {
       myFinishedDevices.remove(device)
       myStartedDevices.remove(device)
@@ -822,4 +834,10 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   }
 
   override fun isExecutionViewHidden(): Boolean = true
+
+  companion object {
+    @Topic.ProjectLevel
+    val ANDROID_TEST_SUITE_TOPIC: Topic<AndroidTestResultListener> = Topic("Android Test Suite Topic",
+                                                                           AndroidTestResultListener::class.java)
+  }
 }

@@ -1,0 +1,8 @@
+
+directories:
+  bzl_tests
+
+workspace_type: java
+
+
+

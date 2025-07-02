@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.composites.BuildMap
+import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.IdeDebugInfo
 import com.android.tools.idea.gradle.model.impl.IdeBuildImpl
@@ -145,8 +146,12 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
     projectModel: BasicGradleProject,
     modelConsumer: GradleModelConsumer
   ) {
-    val pluginModel = controller.findModel(projectModel, GradlePluginModel::class.java) ?: return
-    modelConsumer.consumeProjectModel(projectModel, pluginModel, GradlePluginModel::class.java)
+    controller.findModel(projectModel, GradlePluginModel::class.java)?.let {
+      modelConsumer.consumeProjectModel(projectModel, it, GradlePluginModel::class.java)
+    }
+    controller.findModel(projectModel, DeclaredDependencies::class.java)?.let {
+      modelConsumer.consumeProjectModel(projectModel, it, DeclaredDependencies::class.java)
+    }
   }
 
   private fun populateDebugInfo(buildModel: GradleBuild, consumer: GradleModelConsumer) {

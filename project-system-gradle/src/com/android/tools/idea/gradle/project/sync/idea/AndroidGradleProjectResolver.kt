@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
+import com.android.ide.gradle.model.dependencies.Coordinates
+import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.repository.Revision
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
@@ -26,7 +28,11 @@ import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl.IdeCoordinatesImpl
 import com.android.tools.idea.gradle.model.IdeDebugInfo
+import com.android.tools.idea.gradle.model.IdeDeclaredDependencies
+import com.android.tools.idea.gradle.model.IdeDeclaredDependencies.IdeCoordinates
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeVariantCore
@@ -43,6 +49,7 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType
+import com.android.tools.idea.gradle.project.sync.BasicAndroidProjectModelProvider
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
@@ -116,6 +123,7 @@ import com.intellij.util.SystemProperties
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.android.configure.patchFromMppModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
@@ -126,6 +134,7 @@ import org.jetbrains.plugins.gradle.model.GradleBuildScriptClasspathModel
 import org.jetbrains.plugins.gradle.model.GradleSourceSetModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
@@ -136,6 +145,7 @@ import java.io.IOException
 import java.util.IdentityHashMap
 import java.util.function.Function
 import java.util.zip.ZipException
+import kotlin.io.path.Path
 
 private val LOG = Logger.getInstance(AndroidGradleProjectResolver::class.java)
 
@@ -172,7 +182,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     if (project != null) {
       removeExternalSourceSetsAndReportWarnings(project, gradleProject)
       attachVariantsSavedFromPreviousSyncs(project, projectDataNode)
-      alignProjectJdkWithGradleSyncJdk(project, projectDataNode)
     }
     val buildMap = resolverCtx.getRootModel(IdeCompositeBuildMap::class.java)
     if (buildMap != null) {
@@ -210,8 +219,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     super.populateProjectExtraModels(gradleProject, projectDataNode)
 
     if (IdeInfo.getInstance().isAndroidStudio) {
-      // Remove platform ProjectSdkDataService data node overwritten by our ProjectJdkUpdateService
-      ExternalSystemApiUtil.find(projectDataNode, ProjectSdkData.KEY)?.clear(true)
+      alignProjectJdkWithGradleJvmConfiguration(gradleProject, projectDataNode)
     }
   }
 
@@ -294,6 +302,23 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
   }
 
+  fun alignProjectJdkWithGradleJvmConfiguration(gradleProject: IdeaProject, projectDataNode: DataNode<ProjectData>) {
+    val project = project ?: return
+    val gradleVersion = GradleVersion.version(resolverCtx.projectGradleVersion)
+    val linkedExternalProjectPath = Path(projectDataNode.getData().linkedExternalProjectPath)
+
+    // Remove platform ProjectSdkDataService data node overwritten by our ProjectJdkUpdateService
+    ExternalSystemApiUtil.find(projectDataNode, ProjectSdkData.KEY)?.clear(true)
+
+    if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(linkedExternalProjectPath, gradleVersion)) {
+      gradleProject.javaLanguageSettings.jdk.javaHome.absolutePath
+    } else {
+      JdkUtils.getMaxVersionJdkPathFromAllGradleRoots(project)
+    } ?.let { gradleJdkPath ->
+      projectDataNode.createChild(AndroidProjectKeys.PROJECT_JDK_UPDATE, ProjectJdkUpdateData(gradleJdkPath))
+    }
+  }
+
   override fun populateModuleCompileOutputSettings(
     gradleModule: IdeaModule,
     ideModule: DataNode<ModuleData>
@@ -331,12 +356,13 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       if (androidModels != null) androidModels.kaptGradleModel else resolverCtx.getExtraProject(gradleModule, KaptGradleModel::class.java)
     val mppModel = resolverCtx.getExtraProject(gradleModule, KotlinMPPGradleModel::class.java)
     val gradlePluginModel = resolverCtx.getExtraProject(gradleModule, GradlePluginModel::class.java)
+    val declaredDependenciesModel = resolverCtx.getExtraProject(gradleModule, DeclaredDependencies::class.java)
     val buildScriptClasspathModel = resolverCtx.getExtraProject(gradleModule, GradleBuildScriptClasspathModel::class.java)
     var androidModel: GradleAndroidModelData? = null
     var ndkModuleModel: NdkModuleModel? = null
     var gradleModel: GradleModuleModel? = null
     if (androidModels != null) {
-      androidModel = createGradleAndroidModel(moduleName, rootModulePath, androidModels, mppModel)
+      androidModel = createGradleAndroidModel(moduleName, rootModulePath, androidModels, mppModel, declaredDependenciesModel)
       val ndkModuleName = moduleName + "." + getModuleName(androidModel.mainArtifactCore.name)
       ndkModuleModel = maybeCreateNdkModuleModel(ndkModuleName, rootModulePath!!, androidModels)
     }
@@ -348,7 +374,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         gradleModule,
         androidModels?.androidProject?.agpVersion,
         buildScriptClasspathModel,
-        gradlePluginModel
+        gradlePluginModel,
       )
     }
     if (gradleModel != null) {
@@ -513,7 +539,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     val artifactLookup = Function { library: IdeArtifactLibrary ->
       // Attempt to find the source/doc/samples jars within the library if we haven't injected the additional artifacts model builder
       if (additionalArtifacts == null) {
-        return@Function AdditionalArtifactsPaths(listOfNotNull(library.srcJar, library.samplesJar), library.docJar)
+        return@Function AdditionalArtifactsPaths(library.srcJars, library.docJar)
       }
 
       // Otherwise fall back to using the model from the injected model builder.
@@ -659,8 +685,11 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     throw UnsupportedOperationException("getExtraProjectModelClasses() is not used when getModelProvider() is overridden.")
   }
 
-  override fun getModelProvider(): ProjectImportModelProvider? {
-    return resolverCtx.configureAndGetExtraModelProvider()
+  override fun getModelProviders(): List<ProjectImportModelProvider> {
+    val extraModelProvider = resolverCtx.configureAndGetExtraModelProvider() ?: error("Couldn't get extra model provider.")
+    return listOf<ProjectImportModelProvider>(extraModelProvider) + if (resolverCtx.isPhasedSyncEnabled) listOf(
+      BasicAndroidProjectModelProvider()
+    ) else emptyList()
   }
 
   override fun preImportCheck() {
@@ -808,7 +837,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       gradleModule: IdeaModule,
       modelVersionString: String?,
       buildScriptClasspathModel: GradleBuildScriptClasspathModel?,
-      gradlePluginModel: GradlePluginModel?
+      gradlePluginModel: GradlePluginModel?,
     ): GradleModuleModel {
       val buildScriptPath = try {
         gradleModule.gradleProject.buildScript.sourceFile
@@ -861,16 +890,22 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       return null
     }
 
+    private fun Coordinates.toIdeCoordinates(): IdeCoordinatesImpl = IdeCoordinatesImpl(group, name, version)
+    private fun DeclaredDependencies?.toIdeDeclaredDependencies(): IdeDeclaredDependenciesImpl =
+      IdeDeclaredDependenciesImpl(this?.configurationsToCoordinates?.map { e -> e.key to e.value.map { it.toIdeCoordinates() } }?.toMap() ?: emptyMap())
+
     private fun createGradleAndroidModel(
       moduleName: String,
       rootModulePath: File?,
       ideModels: IdeAndroidModels,
-      mppModel: KotlinMPPGradleModel?
-    ): GradleAndroidModelData {
+      mppModel: KotlinMPPGradleModel?,
+      declaredDependenciesModel: DeclaredDependencies?,
+      ): GradleAndroidModelData {
       return create(
         moduleName,
         rootModulePath!!,
         ideModels.androidProject,
+        declaredDependenciesModel.toIdeDeclaredDependencies(),
         ideModels.fetchedVariants.map {
           if (mppModel != null && it.name == ideModels.selectedVariantName) it.patchFromMppModel(ideModels.androidProject, mppModel)
           else it
@@ -1052,12 +1087,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       val projectUserData = project.getUserData(VARIANTS_SAVED_FROM_PREVIOUS_SYNCS)
       if (projectUserData != null) {
         projectDataNode.createChild(CACHED_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, projectUserData)
-      }
-    }
-
-    fun alignProjectJdkWithGradleSyncJdk(project: Project, projectDataNode: DataNode<ProjectData>) {
-      JdkUtils.getMaxVersionJdkPathFromAllGradleRoots(project)?.let {
-        projectDataNode.createChild(AndroidProjectKeys.PROJECT_JDK_UPDATE, ProjectJdkUpdateData(it))
       }
     }
 

@@ -702,6 +702,7 @@ MODULE                        : My_First_App
                                 kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                                 kotlinCompilerPluginClasspathRelease    : <empty>
                                 kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
+                                kotlinInternalAbiValidation   : <empty>
                                 kotlinKlibCommonizerClasspath : <empty>
                                 kotlinNativeCompilerPluginClasspath     : <empty>
                                 lintChecks                    : <empty>
@@ -746,6 +747,8 @@ MODULE                        : My_First_App
                                 releaseUnitTestRuntimeOnly    : <empty>
                                 releaseWearApp                : <empty>
                                 runtimeOnly                   : <empty>
+                                swiftExportClasspath          : <empty>
+                                swiftExportClasspathResolvable          : <empty>
                                 testAnnotationProcessor       : <empty>
                                 testApi                       : <empty>
                                 testApiDependenciesMetadata   : <empty>
@@ -920,6 +923,7 @@ MODULE                        : My_First_App
                         kotlinCompilerPluginClasspathDebugUnitTest        : <empty>
                         kotlinCompilerPluginClasspathRelease    : <empty>
                         kotlinCompilerPluginClasspathReleaseUnitTest      : <empty>
+                        kotlinInternalAbiValidation   : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
                         lintChecks                    : <empty>
@@ -961,6 +965,8 @@ MODULE                        : My_First_App
                         releaseWearApp                : <empty>
                         releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -2105,8 +2111,8 @@ MODULE                        : My_First_App.app
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
-            minor                         : 1
-            patch                         : 20
+            minor                         : 2
+            patch                         : 0
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -3236,8 +3242,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
         hasKotlinPlugin               : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
-            minor                         : 1
-            patch                         : 20
+            minor                         : 2
+            patch                         : 0
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties

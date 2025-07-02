@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.listeners
 
 import com.android.tools.idea.flags.StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME
+import com.android.tools.idea.gradle.extensions.isProjectUsingDaemonJvmCriteria
 import com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
@@ -32,6 +33,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_JAVA_HOME
@@ -41,6 +43,9 @@ import java.io.File
 /**
  * This [GradleSyncListenerWithRoot] is responsible given Gradle root project to migrate the current JDK configuration
  * to [USE_GRADLE_LOCAL_JAVA_HOME] macro after a successful Gradle sync, populating [GradleConfigProperties] with the current JDK path
+ *
+ * NOTE: Projects using [Gradle Daemon JVM criteria](https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_criteria)
+ * will skip this given that defined criteria will take precedence over the Gradle JDK configuration.
  */
 @Suppress("UnstableApiUsage")
 class MigrateJdkConfigToGradleJavaHomeListener : GradleSyncListenerWithRoot {
@@ -50,6 +55,8 @@ class MigrateJdkConfigToGradleJavaHomeListener : GradleSyncListenerWithRoot {
 
     val projectMigrations = ProjectMigrationsPersistentState.getInstance(project)
     if (projectMigrations.migratedGradleRootsToGradleLocalJavaHome.contains(rootProjectPath)) return
+
+    if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project, rootProjectPath)) return
 
     val gradleSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(rootProjectPath)
     when (gradleSettings?.gradleJvm) {

@@ -186,12 +186,12 @@ class AndroidVersionsInfo(
 
   class VersionItem private constructor(
     val label: String,
-    /** The equivalent integer API level that will be compiled against. */
+    /** The equivalent integer API level that will be compiled against. (For previews, this is the "feature level".) */
     val buildApiLevel: Int,
-    /** The compile SDK version to use in generated build.gradle files */
+    /** The compile SDK version to use in generated build.gradle files. This must be parseable by AndroidVersion.fromString(). */
     val buildApiLevelStr: String,
     val minApiLevel: Int,
-    val minApiLevelStr: String, // Can be a number or a Code Name (eg "L", "N", etc)
+    val minApiLevelStr: String, // Can be a number or a codename (eg "L", "N", etc)
     val targetApiLevelStr: String,
     // Only present for already installed preview and addons
     val androidTarget: IAndroidTarget?,
@@ -212,34 +212,30 @@ class AndroidVersionsInfo(
     fun withBuildSdk(version: AndroidVersion): VersionItem =
       VersionItem(
         label = getLabel(version, null),
-        buildApiLevel = version.apiLevel,
-        buildApiLevelStr = version.apiLevel.toString(),
-        minApiLevel = min(minApiLevel, version.apiLevel),
-        minApiLevelStr = if (minApiLevel <= version.apiLevel) minApiLevelStr else (version.codename ?: version.apiLevel.toString()),
-        targetApiLevelStr = if (androidTarget != null && androidTarget.version.apiLevel <= version.apiLevel) {
-          targetApiLevelStr
-        }
-        else {
-          version.apiStringWithExtension
-        },
+        buildApiLevel = version.featureLevel,
+        buildApiLevelStr = version.apiStringWithExtension,
+        // compileSdk must be >= minSdk, targetSdk; adjust them if necessary.
+        minApiLevel = min(minApiLevel, version.featureLevel),
+        minApiLevelStr = if (minApiLevel <= version.androidApiLevel.majorVersion) minApiLevelStr else version.majorVersion.apiString,
+        targetApiLevelStr = if (androidTarget != null && androidTarget.version <= version) targetApiLevelStr else version.apiStringWithoutExtension,
         androidTarget = null
       )
 
     companion object {
       fun fromAndroidVersion(version: AndroidVersion): VersionItem {
-        val newProjectsCompileSdkVersion = StudioFlags.NPW_COMPILE_SDK_VERSION.get()
+        val newProjectsCompileSdkVersion = AndroidVersion(StudioFlags.NPW_COMPILE_SDK_VERSION.get(), 0)
         // For preview versions or if the requested target is newer than NPW_COMPILE_SDK_VERSION,
         // use build and target as the given version
-        val futureVersion = version.isPreview || version.apiLevel > newProjectsCompileSdkVersion
+        val futureVersion = version.isPreview || version > newProjectsCompileSdkVersion
 
         return VersionItem(
           label = getLabel(version, null),
           androidTarget = null,
           minApiLevel = version.featureLevel,
-          minApiLevelStr = version.apiString,
-          buildApiLevel = if (futureVersion) version.featureLevel else newProjectsCompileSdkVersion,
-          buildApiLevelStr = if (futureVersion) version.toBuildApiString() else newProjectsCompileSdkVersion.toString(),
-          targetApiLevelStr = if (futureVersion) version.apiString else newProjectsCompileSdkVersion.toString(),
+          minApiLevelStr = version.majorVersion.apiString,
+          buildApiLevel = if (futureVersion) version.featureLevel else newProjectsCompileSdkVersion.androidApiLevel.majorVersion,
+          buildApiLevelStr = if (futureVersion) version.apiStringWithExtension else newProjectsCompileSdkVersion.apiStringWithExtension,
+          targetApiLevelStr = if (futureVersion) version.majorVersion.apiString else newProjectsCompileSdkVersion.majorVersion.apiString,
         )
       }
 
@@ -254,10 +250,11 @@ class AndroidVersionsInfo(
           label = getLabel(target.version, target),
           androidTarget = target,
           minApiLevel = target.version.featureLevel,
-          minApiLevelStr = target.version.apiString,
+          minApiLevelStr = target.version.majorVersion.apiString,
           buildApiLevel = target.version.featureLevel,
-          buildApiLevelStr = AndroidTargetHash.getTargetHashString(target),
-          targetApiLevelStr = target.version.apiString,
+          buildApiLevelStr =
+            if (target.isPlatform) target.version.apiStringWithExtension else AndroidTargetHash.getTargetHashString(target),
+          targetApiLevelStr = target.version.majorVersion.apiString,
         )
       }
     }
@@ -334,9 +331,3 @@ private fun getTag(repoPackage: RepoPackage): IdDisplay? {
     else -> NO_MATCH
   }
 }
-
-/**
- * Computes a suitable build api string, e.g. "18" for API level 18.
- */
-fun AndroidVersion.toBuildApiString() =
-  if (isPreview) AndroidTargetHash.getPlatformHashString(this) else apiString

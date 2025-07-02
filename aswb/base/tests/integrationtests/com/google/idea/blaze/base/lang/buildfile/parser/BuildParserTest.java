@@ -40,7 +40,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Test for the BUILD file parser (converting lexical elements into PSI elements) */
+/** Test for the ~BUILD file parser (converting lexical elements into PSI elements) */
 @RunWith(JUnit4.class)
 public class BuildParserTest extends BuildFileIntegrationTestCase {
 

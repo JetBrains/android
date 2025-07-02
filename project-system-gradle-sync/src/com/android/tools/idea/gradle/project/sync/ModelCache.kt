@@ -138,7 +138,6 @@ interface ModelCache {
             minimumModelConsumer = null,
             ),
           syncTestMode = SyncTestMode.PRODUCTION,
-          false,
         )
       } else {
         modelCacheV1Impl(internedModels, BuildFolderPaths())

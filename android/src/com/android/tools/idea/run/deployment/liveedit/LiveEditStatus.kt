@@ -154,12 +154,13 @@ open class LiveEditStatus(
 
   object DebuggerAttached :
     LiveEditStatus(
-      null,
+      AllIcons.Toolwindows.ToolWindowDebugger,
       message("le.status.error.debugger_attached.title"),
       message("le.status.error.debugger_attached.description"),
       UNRECOVERABLE_ERROR,
-      redeployMode = RedeployMode.RERUN
-    )
+      shouldSimplify = true ,
+      actionId = REFRESH_ACTION_ID,
+      )
 
   object OutOfDate :
     LiveEditStatus(

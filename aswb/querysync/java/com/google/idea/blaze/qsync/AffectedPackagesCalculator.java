@@ -83,16 +83,16 @@ public abstract class AffectedPackagesCalculator {
                       .collect(joining("\n  "))));
     }
 
-    // Find BUILD files that have been directly affected by edits.
+    // Find ~BUILD files that have been directly affected by edits.
     ImmutableList<WorkspaceFileChange> buildFileChanges =
         projectChanges.stream()
-            .filter(c -> c.workspaceRelativePath.getFileName().toString().equals("BUILD"))
+            .filter(c -> c.workspaceRelativePath.getFileName().toString().equals("~BUILD"))
             .collect(toImmutableList());
     PackageSet.Builder addedPackages = new PackageSet.Builder();
     PackageSet.Builder deletedPackages = new PackageSet.Builder();
     ImmutableSet.Builder<Path> addedOrDeletePackages = ImmutableSet.builder();
     if (!buildFileChanges.isEmpty()) {
-      context().output(PrintOutput.log("Edited %d BUILD files", buildFileChanges.size()));
+      context().output(PrintOutput.log("Edited %d ~BUILD files", buildFileChanges.size()));
       for (WorkspaceFileChange c : buildFileChanges) {
         Path buildPackage = c.workspaceRelativePath.getParent();
         if (c.operation != Operation.ADD) {
@@ -101,7 +101,7 @@ public abstract class AffectedPackagesCalculator {
             context()
                 .output(
                     PrintOutput.log(
-                        "Modified BUILD file %s not in a known package; your project may be out of"
+                        "Modified ~BUILD file %s not in a known package; your project may be out of"
                             + " sync",
                         c.workspaceRelativePath));
             result.setIncomplete(true);
@@ -109,7 +109,7 @@ public abstract class AffectedPackagesCalculator {
         }
         switch (c.operation) {
           case ADD:
-            // Adding a new BUILD files also affects the parent package (if any).
+            // Adding a new ~BUILD files also affects the parent package (if any).
             result.addAffectedPackage(buildPackage);
             if (!lastQuery().getPackages().contains(buildPackage)) {
               addedPackages.add(buildPackage);
@@ -129,13 +129,13 @@ public abstract class AffectedPackagesCalculator {
       }
     }
 
-    // Find BUILD files that have been affected by edits to a subinclude (.bzl file)
+    // Find ~BUILD files that have been affected by edits to a subinclude (.bzl file)
     ImmutableList<Path> affectedBySubinclude =
         changedFiles().stream()
             .map(c -> c.workspaceRelativePath)
             .flatMap(path -> lastQuery().getReverseSubincludeMap().get(path).stream())
             .filter(Objects::nonNull)
-            .filter(path -> path.endsWith("BUILD"))
+            .filter(path -> path.endsWith("~BUILD"))
             .collect(toImmutableList());
 
     long nonProjectBuildAffectedCount =
@@ -144,7 +144,7 @@ public abstract class AffectedPackagesCalculator {
       context()
           .output(
               PrintOutput.log(
-                  "%d BUILD files outside of your project view are affected by changes to their"
+                  "%d ~BUILD files outside of your project view are affected by changes to their"
                       + " includes; your project may be out of sync",
                   nonProjectBuildAffectedCount));
       result.setIncomplete(true);
@@ -155,7 +155,7 @@ public abstract class AffectedPackagesCalculator {
       context()
           .output(
               PrintOutput.log(
-                  "%d BUILD files affected by changes to .bzl files they load",
+                  "%d ~BUILD files affected by changes to .bzl files they load",
                   affectedBySubinclude.size()));
       for (Path buildFile : affectedBySubinclude) {
         Path buildPackage = buildFile.getParent();
@@ -163,7 +163,7 @@ public abstract class AffectedPackagesCalculator {
           context()
               .output(
                   PrintOutput.log(
-                      "Affected BUILD file %s not in a known package; your project may be out of"
+                      "Affected ~BUILD file %s not in a known package; your project may be out of"
                           + " sync",
                       buildFile));
           result.setIncomplete(true);
@@ -174,10 +174,10 @@ public abstract class AffectedPackagesCalculator {
 
     ImmutableList<WorkspaceFileChange> nonBuildEdits =
         projectChanges.stream()
-            .filter(c -> !c.workspaceRelativePath.getFileName().toString().equals("BUILD"))
+            .filter(c -> !c.workspaceRelativePath.getFileName().toString().equals("~BUILD"))
             .collect(toImmutableList());
 
-    // Calculate the set of effective packages, taking into account added/deleted BUILD files.
+    // Calculate the set of effective packages, taking into account added/deleted ~BUILD files.
     // When processing added/deleted source files, we need to know what package they're in now,
     // rather than at the time of the last query.
     PackageSet effectivePackages =
@@ -193,7 +193,7 @@ public abstract class AffectedPackagesCalculator {
         .flatMap(Optional::stream)
         .forEach(result::addAffectedPackage);
 
-    // Process adds/deletes to non-BUILD files. We don't need to worry about modifications, since
+    // Process adds/deletes to non-~BUILD files. We don't need to worry about modifications, since
     // they shouldn't effect the build graph structure, and the IDE will pick them up as usual.
     nonBuildEdits.stream()
         .filter(c -> c.operation != Operation.MODIFY)

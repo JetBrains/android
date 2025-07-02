@@ -99,7 +99,7 @@ public class BlazeAndroidWorkspaceImporterTest extends BlazeAndroidIntegrationTe
       };
 
   private static final BlazeImportSettings DUMMY_IMPORT_SETTINGS =
-      new BlazeImportSettings("", "", "", "", BuildSystemName.Bazel, ProjectType.ASPECT_SYNC);
+      new BlazeImportSettings("", "", "", "", "", BuildSystemName.Bazel, ProjectType.ASPECT_SYNC);
 
   private BlazeContext context;
   private final MockJdepsMap jdepsMap = new MockJdepsMap();
@@ -107,7 +107,7 @@ public class BlazeAndroidWorkspaceImporterTest extends BlazeAndroidIntegrationTe
       new JavaWorkingSet(
           workspaceRoot,
           new WorkingSet(ImmutableList.of(), ImmutableList.of(), ImmutableList.of()),
-          Predicate.isEqual("BUILD"));
+          Predicate.isEqual("~BUILD"));
   private final WorkspaceLanguageSettings workspaceLanguageSettings =
       new WorkspaceLanguageSettings(
           WorkspaceType.ANDROID, ImmutableSet.of(LanguageClass.ANDROID, LanguageClass.JAVA));

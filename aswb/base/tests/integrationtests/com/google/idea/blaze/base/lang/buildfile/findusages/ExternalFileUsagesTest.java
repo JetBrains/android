@@ -49,7 +49,7 @@ public class ExternalFileUsagesTest extends BuildFileIntegrationTestCase {
 
     BuildFile buildFile =
         createBuildFile(
-            new WorkspacePath("com/google/foo/BUILD"),
+            new WorkspacePath("com/google/foo/~BUILD"),
             "java_library(name = \"lib\", srcs = [\"JavaClass.java\"])");
 
     PsiReference[] references = FindUsages.findAllReferences(javaFile);
@@ -69,7 +69,7 @@ public class ExternalFileUsagesTest extends BuildFileIntegrationTestCase {
     PsiFile textFile = workspace.createPsiFile(new WorkspacePath("com/google/foo/data.txt"));
 
     createBuildFile(
-        new WorkspacePath("com/google/foo/BUILD"),
+        new WorkspacePath("com/google/foo/~BUILD"),
         "filegroup(name = \"lib\", srcs = [\"data.txt\"])",
         "filegroup(name = \"lib2\", srcs = [\"//com/google/foo:data.txt\"])");
 
@@ -79,11 +79,11 @@ public class ExternalFileUsagesTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testInvalidReferenceDoesntResolve() {
-    createBuildFile(new WorkspacePath("com/google/foo/BUILD"));
+    createBuildFile(new WorkspacePath("com/google/foo/~BUILD"));
     PsiFile textFileInFoo = workspace.createPsiFile(new WorkspacePath("com/google/foo/data.txt"));
 
     createBuildFile(
-        new WorkspacePath("com/google/bar/BUILD"),
+        new WorkspacePath("com/google/bar/~BUILD"),
         "filegroup(name = \"lib\", srcs = [\":data.txt\"])");
 
     PsiReference[] references = FindUsages.findAllReferences(textFileInFoo);
@@ -95,7 +95,7 @@ public class ExternalFileUsagesTest extends BuildFileIntegrationTestCase {
     BuildFile ext =
         createBuildFile(new WorkspacePath("com/google/foo/ext.bzl"), "def fn(): return");
     createBuildFile(
-        new WorkspacePath("com/google/foo/BUILD"),
+        new WorkspacePath("com/google/foo/~BUILD"),
         "load(':ext.bzl', 'fn')",
         "load('ext.bzl', 'fn')",
         "load('//com/google/foo:ext.bzl', 'fn')");
@@ -109,7 +109,7 @@ public class ExternalFileUsagesTest extends BuildFileIntegrationTestCase {
     BuildFile ext =
         createBuildFile(new WorkspacePath("com/google/foo/subdir/ext.bzl"), "def fn(): return");
     createBuildFile(
-        new WorkspacePath("com/google/foo/BUILD"),
+        new WorkspacePath("com/google/foo/~BUILD"),
         "load(':subdir/ext.bzl', 'fn')",
         "load('subdir/ext.bzl', 'fn')",
         "load('//com/google/foo:subdir/ext.bzl', 'fn')");
@@ -120,12 +120,12 @@ public class ExternalFileUsagesTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testSkylarkExtensionInSubDirectoryOfDifferentPackage() {
-    createBuildFile(new WorkspacePath("com/google/foo/BUILD"));
+    createBuildFile(new WorkspacePath("com/google/foo/~BUILD"));
     BuildFile ext =
         createBuildFile(new WorkspacePath("com/google/foo/subdir/ext.bzl"), "def fn(): return");
 
     createBuildFile(
-        new WorkspacePath("com/google/bar/BUILD"), "load('//com/google/foo:subdir/ext.bzl', 'fn')");
+        new WorkspacePath("com/google/bar/~BUILD"), "load('//com/google/foo:subdir/ext.bzl', 'fn')");
 
     PsiReference[] references = FindUsages.findAllReferences(ext);
     assertThat(references).hasLength(1);
@@ -133,7 +133,7 @@ public class ExternalFileUsagesTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testSkylarkExtensionReferencedFromSubpackage() {
-    createBuildFile(new WorkspacePath("com/google/foo/BUILD"));
+    createBuildFile(new WorkspacePath("com/google/foo/~BUILD"));
     BuildFile ext1 =
         createBuildFile(new WorkspacePath("com/google/foo/subdir/testing.bzl"), "def fn(): return");
     createBuildFile(
@@ -145,11 +145,11 @@ public class ExternalFileUsagesTest extends BuildFileIntegrationTestCase {
 
   @Test
   public void testFileReferencedFromDifferentPackage() {
-    createBuildFile(new WorkspacePath("com/google/foo/BUILD"));
+    createBuildFile(new WorkspacePath("com/google/foo/~BUILD"));
     PsiFile textFileInFoo = workspace.createPsiFile(new WorkspacePath("com/google/foo/data.txt"));
 
     createBuildFile(
-        new WorkspacePath("com/google/bar/BUILD"),
+        new WorkspacePath("com/google/bar/~BUILD"),
         "filegroup(name = \"lib\", srcs = [\"//com/google/foo:data.txt\"])");
 
     PsiReference[] references = FindUsages.findAllReferences(textFileInFoo);

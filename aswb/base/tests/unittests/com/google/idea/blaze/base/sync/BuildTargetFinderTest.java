@@ -96,8 +96,8 @@ public class BuildTargetFinderTest extends BlazeTestCase {
         buildTargetFinder(ImmutableList.of(new WorkspacePath(".")));
 
     fileOperationProvider.addFiles(
-        new File("/root/j/c/g/some/BUILD"),
-        new File("/root/j/c/g/BUILD"),
+        new File("/root/j/c/g/some/~BUILD"),
+        new File("/root/j/c/g/~BUILD"),
         new File("/root/j/c/g/some/dir/File.java"));
 
     assertThat(buildTargetFinder.findTargetForFile(new File("/root/j/c/g/some/dir/File.java")))
@@ -110,7 +110,7 @@ public class BuildTargetFinderTest extends BlazeTestCase {
         buildTargetFinder(ImmutableList.of(new WorkspacePath(".")));
 
     fileOperationProvider.addFiles(
-        new File("/root/j/c/g/other/BUILD"), new File("/root/j/c/g/some/dir/File.java"));
+        new File("/root/j/c/g/other/~BUILD"), new File("/root/j/c/g/some/dir/File.java"));
 
     assertThat(buildTargetFinder.findTargetForFile(new File("/root/j/c/g/some/dir/File.java")))
         .isNull();
@@ -122,7 +122,7 @@ public class BuildTargetFinderTest extends BlazeTestCase {
         buildTargetFinder(ImmutableList.of(new WorkspacePath("j/c/g/some")));
 
     fileOperationProvider.addFiles(
-        new File("/root/j/c/g/BUILD"), new File("/root/j/c/g/some/dir/File.java"));
+        new File("/root/j/c/g/~BUILD"), new File("/root/j/c/g/some/dir/File.java"));
 
     assertThat(buildTargetFinder.findTargetForFile(new File("/root/j/c/g/some/dir/File.java")))
         .isNull();
@@ -138,10 +138,10 @@ public class BuildTargetFinderTest extends BlazeTestCase {
                 new WorkspacePath("j/c/g/baz")));
 
     fileOperationProvider.addFiles(
-        new File("/root/j/c/g/BUILD"),
-        new File("/root/j/c/g/foo/BUILD"),
-        new File("/root/j/c/g/bar/BUILD"),
-        new File("/root/j/c/g/baz/BUILD"),
+        new File("/root/j/c/g/~BUILD"),
+        new File("/root/j/c/g/foo/~BUILD"),
+        new File("/root/j/c/g/bar/~BUILD"),
+        new File("/root/j/c/g/baz/~BUILD"),
         new File("/root/j/c/g/bar/dir/File.java"));
 
     assertThat(buildTargetFinder.findTargetForFile(new File("/root/j/c/g/bar/dir/File.java")))
@@ -154,9 +154,9 @@ public class BuildTargetFinderTest extends BlazeTestCase {
         buildTargetFinder(ImmutableList.of(new WorkspacePath(".")));
 
     fileOperationProvider.addFiles(
-        new File("/root/j/c/g/some/BUILD"), new File("/root/j/c/g/BUILD"));
+        new File("/root/j/c/g/some/~BUILD"), new File("/root/j/c/g/~BUILD"));
 
-    assertThat(buildTargetFinder.findTargetForFile(new File("/root/j/c/g/some/BUILD")))
+    assertThat(buildTargetFinder.findTargetForFile(new File("/root/j/c/g/some/~BUILD")))
         .isEqualTo(TargetExpression.fromStringSafe("//j/c/g/some:all"));
   }
 }

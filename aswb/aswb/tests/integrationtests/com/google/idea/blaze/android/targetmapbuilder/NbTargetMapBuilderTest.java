@@ -59,7 +59,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
         TargetMapBuilder.builder()
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(source("android_ndk_linux/toolchains/BUILD"))
+                    .setBuildFile(source("android_ndk_linux/toolchains/~BUILD"))
                     .setLabel("//android_ndk_linux/toolchains:armv7a")
                     .setKind(CppBlazeRules.RuleTypes.CC_TOOLCHAIN.getKind())
                     .setCToolchainInfo(
@@ -73,7 +73,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
                                         "lib/gcc/arm-linux-androideabi/4.8/include")))))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(source("android_ndk_linux/toolchains/BUILD"))
+                    .setBuildFile(source("android_ndk_linux/toolchains/~BUILD"))
                     .setLabel("//android_ndk_linux/toolchains:aarch64")
                     .setKind(CppBlazeRules.RuleTypes.CC_TOOLCHAIN.getKind())
                     .setCToolchainInfo(
@@ -87,7 +87,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
                                         "lib/gcc/aarch64-linux-android/4.9/include")))))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(source("java/com/google/BUILD"))
+                    .setBuildFile(source("java/com/google/~BUILD"))
                     .setLabel("//java/com/google:native_lib2")
                     .setKind(CppBlazeRules.RuleTypes.CC_LIBRARY.getKind())
                     .setCInfo(
@@ -104,7 +104,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
                     .addDependency("//android_ndk_linux/toolchains:aarch64"))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(source("java/com/google/BUILD"))
+                    .setBuildFile(source("java/com/google/~BUILD"))
                     .setLabel("//java/com/google:native_lib")
                     .setKind(CppBlazeRules.RuleTypes.CC_LIBRARY.getKind())
                     .setCInfo(
@@ -153,7 +153,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
         TargetMapBuilder.builder()
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(source("java/com/google/BUILD"))
+                    .setBuildFile(source("java/com/google/~BUILD"))
                     .setLabel("//java/com/google:lib")
                     .setKind(JavaBlazeRules.RuleTypes.JAVA_LIBRARY.getKind())
                     .addSource(source("java/com/google/ClassWithUniqueName1.java"))
@@ -167,7 +167,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
                                     .setClassJar(gen("import/import.generated_jar")))))
             .addTarget(
                 TargetIdeInfo.builder()
-                    .setBuildFile(source("java/com/google/BUILD"))
+                    .setBuildFile(source("java/com/google/~BUILD"))
                     .setLabel("//java/com/google:dep")
                     .setKind(JavaBlazeRules.RuleTypes.JAVA_LIBRARY.getKind())
                     .setJavaInfo(
@@ -193,7 +193,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//import:aar")
-                    .setBuildFile(source("import/BUILD"))
+                    .setBuildFile(source("import/~BUILD"))
                     .setKind(AndroidBlazeRules.RuleTypes.AAR_IMPORT.getKind())
                     .setAndroidAarInfo(
                         new AndroidAarIdeInfo(
@@ -222,7 +222,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//import:liba")
-                    .setBuildFile(source("import/BUILD"))
+                    .setBuildFile(source("import/~BUILD"))
                     .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
                     .addSource(source("import/Lib.java"))
                     .setJavaInfo(JavaIdeInfo.builder().setJdepsFile(gen("import/liba.jdeps")))
@@ -232,7 +232,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//import:lib")
-                    .setBuildFile(source("import/BUILD"))
+                    .setBuildFile(source("import/~BUILD"))
                     .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
                     .addSource(source("import/Lib.java"))
                     .setJavaInfo(JavaIdeInfo.builder().setJdepsFile(gen("import/lib.jdeps")))
@@ -242,7 +242,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel("//import:import")
-                    .setBuildFile(source("import/BUILD"))
+                    .setBuildFile(source("import/~BUILD"))
                     .setKind(JavaBlazeRules.RuleTypes.JAVA_LIBRARY.getKind())
                     .setJavaInfo(
                         JavaIdeInfo.builder()
@@ -282,7 +282,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
                 TargetIdeInfo.builder()
                     .setLabel(main)
                     .setKind(AndroidBlazeRules.RuleTypes.ANDROID_BINARY.getKind())
-                    .setBuildFile(source("java/com/google/BUILD"))
+                    .setBuildFile(source("java/com/google/~BUILD"))
                     .setJavaInfo(
                         javaInfoWithJars("java/com/google/app.jar")
                             .setJdepsFile(gen("java/com/google/app.jdeps")))
@@ -302,7 +302,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
                 TargetIdeInfo.builder()
                     .setLabel(individualLibrary)
                     .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
-                    .setBuildFile(source("third_party/individualLibrary/BUILD"))
+                    .setBuildFile(source("third_party/individualLibrary/~BUILD"))
                     .setJavaInfo(
                         JavaIdeInfo.builder()
                             .setJdepsFile(gen("third_party/individualLibrary/values.jdeps")))
@@ -317,7 +317,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
                 TargetIdeInfo.builder()
                     .setLabel(quantum)
                     .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
-                    .setBuildFile(source("third_party/quantum/BUILD"))
+                    .setBuildFile(source("third_party/quantum/~BUILD"))
                     .setJavaInfo(
                         JavaIdeInfo.builder().setJdepsFile(gen("third_party/quantum/values.jdeps")))
                     .setAndroidInfo(
@@ -334,7 +334,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel(guava)
-                    .setBuildFile(source("third_party/guava/BUILD"))
+                    .setBuildFile(source("third_party/guava/~BUILD"))
                     .setKind(JavaBlazeRules.RuleTypes.JAVA_LIBRARY.getKind())
                     .setJavaInfo(
                         javaInfoWithJars("third_party/guava-21.jar")
@@ -342,7 +342,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
             .addTarget(
                 TargetIdeInfo.builder()
                     .setLabel(aarFile)
-                    .setBuildFile(source("third_party/aar/BUILD"))
+                    .setBuildFile(source("third_party/aar/~BUILD"))
                     .setKind(AndroidBlazeRules.RuleTypes.AAR_IMPORT.getKind())
                     .setAndroidAarInfo(
                         new AndroidAarIdeInfo(
@@ -360,7 +360,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
                 TargetIdeInfo.builder()
                     .setLabel(recyclerView)
                     .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
-                    .setBuildFile(source("third_party/recyclerview/BUILD"))
+                    .setBuildFile(source("third_party/recyclerview/~BUILD"))
                     .setJavaInfo(
                         JavaIdeInfo.builder()
                             .setJdepsFile(gen("third_party/recyclerview/recyclerview.jdeps")))
@@ -374,7 +374,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
                 TargetIdeInfo.builder()
                     .setLabel(intermediateDependency)
                     .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
-                    .setBuildFile(source("java/com/google/intermediate/BUILD"))
+                    .setBuildFile(source("java/com/google/intermediate/~BUILD"))
                     .setJavaInfo(
                         JavaIdeInfo.builder()
                             .setJdepsFile(gen("java/com/google/intermediate/intermediate.jdeps")))
@@ -390,7 +390,7 @@ public class NbTargetMapBuilderTest extends BlazeIntegrationTestCase {
                 TargetIdeInfo.builder()
                     .setLabel(constraintLayout)
                     .setKind(AndroidBlazeRules.RuleTypes.ANDROID_LIBRARY.getKind())
-                    .setBuildFile(source("third_party/constraint_layout/BUILD"))
+                    .setBuildFile(source("third_party/constraint_layout/~BUILD"))
                     .setJavaInfo(
                         JavaIdeInfo.builder()
                             .setJdepsFile(

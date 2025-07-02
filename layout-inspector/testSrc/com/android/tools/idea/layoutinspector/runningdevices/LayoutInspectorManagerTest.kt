@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
+import com.android.tools.idea.layoutinspector.FakeSessionStats
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
@@ -36,6 +37,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
+import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StudioRendererPanel
@@ -603,6 +605,27 @@ class LayoutInspectorManagerTest {
 
     verifyUiRemoved(tab1)
     assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).isEmpty()
+  }
+
+  @Test
+  @RunsInEdt
+  fun testOnDeviceRenderingIsLoggedToMetrics() {
+    val tabComponents =
+      TabComponents(
+        disposable = displayViewRule.disposable,
+        tabContentPanel = xrTab.content,
+        tabContentPanelContainer = xrTab.container,
+        displayView = xrTab.displayView,
+      )
+
+    val fakeSessionStats = FakeSessionStats()
+    createRendererPanel(
+      layoutInspector = layoutInspector,
+      tabComponents = tabComponents,
+      statsProvider = { fakeSessionStats },
+    )
+
+    assertThat(fakeSessionStats.setOnDeviceRenderingInvocations).isEqualTo(1)
   }
 }
 

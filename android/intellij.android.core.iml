@@ -229,5 +229,6 @@
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-k2" level="project" />
     <orderEntry type="library" name="jgoodies-forms" level="project" />
     <orderEntry type="module" module-name="intellij.spellchecker.xml" />
+    <orderEntry type="module" module-name="kotlin.base.fir.project-structure" />
   </component>
 </module>

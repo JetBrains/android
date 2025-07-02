@@ -46,6 +46,7 @@
   <extensions defaultExtensionNs="com.android.tools.idea">
     <deviceProvisioner implementation="com.android.tools.idea.deviceprovisioner.DefaultDeviceProvisionerFactory"/>
     <deviceProvisioner implementation="com.android.tools.idea.deviceprovisioner.PhysicalDeviceProvisionerFactory"/>
+    <deviceProvisioner implementation="com.android.tools.idea.adb.wireless.provisioner.WifiPairableDeviceProvisionerFactory"/>
   </extensions>
 
   <actions>

@@ -38,15 +38,15 @@ class FakeBackupManager : BackupManager {
   val showBackupDialogInvocations = mutableListOf<ShowBackupDialogInvocation>()
   val restoreModalInvocations = mutableListOf<RestoreModalInvocation>()
 
-  override suspend fun showBackupDialog(
+  @UiThread
+  override fun showBackupDialog(
     serialNumber: String,
-    applicationId: String,
+    applicationId: String?,
     source: BackupManager.Source,
     notify: Boolean,
   ) {
-    assert(EDT.isCurrentThreadEdt())
     showBackupDialogInvocations.add(
-      ShowBackupDialogInvocation(serialNumber, applicationId, source, notify)
+      ShowBackupDialogInvocation(serialNumber, applicationId!!, source, notify)
     )
   }
 
@@ -84,8 +84,6 @@ class FakeBackupManager : BackupManager {
 
   override suspend fun isDeviceSupported(serialNumber: String) = isDeviceSupported
 
-  override fun isAppSupported(applicationId: String) = true
-
   override fun getRestoreRunConfigSection(project: Project): RunConfigSection {
     return object : RunConfigSection {
       override fun getComponent(parentDisposable: Disposable) = JPanel()
@@ -101,6 +99,8 @@ class FakeBackupManager : BackupManager {
       override fun updateBasedOnInstantState(instantAppDeploy: Boolean) {}
     }
   }
+
+  override suspend fun getDebuggableApps(serialNumber: String): List<String> = emptyList()
 
   data class ShowBackupDialogInvocation(
     val serialNumber: String,

@@ -160,6 +160,9 @@ class CustomViewPreviewRepresentation(
       }
     }
 
+  override val caretNavigationHandler =
+    PreviewRepresentation.CaretNavigationHandler.NoopCaretNavigationHandler()
+
   override var currentView: String = persistenceManager.getValue(currentStatePropertyName, "")
     set(value) {
       if (field != value) {
@@ -432,8 +435,6 @@ class CustomViewPreviewRepresentation(
           configuration.device,
         )
       }
-
-      surface.removeModels(surface.models)
 
       val newSceneManager = surface.addModelWithoutRender(model).await()
       newSceneManager.requestRenderAndWait()

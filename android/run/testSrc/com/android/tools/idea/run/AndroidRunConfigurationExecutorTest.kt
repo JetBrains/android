@@ -84,7 +84,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.After
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Ignore
@@ -149,11 +148,6 @@ class AndroidRunConfigurationExecutorTest {
       whenever(mockBackupManager.getRestoreRunConfigSection(any()))
         .thenReturn(FakeBackupManager().getRestoreRunConfigSection(projectRule.project))
     }
-  }
-
-  @After
-  fun tearDown() {
-    projectRule.fixture.tearDown()
   }
 
   @Test
@@ -226,6 +220,7 @@ class AndroidRunConfigurationExecutorTest {
     processHandler.destroyProcess()
   }
 
+  @Ignore("b/415332589")
   @Test
   fun debugSucceeded() { //TODO: write handler in fakeAdb for "am capabilities --protobuf"
     StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.overrideForTest(false, projectRule.testRootDisposable)

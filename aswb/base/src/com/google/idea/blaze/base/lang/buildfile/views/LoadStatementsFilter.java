@@ -23,7 +23,7 @@ import com.intellij.ide.util.treeView.smartTree.Filter;
 import com.intellij.ide.util.treeView.smartTree.TreeElement;
 import com.intellij.util.PlatformIcons;
 
-/** Creates a Structure view filter for load statements in BUILD/WORKSPACE/bzl files. */
+/** Creates a Structure view filter for load statements in ~BUILD/WORKSPACE/bzl files. */
 public class LoadStatementsFilter implements Filter {
   public static final String ID = "SHOW_LOAD_STATEMENTS";
 

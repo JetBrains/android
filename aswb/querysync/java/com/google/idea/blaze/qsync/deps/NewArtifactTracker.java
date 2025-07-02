@@ -324,6 +324,12 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
             .flatMap(Optional::stream)
             .map(JavaArtifactInfo::jars)
             .forEach(combinedJava.jarsBuilder()::addAll);
+          targetInfos.stream()
+            .skip(1)
+            .map(TargetBuildInfo::javaInfo)
+            .flatMap(Optional::stream)
+            .map(JavaArtifactInfo::outputJars)
+            .forEach(combinedJava.outputJarsBuilder()::addAll);
           info = first.toBuilder().javaInfo(combinedJava.build()).build();
         } else {
           info = first.toBuilder().build();
