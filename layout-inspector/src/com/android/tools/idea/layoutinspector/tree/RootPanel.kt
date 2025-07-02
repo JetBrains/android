@@ -112,7 +112,12 @@ class RootPanel(
 
   /** Panel shown when no other panel should be shown . */
   private val defaultPanel =
-    createCenterTextPanel(listOf("Waiting for Layout Inspector to connect."))
+    createCenterTextPanel(
+      listOf(
+        "Waiting for Layout Inspector to connect.",
+        LayoutInspectorBundle.message("navigate.to.debuggable.application"),
+      )
+    )
   /** Panel used to show a loading indicator. */
   private val loadingPanel = JBLoadingPanel(BorderLayout(), parentDisposable, 0)
   /** Panel used to indicate that the current foreground process is not debuggable. */
