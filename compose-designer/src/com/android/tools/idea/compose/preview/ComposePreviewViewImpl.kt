@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.annotations.concurrency.Slow
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.stdui.ActionData
@@ -24,13 +23,9 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
-import com.android.tools.idea.compose.PsiComposePreviewElement
-import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -42,17 +37,10 @@ import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.kotlin.fqNameMatches
-import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.focus.FocusModeProperty
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
-import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
-import com.android.tools.idea.preview.refreshExistingPreviewElements
-import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.rendering.tokens.requestBuildArtifactsForRendering
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
-import com.android.tools.preview.ComposePreviewElement
-import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -69,7 +57,6 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
-import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -138,69 +125,6 @@ interface ComposePreviewView : PreviewRepresentationView {
    * [onLayoutlibReEnable] will be called.
    */
   fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit)
-
-  /**
-   * Updates the list of previews to be rendered in this [ComposePreviewView], requests a refresh
-   * and returns the list of [ComposePreviewElement] being rendered.
-   *
-   * By default, refreshes all the previews on the [mainSurface]. Implementors of this interface can
-   * override this method to add extra logic if rendering a different set of previews and/or if
-   * rendering them in a different component.
-   */
-  suspend fun updatePreviewsAndRefresh(
-    reinflate: Boolean,
-    previewElements: Collection<PsiComposePreviewElementInstance>,
-    psiFile: PsiFile,
-    progressIndicator: ProgressIndicator,
-    previewElementModelAdapter: ComposePreviewElementModelAdapter,
-    modelUpdater: NlModelUpdaterInterface,
-    navigationHandler: PreviewNavigationHandler,
-    configureLayoutlibSceneManager:
-      (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
-    refreshEventBuilder: PreviewRefreshEventBuilder?,
-  ): List<PsiComposePreviewElementInstance> {
-    return mainSurface.updatePreviewsAndRefresh(
-      reinflate,
-      previewElements,
-      Logger.getInstance(ComposePreviewView::class.java),
-      psiFile,
-      mainSurface,
-      progressIndicator,
-      previewElementModelAdapter,
-      modelUpdater,
-      navigationHandler,
-      configureLayoutlibSceneManager,
-      refreshEventBuilder,
-    )
-  }
-
-  /**
-   * Refreshes the [ComposePreviewElement]s corresponding to the [NlModel]s that should currently be
-   * displayed in this [ComposePreviewView]. The [modelToPreview] argument is used to map [NlModel]s
-   * to [ComposePreviewElement].
-   *
-   * By default, refreshes the elements corresponding to the [mainSurface] models. Implementors of
-   * this interface can override this method if they want to render a different set of elements.
-   */
-  @Slow
-  suspend fun refreshExistingPreviewElements(
-    progressIndicator: ProgressIndicator,
-    modelToPreview: NlModel.() -> PsiComposePreviewElement?,
-    configureLayoutlibSceneManager:
-      (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
-    refreshFilter: (LayoutlibSceneManager) -> Boolean,
-    refreshOrder: (LayoutlibSceneManager) -> Int,
-    refreshEventBuilder: PreviewRefreshEventBuilder?,
-  ) {
-    mainSurface.refreshExistingPreviewElements(
-      progressIndicator,
-      modelToPreview,
-      configureLayoutlibSceneManager,
-      refreshFilter,
-      refreshOrder,
-      refreshEventBuilder,
-    )
-  }
 }
 
 fun interface ComposePreviewViewProvider {
