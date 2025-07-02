@@ -40,7 +40,6 @@ class AndroidGradleTaskManager : GradleTaskManagerExtension {
     val gradleBuildInvoker = findGradleInvoker(id) ?: return false
     GradleTaskManager.setupGradleScriptDebugging(settings)
     GradleTaskManager.setupDebuggerDispatchPort(settings)
-    GradleTaskManager.configureTasks(projectPath, id, settings, null)
     @Suppress("DEPRECATION") val doNotShowBuildOutputOnFailure =
       settings.getUserData(ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE) == true
     val request = GradleBuildInvoker.Request(

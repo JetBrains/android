@@ -26,6 +26,9 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.ExternalSystemFacadeManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import org.gradle.util.GradleVersion
+import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
+import org.jetbrains.plugins.gradle.service.task.PredefinedVersionSpecificInitScript
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Assert.assertNull
@@ -92,6 +95,44 @@ class AndroidGradleTaskManagerTest {
         tasks = listOf(":help")
         javaHome = "invalid"
       }
+
+      AndroidGradleTaskManager().executeTasks(
+        project.basePath!!,
+        ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
+        executionSettings,
+        object : ExternalSystemTaskNotificationListener {
+          override fun onFailure(projectPath: String, id: ExternalSystemTaskId, exception: java.lang.Exception) {
+            capturedException = exception
+          }
+        }
+      )
+
+      assertNull(capturedException)
+    }
+  }
+
+  @Test
+  fun `supports version-specific scripts`() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
+      var capturedException: Exception? = null
+      val executionSettings = ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(
+        project, project.basePath!!, GradleConstants.SYSTEM_ID
+      ).apply {
+        tasks = listOf("foo")
+      }
+      val initScript = PredefinedVersionSpecificInitScript(
+        script = """
+          afterProject {
+            it.tasks.register("foo") {
+              println 'foo'
+            }
+          }
+        """.trimIndent(),
+        filePrefix = "fooTask",
+        isApplicable = { v -> GradleVersion.version("7.0") < v }
+      )
+      executionSettings.putUserData(GradleTaskManager.VERSION_SPECIFIC_SCRIPTS_KEY, listOf(initScript))
 
       AndroidGradleTaskManager().executeTasks(
         project.basePath!!,
