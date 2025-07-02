@@ -206,11 +206,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
       val projectSettings = GradleDefaultProjectSettings.createProjectSettings(externalProjectPath)
       if (GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS.get() || ApplicationManager.getApplication().isUnitTestMode) {
         projectSettings.gradleJvm = USE_GRADLE_LOCAL_JAVA_HOME
-        if (IdeInfo.getInstance().isAndroidStudio || ApplicationManager.getApplication().isUnitTestMode) {
-          ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
-        } else {
-          ExternalSystemUtil.linkExternalProject(projectSettings, ImportSpecBuilder(newProject, GradleConstants.SYSTEM_ID))
-        }
+        ExternalSystemUtil.linkExternalProject(projectSettings, ImportSpecBuilder(newProject, GradleConstants.SYSTEM_ID))
         GradleConfigManager.initializeJavaHome(newProject, externalProjectPath)
         if (IdeInfo.getInstance().isAndroidStudio) {
           val projectMigration = ProjectMigrationsPersistentState.getInstance(newProject)
@@ -218,11 +214,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         }
       } else {
         projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
-        if (IdeInfo.getInstance().isAndroidStudio || ApplicationManager.getApplication().isUnitTestMode) {
-          ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
-        } else {
-          ExternalSystemUtil.linkExternalProject(projectSettings, ImportSpecBuilder(newProject, GradleConstants.SYSTEM_ID))
-        }
+        ExternalSystemUtil.linkExternalProject(projectSettings, ImportSpecBuilder(newProject, GradleConstants.SYSTEM_ID))
         WriteAction.runAndWait<RuntimeException> {
           val embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath
           val jdkTableEntry = JdkUtils.addOrRecreateDedicatedJdkTableEntry(embeddedJdkPath.toString())
