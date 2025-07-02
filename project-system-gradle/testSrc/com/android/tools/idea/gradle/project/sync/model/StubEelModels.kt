@@ -15,46 +15,66 @@
  */
 package com.android.tools.idea.gradle.project.sync.model
 
+import com.intellij.platform.eel.EelApi
 import com.intellij.platform.eel.EelDescriptor
 import com.intellij.platform.eel.EelExecApi
-import com.intellij.platform.eel.EelExecApi.ExecuteProcessError
-import com.intellij.platform.eel.EelProcess
-import com.intellij.platform.eel.EelResult
-import com.intellij.platform.eel.impl.fs.EelProcessResultImpl
 import com.intellij.platform.eel.path.EelPath
-import com.intellij.platform.eel.provider.EelNioBridgeService
+//import com.intellij.platform.eel.provider.EelNioBridgeService
 import com.intellij.platform.eel.provider.LocalPosixEelApi
-import com.intellij.platform.ijent.IjentExecApi
+import com.intellij.platform.eel.EelExecPosixApi
+import com.intellij.platform.eel.EelOsFamily
+import com.intellij.platform.eel.EelPosixProcess
+import com.intellij.platform.eel.ExecuteProcessException
 import org.jetbrains.annotations.NonNls
 import java.nio.file.FileSystem
 import java.nio.file.Path
 import java.nio.file.spi.FileSystemProvider
 
-class StubLocalPosixEelApi(private val envVariables: Map<String, String>) : IjentExecApi {
+// TODO KMT-1388
+class StubLocalPosixEelApi(private val envVariables: Map<String, String>) : EelExecPosixApi {
+  private val executeResultMock by lazy {
+    ExecuteProcessException(errno = 12345, message = "mock result")
+  }
   override val descriptor: EelDescriptor get() = throw UnsupportedOperationException()
-  override suspend fun execute(builder: EelExecApi.ExecuteProcessOptions): EelResult<EelProcess, ExecuteProcessError> = EelProcessResultImpl.createErrorResult(errno = 12345, message = "mock result")
   override suspend fun fetchLoginShellEnvVariables(): Map<String, String> = envVariables
   override suspend fun findExeFilesInPath(binaryName: String): List<EelPath> {
-    TODO("Not yet implemented")
+    return emptyList()
+  }
+
+  override suspend fun createExternalCli(options: EelExecApi.ExternalCliOptions): EelExecApi.ExternalCliEntrypoint {
+    throw UnsupportedOperationException()
+  }
+
+  override suspend fun spawnProcess(builder: EelExecApi.ExecuteProcessOptions): EelPosixProcess {
+    throw executeResultMock
   }
 }
 
-class StubEelNioBridgeService(private val eelDescriptor: EelDescriptor) : EelNioBridgeService {
-  override fun tryGetEelDescriptor(nioPath: Path) = eelDescriptor
-  override fun tryGetNioRoots(eelDescriptor: EelDescriptor) = null
-  override fun tryGetId(eelDescriptor: EelDescriptor) = null
-  override fun tryGetDescriptorByName(name: String) = eelDescriptor
-  override fun register(localRoot: String,
-                        descriptor: EelDescriptor,
-                        internalName: @NonNls String,
-                        prefix: Boolean,
-                        caseSensitive: Boolean,
-                        fsProvider: (FileSystemProvider, FileSystem?) -> FileSystem?) {}
-
-  override fun deregister(descriptor: EelDescriptor) {}
-}
+//class StubEelNioBridgeService(private val eelDescriptor: EelDescriptor) : EelNioBridgeService {
+//  override fun tryGetEelDescriptor(nioPath: Path) = eelDescriptor
+//  override fun tryGetNioRoots(eelDescriptor: EelDescriptor) = null
+//  override fun tryGetId(eelDescriptor: EelDescriptor) = null
+//  override fun tryGetDescriptorByName(name: String) = eelDescriptor
+//  override fun register(localRoot: String,
+//                        descriptor: EelDescriptor,
+//                        internalName: @NonNls String,
+//                        prefix: Boolean,
+//                        caseSensitive: Boolean,
+//                        fsProvider: (FileSystemProvider, FileSystem?) -> FileSystem?) {}
+//
+//  override fun unregister(descriptor: EelDescriptor): Boolean {
+//    return true
+//  }
+//}
 
 class StubEelDescriptor(private val eelApi: LocalPosixEelApi) : EelDescriptor {
   override val operatingSystem = EelPath.OS.UNIX
+  override val userReadableDescription: @NonNls String
+    get() = ""
+  override val osFamily: EelOsFamily
+    get() = EelOsFamily.Posix
+
+  override suspend fun toEelApi(): EelApi = eelApi
+
   override suspend fun upgrade() = eelApi
 }
