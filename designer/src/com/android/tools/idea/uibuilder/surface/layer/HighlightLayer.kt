@@ -24,6 +24,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.Graphics2D
 import java.awt.Rectangle
 import org.jetbrains.annotations.NotNull
+import java.util.concurrent.CopyOnWriteArrayList
 
 private val selectedBorderColor =
   JBColor.namedColor("ScreenView.selectedBorderColor", JBColor(0x3573f0, 0x548af7))
@@ -32,7 +33,7 @@ public class HighlightLayer
 @JvmOverloads
 constructor(@NotNull screenView: ScreenView, @NotNull private val surface: NlDesignSurface) :
   Layer() {
-  private var rectanglesToHighlight = mutableListOf<Rectangle>()
+  private var rectanglesToHighlight = CopyOnWriteArrayList<Rectangle>()
   private val borderPainter =
     BorderPainter(JBUI.scale(2), selectedBorderColor, selectedBorderColor, useHighQuality = true)
 
@@ -43,7 +44,7 @@ constructor(@NotNull screenView: ScreenView, @NotNull private val surface: NlDes
 
   @Override
   override fun onHover(x: Int, y: Int) {
-    rectanglesToHighlight = mutableListOf<Rectangle>()
+    rectanglesToHighlight = CopyOnWriteArrayList<Rectangle>()
   }
 
   /**
@@ -61,6 +62,6 @@ constructor(@NotNull screenView: ScreenView, @NotNull private val surface: NlDes
 
   /** Called when we want to remove any previous highlight */
   fun clear() {
-    rectanglesToHighlight = mutableListOf<Rectangle>()
+    rectanglesToHighlight = CopyOnWriteArrayList<Rectangle>()
   }
 }
