@@ -23,6 +23,7 @@ import com.android.tools.idea.common.util.updateLayoutParamsToWrapContent
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import java.awt.Dimension
@@ -36,6 +37,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+/**
+ * Threshold to trigger a zoom-to-fit operation. It means that if the current scale is more than
+ * double the required scale to fit the content, or if the required scale is more than double the
+ * current scale, then a zoom-to-fit operation will be performed.
+ */
+private const val ZOOM_TO_FIT_RESCALE_THRESHOLD = 2.0
 
 /**
  * Invokes rendering of the scene when the device size changes in [Configuration]. The lifecycle is
@@ -98,6 +107,23 @@ class ConfigurationResizeListener(
       }
     }
     sceneManager.requestRenderWithNewSize(newDeviceSize.width, newDeviceSize.height)
+
+    val surface = sceneManager.designSurface
+
+    if (!surface.isCanvasResizing) {
+      // After a resize, we might need to rescale the canvas to fit the new content. This is only
+      // done when the user is not resizing the canvas by dragging, to avoid abrupt zoom changes.
+      withContext(Dispatchers.EDT) {
+        val requiredScale = surface.zoomController.getFitScale()
+        val currentScale = surface.zoomController.scale
+        if (
+          currentScale > requiredScale || // Preview is larger than the viewport
+            requiredScale > currentScale * ZOOM_TO_FIT_RESCALE_THRESHOLD // Preview is too small
+        ) {
+          surface.zoomController.zoomToFit()
+        }
+      }
+    }
   }
 
   override fun dispose() {
