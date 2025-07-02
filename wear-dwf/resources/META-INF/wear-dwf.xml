@@ -38,6 +38,8 @@
     <lang.parserDefinition language="WFFExpression"
                            implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionParserDefinition"/>
 
+    <languageInjectionContributor language="XML"
+                                  implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionLanguageInjectionContributor"/>
   </extensions>
   <actions>
     <action id="ImportWatchFaceStudioFileAction"
