@@ -117,6 +117,8 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
   // Note, this is currently incompatible with the build API.
   public static final BoolExperiment buildUseTargetPatternFile =
       new BoolExperiment("qsync.build.use.target.pattern.file", true);
+  public static final BoolExperiment buildEnforceProjectConfigs =
+    new BoolExperiment("qsync.build.enforce.project.configs", false);
 
   public static final StringExperiment aspectLocation =
       new StringExperiment("qsync.build.aspect.location");
@@ -283,6 +285,9 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
             "--aspects=%1$s%%collect_dependencies,%1$s%%package_dependencies",
             invocationFiles.aspectFileLabel()));
     querySyncFlags.add("--noexperimental_run_validations");
+    if (!buildEnforceProjectConfigs.getValue()) {
+      querySyncFlags.add("--noenforce_project_configs");
+    }
     querySyncFlags.add("--keep_going");
     querySyncFlags.addAll(
       outputGroups.stream()
