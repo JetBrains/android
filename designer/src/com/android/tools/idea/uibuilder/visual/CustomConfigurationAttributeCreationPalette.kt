@@ -365,20 +365,21 @@ private class MyBoxItemWrapper<T>(val item: T, private val optionNameFunc: (T) -
   override fun toString(): String = optionNameFunc(item)
 }
 
-// The order of options in device dropdown button.
-private val DeviceGroup?.orderOfOption: Int
-  get() =
-    when (this) {
-      DeviceGroup.NEXUS_XL -> 0
-      DeviceGroup.NEXUS_TABLET -> 1
-      DeviceGroup.WEAR -> 2
-      DeviceGroup.TV -> 3
-      DeviceGroup.AUTOMOTIVE -> 4
-      DeviceGroup.GENERIC -> 5
-      DeviceGroup.NEXUS -> 6
-      DeviceGroup.OTHER -> 7
-      else -> 8
-    }
+private val deviceGroupOrder =
+  arrayOf(
+    DeviceGroup.NEXUS_XL,
+    DeviceGroup.NEXUS_TABLET,
+    DeviceGroup.WEAR,
+    DeviceGroup.DESKTOP,
+    DeviceGroup.XR,
+    DeviceGroup.TV,
+    DeviceGroup.AUTOMOTIVE,
+    DeviceGroup.GENERIC,
+    DeviceGroup.NEXUS,
+    DeviceGroup.CANONICAL_DEVICE,
+    DeviceGroup.ADDITIONAL_DEVICE,
+    DeviceGroup.OTHER,
+  )
 
 /**
  * Takes a map of grouped devices and returns a new [SortedMap] where the keys ([DeviceGroup]) are
@@ -386,10 +387,11 @@ private val DeviceGroup?.orderOfOption: Int
  *
  * @param groupedDevices A map where keys are [DeviceGroup] and values are lists of [Device]s.
  * @return A [SortedMap] containing the same entries as [groupedDevices], but with keys sorted based
- *   on [DeviceGroup.orderOfOption].
+ *   on [deviceGroupOrder].
  */
 fun getDeviceGroupsSortedAsMap(
   groupedDevices: Map<DeviceGroup, List<Device>>
 ): SortedMap<DeviceGroup, List<Device>> {
-  return groupedDevices.toSortedMap(compareBy { it.orderOfOption })
+  val comparator = compareBy<DeviceGroup> { deviceGroupOrder.indexOf(it) }.thenBy { it.ordinal }
+  return groupedDevices.toSortedMap(comparator)
 }
