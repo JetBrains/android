@@ -353,6 +353,24 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testLintVersionInLiteral() {
+    writeToBuildFile(TestFileName("AgpVersion/LintVersionInLiteral"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/LintVersionInLiteralExpected"))
+  }
+
+  @Test
+  fun testLintVersionInVersionCatalogBundle() {
+    writeToBuildFile(TestFileName("AgpVersion/LintVersionInVersionCatalogBundle"))
+    writeToVersionCatalogFile(TestFileName("AgpVersion/LintVersionCatalogBundle"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/LintVersionInVersionCatalogBundle"))
+    verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/LintVersionCatalogBundleExpected"))
+  }
+
+  @Test
   fun testLiteralTooltipsNotNull() {
     writeToBuildFile(TestFileName("AgpVersion/VersionInLiteral"))
     val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))

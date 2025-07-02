@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
@@ -1144,6 +1145,19 @@ internal fun isUpdatablePluginRelatedDependency(toVersion: AgpVersion, model: Ar
   val versionValue = model.version().toString()?.let { AgpVersion.tryParse(it) } ?: return ThreeState.UNSURE
   return if (toVersion.compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
 }
+
+internal fun isUpdatableLintRelatedDependency(toVersion: AgpVersion, model: ArtifactDependencyModel): ThreeState {
+  val groupId = model.group().toString()
+  if (groupId != "com.android.tools.lint") return ThreeState.UNSURE
+
+  @Suppress("UNNECESSARY_SAFE_CALL") // until GradlePropertyModel.toString() is fixed not to be nullable
+  val versionValue = model.version().toString()?.let { Version.parse(it) } ?: return ThreeState.UNSURE
+  return if (toVersion.toLintVersion().compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
+}
+
+internal fun AgpVersion.toLintVersion(): Version =
+  Version.parse("${this.major + 23}.${this.toString().substringAfter('.')}")
+
 
 /**
  * Helper functions for metrics, placed out of the way of the main logic, which are responsible for building and logging
