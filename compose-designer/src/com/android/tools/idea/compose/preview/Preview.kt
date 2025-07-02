@@ -87,9 +87,11 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.pagination.PreviewPaginationManager
+import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.representation.CommonPreviewStateManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
+import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -1144,10 +1146,12 @@ class ComposePreviewRepresentation(
     hidePanelsBeforeRender()
 
     val showingPreviewElements =
-      composeWorkBench.updatePreviewsAndRefresh(
-        !quickRefresh,
+      surface.updatePreviewsAndRefresh(
+        reinflate = !quickRefresh,
         filteredPreviews,
+        log,
         psiFile,
+        parentDisposable = this,
         progressIndicator,
         previewElementModelAdapter,
         if (mode.value is PreviewMode.UiCheck) accessibilityModelUpdater else defaultModelUpdater,
@@ -1358,7 +1362,7 @@ class ComposePreviewRepresentation(
             // new PreviewElements but will change the surface settings.
             refreshProgressIndicator.text =
               message("refresh.progress.indicator.reusing.existing.previews")
-            composeWorkBench.refreshExistingPreviewElements(
+            surface.refreshExistingPreviewElements(
               refreshProgressIndicator,
               previewElementModelAdapter::modelToElement,
               this@ComposePreviewRepresentation::configureLayoutlibSceneManagerForPreviewElement,
@@ -1372,7 +1376,7 @@ class ComposePreviewRepresentation(
                   .getTargetQuality(sceneManager)
                   .compareTo(sceneManager.lastRenderQuality)
               },
-              refreshRequest.refreshEventBuilder,
+              refreshEventBuilder = refreshRequest.refreshEventBuilder,
             )
           } else {
             refreshProgressIndicator.text =
