@@ -68,6 +68,7 @@ import com.android.tools.sdk.LayoutlibFactory;
 import com.google.common.base.Enums;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -190,8 +191,7 @@ public class Configuration {
   private int myBulkEditingCount;
 
   /** Optional set of listeners to notify via {@link #updated(int)} */
-  @Nullable
-  private List<ConfigurationListener> myListeners;
+  private final List<ConfigurationListener> myListeners = new ArrayList<>();
 
   /** Dirty flags since last notify: corresponds to constants in {@link ConfigurationListener} */
   protected int myNotifyDirty;
@@ -1208,10 +1208,12 @@ public class Configuration {
 
     if (myBulkEditingCount == 0) {
       int changed = myNotifyDirty;
-      if (myListeners != null) {
-        for (ConfigurationListener listener : myListeners) {
-          listener.changed(changed);
-        }
+      ImmutableList<ConfigurationListener> listeners;
+      synchronized (myListeners) {
+        listeners = ImmutableList.copyOf(myListeners);
+      }
+      for (ConfigurationListener listener : listeners) {
+        listener.changed(changed);
       }
 
       myNotifyDirty = 0;
@@ -1224,10 +1226,9 @@ public class Configuration {
    * @param listener the listener to add
    */
   public void addListener(@NotNull ConfigurationListener listener) {
-    if (myListeners == null) {
-      myListeners = new ArrayList<>();
+    synchronized (myListeners) {
+      myListeners.add(listener);
     }
-    myListeners.add(listener);
   }
 
   /**
@@ -1236,11 +1237,8 @@ public class Configuration {
    * @param listener the listener to remove
    */
   public void removeListener(@NotNull ConfigurationListener listener) {
-    if (myListeners != null) {
+    synchronized (myListeners) {
       myListeners.remove(listener);
-      if (myListeners.isEmpty()) {
-        myListeners = null;
-      }
     }
   }
 
