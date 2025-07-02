@@ -26,10 +26,11 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.LayoutManager
 import java.awt.Point
-import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 
 val INVISIBLE_POINT = Point(Integer.MIN_VALUE, Integer.MIN_VALUE)
 
@@ -40,8 +41,11 @@ val INVISIBLE_POINT = Point(Integer.MIN_VALUE, Integer.MIN_VALUE)
  * For now, the PositionableContentLayoutManager does not contain actual Swing components so we do
  * not need to layout them, just calculate the size of the layout. Eventually, PositionableContent
  * will end up being actual Swing components and we will not need this specialized LayoutManager.
+ *
+ * @param scope [CoroutineScope] for current layout manager, null for
+ *   [SinglePositionableContentLayoutManager]
  */
-abstract class PositionableContentLayoutManager : LayoutManager {
+abstract class PositionableContentLayoutManager(val scope: CoroutineScope?) : LayoutManager {
   /**
    * Method called by the [PositionableContentLayoutManager] to make sure that the layout of the
    * [PositionableContent]s to ask them to be laid out within the [SceneViewPanel].
@@ -58,8 +62,7 @@ abstract class PositionableContentLayoutManager : LayoutManager {
    * One extra buffer capacity is needed as [_layoutContainerFlow] is updated outside of the suspend
    * function (using [MutableSharedFlow.tryEmit] instead of [MutableSharedFlow.emit]
    */
-  private val _layoutContainerFlow: MutableSharedFlow<Unit> =
-    MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+  private val _layoutContainerFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
 
   /** Notifies when [layoutContainer(parent: Container)] is called. */
   val layoutContainerFlow: SharedFlow<Unit> = _layoutContainerFlow.asSharedFlow()
@@ -78,7 +81,7 @@ abstract class PositionableContentLayoutManager : LayoutManager {
       .filterNot { it.isVisible() }
       .forEach { it.positionableAdapter.setLocation(INVISIBLE_POINT.x, INVISIBLE_POINT.y) }
 
-    _layoutContainerFlow.tryEmit(Unit)
+    scope?.launch { _layoutContainerFlow.emit(Unit) }
   }
 
   open fun minimumLayoutSize(

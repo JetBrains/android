@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.TestSceneManager
 import com.google.common.collect.ImmutableList
@@ -38,6 +39,7 @@ import java.awt.Toolkit
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.CoroutineScope
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -79,7 +81,13 @@ class InteractionHandlerTest {
         }
       }
 
-    val surface = Surface(rule.project, handlerProvider, actionManagerProvider)
+    val surface =
+      Surface(
+        rule.testRootDisposable.createCoroutineScope(),
+        rule.project,
+        handlerProvider,
+        actionManagerProvider,
+      )
     Disposer.register(rule.testRootDisposable, surface)
     surface.activate()
     val toolbar = surface.actionManager.designSurfaceToolbar
@@ -119,10 +127,11 @@ class InteractionHandlerTest {
 }
 
 private class Surface(
+  scope: CoroutineScope,
   project: Project,
   interact: (DesignSurface<SceneManager>) -> InteractionHandler,
   actionManager: (DesignSurface<SceneManager>) -> ActionManager<out DesignSurface<in SceneManager>>,
-  testLayoutManager: TestLayoutManager = TestLayoutManager(),
+  testLayoutManager: TestLayoutManager = TestLayoutManager(scope),
 ) :
   DesignSurface<SceneManager>(
     project = project,

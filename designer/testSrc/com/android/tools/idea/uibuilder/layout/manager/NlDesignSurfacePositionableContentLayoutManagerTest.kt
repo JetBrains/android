@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.layout.manager
 
-import com.android.testutils.delayUntilCondition
+import androidx.compose.runtime.mutableStateOf
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -52,61 +53,52 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
     Disposer.dispose(parentDisposable)
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Test
-  fun testSetLayoutManagerWillResetTheScrollPosition() {
-    runBlocking(uiThread) {
-      val mockedSurface = mock<NlDesignSurface>()
-      var layoutUpdates = 0
-      whenever(mockedSurface.onLayoutUpdated(any())).then { layoutUpdates++ }
-
-      val layoutManager1 = GridLayoutManager()
-      val layoutManager2 = GridLayoutManager()
-      val contentLayoutManager =
-        NlDesignSurfacePositionableContentLayoutManager(
-            SurfaceLayoutOption(
-              "",
-              { layoutManager1 },
-              layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
-            )
-          )
-          .apply {
-            surface = mockedSurface
-            Disposer.register(parentDisposable, this)
-          }
-      assertEquals(0, layoutUpdates)
-      AndroidCoroutineScope(parentDisposable).launch(uiThread) {
-        contentLayoutManager.currentLayoutOption.collect { mockedSurface.onLayoutUpdated(it) }
-      }
-      contentLayoutManager.currentLayoutOption.value =
-        SurfaceLayoutOption(
-          "",
-          { layoutManager2 },
-          layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+  fun testSetLayoutManager() = runTest {
+    val layoutUpdates = mutableStateOf(0)
+    val contentLayoutManager =
+      NlDesignSurfacePositionableContentLayoutManager(
+          backgroundScope,
+          SurfaceLayoutOption(
+            "",
+            { GridLayoutManager() },
+            layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+          ),
         )
-      delayUntilCondition(250) { layoutUpdates == 1 }
-      assertEquals(1, layoutUpdates)
+        .apply { surface = mock<NlDesignSurface>() }
+    assertEquals(0, layoutUpdates.value)
+    backgroundScope.launch {
+      contentLayoutManager.currentLayoutOption.collect { layoutUpdates.value++ }
     }
+    contentLayoutManager.currentLayoutOption.value =
+      SurfaceLayoutOption(
+        "",
+        { GridLayoutManager() },
+        layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
+      )
+    runCurrent()
+    advanceUntilIdle()
+    assertEquals(1, layoutUpdates.value)
   }
 
   @Test
   fun testMeasurePosition() {
-    runBlocking(uiThread) {
+    runTest {
       val mockedSurface = mock<NlDesignSurface>()
       whenever(mockedSurface.onLayoutUpdated(any())).then {}
       val layoutManager1 = GridLayoutManager()
       val layoutManager2 = GridLayoutManager()
       val contentLayoutManager =
         NlDesignSurfacePositionableContentLayoutManager(
+            backgroundScope,
             SurfaceLayoutOption(
               "",
               { layoutManager1 },
               layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
-            )
+            ),
           )
-          .apply {
-            surface = mockedSurface
-            Disposer.register(parentDisposable, this)
-          }
+          .apply { surface = mockedSurface }
       contentLayoutManager.currentLayoutOption.value =
         SurfaceLayoutOption(
           "",

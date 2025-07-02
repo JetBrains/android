@@ -25,7 +25,7 @@ import java.awt.Point
 /**
  * A [PositionableContentLayoutManager] for a [DesignSurface] with only one [PositionableContent].
  */
-class SinglePositionableContentLayoutManager : PositionableContentLayoutManager() {
+class SinglePositionableContentLayoutManager : PositionableContentLayoutManager(null) {
   override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {
     content.singleOrNull()?.setLocation(0, 0)
   }

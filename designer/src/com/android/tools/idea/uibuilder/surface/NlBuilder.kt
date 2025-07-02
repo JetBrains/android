@@ -30,6 +30,7 @@ import com.android.tools.idea.common.surface.SurfaceInteractable
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.rendering.RenderSettings.Companion.getProjectSettings
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -41,6 +42,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.util.function.Supplier
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -303,7 +305,10 @@ class NlSurfaceBuilder(
 
   fun build(): NlDesignSurface {
     val nlDesignSurfacePositionableContentLayoutManager =
-      NlDesignSurfacePositionableContentLayoutManager(surfaceLayoutOption ?: DEFAULT_OPTION)
+      NlDesignSurfacePositionableContentLayoutManager(
+        parentDisposable.createCoroutineScope(),
+        surfaceLayoutOption ?: DEFAULT_OPTION,
+      )
     val surface =
       NlDesignSurface(
         project,
@@ -323,7 +328,7 @@ class NlSurfaceBuilder(
       )
 
     Disposer.register(parentDisposable, surface)
-    Disposer.register(surface, nlDesignSurfacePositionableContentLayoutManager)
+    Disposer.register(surface, { nlDesignSurfacePositionableContentLayoutManager.scope?.cancel() })
 
     nlDesignSurfacePositionableContentLayoutManager.surface = surface
     AndroidCoroutineScope(surface).launch {

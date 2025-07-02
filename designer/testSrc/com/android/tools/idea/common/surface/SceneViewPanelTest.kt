@@ -45,11 +45,11 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -65,7 +65,7 @@ class SceneViewPanelTest {
   @get:Rule val projectRule = ApplicationRule()
 
   @Test
-  fun createPanelWithoutOrganization(): Unit = runBlocking {
+  fun createPanelWithoutOrganization(): Unit = runTest {
     val group = OrganizationGroup("1", "1")
     val allSceneViews = (1..6).map { createSceneView { group } }
     var sceneViews = allSceneViews.toImmutableList()
@@ -79,7 +79,7 @@ class SceneViewPanelTest {
           interactionLayersProvider = { emptyList() },
           actionManagerProvider = { TestActionManager(Mockito.mock()) },
           shouldRenderErrorsPanel = { false },
-          layoutManager = TestLayoutManager(organizationEnabled = false),
+          layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = false),
         )
         .apply {
           setNoComposeHeadersForTests()
@@ -118,7 +118,7 @@ class SceneViewPanelTest {
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Test
-  fun createPanelWithOrganization(): Unit = runBlocking {
+  fun createPanelWithOrganization(): Unit = runTest {
     val group1 = OrganizationGroup("1", "1")
     val group2 = OrganizationGroup("1", "1")
     val allSceneViews =
@@ -140,7 +140,7 @@ class SceneViewPanelTest {
           interactionLayersProvider = { emptyList() },
           actionManagerProvider = { TestActionManager(Mockito.mock()) },
           shouldRenderErrorsPanel = { false },
-          layoutManager = TestLayoutManager(organizationEnabled = true),
+          layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = true),
         )
         .apply {
           setNoComposeHeadersForTests()
@@ -191,7 +191,7 @@ class SceneViewPanelTest {
           interactionLayersProvider = { emptyList() },
           actionManagerProvider = { TestActionManager(Mockito.mock()) },
           shouldRenderErrorsPanel = { false },
-          layoutManager = TestLayoutManager(organizationEnabled = true),
+          layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = true),
         )
         .apply {
           setNoComposeHeadersForTests()
@@ -232,7 +232,7 @@ class SceneViewPanelTest {
           interactionLayersProvider = { emptyList() },
           actionManagerProvider = { TestActionManager(Mockito.mock()) },
           shouldRenderErrorsPanel = { false },
-          layoutManager = TestLayoutManager(organizationEnabled = true),
+          layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = true),
         )
         .apply {
           setNoComposeHeadersForTests()
@@ -261,7 +261,7 @@ class SceneViewPanelTest {
   fun disableOrganization(): Unit = runTest {
     val group1 = OrganizationGroup("1", "1")
     val group2 = OrganizationGroup("1", "1")
-    val layoutManager = TestLayoutManager(organizationEnabled = true)
+    val layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = true)
     val sceneViews =
       mutableListOf(
         createSceneView { group1 },
@@ -302,7 +302,7 @@ class SceneViewPanelTest {
   fun enableOrganization(): Unit = runTest {
     val group1 = OrganizationGroup("1", "1")
     val group2 = OrganizationGroup("1", "1")
-    val layoutManager = TestLayoutManager(organizationEnabled = false)
+    val layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = false)
     val sceneViews =
       mutableListOf(
         createSceneView { group1 },
@@ -345,7 +345,7 @@ class SceneViewPanelTest {
   fun changeOrganizationGroup(): Unit = runTest {
     val group1 = OrganizationGroup("1", "1")
     val group2 = OrganizationGroup("1", "1")
-    val layoutManager = TestLayoutManager(organizationEnabled = true)
+    val layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = true)
     val sceneViews = mutableListOf(createSceneView { group1 }, createSceneView { group2 })
 
     val panel =
@@ -388,7 +388,7 @@ class SceneViewPanelTest {
   }
 
   @Test
-  fun panelIsDisposed() = runBlocking {
+  fun panelIsDisposed() = runTest {
     val sceneViews = (1..6).map { createSceneView() }
     val scope = TestScope()
 
@@ -400,7 +400,7 @@ class SceneViewPanelTest {
           interactionLayersProvider = { emptyList() },
           actionManagerProvider = { TestActionManager(Mockito.mock()) },
           shouldRenderErrorsPanel = { false },
-          layoutManager = TestLayoutManager(organizationEnabled = false),
+          layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = false),
         )
         .apply {
           setNoComposeHeadersForTests()
@@ -442,7 +442,7 @@ class SceneViewPanelTest {
           interactionLayersProvider = { emptyList() },
           actionManagerProvider = { TestActionManager(Mockito.mock()) },
           shouldRenderErrorsPanel = { false },
-          layoutManager = TestLayoutManager(organizationEnabled = true),
+          layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = true),
         )
         .apply {
           setNoComposeHeadersForTests()
@@ -476,7 +476,7 @@ class SceneViewPanelTest {
   fun headersAreNotNullWhenGetPositionableContent() = runTest {
     val group1 = OrganizationGroup("1", "1")
     val group2 = OrganizationGroup("1", "1")
-    val layoutManager = TestLayoutManager(organizationEnabled = true)
+    val layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = true)
     val sceneViews =
       mutableListOf(
         createSceneView { group1 },
@@ -530,7 +530,7 @@ class SceneViewPanelTest {
           interactionLayersProvider = { emptyList() },
           actionManagerProvider = { TestActionManager(Mockito.mock()) },
           shouldRenderErrorsPanel = { false },
-          layoutManager = TestLayoutManager(organizationEnabled = true),
+          layoutManager = TestLayoutManager(backgroundScope, organizationEnabled = true),
         )
         .apply {
           setNoComposeHeadersForTests()
@@ -562,8 +562,8 @@ class SceneViewPanelTest {
     sceneViews.forEach { Disposer.dispose(it.sceneManager) }
   }
 
-  private class TestLayoutManager(organizationEnabled: Boolean) :
-    PositionableContentLayoutManager(), LayoutManagerSwitcher {
+  private class TestLayoutManager(scope: CoroutineScope, organizationEnabled: Boolean) :
+    PositionableContentLayoutManager(scope), LayoutManagerSwitcher {
 
     override val currentLayoutOption =
       MutableStateFlow(

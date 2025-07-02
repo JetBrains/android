@@ -16,18 +16,18 @@
 package com.android.tools.idea.common.layout.manager
 
 import androidx.compose.runtime.mutableStateOf
-import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.layout.positionable.PositionableContent
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.testFramework.ApplicationRule
 import java.awt.Dimension
 import java.awt.Point
 import javax.swing.JPanel
 import kotlin.test.assertEquals
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,7 +35,7 @@ class PositionableContentLayoutManagerTest {
 
   @get:Rule val projectRule = ApplicationRule()
 
-  class TestLayoutManager : PositionableContentLayoutManager() {
+  class TestLayoutManager(scope: CoroutineScope) : PositionableContentLayoutManager(scope) {
 
     override fun layoutContainer(
       content: Collection<PositionableContent>,
@@ -54,25 +54,24 @@ class PositionableContentLayoutManagerTest {
     ): Map<PositionableContent, Point> = emptyMap()
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Test
-  fun relayoutHappened(): Unit = runBlocking {
+  fun relayoutHappened(): Unit = runTest {
     val relayoutCount = mutableStateOf(0)
-    val layoutManager = TestLayoutManager()
-    val panel = JPanel(layoutManager)
-    val ui = FakeUi(panel)
-    panel.revalidate()
-    val job = launch { layoutManager.layoutContainerFlow.collect { relayoutCount.value++ } }
+    val layoutManager = TestLayoutManager(backgroundScope)
+    val panel = JPanel(layoutManager).apply { size = Dimension(100, 100) }
+    backgroundScope.launch { layoutManager.layoutContainerFlow.collect { relayoutCount.value++ } }
 
     // With or without revalidate
     panel.revalidate()
-    withContext(uiThread) { ui.layoutAndDispatchEvents() }
-    delay(100)
+    panel.doLayout()
+    runCurrent()
+    advanceUntilIdle()
     assertEquals(1, relayoutCount.value)
 
-    withContext(uiThread) { ui.layoutAndDispatchEvents() }
-    delay(100)
+    panel.doLayout()
+    runCurrent()
+    advanceUntilIdle()
     assertEquals(2, relayoutCount.value)
-
-    job.cancel()
   }
 }

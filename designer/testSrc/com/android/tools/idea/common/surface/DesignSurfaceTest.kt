@@ -27,6 +27,7 @@ import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.TestSceneManager
 import com.google.common.collect.ImmutableList
@@ -42,6 +43,7 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
@@ -470,7 +472,7 @@ class TestInteractionHandler(surface: DesignSurface<*>) : InteractionHandlerBase
     null
 }
 
-class TestLayoutManager : PositionableContentLayoutManager() {
+class TestLayoutManager(scope: CoroutineScope) : PositionableContentLayoutManager(scope) {
   override fun layoutContainer(
     content: Collection<PositionableContent>,
     availableSize: Dimension,
@@ -522,7 +524,7 @@ class TestDesignSurface(
     { model, surface ->
       TestSceneManager(model, surface)
     },
-  testLayoutManager: TestLayoutManager = TestLayoutManager(),
+  testLayoutManager: TestLayoutManager = TestLayoutManager(disposable.createCoroutineScope()),
   fitScaleProvider: () -> Double = { 1.0 },
   waitForRenderBeforeZoomToFit: Boolean = false,
 ) :

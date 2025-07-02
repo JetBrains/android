@@ -21,11 +21,10 @@ import com.android.tools.idea.common.layout.manager.PositionableContentLayoutMan
 import com.android.tools.idea.common.layout.option.SurfaceLayoutManager
 import com.android.tools.idea.common.layout.option.layout
 import com.android.tools.idea.common.layout.positionable.PositionableContent
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.intellij.openapi.Disposable
 import java.awt.Dimension
 import java.awt.Point
 import kotlin.math.max
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -34,14 +33,14 @@ import kotlinx.coroutines.launch
  * [SurfaceLayoutManager] to layout the different [PositionableContent]s. The [SurfaceLayoutManager]
  * can be switched at runtime.
  */
-class NlDesignSurfacePositionableContentLayoutManager(layoutOption: SurfaceLayoutOption) :
-  PositionableContentLayoutManager(), LayoutManagerSwitcher, Disposable.Default {
+class NlDesignSurfacePositionableContentLayoutManager(
+  scope: CoroutineScope,
+  layoutOption: SurfaceLayoutOption,
+) : PositionableContentLayoutManager(scope), LayoutManagerSwitcher {
 
   lateinit var surface: NlDesignSurface
 
   override val currentLayoutOption = MutableStateFlow(layoutOption)
-
-  private val scope = AndroidCoroutineScope(this)
 
   private var currentLayout = layoutOption.createLayoutManager()
 
