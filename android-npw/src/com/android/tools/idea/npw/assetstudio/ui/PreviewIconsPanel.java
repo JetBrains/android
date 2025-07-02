@@ -30,6 +30,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.IconUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBImageIcon;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -37,7 +38,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,7 +48,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
@@ -88,7 +87,7 @@ public class PreviewIconsPanel extends JPanel {
 
   private void setupUI() {
     myRootPanel = new JPanel();
-    myRootPanel.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+    myRootPanel.setLayout(new GridLayoutManager(2, 1, JBUI.emptyInsets(), -1, -1));
     myRootPanel.setOpaque(true);
     myRootPanel.setBorder(
       BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10), null, TitledBorder.DEFAULT_JUSTIFICATION,
