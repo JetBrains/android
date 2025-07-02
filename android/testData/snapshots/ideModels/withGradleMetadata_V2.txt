@@ -23,6 +23,7 @@ LIBRARY_TABLE
         artifact                      : <ROOT>/repo/org/gradle/sample/library/1.1/library-1.1.jar
         artifactAddress               : org.gradle.sample:library:1.1@jar
         component                     : org.gradle.sample:library:1.1
+        - srcJars                     : <ROOT>/repo/org/gradle/sample/library/1.1/library-1.1-sources.jar
     - library                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
