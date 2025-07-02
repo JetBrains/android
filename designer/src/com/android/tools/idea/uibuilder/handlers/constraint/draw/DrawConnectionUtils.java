@@ -27,12 +27,11 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
-import java.awt.Polygon;
 import java.awt.Stroke;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,19 +46,8 @@ public class DrawConnectionUtils {
   private static final boolean DEBUG = false;
   private static final boolean DRAW_ARROW = false;
 
-  private static Polygon sLeftArrow;
-  private static Polygon sTopArrow;
-  private static Polygon sRightArrow;
-  private static Polygon sBottomArrow;
-
   static Font sFont = JBFont.create(new Font("Helvetica",Font.PLAIN, 12));
   static Font sFontReference = JBFont.create(new Font("Helvetica", Font.ITALIC | Font.BOLD, 12));
-
-  private static final Font sSmallFont = JBFont.create(new Font("Helvetica", Font.PLAIN, 8));
-
-  public static Stroke
-    sSpreadDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
-                                          BasicStroke.JOIN_BEVEL, 0, new float[]{1, scale(4)}, 0);
 
   public static Stroke
     sDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
@@ -73,40 +61,9 @@ public class DrawConnectionUtils {
   /**
    * Utility function to draw a circle text centered at coordinates (x, y)
    *
-   * @param g    graphics context
-   * @param font the font we use to draw the text
-   * @param text the text to display
-   * @param x    x coordinate
-   * @param y    y coordinate
-   */
-  public static void drawCircledText(Graphics2D g, Font font, String text, @SwingCoordinate int x, @SwingCoordinate int y) {
-    Graphics2D g2 = (Graphics2D)g.create();
-    g2.setFont(font);
-    FontMetrics fm = g2.getFontMetrics();
-    int padding = 4;
-    Rectangle2D bounds = fm.getStringBounds(text, g2);
-    double th = bounds.getHeight();
-    double tw = bounds.getWidth();
-    float radius = (float)(Math.max(th, tw) / 2f + padding);
-    Ellipse2D.Float circle =
-      new Ellipse2D.Float(x - radius, y - radius, 2 * radius + 1, 2 * radius + 1);
-    g2.fill(circle);
-    g2.setColor(Color.BLACK);
-    g2.drawString(text, (int)(x - tw / 2), (y + fm.getAscent() / 2));
-    if (DEBUG) {
-      g2.setColor(Color.RED);
-      g2.drawLine(x - 50, y, x + 50, y);
-      g2.drawLine(x, y - 50, x, y + 50);
-    }
-    g2.dispose();
-  }
-
-  /**
-   * Utility function to draw a circle text centered at coordinates (x, y)
-   *
    * @param g         graphics context
    * @param font      the font we use to draw the text
-   * @param textColor
+   * @param textColor the color of the text
    * @param text      the text to display
    * @param x         x coordinate
    * @param y         y coordinate
@@ -138,22 +95,11 @@ public class DrawConnectionUtils {
   }
 
   /**
-   * Utility function to draw a circle text centered at coordinates (x, y)
-   *
-   * @param g    graphics context
-   * @param text the text to display
-   * @param x    x coordinate
-   * @param y    y coordinate
-   */
-  public static void drawCircledText(Graphics2D g, String text, @SwingCoordinate int x, @SwingCoordinate int y) {
-    drawCircledText(g, sSmallFont, text, x, y);
-  }
-
-  /**
    * Utility function to draw an horizontal margin indicator
    *
    * @param g    graphics context
    * @param text the text to display
+   * @param isMarginReference whether this is a reference margin
    * @param x1   x1 coordinate
    * @param x2   x2 coordinate
    * @param y    y coordinate
@@ -186,7 +132,6 @@ public class DrawConnectionUtils {
     g.setFont(font);
     int padding = scale(4);
     Rectangle2D bounds = fm.getStringBounds(text, g);
-    int th = (int)bounds.getHeight();
     int tw = (int)bounds.getWidth();
 
     int offset = 3 * CONNECTION_ARROW_SIZE;
@@ -223,6 +168,7 @@ public class DrawConnectionUtils {
    *
    * @param g    graphics context
    * @param text the text to display
+   * @param isMarginReference whether this is a reference margin
    * @param x    x coordinate
    * @param y1   y1 coordinate
    * @param y2   y2 coordinate
@@ -293,20 +239,14 @@ public class DrawConnectionUtils {
   }
 
   /**
-   * Utility function to draw in (x, y) one of the Polygon used for the arrows
+   * Create an arrow polygon
    *
-   * @param g     Graphics context
-   * @param arrow the polygon representing the arrow we want to draw
-   * @param x     x coordinate
-   * @param y     y coordinate
+   * @param direction direction of the arrow
+   * @param x x origin
+   * @param y y origin
+   * @param xPoints array of x points to fill
+   * @param yPoints array of y points to fill
    */
-  public static void drawArrow(Graphics2D g, Polygon arrow, @SwingCoordinate int x, @SwingCoordinate int y) {
-    arrow.translate(x, y);
-    g.draw(arrow);
-    g.fill(arrow);
-    arrow.translate(-x, -y);
-  }
-
   public static void getArrow(int direction,
                               @SwingCoordinate int x,
                               @SwingCoordinate int y,
@@ -342,6 +282,15 @@ public class DrawConnectionUtils {
     }
   }
 
+  /**
+   * Create a small arrow polygon
+   *
+   * @param direction direction of the arrow
+   * @param x x origin
+   * @param y y origin
+   * @param xPoints array of x points to fill
+   * @param yPoints array of y points to fill
+   */
   public static void getSmallArrow(int direction,
                                    @SwingCoordinate int x,
                                    @SwingCoordinate int y,
@@ -378,21 +327,6 @@ public class DrawConnectionUtils {
   }
 
   /**
-   * This is used to draw ageneral path
-   *
-   * @param path
-   * @param xPoints
-   * @param yPoints
-   * @param length
-   * @param archLen
-   */
-  static void drawLines(GeneralPath path, @SwingCoordinate int[] xPoints, @SwingCoordinate int[] yPoints, int length, int archLen) {
-    for (int i = 1; i < length; i++) {
-      path.lineTo(xPoints[i], yPoints[i]);
-    }
-  }
-
-  /**
    * removes a zigzag (veering to right and left alternately.) from the list of points.
    * the point are modified and the shortened length is returned
    *
@@ -402,14 +336,14 @@ public class DrawConnectionUtils {
    * @param distance maximum distance to be considered a zigzag
    * @return the new length
    */
+  @SuppressWarnings("SameParameterValue")
   static int removeZigZag(@SwingCoordinate int[] xPoints, @SwingCoordinate int[] yPoints, int length, @SwingCoordinate int distance) {
     int dir1 = -1;
     int dir2 = -1;
     int dir3 = -1;
-    int dir4 = -1;
+    int dir4;
     int len2 = distance;
     int len3 = distance;
-    int remove = -1;
     for (int i = 0; i < length - 1; i++) {
       int dx = xPoints[i + 1] - xPoints[i];
       int dy = yPoints[i + 1] - yPoints[i];
@@ -422,7 +356,6 @@ public class DrawConnectionUtils {
       int len4 = Math.abs((dx == 0) ? dy : dx);
       if (dir1 >= 0) {
         if (dir1 == dir3 && dir2 == dir4 && distance > len2) { // if we move in the same direction
-          remove = i - 2;
           if (dir1 == 0 || dir1 == 2) {
             yPoints[i - 2] = yPoints[i];
           }
@@ -452,16 +385,14 @@ public class DrawConnectionUtils {
    * it assumes the path has already been moved to the start point
    *
    * @param path    path that will be filled
-   * @param xPoints
-   * @param yPoints
-   * @param length
-   * @param archLen
+   * @param xPoints x points of the path
+   * @param yPoints y points of the path
+   * @param length number of points
+   * @param archLen length of the arches
    */
   public static void drawRound(Path2D.Float path, @SwingCoordinate int[] xPoints, @SwingCoordinate int[] yPoints, int length, int archLen) {
     int[] arches = new int[xPoints.length - 1];
-    for (int i = 0; i < arches.length; i++) {
-      arches[i] = archLen;
-    }
+    Arrays.fill(arches, archLen);
 
     drawRound(path, xPoints, yPoints, length, arches);
   }
@@ -471,13 +402,12 @@ public class DrawConnectionUtils {
    * This will only work if the path consist of only vertical or horizontal lines.
    * it assumes the path has already been moved to the start point
    *
-   * @param path              path that will be filled
-   * @param secondarySelector
-   * @param startx
-   * @param xPoints
-   * @param yPoints
-   * @param length
-   * @param archLen
+   * @param pick the picker to use
+   * @param obj the object to pick
+   * @param xPoints x points of the path
+   * @param yPoints y points of the path
+   * @param length number of points
+   * @param archLen length of the arches
    */
   public static void drawPick(ScenePicker.Writer pick,
                               Object obj,
@@ -486,9 +416,7 @@ public class DrawConnectionUtils {
                               int length,
                               int archLen) {
     int[] arches = new int[xPoints.length - 1];
-    for (int i = 0; i < arches.length; i++) {
-      arches[i] = archLen;
-    }
+    Arrays.fill(arches, archLen);
 
     pickRound(pick, obj, xPoints, yPoints, length, arches);
   }
@@ -501,13 +429,12 @@ public class DrawConnectionUtils {
    * The ith element in arches represents the radius of the curve between
    * the ith and ith + 1 points in xPoints and yPoints
    *
-   * @param path    path that will be filled
-   * @param o
-   * @param startx
-   * @param xPoints
-   * @param yPoints
-   * @param length
-   * @param arches
+   * @param pick    the picker to use
+   * @param obj the object to pick
+   * @param xPoints x points of the path
+   * @param yPoints y points of the path
+   * @param length number of points
+   * @param arches length of the arches
    */
   public static void pickRound(ScenePicker.Writer pick,
                                Object obj,
@@ -557,6 +484,20 @@ public class DrawConnectionUtils {
     pick.addLine(obj, 4, lastx, lasty, xPoints[p], yPoints[p], 4);
   }
 
+  /**
+   * Pick an arc
+   * @param pick the picker to use
+   * @param obj the object to pick
+   * @param x0 x start
+   * @param y0 y start
+   * @param x1 x end
+   * @param y1 y end
+   * @param a horizontal radius
+   * @param b vertical radius
+   * @param theta rotation
+   * @param isMoreThanHalf true if the arc is larger than 180 degrees
+   * @param isPositiveArc true if the arc is drawn in the positive direction
+   */
   private static void pickArc(ScenePicker.Writer pick,
                               Object obj, float x0, float y0, float x1, float y1, float a, float b,
                               float theta, boolean isMoreThanHalf, boolean isPositiveArc) {
@@ -630,6 +571,7 @@ public class DrawConnectionUtils {
    * Converts an arc to cubic Bezier segments and records them in p.
    *
    * @param pick  The target for the cubic Bezier segments
+   * @param obj   The object to pick
    * @param cx    The x coordinate center of the ellipse
    * @param cy    The y coordinate center of the ellipse
    * @param a     The radius of the ellipse in the horizontal direction
@@ -691,10 +633,10 @@ public class DrawConnectionUtils {
    * the ith and ith + 1 points in xPoints and yPoints
    *
    * @param path    path that will be filled
-   * @param xPoints
-   * @param yPoints
-   * @param length
-   * @param arches
+   * @param xPoints x points of the path
+   * @param yPoints y points of the path
+   * @param length number of points
+   * @param arches length of the arches
    */
   public static void drawRound(Path2D.Float path,
                                @SwingCoordinate int[] xPoints, @SwingCoordinate int[] yPoints,
@@ -740,6 +682,19 @@ public class DrawConnectionUtils {
     path.lineTo(xPoints[p], yPoints[p]);
   }
 
+  /**
+   * Draw an arc
+   * @param p the path to draw on
+   * @param x0 x start
+   * @param y0 y start
+   * @param x1 x end
+   * @param y1 y end
+   * @param a horizontal radius
+   * @param b vertical radius
+   * @param theta rotation
+   * @param isMoreThanHalf true if the arc is larger than 180 degrees
+   * @param isPositiveArc true if the arc is drawn in the positive direction
+   */
   private static void drawArc(Path2D p, float x0, float y0, float x1, float y1, float a, float b,
                               float theta, boolean isMoreThanHalf, boolean isPositiveArc) {
 
@@ -865,79 +820,6 @@ public class DrawConnectionUtils {
   }
 
   /**
-   * Add an vertical spring between (x0, y1) and (x0, y1) to the given path object
-   *
-   * @param path the path object we'll add the spring to
-   * @param x0   the x coordinate of the spring
-   * @param y1   the y start coordinate
-   * @param y2   the y end coordiante
-   */
-  public static void addVerticalSmallSpring(Path2D.Float path, @SwingCoordinate int x0, @SwingCoordinate int y1, @SwingCoordinate int y2) {
-    int springHeight = scale(2);
-    int springWidth = scale(2);
-    int distance = Math.abs(y2 - y1);
-    int numSprings = (distance / (springHeight));
-    int leftOver = (distance - (numSprings * springHeight)) / 2;
-    path.lineTo(x0, y1);
-    path.lineTo(x0, y1 - leftOver);
-    int count = 0;
-    if (y1 > y2) {
-      for (int y = y1 - leftOver; y > y2 + leftOver; y -= springHeight) {
-        int x = (count % 2 == 0) ? x0 - springWidth : x0 + springWidth;
-        path.lineTo(x, y);
-        count++;
-      }
-    }
-    else {
-      for (int y = y1 + leftOver; y < y2 - leftOver; y += springHeight) {
-        int x = (count % 2 == 0) ? x0 - springWidth : x0 + springWidth;
-        path.lineTo(x, y);
-        count++;
-      }
-    }
-    path.lineTo(x0, y2 + leftOver);
-    path.lineTo(x0, y2);
-  }
-
-  /**
-   * Add an horizontal spring between (x1, y0) and (x2, y0) to the given path object
-   *
-   * @param path the path object we'll add the spring to
-   * @param y0   the y coordinate of the spring
-   * @param x1   the x start coordinate
-   * @param x2   the x end coordiante
-   */
-  public static void addHorizontalSmallSpring(Path2D.Float path,
-                                              @SwingCoordinate int y0,
-                                              @SwingCoordinate int x1,
-                                              @SwingCoordinate int x2) {
-    int springHeight = scale(2);
-    int springWidth = scale(2);
-    int distance = Math.abs(x2 - x1);
-    int numSprings = (distance / (springHeight));
-    int leftOver = (distance - (numSprings * springHeight)) / 2;
-    path.lineTo(x1, y0);
-    path.lineTo(x1 - leftOver, y0 - leftOver);
-    int count = 0;
-    if (x1 > x2) {
-      for (int x = x1 - leftOver; x > x2 + leftOver; x -= springHeight) {
-        int y = (count % 2 == 0) ? y0 - springWidth : y0 + springWidth;
-        path.lineTo(x, y);
-        count++;
-      }
-    }
-    else {
-      for (int x = x1 + leftOver; x < x2 - leftOver; x += springHeight) {
-        int y = (count % 2 == 0) ? y0 - springWidth : y0 + springWidth;
-        path.lineTo(x, y);
-        count++;
-      }
-    }
-    path.lineTo(x2 + leftOver, y0);
-    path.lineTo(x2, y0);
-  }
-
-  /**
    * Draw an horizontal, centered zig-zag line.
    * The color and style used for the drawing will be the current ones in the graphics context.
    *
@@ -961,6 +843,7 @@ public class DrawConnectionUtils {
    * @param dY1  positive height of the zig-zag
    * @param dY2  negative height of the zig-zag
    */
+  @SuppressWarnings("SameParameterValue")
   static void drawHorizontalZigZagLine(Path2D.Float path,
                                        @SwingCoordinate int x1,
                                        @SwingCoordinate int x2,
@@ -1014,6 +897,7 @@ public class DrawConnectionUtils {
    * @param dX1  positive width of the zig-zag
    * @param dX2  negative width of the zig-zag
    */
+  @SuppressWarnings("SameParameterValue")
   static void drawVerticalZigZagLine(Path2D.Float path,
                                      @SwingCoordinate int x,
                                      @SwingCoordinate int y1,
@@ -1043,6 +927,11 @@ public class DrawConnectionUtils {
     path.lineTo(x, y2);
   }
 
+  /**
+   * Get the vertical gap needed to draw the margin
+   * @param g the graphics context
+   * @return the vertical gap
+   */
   public static int getVerticalMarginGap(Graphics2D g) {
     g.setFont(sFont);
     return g.getFontMetrics().getHeight() + 2 * MARGIN_SPACING;
@@ -1051,9 +940,9 @@ public class DrawConnectionUtils {
   /**
    * Get horizontal gap needed to draw the margin
    *
-   * @param g
-   * @param string
-   * @return
+   * @param g the graphics context
+   * @param string the string to draw
+   * @return the horizontal gap
    */
   public static int getHorizontalMarginGap(Graphics2D g, String string) {
     g.setFont(sFont);
@@ -1063,6 +952,11 @@ public class DrawConnectionUtils {
   /**
    * draw the horizontal margin text and line.
    *
+   * @param g the graphics context
+   * @param isReference whether this is a reference margin
+   * @param x1 x1 coordinate
+   * @param x2 x2 coordinate
+   * @param y y coordinate
    * @param string The margin value to display. May be null.
    */
   public static void drawHorizontalMargin(@NotNull Graphics2D g,
@@ -1079,6 +973,11 @@ public class DrawConnectionUtils {
   /**
    * Draw the text of an horizontal margin line.
    *
+   * @param g the graphics context
+   * @param isReference whether this is a reference margin
+   * @param x1 x1 coordinate
+   * @param x2 x2 coordinate
+   * @param y y coordinate
    * @param stringColor The color of the text, may be null and use current color.
    * @param string      The margin value to display. May be null.
    */
@@ -1098,7 +997,7 @@ public class DrawConnectionUtils {
       g.setFont(sFont);
       FontMetrics metrics = g.getFontMetrics();
       Rectangle2D rect = metrics.getStringBounds(string, g);
-      float sx = (float)((x1 + x2) / 2 - rect.getWidth() / 2);
+      float sx = (float)((float)(x1 + x2) / 2 - rect.getWidth() / 2);
       float sy = (float)(y - MARGIN_SPACING - metrics.getDescent());
       if (isReference) {
         g.setFont(sFontReference);
@@ -1111,6 +1010,11 @@ public class DrawConnectionUtils {
   /**
    * draw the vertical margin text and line.
    *
+   * @param g the graphics context
+   * @param isReference whether this is a reference margin
+   * @param x x coordinate
+   * @param y1 y1 coordinate
+   * @param y2 y2 coordinate
    * @param string The margin value to display. May be null.
    */
   public static void drawVerticalMargin(@NotNull Graphics2D g,
@@ -1127,8 +1031,13 @@ public class DrawConnectionUtils {
   /**
    * Draw the text of a vertical margin line.
    *
+   * @param g the graphics context
    * @param stringColor The color of the text, may be null and use current color.
    * @param string      The margin value to display. May be null.
+   * @param isReference whether this is a reference margin
+   * @param x x coordinate
+   * @param y1 y1 coordinate
+   * @param y2 y2 coordinate
    */
   public static void drawVerticalMarginString(@NotNull Graphics2D g,
                                                 @Nullable Color stringColor,
@@ -1156,6 +1065,23 @@ public class DrawConnectionUtils {
     }
   }
 
+  /**
+   * Draw a chain
+   * @param g the graphics context
+   * @param hover true if the chain is hovered
+   * @param startX x start
+   * @param startY y start
+   * @param endX x end
+   * @param endY y end
+   * @param scaleSource the scale of the source
+   * @param scaleDest the scale of the destination
+   * @param sourceDirection the direction of the source
+   * @param destDirection the direction of the destination
+   * @param picker the picker to use
+   * @param secondarySelector the secondary selector
+   * @param color the color set to use
+   * @param modeTo the mode of the connection
+   */
   public static void drawChain(Graphics2D g,
                                boolean hover,
                                @SwingCoordinate int startX,
@@ -1185,12 +1111,12 @@ public class DrawConnectionUtils {
       g.setColor(DrawConnection.modeGetConstraintsColor(DrawConnection.MODE_WILL_HOVER, color));
       Stroke tmpStroke = g.getStroke();
       g.setStroke(DrawConnection.myHoverStroke);
-      hoverPath.moveTo(x1 = localStartX, y1 = localStartY);
-      hoverPath.curveTo(x2 = localStartX + scaleSource * DrawConnection.dirDeltaX[localSourceDirection],
-                        y2 = localStartY + scaleSource * DrawConnection.dirDeltaY[localSourceDirection],
-                        x3 = localEndX + scaleDest * DrawConnection.dirDeltaX[localDestDirection],
-                        y3 = localEndY + scaleDest * DrawConnection.dirDeltaY[localDestDirection],
-                        x4 = localEndX, y4 = localEndY);
+      hoverPath.moveTo(localStartX, localStartY);
+      hoverPath.curveTo(localStartX + scaleSource * DrawConnection.dirDeltaX[localSourceDirection],
+                        localStartY + scaleSource * DrawConnection.dirDeltaY[localSourceDirection],
+                        localEndX + scaleDest * DrawConnection.dirDeltaX[localDestDirection],
+                        localEndY + scaleDest * DrawConnection.dirDeltaY[localDestDirection],
+                        localEndX, localEndY);
       g.draw(hoverPath);
       hoverPath.reset();
       g.setStroke(tmpStroke);
@@ -1208,6 +1134,23 @@ public class DrawConnectionUtils {
     g.draw(path);
   }
 
+  /**
+   * Get the stroke to use for a given connection
+   * @param strokeType the type of the stroke
+   * @param flip_chain true to flip the chain
+   * @param mode the mode of the connection
+   * @param thickChainStroke1 the first thick chain stroke
+   * @param thickChainStroke2 the second thick chain stroke
+   * @param chainStroke1 the first chain stroke
+   * @param chainStroke2 the second chain stroke
+   * @param thickSpringStroke the thick spring stroke
+   * @param springStroke the spring stroke
+   * @param thickDashStroke the thick dash stroke
+   * @param dashStroke the dash stroke
+   * @param thickNormalStroke the thick normal stroke
+   * @param normalStroke the normal stroke
+   * @return the stroke to use
+   */
   public static Stroke getStroke(DrawConnection.StrokeType strokeType,
                                  boolean flip_chain,
                                  int mode,

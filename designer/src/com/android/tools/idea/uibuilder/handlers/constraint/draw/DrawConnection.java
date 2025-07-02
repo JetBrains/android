@@ -60,9 +60,6 @@ public class DrawConnection implements DrawCommand {
   public static final int HOVER_FLAG = 0x100;
   public static final int HOVER_MASK = ~0x100;
 
-  public static final int TOTAL_MODES = 3;
-  private static int[] ourModeLookup = null;
-
   public static final int DIR_LEFT = 0;
   public static final int DIR_RIGHT = 1;
   public static final int DIR_TOP = 2;
@@ -92,7 +89,6 @@ public class DrawConnection implements DrawCommand {
   int myModeFrom; // use to describe various display modes 0=default 1 = Source selected
   int myModeTo;
   long myStateChangeTime;
-  public static Stroke myBackgroundStroke = new BasicStroke(scale(8));
   static Stroke myDashStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{scale(4), scale(6)}, 0f);
   static Stroke mySpringStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{scale(4), scale(4)}, 0f);
   static Stroke myChainStroke1 = new FancyStroke(FancyStroke.Type.HALF_CHAIN1, scale(2.5f), scale(9), 1);
@@ -250,26 +246,17 @@ public class DrawConnection implements DrawCommand {
 
   public static Color modeGetConstraintsColor(int mode, ColorSet color) {
     mode &= HOVER_MASK;
-    switch (mode) {
-      case MODE_NORMAL:
-        return color.getConstraints();
-      case MODE_VIEW_SELECTED:
-        return color.getSelectedConstraints();
-      case MODE_COMPUTED:
-        return color.getCreatedConstraints();
-      case MODE_DELETING:
-        return color.getAnchorDisconnectionCircle();
-      case MODE_SUBDUED:
-        return color.getSubduedConstraints();
-      case MODE_CONSTRAINT_SELECTED:
-        return color.getSelectedConstraints();
-      case MODE_WILL_HOVER:
-        return color.getLassoSelectionFill();
-    }
-    return color.getConstraints();
+    return switch (mode) {
+      case MODE_VIEW_SELECTED, MODE_CONSTRAINT_SELECTED -> color.getSelectedConstraints();
+      case MODE_COMPUTED -> color.getCreatedConstraints();
+      case MODE_DELETING -> color.getAnchorDisconnectionCircle();
+      case MODE_SUBDUED -> color.getSubduedConstraints();
+      case MODE_WILL_HOVER -> color.getLassoSelectionFill();
+      default -> color.getConstraints();
+    };
   }
 
-  enum StrokeType {
+  public enum StrokeType {
     DASH,
     CHAIN,
     SPRING,
@@ -285,17 +272,12 @@ public class DrawConnection implements DrawCommand {
   }
 
   public static Color modeGetMarginColor(int mode, ColorSet color) {
-    switch (mode) {
-      case MODE_NORMAL:
-        return color.getMargins();
-      case MODE_VIEW_SELECTED:
-        return color.getConstraints();
-      case MODE_COMPUTED:
-        return color.getHighlightedConstraints();
-      case MODE_SUBDUED:
-        return color.getSubduedConstraints();
-    }
-    return color.getMargins();
+    return switch (mode) {
+      case MODE_VIEW_SELECTED -> color.getConstraints();
+      case MODE_COMPUTED -> color.getHighlightedConstraints();
+      case MODE_SUBDUED -> color.getSubduedConstraints();
+      default -> color.getMargins();
+    };
   }
 
   static Color interpolate(Color fromColor, Color toColor, float percent) {
@@ -800,9 +782,9 @@ public class DrawConnection implements DrawCommand {
           g.setStroke(myHoverStroke);
           GeneralPath hoverPath = new GeneralPath(ourPath);
           hoverPath
-            .curveTo(x2 = startx + scale_source * dirDeltaX[sourceDirection], y2 = starty + scale_source * dirDeltaY[sourceDirection],
-                     x3 = endx + dx + scale_dest * dirDeltaX[destDirection], y3 = endy + dy + scale_dest * dirDeltaY[destDirection],
-                     x4 = endx + dx, y4 = endy + dy);
+            .curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
+                     endx + dx + scale_dest * dirDeltaX[destDirection], endy + dy + scale_dest * dirDeltaY[destDirection],
+                     endx + dx, endy + dy);
           g.draw(hoverPath);
           g.setStroke(tmpStroke);
         }
@@ -853,10 +835,10 @@ public class DrawConnection implements DrawCommand {
                     dest.x + dest.width / 2., dest.y + 40,
                     dest.x + dest.width / 2., dest.y);
     if (picker != null && secondarySelector != null) {
-      picker.addCurveTo(secondarySelector, 4, (int)(source.x + source.width / 2.), (int)(source.y),
-                        (int)(source.x + source.width / 2.), (int)(source.y - 40),
-                        (int)(dest.x + dest.width / 2.), (int)(dest.y + 40),
-                        (int)(dest.x + dest.width / 2.), (int)(dest.y), 4);
+      picker.addCurveTo(secondarySelector, 4, (int)(source.x + source.width / 2.), source.y,
+                        (int)(source.x + source.width / 2.), source.y - 40,
+                        (int)(dest.x + dest.width / 2.), dest.y + 40,
+                        (int)(dest.x + dest.width / 2.), dest.y, 4);
     }
     int[] xPoints = new int[3];
     int[] yPoints = new int[3];
@@ -870,48 +852,36 @@ public class DrawConnection implements DrawCommand {
   }
 
   private static int getConnectionX(int side, Rectangle rect) {
-    switch (side) {
-      case DIR_LEFT:
-        return rect.x;
-      case DIR_RIGHT:
-        return rect.x + rect.width;
-      case DIR_TOP:
-      case DIR_BOTTOM:
-        return rect.x + rect.width / 2;
-    }
-    return 0;
+    return switch (side) {
+      case DIR_LEFT -> rect.x;
+      case DIR_RIGHT -> rect.x + rect.width;
+      case DIR_TOP, DIR_BOTTOM -> rect.x + rect.width / 2;
+      default -> 0;
+    };
   }
 
   private static int getConnectionY(int side, Rectangle rect) {
-    switch (side) {
-      case DIR_LEFT:
-      case DIR_RIGHT:
-        return rect.y + rect.height / 2;
-      case DIR_TOP:
-        return rect.y;
-      case DIR_BOTTOM:
-        return rect.y + rect.height;
-    }
-    return 0;
+    return switch (side) {
+      case DIR_LEFT, DIR_RIGHT -> rect.y + rect.height / 2;
+      case DIR_TOP -> rect.y;
+      case DIR_BOTTOM -> rect.y + rect.height;
+      default -> 0;
+    };
   }
 
   private static int getDestinationDX(int side) {
-    switch (side) {
-      case DIR_LEFT:
-        return -DrawConnectionUtils.ARROW_SIDE;
-      case DIR_RIGHT:
-        return +DrawConnectionUtils.ARROW_SIDE;
-    }
-    return 0;
+    return switch (side) {
+      case DIR_LEFT -> -DrawConnectionUtils.ARROW_SIDE;
+      case DIR_RIGHT -> +DrawConnectionUtils.ARROW_SIDE;
+      default -> 0;
+    };
   }
 
   private static int getDestinationDY(int side) {
-    switch (side) {
-      case DIR_TOP:
-        return -DrawConnectionUtils.ARROW_SIDE;
-      case DIR_BOTTOM:
-        return +DrawConnectionUtils.ARROW_SIDE;
-    }
-    return 0;
+    return switch (side) {
+      case DIR_TOP -> -DrawConnectionUtils.ARROW_SIDE;
+      case DIR_BOTTOM -> +DrawConnectionUtils.ARROW_SIDE;
+      default -> 0;
+    };
   }
 }
