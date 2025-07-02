@@ -1,0 +1,12 @@
+[versions]
+agpVersion = "7.2.0"
+lint = "30.2.0" # agpVersion + 23.0.0
+
+[libraries]
+lint-api = { group = "com.android.tools.lint", name = "lint-api", version.ref = "lint" }
+
+[bundles]
+lint-api = [ "kotlin-stdlib", "lint-api" ]
+
+[plugins]
+agp = { id = "com.android.application", version.ref = "agpVersion" }

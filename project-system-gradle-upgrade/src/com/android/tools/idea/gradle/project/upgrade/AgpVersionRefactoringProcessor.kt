@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.dsl.api.PluginModel
@@ -192,27 +193,39 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
           else -> Unit
         }
       }
+      val moduleRootDir = model.moduleRootDirectory.toVirtualFile()
       // buildSrc run-time dependencies are project build-time (classpath) dependencies.
-      if (model.moduleRootDirectory.toVirtualFile() == buildSrcDir) {
-        model.dependencies().artifacts().forEach dep@{ dep ->
-          when (isUpdatablePluginRelatedDependency(new, dep)) {
-            ThreeState.YES -> {
-              val resultModel = dep.version().resultModel
-              val psiElement = when (val element = resultModel.rawElement) {
-                null -> return@dep
-                // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
-                is FakeArtifactElement -> element.realExpression.psiElement
-                else -> element.psiElement
-              }
-              // it would be weird for there to be an AGP dependency in buildSrc without there being one in the main project, but just in
-              // case...
-              val presentableText = AndroidBundle.message("project.upgrade.agpVersionRefactoringProcessor.target.presentableText")
-              psiElement?.let {
-                usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
-              }
+      model.dependencies().artifacts().forEach dep@{ dep ->
+        when {
+          moduleRootDir == buildSrcDir && isUpdatablePluginRelatedDependency(new, dep) == ThreeState.YES -> {
+            val resultModel = dep.version().resultModel
+            val psiElement = when (val element = resultModel.rawElement) {
+              null -> return@dep
+              // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
+              is FakeArtifactElement -> element.realExpression.psiElement
+              else -> element.psiElement
             }
-            else -> Unit
+            // it would be weird for there to be an AGP dependency in buildSrc without there being one in the main project, but just in
+            // case...
+            val presentableText = AndroidBundle.message("project.upgrade.agpVersionRefactoringProcessor.target.presentableText")
+            psiElement?.let {
+              usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
+            }
           }
+          isUpdatableLintRelatedDependency(new, dep) == ThreeState.YES -> {
+            val resultModel = dep.version().resultModel
+            val psiElement = when (val element = resultModel.rawElement) {
+              null -> return@dep
+              is FakeArtifactElement -> element.realExpression.psiElement
+              else -> element.psiElement
+            }
+            val presentableText = AndroidBundle.message("project.upgrade.agpVersionRefactoringProcessor.target.presentableText")
+            psiElement?.let {
+              val wrappedElement = WrappedPsiElement(it, this, USAGE_TYPE, presentableText)
+              usages.add(LintVersionUsageInfo(wrappedElement, current.toLintVersion(), new.toLintVersion(), resultModel))
+            }
+          }
+          else -> Unit
         }
       }
       // Examine plugins for plugin Dsl declarations.
@@ -263,6 +276,19 @@ class AgpVersionUsageInfo(
   private val resultModel: GradlePropertyModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.agpVersionUsageInfo.tooltipText", current, new)
+
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    resultModel.setValue(new.toString())
+  }
+}
+
+class LintVersionUsageInfo(
+  element: WrappedPsiElement,
+  val current: Version,
+  val new: Version,
+  private val resultModel: GradlePropertyModel
+) : GradleBuildModelUsageInfo(element) {
+  override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.lintVersionUsageInfo.tooltipText", current, new)
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     resultModel.setValue(new.toString())
