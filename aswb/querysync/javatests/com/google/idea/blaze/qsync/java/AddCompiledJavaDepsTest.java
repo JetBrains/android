@@ -38,14 +38,8 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class AddCompiledJavaDepsTest {
   @Test
-  public void enable_library_provider_no_deps_built() throws Exception {
-    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps(true);
-    no_deps_built(javaDeps);
-  }
-
-  @Test
-  public void disable_library_provider_no_deps_built() throws Exception {
-    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps(false);
+  public void no_deps_built() throws Exception {
+    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps();
     no_deps_built(javaDeps);
   }
 
@@ -71,21 +65,13 @@ public class AddCompiledJavaDepsTest {
   }
 
   @Test
-  public void enable_library_provider_dep_built() throws Exception {
-    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps(true);
+  public void dep_built() throws Exception {
+    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps();
     dep_built(javaDeps,
               ProjectProto.Library.newBuilder().setName("//java/com/google/common/collect:collect")
                 .addClassesJar(
                   ProjectProto.JarDirectory.newBuilder().setPath(".bazel/javadeps/build-out/java/com/google/common/collect/libcollect.jar")
                     .setRecursive(false).build()).build());
-  }
-
-  @Test
-  public void disable_library_provider_dep_built() throws Exception {
-    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps(false);
-    dep_built(javaDeps,
-              ProjectProto.Library.newBuilder().setName(".dependencies")
-                .addClassesJar(ProjectProto.JarDirectory.newBuilder().setPath(".bazel/javadeps").setRecursive(true).build()).build());
   }
 
   private void dep_built(AddCompiledJavaDeps javaDeps, ProjectProto.Library... expectedLibraries) throws Exception {

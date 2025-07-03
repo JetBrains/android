@@ -1,8 +1,8 @@
 package com.google.idea.blaze.base.qsync
 
 import com.google.common.collect.ImmutableSet
-import com.google.idea.blaze.base.qsync.ProjectUpdaterWithWorkspaceEntity.IdeaUrl.Companion.findFileByUrl
-import com.google.idea.blaze.base.qsync.ProjectUpdaterWithWorkspaceEntity.IdeaUrl.Companion.getOrCreateFromUrl
+import com.google.idea.blaze.base.qsync.ProjectUpdater.IdeaUrl.Companion.findFileByUrl
+import com.google.idea.blaze.base.qsync.ProjectUpdater.IdeaUrl.Companion.getOrCreateFromUrl
 import com.google.idea.blaze.base.qsync.entity.BazelEntitySource
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport
 import com.google.idea.blaze.base.util.UrlUtil
@@ -53,7 +53,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 /** An object that monitors the build graph and applies the changes to the project structure by using WorkspaceEntity. */
-class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyncProjectListener {
+class ProjectUpdater(private val project: Project) : QuerySyncProjectListener {
 
   enum class ProjectStructure {
     SHARDED_LIBRARY,
@@ -385,6 +385,13 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
           EmptyRunnable.getInstance(), RootsChangeRescanningInfo.RESCAN_DEPENDENCIES_IF_NEEDED
         )
       }
+    }
+  }
+
+  /** Entry point for instantiating [ProjectUpdater].  */
+  class Provider : QuerySyncProjectListenerProvider {
+    override fun createListener(querySyncManager: QuerySyncManager): QuerySyncProjectListener {
+      return ProjectUpdater(querySyncManager.ideProject)
     }
   }
 }

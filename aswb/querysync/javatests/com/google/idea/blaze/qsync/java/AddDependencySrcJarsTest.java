@@ -67,24 +67,12 @@ public class AddDependencySrcJarsTest {
   }
 
   @Test
-  public void disable_library_provider_no_deps_built() throws Exception {
+  public void no_deps_built() throws Exception {
     AddDependencySrcJars addSrcJars =
       new AddDependencySrcJars(
         original.queryData().projectDefinition(),
         pathResolver,
-        new SrcJarInnerPathFinder(new PackageStatementParser()),
-        false);
-    no_deps_built(addSrcJars);
-  }
-
-  @Test
-  public void enable_library_provider_no_deps_built() throws Exception {
-    AddDependencySrcJars addSrcJars =
-      new AddDependencySrcJars(
-        original.queryData().projectDefinition(),
-        pathResolver,
-        new SrcJarInnerPathFinder(new PackageStatementParser()),
-        true);
+        new SrcJarInnerPathFinder(new PackageStatementParser()));
     no_deps_built(addSrcJars);
   }
 
@@ -102,32 +90,12 @@ public class AddDependencySrcJarsTest {
   }
 
   @Test
-  public void disable_library_provider_external_srcjar_added() throws Exception {
+  public void external_srcjar_added() throws Exception {
     AddDependencySrcJars addSrcJars =
       new AddDependencySrcJars(
         original.queryData().projectDefinition(),
         pathResolver,
-        new SrcJarInnerPathFinder(new PackageStatementParser()),
-        false);
-    external_srcjar_added(addSrcJars, ProjectProto.Library.newBuilder().setName(".dependencies")
-      .addSources(ProjectProto.LibrarySource.newBuilder()
-                    .setSrcjar(
-                      ProjectProto.ProjectPath.newBuilder()
-                        .setBase(Base.WORKSPACE)
-                        .setPath("source/path/external.srcjar")
-                        .setInnerPath("root"))
-                    .build())
-      .build());
-  }
-
-  @Test
-  public void enable_library_provider_external_srcjar_added() throws Exception {
-    AddDependencySrcJars addSrcJars =
-      new AddDependencySrcJars(
-        original.queryData().projectDefinition(),
-        pathResolver,
-        new SrcJarInnerPathFinder(new PackageStatementParser()),
-        true);
+        new SrcJarInnerPathFinder(new PackageStatementParser()));
     external_srcjar_added(addSrcJars, ProjectProto.Library.newBuilder().setName("//java/com/google/common/collect:collect")
       .addSources(ProjectProto.LibrarySource.newBuilder()
                     .setSrcjar(

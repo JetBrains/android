@@ -37,11 +37,6 @@ import java.util.Set;
 
 /** Adds compiled jars from dependencies to the project. */
 public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
-  private final boolean enableLibraryEntity;
-
-  public AddCompiledJavaDeps(boolean enableLibraryEntity) {
-    this.enableLibraryEntity = enableLibraryEntity;
-  }
 
   @Override
   public void update(
@@ -89,11 +84,7 @@ public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
       }
     }
     context.output(PrintOutput.output("Skipped " + skipped.size() + " duplicate jars"));
-    if (!enableLibraryEntity) {
-      updateProjectProtoUpdateAllJarsInOneLibrary(javaDepsDir, update);
-    } else {
-      updateProjectProtoUpdateOneTargetToOneLibrary(libNameToJars, update);
-    }
+    updateProjectProtoUpdateOneTargetToOneLibrary(libNameToJars, update);
   }
 
   private void updateProjectProtoUpdateOneTargetToOneLibrary(
@@ -108,18 +99,5 @@ public class AddCompiledJavaDeps implements ProjectProtoUpdateOperation {
                             jar ->
                                 JarDirectory.newBuilder().setPath(jar).setRecursive(false).build())
                         .collect(toImmutableSet())));
-  }
-
-  private void updateProjectProtoUpdateAllJarsInOneLibrary(
-      ArtifactDirectoryBuilder javaDepsDir, ProjectProtoUpdate update) {
-    if (!javaDepsDir.isEmpty()) {
-      update
-          .library(JAVA_DEPS_LIB_NAME)
-          .addClassesJar(
-              JarDirectory.newBuilder().setPath(javaDepsDir.path().toString()).setRecursive(true));
-      if (!update.workspaceModule().getLibraryNameList().contains(JAVA_DEPS_LIB_NAME)) {
-        update.workspaceModule().addLibraryName(JAVA_DEPS_LIB_NAME);
-      }
-    }
   }
 }
