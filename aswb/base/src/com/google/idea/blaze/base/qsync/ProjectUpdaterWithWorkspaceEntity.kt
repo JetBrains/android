@@ -27,6 +27,7 @@ import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.workspace.jps.JpsProjectFileEntitySource
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
 import com.intellij.platform.workspace.jps.entities.DependencyScope
+import com.intellij.platform.workspace.jps.entities.ExcludeUrlEntity
 import com.intellij.platform.workspace.jps.entities.InheritedSdkDependency
 import com.intellij.platform.workspace.jps.entities.LibraryDependency
 import com.intellij.platform.workspace.jps.entities.LibraryEntity
@@ -40,7 +41,6 @@ import com.intellij.platform.workspace.jps.entities.SourceRootTypeId
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_SOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_ROOT_ENTITY_TYPE_ID
-import java.nio.file.Path
 import java.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -102,7 +102,7 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
   data class ContentRootData(
     val url: String,
     val sourceRoots: List<SourceRootData>,
-    val excludedPatterns: List<String>,
+    val excludedRoots: List<String>,
   ) {
     companion object
   }
@@ -138,7 +138,11 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
 
     fun ProjectProto.ProjectPath.toIdeaUrl(): String {
       val sourceFolderProjectPath = ProjectPath.create(this)
-      return UrlUtil.pathToIdeaUrl(projectPathResolver.resolve(sourceFolderProjectPath))
+      return sourceFolderProjectPath.toIdeaUrl()
+    }
+
+    fun ProjectPath.toIdeaUrl(): String {
+      return UrlUtil.pathToIdeaUrl(projectPathResolver.resolve(this))
     }
 
     fun ModuleData.Companion.from(
@@ -182,7 +186,7 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
     fun ContentRootData.Companion.from(
       root: ProjectProto.ProjectPath,
       sources: List<ProjectProto.SourceFolder>,
-      excludes: List<String>,
+      excludedRoots: List<String>,
     ): ContentRootData {
       return ContentRootData(
         url = root.toIdeaUrl(),
@@ -193,7 +197,7 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
             it.isGenerated,
             it.packagePrefix)
         },
-        excludedPatterns = excludes,
+        excludedRoots = excludedRoots.map { ProjectPath.workspaceRelative(it).toIdeaUrl() },
       )
     }
 
@@ -214,7 +218,7 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
       return ProjectData(
         modules = project.modulesList.map {
           ModuleData.from(it, libraries.map { it.name }, it.contentEntriesList.map {
-            ContentRootData.from(it.root, sources = it.sourcesList, excludes = it.excludesList)
+            ContentRootData.from(it.root, sources = it.sourcesList, excludedRoots = it.excludesList)
           })
         },
         libraries = libraries,
@@ -279,7 +283,7 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
               this.contentRoots = module.contentRoots.map {
                 ContentRootEntity(
                   url = virtualFileUrlManager.getOrCreateFromUrl(it.url),
-                  excludedPatterns = it.excludedPatterns,
+                  excludedPatterns = listOf(),
                   entitySource = BazelEntitySource
                 ) {
                   this.sourceRoots = it.sourceRoots.map {
@@ -294,6 +298,12 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
                         entitySource = BazelEntitySource
                       )
                     }
+                  }
+                  this.excludedUrls = it.excludedRoots.map {
+                    ExcludeUrlEntity(
+                      url = virtualFileUrlManager.getOrCreateFromUrl(it),
+                      entitySource = BazelEntitySource
+                    ) { }
                   }
                 }
               }
