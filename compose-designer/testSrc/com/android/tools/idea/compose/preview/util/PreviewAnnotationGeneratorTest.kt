@@ -242,7 +242,7 @@ class PreviewAnnotationGeneratorTest {
             apiLevel = 30,
             locale = "fr",
             fontScale = 1.5f,
-            uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_CAR,
+            uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES or android.content.res.Configuration.UI_MODE_TYPE_CAR,
             widthDp = 400,
             heightDp = 600
         )
@@ -553,7 +553,7 @@ class PreviewAnnotationGeneratorTest {
         """
         @androidx.compose.ui.tooling.preview.Preview(
             name = "WallpaperPreview",
-            wallpaper = Wallpapers.GREEN_DOMINATED_EXAMPLE,
+            wallpaper = androidx.compose.ui.tooling.preview.Wallpapers.GREEN_DOMINATED_EXAMPLE,
             widthDp = 400,
             heightDp = 600
         )

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.util
 
+import com.android.SdkConstants
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
+import com.android.tools.compose.COMPOSE_WALLPAPERS_CLASS_FQN
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.deviceSizeDp
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiMode
@@ -71,8 +73,14 @@ private fun uiModeToString(uiMode: Int): String {
     return uiMode.toString()
   }
 
-  val nightString = if (night != 0) NightMode.fromInt(night)?.classConstant else null
-  val typeString = if (type != 0) UiMode.fromInt(type)?.classConstant else null
+  val nightString =
+    if (night != 0) {
+      NightMode.fromInt(night)?.classConstant?.let { "${SdkConstants.CLASS_CONFIGURATION}.$it" }
+    } else null
+  val typeString =
+    if (type != 0) {
+      UiMode.fromInt(type)?.classConstant?.let { "${SdkConstants.CLASS_CONFIGURATION}.$it" }
+    } else null
 
   val parts = listOfNotNull(nightString, typeString)
 
@@ -92,7 +100,7 @@ private fun wallpaperToString(wallpaperValue: Int): String {
   val wallpaper = Wallpaper.entries.find { it.resolvedValue == wallpaperValue.toString() }
   // We assume the FQN for Wallpapers will be imported, so we just need the enum class name.
   return if (wallpaper != null && wallpaper != Wallpaper.NONE) {
-    "Wallpapers.${wallpaper.classConstant}"
+    "$COMPOSE_WALLPAPERS_CLASS_FQN.${wallpaper.classConstant}"
   } else {
     wallpaperValue.toString() // Fallback for unknown values
   }

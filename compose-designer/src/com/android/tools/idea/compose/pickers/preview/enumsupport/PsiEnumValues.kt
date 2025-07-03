@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.pickers.preview.enumsupport
 
 import com.android.SdkConstants
+import com.android.tools.compose.COMPOSE_WALLPAPERS_CLASS_FQN
 import com.android.tools.configurations.Configuration.UI_MODE_NIGHT_YES
 import com.android.tools.idea.compose.pickers.common.enumsupport.BaseClassEnumValue
 import com.android.tools.idea.compose.pickers.common.enumsupport.ClassConstantEnumValue
@@ -259,6 +260,6 @@ internal enum class Wallpaper(
   BLUE("BLUE_DOMINATED_EXAMPLE", "Blue dominated", "2"),
   YELLOW("YELLOW_DOMINATED_EXAMPLE", "Yellow dominated", "3");
 
-  override val fqClass: String = "androidx.compose.ui.tooling.preview.Wallpapers"
+  override val fqClass: String = COMPOSE_WALLPAPERS_CLASS_FQN
   override val trackableValue: PreviewPickerValue = PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
 }

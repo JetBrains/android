@@ -302,7 +302,7 @@ class PreviewAnnotationRoundTripTest {
             apiLevel = 28,
             locale = "en-rUS",
             fontScale = 1.2f,
-            uiMode = UI_MODE_NIGHT_NO,
+            uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO,
             widthDp = 500,
             heightDp = 500
         )
@@ -404,7 +404,7 @@ class PreviewAnnotationRoundTripTest {
         """
         @androidx.compose.ui.tooling.preview.Preview(
             name = "CombinedUiMode",
-            uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_DESK,
+            uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES or android.content.res.Configuration.UI_MODE_TYPE_DESK,
             widthDp = 200,
             heightDp = 200
         )
@@ -453,7 +453,7 @@ class PreviewAnnotationRoundTripTest {
         """
         @androidx.compose.ui.tooling.preview.Preview(
             name = "WallpaperPreview",
-            wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
+            wallpaper = androidx.compose.ui.tooling.preview.Wallpapers.RED_DOMINATED_EXAMPLE,
             widthDp = 400,
             heightDp = 600
         )
