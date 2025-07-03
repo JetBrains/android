@@ -1,6 +1,8 @@
 package com.google.idea.blaze.base.qsync
 
 import com.google.common.collect.ImmutableSet
+import com.google.idea.blaze.base.qsync.ProjectUpdaterWithWorkspaceEntity.IdeaUrl.Companion.findFileByUrl
+import com.google.idea.blaze.base.qsync.ProjectUpdaterWithWorkspaceEntity.IdeaUrl.Companion.getOrCreateFromUrl
 import com.google.idea.blaze.base.qsync.entity.BazelEntitySource
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport
 import com.google.idea.blaze.base.util.UrlUtil
@@ -22,6 +24,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.RootsChangeRescanningInfo
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 import com.intellij.openapi.util.EmptyRunnable
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.workspace.jps.JpsProjectFileEntitySource
@@ -39,8 +42,11 @@ import com.intellij.platform.workspace.jps.entities.ModuleSourceDependency
 import com.intellij.platform.workspace.jps.entities.SourceRootEntity
 import com.intellij.platform.workspace.jps.entities.SourceRootTypeId
 import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.platform.workspace.storage.url.VirtualFileUrl
+import com.intellij.platform.workspace.storage.url.VirtualFileUrlManager
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_SOURCE_ROOT_ENTITY_TYPE_ID
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_ROOT_ENTITY_TYPE_ID
+import java.nio.file.Path
 import java.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -83,32 +89,62 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
     companion object
   }
 
+  @JvmInline
+  value class LibraryName private constructor (private val name: String) {
+    fun asString(): String = name
+
+    companion object {
+      fun from(name: String): LibraryName = LibraryName(name)
+    }
+  }
+
   data class ModuleData(
     val name: String,
-    val dependencies: List<String>,
+    val dependencies: List<LibraryName>,
     val contentRoots: List<ContentRootData>,
   ) {
     companion object
   }
 
+  @JvmInline
+  value class IdeaUrl private constructor (private val url: String) {
+    companion object {
+      fun fromPath(path: Path): IdeaUrl {
+        return IdeaUrl(UrlUtil.pathToIdeaUrl(path))
+      }
+
+      fun fromJarPath(path: Path, innerJarPath: Path): IdeaUrl {
+        return IdeaUrl(UrlUtil.pathToUrl(path.toString(), innerJarPath))
+      }
+
+      fun VirtualFileManager.findFileByUrl(url: IdeaUrl): VirtualFile? {
+        return this.findFileByUrl(url.url)
+      }
+
+      fun VirtualFileUrlManager.getOrCreateFromUrl(url: IdeaUrl): VirtualFileUrl {
+        return this.getOrCreateFromUrl(url.url)
+      }
+    }
+  }
+
   data class LibraryData(
-    val name: String,
-    val jarUrls: List<String>,
-    val sourceUrls: List<String>,
+    val name: LibraryName,
+    val jarUrls: List<IdeaUrl>,
+    val sourceUrls: List<IdeaUrl>,
   ) {
     companion object
   }
 
   data class ContentRootData(
-    val url: String,
+    val url: IdeaUrl,
     val sourceRoots: List<SourceRootData>,
-    val excludedRoots: List<String>,
+    val excludedRoots: List<IdeaUrl>,
   ) {
     companion object
   }
 
   data class SourceRootData(
-    val url: String,
+    val url: IdeaUrl,
     val rootTypeId: SourceRootTypeId,
     val isGenerated: Boolean,
     val packagePrefix: String,
@@ -125,29 +161,29 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
     private val virtualFileManager = VirtualFileManager.getInstance()
     private val projectBase = Paths.get(project.getBasePath())
     private val projectPathResolver = querySyncProject.projectPathResolver
-    fun ProjectProto.JarDirectory.toIdeaUrl(): String {
-      return UrlUtil.pathToIdeaUrl(projectBase.resolve(this.path))
+    fun ProjectProto.JarDirectory.toIdeaUrl(): IdeaUrl {
+      return IdeaUrl.fromPath(projectBase.resolve(this.path))
         .also { virtualFileManager.findFileByUrl(it) }  // Register roots in a background thread.
     }
 
-    fun ProjectProto.LibrarySource.toIdeaUrl(): String {
+    fun ProjectProto.LibrarySource.toIdeaUrl(): IdeaUrl {
       val projectPath = ProjectPath.create(srcjar)
-      return UrlUtil.pathToUrl(projectPathResolver.resolve(projectPath).toString(), projectPath.innerJarPath())
+      return IdeaUrl.fromJarPath(projectPathResolver.resolve(projectPath), projectPath.innerJarPath())
         .also { virtualFileManager.findFileByUrl(it) }  // Register roots in a background thread.
     }
 
-    fun ProjectProto.ProjectPath.toIdeaUrl(): String {
+    fun ProjectProto.ProjectPath.toIdeaUrl(): IdeaUrl {
       val sourceFolderProjectPath = ProjectPath.create(this)
       return sourceFolderProjectPath.toIdeaUrl()
     }
 
-    fun ProjectPath.toIdeaUrl(): String {
-      return UrlUtil.pathToIdeaUrl(projectPathResolver.resolve(this))
+    fun ProjectPath.toIdeaUrl(): IdeaUrl {
+      return IdeaUrl.fromPath(projectPathResolver.resolve(this))
     }
 
     fun ModuleData.Companion.from(
       module: ProjectProto.Module,
-      dependencies: List<String>,
+      dependencies: List<LibraryName>,
       contentRoots: List<ContentRootData>,
     ): ModuleData {
       return ModuleData(name = module.name, dependencies = dependencies, contentRoots = contentRoots)
@@ -155,7 +191,7 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
 
     fun LibraryData.Companion.from(library: ProjectProto.Library): LibraryData {
       return LibraryData(
-        name = library.name,
+        name = LibraryName.from(library.name),
         jarUrls = library.classesJarList.map { it.toIdeaUrl() },
         sourceUrls = library.sourcesList.filter { it.hasSrcjar() }.map { it.toIdeaUrl() },
       )
@@ -163,7 +199,7 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
 
     fun LibraryData.Companion.from(name: String, libraries: List<ProjectProto.Library>): LibraryData {
       return LibraryData(
-        name = name,
+        name = LibraryName.from(name),
         jarUrls = libraries.flatMap { it.classesJarList }.map { it.toIdeaUrl() },
         sourceUrls = libraries.flatMap { it.sourcesList }.filter { it.hasSrcjar() }.map { it.toIdeaUrl() },
       )
@@ -256,9 +292,9 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
     storage.replaceBySource(
       { it is BazelEntitySource || it is JpsProjectFileEntitySource },
       MutableEntityStorage.create().apply {
-        val libraries = projectData.libraries.map {
-          addEntity(LibraryEntity(
-            name = it.name,
+        val libraries = projectData.libraries.associate {
+          it.name to addEntity(LibraryEntity(
+            name = it.name.asString(),
             tableId = LibraryTableId.ProjectLibraryTableId,
             roots = it.jarUrls.map {
               LibraryRoot(
@@ -269,7 +305,7 @@ class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyn
             },
             entitySource = BazelEntitySource
           ))
-        }.associateBy { it.name }
+        }
 
         for (module in projectData.modules) {
           val dependencies = listOf(ModuleSourceDependency, InheritedSdkDependency) +
