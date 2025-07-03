@@ -145,7 +145,6 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/git4insights/git4insights.iml" filepath="$PROJECT_DIR$/../../vendor/google/git4insights/git4insights.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/tools/google-login-plugin/google-login-as.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/tools/google-login-plugin/google-login-as.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/tools/google-login-plugin/integration/google-login-as-integration.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/tools/google-login-plugin/integration/google-login-as-integration.iml" />
-      <module fileurl="file://$PROJECT_DIR$/intellij-integration/intellij-integration-tests.iml" filepath="$PROJECT_DIR$/intellij-integration/intellij-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-adb/intellij.android.adb.iml" filepath="$PROJECT_DIR$/android-adb/intellij.android.adb.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-adb/intellij.android.adb.testUtil.iml" filepath="$PROJECT_DIR$/android-adb/intellij.android.adb.testUtil.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-adb/intellij.android.adb.tests.iml" filepath="$PROJECT_DIR$/android-adb/intellij.android.adb.tests.iml" />
@@ -168,7 +167,6 @@
       <module fileurl="file://$PROJECT_DIR$/app-inspection/api/intellij.android.app-inspection.api.iml" filepath="$PROJECT_DIR$/app-inspection/api/intellij.android.app-inspection.api.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-inspection/ide/intellij.android.app-inspection.ide.iml" filepath="$PROJECT_DIR$/app-inspection/ide/intellij.android.app-inspection.ide.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-inspection/ide/gradle/intellij.android.app-inspection.ide.gradle.iml" filepath="$PROJECT_DIR$/app-inspection/ide/gradle/intellij.android.app-inspection.ide.gradle.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app-quality-insights/play-policy/ide/intellij.android.app-quality-insights.play-policy.ide.iml" filepath="$PROJECT_DIR$/app-quality-insights/play-policy/ide/intellij.android.app-quality-insights.play-policy.ide.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-inspection/ide/intellij.android.app-inspection.ide.tests.iml" filepath="$PROJECT_DIR$/app-inspection/ide/intellij.android.app-inspection.ide.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-inspection/inspector/api/intellij.android.app-inspection.inspector.api.iml" filepath="$PROJECT_DIR$/app-inspection/inspector/api/intellij.android.app-inspection.inspector.api.iml" />
       <module fileurl="file://$PROJECT_DIR$/app-inspection/inspector/ide/intellij.android.app-inspection.inspector.ide.iml" filepath="$PROJECT_DIR$/app-inspection/inspector/ide/intellij.android.app-inspection.inspector.ide.iml" />
@@ -466,7 +464,6 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/url-assistant/gradle/url-assistant.gradle.iml" filepath="$PROJECT_DIR$/../../vendor/google/url-assistant/gradle/url-assistant.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/url-assistant/url-assistant.tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/url-assistant/url-assistant.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" filepath="$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" />
-      <module fileurl="file://$PROJECT_DIR$/utp/utp.iml" filepath="$PROJECT_DIR$/utp/utp.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" />
     </modules>
