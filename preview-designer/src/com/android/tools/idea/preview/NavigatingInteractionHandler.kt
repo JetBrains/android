@@ -282,7 +282,7 @@ class NavigatingInteractionHandler(
     // Then, try to select the first component of the next row.
     otherComponents
       .firstOrNull { componentToSceneView[it]!!.y > componentToSceneView[selectedComponent]!!.y }
-      .let {
+      ?.let {
         componentToSceneView[it]!!.selectComponent(
           component = it,
           allowToggle = false,
