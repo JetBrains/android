@@ -631,7 +631,7 @@ public class AndroidGradleTests {
   public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion, boolean syncEnabled) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot, GradleVersion.version(gradleVersion), null);
     File path = GradleProjectSystemUtil.findEmbeddedGradleDistributionFile(gradleVersion);
-    if(syncEnabled) {
+    if(IdeInfo.getInstance().isAndroidStudio() && syncEnabled) {
       assertThat(path).named("Gradle zip file with version: %s", gradleVersion).isNotNull();
       assertAbout(file()).that(path).named("Gradle distribution path").isFile();
       wrapper.updateDistributionUrl(path);
