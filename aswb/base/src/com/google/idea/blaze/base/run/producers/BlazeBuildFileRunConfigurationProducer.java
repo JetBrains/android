@@ -151,6 +151,13 @@ public class BlazeBuildFileRunConfigurationProducer
     if (ruleType == null || label == null) {
       return null;
     }
+    // TODO: Finding targets should not be done with the macro name
+    // but it should be done based on line number from the blaze project data query.
+    if (ruleType.equals("iml_module")) {
+      // iml_modules generate one executable target:
+      ruleType = "java_test";
+      label = Label.create(label.toString() + "_tests");
+    }
     return new BuildTarget(rule, Kind.guessRuleType(ruleType), label);
   }
 
