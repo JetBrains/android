@@ -71,8 +71,8 @@ public class WFFExpressionLiteralExprImpl extends WFFExpressionExprImpl implemen
 
   @Override
   @Nullable
-  public PsiElement getString() {
-    return findChildByType(STRING);
+  public PsiElement getQuotedString() {
+    return findChildByType(QUOTED_STRING);
   }
 
 }

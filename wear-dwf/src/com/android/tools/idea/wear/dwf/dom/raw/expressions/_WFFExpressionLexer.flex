@@ -42,27 +42,29 @@ WHITE_SPACE=\s+
 
 SPACE=[ \t\n\x0B\f\r]+
 NUMBER=[0-9]+(\.[0-9]*)?
-STRING=('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")
 ID=[:letter:][a-zA-Z_0-9]*
 OPERATORS=\+|-|%|\*|==|=|>=|<=|>|<|\||\|\||&&|&|\~|\!|\!=|"/"
+QUOTED_STRING=('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")
+STRING=[a-zA-Z_0-9]+
 
 %%
 <YYINITIAL> {
-  {WHITE_SPACE}       { return WHITE_SPACE; }
+  {WHITE_SPACE}         { return WHITE_SPACE; }
 
-  "("                 { return OPEN_PAREN; }
-  ")"                 { return CLOSE_PAREN; }
-  "["                 { return OPEN_BRACKET; }
-  "]"                 { return CLOSE_BRACKET; }
-  ","                 { return COMMA; }
-  "."                 { return DOT; }
-  "null"              { return NULL; }
+  "("                   { return OPEN_PAREN; }
+  ")"                   { return CLOSE_PAREN; }
+  "["                   { return OPEN_BRACKET; }
+  "]"                   { return CLOSE_BRACKET; }
+  ","                   { return COMMA; }
+  "."                   { return DOT; }
+  "null"                { return NULL; }
 
-  {SPACE}             { return SPACE; }
-  {NUMBER}            { return NUMBER; }
-  {STRING}            { return STRING; }
-  {ID}                { return ID; }
-  {OPERATORS}         { return OPERATORS; }
+  {SPACE}               { return SPACE; }
+  {NUMBER}              { return NUMBER; }
+  {ID}                  { return ID; }
+  {OPERATORS}           { return OPERATORS; }
+  {QUOTED_STRING}       { return QUOTED_STRING; }
+  {STRING}              { return STRING; }
 
 }
 

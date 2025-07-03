@@ -60,6 +60,7 @@ public interface WFFExpressionTypes {
   IElementType OPEN_BRACKET = new WFFExpressionTokenType("[");
   IElementType OPEN_PAREN = new WFFExpressionTokenType("(");
   IElementType OPERATORS = new WFFExpressionTokenType("OPERATORS");
+  IElementType QUOTED_STRING = new WFFExpressionTokenType("QUOTED_STRING");
   IElementType STRING = new WFFExpressionTokenType("STRING");
 
   class Factory {
