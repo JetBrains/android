@@ -509,14 +509,6 @@ class CategoryTable<T : Any>(
   override fun getPreferredSize(): Dimension =
     Dimension(header.preferredSize.width, rowComponents.sumOf { if (it.isVisible) it.preferredSize.height else 0 })
 
-  // Just documenting that these are never called:
-  override fun getMinimumSize(): Dimension =
-    throw UnsupportedOperationException("Not needed in scroll panes")
-
-  override fun getMaximumSize(): Dimension =
-    Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
-    //throw UnsupportedOperationException("Not needed in scroll panes")
-
   /**
    * Rather than implementing the whole LayoutManager interface, we perform the layout in doLayout.
    * This avoids a lot of unnecessary boilerplate from LayoutManager, and is the approach used by
