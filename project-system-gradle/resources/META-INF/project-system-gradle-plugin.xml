@@ -431,6 +431,12 @@
         icon="StudioIcons.Wizards.Modules.BASELINE_PROFILE_GENERATE"
         description="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class.">
     </action>
+    <action
+        id="IgnoreGradleChanges"
+        class="com.android.tools.idea.run.IgnoreGradleChangesAction"
+        text="Ignore Gradle Changes"
+        description="Ignores Gradle changes and hides notification reminding to sync."
+    />
   </actions>
 
   <extensionPoints>

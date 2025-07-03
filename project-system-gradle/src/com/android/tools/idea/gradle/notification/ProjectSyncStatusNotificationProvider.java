@@ -117,7 +117,7 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
    * For multiple banners open in split windows, this method helps check the hidden timestamp so that all
    * banners are dismissed when `updateAllNotifications` is called.
    */
-  static boolean shouldHideBanner() {
+  public static boolean shouldHideBanner() {
     long now = System.currentTimeMillis();
     String lastHiddenValue = PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_HIDE_ACTION_TIMESTAMP", "0");
     long lastHidden = Long.parseLong(lastHiddenValue);
