@@ -100,11 +100,11 @@ class NavigatingInteractionHandler(
       KeyEvent.VK_LEFT ->
         selectComponentToTheLeft(selectedComponent, otherComponentsInView, componentToSceneView)
       KeyEvent.VK_UP ->
-        selectComponentToTheTop(selectedComponent, otherComponentsInView, componentToSceneView)
+        selectComponentAbove(selectedComponent, otherComponentsInView, componentToSceneView)
       KeyEvent.VK_RIGHT ->
         selectComponentToTheRight(selectedComponent, otherComponentsInView, componentToSceneView)
       KeyEvent.VK_DOWN ->
-        selectComponentToTheBottom(selectedComponent, otherComponentsInView, componentToSceneView)
+        selectComponentBelow(selectedComponent, otherComponentsInView, componentToSceneView)
     }
     surface.repaint()
     return super.keyPressedWithoutInteraction(keyEvent)
@@ -231,103 +231,100 @@ class NavigatingInteractionHandler(
     surface.repaint()
   }
 
+  private fun selectComponent(
+    comp: NlComponent,
+    componentToSceneView: Map<NlComponent, SceneView>,
+  ) {
+    componentToSceneView[comp]!!.selectComponent(
+      component = comp,
+      allowToggle = false,
+      ignoreIfAlreadySelected = true,
+    )
+  }
+
   private fun selectComponentToTheLeft(
     selectedComponent: NlComponent,
     otherComponents: List<NlComponent>,
-    componentToSceneView: MutableMap<NlComponent, SceneView>,
+    componentToSceneView: Map<NlComponent, SceneView>,
   ) {
+    val selectedSceneView = componentToSceneView[selectedComponent]!!
     otherComponents
       // First, try to select the right-most component located on the left of the selected
       // component, in the same row.
-      .filter { componentToSceneView[it]!!.y == componentToSceneView[selectedComponent]!!.y }
-      .lastOrNull { componentToSceneView[it]!!.x < componentToSceneView[selectedComponent]!!.x }
+      .filter { componentToSceneView[it]!!.isLeftOf(selectedSceneView) }
+      .maxByOrNull { componentToSceneView[it]!!.x }
       ?.let {
-        return@selectComponentToTheLeft componentToSceneView[it]!!.selectComponent(
-          component = it,
-          allowToggle = false,
-          ignoreIfAlreadySelected = true,
-        )
+        selectComponent(it, componentToSceneView)
+        return@selectComponentToTheLeft
       }
 
     // Then, try to select the last component of the previous row.
     otherComponents
-      .lastOrNull { componentToSceneView[it]!!.y < componentToSceneView[selectedComponent]!!.y }
-      ?.let {
-        componentToSceneView[it]!!.selectComponent(
-          component = it,
-          allowToggle = false,
-          ignoreIfAlreadySelected = true,
-        )
-      }
+      .lastOrNull { componentToSceneView[it]!!.y < selectedSceneView.y }
+      ?.let { selectComponent(it, componentToSceneView) }
   }
 
   private fun selectComponentToTheRight(
     selectedComponent: NlComponent,
     otherComponents: List<NlComponent>,
-    componentToSceneView: MutableMap<NlComponent, SceneView>,
+    componentToSceneView: Map<NlComponent, SceneView>,
   ) {
+    val selectedSceneView = componentToSceneView[selectedComponent]!!
     // First, try to select the left-most component located on the right of the selected
     // component, in the same row.
     otherComponents
-      .filter { componentToSceneView[it]!!.x > componentToSceneView[selectedComponent]!!.x }
-      .firstOrNull { componentToSceneView[it]!!.y == componentToSceneView[selectedComponent]!!.y }
+      .filter { componentToSceneView[it]!!.isRightOf(selectedSceneView) }
+      .minByOrNull { componentToSceneView[it]!!.x }
       ?.let {
-        return@selectComponentToTheRight componentToSceneView[it]!!.selectComponent(
-          component = it,
-          allowToggle = false,
-          ignoreIfAlreadySelected = true,
-        )
+        selectComponent(it, componentToSceneView)
+        return@selectComponentToTheRight
       }
 
     // Then, try to select the first component of the next row.
     otherComponents
-      .firstOrNull { componentToSceneView[it]!!.y > componentToSceneView[selectedComponent]!!.y }
-      ?.let {
-        componentToSceneView[it]!!.selectComponent(
-          component = it,
-          allowToggle = false,
-          ignoreIfAlreadySelected = true,
-        )
-      }
+      .firstOrNull { componentToSceneView[it]!!.y > selectedSceneView.y }
+      ?.let { selectComponent(it, componentToSceneView) }
   }
 
-  private fun selectComponentToTheBottom(
+  private fun selectComponentBelow(
     selectedComponent: NlComponent,
     otherComponents: List<NlComponent>,
-    componentToSceneView: MutableMap<NlComponent, SceneView>,
+    componentToSceneView: Map<NlComponent, SceneView>,
   ) {
-    // Select the component located immediately on the bottom of the selected component, if there
-    // is one.
+    val selectedSceneView = componentToSceneView[selectedComponent]!!
+    // Select the closest component located below the selected component, if there is one.
     otherComponents
-      .filter { componentToSceneView[it]!!.x == componentToSceneView[selectedComponent]!!.x }
-      .firstOrNull { componentToSceneView[it]!!.y > componentToSceneView[selectedComponent]!!.y }
-      ?.let {
-        componentToSceneView[it]!!.selectComponent(
-          component = it,
-          allowToggle = false,
-          ignoreIfAlreadySelected = true,
-        )
+      .filter { componentToSceneView[it]!!.y > selectedSceneView.y }
+      .minByOrNull {
+        val sceneView = componentToSceneView[it]!!
+        val dx = sceneView.x - selectedSceneView.x
+        val dy = sceneView.y - selectedSceneView.y
+        dx * dx + dy * dy
       }
+      ?.let { selectComponent(it, componentToSceneView) }
   }
 
-  private fun selectComponentToTheTop(
+  private fun selectComponentAbove(
     selectedComponent: NlComponent,
     otherComponents: List<NlComponent>,
-    componentToSceneView: MutableMap<NlComponent, SceneView>,
+    componentToSceneView: Map<NlComponent, SceneView>,
   ) {
-    // Select the component located immediately on the bottom of the selected component, if there
-    // is one.
+    val selectedSceneView = componentToSceneView[selectedComponent]!!
+    // Select the closest component located on top of the selected component, if there is one.
     otherComponents
-      .filter { componentToSceneView[it]!!.x == componentToSceneView[selectedComponent]!!.x }
-      .lastOrNull { componentToSceneView[it]!!.y < componentToSceneView[selectedComponent]!!.y }
-      ?.let {
-        componentToSceneView[it]!!.selectComponent(
-          component = it,
-          allowToggle = false,
-          ignoreIfAlreadySelected = true,
-        )
+      .filter { componentToSceneView[it]!!.y < selectedSceneView.y }
+      .minByOrNull {
+        val sceneView = componentToSceneView[it]!!
+        val dx = sceneView.x - selectedSceneView.x
+        val dy = sceneView.y - selectedSceneView.y
+        dx * dx + dy * dy
       }
+      ?.let { selectComponent(it, componentToSceneView) }
   }
+
+  private fun SceneView.isRightOf(other: SceneView): Boolean = y == other.y && x > other.x
+
+  private fun SceneView.isLeftOf(other: SceneView): Boolean = y == other.y && x < other.x
 
   /**
    * Force a hover state update by performing the following steps:
