@@ -40,6 +40,13 @@
 
     <languageInjectionContributor language="XML"
                                   implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionLanguageInjectionContributor"/>
+
+    <lang.syntaxHighlighterFactory language="WFFExpression"
+                                   implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionSyntaxHighlighterFactory"/>
+    <annotator
+        language="WFFExpression"
+        implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionAnnotator"/>
+
   </extensions>
   <actions>
     <action id="ImportWatchFaceStudioFileAction"
