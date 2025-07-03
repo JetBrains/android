@@ -285,11 +285,11 @@ public class _WFFExpressionLexer implements FlexLexer {
 
   private static final String ZZ_ACTION_PACKED_0 =
     "\1\0\1\1\1\2\1\3\1\1\2\3\1\1\1\4"+
-    "\1\5\1\6\1\7\1\10\1\11\1\12\1\13\1\11"+
-    "\1\3\1\0\1\14\3\0\1\10\2\11\1\15";
+    "\1\5\1\6\1\7\1\10\1\11\1\12\1\13\1\14"+
+    "\1\11\1\3\1\0\1\15\3\0\1\10\2\11\1\16";
 
   private static int [] zzUnpackAction() {
-    int [] result = new int[27];
+    int [] result = new int[28];
     int offset = 0;
     offset = zzUnpackAction(ZZ_ACTION_PACKED_0, offset, result);
     return result;
@@ -316,11 +316,11 @@ public class _WFFExpressionLexer implements FlexLexer {
   private static final String ZZ_ROWMAP_PACKED_0 =
     "\0\0\0\31\0\62\0\113\0\144\0\31\0\175\0\226"+
     "\0\31\0\31\0\31\0\31\0\257\0\310\0\31\0\31"+
-    "\0\341\0\372\0\144\0\31\0\u0113\0\226\0\u012c\0\u0145"+
-    "\0\u015e\0\u0177\0\310";
+    "\0\341\0\372\0\u0113\0\144\0\31\0\u012c\0\226\0\u0145"+
+    "\0\u015e\0\u0177\0\u0190\0\310";
 
   private static int [] zzUnpackRowMap() {
-    int [] result = new int[27];
+    int [] result = new int[28];
     int offset = 0;
     offset = zzUnpackRowMap(ZZ_ROWMAP_PACKED_0, offset, result);
     return result;
@@ -345,18 +345,20 @@ public class _WFFExpressionLexer implements FlexLexer {
   private static final String ZZ_TRANS_PACKED_0 =
     "\1\2\2\3\1\4\1\5\1\6\1\7\1\10\1\11"+
     "\1\12\1\13\1\14\1\15\1\4\1\16\1\17\1\2"+
-    "\1\20\1\2\1\16\1\21\1\16\1\22\1\16\1\2"+
-    "\32\0\2\3\43\0\1\6\13\0\4\23\1\24\13\23"+
-    "\1\25\10\23\6\0\1\6\22\0\7\26\1\24\10\26"+
-    "\1\27\10\26\13\0\1\30\1\15\30\0\1\16\1\0"+
-    "\1\16\3\0\4\16\17\0\1\16\1\0\1\16\3\0"+
-    "\3\16\1\31\31\0\1\6\2\0\2\23\1\0\25\23"+
-    "\1\0\2\26\1\0\25\26\15\0\1\30\30\0\1\16"+
-    "\1\0\1\16\3\0\1\16\1\32\2\16\17\0\1\16"+
-    "\1\0\1\16\3\0\1\16\1\33\2\16\3\0";
+    "\1\20\1\21\1\16\1\22\1\16\1\23\1\16\1\2"+
+    "\32\0\2\3\43\0\1\6\13\0\4\24\1\25\13\24"+
+    "\1\26\10\24\6\0\1\6\22\0\7\27\1\25\10\27"+
+    "\1\30\10\27\13\0\1\31\1\15\1\0\1\21\3\0"+
+    "\4\21\17\0\1\16\1\0\1\16\3\0\4\16\17\0"+
+    "\1\21\1\0\1\21\3\0\4\21\17\0\1\16\1\0"+
+    "\1\16\3\0\3\16\1\32\31\0\1\6\2\0\2\24"+
+    "\1\0\25\24\1\0\2\27\1\0\25\27\15\0\1\31"+
+    "\30\0\1\16\1\0\1\16\3\0\1\16\1\33\2\16"+
+    "\17\0\1\16\1\0\1\16\3\0\1\16\1\34\2\16"+
+    "\3\0";
 
   private static int [] zzUnpacktrans() {
-    int [] result = new int[400];
+    int [] result = new int[425];
     int offset = 0;
     offset = zzUnpacktrans(ZZ_TRANS_PACKED_0, offset, result);
     return result;
@@ -395,10 +397,10 @@ public class _WFFExpressionLexer implements FlexLexer {
 
   private static final String ZZ_ATTRIBUTE_PACKED_0 =
     "\1\0\1\11\3\1\1\11\2\1\4\11\2\1\2\11"+
-    "\2\1\1\0\1\11\3\0\4\1";
+    "\3\1\1\0\1\11\3\0\4\1";
 
   private static int [] zzUnpackAttribute() {
-    int [] result = new int[27];
+    int [] result = new int[28];
     int offset = 0;
     offset = zzUnpackAttribute(ZZ_ATTRIBUTE_PACKED_0, offset, result);
     return result;
@@ -716,67 +718,72 @@ public class _WFFExpressionLexer implements FlexLexer {
             { return BAD_CHARACTER;
             }
           // fall through
-          case 14: break;
+          case 15: break;
           case 2:
             { return WHITE_SPACE;
             }
           // fall through
-          case 15: break;
+          case 16: break;
           case 3:
             { return OPERATORS;
             }
           // fall through
-          case 16: break;
+          case 17: break;
           case 4:
             { return OPEN_PAREN;
             }
           // fall through
-          case 17: break;
+          case 18: break;
           case 5:
             { return CLOSE_PAREN;
             }
           // fall through
-          case 18: break;
+          case 19: break;
           case 6:
             { return COMMA;
             }
           // fall through
-          case 19: break;
+          case 20: break;
           case 7:
             { return DOT;
             }
           // fall through
-          case 20: break;
+          case 21: break;
           case 8:
             { return NUMBER;
             }
           // fall through
-          case 21: break;
+          case 22: break;
           case 9:
             { return ID;
             }
           // fall through
-          case 22: break;
+          case 23: break;
           case 10:
             { return OPEN_BRACKET;
             }
           // fall through
-          case 23: break;
+          case 24: break;
           case 11:
             { return CLOSE_BRACKET;
             }
           // fall through
-          case 24: break;
+          case 25: break;
           case 12:
             { return STRING;
             }
           // fall through
-          case 25: break;
+          case 26: break;
           case 13:
+            { return QUOTED_STRING;
+            }
+          // fall through
+          case 27: break;
+          case 14:
             { return NULL;
             }
           // fall through
-          case 26: break;
+          case 28: break;
           default:
             zzScanError(ZZ_NO_MATCH);
           }

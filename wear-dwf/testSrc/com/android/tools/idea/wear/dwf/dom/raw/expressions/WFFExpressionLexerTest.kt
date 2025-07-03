@@ -61,6 +61,28 @@ class WFFExpressionLexerTest : AndroidLexerTestCase(WFFExpressionLexer()) {
       "showBackgroundInAfternoon" to WFFExpressionTypes.ID,
       "]" to WFFExpressionTypes.CLOSE_BRACKET,
     )
+
+    assertTokenTypes(
+      "[CONFIGURATION.themeColor.1]",
+      "[" to WFFExpressionTypes.OPEN_BRACKET,
+      "CONFIGURATION" to WFFExpressionTypes.ID,
+      "." to WFFExpressionTypes.DOT,
+      "themeColor" to WFFExpressionTypes.ID,
+      "." to WFFExpressionTypes.DOT,
+      "1" to WFFExpressionTypes.NUMBER,
+      "]" to WFFExpressionTypes.CLOSE_BRACKET,
+    )
+
+    assertTokenTypes(
+      "[CONFIGURATION.themeColor.10_something]",
+      "[" to WFFExpressionTypes.OPEN_BRACKET,
+      "CONFIGURATION" to WFFExpressionTypes.ID,
+      "." to WFFExpressionTypes.DOT,
+      "themeColor" to WFFExpressionTypes.ID,
+      "." to WFFExpressionTypes.DOT,
+      "10_something" to WFFExpressionTypes.STRING,
+      "]" to WFFExpressionTypes.CLOSE_BRACKET,
+    )
   }
 
   fun testFunctionCall() {
@@ -80,7 +102,7 @@ class WFFExpressionLexerTest : AndroidLexerTestCase(WFFExpressionLexer()) {
   }
 
   fun testStringLiteral() {
-    assertTokenTypes("\"hello world\"", "\"hello world\"" to WFFExpressionTypes.STRING)
+    assertTokenTypes("\"hello world\"", "\"hello world\"" to WFFExpressionTypes.QUOTED_STRING)
   }
 
   fun testId() {
@@ -102,7 +124,7 @@ class WFFExpressionLexerTest : AndroidLexerTestCase(WFFExpressionLexer()) {
       " " to TokenType.WHITE_SPACE,
       "==" to WFFExpressionTypes.OPERATORS,
       " " to TokenType.WHITE_SPACE,
-      "\"TRUE\"" to WFFExpressionTypes.STRING,
+      "\"TRUE\"" to WFFExpressionTypes.QUOTED_STRING,
       " " to TokenType.WHITE_SPACE,
       "&&" to WFFExpressionTypes.OPERATORS,
       " " to TokenType.WHITE_SPACE,

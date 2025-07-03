@@ -88,14 +88,20 @@ class WFFExpressionAnnotatorTest {
 
   @Test
   fun `configurations are annotated`() {
-    fixture.configureByText(WFFExpressionFileType, "[CONFIGURATION.someConfig]")
+    fixture.configureByText(
+      WFFExpressionFileType,
+      "[CONFIGURATION.someConfig] * [CONFIGURATION.someConfig.1]",
+    )
 
     val highlightInfos = fixture.doHighlighting()
-    assertThat(highlightInfos).hasSize(1)
+    assertThat(highlightInfos).hasSize(2)
 
-    val info = highlightInfos.single { it.severity == HighlightSeverity.INFORMATION }
-    assertThat(info.text).isEqualTo("CONFIGURATION.someConfig")
-    assertThat(info.forcedTextAttributesKey)
+    val infos = highlightInfos.filter { it.severity == HighlightSeverity.INFORMATION }
+    assertThat(infos[0].text).isEqualTo("CONFIGURATION.someConfig")
+    assertThat(infos[0].forcedTextAttributesKey)
+      .isEqualTo(WFFExpressionTextAttributes.CONFIGURATION.key)
+    assertThat(infos[1].text).isEqualTo("CONFIGURATION.someConfig.1")
+    assertThat(infos[1].forcedTextAttributesKey)
       .isEqualTo(WFFExpressionTextAttributes.CONFIGURATION.key)
   }
 }

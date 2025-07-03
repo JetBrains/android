@@ -43,7 +43,7 @@ FILE
         WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
           PsiElement(OPERATORS)('==')
         WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-          PsiElement(STRING)('"TRUE"')
+          PsiElement(QUOTED_STRING)('"TRUE"')
       PsiElement())(')')
     WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
       PsiElement(OPERATORS)('&&')
@@ -77,6 +77,42 @@ FILE
       toParseTreeText(
         "([CONFIGURATION.showBackgroundInAfternoon] == \"TRUE\") && ([SECONDS_IN_DAY] < log10(10, 2, 3))"
       ),
+    )
+  }
+
+  fun testParseConfiguration() {
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    WFFExpressionConfigurationImpl(CONFIGURATION)
+      PsiElement([)('[')
+      WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
+        PsiElement(ID)('CONFIGURATION')
+        PsiElement(.)('.')
+        PsiElement(ID)('themeColor')
+      PsiElement(])(']')
+          """
+        .trimIndent(),
+      toParseTreeText("[CONFIGURATION.themeColor]"),
+    )
+
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    WFFExpressionConfigurationImpl(CONFIGURATION)
+      PsiElement([)('[')
+      WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
+        PsiElement(ID)('CONFIGURATION')
+        PsiElement(.)('.')
+        PsiElement(ID)('themeColor')
+        PsiElement(.)('.')
+        PsiElement(NUMBER)('1')
+      PsiElement(])(']')
+          """
+        .trimIndent(),
+      toParseTreeText("[CONFIGURATION.themeColor.1]"),
     )
   }
 }
