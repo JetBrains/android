@@ -1091,6 +1091,323 @@ class SavePreviewInNewSizeActionTest {
       )
   }
 
+  @Test
+  fun `add new imports for UI modes and Wallpapers`() = runTest {
+    // 1. Add the custom MultiPreview annotation in a separate file
+    projectRule.fixture.addFileToProject(
+      "src/com/example/multipreview/PreviewLightDark.kt",
+      """
+            package com.example.multipreview
+
+            import android.content.res.Configuration.UI_MODE_NIGHT_YES
+            import android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.ui.tooling.preview.Wallpapers
+
+            @Preview(name = "Light")
+            @Preview(name = "Dark", uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_NORMAL, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE)
+            annotation class PreviewLightDark
+      """
+        .trimIndent(),
+    )
+
+    // 2. Add the main Compose Test file
+    val composeTest =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/MyPreviews.kt",
+        """
+              package com.example
+
+              import androidx.compose.runtime.Composable
+              import com.example.multipreview.PreviewLightDark
+
+              @Composable fun XRAppTheme(content: @Composable () -> Unit) { content() }
+              @Composable fun My2DContent(onRequestFullSpaceMode: () -> Unit) {}
+
+              @PreviewLightDark
+              @Composable
+              fun My2dContentPreview() {
+                  XRAppTheme {
+                      My2DContent(onRequestFullSpaceMode = {})
+                  }
+              }
+        """
+          .trimIndent(),
+      )
+
+    // 3. Find the "Dark" preview element, which has uiMode set
+    val previewElements =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+        projectRule.project,
+        composeTest.virtualFile,
+      )
+
+    val darkPreviewElement =
+      previewElements.first { it.displaySettings.name == "My2dContentPreview - Dark" }
+        as PsiComposePreviewElement
+
+    modeManager.setMode(PreviewMode.Focus(darkPreviewElement))
+
+    // 4. Simulate a resize
+    val newWidth = 400
+    val newHeight = 250
+    val configuration = createConfiguration(newWidth, newHeight)
+    configuration.updateScreenSize(newWidth, newHeight)
+
+    `when`(resizePanel.hasBeenResized).thenReturn(true)
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) =
+            darkPreviewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        }
+      )
+    `when`(model.configuration).thenReturn(configuration)
+
+    // 5. Perform action
+    val action = SavePreviewInNewSizeAction()
+    val event = TestActionEvent.createTestEvent(getDataContext())
+    action.actionPerformed(event)
+
+    // 6. Assertions
+    @Language("kotlin")
+    val expectedContent =
+      """
+      package com.example
+
+      import android.content.res.Configuration.UI_MODE_NIGHT_YES
+      import android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Wallpapers.RED_DOMINATED_EXAMPLE
+      import com.example.multipreview.PreviewLightDark
+
+      @Composable fun XRAppTheme(content: @Composable () -> Unit) { content() }
+      @Composable fun My2DContent(onRequestFullSpaceMode: () -> Unit) {}
+
+      @Preview(
+          name = "400dp x 250dp",
+          uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_NORMAL,
+          wallpaper = RED_DOMINATED_EXAMPLE,
+          widthDp = 400,
+          heightDp = 250
+      )
+      @PreviewLightDark
+      @Composable
+      fun My2dContentPreview() {
+          XRAppTheme {
+              My2DContent(onRequestFullSpaceMode = {})
+          }
+      }
+      """
+        .trimIndent()
+
+    val updatedText = composeTest.text
+    assertThat(updatedText).isEqualTo(expectedContent)
+  }
+
+  @Test
+  fun `add new imports for UI modes and Wallpapers with container class imported`() = runTest {
+    // 1. Add the custom MultiPreview annotation in a separate file
+    projectRule.fixture.addFileToProject(
+      "src/com/example/multipreview/PreviewLightDark.kt",
+      """
+            package com.example.multipreview
+
+            import android.content.res.Configuration.UI_MODE_NIGHT_YES
+            import android.content.res.Configuration.UI_MODE_TYPE_NORMAL
+            import androidx.compose.ui.tooling.preview.Preview
+            import androidx.compose.ui.tooling.preview.Wallpapers
+
+            @Preview(name = "Light")
+            @Preview(name = "Dark", uiMode = UI_MODE_NIGHT_YES or UI_MODE_TYPE_NORMAL, wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE)
+            annotation class PreviewLightDark
+      """
+        .trimIndent(),
+    )
+
+    // 2. Add the main Compose Test file
+    val composeTest =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/MyPreviews.kt",
+        """
+              package com.example
+
+              import android.content.res.Configuration
+              import androidx.compose.runtime.Composable
+              import androidx.compose.ui.tooling.preview.Wallpapers
+              import com.example.multipreview.PreviewLightDark
+
+              @Composable fun XRAppTheme(content: @Composable () -> Unit) { content() }
+              @Composable fun My2DContent(onRequestFullSpaceMode: () -> Unit) {}
+
+              @PreviewLightDark
+              @Composable
+              fun My2dContentPreview() {
+                  XRAppTheme {
+                      My2DContent(onRequestFullSpaceMode = {})
+                  }
+              }
+        """
+          .trimIndent(),
+      )
+
+    // 3. Find the "Dark" preview element, which has uiMode set
+    val previewElements =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+        projectRule.project,
+        composeTest.virtualFile,
+      )
+
+    val darkPreviewElement =
+      previewElements.first { it.displaySettings.name == "My2dContentPreview - Dark" }
+        as PsiComposePreviewElement
+
+    modeManager.setMode(PreviewMode.Focus(darkPreviewElement))
+
+    // 4. Simulate a resize
+    val newWidth = 400
+    val newHeight = 250
+    val configuration = createConfiguration(newWidth, newHeight)
+    configuration.updateScreenSize(newWidth, newHeight)
+
+    `when`(resizePanel.hasBeenResized).thenReturn(true)
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) =
+            darkPreviewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        }
+      )
+    `when`(model.configuration).thenReturn(configuration)
+
+    // 5. Perform action
+    val action = SavePreviewInNewSizeAction()
+    val event = TestActionEvent.createTestEvent(getDataContext())
+    action.actionPerformed(event)
+
+    // 6. Assertions
+    @Language("kotlin")
+    val expectedContent =
+      """
+      package com.example
+
+      import android.content.res.Configuration
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+      import androidx.compose.ui.tooling.preview.Wallpapers
+      import com.example.multipreview.PreviewLightDark
+
+      @Composable fun XRAppTheme(content: @Composable () -> Unit) { content() }
+      @Composable fun My2DContent(onRequestFullSpaceMode: () -> Unit) {}
+
+      @Preview(
+          name = "400dp x 250dp",
+          uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL,
+          wallpaper = Wallpapers.RED_DOMINATED_EXAMPLE,
+          widthDp = 400,
+          heightDp = 250
+      )
+      @PreviewLightDark
+      @Composable
+      fun My2dContentPreview() {
+          XRAppTheme {
+              My2DContent(onRequestFullSpaceMode = {})
+          }
+      }
+      """
+        .trimIndent()
+
+    val updatedText = composeTest.text
+    assertThat(updatedText).isEqualTo(expectedContent)
+  }
+
+  @Test
+  fun `do not add duplicate ui mode imports`() = runTest {
+    // 1. Add the main Compose Test file, which already includes a UI_MODE import
+    val composeTest =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/MyPreviews.kt",
+        """
+              package com.example
+
+              import android.content.res.Configuration.UI_MODE_NIGHT_YES
+              import androidx.compose.runtime.Composable
+              import androidx.compose.ui.tooling.preview.Preview
+
+              @Preview(name = "Dark", uiMode = UI_MODE_NIGHT_YES)
+              @Composable
+              fun MyComposable() {
+              }
+        """
+          .trimIndent(),
+      )
+
+    // 2. Find the "Dark" preview element
+    val previewElement =
+      AnnotationFilePreviewElementFinder.findPreviewElements(
+          projectRule.project,
+          composeTest.virtualFile,
+        )
+        .first() as PsiComposePreviewElement
+
+    modeManager.setMode(PreviewMode.Focus(previewElement))
+
+    // 3. Simulate a resize
+    val newWidth = 400
+    val newHeight = 250
+    val configuration = createConfiguration(newWidth, newHeight)
+    configuration.updateScreenSize(newWidth, newHeight)
+    // Ensure the uiMode is carried over to the new annotation
+    `when`(model.configuration).thenReturn(configuration)
+    `when`(resizePanel.hasBeenResized).thenReturn(true)
+    `when`(model.dataProvider)
+      .thenReturn(
+        object : NlDataProvider(PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE) {
+          override fun getData(dataId: String) =
+            previewElement.takeIf { dataId == PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name }
+        }
+      )
+
+    // 4. Perform action
+    val action = SavePreviewInNewSizeAction()
+    val event = TestActionEvent.createTestEvent(getDataContext())
+    action.actionPerformed(event)
+
+    // 5. Assertions
+    @Language("kotlin")
+    val expectedContent =
+      """
+      package com.example
+
+      import android.content.res.Configuration.UI_MODE_NIGHT_YES
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.tooling.preview.Preview
+
+      @Preview(
+          name = "400dp x 250dp",
+          uiMode = UI_MODE_NIGHT_YES,
+          widthDp = 400,
+          heightDp = 250
+      )
+      @Preview(name = "Dark", uiMode = UI_MODE_NIGHT_YES)
+      @Composable
+      fun MyComposable() {
+      }
+      """
+        .trimIndent()
+
+    val updatedText = composeTest.text
+    assertThat(updatedText).isEqualTo(expectedContent)
+
+    // Check that there is only one import for UI_MODE_NIGHT_YES
+    val importCount =
+      updatedText.lines().count {
+        it.contains("import android.content.res.Configuration.UI_MODE_NIGHT_YES")
+      }
+    assertThat(importCount).isEqualTo(1)
+  }
+
   fun KtAnnotationEntry.getValueForArgument(name: String): String? {
     val valueArgument =
       valueArgumentList!!.arguments.find { it.getArgumentName()?.asName?.identifier == name }

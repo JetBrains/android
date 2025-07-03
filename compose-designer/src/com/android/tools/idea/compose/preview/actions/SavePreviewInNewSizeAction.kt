@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.SdkConstants
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
+import com.android.tools.compose.COMPOSE_WALLPAPERS_CLASS_FQN
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.deviceSizeDp
 import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.analytics.ComposeResizeToolingUsageTracker
 import com.android.tools.idea.compose.preview.message
@@ -44,6 +47,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
@@ -67,12 +71,89 @@ class SavePreviewInNewSizeAction(val dispatcher: CoroutineDispatcher = Dispatche
     val previewElement = sceneManager.model.dataProvider?.previewElement() ?: return
 
     val configuration = sceneManager.model.configuration
-    val showDecorations = previewElement.displaySettings.showDecoration
-    val ktPsiFactory = KtPsiFactory(project)
-
     val previewMethod = previewElement.previewBody?.element?.parent as? KtFunction ?: return
-    val deviceState = configuration.deviceState ?: error("Device state should not be null")
 
+    logResizeSaved(e, previewElement, configuration)
+
+    val nameForNewPreview = createNewName(configuration)
+    setUpSwitchingToNewPreview(e, nameForNewPreview)
+
+    WriteCommandAction.runWriteCommandAction(
+      project,
+      "Save Resized Preview",
+      null,
+      {
+        val targetFile = previewMethod.containingFile as? KtFile ?: return@runWriteCommandAction
+        val ktPsiFactory = KtPsiFactory(project)
+
+        val newAnnotationText =
+          buildAnnotationText(previewElement, configuration, nameForNewPreview, targetFile)
+        val newAnnotationEntry = ktPsiFactory.createAnnotationEntry(newAnnotationText)
+        val addedAnnotation = previewMethod.addAnnotationEntry(newAnnotationEntry)
+
+        handleImportsForNewAnnotation(targetFile, newAnnotationText)
+
+        ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
+      },
+      previewMethod.containingFile,
+    )
+  }
+
+  private fun buildAnnotationText(
+    previewElement: PsiComposePreviewElementInstance,
+    configuration: Configuration,
+    nameForNewPreview: String,
+    targetFile: KtFile,
+  ): String {
+    // Check if Preview is imported with an alias
+    val alias: KtImportAlias? = targetFile.findAliasByFqName(FqName(COMPOSE_PREVIEW_ANNOTATION_FQN))
+
+    // If an alias exists, use it. Otherwise, use the FQN for initial creation.
+    val annotationClassName = alias?.name ?: COMPOSE_PREVIEW_ANNOTATION_FQN
+
+    // toPreviewAnnotationText already creates with FQN internally.
+    // We'll replace the FQN with the alias if one exists, or keep FQN if not.
+    val baseAnnotationParams =
+      toPreviewAnnotationText(previewElement, configuration, nameForNewPreview)
+        .removePrefix("@$COMPOSE_PREVIEW_ANNOTATION_FQN") // Remove the FQN prefix
+
+    return "@$annotationClassName$baseAnnotationParams"
+  }
+
+  private fun handleImportsForNewAnnotation(targetFile: KtFile, newAnnotationText: String) {
+    val uiModeContainerFqn = FqName(SdkConstants.CLASS_CONFIGURATION)
+    val wallpaperContainerFqn = FqName(COMPOSE_WALLPAPERS_CLASS_FQN)
+
+    val hasUiModeContainerImport = targetFile.hasImport(uiModeContainerFqn)
+    val hasWallpaperContainerImport = targetFile.hasImport(wallpaperContainerFqn)
+
+    /**
+     * Add imports for uiMode and wallpaper FQNs. If the file already imports the entire class
+     * (e.g., `import.android.content.res.Configuration`), we don't need to import the specific
+     * members (e.g., `import.android.content.res.Configuration.UI_MODE_NIGHT_YES`), as they will be
+     * resolved correctly.
+     */
+    if (!hasUiModeContainerImport) {
+      val uiModeRegex = Regex("(${SdkConstants.CLASS_CONFIGURATION}\\.UI_MODE_[A-Z_]+)")
+      uiModeRegex.findAll(newAnnotationText).forEach { match ->
+        targetFile.addImport(FqName(match.value))
+      }
+    }
+    if (!hasWallpaperContainerImport) {
+      val wallpaperRegex = Regex("($COMPOSE_WALLPAPERS_CLASS_FQN\\.[A-Z_]+)")
+      wallpaperRegex.findAll(newAnnotationText).forEach { match ->
+        targetFile.addImport(FqName(match.value))
+      }
+    }
+  }
+
+  private fun logResizeSaved(
+    e: AnActionEvent,
+    previewElement: PreviewElement<*>,
+    configuration: Configuration,
+  ) {
+    val showDecorations = previewElement.displaySettings.showDecoration
+    val deviceState = configuration.deviceState ?: error("Device state should not be null")
     val (widthDp, heightDp) = configuration.deviceSizeDp()
     val mode =
       if (showDecorations) ResizeComposePreviewEvent.ResizeMode.DEVICE_RESIZE
@@ -85,39 +166,12 @@ class SavePreviewInNewSizeAction(val dispatcher: CoroutineDispatcher = Dispatche
       heightDp,
       dpi,
     )
+  }
 
-    val nameForNewPreview = createNewName(configuration)
-    setUpSwitchingToNewPreview(e, nameForNewPreview)
-
-    WriteCommandAction.runWriteCommandAction(
-      project,
-      "Save Resized Preview",
-      null,
-      {
-        val targetFile = previewMethod.containingFile as? KtFile ?: return@runWriteCommandAction
-
-        // Check if Preview is imported with an alias
-        val alias: KtImportAlias? =
-          targetFile.findAliasByFqName(FqName(COMPOSE_PREVIEW_ANNOTATION_FQN))
-
-        // If an alias exists, use it. Otherwise, use the FQN for initial creation.
-        val annotationClassName = alias?.name ?: COMPOSE_PREVIEW_ANNOTATION_FQN
-
-        // toPreviewAnnotationText already creates with FQN internally.
-        // We'll replace the FQN with the alias if one exists, or keep FQN if not.
-        val baseAnnotationParams =
-          toPreviewAnnotationText(previewElement, configuration, nameForNewPreview)
-            .removePrefix("@${COMPOSE_PREVIEW_ANNOTATION_FQN}") // Remove the FQN prefix
-
-        val newAnnotationText = "@$annotationClassName$baseAnnotationParams"
-
-        val newAnnotationEntry = ktPsiFactory.createAnnotationEntry(newAnnotationText)
-
-        ShortenReferencesFacility.getInstance()
-          .shorten(previewMethod.addAnnotationEntry(newAnnotationEntry))
-      },
-      previewMethod.containingFile,
-    )
+  private fun KtFile.hasImport(fqName: FqName): Boolean {
+    return importDirectives.any {
+      it.importedFqName == fqName && !it.isAllUnder && it.aliasName == null
+    }
   }
 
   override fun update(e: AnActionEvent) {
