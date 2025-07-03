@@ -565,7 +565,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testEnableLiAcrossTabsFromMultipleContentManagers() {
+  fun testEnableLiAcrossTabsFromMultipleContentManagers() = withEmbeddedLayoutInspector {
     val secondContentManager = FakeContentManager()
     Disposer.register(displayViewRule.disposable, secondContentManager)
 
@@ -593,7 +593,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testDisable() {
+  fun testDisable() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)

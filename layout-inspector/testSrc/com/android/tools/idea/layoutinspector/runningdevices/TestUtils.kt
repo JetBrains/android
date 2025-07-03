@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.runningdevices
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.properties.DimensionUnitAction
 import com.android.tools.idea.layoutinspector.properties.PROPERTIES_COMPONENT_NAME
@@ -71,15 +72,21 @@ object EmbeddedLayoutInspectorSettingsProxy {
  */
 fun withEmbeddedLayoutInspector(
   enabled: Boolean = true,
+  useNewRenderer: Boolean = false,
   block: EmbeddedLayoutInspectorSettingsProxy.() -> Unit,
 ) {
   val settings = EmbeddedLayoutInspectorSettingsProxy
   val prev = settings.enableEmbeddedLayoutInspector
   settings.enableEmbeddedLayoutInspector = enabled
+
+  val prevRenderer = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_V2_RENDERING.get()
+  StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_V2_RENDERING.override(useNewRenderer)
+
   try {
     block(settings)
   } finally {
     settings.enableEmbeddedLayoutInspector = prev
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_V2_RENDERING.override(prevRenderer)
   }
 }
 

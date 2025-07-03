@@ -84,7 +84,7 @@ class OnDeviceRendererModel(
   parentDisposable: Disposable,
   val inspectorModel: InspectorModel,
   private val treeSettings: TreeSettings,
-  private val renderSettings: RenderSettings,
+  val renderSettings: RenderSettings,
   private val navigateToSelectedViewOnDoubleClick: () -> Unit,
 ) : Disposable {
 
@@ -204,7 +204,7 @@ class OnDeviceRendererModel(
   }
 
   /** Returns the list of visible nodes belonging to [rootId], at the provided coordinates. */
-  fun findNodesAt(x: Double, y: Double, rootId: Long): List<ViewNode> {
+  fun findNodesAt(x: Double, y: Double, rootId: Long = inspectorModel.root.drawId): List<ViewNode> {
     return getNodes(rootId).filter { it.layoutBounds.contains(x, y) }
   }
 

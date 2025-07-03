@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.SelectedTabState
 import com.android.tools.idea.layoutinspector.runningdevices.ui.TabComponents
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.LayoutInspectorRenderer
+import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.NewStudioRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererModel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererPanel
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.StudioRendererPanel
@@ -380,27 +381,58 @@ fun createRendererPanel(
       },
     )
   } else {
-    StudioRendererPanel(
-      disposable = tabComponents,
-      coroutineScope = layoutInspector.coroutineScope,
-      renderLogic = layoutInspector.renderLogic,
-      renderModel = layoutInspector.renderModel,
-      notificationModel = layoutInspector.notificationModel,
-      displayRectangleProvider = { tabComponents.displayView.displayRectangle },
-      screenScaleProvider = { tabComponents.displayView.screenScalingFactor },
-      orientationQuadrantProvider = {
-        calculateRotationCorrection(
-          layoutInspector.inspectorModel,
-          displayOrientationQuadrant = { tabComponents.displayView.displayOrientationQuadrants },
-          displayOrientationQuadrantCorrection = {
-            tabComponents.displayView.displayOrientationCorrectionQuadrants
+    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_V2_RENDERING.get()) {
+      val renderModel =
+        OnDeviceRendererModel(
+          parentDisposable = tabComponents,
+          inspectorModel = layoutInspector.inspectorModel,
+          treeSettings = layoutInspector.treeSettings,
+          renderSettings = layoutInspector.renderSettings,
+          navigateToSelectedViewOnDoubleClick = {
+            layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
           },
         )
-      },
-      navigateToSelectedViewOnDoubleClick = {
-        layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
-      },
-    )
+
+      NewStudioRendererPanel(
+        disposable = tabComponents,
+        scope = layoutInspector.coroutineScope,
+        renderModel = renderModel,
+        notificationModel = layoutInspector.notificationModel,
+        displayRectangleProvider = { tabComponents.displayView.displayRectangle },
+        screenScaleProvider = { tabComponents.displayView.screenScalingFactor },
+        orientationQuadrantProvider = {
+          calculateRotationCorrection(
+            layoutInspector.inspectorModel,
+            displayOrientationQuadrant = { tabComponents.displayView.displayOrientationQuadrants },
+            displayOrientationQuadrantCorrection = {
+              tabComponents.displayView.displayOrientationCorrectionQuadrants
+            },
+          )
+        },
+      )
+    } else {
+      StudioRendererPanel(
+        disposable = tabComponents,
+        coroutineScope = layoutInspector.coroutineScope,
+        renderLogic = layoutInspector.renderLogic,
+        renderModel = layoutInspector.renderModel,
+        notificationModel = layoutInspector.notificationModel,
+        displayRectangleProvider = { tabComponents.displayView.displayRectangle },
+        screenScaleProvider = { tabComponents.displayView.screenScalingFactor },
+        orientationQuadrantProvider = {
+          calculateRotationCorrection(
+            layoutInspector.inspectorModel,
+            displayOrientationQuadrant = { tabComponents.displayView.displayOrientationQuadrants },
+            displayOrientationQuadrantCorrection = {
+              tabComponents.displayView.displayOrientationCorrectionQuadrants
+            },
+          )
+        },
+        navigateToSelectedViewOnDoubleClick = {
+          layoutInspector.navigateToSelectedViewFromRendererDoubleClick()
+        },
+      )
+    }
   }
 }
 

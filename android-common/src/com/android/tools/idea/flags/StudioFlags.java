@@ -1146,6 +1146,11 @@ public final class StudioFlags {
     "Force using on-device rendering, even when the device is not XR. Used for development only.",
     false);
 
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_V2_RENDERING = new BooleanFlag(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.v2.rendering", "Enable V2 studio-side rendering",
+    "Enable the new studio-side renderer in embedded mode.",
+    enabledUpTo(CANARY));
+
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_HORIZONTAL_SCROLLABLE_COMPONENT_TREE = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.horizontal.scrollable.component.tree",
     "Horizontal scroll for layout inspector component tree",
