@@ -21,9 +21,6 @@ import com.google.idea.common.experiments.BoolExperiment;
 
 /** Holder class for basic information about querysync, e.g. is it enabled? */
 public class QuerySync {
-  private static final BoolExperiment useLibraryEntity =
-    new BoolExperiment("query.sync.use.library.entity", true);
-
   public static final String BUILD_DEPENDENCIES_ACTION_NAME = "Enable analysis";
 
   public static final BoolExperiment ATTACH_DEP_SRCJARS =
@@ -37,10 +34,5 @@ public class QuerySync {
   public static boolean useForNewProjects() {
     return QuerySyncSettings.getInstance().useQuerySync()
            || BaseQuerySyncConversionUtility.AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled();
-  }
-  
-  /** Provides library via BazelAdditionalLibraryRootsProvider instead of library table. */
-  public static boolean enableLibraryEntity() {
-    return useLibraryEntity.getValue();
   }
 }

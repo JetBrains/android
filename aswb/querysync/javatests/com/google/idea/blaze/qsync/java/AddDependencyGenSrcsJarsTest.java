@@ -69,16 +69,9 @@ public class AddDependencyGenSrcsJarsTest {
   public AddDependencyGenSrcsJarsTest() throws IOException, BuildException { }
 
   @Test
-  public void enable_library_provider_no_deps_built() throws Exception {
+  public void no_deps_built() throws Exception {
     AddDependencyGenSrcsJars addGenSrcJars =
-      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, true);
-    no_deps_built(addGenSrcJars);
-  }
-
-  @Test
-  public void disable_library_provider_no_deps_built() throws Exception {
-    AddDependencyGenSrcsJars addGenSrcJars =
-      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, false);
+      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata);
     no_deps_built(addGenSrcJars);
   }
 
@@ -96,16 +89,9 @@ public class AddDependencyGenSrcsJarsTest {
   }
 
   @Test
-  public void enable_library_provider_project_gensrcs_ignored() throws Exception {
+  public void project_gensrcs_ignored() throws Exception {
     AddDependencyGenSrcsJars addGenSrcJars =
-      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, true);
-    project_gensrcs_ignored(addGenSrcJars);
-  }
-
-  @Test
-  public void disable_library_provider_project_gensrcs_ignored() throws Exception {
-    AddDependencyGenSrcsJars addGenSrcJars =
-      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, false);
+      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata);
     project_gensrcs_ignored(addGenSrcJars);
   }
 
@@ -136,33 +122,10 @@ public class AddDependencyGenSrcsJarsTest {
   }
 
   @Test
-  public void enable_library_provider_external_gensrcs_added() throws Exception {
+  public void external_gensrcs_added() throws Exception {
     AddDependencyGenSrcsJars addGenSrcJars =
-      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, true);
+      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata);
     external_gensrcs_added(addGenSrcJars, ProjectProto.Library.newBuilder().setName("//java/com/google/common/collect:collect")
-      .addSources(ProjectProto.LibrarySource.newBuilder()
-                    .setSrcjar(
-                      ProjectPath.newBuilder()
-                        .setBase(Base.PROJECT)
-                        .setPath(".bazel/buildout/output/path/to/external.srcjar")
-                        .setInnerPath("root"))
-                    .build())
-      .addSources(
-        ProjectProto.LibrarySource.newBuilder()
-          .setSrcjar(
-            ProjectPath.newBuilder()
-              .setBase(Base.PROJECT)
-              .setPath(".bazel/buildout/output/path/to/external.srcjar")
-              .setInnerPath("root2"))
-          .build())
-      .build());
-  }
-
-  @Test
-  public void disable_library_provider_external_gensrcs_added() throws Exception {
-    AddDependencyGenSrcsJars addGenSrcJars =
-      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, false);
-    external_gensrcs_added(addGenSrcJars, ProjectProto.Library.newBuilder().setName(".dependencies")
       .addSources(ProjectProto.LibrarySource.newBuilder()
                     .setSrcjar(
                       ProjectPath.newBuilder()
@@ -209,24 +172,10 @@ public class AddDependencyGenSrcsJarsTest {
 
 
   @Test
-  public void enable_library_provider_no_metadata_present() throws Exception {
+  public void no_metadata_present() throws Exception {
     AddDependencyGenSrcsJars addGenSrcJars =
-      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, true);
+      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata);
     no_metadata_present(addGenSrcJars, ProjectProto.Library.newBuilder().setName("//java/com/google/common/collect:collect")
-      .addSources(ProjectProto.LibrarySource.newBuilder()
-                    .setSrcjar(
-                      ProjectPath.newBuilder()
-                        .setBase(Base.PROJECT)
-                        .setPath(".bazel/buildout/output/path/to/external.srcjar"))
-                    .build())
-      .build());
-  }
-
-  @Test
-  public void disable_library_provider_no_metadata_present() throws Exception {
-    AddDependencyGenSrcsJars addGenSrcJars =
-      new AddDependencyGenSrcsJars(original.queryData().projectDefinition(), innerRootsMetadata, false);
-    no_metadata_present(addGenSrcJars, ProjectProto.Library.newBuilder().setName(".dependencies")
       .addSources(ProjectProto.LibrarySource.newBuilder()
                     .setSrcjar(
                       ProjectPath.newBuilder()

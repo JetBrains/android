@@ -31,7 +31,6 @@ import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
  */
 public interface ProjectProtoUpdateOperation {
 
-  String JAVA_DEPS_LIB_NAME = ".dependencies";
   ImmutableSet<String> JAVA_ARCHIVE_EXTENSIONS = ImmutableSet.of("jar", "srcjar");
 
   default ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>> getRequiredArtifacts(

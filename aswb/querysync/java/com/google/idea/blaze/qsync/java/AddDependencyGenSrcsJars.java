@@ -46,13 +46,10 @@ public class AddDependencyGenSrcsJars implements ProjectProtoUpdateOperation {
   private final ProjectDefinition projectDefinition;
   private final Extractor<SrcJarJavaPackageRoots> srcJarPathsMetadata;
 
-  private final boolean enableLibraryEntity;
-
   public AddDependencyGenSrcsJars(
-      ProjectDefinition projectDefinition, Extractor<SrcJarJavaPackageRoots> srcJarPathsMetadata, boolean enableLibraryEntity) {
+      ProjectDefinition projectDefinition, Extractor<SrcJarJavaPackageRoots> srcJarPathsMetadata) {
     this.projectDefinition = projectDefinition;
     this.srcJarPathsMetadata = srcJarPathsMetadata;
-    this.enableLibraryEntity = enableLibraryEntity;
   }
 
   private Stream<BuildArtifact> getDependencyGenSrcJars(TargetBuildInfo target) {
@@ -97,7 +94,7 @@ public class AddDependencyGenSrcsJars implements ProjectProtoUpdateOperation {
                       .map(projectArtifact::withInnerJarPath)
                       .map(ProjectPath::toProto)
                       .map(LibrarySource.newBuilder()::setSrcjar)
-                      .forEach(update.library(enableLibraryEntity ? target.label().toString() : JAVA_DEPS_LIB_NAME)::addSources);
+                      .forEach(update.library(target.label().toString())::addSources);
                 }
               });
     }
