@@ -95,7 +95,7 @@ fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> {
   return  sorted.groupBy {
       when {
         isCanonicalDevice(it) -> DeviceGroup.CANONICAL_DEVICE
-        isAdditionalDevice(it) -> DeviceGroup.ADDITIONAL_DEVICE
+        isReferenceDevice(it) -> DeviceGroup.ADDITIONAL_DEVICE
         Device.isAutomotive(it) -> DeviceGroup.AUTOMOTIVE
         Device.isWear(it) -> DeviceGroup.WEAR
         Device.isDesktop(it) -> DeviceGroup.DESKTOP
@@ -109,12 +109,21 @@ fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> {
     .toSortedMap()
 }
 
-private fun isCanonicalDevice(device: Device): Boolean {
+/**
+ * Returns true if the provided device is a "canonical" device. Canonical devices are a special type of device used in
+ * the New UI to represent the most common devices.
+ */
+fun isCanonicalDevice(device: Device): Boolean {
   val id = device.id
   return id == "SmallPhone" || id == "MediumPhone" || id == "MediumTablet"
 }
 
-private fun isAdditionalDevice(device: Device): Boolean {
+/**
+ * Returns true if the provided device is an "additional" device. Additional devices are a special type of device
+ * that represent device classes such as Phone, Foldable, Tablet and Desktop. These are used in the New UI as reference
+ * devices.
+ */
+fun isReferenceDevice(device: Device): Boolean {
   val id = device.id
 
   return id == DEVICE_CLASS_PHONE_ID ||
