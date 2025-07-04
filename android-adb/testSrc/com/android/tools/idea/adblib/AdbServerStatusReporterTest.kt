@@ -18,6 +18,7 @@ package com.android.tools.idea.adblib
 
 import com.android.adblib.ServerStatus
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.test.testutils.EnsureAndroidProjectRule
 import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.android.tools.idea.adb.PreInitAndroidDebugBridgeRule
 import com.intellij.testFramework.ProjectRule
@@ -35,6 +36,7 @@ class AdbServerStatusReporterTest {
   private val preInitRule = PreInitAndroidDebugBridgeRule()
   private val adbRule = FakeAdbRule()
   private val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
+  @get:Rule val ensureAndroidProjectRule = EnsureAndroidProjectRule()
   private lateinit var reporter: AdbServerStatusReporter
 
   private var statusCallbackCalled = false
