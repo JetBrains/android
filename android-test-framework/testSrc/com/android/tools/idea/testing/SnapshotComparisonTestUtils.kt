@@ -17,6 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
@@ -57,11 +58,12 @@ interface SnapshotComparisonTest {
   val snapshotDirectoryWorkspaceRelativePath: String
 
   /**
-   * The tree of file name suffixes applicable to the currently running test, topologically
-   * sorted from most- to leads-specific.
+   * The list of file name suffixes applicable to the currently running test.
    */
   val snapshotSuffixes: List<String> get() = listOfNotNull(
+    "_K2_phased".takeIf { KotlinPluginModeProvider.isK2Mode() && StudioFlags.PHASED_SYNC_ENABLED.get() },
     "_K2".takeIf { KotlinPluginModeProvider.isK2Mode() },
+    "_phased".takeIf { StudioFlags.PHASED_SYNC_ENABLED.get() },
     "",
   )
 
