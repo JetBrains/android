@@ -47,6 +47,9 @@
         language="WFFExpression"
         implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionAnnotator"/>
 
+    <lang.elementManipulator forClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionConfiguration"
+                             implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionConfigurationManipulator"/>
+
   </extensions>
   <actions>
     <action id="ImportWatchFaceStudioFileAction"

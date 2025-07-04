@@ -28,6 +28,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.*;
+import com.intellij.psi.PsiReference;
 
 public class WFFExpressionConfigurationImpl extends ASTWrapperPsiElement implements WFFExpressionConfiguration {
 
@@ -49,6 +50,17 @@ public class WFFExpressionConfigurationImpl extends ASTWrapperPsiElement impleme
   @NotNull
   public WFFExpressionConfigurationId getConfigurationId() {
     return findNotNullChildByClass(WFFExpressionConfigurationId.class);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getId() {
+    return findChildByType(ID);
+  }
+
+  @Override
+  public @Nullable PsiReference getReference() {
+    return PsiImplUtilKt.getReference(this);
   }
 
 }

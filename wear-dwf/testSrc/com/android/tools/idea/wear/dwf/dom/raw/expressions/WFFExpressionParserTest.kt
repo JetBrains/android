@@ -213,7 +213,7 @@ FILE
         WFFExpressionColorIndexImpl(COLOR_INDEX)
           PsiElement(.)('.')
           PsiElement(INTEGER)('1')
-      PsiErrorElement:']' expected
+      PsiErrorElement:ID or ']' expected
         <empty list>
           """
         .trimIndent(),

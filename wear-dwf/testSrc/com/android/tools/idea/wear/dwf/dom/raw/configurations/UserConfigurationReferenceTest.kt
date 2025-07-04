@@ -1,0 +1,346 @@
+/*
+ * Copyright (C) 2025 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.wear.dwf.dom.raw.configurations
+
+import com.android.flags.junit.FlagRule
+import com.android.testutils.TestUtils
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.flags.overrideForTest
+import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionConfiguration
+import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionDataSource
+import com.google.common.truth.Truth.assertThat
+import com.intellij.lang.injection.InjectedLanguageManager
+import com.intellij.psi.util.parentOfType
+import com.intellij.psi.xml.XmlTag
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+
+@RunsInEdt
+class UserConfigurationReferenceTest {
+  @get:Rule val edtRule = EdtRule()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule
+  val flagRule = FlagRule(StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT, true)
+
+  private val fixture
+    get() = projectRule.fixture
+
+  @Before
+  fun setup() {
+    projectRule.fixture.testDataPath =
+      TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+  }
+
+  @Test
+  fun `references are created for expressions`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <BooleanConfiguration id="boolean_configuration" />
+            <ColorConfiguration id="color_config" />
+            <PhotosConfiguration id="photo_config" />
+            <ListConfiguration id="list_configuration" />
+          </UserConfigurations>
+          <Scene>
+             <Parameter expression="[DATA_SOURCE] + [CONFIGURATION.boolean_configuration] + [CONFIGURATION.unknown]" />
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    fixture.moveCaret("[DATA_|SOURCE]")
+    val dataSource =
+      findInjectedElementAtCaret()?.parentOfType<WFFExpressionDataSource>(withSelf = true)
+    assertThat(dataSource).isNotNull()
+    assertThat(dataSource?.reference).isNull()
+
+    fixture.moveCaret("[CONFIGURATION.boolean|_configuration]")
+    val configuration =
+      findInjectedElementAtCaret()?.parentOfType<WFFExpressionConfiguration>(withSelf = true)
+    assertThat(configuration).isNotNull()
+    assertThat(configuration?.reference).isNotNull()
+    assertThat(configuration?.reference?.resolve())
+      .isEqualTo(
+        fixture.findElementByText(
+          "<BooleanConfiguration id=\"boolean_configuration\" />",
+          XmlTag::class.java,
+        )
+      )
+
+    fixture.moveCaret("[CONFIGURATION.|unknown]")
+    val unknownConfiguration =
+      findInjectedElementAtCaret()?.parentOfType<WFFExpressionConfiguration>(withSelf = true)
+    assertThat(unknownConfiguration).isNotNull()
+    assertThat(unknownConfiguration?.reference).isNotNull()
+    assertThat(unknownConfiguration?.reference?.resolve()).isNull()
+  }
+
+  @Test
+  fun `variants for references in expressions contain all configuration types`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <BooleanConfiguration id="boolean_configuration" />
+            <ColorConfiguration id="color_config" />
+            <PhotosConfiguration id="photo_config" />
+            <ListConfiguration id="list_configuration" />
+          </UserConfigurations>
+          <Scene>
+             <Parameter expression="[CONFIGURATION.$caret" />
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsExactly(
+        "[CONFIGURATION.boolean_configuration]",
+        "[CONFIGURATION.color_config]",
+        "[CONFIGURATION.photo_config]",
+        "[CONFIGURATION.list_configuration]",
+      )
+  }
+
+  @Test
+  fun `variants are available for color indices in expressions`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <ColorConfiguration id="color_config">
+              <ColorOption colors="#ff0000 #00ff00 #0000ff" />
+            </ColorConfiguration>
+          </UserConfigurations>
+          <Scene>
+             <Parameter expression="[CONFIGURATION.color_config.$caret" />
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsExactly(
+        "[CONFIGURATION.color_config.0]",
+        "[CONFIGURATION.color_config.1]",
+        "[CONFIGURATION.color_config.2]",
+      )
+  }
+
+  @Test
+  fun `autocomplete in expressions does not add extra brackets`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <ColorConfiguration id="color_config" />
+          </UserConfigurations>
+          <Scene>
+             <Parameter expression="[CONFIGURATION.color_$caret" />
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    fixture.completeBasic()
+
+    fixture.checkResult(
+      // language=XML
+      """
+        <WatchFace>
+          <UserConfigurations>
+            <ColorConfiguration id="color_config" />
+          </UserConfigurations>
+          <Scene>
+             <Parameter expression="[CONFIGURATION.color_config]" />
+          </Scene>
+        </WatchFace>
+      """
+        .trimIndent()
+    )
+  }
+
+  @Test
+  fun `references are not created if the flag is disabled`() {
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT.overrideForTest(
+      false,
+      projectRule.testRootDisposable,
+    )
+
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <Scene>
+             <Parameter expression="[CONFIGURATION.boolean_config]" />
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    fixture.moveCaret("expression=\"[CONFIGURATION.|boolean_config]\"")
+    val expressionConfiguration =
+      findInjectedElementAtCaret()?.parentOfType<WFFExpressionConfiguration>(withSelf = true)
+    // this shouldn't be injected when the flag is disabled
+    assertThat(expressionConfiguration).isNull()
+  }
+
+  @Test
+  fun `color configuration references can specify a color index`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <ColorConfiguration id="color_config">
+              <ColorOption colors="#ff0000 #00ff00 #0000ff"/>
+            </ColorConfiguration>
+          </UserConfigurations>
+          <!-- this is valid -->
+          <Parameter expression="[CONFIGURATION.color_config.0]" />
+          <!-- this is not valid -->
+          <Parameter expression="[CONFIGURATION.color_config.0.0]" />
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    fixture.moveCaret("[CONFIGURATION.|color_config.0]")
+    val validConfig =
+      findInjectedElementAtCaret()?.parentOfType<WFFExpressionConfiguration>(withSelf = true)
+    assertThat(validConfig).isNotNull()
+    assertThat(validConfig?.reference?.resolve())
+      .isEqualTo(
+        fixture.findElementByText("<ColorConfiguration id=\"color_config\">", XmlTag::class.java)
+      )
+
+    fixture.moveCaret("[CONFIGURATION.|color_config.0.0]")
+    val invalidConfig =
+      findInjectedElementAtCaret()?.parentOfType<WFFExpressionConfiguration>(withSelf = true)
+    assertThat(invalidConfig).isNotNull()
+    assertThat(invalidConfig?.reference?.resolve()).isNull()
+  }
+
+  @Test
+  fun `boolean configuration references cannot specify a color index`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <BooleanConfiguration id="boolean_config" />
+          </UserConfigurations>
+          <Parameter expression="[CONFIGURATION.boolean_config] + [CONFIGURATION.boolean_config.0]" />
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    fixture.moveCaret("[CONFIGURATION.|boolean_config]")
+    val validBooleanConfig =
+      findInjectedElementAtCaret()?.parentOfType<WFFExpressionConfiguration>(withSelf = true)
+    assertThat(validBooleanConfig).isNotNull()
+    assertThat(validBooleanConfig?.reference?.resolve())
+      .isEqualTo(
+        fixture.findElementByText(
+          "<BooleanConfiguration id=\"boolean_config\" />",
+          XmlTag::class.java,
+        )
+      )
+
+    fixture.moveCaret("[CONFIGURATION.|boolean_config.0]")
+    val invalidBooleanConfig =
+      findInjectedElementAtCaret()?.parentOfType<WFFExpressionConfiguration>(withSelf = true)
+    assertThat(invalidBooleanConfig).isNotNull()
+    assertThat(invalidBooleanConfig?.reference?.resolve()).isNull()
+  }
+
+  @Test
+  fun `list configuration references cannot specify a color index`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <ListConfiguration id="list_config" />
+          </UserConfigurations>
+          <Parameter expression="[CONFIGURATION.list_config] + [CONFIGURATION.list_config.0]" />
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    fixture.moveCaret("[CONFIGURATION.|list_config]")
+    val validListConfig =
+      findInjectedElementAtCaret()?.parentOfType<WFFExpressionConfiguration>(withSelf = true)
+    assertThat(validListConfig).isNotNull()
+    assertThat(validListConfig?.reference?.resolve())
+      .isEqualTo(
+        fixture.findElementByText("<ListConfiguration id=\"list_config\" />", XmlTag::class.java)
+      )
+
+    fixture.moveCaret("[CONFIGURATION.|list_config.0]")
+    val invalidListConfig =
+      findInjectedElementAtCaret()?.parentOfType<WFFExpressionConfiguration>(withSelf = true)
+    assertThat(invalidListConfig).isNotNull()
+    assertThat(invalidListConfig?.reference?.resolve()).isNull()
+  }
+
+  private fun findInjectedElementAtCaret() =
+    InjectedLanguageManager.getInstance(projectRule.project)
+      .findInjectedElementAt(fixture.file, fixture.caretOffset)
+}

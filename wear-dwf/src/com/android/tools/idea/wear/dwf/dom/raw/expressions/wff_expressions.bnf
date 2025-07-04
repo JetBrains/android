@@ -22,6 +22,7 @@
   psiClassPrefix='WFFExpression'
   psiImplClassSuffix='Impl'
   psiPackage='com.android.tools.idea.wear.dwf.dom.raw.expressions'
+  psiImplUtilClass='com.android.tools.idea.wear.dwf.dom.raw.expressions.PsiImplUtilKt'
   psiImplPackage='com.android.tools.idea.wear.dwf.dom.raw.expressions.impl'
   elementTypeHolderClass='com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes'
   elementTypeClass='com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionElementType'
@@ -97,6 +98,12 @@ user_string ::= INTEGER ID?| INTEGER? ID
 configuration_id ::= 'CONFIGURATION' DOT user_string color_index? {
   pin=2
 }
-configuration ::= OPEN_BRACKET configuration_id CLOSE_BRACKET {
+
+// The ID at the end is to allow auto-complete to occur. Intellij adds a dummy identifier at the
+// caret location when auto-completing. By adding that, the grammar doesn't evaluate the
+// configuration_id as being valid, and then doesn't create the reference which means it can't get
+// the variants
+configuration ::= OPEN_BRACKET configuration_id [ID] CLOSE_BRACKET {
+ methods=[getReference]
  pin=2
 }

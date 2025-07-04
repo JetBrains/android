@@ -32,7 +32,6 @@ import com.android.tools.idea.wear.dwf.dom.raw.configurations.UnknownConfigurati
 import com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfiguration
 import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.openapi.util.TextRange
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 
@@ -44,22 +43,25 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
  */
 fun LookupElementBuilder.insertBracketsAroundIfNeeded() =
   withInsertHandler { context, lookupElement ->
-    val textWithoutBrackets = lookupElement.lookupString.removeSurrounding("[", "]")
-    val textWithSurroundingCharacters =
-      context.document.getText(TextRange(context.startOffset - 1, context.tailOffset + 1))
     val textWithBrackets = StringBuilder()
-    if (!textWithSurroundingCharacters.startsWith("[")) {
+    if (!lookupElement.lookupString.startsWith("[")) {
       textWithBrackets.append("[")
     }
-    textWithBrackets.append(textWithoutBrackets)
-    if (!textWithSurroundingCharacters.endsWith("]")) {
+    textWithBrackets.append(lookupElement.lookupString)
+    if (!lookupElement.lookupString.endsWith("]")) {
       textWithBrackets.append("]")
     }
-    context.document.replaceString(
-      context.startOffset,
-      context.tailOffset,
-      textWithBrackets.toString(),
-    )
+
+    val hasExtraOpenBracket =
+      context.startOffset > 0 && context.document.charsSequence[context.startOffset - 1] == '['
+    val startOffset = if (hasExtraOpenBracket) context.startOffset - 1 else context.startOffset
+
+    val hasExtraCloseBracket =
+      context.tailOffset < context.document.textLength &&
+        context.document.charsSequence[context.tailOffset] == ']'
+    val tailOffset = if (hasExtraCloseBracket) context.tailOffset + 1 else context.tailOffset
+
+    context.document.replaceString(startOffset, tailOffset, textWithBrackets.toString())
   }
 
 /** Extracts [UserConfiguration]s from a Declarative Watch Face file. */

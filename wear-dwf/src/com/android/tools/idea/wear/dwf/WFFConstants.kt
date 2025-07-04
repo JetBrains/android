@@ -16,6 +16,8 @@
 package com.android.tools.idea.wear.dwf
 
 object WFFConstants {
+  const val CONFIGURATION_PREFIX = "CONFIGURATION."
+
   const val ATTRIBUTE_ID = "id"
   const val ATTRIBUTE_COLORS = "colors"
 

@@ -22,10 +22,16 @@ package com.android.tools.idea.wear.dwf.dom.raw.expressions;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
 
 public interface WFFExpressionConfiguration extends PsiElement {
 
   @NotNull
   WFFExpressionConfigurationId getConfigurationId();
+
+  @Nullable
+  PsiElement getId();
+
+  @Nullable PsiReference getReference();
 
 }

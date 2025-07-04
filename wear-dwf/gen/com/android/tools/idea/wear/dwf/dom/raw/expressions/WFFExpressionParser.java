@@ -165,7 +165,7 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // OPEN_BRACKET configuration_id CLOSE_BRACKET
+  // OPEN_BRACKET configuration_id [ID] CLOSE_BRACKET
   public static boolean configuration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "configuration")) return false;
     if (!nextTokenIs(b, OPEN_BRACKET)) return false;
@@ -174,9 +174,17 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     r = consumeToken(b, OPEN_BRACKET);
     r = r && configuration_id(b, l + 1);
     p = r; // pin = 2
-    r = r && consumeToken(b, CLOSE_BRACKET);
+    r = r && report_error_(b, configuration_2(b, l + 1));
+    r = p && consumeToken(b, CLOSE_BRACKET) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
+  }
+
+  // [ID]
+  private static boolean configuration_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "configuration_2")) return false;
+    consumeToken(b, ID);
+    return true;
   }
 
   /* ********************************************************** */
