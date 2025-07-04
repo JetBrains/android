@@ -267,6 +267,55 @@ class DeviceMenuActionTest {
       }
     assertEquals(1, selectedActions.size)
   }
+
+  @Test
+  fun testCustomDeviceIsRecognizedAsReferenceDevice() = runBlocking {
+    val layoutFile =
+      projectRule.fixture.addFileToProject(
+        "res/layout/layout.xml",
+        // language=xml
+        """
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:orientation="vertical">
+         </LinearLayout>
+      """
+          .trimIndent(),
+      )
+
+    val configuration = readAction {
+      ConfigurationManager.getOrCreateInstance(layoutFile.module!!)
+        .getConfiguration(layoutFile.virtualFile)
+    }
+
+    val menuAction = DeviceMenuAction()
+    val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(configuration))
+    menuAction.updateActions(dataContext)
+
+    // Set a custom device that matches the Foldable reference device
+    val foldableDevice =
+      (menuAction.findActionByText("Foldable (673 × 841 dp, 420dpi)") as SetDeviceAction).device
+    val builder = Device.Builder(foldableDevice)
+    builder.setId(Configuration.CUSTOM_DEVICE_ID)
+    val customDevice = builder.build()
+    configuration.setEffectiveDevice(customDevice, customDevice.defaultState)
+
+    menuAction.updateActions(dataContext)
+
+    val foldableAction = menuAction.findActionByText("Foldable (673 × 841 dp, 420dpi)")!!
+    val customAction = menuAction.findActionByText("Custom")!!
+
+    val event = TestActionEvent.createTestEvent()
+    withContext(Dispatchers.EDT) {
+      foldableAction.update(event)
+      Truth.assertThat(Toggleable.isSelected(event.presentation)).isTrue()
+
+      customAction.update(event)
+      Truth.assertThat(Toggleable.isSelected(event.presentation)).isFalse()
+    }
+    return@runBlocking
+  }
 }
 
 private class TestConfigurationSettings(private val testDevices: List<Device>) :
