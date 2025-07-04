@@ -37,7 +37,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
-import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.runBlocking
@@ -50,7 +49,6 @@ import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.util.Calendar
-import java.util.Date
 import kotlin.collections.map
 
 /**
@@ -65,12 +63,11 @@ class AndroidGradleProjectStartupActivityTest {
   private var myRequest: GradleSyncInvoker.Request? = null
   private val myProject: Project
     get() = myProjectRule.project
+  @get:Rule
   private val notificationRule = NotificationRule(myProjectRule)
 
   private lateinit var calendar: Calendar
 
-  @get:Rule
-  val ruleChain = RuleChain(myProjectRule, notificationRule)
   private val myTestRootDisposable: Disposable
     get() = myProjectRule.testRootDisposable
 
