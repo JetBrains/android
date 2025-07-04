@@ -253,7 +253,7 @@ public final class ModelWizard implements Disposable {
    * This action is provided by the current wizard step.
    */
   @NotNull
-  ObservableOptional<Action> getExtraAction() { return myExtraAction; }
+  public ObservableOptional<Action> getExtraAction() { return myExtraAction; }
 
   /**
    * Returns the panel that will contain the UI for each step. It is up to an external UI class

@@ -43,7 +43,7 @@ import java.util.Map;
 public class OutputBuildAction implements BuildAction<OutputBuildAction.PostBuildProjectModels>, Serializable {
   @NotNull private final ImmutableCollection<String> myGradlePaths;
 
-  OutputBuildAction(@NotNull Collection<String> moduleGradlePaths) {
+  public OutputBuildAction(@NotNull Collection<String> moduleGradlePaths) {
     myGradlePaths = ImmutableSet.copyOf(moduleGradlePaths);
   }
 

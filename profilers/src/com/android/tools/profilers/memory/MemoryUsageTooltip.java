@@ -22,7 +22,7 @@ public class MemoryUsageTooltip implements TooltipModel {
   @NotNull private final MemoryStageLegends myMemoryStageToolTipLegends;
   @NotNull private final Boolean myIsLiveAllocationTrackingReady;
 
-  MemoryUsageTooltip(@NotNull BaseStreamingMemoryProfilerStage stage) {
+  public MemoryUsageTooltip(@NotNull BaseStreamingMemoryProfilerStage stage) {
     this(stage.getTooltipLegends(), stage.isLiveAllocationTrackingReady());
   }
 

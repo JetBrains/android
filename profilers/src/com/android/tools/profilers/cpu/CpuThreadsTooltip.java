@@ -99,7 +99,7 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
   }
 
   @Nullable
-  ThreadState getThreadState() {
+  public ThreadState getThreadState() {
     return myThreadState;
   }
 

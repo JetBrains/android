@@ -497,7 +497,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
    * the first trace ID found is returned.
    */
   @Nullable
-  CpuTraceInfo getIntersectingTraceInfo(Range range) {
+  public CpuTraceInfo getIntersectingTraceInfo(Range range) {
     List<SeriesData<CpuTraceInfo>> infoList = getTraceDurations().getSeries().getSeriesForRange(range);
     for (SeriesData<CpuTraceInfo> info : infoList) {
       Range captureRange = info.value.getRange();

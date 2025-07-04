@@ -60,7 +60,7 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
   }
 
   @Override
-  public TreeNode getParent() {
+  public @Nullable MemoryObjectTreeNode<T> getParent() {
     return myParent;
   }
 

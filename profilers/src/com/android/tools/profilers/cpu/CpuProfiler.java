@@ -175,10 +175,10 @@ public class CpuProfiler implements StudioProfiler {
   /**
    * Copies the content of the trace file corresponding to a {@link CpuTraceInfo} to a given {@link FileOutputStream}.
    */
-  static void saveCaptureToFile(@NotNull StudioProfilers profilers,
-                                @NotNull Common.Session session,
-                                @NotNull TraceInfo info,
-                                @NotNull OutputStream outputStream) {
+  public static void saveCaptureToFile(@NotNull StudioProfilers profilers,
+                                       @NotNull Common.Session session,
+                                       @NotNull TraceInfo info,
+                                       @NotNull OutputStream outputStream) {
 
     try {
       Transport.BytesRequest traceRequest = Transport.BytesRequest.newBuilder()
@@ -228,7 +228,7 @@ public class CpuProfiler implements StudioProfiler {
    * Generate a default name for a trace to be exported. The name suggested is based on the current timestamp and the capture type.
    */
   @NotNull
-  static String generateCaptureFileName(@NotNull TraceType profilerType) {
+  public static String generateCaptureFileName(@NotNull TraceType profilerType) {
     StringBuilder traceName = new StringBuilder(String.format("cpu-%s-", StringUtil.toLowerCase(profilerType.name())));
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
     traceName.append(LocalDateTime.now().format(formatter));

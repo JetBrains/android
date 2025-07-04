@@ -217,7 +217,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
     final Supplier<ColoredTreeCellRenderer> renderer = () -> new PercentColumnRenderer<>(
       textGetter, v -> null, SwingConstants.RIGHT,
       node -> {
-        MemoryObjectTreeNode<ClassifierSet> parent = node.myParent;
+        MemoryObjectTreeNode<ClassifierSet> parent = node.getParent();
         if (parent == null) {
           return 0;
         }

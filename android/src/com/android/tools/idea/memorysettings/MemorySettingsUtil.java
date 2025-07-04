@@ -105,7 +105,7 @@ public class MemorySettingsUtil {
   }
 
   @Nullable
-  static Project getCurrentProject() {
+  public static Project getCurrentProject() {
     Project result = null;
     Window activeWindow = WindowManagerEx.getInstanceEx().getMostRecentFocusedWindow();
     if (activeWindow != null) {

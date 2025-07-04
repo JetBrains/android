@@ -31,6 +31,7 @@ class K2AndroidKotlinResourceExternalAnnotator : AndroidKotlinResourceExternalAn
         val type = getAndroidResourceType(javaFieldSymbol) ?: return null
         return if (type == ResourceType.COLOR || type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP) {
             val referenceType = getResourceReferenceType(javaFieldSymbol)
+            @Suppress("SuspiciousPackagePrivateAccess") //false-positive, see https://youtrack.jetbrains.com/issue/KTIJ-34018
             ResourceReference(referenceType.namespace, type, getReferencedName())
         }
         else {

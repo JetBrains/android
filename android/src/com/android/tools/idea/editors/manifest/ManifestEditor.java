@@ -90,7 +90,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
       psiChange(event);
     }
   };
-  ManifestEditor(@NotNull AndroidFacet facet, @NotNull VirtualFile manifestFile) {
+  public ManifestEditor(@NotNull AndroidFacet facet, @NotNull VirtualFile manifestFile) {
     myFacet = facet;
     mySelectedFile = manifestFile;
     myLazyContainer = new JPanel(new BorderLayout());

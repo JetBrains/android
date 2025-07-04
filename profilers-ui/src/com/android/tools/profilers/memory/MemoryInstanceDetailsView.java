@@ -684,8 +684,8 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     assert myReferenceTree != null;
     ReferenceTreeNode node = (ReferenceTreeNode)myReferenceTree.getModel().getRoot();
     node.expandNode();
-    while (!node.myChildren.isEmpty()) {
-      node = (ReferenceTreeNode)node.myChildren.get(0);
+    while (node.getChildCount() > 0) {
+      node = (ReferenceTreeNode)node.getChildAt(0);
       node.expandNode();
     }
     TreePath path = new TreePath(node.getPathToRoot().toArray());

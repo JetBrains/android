@@ -36,6 +36,6 @@ public abstract class BuildSystemComponent {
     public int gradleXmx = -1;
     public int kotlinXmx = -1;
 
-    BuildSystemXmxs() { }
+    public BuildSystemXmxs() { }
   }
 }
