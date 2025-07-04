@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.lint.checks.CommentDetector
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.tests.AdtTestProjectDescriptors
-import com.google.common.base.Verify
 import com.google.common.collect.Sets
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
@@ -29,84 +27,37 @@ import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.ProblemDescriptionsProcessor
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper
 import com.intellij.codeInspection.ex.InspectionToolWrapper
-import com.intellij.ide.highlighter.ModuleFileType
 import com.intellij.openapi.application.ex.PathManagerEx
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.module.JavaModuleType
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.InspectionTestUtil
-import com.intellij.testFramework.UsefulTestCase
-import com.intellij.testFramework.builders.JavaModuleFixtureBuilder
 import com.intellij.testFramework.createGlobalContextForTool
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
-import com.intellij.testFramework.fixtures.ModuleFixture
-import com.intellij.testFramework.fixtures.TestFixtureBuilder
-import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl
-import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl
 import com.intellij.util.ThrowableRunnable
-import java.io.File
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
+import org.jetbrains.annotations.NonNls
 import java.nio.file.Files
 
-class LintIdeTest : UsefulTestCase() {
+class LintIdeTest : JavaCodeInsightFixtureAdtTestCase() {
   init {
     LintClient.clientName = LintClient.CLIENT_UNIT_TESTS
   }
 
-  private lateinit var myFixture: JavaCodeInsightTestFixture
-  private lateinit var myModule: Module
-
   override fun setUp() {
     super.setUp()
 
-    // Compute the workspace root before any IDE code starts messing with user.dir:
-    getWorkspaceRoot()
-    VfsRootAccess.allowRootAccess(testRootDisposable, FileUtil.toCanonicalPath(androidPluginHome))
-
-    val factory = IdeaTestFixtureFactory.getFixtureFactory()
-    val projectBuilder = factory.createFixtureBuilder(name)
-    val fixture =
-      JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture)
-    myFixture = fixture
-    fixture.setUp()
-    fixture.testDataPath = testDataPath
-
-    // Set up module and content roots
-    factory.registerFixtureBuilder(
-      LintModuleFixtureBuilder::class.java,
-      LintModuleFixtureBuilderImpl::class.java,
-    )
-    val moduleFixtureBuilder = projectBuilder.addModule(LintModuleFixtureBuilder::class.java)
-    moduleFixtureBuilder.setModuleRoot(fixture.tempDirPath)
-    moduleFixtureBuilder.addContentRoot(fixture.tempDirPath)
-    File("${fixture.tempDirPath}/src/").mkdir()
-    moduleFixtureBuilder.addSourceRoot("src")
-    myModule = moduleFixtureBuilder.fixture!!.module
-    AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
-    fixture.allowTreeAccessForAllFiles()
+    // TODO: not necessary when using myFixture.configureByFiles to configure the project?
+    // This may need renaming the test files to match the Java class names.
+    myFixture.allowTreeAccessForAllFiles()
   }
 
-  override fun tearDown() {
-    try {
-      myFixture.tearDown()
-    } catch (e: Throwable) {
-      addSuppressedException(e)
-    } finally {
-      super.tearDown()
-    }
-  }
+  override fun getProjectDescriptor() = AdtTestProjectDescriptors.kotlin()
 
-  private val project: Project
-    get() = myFixture.project
+  override fun getTestDataPath(): @NonNls String {
+    return "$androidPluginHome/../lint/tests/testData"
+  }
 
   fun testLintIdeClientReturnsModuleFromEditorResult() {
     val fileContent =
@@ -373,7 +324,7 @@ class LintIdeTest : UsefulTestCase() {
     myFixture.enableInspections(inspection)
     val wrapper = GlobalInspectionToolWrapper(inspection)
 
-    val scope = AnalysisScope(myModule)
+    val scope = AnalysisScope(myFixture.module)
     scope.invalidate()
 
     val globalContext =
@@ -417,7 +368,7 @@ class LintIdeTest : UsefulTestCase() {
 
   private fun addCallSuper() {
     myFixture.addFileToProject(
-      "/src/android/support/annotation/CallSuper.java",
+      "android/support/annotation/CallSuper.java",
       """
         package android.support.annotation;
         import static java.lang.annotation.ElementType.METHOD;
@@ -436,7 +387,7 @@ class LintIdeTest : UsefulTestCase() {
 
   private fun addCheckResult(): PsiFile {
     return myFixture.addFileToProject(
-      "/src/android/support/annotation/Keep.java",
+      "android/support/annotation/Keep.java",
       """
           package android.support.annotation;
           import static java.lang.annotation.ElementType.METHOD;
@@ -452,44 +403,6 @@ class LintIdeTest : UsefulTestCase() {
           }"""
         .trimIndent(),
     )
-  }
-
-  interface LintModuleFixtureBuilder<T : ModuleFixture?> : JavaModuleFixtureBuilder<T> {
-    fun setModuleRoot(moduleRoot: String)
-  }
-
-  class LintModuleFixtureBuilderImpl(
-    fixtureBuilder: TestFixtureBuilder<out IdeaProjectTestFixture>
-  ) :
-    JavaModuleFixtureBuilderImpl<ModuleFixtureImpl>(fixtureBuilder),
-    LintModuleFixtureBuilder<ModuleFixtureImpl> {
-
-    init {
-      AdtTestProjectDescriptors.kotlin().configureFixture(this)
-    }
-
-    private var myModuleRoot: File? = null
-
-    override fun setModuleRoot(moduleRoot: String) {
-      val file = File(moduleRoot)
-      myModuleRoot = file
-      if (!file.exists()) {
-        Verify.verify(file.mkdirs())
-      }
-    }
-
-    override fun createModule(): Module {
-      myModuleRoot!!
-      val project = myFixtureBuilder.fixture.project
-      Verify.verifyNotNull(project)
-      val moduleFilePath = myModuleRoot.toString() + "/app" + ModuleFileType.DOT_DEFAULT_EXTENSION
-      return ModuleManager.getInstance(project)
-        .newModule(moduleFilePath, JavaModuleType.getModuleType().id)
-    }
-
-    override fun instantiateFixture(): ModuleFixtureImpl {
-      return ModuleFixtureImpl(this)
-    }
   }
 
   fun testIsEdited() {
@@ -529,9 +442,6 @@ class LintIdeTest : UsefulTestCase() {
   companion object {
     private const val BASE_PATH = "/lint/"
     private const val BASE_PATH_GLOBAL = BASE_PATH + "global/"
-
-    val testDataPath: String
-      get() = "$androidPluginHome/../lint/tests/testData"
 
     // For now lint is co-located with the Android plugin
     private val androidPluginHome: String
