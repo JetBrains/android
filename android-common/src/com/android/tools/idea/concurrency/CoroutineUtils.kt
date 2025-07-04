@@ -201,21 +201,26 @@ fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = Em
 
 /**
  * Ensure [job] is canceled if it is still active when [disposable] is disposed.
+ * If the given [disposable] is already disposed, [job] will be cancelled immediately.
  */
 private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
   val disposableId = disposable.toString() // Don't capture the parent disposable inside the lambda.
-  Disposer.register(disposable, object : Disposable {
+  val onDispose = {
+    if (!job.isCancelled) {
+      job.cancel(CancellationException("$disposableId has been disposed."))
+    }
+  }
+  val registered = Disposer.tryRegister(disposable, object : Disposable {
     override fun dispose() {
-      if (!job.isCancelled) {
-        job.cancel(CancellationException("$disposableId has been disposed."))
-      }
+      onDispose()
     }
 
     override fun toString(): String {
       return "CancelJobOnDispose(job=$job,parent=$disposableId)"
     }
   })
-
+  // If the disposable was already disposed, cancel the job immediately.
+  if (!registered) onDispose()
 }
 
 private val APPLICATION_SCOPE: Key<CoroutineScope> = Key.create(::APPLICATION_SCOPE.qualifiedName<AndroidCoroutinesAware>())
