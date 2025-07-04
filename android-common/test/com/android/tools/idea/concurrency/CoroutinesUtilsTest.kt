@@ -155,4 +155,19 @@ class CoroutinesUtilsTest {
       Disposer.dispose(disposable)
     }
   }
+
+  @Test
+  fun checkScopeIsDisposedOnCreationIfParentIsDisposed() {
+    val disposable = Disposer.newCheckedDisposable()
+    runTest {
+      // Prepare
+      Disposer.dispose(disposable)
+
+      // Act
+      val scope = disposable.createCoroutineScope()
+
+      // Assert
+      Assert.assertFalse(scope.isActive)
+    }
+  }
 }
