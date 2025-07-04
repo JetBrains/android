@@ -120,6 +120,27 @@ class SavePreviewInNewSizeAction(val dispatcher: CoroutineDispatcher = Dispatche
     return "@$annotationClassName$baseAnnotationParams"
   }
 
+  /**
+   * Ensures that any constants used in the generated [newAnnotationText] are properly imported in
+   * the [targetFile].
+   *
+   * This function scans the [newAnnotationText] for fully-qualified names of constants, such as
+   * `android.content.res.Configuration.UI_MODE_NIGHT_YES` or
+   * `androidx.compose.ui.tooling.preview.Wallpapers.RED_DOMINATED_EXAMPLE`.
+   *
+   * For each found constant, it checks if its container class (e.g.,
+   * `android.content.res.Configuration`) has already been imported with a wildcard (`import
+   * android.content.res.Configuration`). If the container class is not imported, this function adds
+   * a specific import for the constant (e.g., `import
+   * android.content.res.Configuration.UI_MODE_NIGHT_YES`).
+   *
+   * This pre-emptive import ensures that the subsequent call to [ShortenReferencesFacility] can
+   * correctly resolve and shorten the fully-qualified names used in the new annotation text.
+   *
+   * @param targetFile The Kotlin file where the new annotation is being added.
+   * @param newAnnotationText The string representation of the new annotation, which may contain
+   *   fully-qualified names.
+   */
   private fun handleImportsForNewAnnotation(targetFile: KtFile, newAnnotationText: String) {
     val uiModeContainerFqn = FqName(SdkConstants.CLASS_CONFIGURATION)
     val wallpaperContainerFqn = FqName(COMPOSE_WALLPAPERS_CLASS_FQN)

@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.resize
 import com.android.SdkConstants
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
+import com.android.tools.adtui.stdui.OUTLINE_PROPERTY
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.configurations.ConversionUtil
@@ -361,9 +362,9 @@ class ResizePanel(parentDisposable: Disposable) :
     }
 
     fun resetErrors() {
-      widthTextField.putClientProperty("JComponent.outline", null)
+      widthTextField.putClientProperty(OUTLINE_PROPERTY, null)
       widthTextField.toolTipText = null
-      heightTextField.putClientProperty("JComponent.outline", null)
+      heightTextField.putClientProperty(OUTLINE_PROPERTY, null)
       heightTextField.toolTipText = null
     }
 
@@ -401,12 +402,12 @@ class ResizePanel(parentDisposable: Disposable) :
       }
       val config = currentConfiguration ?: return
       val (wDp, hDp) = config.deviceSizeDp()
-      if (widthTextField.getClientProperty("JComponent.outline") != "error") {
+      if (widthTextField.getClientProperty(OUTLINE_PROPERTY) != "error") {
         if (widthTextField.value != wDp) {
           widthTextField.value = wDp
         }
       }
-      if (heightTextField.getClientProperty("JComponent.outline") != "error") {
+      if (heightTextField.getClientProperty(OUTLINE_PROPERTY) != "error") {
         if (heightTextField.value != hDp) {
           heightTextField.value = hDp
         }
@@ -475,11 +476,11 @@ class ResizePanel(parentDisposable: Disposable) :
     private fun validate(field: IntegerField): Boolean {
       try {
         field.validateContent()
-        field.putClientProperty("JComponent.outline", null)
+        field.putClientProperty(OUTLINE_PROPERTY, null)
         field.toolTipText = null
         return true
       } catch (e: ConfigurationException) {
-        field.putClientProperty("JComponent.outline", "error")
+        field.putClientProperty(OUTLINE_PROPERTY, "error")
         field.toolTipText = e.localizedMessage
         return false
       }
