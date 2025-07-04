@@ -784,16 +784,8 @@ MODULE                        : project
                         debugRuntimeElements          : <empty>
                         debugRuntimeOnly              : <empty>
                         debugScreenshotTestAnnotationProcessorClasspath   : <empty>
-                        debugScreenshotTestApi        : <empty>
-                        debugScreenshotTestApiDependenciesMetadata        : <empty>
                         debugScreenshotTestCompileClasspath     : <empty>
-                        debugScreenshotTestCompileOnly          : <empty>
-                        debugScreenshotTestCompileOnlyDependenciesMetadata          : <empty>
-                        debugScreenshotTestImplementation       : <empty>
-                        debugScreenshotTestImplementationDependenciesMetadata       : <empty>
-                        debugScreenshotTestIntransitiveDependenciesMetadata         : <empty>
                         debugScreenshotTestRuntimeClasspath     : <empty>
-                        debugScreenshotTestRuntimeOnly          : <empty>
                         debugUnitTestAnnotationProcessorClasspath         : <empty>
                         debugUnitTestApi              : <empty>
                         debugUnitTestApiDependenciesMetadata    : <empty>
@@ -848,16 +840,8 @@ MODULE                        : project
                         releaseRuntimeElements        : <empty>
                         releaseRuntimeOnly            : <empty>
                         releaseScreenshotTestAnnotationProcessorClasspath : <empty>
-                        releaseScreenshotTestApi      : <empty>
-                        releaseScreenshotTestApiDependenciesMetadata      : <empty>
                         releaseScreenshotTestCompileClasspath   : <empty>
-                        releaseScreenshotTestCompileOnly        : <empty>
-                        releaseScreenshotTestCompileOnlyDependenciesMetadata        : <empty>
-                        releaseScreenshotTestImplementation     : <empty>
-                        releaseScreenshotTestImplementationDependenciesMetadata     : <empty>
-                        releaseScreenshotTestIntransitiveDependenciesMetadata       : <empty>
                         releaseScreenshotTestRuntimeClasspath   : <empty>
-                        releaseScreenshotTestRuntimeOnly        : <empty>
                         releaseUnitTestAnnotationProcessorClasspath       : <empty>
                         releaseUnitTestApi            : <empty>
                         releaseUnitTestApiDependenciesMetadata  : <empty>
