@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.runsGradle
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
@@ -27,15 +29,32 @@ import com.android.tools.idea.testing.requestSyncAndWait
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.RuleChain
 import com.intellij.util.text.nullize
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
+import org.junit.runners.Parameterized.Parameters
 import java.io.File
 
-class GradleProjectPathIntegrationTest {
+@RunWith(Parameterized::class)
+class GradleProjectPathIntegrationTest(private val phasedSync: Boolean) {
+
+  companion object {
+    @get:Parameters(name="phased:{0}")
+    @get:JvmStatic
+    val phasedSyncValues = listOf(true, false)
+  }
+
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  val rule = RuleChain(
+    FlagRule(StudioFlags.PHASED_SYNC_ENABLED, phasedSync),
+    FlagRule(StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED, phasedSync),
+    projectRule,
+  )
 
   @Test
   fun gradleProjectPaths() {
@@ -125,9 +144,12 @@ class GradleProjectPathIntegrationTest {
             TestCompositeLib3.lib.androidTest ==> [TestCompositeLib3]:lib/ANDROID_TEST
             TestCompositeLib3.lib.main ==> [TestCompositeLib3]:lib/MAIN
             TestCompositeLib3.lib.unitTest ==> [TestCompositeLib3]:lib/UNIT_TEST
-            TestCompositeLibNested_3.compositeNest ==> [TestCompositeLib3/TestCompositeLibNested_3]:
+            ${if (phasedSync) """TestCompositeLibNested_3.compositeNest ==> [TestCompositeLib3/TestCompositeLibNested_3]:
             TestCompositeLibNested_3.compositeNest.main ==> [TestCompositeLib3/TestCompositeLibNested_3]:/MAIN
-            TestCompositeLibNested_3.compositeNest.test ==> [TestCompositeLib3/TestCompositeLibNested_3]:/test
+            TestCompositeLibNested_3.compositeNest.test ==> [TestCompositeLib3/TestCompositeLibNested_3]:/test"""
+            else """com.test.compositeNest3.compositeNest ==> [TestCompositeLib3/TestCompositeLibNested_3]:
+            com.test.compositeNest3.compositeNest.main ==> [TestCompositeLib3/TestCompositeLibNested_3]:/MAIN
+            com.test.compositeNest3.compositeNest.test ==> [TestCompositeLib3/TestCompositeLibNested_3]:/test"""}
             composite2 ==> [TestCompositeLib2]:
             composite2.main ==> [TestCompositeLib2]:/MAIN
             composite2.test ==> [TestCompositeLib2]:/test
@@ -176,9 +198,12 @@ class GradleProjectPathIntegrationTest {
             TestCompositeLib3.lib.androidTest ==> :TestCompositeLib3:lib
             TestCompositeLib3.lib.main ==> :TestCompositeLib3:lib
             TestCompositeLib3.lib.unitTest ==> :TestCompositeLib3:lib
-            TestCompositeLibNested_3.compositeNest ==> :TestCompositeLib3:TestCompositeLibNested_3
+            ${if (phasedSync) """TestCompositeLibNested_3.compositeNest ==> :TestCompositeLib3:TestCompositeLibNested_3
             TestCompositeLibNested_3.compositeNest.main ==> :TestCompositeLib3:TestCompositeLibNested_3
-            TestCompositeLibNested_3.compositeNest.test ==> :TestCompositeLib3:TestCompositeLibNested_3
+            TestCompositeLibNested_3.compositeNest.test ==> :TestCompositeLib3:TestCompositeLibNested_3"""
+            else """com.test.compositeNest3.compositeNest ==> :TestCompositeLib3:TestCompositeLibNested_3
+            com.test.compositeNest3.compositeNest.main ==> :TestCompositeLib3:TestCompositeLibNested_3
+            com.test.compositeNest3.compositeNest.test ==> :TestCompositeLib3:TestCompositeLibNested_3"""}
             composite2 ==> :TestCompositeLib2
             composite2.main ==> :TestCompositeLib2
             composite2.test ==> :TestCompositeLib2

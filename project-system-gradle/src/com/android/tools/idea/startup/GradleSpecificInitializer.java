@@ -33,11 +33,20 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ConfigImportHelper;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.Key;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
+import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.registry.Registry;
+import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
+import org.jetbrains.plugins.gradle.service.syncContributor.bridge.GradleBridgeData;
 import org.jetbrains.plugins.gradle.service.syncContributor.bridge.GradleBridgeProjectDataService;
 
 /**
@@ -60,17 +69,34 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
     initializePhasedSync();
   }
 
+  public static final class AndroidGradleBridgeProjectDataService extends AbstractProjectDataService<GradleBridgeData, Void> {
+    GradleBridgeProjectDataService delegate = new GradleBridgeProjectDataService();
+
+    @Override
+    public @NotNull Key<GradleBridgeData> getTargetDataKey() {
+      return GradleBridgeData.INSTANCE.getKEY();
+    }
+
+    @Override
+    public void importData(@NotNull Collection<? extends DataNode<GradleBridgeData>> toImport,
+                           @Nullable ProjectData projectData,
+                           @NotNull Project project,
+                           @NotNull IdeModifiableModelsProvider modelsProvider) {
+      if (StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()) return;
+      delegate.importData(toImport, projectData, project, modelsProvider);
+    }
+  }
 
   @VisibleForTesting
   public static void initializePhasedSync() {
     if (!StudioFlags.PHASED_SYNC_ENABLED.get()) {
-      return;
+      Registry.get("gradle.phased.sync.enabled").setValue(false);
+    } else {
+      Registry.get("gradle.phased.sync.enabled").setValue(true);
     }
 
-    Registry.get("gradle.phased.sync.enabled").setValue(true);
-    if (StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()) {
-      ProjectDataService.EP_NAME.getPoint().unregisterExtension(GradleBridgeProjectDataService.class);
-    }
+    ProjectDataService.EP_NAME.getPoint().unregisterExtension(GradleBridgeProjectDataService.class);
+    ProjectDataService.EP_NAME.getPoint().registerExtension(new AndroidGradleBridgeProjectDataService());
   }
 
   /**
