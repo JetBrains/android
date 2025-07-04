@@ -57,9 +57,13 @@ interface SnapshotComparisonTest {
   val snapshotDirectoryWorkspaceRelativePath: String
 
   /**
-   * The list of file name suffixes applicable to the currently running test.
+   * The tree of file name suffixes applicable to the currently running test, topologically
+   * sorted from most- to leads-specific.
    */
-  val snapshotSuffixes: List<String> get() = listOf("")
+  val snapshotSuffixes: List<String> get() = listOfNotNull(
+    "_K2".takeIf { KotlinPluginModeProvider.isK2Mode() },
+    "",
+  )
 
   /**
    * Assumed to be matched by [UsefulTestCase.getName].
@@ -130,37 +134,22 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
   text: String,
   doNotUpdate: Boolean = false
 ): Pair<String, String> {
-  var fullSnapshotName = sanitizeFileName(UsefulTestCase.getTestName(getName(), true)) + snapshotTestSuffix
-  val expectedText = if (KotlinPluginModeProvider.isK2Mode()) {
-    // Comparing against "$fullSnapshotName_K2" snapshot expected if exist and is K2 mode
-    val fullSnapshotNameK2 = fullSnapshotName + "_K2"
-    getExpectedTextFor(fullSnapshotNameK2).takeIf {
-      val existsK2SnapshotFile = !it.startsWith("No snapshot files found")
-      if (existsK2SnapshotFile) {
-        fullSnapshotName = fullSnapshotNameK2
-      }
-      existsK2SnapshotFile
-    } ?: run {
-      getExpectedTextFor(fullSnapshotName)
-    }
-  } else {
-    getExpectedTextFor(fullSnapshotName)
-  }
+  val sanitizedTestName = sanitizeFileName(UsefulTestCase.getTestName(getName(), true))
+  val (expectedText, snapshotFile) = getExpectedTextAndFileFor(sanitizedTestName, snapshotTestSuffix)
 
   if (doNotUpdate) {
-    return fullSnapshotName to expectedText
+    return snapshotFile.name to expectedText
   }
 
   if (System.getProperty(updateSnapshotsJvmProperty) != null) {
-    getSnapshotFileToUpdate(fullSnapshotName).run {
+    snapshotFile.run {
       println("Writing to: ${this.absolutePath}")
       writeText(text)
     }
   } else if (TestUtils.runningFromBazel()) {
     // Populate additional test output if the file needs updating
-    val snapshotFileToUpdate = getSnapshotFileToUpdate(fullSnapshotName)
-    if (!snapshotFileToUpdate.isFile || expectedText != text) {
-      val workspaceRelativePath = TestUtils.getWorkspaceRoot().relativize(snapshotFileToUpdate.toPath())
+    if (!snapshotFile.isFile || expectedText != text) {
+      val workspaceRelativePath = TestUtils.getWorkspaceRoot().relativize(snapshotFile.toPath())
       println("Writing updated snapshot file to bazel additional test output.\n" +
               "    $workspaceRelativePath")
       TestUtils.getTestOutputDir().resolve(workspaceRelativePath).run {
@@ -169,36 +158,31 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
       }
     }
   }
-  return fullSnapshotName to expectedText
+  return snapshotFile.name to expectedText
 }
 
-private fun SnapshotComparisonTest.getCandidateSnapshotFiles(project: String): List<File> {
+private fun SnapshotComparisonTest.getCandidateSnapshotFiles(project: String, suffix: String): List<File> {
   val configuredWorkspace =
     System.getProperty(updateSnapshotsJvmProperty)?.takeUnless { it.isEmpty() }
       ?.let { Paths.get(it).resolve(snapshotDirectoryWorkspaceRelativePath) }
     ?: resolveWorkspacePath(snapshotDirectoryWorkspaceRelativePath)
   return snapshotSuffixes
-    .map { configuredWorkspace.resolve("${project.substringAfter("projects/")}$it.txt").toFile() }
+    .map { configuredWorkspace.resolve("${project.substringAfter("projects/")}$it$suffix.txt").toFile() }
 }
 
-private fun SnapshotComparisonTest.getSnapshotFileToUpdate(snapshotName: String): File {
-  return getCandidateSnapshotFiles(snapshotName)
-    .let { candidates -> candidates.firstOrNull { it.exists() } ?: candidates.last() }
-}
-
-private fun SnapshotComparisonTest.getExpectedTextFor(project: String): String =
-  getCandidateSnapshotFiles(project)
+private fun SnapshotComparisonTest.getExpectedTextAndFileFor(project: String, suffix: String): Pair<String,File> =
+  getCandidateSnapshotFiles(project, suffix)
     .let { candidateFiles ->
       candidateFiles
         .firstOrNull { it.exists() }
         ?.let {
           println("Comparing with: ${it.relativeTo(resolveWorkspacePath("").toFile())}")
-          it.readText().trimIndent()
+          it.readText().trimIndent() to it
         }
-      ?: candidateFiles
+      ?: (candidateFiles
         .joinToString(separator = "\n", prefix = "No snapshot files found. Candidates considered:\n\n") {
           it.relativeTo(resolveWorkspacePath("").toFile()).toString()
-        }
+        } to candidateFiles.first())
     }
 
 data class ProjectViewSettings(
