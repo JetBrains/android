@@ -17,6 +17,7 @@ package com.android.tools.idea.wear.dwf.dom.raw.expressions
 
 import com.android.tools.idea.wear.dwf.WFFConstants
 import com.android.tools.idea.wear.dwf.WearDwfBundle.message
+import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
@@ -42,6 +43,7 @@ class WFFExpressionAnnotator : Annotator {
           HighlightSeverity.ERROR,
           message("wff.expression.annotator.unknown.datasource"),
         )
+        .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
         .range(dataSource.id)
         .create()
     }
@@ -59,6 +61,7 @@ class WFFExpressionAnnotator : Annotator {
           HighlightSeverity.ERROR,
           message("wff.expression.annotator.unknown.function"),
         )
+        .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
         .range(functionId)
         .create()
     }

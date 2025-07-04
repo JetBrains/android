@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -63,6 +64,7 @@ class WFFExpressionAnnotatorTest {
 
     val error = highlightInfos.single { it.severity == HighlightSeverity.ERROR }
     assertThat(error.text).isEqualTo("unknownFunction")
+    assertThat(error.forcedTextAttributesKey).isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
     assertThat(error.toolTip).isEqualTo("<html>Unknown function</html>")
   }
 
@@ -83,6 +85,7 @@ class WFFExpressionAnnotatorTest {
 
     val error = highlightInfos.single { it.severity == HighlightSeverity.ERROR }
     assertThat(error.text).isEqualTo("UNKNOWN_DATA_SOURCE")
+    assertThat(error.forcedTextAttributesKey).isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
     assertThat(error.toolTip).isEqualTo("<html>Unknown data source</html>")
   }
 
