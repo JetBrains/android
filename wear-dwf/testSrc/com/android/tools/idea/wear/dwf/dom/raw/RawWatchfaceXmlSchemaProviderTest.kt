@@ -23,6 +23,7 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.model.MergedManifestSnapshot
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidDomRule
@@ -33,6 +34,10 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wear.dwf.analytics.DeclarativeWatchFaceUsageTracker
 import com.android.tools.wear.wff.WFFVersion.WFFVersion1
 import com.android.tools.wear.wff.WFFVersion.WFFVersion3
+import com.android.utils.concurrency.AsyncSupplier
+import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.replaceService
@@ -46,6 +51,7 @@ import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.atLeastOnce
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
 private const val RES_RAW_FOLDER = "${FD_RES}/${FD_RES_RAW}"
 
@@ -177,12 +183,53 @@ class RawWatchfaceXmlSchemaProviderTest {
 
   @Test
   fun `test the provider falls back to WFF version 1 when the manifest is empty`() {
-    projectRule.fixture.addFileToProject(FN_ANDROID_MANIFEST_XML, "")
+    projectRule.fixture.addFileToProject(
+      FN_ANDROID_MANIFEST_XML,
+      // language=XML
+      """
+<?xml version="1.0" encoding="utf-8"?>
+<manifest />
+"""
+        .trimIndent(),
+    )
+    // create the manifest snapshot
+    MergedManifestManager.getMergedManifest(mainModule).get()
 
     domRule.testCompletion(
       "watch_face_completion_metadata_tag.xml",
       "watch_face_completion_metadata_tag_after.xml",
     )
+  }
+
+  @Test
+  fun `test the provider returns null if there is no merged manifest`() {
+    val mockMergedManifestManager = mock<MergedManifestManager>()
+    whenever(mockMergedManifestManager.mergedManifest)
+      .thenReturn(
+        object : AsyncSupplier<MergedManifestSnapshot> {
+          override val now: MergedManifestSnapshot?
+            get() = null
+
+          override fun get(): ListenableFuture<MergedManifestSnapshot> {
+            return Futures.immediateFuture(null)
+          }
+        }
+      )
+    projectRule.replaceService(MergedManifestManager::class.java, mockMergedManifestManager)
+
+    val watchFaceFile =
+      projectRule.fixture.addFileToProject(
+        "${RES_RAW_FOLDER}/watch_face.xml",
+        // language=xml
+        """
+        <WatchFace />
+      """
+          .trimIndent(),
+      ) as XmlFile
+
+    val provider = RawWatchfaceXmlSchemaProvider()
+    val schema = provider.getSchema("", projectRule.module, watchFaceFile)
+    assertThat(schema).isNull()
   }
 
   @Test

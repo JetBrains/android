@@ -39,9 +39,9 @@ class RawWatchfaceXmlSchemaProvider(
   override fun getSchema(url: @NonNls String, module: Module?, baseFile: PsiFile): XmlFile? {
     val manifestDocument =
       module?.let { MergedManifestManager.getMergedManifestSupplier(module).now?.document }
+        ?: return null
 
-    val documentWFFVersion =
-      manifestDocument?.let { wffVersionExtractor.extractFromManifest(manifestDocument) }
+    val documentWFFVersion = wffVersionExtractor.extractFromManifest(manifestDocument)
     val schemaVersion = documentWFFVersion ?: getFallbackVersion(module)
 
     DeclarativeWatchFaceUsageTracker.getInstance()
