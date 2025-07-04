@@ -565,30 +565,17 @@ class RenderErrorContributorImplTest {
     val havePlatformSources = AndroidSdks.getInstance().findPlatformSources(target.get()!!) != null
     if (havePlatformSources) {
       assertHtmlEquals(
-        "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +
-          "<BR/>" +
-          "Read access not allowed during rendering (/)<BR/>" +
-          "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityException.create(RenderSecurityException.java:52)<BR/>" +
-          "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityManager.checkRead(RenderSecurityManager.java:204)<BR/>" +
-          "&nbsp;&nbsp;at java.io.File.list(File.java:971)<BR/>" +
-          "&nbsp;&nbsp;at java.io.File.listFiles(File.java:1051)<BR/>" +
-          "&nbsp;&nbsp;at com.example.app.MyButton.onDraw(<A HREF=\"open:com.example.app.MyButton#onDraw;MyButton.java:70\">MyButton.java:70</A>)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://\$SDK_HOME/sources/android-XX/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://\$SDK_HOME/sources/android-XX/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://\$SDK_HOME/sources/android-XX/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://\$SDK_HOME/sources/android-XX/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://\$SDK_HOME/sources/android-XX/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://\$SDK_HOME/sources/android-XX/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://\$SDK_HOME/sources/android-XX/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
-          "<A HREF=\"\">Copy stack to clipboard</A>",
+        " Looks like the preview you are running has run into a limitation of our " +
+          "preview environment. Due to how previews are created, we're not able to support:<BR/>" +
+          "<BR/><li>Network access: Previews can't make network requests.</li><li>File system " +
+          "access: Previews can't read from or write to files on your device.</li><li>Full Context " +
+          "API support: Some Android Context APIs might not be fully available.</li><BR/><BR/>Please " +
+          "check your code for any reliance on these features, as they can prevent the preview from " +
+          "rendering correctly. Refer to the " +
+          "<A HREF=\"https://developer.android.com/develop/ui/compose/tooling/previews#preview-limitations\"" +
+          ">documentation</A> for a more detailed description.<BR/><BR/><A HREF=\"disableSandbox:\">" +
+          "Turn off custom view rendering sandbox</A><BR/><BR/><A HREF=\"\">Show Exception</A><BR/>" +
+          "<BR/><BR/><BR/>",
         issues[0]!!,
       )
       assertBottomPanelEquals(
@@ -602,42 +589,51 @@ class RenderErrorContributorImplTest {
       )
     } else {
       assertHtmlEquals(
-        "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +
-          "<BR/>" +
-          "Read access not allowed during rendering<BR/>" +
-          "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityException.create(RenderSecurityException.java:52)<BR/>" +
-          "&nbsp;&nbsp;at com.android.ide.common.rendering.RenderSecurityManager.checkRead(RenderSecurityManager.java:204)<BR/>" +
-          "&nbsp;&nbsp;at java.io.File.list(File.java:971)<BR/>" +
-          "&nbsp;&nbsp;at java.io.File.listFiles(File.java:1051)<BR/>" +
-          "&nbsp;&nbsp;at com.example.app.MyButton.onDraw(<A HREF=\"open:com.example.app.MyButton#onDraw;MyButton.java:70\">MyButton.java:70</A>)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(View.java:14433)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(View.java:14318)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(View.java:14316)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(View.java:14316)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(View.java:14318)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
-          "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-          "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>" +
-          "<A HREF=\"\">Copy stack to clipboard</A>",
-        issues[0]!!,
-      )
-      assertBottomPanelEquals(
-        listOf(
-          MessageTip(
-            AllIcons.General.Information,
-            "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the preview.",
-          )
-        ),
+        "Looks like the preview you are running has run into a limitation of our " +
+          "preview environment. Due to how previews are created, we're not able to support:<BR/>" +
+          "<BR/><li>Network access: Previews can't make network requests.</li><li>File system " +
+          "access: Previews can't read from or write to files on your device.</li><li>Full Context " +
+          "API support: Some Android Context APIs might not be fully available.</li><BR/><BR/>Please " +
+          "check your code for any reliance on these features, as they can prevent the preview from " +
+          "rendering correctly. Refer to the " +
+          "<A HREF=\"https://developer.android.com/develop/ui/compose/tooling/previews#preview-limitations\"" +
+          ">documentation</A> for a more detailed description.<BR/><BR/><A HREF=\"disableSandbox:\">" +
+          "Turn off custom view rendering sandbox</A><BR/><BR/><A HREF=\"\">Show Exception</A><BR/>" +
+          "<BR/><BR/><BR/>",
         issues[0]!!,
       )
     }
+  }
+
+  @Test
+  fun testSandboxError() {
+    val operation = LogOperation { logger: RenderLogger, _: RenderResult ->
+      val throwable =
+        RenderSecurityException.create("Network access is not allowed during rendering")
+      logger.error(null, null, throwable, null, null)
+    }
+
+    val issues =
+      getRenderOutput(
+        fixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"),
+        operation,
+      )
+    assertSize(1, issues)
+    assertHtmlEquals(
+      "Looks like the preview you are running has run into a limitation of our " +
+        "preview environment. Due to how previews are created, we're not able to support:<BR/><BR/>" +
+        "<li>Network access: Previews can't make network requests.</li>" +
+        "<li>File system access: Previews can't read from or write to files on your device.</li>" +
+        "<li>Full Context API support: Some Android Context APIs might not be fully available.</li><BR/><BR/>" +
+        "Please check your code for any reliance on these features, as they can " +
+        "prevent the preview from rendering correctly. Refer to the " +
+        "<A HREF=\"https://developer.android.com/develop/ui/compose/tooling/previews#preview-limitations\">documentation</A>" +
+        " for a more detailed description.<BR/><BR/>" +
+        "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/><BR/>" +
+        "<A HREF=\"\">Show Exception</A><BR/><BR/><BR/><BR/>",
+      issues[0]!!,
+    )
+    assertBottomPanelEquals(listOf(), issues[0]!!)
   }
 
   @Test

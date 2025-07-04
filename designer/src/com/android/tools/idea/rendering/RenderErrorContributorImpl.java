@@ -62,6 +62,7 @@ import com.android.tools.rendering.RenderContext;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderProblem;
 import com.android.tools.rendering.RenderResult;
+import com.android.tools.rendering.security.RenderSecurityException;
 import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidTargetData;
@@ -412,7 +413,28 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       builder.newline();
     }
 
+    builder.add("Looks like the preview you are running has run into a limitation of our " +
+                "preview environment. Due to how previews are created, we're not able to support:");
+    builder.newline();
+    builder.newline();
+    builder.addBulletedItem("Network access: Previews can't make network requests.");
+    builder.addBulletedItem("File system access: Previews can't read from or write to files on your device.");
+    builder.addBulletedItem("Full Context API support: Some Android Context APIs might not be fully " +
+                            "available.");
+    builder.newline();
+    builder.newline();
+    builder.add("Please check your code for any reliance on these features, as they can " +
+                "prevent the preview from rendering correctly. Refer to the ");
+    builder.addLink("documentation", "https://developer.android.com/develop/ui/compose/tooling/previews#preview-limitations");
+    builder.add(" for a more detailed description.");
+    builder.newline();
+    builder.newline();
     builder.addLink("Turn off custom view rendering sandbox", myLinkManager.createDisableSandboxUrl());
+
+    ShowExceptionFix showExceptionFix = new ShowExceptionFix(throwable);
+    builder.newline().newline();
+    builder.addLink("Show Exception", myLinkManager.createActionLink(showExceptionFix));
+    builder.newline().newline();
 
     String lastFailedPath = RenderSecurityManager.getLastFailedPath();
     if (lastFailedPath != null) {
@@ -438,14 +460,14 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       builder.newline().newline();
     }
 
-    reportThrowable(builder, throwable, false);
 
     addIssue()
       .setSeverity(HighlightSeverity.ERROR)
-      .setSummary("Rendering sandbox error")
+      .setSummary((throwable instanceof RenderSecurityException)
+                  ? throwable.getMessage() : "Rendering sandbox error")
       .setHtmlContent(builder)
-      .addMessageTip(createBuildAndRefreshPreviewMessage(myLinkManager))
       .build();
+
     return true;
   }
 
