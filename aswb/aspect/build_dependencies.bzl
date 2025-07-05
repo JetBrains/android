@@ -873,6 +873,7 @@ def _package_ide_aar(ctx, aar, file_map):
 #      all rules.
 FOLLOW_JAVA_ATTRIBUTES = [
     "deps",
+    "test_deps",
     "exports",
     "srcs",
     "_junit",

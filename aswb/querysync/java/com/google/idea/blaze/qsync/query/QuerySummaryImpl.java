@@ -89,6 +89,7 @@ public abstract class QuerySummaryImpl implements QuerySummary {
           // android_local_test depends on junit implicitly using the _junit attribute.
           "$junit",
           "deps",
+          "test_deps",
           // java_proto_library and java_lite_proto_library rules depend on the proto runtime
           // library via these proto_toolchain attributes. In Starlark, the attribute names
           // begin with an underscore instead of a colon (e.g., _aspect_java_proto_toolchain).
