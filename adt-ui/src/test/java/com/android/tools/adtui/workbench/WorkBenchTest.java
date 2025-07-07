@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -77,6 +78,7 @@ public class WorkBenchTest extends WorkBenchTestCase {
   private FileEditor myFileEditor2;
 
   private JComponent myContent;
+  private List<ToolWindowDefinition<String>> myDefinitions;
   private ThreeComponentsSplitter mySplitter;
   private PropertiesComponent myPropertiesComponent;
   private WorkBench<String> myWorkBench;
@@ -113,11 +115,11 @@ public class WorkBenchTest extends WorkBenchTestCase {
     myWorkBench = new WorkBench<>(getProject(), "BENCH", myFileEditor, initParams, myFloatingToolWindowManager, 1000);
     JRootPane rootPane = new JRootPane();
     rootPane.add(myWorkBench);
-    List<ToolWindowDefinition<String>> definitions = ImmutableList.of(PalettePanelToolContent.getDefinition(),
-                                                                      PalettePanelToolContent.getOtherDefinition(),
-                                                                      PalettePanelToolContent.getThirdDefinition());
+    myDefinitions = ImmutableList.of(PalettePanelToolContent.getDefinition(),
+                                     PalettePanelToolContent.getOtherDefinition(),
+                                     PalettePanelToolContent.getThirdDefinition());
     when(myFileEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor, myFileEditor2});
-    myWorkBench.init(myContent, "CONTEXT", definitions, false);
+    myWorkBench.init(myContent, "CONTEXT", myDefinitions, false);
     myToolWindow1 = myModel.getAllTools().get(0);
     myToolWindow2 = myModel.getAllTools().get(1);
     myToolWindow3 = myModel.getAllTools().get(2);
@@ -177,7 +179,6 @@ public class WorkBenchTest extends WorkBenchTestCase {
     myWorkBench.setDefaultPropertiesForContext(false);
     assertThat(myToolWindow1.isMinimized()).isFalse();
   }
-
 
   public void testAutoHide() {
     myToolWindow1.setAutoHide(true);
@@ -462,6 +463,13 @@ public class WorkBenchTest extends WorkBenchTestCase {
     myModel.update(myToolWindow1, PropertyType.MINIMIZED);
 
     assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+  }
+
+  public void testMultipleInit() {
+    myWorkBench.init(myContent, "CONTEXT", myDefinitions, false);
+    myWorkBench.init(myContent, "CONTEXT", myDefinitions, false);
+    myWorkBench.init(myContent, "CONTEXT", myDefinitions, false);
+    verifyNoInteractions(myWorkBenchManager);
   }
 
   @SuppressWarnings("SameParameterValue")
