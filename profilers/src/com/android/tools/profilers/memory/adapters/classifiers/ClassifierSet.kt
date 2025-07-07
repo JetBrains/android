@@ -22,7 +22,6 @@ import com.android.tools.profilers.memory.adapters.MemoryObject
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
 import java.util.Collections
 import java.util.IdentityHashMap
-import java.util.Objects
 import java.util.stream.Stream
 import kotlin.math.min
 import kotlin.streams.asSequence
@@ -336,9 +335,9 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   fun findContainingClassifierSet(target: InstanceObject): ClassifierSet? = state.let { s -> when {
     s is State.Coalesced && (target in s.snapshotInstances || target in s.deltaInstances) -> when (val forcedState = ensurePartitioned()) {
       is State.Coalesced -> this
-      is State.Partitioned -> forcedState.classifier.classifierSetSequence.asIterable().firstNonNullResult { it.findContainingClassifierSet(target) }
+      is State.Partitioned -> forcedState.classifier.classifierSetSequence.firstNotNullOfOrNull { it.findContainingClassifierSet(target) }
     }
-    s is State.Partitioned -> s.classifier.classifierSetSequence.asIterable().firstNonNullResult { it.findContainingClassifierSet(target) }
+    s is State.Partitioned -> s.classifier.classifierSetSequence.firstNotNullOfOrNull { it.findContainingClassifierSet(target) }
     else -> null
   }}
 
@@ -351,10 +350,8 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
    */
   fun findClassifierSet(test: (ClassifierSet) -> Boolean): ClassifierSet? = when {
     test(this) -> this
-    else -> childrenClassifierSets.firstNonNullResult { it.findClassifierSet(test) }
+    else -> childrenClassifierSets.firstNotNullOfOrNull { it.findClassifierSet(test) }
   }
-
-  private fun<T, A> Iterable<T>.firstNonNullResult(f: (T) -> A?): A? = asSequence().map(f).firstOrNull(Objects::nonNull)
 
   /**
    * Determines if `this` ClassifierSet's descendant children forms a superset (could be equivalent) of the given
