@@ -25,6 +25,7 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getResourceItems
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.res.resolve
+import com.android.tools.idea.wear.dwf.WFFConstants.DRAWABLE_RESOURCE_ATTRIBUTES
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.XmlAttributeValuePattern
 import com.intellij.patterns.XmlPatterns
