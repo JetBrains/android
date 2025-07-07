@@ -20,7 +20,6 @@ import static com.android.resources.Density.DEFAULT_DENSITY;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.configurations.ConfigurationUtilKt;
 import com.android.tools.configurations.Configurations;
 import com.android.tools.configurations.ConversionUtil;
 import com.android.tools.idea.common.model.Coordinates;
@@ -49,38 +48,43 @@ import org.jetbrains.annotations.Nullable;
 
 public class CanvasResizeInteraction implements Interaction {
   /**
-   * Cut-off size (in dp) for resizing, it should be bigger than any Android device. Resizing size needs to be capped
-   * because layoutlib will create an image of the size of the device, which will cause an OOM error when the
-   * device is too large.
+   * Maximum size (in dp) for resizing. This value should be larger than any reasonable Android device size.
+   * Resizing is capped because layoutlib creates an image of the device's size, which can cause OutOfMemoryError
+   * if the dimensions are too large.
    */
-  // TODO: Make it possible to resize to arbitrary large sizes without running out of memory
-  private static final int MAX_ANDROID_SIZE = 1500;
+  private static final int MAX_ANDROID_SIZE_DP = 1500;
+  /**
+   * Minimum size (in dp) for resizing.
+   */
+  private static final int MIN_ANDROID_SIZE_DP = 10;
 
+  /** The {@link NlDesignSurface} where the interaction happens. */
   @NotNull private final NlDesignSurface myDesignSurface;
+  /** The {@link ScreenView} that is being resized. */
   @NotNull private final ScreenView myScreenView;
+  /** The {@link Configuration} of the resized {@link ScreenView}. */
   @NotNull private final Configuration myConfiguration;
+  /** The original {@link Device} before the resize started. Used to revert the resize on cancel or invalid input. */
   private final Device myOriginalDevice;
+  /** The original {@link State} of the device before the resize started. */
   private final State myOriginalDeviceState;
+  /** A {@link MergingUpdateQueue} to handle live rendering of the resize. */
   private final MergingUpdateQueue myUpdateQueue;
+  /** The maximum allowed size for resizing in pixels, converted from {@link #MAX_ANDROID_SIZE_DP}. */
   private final int myMaxAndroidSizePx;
-
+  /** The minimum allowed size for resizing in pixels, converted from {@link #MIN_ANDROID_SIZE_DP}. */
+  private final int myMinAndroidSizePx;
+  /** The current width of the device in Android pixels, updated during a drag operation. This value is always clamped to the valid range. */
   private int myCurrentAndroidWidth;
+  /** The current height of the device in Android pixels, updated during a drag operation. This value is always clamped to the valid range. */
   private int myCurrentAndroidHeight;
-
-  private final Update myPositionUpdate = new Update("CanvasResizePositionUpdate") {
-    @Override
-    public void run() {
-      if (myCurrentAndroidWidth > 0 && myCurrentAndroidHeight > 0) {
-        int newX = myCurrentAndroidWidth <= myMaxAndroidSizePx ? myCurrentAndroidWidth : ConfigurationUtilKt.deviceSizePx(myConfiguration).getFirst();
-        int newY = myCurrentAndroidHeight <= myMaxAndroidSizePx ? myCurrentAndroidHeight : ConfigurationUtilKt.deviceSizePx(myConfiguration).getSecond();
-
-        Configurations.updateScreenSize(myConfiguration, newX, newY);
-      }
-    }
-  };
+  /** The DPI of the current device configuration. */
   private final int myCurrentDpi;
+  /** The current mouse cursor X position in Swing coordinates. */
   private int myCurrentX;
+  /** The current mouse cursor Y position in Swing coordinates. */
   private int myCurrentY;
+  /** Stores information about the interaction's starting point. */
   private InteractionInformation myStartInfo;
 
   /**
@@ -98,12 +102,15 @@ public class CanvasResizeInteraction implements Interaction {
     myUpdateQueue = new MergingUpdateQueue("layout.editor.canvas.resize", 10, true, null, myDesignSurface);
     myUpdateQueue.setRestartTimerOnAdd(true);
 
+    // Store the original device and state to allow reverting the resize.
     myOriginalDevice = configuration.getCachedDevice();
     myOriginalDeviceState = configuration.getDeviceState();
 
     myCurrentDpi = configuration.getDensity().getDpiValue();
 
-    myMaxAndroidSizePx = (int)(1.0 * MAX_ANDROID_SIZE * myCurrentDpi / DEFAULT_DENSITY);
+    // Convert the min/max dp values to pixels for the current device's density.
+    myMaxAndroidSizePx = (int)(1.0 * MAX_ANDROID_SIZE_DP * myCurrentDpi / DEFAULT_DENSITY);
+    myMinAndroidSizePx = (int)(1.0 * MIN_ANDROID_SIZE_DP * myCurrentDpi / DEFAULT_DENSITY);
   }
 
   @Override
@@ -129,7 +136,7 @@ public class CanvasResizeInteraction implements Interaction {
       if (myOriginalDevice.isScreenRound()) {
         int startX = myStartInfo.getX();
         int startY = myStartInfo.getY();
-        // Force aspect preservation
+        // For round devices, preserve the aspect ratio by making the resize diagonal.
         int deltaX = x - startX;
         int deltaY = y - startY;
         if (deltaX > deltaY) {
@@ -148,9 +155,13 @@ public class CanvasResizeInteraction implements Interaction {
       int swingWidth = myCurrentX - myScreenView.getX();
       int swingHeight = myCurrentY - myScreenView.getY();
 
-      // Convert the Swing dimension to the final Android pixel dimension.
-      myCurrentAndroidWidth = Coordinates.getAndroidDimension(myScreenView, swingWidth);
-      myCurrentAndroidHeight = Coordinates.getAndroidDimension(myScreenView, swingHeight);
+      // Convert the Swing dimension to the raw Android pixel dimension.
+      int androidWidth = Coordinates.getAndroidDimension(myScreenView, swingWidth);
+      int androidHeight = Coordinates.getAndroidDimension(myScreenView, swingHeight);
+
+      // Clamp the dimensions to the valid range [myMinAndroidSizePx, myMaxAndroidSizePx].
+      myCurrentAndroidWidth = Math.max(myMinAndroidSizePx, Math.min(androidWidth, myMaxAndroidSizePx));
+      myCurrentAndroidHeight = Math.max(myMinAndroidSizePx, Math.min(androidHeight, myMaxAndroidSizePx));
 
       Dimension viewSize = myDesignSurface.getViewSize();
       int maxX = Coordinates.getSwingX(myScreenView, myMaxAndroidSizePx) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
@@ -165,6 +176,7 @@ public class CanvasResizeInteraction implements Interaction {
         myDesignSurface.validateScrollArea();
       }
 
+      // Queue an update to re-render the component with the new size.
       myUpdateQueue.queue(myPositionUpdate);
     }
   }
@@ -172,28 +184,19 @@ public class CanvasResizeInteraction implements Interaction {
 
   @Override
   public void commit(@NotNull InteractionEvent event) {
-    // Set the surface in resize mode, so it doesn't try to re-center the screen views all the time
     myDesignSurface.setResizeMode(false);
     myDesignSurface.setScrollableViewMinSize(new Dimension(0, 0));
 
-    if (myCurrentAndroidWidth < 0 || myCurrentAndroidHeight < 0) {
-      myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
-    }
-    else {
-      int newX = myCurrentAndroidWidth <= myMaxAndroidSizePx ? myCurrentAndroidWidth : ConfigurationUtilKt.deviceSizePx(myConfiguration).getFirst();
-      int newY = myCurrentAndroidHeight <= myMaxAndroidSizePx ? myCurrentAndroidHeight : ConfigurationUtilKt.deviceSizePx(myConfiguration).getSecond();
-      Configurations.updateScreenSize(myConfiguration, newX, newY);
-      ResizeTracker tracker = ResizeTracker.getTracker(myScreenView.getSceneManager());
+    Configurations.updateScreenSize(myConfiguration, myCurrentAndroidWidth, myCurrentAndroidHeight);
+    ResizeTracker tracker = ResizeTracker.getTracker(myScreenView.getSceneManager());
 
-      int androidXDp = ConversionUtil.INSTANCE.pxToDp(newX, myCurrentDpi);
-      int androidYDp = ConversionUtil.INSTANCE.pxToDp(newY, myCurrentDpi);
-      if (tracker != null) tracker.reportResizeStopped(myScreenView.getSceneManager(), androidXDp, androidYDp, myCurrentDpi);
-    }
+    int androidXDp = ConversionUtil.INSTANCE.pxToDp(myCurrentAndroidWidth, myCurrentDpi);
+    int androidYDp = ConversionUtil.INSTANCE.pxToDp(myCurrentAndroidHeight, myCurrentDpi);
+    if (tracker != null) tracker.reportResizeStopped(myScreenView.getSceneManager(), androidXDp, androidYDp, myCurrentDpi);
   }
 
   @Override
   public void cancel(@NotNull InteractionEvent event) {
-    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
     myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
   }
 
@@ -212,9 +215,21 @@ public class CanvasResizeInteraction implements Interaction {
   }
 
   /**
+   * An {@link Update} runnable that applies the current resize dimensions to the {@link Configuration}.
+   * This is queued to run during a drag to provide a live preview of the resize.
+   */
+  private final Update myPositionUpdate = new Update("CanvasResizePositionUpdate") {
+    @Override
+    public void run() {
+      Configurations.updateScreenSize(myConfiguration, myCurrentAndroidWidth, myCurrentAndroidHeight);
+    }
+  };
+
+  /**
    * An {@link Layer} for the {@link CanvasResizeInteraction}; paints an outline of what the canvas
    * size will be after resizing.
-   * If user drags further than {@link #MAX_ANDROID_SIZE}, paints a red outline and does not update size of outline.
+   * If user drags further than {@link #MAX_ANDROID_SIZE_DP} or smaller than {@link #MIN_ANDROID_SIZE_DP},
+   * paints a red outline to indicate the resize limit has been reached.
    */
   private class ResizeOutlineLayer extends Layer {
 
@@ -230,16 +245,20 @@ public class CanvasResizeInteraction implements Interaction {
         Graphics2D graphics = (Graphics2D)g2d.create();
         graphics.setStroke(NlConstants.THICK_SOLID_STROKE);
 
-        if (myCurrentAndroidWidth < myMaxAndroidSizePx && myCurrentAndroidHeight < myMaxAndroidSizePx) {
-          graphics.setColor(NlConstants.RESIZING_CONTOUR_COLOR);
-          graphics.drawRect(screenViewX - 1, screenViewY - 1, currentSwingWidth, currentSwingHeight);
+        // The resize outline is drawn in red if the current size has hit either the minimum or maximum limit.
+        // This provides a visual cue that the resize is being capped.
+        boolean atMinWidth = myCurrentAndroidWidth == myMinAndroidSizePx;
+        boolean atMinHeight = myCurrentAndroidHeight == myMinAndroidSizePx;
+        boolean atMaxWidth = myCurrentAndroidWidth == myMaxAndroidSizePx;
+        boolean atMaxHeight = myCurrentAndroidHeight == myMaxAndroidSizePx;
+
+        if (atMinWidth || atMinHeight || atMaxWidth || atMaxHeight) {
+          graphics.setColor(JBColor.RED);
         }
         else {
-          int screenViewMaxSize = Coordinates.getSwingDimension(myScreenView, myMaxAndroidSizePx);
-          graphics.setColor(JBColor.RED);
-          graphics.drawRect(screenViewX - 1, screenViewY - 1, Math.min(currentSwingWidth, screenViewMaxSize),
-                            Math.min(currentSwingHeight, screenViewMaxSize));
+          graphics.setColor(NlConstants.RESIZING_CONTOUR_COLOR);
         }
+        graphics.drawRect(screenViewX - 1, screenViewY - 1, currentSwingWidth, currentSwingHeight);
         graphics.dispose();
       }
     }
