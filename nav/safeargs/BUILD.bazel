@@ -1,6 +1,5 @@
 ### auto-generated section `build intellij.android.nav.safeargs` start
-load("@rules_java//java:defs.bzl", "java_library")
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
 
 jvm_resources(
   name = "safeargs_resources",
@@ -8,9 +7,10 @@ jvm_resources(
   strip_prefix = "src"
 )
 
-java_library(
+jvm_library(
   name = "safeargs",
   visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
   runtime_deps = [
     ":safeargs_resources",
     "//android/nav/safeargs/common",

@@ -110,5 +110,5 @@ jps_test(
 ### auto-generated section `build intellij.android.wear-pairing` end
 
 ### auto-generated section `build intellij.android.wear-pairing.tests` start
-load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 ### auto-generated section `build intellij.android.wear-pairing.tests` end

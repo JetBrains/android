@@ -159,11 +159,12 @@ jps_test(
 ### auto-generated section `build intellij.android.templates` end
 
 ### auto-generated section `build intellij.android.templates.tests` start
-load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
-java_library(
+jvm_library(
   name = "templates-tests",
   visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
   runtime_deps = ["//platform/ide-core-impl"]
 )
 ### auto-generated section `build intellij.android.templates.tests` end

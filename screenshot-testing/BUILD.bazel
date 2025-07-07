@@ -51,7 +51,6 @@ jvm_library(
 ### auto-generated section `build intellij.android.screenshot-test.tests` start
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_java//java:defs.bzl", "java_library")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
 
 create_kotlinc_options(
