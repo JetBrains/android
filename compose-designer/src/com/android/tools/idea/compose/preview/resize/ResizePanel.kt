@@ -393,24 +393,21 @@ class ResizePanel(parentDisposable: Disposable) :
       e.presentation.isEnabled = isEnabled
       widthTextField.isEnabled = isEnabled
       heightTextField.isEnabled = isEnabled
-      updateTextFieldsFromConfiguration()
+      if (!widthTextField.hasFocus() && !heightTextField.hasFocus()) {
+        updateTextFieldsFromConfiguration()
+      }
     }
 
     private fun updateTextFieldsFromConfiguration() {
-      if (widthTextField.hasFocus() || heightTextField.hasFocus()) {
-        return
-      }
+      resetErrors()
       val config = currentConfiguration ?: return
       val (wDp, hDp) = config.deviceSizeDp()
-      if (widthTextField.getClientProperty(OUTLINE_PROPERTY) != "error") {
-        if (widthTextField.value != wDp) {
-          widthTextField.value = wDp
-        }
+      if (widthTextField.value != wDp) {
+        widthTextField.value = wDp
       }
-      if (heightTextField.getClientProperty(OUTLINE_PROPERTY) != "error") {
-        if (heightTextField.value != hDp) {
-          heightTextField.value = hDp
-        }
+
+      if (heightTextField.value != hDp) {
+        heightTextField.value = hDp
       }
     }
 
