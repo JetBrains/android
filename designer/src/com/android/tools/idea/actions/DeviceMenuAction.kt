@@ -729,31 +729,25 @@ private class SetCustomDeviceAction(
 }
 
 private class SetAvdAction(
-  private val updatePresentationCallback: Consumer<AnActionEvent>?,
+  updatePresentationCallback: Consumer<AnActionEvent>,
   private val deviceChangeListener: DeviceChangeListener,
-  private val avdDevice: Device,
+  override val device: Device,
   displayName: String,
   private val selected: Boolean,
-) : ConfigurationAction(displayName) {
+) : DeviceAction(displayName, updatePresentationCallback, null) {
   override fun update(event: AnActionEvent) {
     super.update(event)
     Toggleable.setSelected(event.presentation, selected)
   }
 
-  override fun updatePresentation(event: AnActionEvent) {
-    updatePresentationCallback?.accept(event)
-  }
-
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
     if (commit) {
-      configuration.settings.selectDevice(avdDevice)
+      configuration.settings.selectDevice(device)
     }
     // TODO: force set orientation for virtual wear os device
-    configuration.setDevice(avdDevice, false)
-    deviceChangeListener.onDeviceChanged(configuration.cachedDevice, avdDevice)
+    configuration.setDevice(device, false)
+    deviceChangeListener.onDeviceChanged(configuration.cachedDevice, device)
   }
-
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
 
 /** The callback when device is changed by the [DeviceAction]. */
