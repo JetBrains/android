@@ -15,13 +15,13 @@
  */
 package com.android.tools.tests;
 
-import static com.android.test.testutils.TestUtils.resolveWorkspacePath;
+import static com.android.testutils.TestUtils.resolveWorkspacePath;
 
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.RepoLinker;
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.testutils.diff.UnifiedDiff;
 import java.io.File;
 import java.io.IOException;

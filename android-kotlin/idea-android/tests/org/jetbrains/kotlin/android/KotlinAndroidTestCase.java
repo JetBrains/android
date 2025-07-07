@@ -20,7 +20,7 @@ import static org.jetbrains.android.AndroidTestCase.addAndroidFacetAndSdk;
 import static org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen;
 
 import com.android.SdkConstants;
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.tests.AdtTestProjectDescriptors;
 import com.intellij.openapi.application.Application;

@@ -17,7 +17,7 @@ package com.android.tools.idea.streaming.device
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType

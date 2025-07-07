@@ -23,7 +23,7 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRA
 
 import com.android.SdkConstants;
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;

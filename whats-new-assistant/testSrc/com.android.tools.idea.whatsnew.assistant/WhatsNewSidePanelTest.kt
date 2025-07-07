@@ -16,7 +16,7 @@
 package com.android.tools.idea.whatsnew.assistant
 
 import com.android.repository.Revision
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.idea.assistant.AssistSidePanel
 import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.assistant.AssistantGetBundleTask

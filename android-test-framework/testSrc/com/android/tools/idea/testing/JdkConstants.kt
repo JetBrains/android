@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.EmbeddedDistributionPaths
@@ -36,7 +36,7 @@ object JdkConstants {
     if(IdeInfo.getInstance().isAndroidStudio) {
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jbr-next").toString()
     } else {
-      TestUtils.getEmbeddedJdk21Path().toString()
+      TestUtils.getJava21Jdk().toString()
     }
   }
 
@@ -46,7 +46,7 @@ object JdkConstants {
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17").toString()
     }
     else {
-      TestUtils.getEmbeddedJdk17Path().toString()
+      TestUtils.getJava17Jdk().toString()
     }
   }
   val JDK_11_PATH by lazy {
@@ -54,7 +54,7 @@ object JdkConstants {
       EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11").toString()
     }
     else {
-      TestUtils.getEmbeddedJdk11Path().toString()
+      TestUtils.getJava11Jdk().toString()
     }
   }
   val JDK_1_8_PATH by lazy {
@@ -62,7 +62,7 @@ object JdkConstants {
       IdeSdks.getInstance().embeddedJdkPath.absolutePathString()
     }
     else {
-      TestUtils.getEmbeddedJdk8Path().toString()
+      TestUtils.getJava8Jdk().toString()
     }
   }
   val JDK_EMBEDDED_PATH by lazy {

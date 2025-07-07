@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.protobuf.ByteString;

@@ -8,7 +8,7 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 
 import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
@@ -147,12 +147,12 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
       descriptor = AdtTestProjectDescriptors.defaultDescriptor()
         .withJavaVersion(languageLevel)
-        .withJdkPath(TestUtils.getEmbeddedJdk17Path());
+        .withJdkPath(TestUtils.getJava17Jdk());
     } else {
       descriptor = myProjectDescriptor;
     }
 
-    Path jdkPath = TestUtils.getEmbeddedJdk17Path();
+    Path jdkPath = TestUtils.getJava17Jdk();
     WriteAction.runAndWait(() -> {
       cleanJdkTable();
       setupJdk(jdkPath);

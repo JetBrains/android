@@ -20,7 +20,7 @@ import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.DUMP
 
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.base.IdeInstallation;
 import com.android.tools.asdriver.tests.metric.IndexingMetrics;
 import com.android.tools.asdriver.tests.metric.StudioEvents;

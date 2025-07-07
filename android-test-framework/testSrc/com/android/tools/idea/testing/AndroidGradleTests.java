@@ -48,7 +48,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.AgpVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.concurrency.CoroutinesTestUtilsKt;
 import com.android.tools.idea.flags.StudioFlags;
@@ -460,7 +460,7 @@ public class AndroidGradleTests {
 
     // IDEA does not use AndroidStudioGradleInstallationManager, Gradle JVM in this case is not deterministic, and often falls back
     // to JAVA_HOME, which produces different results in different environments.
-    gradleProperties.getProperties().setProperty(GRADLE_JAVA_HOME_PROPERTY, TestUtils.getEmbeddedJdk17Path().toString());
+    gradleProperties.getProperties().setProperty(GRADLE_JAVA_HOME_PROPERTY, TestUtils.getJava17Jdk().toString());
 
     gradleProperties.save();
   }
@@ -868,7 +868,7 @@ public class AndroidGradleTests {
   }
 
   public static String getEmbeddedJdk8Path() throws IOException {
-    return TestUtils.getEmbeddedJdk8Path();
+    return TestUtils.getJava8Jdk().toAbsolutePath().toString();
   }
 
 

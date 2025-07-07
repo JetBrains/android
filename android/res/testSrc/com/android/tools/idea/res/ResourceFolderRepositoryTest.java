@@ -52,7 +52,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.res.LocalResourceRepository;

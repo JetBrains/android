@@ -21,7 +21,7 @@ import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
-import com.android.test.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs

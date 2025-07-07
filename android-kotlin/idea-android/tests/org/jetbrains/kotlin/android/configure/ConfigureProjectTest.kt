@@ -16,8 +16,8 @@
 package org.jetbrains.kotlin.android.configure
 
 import com.android.ide.common.repository.GoogleMavenRepository
-import com.android.test.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
-import com.android.test.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildAgpProjectFlagsStub

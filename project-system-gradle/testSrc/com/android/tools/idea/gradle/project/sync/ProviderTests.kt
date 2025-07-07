@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.ProviderIntegrationTestCase.CurrentAgp.Companion.NUMBER_OF_EXPECTATIONS

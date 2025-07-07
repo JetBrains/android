@@ -16,7 +16,7 @@
 package com.android.tools.idea.projectsystem;
 
 import com.android.testutils.JarTestSuiteRunner;
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.IconManager;

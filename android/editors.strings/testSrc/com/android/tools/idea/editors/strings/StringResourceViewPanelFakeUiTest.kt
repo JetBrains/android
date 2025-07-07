@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
-import com.android.test.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.stdui.OUTLINE_PROPERTY
 import com.android.tools.adtui.swing.FakeUi

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs;
 
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.tests.IdeaTestSuiteBase;
 
 public abstract class SafeArgsTestSuiteBase extends IdeaTestSuiteBase {

@@ -2,7 +2,7 @@
 package com.android.tools.idea.aar
 
 import com.android.resources.aar.AarSourceResourceRepository
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import java.nio.file.Path
 
 

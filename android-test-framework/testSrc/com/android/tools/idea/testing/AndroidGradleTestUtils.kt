@@ -20,9 +20,9 @@ import com.android.builder.model.SyncIssue
 import com.android.ide.common.gradle.Component
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
-import com.android.test.testutils.TestUtils
-import com.android.test.testutils.TestUtils.getLatestAndroidPlatform
-import com.android.test.testutils.TestUtils.getSdk
+import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getLatestAndroidPlatform
+import com.android.testutils.TestUtils.getSdk
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths

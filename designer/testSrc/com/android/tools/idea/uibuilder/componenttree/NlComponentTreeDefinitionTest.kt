@@ -23,7 +23,7 @@ import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.MAP_VIEW
 import com.android.SdkConstants.TOOLS_URI
 import com.android.testutils.ImageDiffUtil
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
