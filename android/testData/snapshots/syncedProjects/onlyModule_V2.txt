@@ -35,7 +35,8 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -90,7 +91,8 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.app.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -159,7 +161,8 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -230,7 +233,8 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.app.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -298,7 +302,8 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/benchmark/project.benchmark.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -347,7 +352,8 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/benchmark/build/intermediates/javac/benchmark/compileBenchmarkJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/benchmark/project.benchmark.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -459,7 +465,8 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/test/project.test.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -508,7 +515,8 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/test/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/test/project.test.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -620,7 +628,8 @@ PROJECT                       : project
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/test2/project.test2.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -669,7 +678,8 @@ PROJECT                       : project
             compilerSourceOutputPath      : file://<PROJECT>/test2/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/test2/project.test2.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE

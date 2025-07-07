@@ -35,7 +35,8 @@ PROJECT                       : AS36
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36.app.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -90,7 +91,8 @@ PROJECT                       : AS36
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : AS36.app.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36.app.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -257,7 +259,8 @@ PROJECT                       : AS36
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36.app.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -365,7 +368,8 @@ PROJECT                       : AS36
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : AS36.app.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/AS36.app.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -501,7 +505,8 @@ PROJECT                       : AS36
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.features [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/AS36.features.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -526,7 +531,8 @@ PROJECT                       : AS36
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36.features.dynamicfeature.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -580,7 +586,8 @@ PROJECT                       : AS36
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : AS36.features.dynamicfeature.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36.features.dynamicfeature.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -652,7 +659,8 @@ PROJECT                       : AS36
             compilerSourceOutputPath      : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36.features.dynamicfeature.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -722,7 +730,8 @@ PROJECT                       : AS36
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : AS36.features.dynamicfeature.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature/AS36.features.dynamicfeature.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -790,7 +799,8 @@ PROJECT                       : AS36
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36.features.dynamicfeature2.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -844,7 +854,8 @@ PROJECT                       : AS36
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : AS36.features.dynamicfeature2.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36.features.dynamicfeature2.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -916,7 +927,8 @@ PROJECT                       : AS36
             compilerSourceOutputPath      : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36.features.dynamicfeature2.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -986,7 +998,8 @@ PROJECT                       : AS36
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : AS36.features.dynamicfeature2.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/features/dynamicfeature2/AS36.features.dynamicfeature2.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1051,7 +1064,8 @@ PROJECT                       : AS36
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.libs [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/AS36.libs.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -1076,7 +1090,8 @@ PROJECT                       : AS36
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36.libs.android_library.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1129,7 +1144,8 @@ PROJECT                       : AS36
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : AS36.libs.android_library.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36.libs.android_library.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1296,7 +1312,8 @@ PROJECT                       : AS36
             compilerSourceOutputPath      : file://<PROJECT>/libs/android_library/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36.libs.android_library.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1402,7 +1419,8 @@ PROJECT                       : AS36
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : AS36.libs.android_library.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/android_library/AS36.libs.android_library.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1538,7 +1556,8 @@ PROJECT                       : AS36
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.libs.java_lib [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/java_lib/AS36.libs.java_lib.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -1563,7 +1582,8 @@ PROJECT                       : AS36
             compilerSourceOutputPath      : file://<PROJECT>/libs/java_lib/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/java_lib/AS36.libs.java_lib.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/libs/java_lib/src/main
             JavaSource                    : file://<PROJECT>/libs/java_lib/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/libs/java_lib/src/main/resources [-]
@@ -1590,7 +1610,8 @@ PROJECT                       : AS36
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : AS36.libs.java_lib.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/libs/java_lib/AS36.libs.java_lib.test.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/libs/java_lib/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/libs/java_lib/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/libs/java_lib/src/test/resources [-]

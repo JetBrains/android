@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.runsIndexingWithGradlePhasedSync
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -133,6 +134,7 @@ class PhasedSyncResyncTests(val testProject: TestProject) : PhasedSyncSnapshotTe
 
   @Test
   fun testResync() {
+    if (!StudioFlags.PHASED_SYNC_ENABLED.get()) return
     setupPhasedSyncIntermediateStateCollector(projectRule.testRootDisposable)
 
     val preparedProject = projectRule.prepareTestProject(testProject)

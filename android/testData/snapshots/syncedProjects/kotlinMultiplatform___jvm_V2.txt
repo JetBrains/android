@@ -35,7 +35,8 @@ PROJECT                       : kotlinMultiPlatform
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -90,7 +91,8 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.app.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -264,7 +266,8 @@ PROJECT                       : kotlinMultiPlatform
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -395,7 +398,8 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.app.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -559,7 +563,8 @@ PROJECT                       : kotlinMultiPlatform
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -860,7 +865,8 @@ PROJECT                       : kotlinMultiPlatform
             compilerSourceOutputPath      : file://<PROJECT>/module2/build/classes/kotlin/jvm/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.jvmMain.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -919,7 +925,8 @@ PROJECT                       : kotlinMultiPlatform
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : kotlinMultiPlatform.module2.jvmMain
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.jvmTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
