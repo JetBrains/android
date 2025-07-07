@@ -35,7 +35,8 @@ PROJECT                       : kotlinMultiPlatform
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -633,7 +634,8 @@ PROJECT                       : kotlinMultiPlatform
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE

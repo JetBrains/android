@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.runsIndexingWithGradlePhasedSync
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -162,6 +163,7 @@ data class PhasedSyncSnapshotConsistencyTestDef(
   }
 
   override fun runTest(root: File, project: Project) {
+    if (!StudioFlags.PHASED_SYNC_ENABLED.get()) return
     Truth.assertThat(knownAndroidPaths).isNotNull()
     Truth.assertThat(intermediateDump).isNotNull()
 

@@ -35,7 +35,8 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/androidlibrary/reference.androidlibrary.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -88,7 +89,8 @@ PROJECT                       : reference
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : reference.androidlibrary.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/androidlibrary/reference.androidlibrary.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -195,7 +197,8 @@ PROJECT                       : reference
             compilerSourceOutputPath      : file://<PROJECT>/androidlibrary/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/androidlibrary/reference.androidlibrary.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -265,7 +268,8 @@ PROJECT                       : reference
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : reference.androidlibrary.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/androidlibrary/reference.androidlibrary.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -340,7 +344,8 @@ PROJECT                       : reference
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/reference.app.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -395,7 +400,8 @@ PROJECT                       : reference
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : reference.app.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/reference.app.androidTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -502,7 +508,8 @@ PROJECT                       : reference
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/reference.app.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -578,7 +585,8 @@ PROJECT                       : reference
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : reference.app.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/reference.app.unitTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -650,7 +658,8 @@ PROJECT                       : reference
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/reference.javalib [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/javalib/reference.javalib.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
@@ -675,7 +684,8 @@ PROJECT                       : reference
             compilerSourceOutputPath      : file://<PROJECT>/javalib/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/javalib/reference.javalib.main.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/javalib/src/main
             JavaSource                    : file://<PROJECT>/javalib/src/main/java
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/javalib/src/main/resources [-]
@@ -702,7 +712,8 @@ PROJECT                       : reference
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : reference.javalib.main
-        ModuleFile                    :  [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/javalib/reference.javalib.test.iml [-]
+        ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/javalib/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/javalib/src/test/java [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/javalib/src/test/resources [-]
