@@ -22,6 +22,7 @@ import com.android.tools.idea.backup.PostBackupDialog.Mode.EXISTING_CONFIG
 import com.android.tools.idea.backup.PostBackupDialog.Mode.NEW_CONFIG
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
+import com.android.tools.idea.util.relativeToProject
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.impl.RunDialog
@@ -38,7 +39,6 @@ import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import icons.StudioIcons
 import java.awt.Component
-import java.io.File
 import java.nio.file.Path
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -99,7 +99,7 @@ internal class PostBackupDialog(private val project: Project, private val backup
       }
     val config = settings?.configuration as? AndroidRunConfiguration ?: return
     config.RESTORE_ENABLED = true
-    config.RESTORE_FILE = backupPath.relativeToProject()
+    config.RESTORE_FILE = backupPath.relativeToProject(project).pathString
     when (openRunConfigWhenDone) {
       true -> RunDialog.editConfiguration(project, settings, "Edit Configuration")
       false -> showNotification(settings)
@@ -138,9 +138,6 @@ internal class PostBackupDialog(private val project: Project, private val backup
     runManager.addConfiguration(settings)
     return settings
   }
-
-  private fun Path.relativeToProject() =
-    pathString.removePrefix(project.basePath ?: "").removePrefix(File.separator)
 
   private fun getRunConfigSettings(): List<RunnerAndConfigurationSettings> {
     val runManager = RunManager.getInstance(project)
