@@ -19,8 +19,13 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.extensions.ExtensionPointName
 
 interface ComposeStudioBotActionFactory {
+  /** An action to generate Compose Previews for the composables in the current file. */
   fun createPreviewGenerator(): AnAction?
 
+  /**
+   * An action to transform (e.g. fix, improve, evolve) the selected Compose Preview, taking both
+   * the preview image and its corresponding code into account.
+   */
   fun transformPreviewAction(): AnAction?
 
   companion object {
