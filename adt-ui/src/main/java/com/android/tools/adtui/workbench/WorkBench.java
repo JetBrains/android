@@ -56,6 +56,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
@@ -105,6 +106,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private final PropertyChangeListener myMyPropertyChangeListener = this::handlePropertyEvent;
   private final List<WorkBenchToolWindowListener<T>> myWorkBenchToolWindowListeners;
   private FileEditor myFileEditor;
+  private AtomicBoolean isInitialized = new AtomicBoolean(false);
   private boolean isDisposed = false;
 
   @NotNull private String myContext = "";
@@ -169,6 +171,16 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
                    @NotNull List<ToolWindowDefinition<T>> definitions,
                    boolean minimizedWindows) {
     LOG.debug("init");
+    if (!isInitialized.getAndSet(true)) {
+      initFirstTime();
+    }
+    myToolDefinitions.clear();
+    myToolDefinitions.addAll(definitions);
+    myModel.setContext(context);
+    addToolsToModel(minimizedWindows);
+  }
+
+  private void initFirstTime() {
     if (ScreenReader.isActive()) {
       setFocusCycleRoot(true);
       setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
@@ -176,14 +188,10 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myLoadingPanel.stopLoading();
     myMainPanel.setVisible(true);
     mySplitter.addDividerResizeListener(createWidthUpdater());
-    myToolDefinitions.clear();
-    myToolDefinitions.addAll(definitions);
     mySplitter.setFirstSize(getInitialSideWidth(Side.LEFT));
     if (mySplitter.getInnerComponent() != null) {
       mySplitter.setLastSize(getInitialSideWidth(Side.RIGHT));
     }
-    myModel.setContext(context);
-    addToolsToModel(minimizedWindows);
     if (!isDisposed) {
       myWorkBenchManager.register(this);
       KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
