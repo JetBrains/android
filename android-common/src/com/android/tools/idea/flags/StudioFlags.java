@@ -1626,6 +1626,11 @@ public final class StudioFlags {
     "Enables a context-menu action to transform UI with Gemini.",
     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> COMPOSE_CRITIQUE_AGENT_CODE_REWRITE = new BooleanFlag(
+    COMPOSE, "critique.agent.code.rewrite", "Enable action to rewrite UI from Image",
+    "Enables a context-menu action to analyze UI images and rewrite corresponding code to match the target design.",
+    false);
+
   public static final Flag<Boolean> COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION = new BooleanFlag(
     COMPOSE, "preview.code.to.preview.navigation", "Enable the highlighting of preview components when clicking on code",
     "If a user moves their caret to a element present in a preview, we highlight those elements",
