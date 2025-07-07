@@ -17,6 +17,10 @@ package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.LABEL_FONT_SIZE
+import com.android.tools.idea.layoutinspector.model.RenderingDimensions.EMPHASIZED_BORDER_THICKNESS
+import com.android.tools.idea.layoutinspector.model.RenderingDimensions.NORMAL_BORDER_THICKNESS
+import com.android.tools.idea.layoutinspector.model.RenderingDimensions.RECOMPOSITION_BORDER_THICKNESS
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
@@ -41,13 +45,23 @@ const val AGENT_PACKAGE = "com.android.tools.agent.appinspection"
  * @param bounds The bounds of the node being rendered.
  * @param color The color used to render these [bounds].
  * @param label Optional label to be rendered with the [bounds].
+ * @param strokeThickness Screen density independent thickness to render the [bounds].
  */
 data class DrawInstruction(
   val rootViewId: Long,
   val bounds: Rectangle,
   val color: Int,
-  val label: String?,
-)
+  val label: Label?,
+  val strokeThickness: Float,
+) {
+  /**
+   * The label of the bounds.
+   *
+   * @param text The text to render.
+   * @param size Screen density independent size to render the [text].
+   */
+  data class Label(val text: String, val size: Float)
+}
 
 /**
  * Contains state that controls the rendering of the view bounds. It is different from
@@ -220,19 +234,33 @@ class OnDeviceRendererModel(
       } else {
         null
       }
+
     _selectedNode.value =
-      node?.toDrawInstruction(color = renderSettings.selectionColor, label = label)
+      node?.toDrawInstruction(
+        color = renderSettings.selectionColor,
+        label = label,
+        strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+      )
   }
 
   private fun setHoveredNode(node: ViewNode?) {
-    _hoveredNode.value = node?.toDrawInstruction(color = renderSettings.hoverColor)
+    _hoveredNode.value =
+      node?.toDrawInstruction(
+        color = renderSettings.hoverColor,
+        strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+      )
   }
 
   /** Sets the visible nodes, while respecting render settings. */
   private fun setVisibleNodes(nodes: List<ViewNode>) {
     if (renderSettings.drawBorders) {
       _visibleNodes.value =
-        nodes.mapNotNull { it.toDrawInstruction(color = renderSettings.baseColor) }
+        nodes.mapNotNull {
+          it.toDrawInstruction(
+            color = renderSettings.baseColor,
+            strokeThickness = NORMAL_BORDER_THICKNESS,
+          )
+        }
     } else {
       _visibleNodes.value = emptyList()
     }
@@ -242,18 +270,23 @@ class OnDeviceRendererModel(
     _recomposingNodes.value =
       nodes.mapNotNull {
         val color = renderSettings.recompositionColor.applyRecompositionAlpha(it, inspectorModel)
-        it.toDrawInstruction(color = color)
+        it.toDrawInstruction(color = color, strokeThickness = RECOMPOSITION_BORDER_THICKNESS)
       }
   }
 
   /** Convert a ViewNode to [DrawInstruction]. */
-  private fun ViewNode.toDrawInstruction(color: Int, label: String? = null): DrawInstruction? {
+  private fun ViewNode.toDrawInstruction(
+    color: Int,
+    strokeThickness: Float,
+    label: String? = null,
+  ): DrawInstruction? {
     val rootView = inspectorModel.rootFor(this) ?: return null
     return DrawInstruction(
       rootViewId = rootView.drawId,
       bounds = layoutBounds,
       color = color,
-      label = label,
+      strokeThickness = strokeThickness,
+      label = label?.let { DrawInstruction.Label(text = label, size = LABEL_FONT_SIZE) },
     )
   }
 }

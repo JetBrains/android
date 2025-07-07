@@ -45,8 +45,9 @@ fun buildDrawNodeCommand(
   rootId: Long,
   bounds: List<Rectangle>,
   color: Int,
+  strokeThickness: Float,
   type: LayoutInspectorViewProtocol.DrawCommand.Type,
-  label: String? = null,
+  label: DrawInstruction.Label? = null,
 ): Command {
   val drawInstructions =
     bounds.map {
@@ -65,8 +66,15 @@ fun buildDrawNodeCommand(
           this.rootId = rootId
           this.bounds = rect
           this.color = color
+          this.strokeThickness = strokeThickness
           if (label != null) {
-            this.label = label
+            this.label =
+              LayoutInspectorViewProtocol.Label.newBuilder()
+                .apply {
+                  text = label.text
+                  size = label.size
+                }
+                .build()
           }
         }
         .build()

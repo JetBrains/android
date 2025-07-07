@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.tools.idea.layoutinspector.model.RenderingDimensions.EMPHASIZED_BORDER_THICKNESS
+import com.android.tools.idea.layoutinspector.model.RenderingDimensions.FOLD_THICKNESS
+import com.android.tools.idea.layoutinspector.model.RenderingDimensions.NORMAL_BORDER_THICKNESS
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.google.common.annotations.VisibleForTesting
@@ -33,15 +36,29 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-private fun getNormalBorderThickness(scale: Double) = 1f.scale(scale)
+/**
+ * Screen density independent dimensions used for rendering Layout Inspector UI. They are used both
+ * for studio-side and on-device rendering, where the platform (intellij or android) will scale them
+ * according to the screen density.
+ */
+object RenderingDimensions {
+  const val NORMAL_BORDER_THICKNESS = 1f
+  const val EMPHASIZED_BORDER_THICKNESS = 2f
+  const val FOLD_THICKNESS = 2f
+  const val RECOMPOSITION_BORDER_THICKNESS = 0f
+}
 
-fun getEmphasizedBorderThickness(scale: Double) = 2f.scale(scale)
+const val LABEL_FONT_SIZE = 12f
 
-fun getFoldThickness(scale: Double) = 2f.scale(scale)
+private fun getNormalBorderThickness(scale: Double) = NORMAL_BORDER_THICKNESS.scale(scale)
+
+fun getEmphasizedBorderThickness(scale: Double) = EMPHASIZED_BORDER_THICKNESS.scale(scale)
+
+fun getFoldThickness(scale: Double) = FOLD_THICKNESS.scale(scale)
 
 fun getEmphasizedBorderOutlineThickness(scale: Double) = 4f.scale(scale)
 
-fun getLabelFontSize(scale: Double) = 12f.scale(scale)
+fun getLabelFontSize(scale: Double) = LABEL_FONT_SIZE.scale(scale)
 
 private fun getDash(scale: Double) = floatArrayOf(10f.scale(scale), 10f.scale(scale))
 

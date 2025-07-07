@@ -21,7 +21,11 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.LABEL_FONT_SIZE
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.RenderingDimensions.EMPHASIZED_BORDER_THICKNESS
+import com.android.tools.idea.layoutinspector.model.RenderingDimensions.NORMAL_BORDER_THICKNESS
+import com.android.tools.idea.layoutinspector.model.RenderingDimensions.RECOMPOSITION_BORDER_THICKNESS
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.OnDeviceRenderingClient
@@ -202,7 +206,11 @@ class OnDeviceRendererPanelImplTest {
           bounds = listOf(inspectorModel[VIEW1]!!.layoutBounds),
           color = SELECTION_COLOR_ARGB,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.SELECTED_NODES,
-          label = inspectorModel[VIEW1]?.unqualifiedName,
+          label =
+            inspectorModel[VIEW1]?.unqualifiedName?.let {
+              DrawInstruction.Label(text = it, size = LABEL_FONT_SIZE)
+            },
+          strokeThickness = EMPHASIZED_BORDER_THICKNESS,
         )
         .toByteArray()
     assertThat(receivedMessages).hasSize(1)
@@ -237,6 +245,8 @@ class OnDeviceRendererPanelImplTest {
           bounds = listOf(inspectorModel[VIEW1]!!.layoutBounds),
           color = HOVER_COLOR_ARGB,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.HOVERED_NODES,
+          label = null,
+          strokeThickness = EMPHASIZED_BORDER_THICKNESS,
         )
         .toByteArray()
     assertThat(receivedMessages).hasSize(1)
@@ -271,6 +281,8 @@ class OnDeviceRendererPanelImplTest {
             ),
           color = BASE_COLOR_ARGB,
           type = LayoutInspectorViewProtocol.DrawCommand.Type.VISIBLE_NODES,
+          label = null,
+          strokeThickness = NORMAL_BORDER_THICKNESS,
         )
         .toByteArray()
     assertThat(receivedMessages).hasSize(6)
@@ -312,6 +324,8 @@ class OnDeviceRendererPanelImplTest {
           bounds = listOf(inspectorModel[COMPOSE2]!!.layoutBounds),
           color = RECOMPOSITION_COLOR_RED_ARGB.setColorAlpha(160),
           type = LayoutInspectorViewProtocol.DrawCommand.Type.RECOMPOSING_NODES,
+          label = null,
+          strokeThickness = RECOMPOSITION_BORDER_THICKNESS,
         )
         .toByteArray()
     assertThat(receivedMessages).hasSize(8)
