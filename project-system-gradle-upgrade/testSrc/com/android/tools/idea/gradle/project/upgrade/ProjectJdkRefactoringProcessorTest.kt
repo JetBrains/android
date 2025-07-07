@@ -24,12 +24,15 @@ import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_1_8_PATH
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.RunsInEdt
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
+import org.jetbrains.plugins.gradle.settings.GradleDefaultProjectSettings
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -37,7 +40,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 
 @RunsInEdt
@@ -50,6 +54,12 @@ class ProjectJdkRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
     // for whatever reason, without this the project is set up using prebuilts/studio/jdk/mock-jdk17, which despite its name is
     // treated as Java 1.5.
     jdk17 = Jdks.getInstance().createAndAddJdk(JDK_17_PATH)
+  }
+
+  @Before
+  fun ensureProjectIsLinked() {
+    val projectSettings = GradleDefaultProjectSettings.createProjectSettings(project.basePath!!)
+    ExternalSystemApiUtil.getSettings(project, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
   }
 
   @After
@@ -108,8 +118,8 @@ class ProjectJdkRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
   }
 
   private fun setGradleInstallationPath(path: String) {
-    val installationManager: GradleInstallationManager = mock()
-    whenever(installationManager.getGradleJvmPath(any(), any())).thenReturn(path)
+    val installationManager: GradleInstallationManager = spy(GradleInstallationManager.getInstance())
+    doReturn(path).whenever(installationManager).getGradleJvmPath(any(), any())
     projectRule.replaceService(GradleInstallationManager::class.java, installationManager)
   }
 }

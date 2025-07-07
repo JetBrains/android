@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.AgpCompatibleJdkVersion
-import com.android.tools.idea.gradle.util.GradleWrapper
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
@@ -37,6 +36,7 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import com.android.tools.idea.gradle.extensions.isProjectUsingDaemonJvmCriteria
 import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkConfigurationUtils
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 
 class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -165,8 +165,7 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   }
 
   private fun getCurrentProjectGradleVersion(): GradleVersion? {
-    val currentGradleVersion = GradleWrapper.find(project)?.gradleVersion ?: return null
-    return GradleVersion.version(currentGradleVersion)
+    return GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)?.resolveGradleVersion()
   }
 
   companion object {
