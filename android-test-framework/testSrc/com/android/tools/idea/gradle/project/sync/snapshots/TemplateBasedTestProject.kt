@@ -164,7 +164,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
   }
 }
 
-private class PreparedTemplateBasedTestProject(
+class PreparedTemplateBasedTestProject(
   private val templateBasedTestProject: TemplateBasedTestProject,
   override val root: File,
   private val resolvedAgpVersion: ResolvedAgpVersionSoftwareEnvironment,
