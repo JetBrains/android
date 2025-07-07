@@ -20,6 +20,7 @@ import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.resolve
+import com.android.tools.idea.wear.dwf.WFFConstants.DRAWABLE_RESOURCE_ATTRIBUTES
 import com.intellij.ide.EssentialHighlightingMode
 import com.intellij.openapi.editor.Editor
 import com.intellij.patterns.XmlAttributeValuePattern

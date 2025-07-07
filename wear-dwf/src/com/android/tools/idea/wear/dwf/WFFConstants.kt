@@ -17,6 +17,14 @@ package com.android.tools.idea.wear.dwf
 
 object WFFConstants {
 
+  /**
+   * Attributes that can reference drawable resources.
+   *
+   * @see <a href="https://developer.android.com/reference/wear-os/wff/watch-face?version=1">Watch
+   *   Face Format reference</a>
+   */
+  val DRAWABLE_RESOURCE_ATTRIBUTES = setOf("resource", "icon")
+
   object DataSources {
     val TIME_UNIT =
       setOf(
