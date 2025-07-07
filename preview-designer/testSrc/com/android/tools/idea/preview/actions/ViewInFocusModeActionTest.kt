@@ -225,6 +225,7 @@ class ViewInFocusModeActionTest {
         providerClassFqn = "ProviderClass",
         index = 0,
         maxIndex = 4,
+        displayName = null,
       )
     val sceneManagerMock = createSceneManagerMock(previewElement = parametrizedPreviewElements)
 

@@ -36,24 +36,24 @@ class StudioParametrizedComposePreviewElementTemplate(
   parameterProviders: Collection<PreviewParameter>,
 ) :
   ParametrizedComposePreviewElementTemplate<SmartPsiElementPointer<PsiElement>>(
-    basePreviewElement,
-    parameterProviders,
-    StudioParametrizedComposePreviewElementTemplate::class.java.classLoader,
-    factory@{ element ->
-      val psiFile = element.containingFile ?: return@factory null
-      var buildTargetRefence = BuildTargetReference.from(psiFile) ?: return@factory null
-      StudioModuleRenderContext.forBuildTargetReference(buildTargetRefence).let {
-        RenderModelModule.ClassLoaderProvider {
-          parent: ClassLoader?,
-          additionalProjectTransform: ClassTransform,
-          additionalNonProjectTransform: ClassTransform,
-          onNewModuleClassLoader: Runnable ->
-          StudioModuleClassLoaderManager.get()
-            .getPrivate(parent, it, additionalProjectTransform, additionalNonProjectTransform)
-            .also {
-              onNewModuleClassLoader.run()
-            } // TEMP: Adding this for consistency even though we pass `Runnable {}`.
+    basePreviewElement = basePreviewElement,
+    parameterProviders = parameterProviders,
+    parentClassLoader = StudioParametrizedComposePreviewElementTemplate::class.java.classLoader,
+    privateClassLoaderFactory = factory@{ element ->
+        val psiFile = element.containingFile ?: return@factory null
+        var buildTargetRefence = BuildTargetReference.from(psiFile) ?: return@factory null
+        StudioModuleRenderContext.forBuildTargetReference(buildTargetRefence).let {
+          RenderModelModule.ClassLoaderProvider {
+            parent: ClassLoader?,
+            additionalProjectTransform: ClassTransform,
+            additionalNonProjectTransform: ClassTransform,
+            onNewModuleClassLoader: Runnable ->
+            StudioModuleClassLoaderManager.get()
+              .getPrivate(parent, it, additionalProjectTransform, additionalNonProjectTransform)
+              .also {
+                onNewModuleClassLoader.run()
+              } // TEMP: Adding this for consistency even though we pass `Runnable {}`.
+          }
         }
-      }
-    },
+      },
   )

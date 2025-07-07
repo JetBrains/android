@@ -52,6 +52,7 @@ class PreviewElementSortingTest {
           "ProviderClass",
           it,
           3,
+          null,
         )
       }
 
@@ -60,7 +61,31 @@ class PreviewElementSortingTest {
     val shuffledPreviews = expectedPreviews.shuffled()
 
     runBlocking {
-      assertEquals(shuffledPreviews.sortByDisplayAndSourcePosition(), expectedPreviews)
+      assertEquals(expectedPreviews, shuffledPreviews.sortByDisplayAndSourcePosition())
+    }
+  }
+
+  @Test
+  fun testPreviewSortingMultipleInstancesWithDisplayName() {
+    val displayNames = arrayOf("A", "B", "C", "D")
+    val expectedPreviews =
+      displayNames.mapIndexed { index, name ->
+        ParametrizedComposePreviewElementInstance(
+          basePreviewElement = previewInstance(name = "PreviewComposableName"),
+          parameterName = "param-$index",
+          providerClassFqn = "ProviderClass",
+          index = index,
+          maxIndex = displayNames.size,
+          displayName = name,
+        )
+      }
+
+    // Because we  want to check if we correctly sort the PreviewElement we shuffle
+    // the previews
+    val shuffledPreviews = expectedPreviews.shuffled()
+
+    runBlocking {
+      assertEquals(expectedPreviews, shuffledPreviews.sortByDisplayAndSourcePosition())
     }
   }
 
@@ -77,7 +102,7 @@ class PreviewElementSortingTest {
     val shuffledPreviews = expectedPreviews.shuffled()
 
     runBlocking {
-      assertEquals(shuffledPreviews.sortByDisplayAndSourcePosition(), expectedPreviews)
+      assertEquals(expectedPreviews, shuffledPreviews.sortByDisplayAndSourcePosition())
     }
   }
 

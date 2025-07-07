@@ -205,12 +205,30 @@ class SingleComposePreviewElementInstance<T>(
   }
 }
 
+/**
+ * Definition of a single preview element instance that is derived from a parameterized preview.
+ * This represents a single instance of a `@Preview` with parameters, where the parameters have been
+ * resolved to a specific value.
+ *
+ * @param parameterName The name of the parameter for this specific instance, if applicable.
+ * @property basePreviewElement The base [ComposePreviewElement] from which this instance is
+ *   derived.
+ * @property providerClassFqn The fully qualified name of the parameter provider class.
+ * @property index The index of this instance within the [PreviewParameterProvider]'s sequence of
+ *   values.
+ * @property maxIndex The maximum index (inclusive) of values provided by the
+ *   [PreviewParameterProvider].
+ * @property displayName An optional, explicit display name for this instance, provided by the
+ *   [PreviewParameterProvider]. If null, the parameter name will be used to generate the display
+ *   name.
+ */
 class ParametrizedComposePreviewElementInstance<T>(
   private val basePreviewElement: ComposePreviewElement<T>,
   parameterName: String?,
   val providerClassFqn: String,
   val index: Int,
   val maxIndex: Int,
+  val displayName: String?,
 ) : ComposePreviewElementInstance<T>(), ComposePreviewElement<T> by basePreviewElement {
   override var hasAnimations = false
   override val instanceId: String = "$methodFqn#$parameterName$index"
@@ -233,6 +251,7 @@ class ParametrizedComposePreviewElementInstance<T>(
       providerClassFqn,
       index,
       maxIndex,
+      null,
     )
   }
 
@@ -241,7 +260,11 @@ class ParametrizedComposePreviewElementInstance<T>(
       name = getDisplayName(parameterName),
       baseName = basePreviewElement.displaySettings.baseName,
       parameterName =
-        getParameterName(basePreviewElement.displaySettings.parameterName, parameterName),
+        getParameterName(
+          basePreviewElement.displaySettings.parameterName,
+          parameterName,
+          displayName,
+        ),
       group = basePreviewElement.displaySettings.group,
       showDecoration = basePreviewElement.displaySettings.showDecoration,
       showBackground = basePreviewElement.displaySettings.showBackground,
@@ -265,24 +288,66 @@ class ParametrizedComposePreviewElementInstance<T>(
       // so it should not be added again.
       basePreviewElement.displaySettings.name
     } else {
-      // TODO(b/241699422) Allow customization of preview name.
-      "${basePreviewElement.displaySettings.name} (${getParameterName(parameterName)})"
+      "${basePreviewElement.displaySettings.name} (${getParameterName(parameterName, displayName)})"
     }
   }
 
-  private fun getParameterName(baseParameterName: String?, parameterName: String?): String? {
-    if (baseParameterName == null) return getParameterName(parameterName)
+  /**
+   * Returns a formatted name for the parameterized preview instance
+   *
+   * This function combines the [baseParameterName] with [parameterName] and [displayName] to create
+   * a full name displayed in the Compose Preview panel for parameterized previews (e.g., "Base
+   * Parameter Name - Parameter Name").
+   *
+   * Example:
+   * ```kotlin
+   * @Preview(name = "Login")
+   * @Composable
+   * fun LoginPreview(@PreviewParameter(provider = UserProvider::class) user: User)
+   * ```
+   *
+   * The final result would be [Login - user 0], when no custom display name is defined (i.e.,
+   * `Preview name` - `Parameter name` `index`].
+   *
+   * @param baseParameterName The name from the `@Preview` annotation.
+   * @param parameterName The name of the parameter for the current context, usually from the
+   *   `@PreviewParameter` annotation.
+   * @param displayName An optional, explicit display name for the current context, provided by the
+   *   `PreviewParameterProvider`.
+   * @return The combined name for display in the preview panel. Returns `null` only if all provided
+   *   names are null.
+   */
+  private fun getParameterName(
+    baseParameterName: String?,
+    parameterName: String?,
+    displayName: String?,
+  ): String? {
+    if (baseParameterName == null) return getParameterName(parameterName, displayName)
     if (parameterName == null) return baseParameterName
-    return "$baseParameterName - ${getParameterName(parameterName)}"
+    return "$baseParameterName - ${getParameterName(parameterName, displayName)}"
   }
 
-  private fun getParameterName(parameterName: String?): String? {
-    // Make all index numbers to use the same number of digits,
-    // so that they can be properly sorted later.
-    return parameterName?.let {
-      "$it ${index.toString().padStart(maxIndex.toString().length, '0')}"
+  /**
+   * Formats the parameter name for a single preview instance.
+   *
+   * The display name is prioritized. If it's null or blank, the `parameterName` is used and
+   * formatted with a zero-padded index to ensure proper lexicographical sorting in lists. For
+   * example, with a `maxIndex` of 100, an index of 5 would be formatted as "005".
+   *
+   * @param parameterName The name of the parameter from the `@PreviewParameter` annotation.
+   * @param displayName The explicit display name from the `PreviewParameterProvider`.
+   * @return The formatted parameter name, or null if both `displayName` and `parameterName` are
+   *   null or blank.
+   */
+  private fun getParameterName(parameterName: String?, displayName: String?): String? =
+    when {
+      !displayName.isNullOrBlank() -> displayName
+      // Pad the index with leading zeros to match the number of digits in maxIndex.
+      // This ensures correct sorting (e.g., "item 01", "item 02", ..., "item 10").
+      !parameterName.isNullOrBlank() ->
+        "$parameterName ${index.toString().padStart(maxIndex.toString().length, '0')}"
+      else -> null
     }
-  }
 }
 
 /**
@@ -344,13 +409,18 @@ open class ParametrizedComposePreviewElementTemplate<T>(
       val parameterProviderSize = parameterProviderSizeMethod.invoke(parameterProvider) as? Int ?: 0
       val providerCount = min(parameterProviderSize, previewParameter.limit)
 
+      val parameterProviderDisplayNameMethod =
+        parameterProviderClass.methods
+          .firstOrNull { method -> method.name == "getDisplayName" && method.parameterCount == 1 }
+          ?.apply { isAccessible = true }
+
       if (providerCount == 0) {
         // Returns a ParametrizedComposePreviewElementInstance with the error:
         // "IndexOutOfBoundsException: Sequence doesn't contain element at index 0."
         // In case providerCount is 0 we want to show an error instance that there are no
         // PreviewParameters instead of showing nothing.
         // TODO(b/238315228): propagate the exception so it's shown on the issues panel instead of
-        // forcing the error changing the index.
+        //  forcing the error changing the index.
         Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
           .warn(
             "Failed to instantiate ${previewParameter.providerClassFqn} parameter provider: no parameters found"
@@ -362,6 +432,7 @@ open class ParametrizedComposePreviewElementTemplate<T>(
             index = 0,
             maxIndex = 0,
             providerClassFqn = previewParameter.providerClassFqn,
+            displayName = null,
           )
         )
       } else {
@@ -373,6 +444,8 @@ open class ParametrizedComposePreviewElementTemplate<T>(
               index = index,
               maxIndex = providerCount - 1,
               providerClassFqn = previewParameter.providerClassFqn,
+              displayName =
+                parameterProviderDisplayNameMethod?.invoke(parameterProvider, index) as? String,
             )
           }
           .asSequence()
