@@ -331,7 +331,9 @@ class SyncedProjectTestSelfCheck : SyncedProjectTestSelfCheckBase<SyncedProjectT
 
 private fun selfChecks(): List<SyncedProjectTestDef> {
   return listOf(
+    /* TODO(b/429975528): temporarily avoid disabling KTS indexing for IntelliJ 2025.2.
     KotlinScriptIndexingDisabled(AGP_CURRENT)
+    */
   )
 }
 
