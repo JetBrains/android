@@ -28,6 +28,12 @@ interface ComposeStudioBotActionFactory {
    */
   fun transformPreviewAction(): AnAction?
 
+  /**
+   * An action to analyze UI images, critique them, and then rewrite the corresponding code to match
+   * the target design.
+   */
+  fun alignUiToTargetImageAction(): AnAction?
+
   companion object {
     val EP_NAME: ExtensionPointName<ComposeStudioBotActionFactory> =
       ExtensionPointName.create(

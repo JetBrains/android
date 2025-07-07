@@ -70,6 +70,14 @@ internal class PreviewSurfaceActionManager(
         }
       }
     }
+    // Add an action to rewrite UI from Image.
+    if (StudioFlags.COMPOSE_CRITIQUE_AGENT_CODE_REWRITE.get()) {
+      ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {
+        it.alignUiToTargetImageAction()?.let { action ->
+          actionGroup.add(action.visibleOnlyInStaticPreview())
+        }
+      }
+    }
 
     return actionGroup
   }
