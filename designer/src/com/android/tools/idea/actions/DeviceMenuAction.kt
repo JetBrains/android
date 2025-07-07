@@ -170,27 +170,42 @@ class DeviceMenuAction(
   }
 
   private fun createDeviceMenuList(configuration: Configuration) {
+    var selectionMade = false
     val groupedDevices = getSuitableDevicesForMenu(configuration)
     val currentDevice = configuration.device
-    addReferenceDeviceSection(groupedDevices, currentDevice)
-    addWearDeviceSection(groupedDevices, currentDevice)
-    addTvDeviceSection(groupedDevices, currentDevice)
-    addAutomotiveDeviceSection(groupedDevices, currentDevice)
-    addXrDeviceSection(groupedDevices, currentDevice)
-    addCustomDeviceSection(currentDevice)
-    addAvdDeviceSection(configuration.settings.avdDevices, currentDevice)
-    addGenericDeviceAndNewDefinitionSection(groupedDevices, currentDevice)
+    selectionMade = addReferenceDeviceSection(groupedDevices, currentDevice, selectionMade)
+    selectionMade = addWearDeviceSection(groupedDevices, currentDevice, selectionMade)
+    selectionMade = addTvDeviceSection(groupedDevices, currentDevice, selectionMade)
+    selectionMade = addAutomotiveDeviceSection(groupedDevices, currentDevice, selectionMade)
+    selectionMade = addXrDeviceSection(groupedDevices, currentDevice, selectionMade)
+    selectionMade = addCustomDeviceSection(currentDevice, selectionMade)
+    selectionMade =
+      addAvdDeviceSection(configuration.settings.avdDevices, currentDevice, selectionMade)
+    addGenericDeviceAndNewDefinitionSection(groupedDevices, currentDevice, selectionMade)
   }
 
+  /**
+   * Adds the reference device section to the device menu.
+   *
+   * @param groupedDevices The map of device groups to lists of devices.
+   * @param currentDevice The currently selected device.
+   * @param selectionMade A boolean indicating whether a selection has already been made.
+   * @return A boolean indicating whether a selection was made in this section.
+   */
   private fun addReferenceDeviceSection(
     groupedDevices: Map<DeviceGroup, List<Device>>,
     currentDevice: Device?,
-  ) {
+    selectionMade: Boolean,
+  ): Boolean {
+    var newSelectionMade = selectionMade
     add(DeviceCategory("Reference Devices", "Reference Devices", StudioIcons.Avd.DEVICE_MOBILE))
 
     for (type in ReferenceDeviceType.values()) {
       val device = getReferenceDevice(groupedDevices, type) ?: continue
-      val selected = device == currentDevice
+      val selected = device == currentDevice && !newSelectionMade
+      if (selected) {
+        newSelectionMade = true
+      }
       add(
         SetDeviceAction(
           getDeviceLabel(device),
@@ -209,27 +224,44 @@ class DeviceMenuAction(
         getCanonicalDevice(groupedDevices, CanonicalDeviceType.SMALL_PHONE),
         getCanonicalDevice(groupedDevices, CanonicalDeviceType.MEDIUM_PHONE),
       ) + groupedDevices.getOrDefault(DeviceGroup.NEXUS_XL, emptyList())
-    addDevicesToPopup("Phones", phoneDevices, currentDevice)
+    newSelectionMade = addDevicesToPopup("Phones", phoneDevices, currentDevice, newSelectionMade)
 
     // Add canonical medium tablet device at the top of menu.
     val tabletDevices =
       listOfNotNull(getCanonicalDevice(groupedDevices, CanonicalDeviceType.MEDIUM_TABLET)) +
         groupedDevices.getOrDefault(DeviceGroup.NEXUS_TABLET, emptyList())
-    addDevicesToPopup("Tablets", tabletDevices, currentDevice)
+    newSelectionMade = addDevicesToPopup("Tablets", tabletDevices, currentDevice, newSelectionMade)
 
-    groupedDevices.get(DeviceGroup.DESKTOP)?.let { addDevicesToPopup("Desktop", it, currentDevice) }
+    groupedDevices.get(DeviceGroup.DESKTOP)?.let {
+      newSelectionMade = addDevicesToPopup("Desktop", it, currentDevice, newSelectionMade)
+    }
     addSeparator()
+    return newSelectionMade
   }
 
+  /**
+   * Adds the wear device section to the device menu.
+   *
+   * @param groupedDevices The map of device groups to lists of devices.
+   * @param currentDevice The currently selected device.
+   * @param selectionMade A boolean indicating whether a selection has already been made.
+   * @return A boolean indicating whether a selection was made in this section.
+   */
   private fun addWearDeviceSection(
     groupedDevices: Map<DeviceGroup, List<Device>>,
     currentDevice: Device?,
-  ) {
-    val wearDevices = groupedDevices.get(DeviceGroup.WEAR) ?: return
+    selectionMade: Boolean,
+  ): Boolean {
+    var newSelectionMade = selectionMade
+    val wearDevices = groupedDevices.get(DeviceGroup.WEAR) ?: return newSelectionMade
     add(DeviceCategory("Wear", "Wear devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_WEAR))
     for (device in wearDevices) {
       val label = getDeviceLabel(device)
-      val selected = device == currentDevice
+      val selected = device == currentDevice && !newSelectionMade
+      if (selected) {
+        newSelectionMade = true
+      }
+
       add(
         SetWearDeviceAction(
           label,
@@ -242,16 +274,30 @@ class DeviceMenuAction(
       )
     }
     addSeparator()
+    return newSelectionMade
   }
 
+  /**
+   * Adds the TV device section to the device menu.
+   *
+   * @param groupedDevices The map of device groups to lists of devices.
+   * @param currentDevice The currently selected device.
+   * @param selectionMade A boolean indicating whether a selection has already been made.
+   * @return A boolean indicating whether a selection was made in this section.
+   */
   private fun addTvDeviceSection(
     groupedDevices: Map<DeviceGroup, List<Device>>,
     currentDevice: Device?,
-  ) {
-    val tvDevices = groupedDevices.get(DeviceGroup.TV) ?: return
+    selectionMade: Boolean,
+  ): Boolean {
+    var newSelectionMade = selectionMade
+    val tvDevices = groupedDevices.get(DeviceGroup.TV) ?: return newSelectionMade
     add(DeviceCategory("TV", "Television devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV))
     for (device in tvDevices) {
-      val selected = device == currentDevice
+      val selected = device == currentDevice && !newSelectionMade
+      if (selected) {
+        newSelectionMade = true
+      }
       add(
         SetDeviceAction(
           getDeviceLabel(device),
@@ -264,13 +310,24 @@ class DeviceMenuAction(
       )
     }
     addSeparator()
+    return newSelectionMade
   }
 
+  /**
+   * Adds the automotive device section to the device menu.
+   *
+   * @param groupedDevices The map of device groups to lists of devices.
+   * @param currentDevice The currently selected device.
+   * @param selectionMade A boolean indicating whether a selection has already been made.
+   * @return A boolean indicating whether a selection was made in this section.
+   */
   private fun addAutomotiveDeviceSection(
     groupedDevices: Map<DeviceGroup, List<Device>>,
     currentDevice: Device?,
-  ) {
-    val automotiveDevices = groupedDevices.get(DeviceGroup.AUTOMOTIVE) ?: return
+    selectionMade: Boolean,
+  ): Boolean {
+    var newSelectionMade = selectionMade
+    val automotiveDevices = groupedDevices.get(DeviceGroup.AUTOMOTIVE) ?: return newSelectionMade
     add(
       DeviceCategory(
         "Auto",
@@ -279,7 +336,10 @@ class DeviceMenuAction(
       )
     )
     for (device in automotiveDevices) {
-      val selected = device == currentDevice
+      val selected = device == currentDevice && !newSelectionMade
+      if (selected) {
+        newSelectionMade = true
+      }
       add(
         SetDeviceAction(
           getDeviceLabel(device),
@@ -292,18 +352,32 @@ class DeviceMenuAction(
       )
     }
     addSeparator()
+    return newSelectionMade
   }
 
+  /**
+   * Adds the XR device section to the device menu.
+   *
+   * @param groupedDevices The map of device groups to lists of devices.
+   * @param currentDevice The currently selected device.
+   * @param selectionMade A boolean indicating whether a selection has already been made.
+   * @return A boolean indicating whether a selection was made in this section.
+   */
   private fun addXrDeviceSection(
     groupedDevices: Map<DeviceGroup, List<Device>>,
     currentDevice: Device?,
-  ) {
-    val xrDevices = groupedDevices.get(DeviceGroup.XR) ?: return
+    selectionMade: Boolean,
+  ): Boolean {
+    var newSelectionMade = selectionMade
+    val xrDevices = groupedDevices.get(DeviceGroup.XR) ?: return newSelectionMade
     add(
       DeviceCategory("XR", "Android XR devices", StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_HEADSET)
     )
     for (device in xrDevices) {
-      val selected = device == currentDevice
+      val selected = device == currentDevice && !newSelectionMade
+      if (selected) {
+        newSelectionMade = true
+      }
       add(
         SetDeviceAction(
           getDeviceLabel(device),
@@ -316,14 +390,42 @@ class DeviceMenuAction(
       )
     }
     addSeparator()
+    return newSelectionMade
   }
 
-  private fun addCustomDeviceSection(currentDevice: Device?) {
-    add(SetCustomDeviceAction({ updatePresentation(it) }, currentDevice))
+  /**
+   * Adds the custom device section to the device menu.
+   *
+   * @param currentDevice The currently selected device.
+   * @param selectionMade A boolean indicating whether a selection has already been made.
+   * @return A boolean indicating whether a selection was made in this section.
+   */
+  private fun addCustomDeviceSection(currentDevice: Device?, selectionMade: Boolean): Boolean {
+    var newSelectionMade = selectionMade
+    var selected = false
+    if (Configuration.CUSTOM_DEVICE_ID == currentDevice?.id && !newSelectionMade) {
+      newSelectionMade = true
+      selected = true
+    }
+    add(SetCustomDeviceAction({ updatePresentation(it) }, currentDevice, selected))
     addSeparator()
+    return newSelectionMade
   }
 
-  private fun addAvdDeviceSection(avdDevices: List<Device>, currentDevice: Device?) {
+  /**
+   * Adds the AVD device section to the device menu.
+   *
+   * @param avdDevices The list of AVD devices.
+   * @param currentDevice The currently selected device.
+   * @param selectionMade A boolean indicating whether a selection has already been made.
+   * @return A boolean indicating whether a selection was made in this section.
+   */
+  private fun addAvdDeviceSection(
+    avdDevices: List<Device>,
+    currentDevice: Device?,
+    selectionMade: Boolean,
+  ): Boolean {
+    var newSelectionMade = selectionMade
     if (avdDevices.isNotEmpty()) {
       add(
         DeviceCategory(
@@ -333,7 +435,10 @@ class DeviceMenuAction(
         )
       )
       for (device in avdDevices) {
-        val selected = currentDevice?.id == device.id
+        val selected = currentDevice?.id == device.id && !newSelectionMade
+        if (selected) {
+          newSelectionMade = true
+        }
         val avdDisplayName = "AVD: " + device.displayName
         add(
           SetAvdAction(
@@ -347,24 +452,54 @@ class DeviceMenuAction(
       }
       addSeparator()
     }
+    return newSelectionMade
   }
 
+  /**
+   * Adds the generic device and new definition section to the device menu.
+   *
+   * @param groupedDevices The map of device groups to lists of devices.
+   * @param currentDevice The currently selected device.
+   * @param selectionMade A boolean indicating whether a selection has already been made.
+   * @return A boolean indicating whether a selection was made in this section.
+   */
   private fun addGenericDeviceAndNewDefinitionSection(
     groupedDevices: Map<DeviceGroup, List<Device>>,
     currentDevice: Device?,
-  ) {
-    val devices = groupedDevices.get(DeviceGroup.GENERIC) ?: return
-    addDevicesToPopup("Generic Devices", devices, currentDevice)
+    selectionMade: Boolean,
+  ): Boolean {
+    val devices = groupedDevices.get(DeviceGroup.GENERIC) ?: return selectionMade
+    val newSelectionMade =
+      addDevicesToPopup("Generic Devices", devices, currentDevice, selectionMade)
     add(AddDeviceDefinitionAction())
+    return newSelectionMade
   }
 
-  private fun addDevicesToPopup(title: String, devices: List<Device>, currentDevice: Device?) {
+  /**
+   * Adds a group of devices to the popup menu.
+   *
+   * @param title The title of the group.
+   * @param devices The list of devices to add.
+   * @param currentDevice The currently selected device.
+   * @param selectionMade A boolean indicating whether a selection has already been made.
+   * @return A boolean indicating whether a selection was made in this group.
+   */
+  private fun addDevicesToPopup(
+    title: String,
+    devices: List<Device>,
+    currentDevice: Device?,
+    selectionMade: Boolean,
+  ): Boolean {
+    var newSelectionMade = selectionMade
     val group = DefaultActionGroup(title, true)
     add(group)
 
     for (device in devices) {
       val label = getDeviceLabel(device)
-      val selected = device == currentDevice
+      val selected = device == currentDevice && !newSelectionMade
+      if (selected) {
+        newSelectionMade = true
+      }
       group.addAction(
         SetDeviceAction(
           label,
@@ -376,6 +511,7 @@ class DeviceMenuAction(
         )
       )
     }
+    return newSelectionMade
   }
 
   private fun getDeviceLabel(device: Device): String {
@@ -707,6 +843,7 @@ private const val CUSTOM_DEVICE_NAME = "Custom"
 private class SetCustomDeviceAction(
   updatePresentationCallback: Consumer<AnActionEvent>,
   private val baseDevice: Device?,
+  private val selected: Boolean,
 ) : DeviceAction(CUSTOM_DEVICE_NAME, updatePresentationCallback, null) {
   var customDevice: Device? = null
   override val device: Device?
@@ -714,7 +851,7 @@ private class SetCustomDeviceAction(
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    Toggleable.setSelected(event.presentation, Configuration.CUSTOM_DEVICE_ID == baseDevice?.id)
+    Toggleable.setSelected(event.presentation, selected)
   }
 
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {

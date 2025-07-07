@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,28 @@
  */
 package com.android.tools.idea.actions
 
+import com.android.ide.common.resources.Locale
+import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.sdklib.IAndroidTarget
+import com.android.sdklib.devices.Device
+import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.actions.findActionByText
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationModelModule
+import com.android.tools.configurations.ConfigurationSettings
+import com.android.tools.configurations.ResourceResolverCache
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.StudioConfigurationModelModule
+import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
@@ -42,6 +54,14 @@ import org.mockito.kotlin.whenever
 private fun isAvdAction(action: AnAction): Boolean {
   val text = action.templatePresentation.text
   return text != null && text.startsWith("AVD:")
+}
+
+private fun AnAction.flattenActions(): List<AnAction> {
+  return if (this is DefaultActionGroup) {
+    this.getChildren(null).flatMap { it.flattenActions() }
+  } else {
+    listOf(this)
+  }
 }
 
 class DeviceMenuActionTest {
@@ -214,4 +234,89 @@ class DeviceMenuActionTest {
 
     assertEquals("Pixel Fold", configuration.device?.displayName)
   }
+
+  @Test
+  fun testSingleDeviceSelection() = runBlocking {
+    val menuAction = DeviceMenuAction()
+    val configurationManager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
+    val groupedDevices = groupDevices(configurationManager.devices)
+    val nexusXlDevices = groupedDevices[DeviceGroup.NEXUS_XL]
+    Truth.assertThat(nexusXlDevices).isNotEmpty()
+    val device = nexusXlDevices!!.first()
+    val testDevices = listOf(device, device)
+    val configurationSettings = TestConfigurationSettings(testDevices)
+    val configuration =
+      Configuration.create(configurationSettings, FolderConfiguration.createDefault())
+    configuration.setEffectiveDevice(device, device.defaultState)
+
+    val dataContext = SimpleDataContext.getSimpleContext(CONFIGURATIONS, listOf(configuration))
+    menuAction.updateActions(dataContext)
+
+    val allDeviceActions = menuAction.flattenActions().filterIsInstance<SetDeviceAction>()
+
+    assertEquals(2, allDeviceActions.size) // 2 device + Custom
+    assertEquals(device, allDeviceActions[0].device)
+    assertEquals(device, allDeviceActions[1].device)
+
+    // Check that only one device is selected
+    val selectedActions =
+      allDeviceActions.filter {
+        val event = TestActionEvent.createTestEvent()
+        it.update(event)
+        Toggleable.isSelected(event.presentation)
+      }
+    assertEquals(1, selectedActions.size)
+  }
+}
+
+private class TestConfigurationSettings(private val testDevices: List<Device>) :
+  ConfigurationSettings {
+  override val defaultDevice: Device?
+    get() = null
+
+  override fun selectDevice(device: Device) {}
+
+  override var locale: Locale
+    get() = Locale.ANY
+    set(value) {}
+
+  override var target: IAndroidTarget?
+    get() = null
+    set(value) {}
+
+  override fun getTarget(minVersion: Int): IAndroidTarget? = null
+
+  override val stateVersion: Int
+    get() = 0
+
+  override val configModule: ConfigurationModelModule
+    get() = TODO("Not yet implemented")
+
+  override val resolverCache: ResourceResolverCache
+    get() = TODO("Not yet implemented")
+
+  override val localesInProject: ImmutableList<Locale>
+    get() = ImmutableList.of()
+
+  override val devices: ImmutableList<Device>
+    get() = ImmutableList.copyOf(testDevices)
+
+  override val projectTarget: IAndroidTarget?
+    get() = null
+
+  override fun createDeviceForAvd(avd: AvdInfo): Device? = null
+
+  override val highestApiTarget: IAndroidTarget?
+    get() = null
+
+  override val targets: Array<IAndroidTarget>
+    get() = arrayOf()
+
+  override fun getDeviceById(id: String): Device? = null
+
+  override val recentDevices: List<Device>
+    get() = emptyList()
+
+  override val avdDevices: List<Device>
+    get() = emptyList()
 }
