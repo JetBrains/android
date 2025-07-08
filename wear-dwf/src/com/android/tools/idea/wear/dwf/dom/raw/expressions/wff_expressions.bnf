@@ -88,7 +88,13 @@ mod_expr ::= expr '%' expr
 paren_expr ::= OPEN_PAREN expr CLOSE_PAREN
 elvis_expr ::= conditional_expr '?' expr ':' expr
 
-data_source ::= OPEN_BRACKET ID CLOSE_BRACKET
+weather_source_id ::= 'WEATHER' DOT ID [DOT (ID | INTEGER) DOT ID] {
+  pin=1
+}
+data_source_id ::= weather_source_id | ID
+data_source ::= OPEN_BRACKET data_source_id CLOSE_BRACKET {
+  pin=2
+}
 
 color_index ::= DOT INTEGER {
   pin=1

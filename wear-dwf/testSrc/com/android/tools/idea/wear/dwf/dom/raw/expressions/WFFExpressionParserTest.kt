@@ -54,7 +54,8 @@ FILE
         WFFExpressionLiteralExprImpl(LITERAL_EXPR)
           WFFExpressionDataSourceImpl(DATA_SOURCE)
             PsiElement([)('[')
-            PsiElement(ID)('SECONDS_IN_DAY')
+            WFFExpressionDataSourceIdImpl(DATA_SOURCE_ID)
+              PsiElement(ID)('SECONDS_IN_DAY')
             PsiElement(])(']')
         WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
           PsiElement(OPERATORS)('<')
@@ -275,6 +276,67 @@ FILE
           """
         .trimIndent(),
       toParseTreeText("1 1"),
+    )
+  }
+
+  fun testParseWeather() {
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    WFFExpressionDataSourceImpl(DATA_SOURCE)
+      PsiElement([)('[')
+      WFFExpressionDataSourceIdImpl(DATA_SOURCE_ID)
+        WFFExpressionWeatherSourceIdImpl(WEATHER_SOURCE_ID)
+          PsiElement(ID)('WEATHER')
+          PsiElement(.)('.')
+          PsiElement(ID)('IS_AVAILABLE')
+      PsiElement(])(']')
+          """
+        .trimIndent(),
+      toParseTreeText("[WEATHER.IS_AVAILABLE]"),
+    )
+
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    WFFExpressionDataSourceImpl(DATA_SOURCE)
+      PsiElement([)('[')
+      WFFExpressionDataSourceIdImpl(DATA_SOURCE_ID)
+        WFFExpressionWeatherSourceIdImpl(WEATHER_SOURCE_ID)
+          PsiElement(ID)('WEATHER')
+          PsiElement(.)('.')
+          PsiElement(ID)('HOURS')
+          PsiElement(.)('.')
+          PsiElement(INTEGER)('0')
+          PsiElement(.)('.')
+          PsiElement(ID)('CONDITION')
+      PsiElement(])(']')
+          """
+        .trimIndent(),
+      toParseTreeText("[WEATHER.HOURS.0.CONDITION]"),
+    )
+  }
+
+  fun testParseInvalidDataSource() {
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    WFFExpressionDataSourceImpl(DATA_SOURCE)
+      PsiElement([)('[')
+      WFFExpressionDataSourceIdImpl(DATA_SOURCE_ID)
+        PsiElement(ID)('INVALID')
+      PsiErrorElement:']' expected, got '.'
+        <empty list>
+  PsiElement(.)('.')
+  PsiErrorElement:'DATA_SOURCE' unexpected
+    PsiElement(ID)('DATA_SOURCE')
+  PsiElement(])(']')
+          """
+        .trimIndent(),
+      toParseTreeText("[INVALID.DATA_SOURCE]"),
     )
   }
 }

@@ -36,6 +36,7 @@ public interface WFFExpressionTypes {
   IElementType CONFIGURATION = new WFFExpressionElementType("CONFIGURATION");
   IElementType CONFIGURATION_ID = new WFFExpressionElementType("CONFIGURATION_ID");
   IElementType DATA_SOURCE = new WFFExpressionElementType("DATA_SOURCE");
+  IElementType DATA_SOURCE_ID = new WFFExpressionElementType("DATA_SOURCE_ID");
   IElementType DIV_EXPR = new WFFExpressionElementType("DIV_EXPR");
   IElementType ELVIS_EXPR = new WFFExpressionElementType("ELVIS_EXPR");
   IElementType EXPR = new WFFExpressionElementType("EXPR");
@@ -52,6 +53,7 @@ public interface WFFExpressionTypes {
   IElementType UNARY_NOT_EXPR = new WFFExpressionElementType("UNARY_NOT_EXPR");
   IElementType UNARY_PLUS_EXPR = new WFFExpressionElementType("UNARY_PLUS_EXPR");
   IElementType USER_STRING = new WFFExpressionElementType("USER_STRING");
+  IElementType WEATHER_SOURCE_ID = new WFFExpressionElementType("WEATHER_SOURCE_ID");
 
   IElementType CLOSE_BRACKET = new WFFExpressionTokenType("]");
   IElementType CLOSE_PAREN = new WFFExpressionTokenType(")");
@@ -98,6 +100,9 @@ public interface WFFExpressionTypes {
       else if (type == DATA_SOURCE) {
         return new WFFExpressionDataSourceImpl(node);
       }
+      else if (type == DATA_SOURCE_ID) {
+        return new WFFExpressionDataSourceIdImpl(node);
+      }
       else if (type == DIV_EXPR) {
         return new WFFExpressionDivExprImpl(node);
       }
@@ -142,6 +147,9 @@ public interface WFFExpressionTypes {
       }
       else if (type == USER_STRING) {
         return new WFFExpressionUserStringImpl(node);
+      }
+      else if (type == WEATHER_SOURCE_ID) {
+        return new WFFExpressionWeatherSourceIdImpl(node);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

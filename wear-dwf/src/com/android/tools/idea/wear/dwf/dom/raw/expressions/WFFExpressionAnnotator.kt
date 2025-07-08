@@ -37,21 +37,26 @@ class WFFExpressionAnnotator : Annotator {
   }
 
   private fun annotateDataSource(dataSource: WFFExpressionDataSource, holder: AnnotationHolder) {
-    if (dataSource.id.text !in WFFConstants.DataSources.ALL) {
+    if (!dataSource.dataSourceId.isKnown()) {
       holder
         .newAnnotation(
           HighlightSeverity.ERROR,
           message("wff.expression.annotator.unknown.datasource"),
         )
         .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
-        .range(dataSource.id)
+        .range(dataSource.dataSourceId)
         .create()
     }
     holder
       .newSilentAnnotation(HighlightSeverity.INFORMATION)
-      .range(dataSource.id)
+      .range(dataSource.dataSourceId)
       .textAttributes(WFFExpressionTextAttributes.DATA_SOURCE.key)
       .create()
+  }
+
+  private fun WFFExpressionDataSourceId.isKnown(): Boolean {
+    return text in WFFConstants.DataSources.ALL_STATIC ||
+      WFFConstants.DataSources.ALL_PATTERNS.any { it.matches(text) }
   }
 
   private fun annotateFunctionId(functionId: WFFExpressionFunctionId, holder: AnnotationHolder) {

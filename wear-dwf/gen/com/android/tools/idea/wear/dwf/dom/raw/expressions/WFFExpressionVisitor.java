@@ -65,6 +65,10 @@ public class WFFExpressionVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitDataSourceId(@NotNull WFFExpressionDataSourceId o) {
+    visitPsiElement(o);
+  }
+
   public void visitDivExpr(@NotNull WFFExpressionDivExpr o) {
     visitExpr(o);
   }
@@ -126,6 +130,10 @@ public class WFFExpressionVisitor extends PsiElementVisitor {
   }
 
   public void visitUserString(@NotNull WFFExpressionUserString o) {
+    visitPsiElement(o);
+  }
+
+  public void visitWeatherSourceId(@NotNull WFFExpressionWeatherSourceId o) {
     visitPsiElement(o);
   }
 

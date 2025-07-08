@@ -210,14 +210,29 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // OPEN_BRACKET ID CLOSE_BRACKET
+  // OPEN_BRACKET data_source_id CLOSE_BRACKET
   public static boolean data_source(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "data_source")) return false;
     if (!nextTokenIs(b, OPEN_BRACKET)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, DATA_SOURCE, null);
+    r = consumeToken(b, OPEN_BRACKET);
+    r = r && data_source_id(b, l + 1);
+    p = r; // pin = 2
+    r = r && consumeToken(b, CLOSE_BRACKET);
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  /* ********************************************************** */
+  // weather_source_id | ID
+  public static boolean data_source_id(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "data_source_id")) return false;
     boolean r;
-    Marker m = enter_section_(b);
-    r = consumeTokens(b, 0, OPEN_BRACKET, ID, CLOSE_BRACKET);
-    exit_section_(b, m, DATA_SOURCE, r);
+    Marker m = enter_section_(b, l, _NONE_, DATA_SOURCE_ID, "<data source id>");
+    r = weather_source_id(b, l + 1);
+    if (!r) r = consumeToken(b, ID);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
@@ -365,6 +380,48 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "user_string_1_0")) return false;
     consumeToken(b, INTEGER);
     return true;
+  }
+
+  /* ********************************************************** */
+  // 'WEATHER' DOT ID [DOT (ID | INTEGER) DOT ID]
+  public static boolean weather_source_id(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "weather_source_id")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, WEATHER_SOURCE_ID, "<weather source id>");
+    r = consumeToken(b, "WEATHER");
+    p = r; // pin = 1
+    r = r && report_error_(b, consumeTokens(b, -1, DOT, ID));
+    r = p && weather_source_id_3(b, l + 1) && r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  // [DOT (ID | INTEGER) DOT ID]
+  private static boolean weather_source_id_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "weather_source_id_3")) return false;
+    weather_source_id_3_0(b, l + 1);
+    return true;
+  }
+
+  // DOT (ID | INTEGER) DOT ID
+  private static boolean weather_source_id_3_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "weather_source_id_3_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, DOT);
+    r = r && weather_source_id_3_0_1(b, l + 1);
+    r = r && consumeTokens(b, 0, DOT, ID);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // ID | INTEGER
+  private static boolean weather_source_id_3_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "weather_source_id_3_0_1")) return false;
+    boolean r;
+    r = consumeToken(b, ID);
+    if (!r) r = consumeToken(b, INTEGER);
+    return r;
   }
 
   /* ********************************************************** */

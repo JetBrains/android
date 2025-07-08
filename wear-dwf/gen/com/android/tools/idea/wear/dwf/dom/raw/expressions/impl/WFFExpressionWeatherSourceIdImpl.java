@@ -29,14 +29,14 @@ import static com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionT
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.*;
 
-public class WFFExpressionDataSourceImpl extends ASTWrapperPsiElement implements WFFExpressionDataSource {
+public class WFFExpressionWeatherSourceIdImpl extends ASTWrapperPsiElement implements WFFExpressionWeatherSourceId {
 
-  public WFFExpressionDataSourceImpl(@NotNull ASTNode node) {
+  public WFFExpressionWeatherSourceIdImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull WFFExpressionVisitor visitor) {
-    visitor.visitDataSource(this);
+    visitor.visitWeatherSourceId(this);
   }
 
   @Override
@@ -46,9 +46,9 @@ public class WFFExpressionDataSourceImpl extends ASTWrapperPsiElement implements
   }
 
   @Override
-  @NotNull
-  public WFFExpressionDataSourceId getDataSourceId() {
-    return findNotNullChildByClass(WFFExpressionDataSourceId.class);
+  @Nullable
+  public PsiElement getInteger() {
+    return findChildByType(INTEGER);
   }
 
 }

@@ -23,9 +23,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface WFFExpressionDataSource extends PsiElement {
+public interface WFFExpressionDataSourceId extends PsiElement {
 
-  @NotNull
-  WFFExpressionDataSourceId getDataSourceId();
+  @Nullable
+  WFFExpressionWeatherSourceId getWeatherSourceId();
+
+  @Nullable
+  PsiElement getId();
 
 }

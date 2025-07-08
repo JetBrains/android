@@ -143,4 +143,27 @@ class WFFExpressionLexerTest : AndroidLexerTestCase(WFFExpressionLexer()) {
       ")" to WFFExpressionTypes.CLOSE_PAREN,
     )
   }
+
+  fun testWeather() {
+    assertTokenTypes(
+      "[WEATHER.IS_AVAILABLE]",
+      "[" to WFFExpressionTypes.OPEN_BRACKET,
+      "WEATHER" to WFFExpressionTypes.ID,
+      "." to WFFExpressionTypes.DOT,
+      "IS_AVAILABLE" to WFFExpressionTypes.ID,
+      "]" to WFFExpressionTypes.CLOSE_BRACKET,
+    )
+    assertTokenTypes(
+      "[WEATHER.HOURS.0.CONDITION]",
+      "[" to WFFExpressionTypes.OPEN_BRACKET,
+      "WEATHER" to WFFExpressionTypes.ID,
+      "." to WFFExpressionTypes.DOT,
+      "HOURS" to WFFExpressionTypes.ID,
+      "." to WFFExpressionTypes.DOT,
+      "0" to WFFExpressionTypes.INTEGER,
+      "." to WFFExpressionTypes.DOT,
+      "CONDITION" to WFFExpressionTypes.ID,
+      "]" to WFFExpressionTypes.CLOSE_BRACKET,
+    )
+  }
 }

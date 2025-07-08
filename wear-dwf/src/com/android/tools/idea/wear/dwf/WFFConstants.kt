@@ -69,7 +69,9 @@ object WFFConstants {
         "UTC_TIMESTAMP",
         "SECOND_MILLISECOND",
         "SECONDS_IN_DAY",
+        "SECONDS_SINCE_EPOCH",
         "MINUTE_SECOND",
+        "MINUTES_SINCE_EPOCH",
         "HOUR_0_11_Z",
         "HOUR_0_11_MINUTE",
         "HOUR_0_11",
@@ -82,6 +84,7 @@ object WFFConstants {
         "HOUR_1_24_Z",
         "HOUR_1_24_MINUTE",
         "HOUR_1_24",
+        "HOURS_SINCE_EPOCH",
         "DAY_HOUR",
         "DAY_0_30_HOUR",
         "DAY_0_30",
@@ -97,12 +100,15 @@ object WFFConstants {
         "YEAR_MONTH",
         "WEEK_IN_MONTH",
         "WEEK_IN_YEAR",
+        "FIRST_DAY_OF_WEEK",
         "IS_24_HOUR_MODE",
         "IS_DAYLIGHT_SAVING_TIME",
         "TIMEZONE_ABB",
         "TIMEZONE_ID",
         "TIMEZONE_OFFSET_DST",
         "TIMEZONE_OFFSET",
+        "TIMEZONE_OFFSET_MINUTES",
+        "TIMEZONE_OFFSET_MINUTES_DST",
         "TIMEZONE",
         "AMPM_POSITION",
         "AMPM_STRING_ENG",
@@ -137,10 +143,57 @@ object WFFConstants {
         "ACCELEROMETER_ANGLE_Y",
       )
     val HEALTH = setOf("STEP_COUNT", "STEP_GOAL", "STEP_PERCENT", "HEART_RATE_Z", "HEART_RATE")
+
     val NOTIFICATION = setOf("UNREAD_NOTIFICATION_COUNT")
 
-    val ALL =
-      TIME_UNIT + TIME_SOURCE + LANGUAGE + BATTERY + MOON_PHASE + SENSOR + HEALTH + NOTIFICATION
+    val WEATHER =
+      setOf(
+        "WEATHER.IS_AVAILABLE",
+        "WEATHER.IS_ERROR",
+        "WEATHER.CONDITION",
+        "WEATHER.CONDITION_NAME",
+        "WEATHER.IS_DAY",
+        "WEATHER.TEMPERATURE",
+        "WEATHER.TEMPERATURE_UNIT",
+        "WEATHER.TEMPERATURE_LOW",
+        "WEATHER.TEMPERATURE_HIGH",
+        "WEATHER.CHANCE_OF_PRECIPITATION",
+        "WEATHER.UV_INDEX",
+        "WEATHER.LAST_UPDATED",
+      )
+
+    val WEATHER_PATTERNS =
+      setOf(
+        "WEATHER\\.HOURS\\.\\d+\\.IS_AVAILABLE".toRegex(),
+        "WEATHER\\.HOURS\\.\\d+\\.CONDITION".toRegex(),
+        "WEATHER\\.HOURS\\.\\d+\\.CONDITION_NAME".toRegex(),
+        "WEATHER\\.HOURS\\.\\d+\\.IS_DAY".toRegex(),
+        "WEATHER\\.HOURS\\.\\d+\\.TEMPERATURE".toRegex(),
+        "WEATHER\\.HOURS\\.\\d+\\.UV_INDEX".toRegex(),
+        "WEATHER\\.DAYS\\.\\d+\\.IS_AVAILABLE".toRegex(),
+        "WEATHER\\.DAYS\\.\\d+\\.CONDITION_DAY".toRegex(),
+        "WEATHER\\.DAYS\\.\\d+\\.CONDITION_DAY_NAME".toRegex(),
+        "WEATHER\\.DAYS\\.\\d+\\.CONDITION_NIGHT".toRegex(),
+        "WEATHER\\.DAYS\\.\\d+\\.CONDITION_NIGHT_NAME".toRegex(),
+        "WEATHER\\.DAYS\\.\\d+\\.TEMPERATURE_LOW".toRegex(),
+        "WEATHER\\.DAYS\\.\\d+\\.TEMPERATURE_HIGH".toRegex(),
+        "WEATHER\\.DAYS\\.\\d+\\.CHANCE_OF_PRECIPITATION".toRegex(),
+        "WEATHER\\.DAYS\\.\\d+\\.CHANCE_OF_PRECIPITATION_NIGHT".toRegex(),
+        "WEATHER\\.DAYS\\.\\d+\\.UV_INDEX".toRegex(),
+      )
+
+    val ALL_STATIC =
+      TIME_UNIT +
+        TIME_SOURCE +
+        LANGUAGE +
+        BATTERY +
+        MOON_PHASE +
+        SENSOR +
+        HEALTH +
+        NOTIFICATION +
+        WEATHER
+
+    val ALL_PATTERNS = WEATHER_PATTERNS
   }
 
   object Functions {

@@ -128,4 +128,41 @@ class WFFExpressionAnnotatorTest {
       .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
     assertThat(error.toolTip).isEqualTo("<html>Unknown configuration</html>")
   }
+
+  @Test
+  fun `weather data sources are annotated`() {
+    fixture.configureByText(
+      WFFExpressionFileType,
+      "[WEATHER.CONDITION] + [WEATHER.UNKNOWN] + [WEATHER.HOURS.0.CONDITION] + [WEATHER.DAYS.0.UNKNOWN]",
+    )
+
+    val highlightInfos = fixture.doHighlighting()
+    assertThat(highlightInfos).hasSize(6)
+
+    val infos = highlightInfos.filter { it.severity == HighlightSeverity.INFORMATION }
+    assertThat(infos).hasSize(4)
+    assertThat(infos[0].text).isEqualTo("WEATHER.CONDITION")
+    assertThat(infos[0].forcedTextAttributesKey)
+      .isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
+    assertThat(infos[1].text).isEqualTo("WEATHER.UNKNOWN")
+    assertThat(infos[1].forcedTextAttributesKey)
+      .isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
+    assertThat(infos[2].text).isEqualTo("WEATHER.HOURS.0.CONDITION")
+    assertThat(infos[2].forcedTextAttributesKey)
+      .isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
+    assertThat(infos[3].text).isEqualTo("WEATHER.DAYS.0.UNKNOWN")
+    assertThat(infos[3].forcedTextAttributesKey)
+      .isEqualTo(WFFExpressionTextAttributes.DATA_SOURCE.key)
+
+    val errors = highlightInfos.filter { it.severity == HighlightSeverity.ERROR }
+    assertThat(errors).hasSize(2)
+    assertThat(errors[0].text).isEqualTo("WEATHER.UNKNOWN")
+    assertThat(errors[0].forcedTextAttributesKey)
+      .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
+    assertThat(errors[0].toolTip).isEqualTo("<html>Unknown data source</html>")
+    assertThat(errors[1].text).isEqualTo("WEATHER.DAYS.0.UNKNOWN")
+    assertThat(errors[1].forcedTextAttributesKey)
+      .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
+    assertThat(errors[1].toolTip).isEqualTo("<html>Unknown data source</html>")
+  }
 }
