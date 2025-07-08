@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gservices
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
+import kotlinx.coroutines.flow.StateFlow
 
 internal const val DEFAULT_SERVICE_NAME = "This service"
 
@@ -31,6 +33,16 @@ interface DevServicesDeprecationDataProvider {
     serviceName: String,
     userFriendlyServiceName: String = DEFAULT_SERVICE_NAME,
   ): DevServicesDeprecationData
+
+  /**
+   * Register the [serviceName] and returns a [StateFlow] of [DevServicesDeprecationData] Stateflow
+   * contains the latest available data.
+   */
+  fun registerServiceForChange(
+    serviceName: String,
+    userFriendlyServiceName: String = DEFAULT_SERVICE_NAME,
+    disposable: Disposable,
+  ): StateFlow<DevServicesDeprecationData>
 
   companion object {
     fun getInstance() = service<DevServicesDeprecationDataProvider>()

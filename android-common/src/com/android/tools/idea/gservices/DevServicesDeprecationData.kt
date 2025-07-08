@@ -48,4 +48,8 @@ data class DevServicesDeprecationData(
         java.util.Date.from(it.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())
       )
     } ?: ""
+
+  companion object {
+    val EMPTY = DevServicesDeprecationData("", "", "", false, SUPPORTED)
+  }
 }

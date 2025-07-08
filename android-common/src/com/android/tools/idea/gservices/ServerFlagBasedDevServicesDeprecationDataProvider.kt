@@ -18,19 +18,36 @@ package com.android.tools.idea.gservices
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus.SUPPORTED
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus.UNSUPPORTED
+import com.android.tools.idea.serverflags.DynamicServerFlagService
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.Date
 import com.android.tools.idea.serverflags.protos.DevServicesDeprecationMetadata
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.text.DateFormatUtil
 import java.time.LocalDate
 import java.util.Calendar
+import java.util.concurrent.CopyOnWriteArrayList
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 private const val DEV_SERVICES_DIR_NAME = "dev_services"
 private const val SERVICE_NAME_PLACEHOLDER = "<service_name>"
 private const val DATE_PLACEHOLDER = "<date>"
+private const val RESCHEDULE_DELAY_MILLIS = 7200000L // 2 hours in milliseconds
 
 /** Provides [DevServicesDeprecationStatus] based on server flags. */
-class ServerFlagBasedDevServicesDeprecationDataProvider : DevServicesDeprecationDataProvider {
+class ServerFlagBasedDevServicesDeprecationDataProvider(private val scope: CoroutineScope) :
+  DevServicesDeprecationDataProvider, Disposable {
+  private val listeners = CopyOnWriteArrayList<DeprecationChangeListener>()
+  private var checkJob: Job? = null
+
   /**
    * Get the deprecation status of [serviceName] controlled by ServerFlags. Update the flags in
    * google3 to control the deprecation status.
@@ -38,6 +55,9 @@ class ServerFlagBasedDevServicesDeprecationDataProvider : DevServicesDeprecation
    * When [StudioFlags.USE_POLICY_WITH_DEPRECATE] flag is enabled, the status of service as well as
    * studio is checked. Service status is prioritized over studio. If service status is not
    * available, studio status is returned.
+   *
+   * **Use this method to get a one time value of the flag. This is preferred if your feature gets
+   * called on user interactions (e.g. pop up menu item)**
    *
    * @param serviceName The service name as used in the server flags storage in the backend. This
    *   should be the same as server_flags/server_configurations/dev_services/$serviceName.textproto.
@@ -51,6 +71,34 @@ class ServerFlagBasedDevServicesDeprecationDataProvider : DevServicesDeprecation
       return proto.toDeprecationData(userFriendlyServiceName)
     } else {
       getCurrentDeprecationData(serviceName)
+    }
+  }
+
+  /**
+   * Registers the provided [serviceName]. Returns a [StateFlow] containing the latest available
+   * value for the service.
+   *
+   * **Use this method to register the listener and get notified of data changes. This is
+   * preferred if your feature is in a toolwindow.**
+   */
+  override fun registerServiceForChange(
+    serviceName: String,
+    userFriendlyServiceName: String,
+    disposable: Disposable,
+  ): StateFlow<DevServicesDeprecationData> {
+    val flow = MutableStateFlow(DevServicesDeprecationData.EMPTY)
+    val listener = DeprecationChangeListener(serviceName, userFriendlyServiceName, flow)
+    listeners.add(listener)
+    Disposer.register(disposable) { unregisterListener(listener) }
+    checkJob?.cancel()
+    checkJob = scope.startCheckJobWithDelay(RESCHEDULE_DELAY_MILLIS)
+    return flow.asStateFlow()
+  }
+
+  private fun unregisterListener(listener: DeprecationChangeListener) {
+    listeners.remove(listener)
+    if (listeners.isEmpty()) {
+      checkJob?.cancel()
     }
   }
 
@@ -71,9 +119,12 @@ class ServerFlagBasedDevServicesDeprecationDataProvider : DevServicesDeprecation
   private fun checkServiceStatus(serviceName: String): DevServicesDeprecationMetadata {
     val defaultInstance = DevServicesDeprecationMetadata.getDefaultInstance()
     val serviceStatus =
-      ServerFlagService.instance.getProto("$DEV_SERVICES_DIR_NAME/$serviceName", defaultInstance)
+      DynamicServerFlagService.instance.getProto(
+        "$DEV_SERVICES_DIR_NAME/$serviceName",
+        defaultInstance,
+      )
     val studioStatus =
-      ServerFlagService.instance.getProto("$DEV_SERVICES_DIR_NAME/studio", defaultInstance)
+      DynamicServerFlagService.instance.getProto("$DEV_SERVICES_DIR_NAME/studio", defaultInstance)
     return if (serviceStatus == defaultInstance) {
       studioStatus
     } else {
@@ -122,4 +173,31 @@ class ServerFlagBasedDevServicesDeprecationDataProvider : DevServicesDeprecation
       }
     return DateFormatUtil.formatDate(calendar.time)
   }
+
+  private fun checkNewDataAvailable() {
+    DynamicServerFlagService.instance.updateFlags()
+    listeners.forEach { listener ->
+      listener.mutableStateFlow.update {
+        checkServiceStatus(listener.serviceName).toDeprecationData(listener.userFriendlyServiceName)
+      }
+    }
+  }
+
+  private fun CoroutineScope.startCheckJobWithDelay(delayMillis: Long) = launch {
+    while (true) {
+      checkNewDataAvailable()
+      delay(delayMillis)
+    }
+  }
+
+  override fun dispose() {
+    listeners.clear()
+    checkJob?.cancel()
+  }
+
+  private data class DeprecationChangeListener(
+    val serviceName: String,
+    val userFriendlyServiceName: String,
+    val mutableStateFlow: MutableStateFlow<DevServicesDeprecationData>,
+  )
 }

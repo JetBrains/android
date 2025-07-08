@@ -26,10 +26,14 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.notification.NotificationsManager
+import com.intellij.openapi.Disposable
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.replaceService
 import com.intellij.util.application
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.test.runTest
@@ -55,6 +59,12 @@ class StudioDeprecationCheckerTest {
     object : DevServicesDeprecationDataProvider {
       override fun getCurrentDeprecationData(serviceName: String, userFriendlyServiceName: String) =
         deprecationData
+
+      override fun registerServiceForChange(
+        serviceName: String,
+        userFriendlyServiceName: String,
+        disposable: Disposable
+      ) = MutableStateFlow(DevServicesDeprecationData.EMPTY).asStateFlow()
     }
 
   private val checker = StudioDeprecationChecker()
