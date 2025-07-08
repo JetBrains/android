@@ -8,7 +8,6 @@ iml_module(
     # keep sorted
     test_data = [
         "//prebuilts/studio/jdk/jdk8:jdk_runtime_files",
-        "//prebuilts/studio/sdk:patcher/v4",
         "//prebuilts/studio/sdk:platforms/android-33",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:sources",
