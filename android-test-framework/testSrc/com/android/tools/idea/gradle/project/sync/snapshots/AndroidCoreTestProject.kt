@@ -27,9 +27,7 @@ import org.jetbrains.android.AndroidTestBase
 import java.io.File
 
 /**
- * Defines test projects used in [SyncedProjectTest].
- *
- * When adding a new entry to this file add a new test method to [SyncedProjectTest].
+ * Defines Android test projects used as [TemplateBasedTestProject]s.
  */
 enum class AndroidCoreTestProject(
   override val template: String,
