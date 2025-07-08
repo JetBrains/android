@@ -36,9 +36,12 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 /** [LayoutlibSceneManager] used for tests that performs all operations synchronously. */
-open class SyncLayoutlibSceneManager(
+open class SyncLayoutlibSceneManager
+@JvmOverloads
+constructor(
   surface: DesignSurface<LayoutlibSceneManager>,
   model: NlModel,
+  private val listenToResourceChanges: Boolean = true,
 ) :
   LayoutlibSceneManager(
     model,
@@ -46,6 +49,7 @@ open class SyncLayoutlibSceneManager(
     EdtExecutorService.getInstance(),
     LayoutlibSceneManagerHierarchyProvider(),
     DISABLED,
+    listenToResourceChanges,
   ) {
   var ignoreRenderRequests: Boolean = false
   var ignoreModelUpdateRequests: Boolean = false
@@ -99,8 +103,12 @@ open class SyncLayoutlibSceneManager(
       StyleItemResourceValueImpl(namespace, attributeName, value, null)
     if (map[reference] != resourceValue) {
       // Make sure to "emulate" the consequences of a change
-      resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.EDIT))
+      simulateResourceChanged(ImmutableSet.of(ResourceNotificationManager.Reason.EDIT))
     }
     map[reference] = resourceValue
+  }
+
+  fun simulateResourceChanged(reason: ImmutableSet<ResourceNotificationManager.Reason>) {
+    if (listenToResourceChanges) resourceChangeListener.resourcesChanged(reason)
   }
 }

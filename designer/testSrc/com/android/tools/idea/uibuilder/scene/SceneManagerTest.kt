@@ -51,7 +51,7 @@ class TestSceneManager(
   model: NlModel,
   surface: DesignSurface<*>,
   sceneComponentProvider: SceneComponentHierarchyProvider = DefaultSceneManagerHierarchyProvider(),
-) : SceneManager(model, surface, sceneComponentProvider) {
+) : SceneManager(model, surface, sceneComponentProvider, true) {
   override fun updateSceneViews() {
     this.sceneView = TestSceneView(100, 100, this)
   }
@@ -69,6 +69,10 @@ class TestSceneManager(
     object : SceneDecoratorFactory() {
       override fun get(component: NlComponent): SceneDecorator = BASIC_DECORATOR
     }
+
+  fun simulateResourceChanged(reason: ImmutableSet<ResourceNotificationManager.Reason>) {
+    resourceChangeListener.resourcesChanged(reason)
+  }
 }
 
 class SceneManagerTest {
@@ -183,7 +187,7 @@ class SceneManagerTest {
       }
     )
 
-    sceneManager.resourcesChanged(
+    sceneManager.simulateResourceChanged(
       ImmutableSet.of(
         ResourceNotificationManager.Reason.EDIT,
         ResourceNotificationManager.Reason.CONFIGURATION_CHANGED,

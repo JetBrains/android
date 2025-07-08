@@ -64,7 +64,7 @@ private constructor(
   facet: AndroidFacet,
   val fixture: CodeInsightTestFixture,
   val components: MutableList<NlComponent>,
-  initResolver: Boolean = true,
+  initResolver: Boolean,
 ) {
   private var updates = 0
   private val queue =
@@ -85,10 +85,20 @@ private constructor(
     fileName: String = DEFAULT_FILENAME,
     activityName: String = "",
     initResolver: Boolean = true,
+    listenToResourceChanges: Boolean = true,
   ) : this(
     facet,
     fixture,
-    createComponents(facet, fixture, activityName, parentTag, resourceFolder, fileName, *tags)
+    createComponents(
+        facet,
+        fixture,
+        activityName,
+        parentTag,
+        resourceFolder,
+        fileName,
+        listenToResourceChanges,
+        *tags,
+      )
       .toMutableList(),
     initResolver,
   )
@@ -98,10 +108,19 @@ private constructor(
     fixture: CodeInsightTestFixture,
     component: ComponentDescriptor,
     initResolver: Boolean = true,
+    listenToResourceChanges: Boolean = true,
   ) : this(
     facet,
     fixture,
-    createComponent(facet, fixture, FD_RES_LAYOUT, DEFAULT_FILENAME, component).toMutableList(),
+    createComponent(
+        facet,
+        fixture,
+        FD_RES_LAYOUT,
+        DEFAULT_FILENAME,
+        component,
+        listenToResourceChanges,
+      )
+      .toMutableList(),
     initResolver,
   )
 
@@ -113,6 +132,7 @@ private constructor(
     fileName: String = DEFAULT_FILENAME,
     activityName: String = "",
     initResolver: Boolean = true,
+    listenToResourceChanges: Boolean = true,
   ) : this(
     AndroidFacet.getInstance(projectRule.module)!!,
     projectRule.fixture,
@@ -122,17 +142,20 @@ private constructor(
     fileName = fileName,
     activityName = activityName,
     initResolver = initResolver,
+    listenToResourceChanges = listenToResourceChanges,
   )
 
   constructor(
     projectRule: AndroidProjectRule,
     component: ComponentDescriptor,
     initResolver: Boolean = true,
+    listenToResourceChanges: Boolean = true,
   ) : this(
     AndroidFacet.getInstance(projectRule.module)!!,
     projectRule.fixture,
     component,
     initResolver,
+    listenToResourceChanges,
   )
 
   init {
@@ -325,6 +348,7 @@ private constructor(
       resourceFolder: String,
       fileName: String,
       descriptor: ComponentDescriptor,
+      listenToResourceChanges: Boolean,
     ): List<NlComponent> {
       val model =
         NlModelBuilderUtil.model(
@@ -333,6 +357,7 @@ private constructor(
             resourceFolder,
             fileName,
             descriptor,
+            listenToResourceChanges,
           )
           .build()
       val root = model.getRoot()
@@ -346,13 +371,21 @@ private constructor(
       parentTag: String,
       resourceFolder: String,
       fileName: String,
+      listenToResourceChanges: Boolean,
       vararg tags: String,
     ): List<NlComponent> {
       val descriptor =
         if (tags.size == 1 && parentTag.isEmpty()) fromSingleTag(activityName, tags[0])
         else fromMultipleTags(activityName, parentTag, resourceFolder, *tags)
 
-      return createComponent(facet, fixture, resourceFolder, fileName, descriptor)
+      return createComponent(
+        facet,
+        fixture,
+        resourceFolder,
+        fileName,
+        descriptor,
+        listenToResourceChanges,
+      )
     }
 
     private fun fromSingleTag(activityName: String, tag: String): ComponentDescriptor {

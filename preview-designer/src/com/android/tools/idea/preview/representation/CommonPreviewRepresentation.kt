@@ -240,13 +240,12 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     viewConstructor(
         project,
         NlSurfaceBuilder.builder(project, this) { surface, model ->
-            defaultSceneManagerProvider(surface, model).apply {
+            defaultSceneManagerProvider(surface, model, false).apply {
               sceneRenderConfiguration.let { config ->
                 config.useCustomInflater = useCustomInflater
                 config.useShrinkRendering = true
                 config.renderingTopic = renderingTopic
               }
-              listenResourceChange = false // don't re-render on resource changes
               updateAndRenderWhenActivated = false // don't re-render on activation
             }
           }

@@ -164,18 +164,23 @@ class VisualizationForm(
     config.isIntegrateWithDefaultIssuePanel = false
     surface =
       NlSurfaceBuilder.builder(project, this@VisualizationForm) { surface, model ->
-          LayoutlibSceneManager(model, surface, layoutScannerConfig = config).apply {
-            listenResourceChange = false
-            updateAndRenderWhenActivated = false
-            sceneRenderConfiguration.let {
-              it.showDecorations =
-                VisualizationToolSettings.getInstance().globalState.showDecoration
-              it.useImagePool = false
-              // 0.5f makes it spend 50% memory.
-              it.quality = 0.5f
-              it.logRenderErrors = false
+          LayoutlibSceneManager(
+              model,
+              surface,
+              layoutScannerConfig = config,
+              listenToResourceChanges = false,
+            )
+            .apply {
+              updateAndRenderWhenActivated = false
+              sceneRenderConfiguration.let {
+                it.showDecorations =
+                  VisualizationToolSettings.getInstance().globalState.showDecoration
+                it.useImagePool = false
+                // 0.5f makes it spend 50% memory.
+                it.quality = 0.5f
+                it.logRenderErrors = false
+              }
             }
-          }
         }
         .waitForRenderBeforeRestoringZoom(true)
         .setActionManagerProvider { surface: DesignSurface<*> ->

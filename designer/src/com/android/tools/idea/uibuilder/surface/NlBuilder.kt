@@ -49,9 +49,18 @@ import org.jetbrains.annotations.VisibleForTesting
 private val DEFAULT_NL_SUPPORTED_ACTIONS = ImmutableSet.copyOf(NlSupportedActions.values())
 
 /** Default [LayoutlibSceneManager] provider */
-fun defaultSceneManagerProvider(surface: NlDesignSurface, model: NlModel): LayoutlibSceneManager {
+fun defaultSceneManagerProvider(
+  surface: NlDesignSurface,
+  model: NlModel,
+  listenToResourceChanges: Boolean = true,
+): LayoutlibSceneManager {
   val sceneManager =
-    LayoutlibSceneManager(model, surface, layoutScannerConfig = LayoutScannerEnabled())
+    LayoutlibSceneManager(
+      model,
+      surface,
+      layoutScannerConfig = LayoutScannerEnabled(),
+      listenToResourceChanges = listenToResourceChanges,
+    )
   val settings = getProjectSettings(model.project)
   sceneManager.sceneRenderConfiguration.let { config ->
     config.showDecorations = settings.showDecorations
@@ -76,9 +85,14 @@ class NlSurfaceBuilder(
 ) {
 
   companion object {
-    fun builder(project: Project, parentDisposable: Disposable): NlSurfaceBuilder {
+    @JvmOverloads
+    fun builder(
+      project: Project,
+      parentDisposable: Disposable,
+      listenToResourceChanges: Boolean = true,
+    ): NlSurfaceBuilder {
       return builder(project, parentDisposable) { surface: NlDesignSurface, model: NlModel ->
-        defaultSceneManagerProvider(surface, model)
+        defaultSceneManagerProvider(surface, model, listenToResourceChanges)
       }
     }
 
@@ -91,11 +105,16 @@ class NlSurfaceBuilder(
     }
 
     /** Builds a new [NlDesignSurface] with the default settings */
+    @JvmOverloads
     @TestOnly
-    fun build(project: Project, parentDisposable: Disposable): NlDesignSurface {
+    fun build(
+      project: Project,
+      parentDisposable: Disposable,
+      listenToResourceChanges: Boolean = true,
+    ): NlDesignSurface {
       return NlSurfaceBuilder(project, parentDisposable) { surface: NlDesignSurface, model: NlModel
           ->
-          defaultSceneManagerProvider(surface, model)
+          defaultSceneManagerProvider(surface, model, listenToResourceChanges)
         }
         .build()
     }

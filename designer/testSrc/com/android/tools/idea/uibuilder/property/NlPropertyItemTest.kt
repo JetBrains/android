@@ -478,7 +478,7 @@ class NlPropertyItemTest {
 
   @Test
   fun testToolTipForValue() {
-    val util = SupportTestUtil(projectRule, createTextView())
+    val util = SupportTestUtil(projectRule, createTextView(), listenToResourceChanges = false)
     val components = util.components
     val emptyProperty =
       util.makeProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NlPropertyType.STRING)
@@ -1113,12 +1113,6 @@ class NlPropertyItemTest {
     </resources>
   """
 
-  private fun getSceneManager(property: NlPropertyItem): SyncLayoutlibSceneManager {
-    val manager =
-      property.model.surface!!.focusedSceneView!!.sceneManager as SyncLayoutlibSceneManager
-    // Given that some default values are forced/hardcoded in some tests, it's needed to avoid
-    // refreshing on resource changes to avoid losing those forced values.
-    manager.listenResourceChange = false
-    return manager
-  }
+  private fun getSceneManager(property: NlPropertyItem): SyncLayoutlibSceneManager =
+    property.model.surface!!.focusedSceneView!!.sceneManager as SyncLayoutlibSceneManager
 }

@@ -214,12 +214,6 @@ class NlDefaultPropertyProviderTest {
     assertThat(defaultProvider.hasDefaultValuesChanged()).isTrue()
   }
 
-  private fun getSceneManager(property: NlPropertyItem): SyncLayoutlibSceneManager {
-    val manager =
-      property.model.surface!!.focusedSceneView!!.sceneManager as SyncLayoutlibSceneManager
-    // Given that some default values are forced/hardcoded in some tests, it's needed to avoid
-    // refreshing on resource changes to avoid losing those forced values.
-    manager.listenResourceChange = false
-    return manager
-  }
+  private fun getSceneManager(property: NlPropertyItem): SyncLayoutlibSceneManager =
+    property.model.surface!!.focusedSceneView!!.sceneManager as SyncLayoutlibSceneManager
 }

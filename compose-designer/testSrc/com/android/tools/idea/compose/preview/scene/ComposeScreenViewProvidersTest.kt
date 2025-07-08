@@ -58,7 +58,7 @@ class ComposeScreenViewProvidersTest {
           )
           .build()
       }
-    val surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable)
+    val surface = NlSurfaceBuilder.build(projectRule.project, projectRule.testRootDisposable, false)
     surface.addModelWithoutRender(model).await()
 
     // Create a device with round shape

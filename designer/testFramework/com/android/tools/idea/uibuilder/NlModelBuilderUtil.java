@@ -63,7 +63,8 @@ public class NlModelBuilderUtil {
                                    @NotNull CodeInsightTestFixture fixture,
                                    @NotNull String resourceFolder,
                                    @NotNull String name,
-                                   @NotNull ComponentDescriptor root) {
+                                   @NotNull ComponentDescriptor root,
+                                   boolean listenToResourceChanges) {
     return new ModelBuilder(
       buildTarget,
       fixture,
@@ -71,13 +72,22 @@ public class NlModelBuilderUtil {
       root,
       (@NotNull DesignSurface<? extends SceneManager> surface, @NotNull SyncNlModel model) -> {
         NlModelHierarchyUpdater.updateHierarchy(buildViewInfos(model, root), model);
-        return new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)surface, model);
+        return new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)surface, model, listenToResourceChanges);
       },
       (@NotNull NlModel model) -> NlModelHierarchyUpdater.updateHierarchy(buildViewInfos(model, root), model),
       resourceFolder,
       NlDesignSurface.class,
       NlInteractionHandler::new,
       (@NotNull NlComponent component) -> NlComponentRegistrar.INSTANCE.accept(component));
+  }
+
+  @NotNull
+  public static ModelBuilder model(@NotNull AndroidBuildTargetReference buildTarget,
+                                   @NotNull CodeInsightTestFixture fixture,
+                                   @NotNull String resourceFolder,
+                                   @NotNull String name,
+                                   @NotNull ComponentDescriptor root) {
+    return model(buildTarget, fixture, resourceFolder, name, root, true);
   }
 
   @NotNull

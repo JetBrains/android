@@ -32,7 +32,6 @@ import com.android.tools.idea.common.surface.LayoutScannerConfiguration
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.common.surface.SQUARE_SHAPE_POLICY
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.Companion.getInstance
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.api.ViewEditor
@@ -46,7 +45,6 @@ import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -71,6 +69,8 @@ private val DECORATOR_FACTORY: SceneDecoratorFactory = NlSceneDecoratorFactory()
  *   [NlComponent] to [SceneComponent]s.
  * @param layoutScannerConfig the [LayoutScannerConfiguration] for layout validation from
  *   Accessibility Testing Framework.
+ * @param listenToResourceChanges if true, a change in resources will automatically trigger a
+ *   re-render and will clear the caches.
  */
 open class LayoutlibSceneManager(
   model: NlModel,
@@ -79,7 +79,10 @@ open class LayoutlibSceneManager(
   sceneComponentProvider: SceneComponentHierarchyProvider =
     LayoutlibSceneManagerHierarchyProvider(),
   layoutScannerConfig: LayoutScannerConfiguration = LayoutScannerEnabled(),
-) : SceneManager(model, designSurface, sceneComponentProvider), InteractiveSceneManager {
+  listenToResourceChanges: Boolean = true,
+) :
+  SceneManager(model, designSurface, sceneComponentProvider, listenToResourceChanges),
+  InteractiveSceneManager {
   private var areListenersRegistered = false
 
   public override val designSurface: NlDesignSurface
@@ -139,20 +142,11 @@ open class LayoutlibSceneManager(
   /** The [VisualLintMode] currently set for the model associated with this scene manager. */
   var visualLintMode = VisualLintMode.DISABLED
 
-  /** If true, listen to resource changes by processing calls to [resourcesChanged]. */
-  var listenResourceChange = true
-
   /**
    * If true, automatically update (if needed) and re-render when being activated. Which happens
    * after [activate] is called. Note that if it is activated already, then it will not re-render.
    */
   var updateAndRenderWhenActivated = true
-
-  override fun resourcesChanged(reasons: ImmutableSet<ResourceNotificationManager.Reason>) {
-    if (listenResourceChange) {
-      super.resourcesChanged(reasons)
-    }
-  }
 
   override fun updateSceneViews() {
     if (model.type === MenuFileType) {

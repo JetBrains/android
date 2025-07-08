@@ -150,9 +150,9 @@ class NlPropertiesModelTest {
     waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
 
-    nlModel.surface
-      .getSceneManager(nlModel)!!
-      .resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.EDIT))
+    (nlModel.surface.getSceneManager(nlModel) as SyncLayoutlibSceneManager).simulateResourceChanged(
+      ImmutableSet.of(ResourceNotificationManager.Reason.EDIT)
+    )
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)
   }

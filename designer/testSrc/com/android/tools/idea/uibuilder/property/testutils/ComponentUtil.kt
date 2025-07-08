@@ -23,6 +23,7 @@ import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
@@ -53,14 +54,17 @@ object ComponentUtil {
       when (resourceFolder) {
         SdkConstants.FD_RES_XML ->
           NlModelBuilderUtil.model(
-            projectRule,
+            AndroidBuildTargetReference.gradleOnly(AndroidFacet.getInstance(projectRule.module)!!),
+            projectRule.fixture,
             resourceFolder,
             "preferences.xml",
             component(parentTag).withBounds(0, 0, 1000, 1500).children(*descriptors),
+            false,
           )
         SdkConstants.FD_RES_LAYOUT ->
           NlModelBuilderUtil.model(
-            projectRule,
+            AndroidBuildTargetReference.gradleOnly(AndroidFacet.getInstance(projectRule.module)!!),
+            projectRule.fixture,
             resourceFolder,
             "linear.xml",
             component(parentTag)
@@ -74,6 +78,7 @@ object ComponentUtil {
                 "com.example.MyActivity",
               )
               .children(*descriptors),
+            false,
           )
         else -> throw NotImplementedError()
       }

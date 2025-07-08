@@ -578,7 +578,7 @@ class ComposePreviewRepresentationTest {
         )
       }
       val mainSurface: NlDesignSurface =
-        NlSurfaceBuilder.builder(fixture.project, fixture.testRootDisposable).build()
+        NlSurfaceBuilder.builder(fixture.project, fixture.testRootDisposable, false).build()
       val composeView = TestComposePreviewView(mainSurface)
       val previewRepresentation =
         ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
@@ -1231,7 +1231,7 @@ class ComposePreviewRepresentationTest {
   private fun runComposePreviewRepresentationTest(
     previewPsiFile: PsiFile = createPreviewPsiFile(),
     mainSurface: NlDesignSurface =
-      NlSurfaceBuilder.builder(fixture.project, fixture.testRootDisposable).build(),
+      NlSurfaceBuilder.builder(fixture.project, fixture.testRootDisposable, false).build(),
     block: suspend ComposePreviewRepresentationTestContext.() -> Unit,
   ) = runTest {
     val context =

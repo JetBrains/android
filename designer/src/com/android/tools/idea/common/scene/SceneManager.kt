@@ -24,7 +24,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.rendering.RenderUtils
 import com.android.tools.idea.res.ResourceNotificationManager
-import com.android.tools.idea.res.ResourceNotificationManager.Companion.getInstance
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.google.common.collect.ImmutableList
@@ -37,6 +36,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
+private val NL_MODEL_CHANGE_TYPE =
+  mapOf(
+    ResourceNotificationManager.Reason.RESOURCE_EDIT to ChangeType.RESOURCE_EDIT,
+    ResourceNotificationManager.Reason.EDIT to ChangeType.EDIT,
+    ResourceNotificationManager.Reason.CONFIGURATION_CHANGED to ChangeType.CONFIGURATION_CHANGE,
+    ResourceNotificationManager.Reason.IMAGE_RESOURCE_CHANGED to ChangeType.RESOURCE_CHANGED,
+  )
+
 /**
  * A facility for creating and updating [Scene]s based on [NlModel]s.
  *
@@ -44,18 +51,45 @@ import kotlin.concurrent.withLock
  * @param designSurface the [DesignSurface] where the model will be rendered.
  * @param sceneComponentProvider a [SceneComponentHierarchyProvider] that will generate the
  *   [SceneComponent]s from the given [NlComponent].
+ * @param listenToResourceChanges if true, a change in resources will automatically trigger a
+ *   re-render and will clear the caches.
  */
 abstract class SceneManager(
   val model: NlModel,
   protected open val designSurface: DesignSurface<*>,
   private val sceneComponentProvider: SceneComponentHierarchyProvider,
-) : Disposable, ResourceChangeListener {
+  private val listenToResourceChanges: Boolean,
+) : Disposable {
+  /**
+   * [ResourceChangeListener] used to clean up the resources cache when a build happens or resources
+   * are modified.
+   */
+  protected class ResourceChangeListenerImpl(val model: NlModel) : ResourceChangeListener {
+    val configuration = model.configuration
+
+    override fun resourcesChanged(reason: ImmutableSet<ResourceNotificationManager.Reason>) {
+      val shouldClearRenderCache =
+        reason
+          .map { NL_MODEL_CHANGE_TYPE.getOrDefault(it, ChangeType.BUILD) }
+          .any { changeType ->
+            changeType == ChangeType.BUILD || changeType == ChangeType.RESOURCE_CHANGED
+          }
+
+      if (shouldClearRenderCache) RenderUtils.clearCache(ImmutableList.of(model.configuration))
+      // TODO(b/365124075): add support for using a set of reasons and not only the last one.
+      model.notifyModified(
+        NL_MODEL_CHANGE_TYPE.getOrDefault(reason.lastOrNull() ?: return, ChangeType.BUILD)
+      )
+    }
+  }
+
   private val isDisposed = AtomicBoolean(false)
 
   val scene: Scene
   private val hitProvider: HitProvider = DefaultHitProvider()
   private val activationLock = ReentrantLock()
   @GuardedBy("myActivationLock") private var isActivated = false
+  protected val resourceChangeListener = ResourceChangeListenerImpl(model)
 
   // This will be initialized when constructor calls updateSceneView().
   protected var sceneView: SceneView? = null
@@ -231,9 +265,14 @@ abstract class SceneManager(
   open fun activate(source: Any): Boolean {
     activationLock.withLock {
       if (!isActivated) {
-        model.let {
-          val manager = getInstance(it.project)
-          manager.addListener(this, it.facet, it.virtualFile, it.configuration)
+        if (listenToResourceChanges) {
+          ResourceNotificationManager.getInstance(model.project)
+            .addListener(
+              resourceChangeListener,
+              model.facet,
+              model.virtualFile,
+              model.configuration,
+            )
         }
         isActivated = true
       }
@@ -254,37 +293,27 @@ abstract class SceneManager(
   open fun deactivate(source: Any): Boolean {
     activationLock.withLock {
       if (isActivated) {
-        model.let {
-          val manager = getInstance(it.project)
-          manager.removeListener(this, it.facet, it.virtualFile, it.configuration)
+        if (listenToResourceChanges) {
+          ResourceNotificationManager.getInstance(model.project)
+            .removeListener(
+              resourceChangeListener,
+              model.facet,
+              model.virtualFile,
+              model.configuration,
+            )
+          // Assert that the configuration has not changed.
+          // The configuration is mutable in the NlModel to allow for model re-use in Compose.
+          // Compose does not listen to resource changes so this should never happen. If it happens
+          // it could case a leak because the configuration here and the one used on activate
+          // might have changed.
+          assert(model.configuration == resourceChangeListener.configuration) {
+            "Configuration can not change when using listenToResourceChanges = true in SceneManager"
+          }
         }
         isActivated = false
       }
     }
     // NlModel handles the double activation/deactivation itself.
     return model.deactivate(source)
-  }
-
-  // ---- Implements ResourceNotificationManager.ResourceChangeListener ----
-  override fun resourcesChanged(reasons: ImmutableSet<ResourceNotificationManager.Reason>) {
-    val shouldClearRenderCache =
-      reasons.any {
-        getNlModelChangeType(it).let { changeType ->
-          changeType == ChangeType.BUILD || changeType == ChangeType.RESOURCE_CHANGED
-        }
-      }
-    if (shouldClearRenderCache) RenderUtils.clearCache(ImmutableList.of(model.configuration))
-    // TODO(b/365124075): add support for using a set of reasons and not only the last one.
-    reasons.lastOrNull()?.let { model.notifyModified(getNlModelChangeType(it)) }
-  }
-
-  private fun getNlModelChangeType(reason: ResourceNotificationManager.Reason): ChangeType {
-    return when (reason) {
-      ResourceNotificationManager.Reason.RESOURCE_EDIT -> ChangeType.RESOURCE_EDIT
-      ResourceNotificationManager.Reason.EDIT -> ChangeType.EDIT
-      ResourceNotificationManager.Reason.CONFIGURATION_CHANGED -> ChangeType.CONFIGURATION_CHANGE
-      ResourceNotificationManager.Reason.IMAGE_RESOURCE_CHANGED -> ChangeType.RESOURCE_CHANGED
-      else -> ChangeType.BUILD
-    }
   }
 }
