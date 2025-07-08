@@ -124,7 +124,8 @@ class IgnoreTagActionTest {
   }
 
   private fun appendMessage(logcatMessage: LogcatMessage) {
-    val messageFormatter = MessageFormatter(LogcatColors(), ZoneId.systemDefault())
+    val messageFormatter =
+      MessageFormatter(projectRule.project, LogcatColors(), ZoneId.systemDefault())
     val textAccumulator = TextAccumulator()
     messageFormatter.formatMessages(FormattingOptions(), textAccumulator, listOf(logcatMessage))
     documentAppender.appendToDocument(textAccumulator)

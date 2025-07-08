@@ -65,7 +65,6 @@ private const val MIN_APP_NAME_LENGTH = 10
 private const val MAX_APP_NAME_LENGTH = 120
 private const val MAX_PROCESS_NAME_LENGTH = 120
 private val previewZoneId = ZoneId.of("GMT")
-private val previewFormatter = MessageFormatter(LogcatColors(), previewZoneId)
 private val previewTimestamp =
   Instant.from(ZonedDateTime.of(2021, 10, 4, 11, 0, 14, 234000000, previewZoneId))
 private val previewMessages =
@@ -139,7 +138,7 @@ internal class LogcatFormatDialog(
   private var defaultFormatting: FormattingOptions.Style,
   private val applyAction: ApplyAction,
 ) {
-
+  private val previewFormatter = MessageFormatter(project, LogcatColors(), previewZoneId)
   private val standardFormattingOptions = STANDARD.formattingOptions.copy()
   private val compactFormattingOptions = COMPACT.formattingOptions.copy()
 

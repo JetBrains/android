@@ -31,8 +31,8 @@ import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.registerExtension
 import java.time.Instant
@@ -45,13 +45,14 @@ private val ZONE_ID = ZoneId.of("Asia/Yerevan")
 
 /** Tests for [MessageFormatter] */
 class MessageFormatterTest {
+  private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
-  @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule)
+  @get:Rule val rule = RuleChain(projectRule, disposableRule)
 
   private val logcatColors = LogcatColors()
   private val formattingOptions = FormattingOptions()
 
-  private val messageFormatter = MessageFormatter(logcatColors, ZONE_ID)
+  private val messageFormatter = MessageFormatter(projectRule.project, logcatColors, ZONE_ID)
 
   @Test
   fun formatMessages_defaultFormat() {

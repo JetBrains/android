@@ -17,6 +17,9 @@ package com.android.tools.idea.logcat.messages
 
 import com.android.testutils.TestResources
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -32,12 +35,12 @@ private val MESSAGES =
 
 private val CLEAR_MESSAGES =
   """
-    09-10 17:57:52.303  9066  9066 D Foobar  : 	at com.example.myapplication.Foo.foo(Foo.kt:7)
+    09-10 17:57:52.303  9066  9066 D Foobar  : 	at com.example.myapplication.Foo.foo(Foo.kt:7) [deobfuscated]
     09-10 17:57:52.303  9066  9066 D Foobar  : 	at com.example.myapplication.MainActivity.onClick(MainActivity.kt:38)
-    09-10 17:57:52.303  9066  9066 D Foobar  : 	at com.example.myapplication.MainActivity.Greeting${'$'}lambda${'$'}1${'$'}lambda${'$'}0(MainActivity.kt:43)
-    09-10 17:57:52.303  9066  9066 D Foobar  : 	at androidx.compose.foundation.ClickablePointerInputNode${'$'}pointerInput${'$'}3.invoke-k-4lQ0M(ClickablePointerInputNode.java:987)
-    09-10 17:57:52.303  9066  9066 D Foobar  : 	at androidx.compose.foundation.ClickablePointerInputNode${'$'}pointerInput${'$'}3.invoke(ClickablePointerInputNode.java:981)
-    09-10 17:57:52.303  9066  9066 D Foobar  : 	at androidx.compose.foundation.gestures.TapGestureDetectorKt${'$'}detectTapAndPress${'$'}2${'$'}1.invokeSuspend(TapGestureDetector.kt:255)
+    09-10 17:57:52.303  9066  9066 D Foobar  : 	at com.example.myapplication.MainActivity.Greeting${'$'}lambda$1${'$'}lambda$0(MainActivity.kt:43)
+    09-10 17:57:52.303  9066  9066 D Foobar  : 	at androidx.compose.foundation.ClickablePointerInputNode${'$'}pointerInput$3.invoke-k-4lQ0M(ClickablePointerInputNode.java:987)
+    09-10 17:57:52.303  9066  9066 D Foobar  : 	at androidx.compose.foundation.ClickablePointerInputNode${'$'}pointerInput$3.invoke(ClickablePointerInputNode.java:981)
+    09-10 17:57:52.303  9066  9066 D Foobar  : 	at androidx.compose.foundation.gestures.TapGestureDetectorKt${'$'}detectTapAndPress$2$1.invokeSuspend(TapGestureDetector.kt:255)
     09-10 17:57:52.303  9066  9066 D Foobar  : 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
     """
     .trimIndent()
@@ -45,9 +48,12 @@ private val CLEAR_MESSAGES =
 /** Tests for [ProguardMessageRewriter] */
 @RunWith(JUnit4::class)
 class ProguardMessageRewriterTest {
+  private val projectRule = ProjectRule()
+  @get:Rule val rule = RuleChain(projectRule)
+
   @Test
   fun rewrite_noMapping() {
-    val rewriter = ProguardMessageRewriter()
+    val rewriter = ProguardMessageRewriter(projectRule.project)
 
     val text = rewriter.rewrite(MESSAGES)
     assertThat(text).isEqualTo(MESSAGES)
@@ -55,7 +61,7 @@ class ProguardMessageRewriterTest {
 
   @Test
   fun rewrite_withMapping() {
-    val rewriter = ProguardMessageRewriter()
+    val rewriter = ProguardMessageRewriter(projectRule.project)
     rewriter.loadProguardMap(TestResources.getFile("/proguard/mapping.txt").toPath())
 
     val text = rewriter.rewrite(MESSAGES)

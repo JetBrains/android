@@ -18,22 +18,20 @@ package com.android.tools.idea.logcat.messages
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogcatMessage
-import java.nio.file.Path
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 import java.time.ZoneId
 
-private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)\n")
+private val exceptionLinePattern = Regex("\n\\s*at .+\\((?<filename>.+)\\)\n")
 
 /** Formats [LogcatMessage]'s into a [TextAccumulator] */
 internal class MessageFormatter(
+  project: Project,
   private val logcatColors: LogcatColors,
   private val zoneId: ZoneId,
 ) {
-  private var proguardMessageRewriter = ProguardMessageRewriter()
+  private var proguardMessageRewriter = project.service<ProguardMessageRewriter>()
   private var softWrapEnabled = false
-
-  fun setProguardMap(path: Path) {
-    proguardMessageRewriter.loadProguardMap(path)
-  }
 
   fun setSoftWrapEnabled(value: Boolean) {
     softWrapEnabled = value
@@ -81,26 +79,12 @@ internal class MessageFormatter(
           text =
             formattingOptions.processNameFormat.format(header.processName, header.pid, previousPid)
         )
-
         formattingOptions.levelFormat.format(header.logLevel, textAccumulator, logcatColors)
 
-        // Allow extensions to rewrite exception traces
-        // e.g. Gemini plugin can add a link to invoke Gemini
-        val exceptionFormatters = ExceptionMessageRewriter.EP_NAME.extensionList
         val msg =
-          when {
-            exceptionFormatters.isEmpty() -> message.message
-            exceptionLinePattern.containsMatchIn(message.message) -> {
-              var result = message.message
-              for (formatter in exceptionFormatters) {
-                result = formatter.rewrite(result)
-              }
-              if (StudioFlags.LOGCAT_DEOBFUSCATE.get()) {
-                result = proguardMessageRewriter.rewrite(result)
-              }
-              result
-            }
-            else -> message.message
+          when (exceptionLinePattern.containsMatchIn(message.message)) {
+            true -> rewriteException(message.message)
+            false -> message.message
           }
 
         textAccumulator.accumulate(
@@ -119,5 +103,14 @@ internal class MessageFormatter(
   fun reset() {
     previousTag = null
     previousPid = null
+  }
+
+  private fun rewriteException(message: String): String {
+    var result = message
+    if (StudioFlags.LOGCAT_DEOBFUSCATE.get()) {
+      result = proguardMessageRewriter.rewrite(message)
+    }
+    ExceptionMessageRewriter.EP_NAME.extensionList.forEach { result = it.rewrite(message) }
+    return result
   }
 }

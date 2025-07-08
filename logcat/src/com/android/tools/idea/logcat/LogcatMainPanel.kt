@@ -74,6 +74,7 @@ import com.android.tools.idea.logcat.messages.MessageBacklog
 import com.android.tools.idea.logcat.messages.MessageFormatter
 import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat
+import com.android.tools.idea.logcat.messages.ProguardMessageRewriter
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.messages.TimestampFormat
 import com.android.tools.idea.logcat.service.LogcatService
@@ -135,6 +136,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.RangeMarker
@@ -305,7 +307,7 @@ constructor(
       reloadMessages()
     }
 
-  private val messageFormatter = MessageFormatter(logcatColors, zoneId)
+  private val messageFormatter = MessageFormatter(project, logcatColors, zoneId)
 
   @VisibleForTesting
   internal val messageBacklog = AtomicReference(MessageBacklog(logcatSettings.bufferSize))
@@ -812,7 +814,7 @@ constructor(
   @UiThread
   override fun setProguardMapping(path: Path) {
     try {
-      messageFormatter.setProguardMap(path)
+      project.service<ProguardMessageRewriter>().loadProguardMap(path)
       reloadMessages()
       proguardPath = path
     } catch (e: InvalidMappingFileException) {

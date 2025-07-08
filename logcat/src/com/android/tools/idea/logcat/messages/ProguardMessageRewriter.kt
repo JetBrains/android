@@ -22,16 +22,18 @@ import com.android.tools.r8.retrace.ProguardMapProducer
 import com.android.tools.r8.retrace.ProguardMappingSupplier
 import com.android.tools.r8.retrace.Retrace
 import com.android.tools.r8.retrace.RetraceCommand
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.Service.Level.PROJECT
+import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import kotlin.io.path.readText
-import org.jetbrains.annotations.VisibleForTesting
 
-internal class ProguardMessageRewriter : ExceptionMessageRewriter {
+@Service(PROJECT)
+internal class ProguardMessageRewriter(project: Project) : ExceptionMessageRewriter {
   private val lock = Any()
 
   @GuardedBy("lock") private var commandBuilder: RetraceCommand.Builder? = null
 
-  @VisibleForTesting
   fun loadProguardMap(path: Path) {
     val builder =
       RetraceCommand.builder()
@@ -48,21 +50,28 @@ internal class ProguardMessageRewriter : ExceptionMessageRewriter {
   override fun rewrite(message: String): String {
     val builder = synchronized(lock) { commandBuilder } ?: return message
     try {
-      return buildString(message.length * 5) {
-        Retrace.run(
-          builder
-            .setStackTrace(message.lines())
-            .setRetracedStackTraceConsumer { lines ->
-              lines.forEach {
-                append(it)
-                append("\n")
+      val result =
+        buildString(message.length * 5) {
+          Retrace.run(
+            builder
+              .setStackTrace(message.lines())
+              .setRetracedStackTraceConsumer { lines ->
+                lines.forEach {
+                  append(it)
+                  append("\n")
+                }
               }
-            }
-            .build()
-        )
-        // Drop last newline
-        setLength(length - 1)
+              .build()
+          )
+          // Drop last newline
+          setLength(length - 1)
+        }
+      if (result != message) {
+        val split = result.split("\n", ignoreCase = false, limit = 2)
+        assert(split.size > 1)
+        return "${split[0]} [deobfuscated]\n${split[1]}"
       }
+      return result
     } catch (e: Exception) {
       LOGGER.warn("Error while retracing a logcat message", e)
       synchronized(lock) { commandBuilder = null }

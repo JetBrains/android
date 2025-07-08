@@ -99,7 +99,7 @@ class EditorUtilsTest {
 
     try {
       editor.document.insertString(0, "\r\n")
-    } catch (e: AssertionError) {
+    } catch (_: AssertionError) {
       fail("Document should acceptSlashR")
     }
   }
@@ -186,7 +186,8 @@ class EditorUtilsTest {
   }
 
   private fun appendMessage(logcatMessage: LogcatMessage, formattingOptions: FormattingOptions) {
-    val messageFormatter = MessageFormatter(LogcatColors(), ZoneId.systemDefault())
+    val messageFormatter =
+      MessageFormatter(projectRule.project, LogcatColors(), ZoneId.systemDefault())
     val textAccumulator = TextAccumulator()
     messageFormatter.formatMessages(formattingOptions, textAccumulator, listOf(logcatMessage))
     documentAppender.appendToDocument(textAccumulator)
