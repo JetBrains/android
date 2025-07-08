@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 package com.android.tools.profilers.taskbased.tabs.task.leakcanary.leakdetails
-
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -37,6 +36,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -45,9 +46,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.tools.leakcanarylib.data.Leak
 import com.android.tools.leakcanarylib.data.Node
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_CLOSE
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_GO_TO_DECLARATION
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_NO_LEAK_FOUND_MESSAGE
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.LEAKCANARY_OPEN
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Link
@@ -63,7 +66,7 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
  */
 @Composable
 fun LeakDetailsPanel(selectedLeak: Leak?, gotoDeclaration: (Node) -> Unit, isRecording: Boolean) {
-  val emptyLeakMessage = if(isRecording) LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE else LEAKCANARY_NO_LEAK_FOUND_MESSAGE
+  val emptyLeakMessage = if (isRecording) LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE else LEAKCANARY_NO_LEAK_FOUND_MESSAGE
   if (selectedLeak == null) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
       EllipsisText(text = emptyLeakMessage, maxLines = 3)
@@ -84,7 +87,6 @@ fun LeakDetailsPanel(selectedLeak: Leak?, gotoDeclaration: (Node) -> Unit, isRec
           )
         }
       }
-
       VerticalScrollbar(
         adapter = rememberScrollbarAdapter(scrollState),
         modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
@@ -108,15 +110,17 @@ fun LeakTraceNodeView(node: Node,
                       gotoDeclaration: (Node) -> Unit,
                       nextNode: Node?) {
   var isOpen by remember { mutableStateOf(false) }
-
+  val rowClickableModifier = Modifier
+    .clickable(onClick = { isOpen = !isOpen }, indication = null, interactionSource = remember { MutableInteractionSource() })
+    .pointerHoverIcon(PointerIcon.Hand)
   Column(modifier = Modifier.height(IntrinsicSize.Min)) {
     Row {
-      Row(modifier = Modifier.clickable { isOpen = !isOpen }.testTag(node.className)) {
+      Row(modifier = rowClickableModifier.testTag(node.className)) {
         if (isOpen) {
-          Icon(AllIconsKeys.General.ArrowDown, "open")
+          Icon(AllIconsKeys.General.ArrowDown, LEAKCANARY_OPEN)
         }
         else {
-          Icon(AllIconsKeys.General.ArrowRight, "closed")
+          Icon(AllIconsKeys.General.ArrowRight, LEAKCANARY_CLOSE)
         }
         Spacer(Modifier.padding(2.5.dp))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -127,16 +131,16 @@ fun LeakTraceNodeView(node: Node,
         }
       }
       Spacer(Modifier.padding(20.dp))
-      Column {
-        Row(modifier = Modifier.fillMaxWidth().clickable { isOpen = !isOpen }) {
-          Text(
-            text = buildAnnotatedString {
-              appendClassAndStatusText(previousNode, node)
-            },
-            modifier = Modifier.weight(1f),
-            overflow = TextOverflow.Visible
-          )
-          if (isOpen) {
+      Column(horizontalAlignment = Alignment.Start) {
+        Row(modifier = rowClickableModifier.padding(top = 2.dp, end = 5.dp)) {
+            Text(
+              text = buildAnnotatedString {
+                appendClassAndStatusText(previousNode, node)
+              },
+              modifier = Modifier.weight(1f),
+              overflow = TextOverflow.Visible
+            )
+          if(isOpen){
             Link(text = LEAKCANARY_GO_TO_DECLARATION, onClick = { gotoDeclaration(node) })
           }
         }
@@ -147,7 +151,6 @@ fun LeakTraceNodeView(node: Node,
     }
   }
 }
-
 /**
  * Helper function to get the display name of the referring object.
  * It extracts and formats the relevant information from the previous node's referencing field.
@@ -167,7 +170,6 @@ private fun getReferringDisplayName(previousNode: Node?, node: Node): String {
   val className = node.className.split(".").last()
   return "($cleanedField:$className)"
 }
-
 /**
  * Extension function on AnnotatedString.Builder to append class name and status text with formatting.
  *

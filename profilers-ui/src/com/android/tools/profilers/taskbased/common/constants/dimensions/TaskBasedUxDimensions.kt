@@ -79,6 +79,8 @@ object TaskBasedUxDimensions {
   // LeakCanary LeakDetail dimensions
   val LEAKCANARY_MORE_INFO_TITLE_PADDING = 16.dp
   val LEAKCANARY_MORE_INFO_TEXT_PADDING = 8.dp
+  val LEAKCANARY_MORE_INFO_TITLE_HORIZONTAL_SPACING_DP = 10.dp
+  val LEAKCANARY_MORE_INFO_LINE_THICKNESS_DP = 1.dp
 
   // Icon width
   val NOTIFICATION_ICON_SIZE_DP = 16.dp
