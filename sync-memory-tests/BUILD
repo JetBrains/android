@@ -17,6 +17,8 @@ iml_module(
                 "noci:studio-linux",
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
+                "ci:studio-mac",
+                "exclusive-if-local",
             ],
         },
         "Benchmark2000KotlinMultiplatformCpu": {
@@ -39,6 +41,8 @@ iml_module(
                 "ci:perfgate-linux",
                 "ci:perfgate-win",
                 "perfgate-release",
+                "ci:studio-mac",
+                "exclusive-if-local",
             ],
         },
         # Release branch tests with comparison to main branch
@@ -260,8 +264,7 @@ iml_module(
     ],
     test_srcs = ["testSrc"],
     test_tags = [
-        "block-network",
-        "cpu:3",
+        "cpu:4",
     ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
