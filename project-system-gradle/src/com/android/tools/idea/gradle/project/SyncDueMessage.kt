@@ -27,7 +27,6 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.SuppressedSyncEvent.IndicatorType
 import com.google.wireless.android.sdk.stats.SuppressedSyncEvent.UserAction
 import com.google.wireless.android.sdk.stats.SuppressedSyncEvent.newBuilder
-import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
@@ -44,14 +43,9 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.ui.DialogWrapper.OK_EXIT_CODE
-import com.intellij.openapi.ui.DoNotAskOption
-import com.intellij.openapi.ui.MessageConstants
-import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
-import com.intellij.openapi.util.NlsContexts
 import org.jetbrains.android.util.AndroidBundle
 import java.time.Instant
 import java.time.ZoneId
@@ -60,7 +54,18 @@ import java.time.format.DateTimeFormatter
 @VisibleForTesting
 const val SYNC_DUE_BUT_AUTO_SYNC_DISABLED_ID = "Syncing project is recommended"
 
-const val SYNC_DUE_SNOOZED_SETTING_AT_DATE = "gradle.settings.autoSync.notification.snoozed.date"
+/**
+ * This flag indicate at what date should the app-wide temporary Sync Due notification snooze expire.
+ * When checking if Sync Due dialog or notification should be shown - this will be compared against the current date.
+ */
+const val SYNC_DUE_APP_WIDE_SNOOZE_EXPIRATION_DATE = "gradle.settings.autoSync.notification.snooze.expiration.date"
+
+/**
+ * This flag indicate when was the project specific Sync Due notification snooze set.
+ * When the app-wide Sync Due setting is being changed - the date of that even is being stored, so
+ * project specific snooze can be ignored.
+ */
+const val SYNC_DUE_PROJECT_SPECIFIC_SNOOZE_FLAG_SET_ON_TIMESTAMP = "gradle.settings.autoSync.notification.snooze.project.set.on.timestamp"
 const val SYNC_DUE_DIALOG_SHOWN = "gradle.settings.autoSync.dialog.shown"
 
 object SyncDueMessage {
@@ -76,7 +81,7 @@ object SyncDueMessage {
    */
   fun maybeShow(project: Project): Boolean {
     return when {
-      isSnoozed() -> {
+      isSnoozed(project) -> {
         LOG.warn("Auto Sync would now be triggered, but it is currently switched off and related notifications snoozed.")
         trackSuppressedSync(type = IndicatorType.HIDDEN_DUE_SNOOZE, action = UserAction.NONE)
         false
@@ -96,13 +101,13 @@ object SyncDueMessage {
 
   private class SyncDueNotification(project: Project) : Notification(
     SYNC_DUE_BUT_AUTO_SYNC_DISABLED_ID,
-    AndroidBundle.message("gradle.settings.autoSync.due.message", ApplicationNamesInfo.getInstance().fullProductName),
+    AndroidBundle.message("gradle.settings.autoSync.notification.message", ApplicationNamesInfo.getInstance().fullProductName),
     NotificationType.WARNING,
   ) {
     init {
       NotificationsConfiguration.getNotificationsConfiguration().setDisplayType(SYNC_DUE_BUT_AUTO_SYNC_DISABLED_ID,
                                                                                 NotificationDisplayType.STICKY_BALLOON)
-      addAction(object : AnAction(AndroidBundle.message("gradle.settings.autoSync.due.action.sync")) {
+      addAction(object : AnAction(AndroidBundle.message("gradle.settings.autoSync.notification.action.sync")) {
         override fun actionPerformed(e: AnActionEvent) {
           expire()
           trackSuppressedSync(type = IndicatorType.NOTIFICATION, action = UserAction.SINGLE_SYNC)
@@ -111,7 +116,7 @@ object SyncDueMessage {
           hideBalloon()
         }
       })
-      addAction(object : AnAction(AndroidBundle.message("gradle.settings.autoSync.due.action.enableAutoSync")) {
+      addAction(object : AnAction(AndroidBundle.message("gradle.settings.autoSync.notification.action.enableAutoSync")) {
         override fun actionPerformed(e: AnActionEvent) {
           expire()
           trackSuppressedSync(type = IndicatorType.NOTIFICATION, action = UserAction.ENABLE_AUTO_SYNC)
@@ -122,11 +127,19 @@ object SyncDueMessage {
           hideBalloon()
         }
       })
-      addAction(object : AnAction(AndroidBundle.message("gradle.settings.autoSync.due.action.snooze")) {
+      addAction(object : AnAction(AndroidBundle.message("gradle.settings.autoSync.notification.action.snooze")) {
         override fun actionPerformed(e: AnActionEvent) {
           expire()
           trackSuppressedSync(type = IndicatorType.NOTIFICATION, action = UserAction.SNOOZE)
-          snooze()
+          snoozeTemporarilyForAllProjects()
+          hideBalloon()
+        }
+      })
+      addAction(object : AnAction(AndroidBundle.message("gradle.settings.autoSync.notification.action.snooze.long")) {
+        override fun actionPerformed(e: AnActionEvent) {
+          expire()
+          trackSuppressedSync(type = IndicatorType.NOTIFICATION, action = UserAction.SNOOZE)
+          snoozeIndefinitelyForProject(project)
           hideBalloon()
         }
       })
@@ -158,48 +171,28 @@ object SyncDueMessage {
   private fun showAsDialog(project: Project) {
     ApplicationManager.getApplication().invokeAndWait(
       {
-        val dialogSelection = MessageDialogBuilder
-          .yesNoCancel(
-            AndroidBundle.message("gradle.settings.autoSync.dialog.title"),
-            AndroidBundle.message("gradle.settings.autoSync.dialog.message", ApplicationNamesInfo.getInstance().fullProductName)
-          )
-          .icon(AllIcons.General.WarningDialog)
-          .doNotAsk(object : DoNotAskOption {
-            override fun isToBeShown(): Boolean = false
-
-            override fun setToBeShown(toBeShown: Boolean, exitCode: Int) {
-              if (!toBeShown && exitCode == OK_EXIT_CODE) {
-                trackAutoSyncEnabled(changeSource = ChangeSource.DIALOG)
-                AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Default
-              }
-            }
-
-        override fun canBeHidden(): Boolean = true
-
-            override fun shouldSaveOptionsOnCancel(): Boolean = false
-
-            override fun getDoNotShowMessage(): @NlsContexts.Checkbox String = AndroidBundle.message(
-              "gradle.settings.autoSync.dialog.enable")
-
-          })
-          .yesText(AndroidBundle.message("gradle.settings.autoSync.dialog.sync"))
-          .noText(AndroidBundle.message("gradle.settings.autoSync.dialog.snooze"))
-          .cancelText(AndroidBundle.message("gradle.settings.autoSync.dialog.continue"))
-          .show(project)
-
-        when (dialogSelection) {
-          MessageConstants.YES -> {
+        val dialog = SyncDueDialog()
+        dialog.show()
+        when (SyncDueDialogSelection.of(dialog)) {
+          SyncDueDialogSelection.SyncOnce -> {
             trackSuppressedSync(type = IndicatorType.DIALOG, action = UserAction.SINGLE_SYNC)
             requestProjectSync(project)
           }
-
-          MessageConstants.NO -> {
-            trackSuppressedSync(type = IndicatorType.DIALOG, action = UserAction.SNOOZE)
-            snooze()
+          SyncDueDialogSelection.SyncAlways -> {
+            trackAutoSyncEnabled(changeSource = ChangeSource.DIALOG)
+            AutoSyncSettingStore.autoSyncBehavior = AutoSyncBehavior.Default
+            requestProjectSync(project)
           }
-
-          MessageConstants.CANCEL -> {
+          SyncDueDialogSelection.Close -> {
             trackSuppressedSync(type = IndicatorType.DIALOG, action = UserAction.CLOSED)
+          }
+          SyncDueDialogSelection.CloseAndSnoozeTodayForAllProjects -> {
+            trackSuppressedSync(type = IndicatorType.DIALOG, action = UserAction.SNOOZE)
+            snoozeTemporarilyForAllProjects()
+          }
+          SyncDueDialogSelection.CloseAndSnoozeIndefinitelyForProject -> {
+            trackSuppressedSync(type = IndicatorType.DIALOG, action = UserAction.SNOOZE)
+            snoozeIndefinitelyForProject(project)
           }
         }
 
@@ -235,21 +228,57 @@ object SyncDueMessage {
   }
 
   /**
-   * Checks if a snooze is currently active for today.
-   * @return `true` if notifications were snoozed on the current day; `false` otherwise (e.g., if snoozed yesterday or earlier).
+   * Checks if a snooze is still active for current project.
+   * @return `true` if notifications are not meant to be delivered (either indefinitely for current
+   *  project, or temporarily for all projects); `false` otherwise
    */
-  private fun isSnoozed(): Boolean {
-    val snoozedDateMark = PropertiesComponent.getInstance().getValue(SYNC_DUE_SNOOZED_SETTING_AT_DATE) ?: return false
-    val today = timeProvider.invoke().formatDateAtDefaultTimezone()
-    return snoozedDateMark == today
+  private fun isSnoozed(project: Project): Boolean {
+    if (isProjectSpecificSnoozeActive(project)) {
+      return true
+    }
+    return isTemporarySnoozeActive()
   }
 
-  @VisibleForTesting
-  fun snooze() {
-    // Storing DD-MM-YYYY allows to not couple snooze setting to timezone.
-    val formattedToday = timeProvider.invoke().formatDateAtDefaultTimezone()
-    PropertiesComponent.getInstance().setValue(SYNC_DUE_SNOOZED_SETTING_AT_DATE, formattedToday)
+  fun isTemporarySnoozeActive(): Boolean {
+    val snoozeExpirationDate = PropertiesComponent.getInstance().getValue(SYNC_DUE_APP_WIDE_SNOOZE_EXPIRATION_DATE) ?: return false
+    val today = timeProvider.invoke().formatDateAtDefaultTimezone()
+    return snoozeExpirationDate > today
   }
+
+  fun isProjectSpecificSnoozeActive(project: Project): Boolean {
+    if (!PropertiesComponent.getInstance(project).isValueSet(SYNC_DUE_PROJECT_SPECIFIC_SNOOZE_FLAG_SET_ON_TIMESTAMP)) {
+      // snooze not set
+      return false
+    }
+    val lastSettingChangeTimestamp = AutoSyncSettingStore.lastAutoSyncBehaviorChangeTimestamp()
+    if (lastSettingChangeTimestamp == null) {
+      // snooze set & no setting change since the snooze - still valid
+      return true
+    } else {
+      val snoozeSetAtTimestamp = PropertiesComponent.getInstance(project).getValue(SYNC_DUE_PROJECT_SPECIFIC_SNOOZE_FLAG_SET_ON_TIMESTAMP)?.toLong() ?: return false
+      // snooze set but settings changed after - no longer valid
+      return lastSettingChangeTimestamp < snoozeSetAtTimestamp
+    }
+  }
+
+  /**
+   * Disable Sync Due notifications until the next day. If it's 11pm, that means - for another hour.
+   */
+  @VisibleForTesting
+  fun snoozeTemporarilyForAllProjects() {
+    // Storing DD-MM-YYYY allows to not couple snooze setting to timezone.
+    val snoozeExpirationDate = (timeProvider.invoke() + 24 * 3600 * 1000).formatDateAtDefaultTimezone()
+    PropertiesComponent.getInstance().setValue(SYNC_DUE_APP_WIDE_SNOOZE_EXPIRATION_DATE, snoozeExpirationDate)
+  }
+
+  /**
+   * Disable Sync Due notifications for this project. This will only expire when Auto Sync settings change.
+   */
+  @VisibleForTesting
+  fun snoozeIndefinitelyForProject(project: Project) {
+    PropertiesComponent.getInstance(project).setValue(SYNC_DUE_PROJECT_SPECIFIC_SNOOZE_FLAG_SET_ON_TIMESTAMP, timeProvider.invoke().toString())
+  }
+
 
   private fun trackAutoSyncEnabled(changeSource: ChangeSource) {
     UsageTracker.log(
@@ -283,5 +312,42 @@ object SyncDueMessage {
   private fun Long.formatDateAtDefaultTimezone(): String {
     val dateTime = Instant.ofEpochMilli(this).atZone(ZoneId.systemDefault())
     return DateTimeFormatter.ISO_LOCAL_DATE.format(dateTime)
+  }
+
+  /**
+   * Provides a description of current Sync reminders snooze status.
+   * @return
+   *  - "Reminders snoozed until tomorrow." if app wide snooze is on.
+   *  - "Reminders snoozed for this project"
+   *  - "Reminders snoozed for: "projectA", "projectB".
+   *  - null if no currently open projects are snoozed and there is no app-wide snooze
+   */
+  fun getSnoozedProjectsSummaryNote(): String? {
+    if (isTemporarySnoozeActive()) {
+      return AndroidBundle.message("gradle.settings.autoSync.note")
+    }
+    val snoozedProjects = getSnoozedProjects()
+    if (snoozedProjects.isEmpty()) {
+      return null
+    }
+    return AndroidBundle.message("gradle.settings.autoSync.note.specific", if (ProjectManager.getInstance().openProjects.size == 1) {
+      "this project"
+    }
+    else {
+      snoozedProjects.joinToString(prefix = "projects: ") {
+        "\"${it.name}\""
+      }
+    })
+  }
+
+  /**
+   * Returns a list of open projects that were snoozed indefinitely.
+   */
+  private fun getSnoozedProjects(): List<Project> {
+    val lastAutoSyncSettingChangeTimestamp = AutoSyncSettingStore.lastAutoSyncBehaviorChangeTimestamp() ?: 0L
+    return ProjectManager.getInstance().openProjects.filter { project ->
+      val snoozedAtOrNull = PropertiesComponent.getInstance(project).getValue(SYNC_DUE_PROJECT_SPECIFIC_SNOOZE_FLAG_SET_ON_TIMESTAMP)?.toLong() ?: 0L
+      snoozedAtOrNull > lastAutoSyncSettingChangeTimestamp
+    }
   }
 }

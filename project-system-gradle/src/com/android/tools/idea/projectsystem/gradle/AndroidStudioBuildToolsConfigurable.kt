@@ -18,7 +18,7 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI
 import com.android.tools.idea.gradle.project.SYNC_DUE_DIALOG_SHOWN
-import com.android.tools.idea.gradle.project.SYNC_DUE_SNOOZED_SETTING_AT_DATE
+import com.android.tools.idea.gradle.project.SYNC_DUE_APP_WIDE_SNOOZE_EXPIRATION_DATE
 import com.android.tools.idea.gradle.project.SyncDueMessage
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
 import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore
@@ -37,6 +37,7 @@ import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.panel
 import org.jetbrains.android.util.AndroidBundle
+import javax.swing.JLabel
 import javax.swing.JList
 
 /**
@@ -54,6 +55,7 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
 ) {
 
   private lateinit var autoSyncBehaviorComboBox: ComboBox<AutoSyncBehavior>
+  private lateinit var autoSyncBehaviorNote: JLabel
   private var autoSyncBehaviorAwaitingSetting: AutoSyncBehavior? = null
   private val showAutoSyncControl = SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI.get()
 
@@ -75,6 +77,7 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
                                                                GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
           }
         }
+        autoSyncBehaviorNote.text = SyncDueMessage.getSnoozedProjectsSummaryNote().orEmpty()
       }
       autoSyncBehaviorAwaitingSetting = null
     }
@@ -90,6 +93,7 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
     if (showAutoSyncControl) {
       autoSyncBehaviorComboBox.selectedItem = AutoSyncSettingStore.autoSyncBehavior
       autoSyncBehaviorAwaitingSetting = null
+      autoSyncBehaviorNote.text = SyncDueMessage.getSnoozedProjectsSummaryNote().orEmpty()
     }
     super.reset()
   }
@@ -108,6 +112,10 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
             text = value?.labelBundleKey?.let { AndroidBundle.message(it) }
           }
         }).component
+      }
+      row {
+        autoSyncBehaviorNote = label(SyncDueMessage.getSnoozedProjectsSummaryNote().orEmpty())
+          .component
       }
     }
     autoSyncBehaviorComboBox.whenItemSelected { newSelection ->
@@ -134,7 +142,7 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
    * Clears snooze and first dialog flags that are used by Optional Auto Sync feature.
    */
   private fun clearAutoSyncVariables() {
-    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_SNOOZED_SETTING_AT_DATE)
+    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_APP_WIDE_SNOOZE_EXPIRATION_DATE)
     PropertiesComponent.getInstance().unsetValue(SYNC_DUE_DIALOG_SHOWN)
   }
 }

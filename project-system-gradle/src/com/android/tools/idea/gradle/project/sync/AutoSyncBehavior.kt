@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.flags.StudioFlags
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.components.Service
 
@@ -24,9 +25,13 @@ enum class AutoSyncBehavior(val labelBundleKey: String) {
 }
 
 private const val AUTO_SYNC_SETTING_KEY = "gradle.sync.auto.key"
+private const val AUTO_SYNC_SETTING_KEY_LAST_CHANGED = "gradle.sync.auto.key.last.changed"
 
 @Service(Service.Level.APP)
 object AutoSyncSettingStore {
+
+  @VisibleForTesting
+  var timeProvider: () -> Long = { System.currentTimeMillis() }
 
   var autoSyncBehavior: AutoSyncBehavior
     get() = readAutoSyncPreference().takeUnless { isAutoSyncControlDisabled() } ?: AutoSyncBehavior.Default
@@ -44,5 +49,9 @@ object AutoSyncSettingStore {
 
   private fun storeAutoSyncPreference(behavior: AutoSyncBehavior) {
     PropertiesComponent.getInstance().setValue(AUTO_SYNC_SETTING_KEY, behavior.name)
+    // store last date of settings change so the indefinite (project specific) snooze can be ignored
+    PropertiesComponent.getInstance().setValue(AUTO_SYNC_SETTING_KEY_LAST_CHANGED, timeProvider.invoke().toString())
   }
+
+  fun lastAutoSyncBehaviorChangeTimestamp() = PropertiesComponent.getInstance().getValue(AUTO_SYNC_SETTING_KEY_LAST_CHANGED)?.toLong()
 }
