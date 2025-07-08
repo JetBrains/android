@@ -25,10 +25,7 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
-import com.intellij.codeInsight.completion.InsertHandler
-import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.patterns.XmlAttributeValuePattern
 import com.intellij.patterns.XmlPatterns
@@ -77,10 +74,15 @@ private class ComplicationDataSourceCompletionProvider :
     if (!isChildOfComplication) return
 
     for (complicationDataSource in COMPLICATION_DATA_SOURCES) {
+      // There seems to be an issue with autocomplete and the `[` character. If the LookupElement
+      // text starts with `[`, it's not possible to autocomplete if the text has some characters.
+      //
+      // Instead, we use a lookup text without the `[`, `]` characters and insert the `[`, `]`
+      // characters if needed
       result.addElement(
         LookupElementBuilder.create(complicationDataSource)
           .withPresentableText("[$complicationDataSource]")
-          .withInsertHandler(surroundWithBracketsIfNeeded(complicationDataSource))
+          .insertBracketsAroundIfNeeded()
       )
     }
   }
@@ -94,29 +96,3 @@ private class ComplicationDataSourceCompletionProvider :
       )
   }
 }
-
-/**
- * There seems to be an issue with autocomplete and the `[` character. If the LookupElement text
- * starts with `[`, it's not possible to autocomplete if the text has some characters.
- *
- * Instead, we use a lookup text without the `[`, `]` characters. This function creates an
- * [InsertHandler] to insert those characters, if needed, after the auto-complete happens.
- */
-private fun surroundWithBracketsIfNeeded(textToSurroundWithBrackets: String) =
-  InsertHandler<LookupElement> { context, lookupElement ->
-    val textWithSurroundingCharacters =
-      context.document.getText(TextRange(context.startOffset - 1, context.tailOffset + 1))
-    val textWithBrackets = StringBuilder()
-    if (!textWithSurroundingCharacters.startsWith("[")) {
-      textWithBrackets.append("[")
-    }
-    textWithBrackets.append(textToSurroundWithBrackets)
-    if (!textWithSurroundingCharacters.endsWith("]")) {
-      textWithBrackets.append("]")
-    }
-    context.document.replaceString(
-      context.startOffset,
-      context.tailOffset,
-      textWithBrackets.toString(),
-    )
-  }
