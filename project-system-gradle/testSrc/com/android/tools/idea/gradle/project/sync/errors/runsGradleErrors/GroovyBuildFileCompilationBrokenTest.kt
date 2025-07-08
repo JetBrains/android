@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.withAdditionalPatch
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
@@ -61,14 +62,13 @@ class GroovyBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest()
 
   @Test
   fun testBrokenGroovyCompilation1() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-
-    preparedProject.root.resolve(SdkConstants.FN_BUILD_GRADLE).appendText("\n)(")
-
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
+      root.resolve(SdkConstants.FN_BUILD_GRADLE).appendText("\nprintln(\"foo\")\n)(")
+    })
     runSyncAndCheckFailure(
       preparedProject = preparedProject,
       expectedErrorNodeNameVerifier = {
-        expect.that(it).startsWith("Unexpected input: '(\"This is a simple application!\")")
+        expect.that(it).startsWith("Unexpected input: '(\"foo\")")
       },
       expectedFailureDetailsString = """
         failure {

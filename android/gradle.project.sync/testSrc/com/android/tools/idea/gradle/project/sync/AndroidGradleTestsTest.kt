@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.withAdditionalPatch
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.gradleModule
@@ -91,7 +92,12 @@ class AndroidGradleTestsTest {
   fun testOutputHandling() {
     var syncMessageFound = false
     var buildMessageFound = false
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION.withAdditionalPatch { root ->
+      root.resolve("build.gradle").appendText("""
+        
+        println("This is a simple application!")
+      """.trimIndent())
+    })
     preparedProject.open(
       updateOptions = { it.copy(outputHandler = { if (it.contains("This is a simple application!")) syncMessageFound = true }) }
     ) { project ->

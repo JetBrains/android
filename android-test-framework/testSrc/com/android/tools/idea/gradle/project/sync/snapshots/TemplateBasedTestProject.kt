@@ -225,6 +225,38 @@ private inline fun <T> TemplateBasedTestProject.usingTestProjectSetup(body: () -
   }
 }
 
+fun TemplateBasedTestProject.withAdditionalPatch(
+  additionalPatch: AgpVersionSoftwareEnvironment.(projectRoot: File) -> Unit
+) : TemplateBasedTestProject {
+
+  val result = object : TemplateBasedTestProject {
+    override val name: String get() = "${this@withAdditionalPatch.name} (patched)"
+    override val template: String get() = this@withAdditionalPatch.template
+    override val pathToOpen: String get() = this@withAdditionalPatch.pathToOpen
+    override val testName: String? get() = this@withAdditionalPatch.testName
+    override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean
+      get() = this@withAdditionalPatch.isCompatibleWith
+    override val autoMigratePackageAttribute: Boolean get() = this@withAdditionalPatch.autoMigratePackageAttribute
+    override val setup: () -> () -> Unit get() = this@withAdditionalPatch.setup
+    override val expectedSyncIssues: Set<Int> get() = this@withAdditionalPatch.expectedSyncIssues
+    override val verifyOpened: ((Project) -> Unit)? get() = this@withAdditionalPatch.verifyOpened
+    override val switchVariant: TemplateBasedTestProject.VariantSelection? get() = this@withAdditionalPatch.switchVariant
+    override val projectName: String get() = this@withAdditionalPatch.projectName
+    override val templateAbsolutePath: File get() = this@withAdditionalPatch.templateAbsolutePath
+
+    override fun getTestDataDirectoryWorkspaceRelativePath() = this@withAdditionalPatch.getTestDataDirectoryWorkspaceRelativePath()
+    override fun getAdditionalRepos(): Collection<File> = this@withAdditionalPatch.getAdditionalRepos()
+
+
+    override val patch: AgpVersionSoftwareEnvironment.(File) -> Unit
+      get() = { e: AgpVersionSoftwareEnvironment, f: File ->
+        this@withAdditionalPatch.patch?.invoke(e, f)
+        additionalPatch(e, f)
+      }
+  }
+  return result
+}
+
 fun File.replaceContent(change: (String) -> String) {
   writeText(
     readText().let {
