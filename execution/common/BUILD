@@ -30,6 +30,7 @@ iml_module(
         "//tools/base/backup:studio.android.sdktools.backup",
         "//tools/base/adblib:studio.android.sdktools.adblib",
         "//tools/adt/idea/backup:intellij.android.backup.api",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools",
     ],
 )
 

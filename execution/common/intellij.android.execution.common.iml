@@ -28,5 +28,6 @@
     <orderEntry type="module" module-name="android.sdktools.backup" />
     <orderEntry type="module" module-name="android.sdktools.adblib" />
     <orderEntry type="module" module-name="intellij.android.backup.api" />
+    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
   </component>
 </module>

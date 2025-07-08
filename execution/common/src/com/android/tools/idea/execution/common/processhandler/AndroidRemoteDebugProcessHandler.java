@@ -16,6 +16,10 @@
 package com.android.tools.idea.execution.common.processhandler;
 
 
+import com.android.adblib.tools.debugging.JdwpProcess;
+import com.android.adblib.tools.debugging.JdwpProcessHolder;
+import com.android.adblib.tools.debugging.JdwpProcessProperties;
+import com.android.adblib.tools.debugging.JdwpProcessPropertiesCollectorKt;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.intellij.debugger.DebuggerManager;
@@ -26,6 +30,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.OutputStream;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -132,5 +138,23 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler {
   @NotNull
   public IDevice getConnectedDevice() {
     return myClient.getDevice();
+  }
+
+  @NotNull
+  public List<String> getApplicationPackageNames() {
+    if (myClient instanceof JdwpProcessHolder client) {
+      JdwpProcess process = client.getJdwpProcessValue();
+      JdwpProcessProperties properties = JdwpProcessPropertiesCollectorKt.getPropertiesFlow(process).getValue();
+      if (!properties.getPackageNames().getHasValue()) {
+        return Collections.emptyList();
+      } else {
+        return properties.getPackageNames().getOrThrow();
+      }
+    }
+    String name = myClient.getClientData().getPackageName();
+    if (name == null) {
+      return Collections.emptyList();
+    }
+    return Collections.singletonList(name);
   }
 }
