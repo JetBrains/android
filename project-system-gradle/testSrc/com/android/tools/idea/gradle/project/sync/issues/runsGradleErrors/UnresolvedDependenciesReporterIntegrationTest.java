@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.sync.issues.runsGradleErrors;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject.openPreparedTestProject;
+import static com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProjectKt.withAdditionalExpectedSyncIssues;
+import static com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProjectKt.withAdditionalPatch;
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
@@ -33,6 +35,7 @@ import static org.assertj.core.util.Arrays.asList;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -44,6 +47,8 @@ import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
+import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject;
+import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProjectKt;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
@@ -69,8 +74,11 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import junit.framework.Assert;
+import kotlin.Unit;
+import kotlin.io.FilesKt;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -174,7 +182,13 @@ public class UnresolvedDependenciesReporterIntegrationTest {
 
   @Test
   public void testReportWithDependencyError() {
-    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION_DEPENDENCY_ERROR);
+    TemplateBasedTestProject template = withAdditionalPatch(AndroidCoreTestProject.SIMPLE_APPLICATION, (e, f) -> {
+      TemplateBasedTestProjectKt.replaceInContent(
+        FilesKt.resolve(f, "app/build.gradle"), "com.google.guava:guava:19.0", "com.google.guava:guava:99999.9999");
+      return Unit.INSTANCE;
+    });
+    template = withAdditionalExpectedSyncIssues(template, Set.of(TYPE_UNRESOLVED_DEPENDENCY));
+    final var preparedProject = prepareTestProject(projectRule, template);
     openPreparedTestProject(
       preparedProject,
       project -> {

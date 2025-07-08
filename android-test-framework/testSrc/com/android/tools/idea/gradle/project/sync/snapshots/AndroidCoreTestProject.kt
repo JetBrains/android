@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
-import com.android.builder.model.v2.ide.SyncIssue
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
@@ -56,16 +55,6 @@ enum class AndroidCoreTestProject(
   DEPENDENT_NATIVE_MODULES(TestProjectPaths.DEPENDENT_NATIVE_MODULES),
   DYNAMIC_APP(TestProjectPaths.DYNAMIC_APP),
   DYNAMIC_APP_WITH_VARIANTS(TestProjectPaths.DYNAMIC_APP_WITH_VARIANTS),
-  DYNAMIC_APP_WITH_VARIANTS_AND_DEFAULTS(
-    TestProjectPaths.DYNAMIC_APP_WITH_VARIANTS,
-    patch = {
-      // Set two flavors as default
-      it.resolve("app/build.gradle").apply {
-        replaceInContent("fl2 { dimension \"dim1\" }", "fl2 { dimension \"dim1\"; isDefault = true }")
-        replaceInContent("xy { dimension \"dim2\" }", "xy { dimension \"dim2\"; isDefault = true }")
-      }
-    }
-  ),
   HELLO_JNI(TestProjectPaths.HELLO_JNI),
   INSTANT_APP_WITH_DYNAMIC_FEATURES(TestProjectPaths.INSTANT_APP_WITH_DYNAMIC_FEATURES),
   KOTLIN_GRADLE_DSL(TestProjectPaths.KOTLIN_GRADLE_DSL),
@@ -99,15 +88,6 @@ enum class AndroidCoreTestProject(
   SCRIPTED_DIMENSIONS(TestProjectPaths.SCRIPTED_DIMENSIONS),
   SIMPLE_APP_WITH_OLDER_SUPPORT_LIB(TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB),
   SIMPLE_APPLICATION(TestProjectPaths.SIMPLE_APPLICATION),
-  SIMPLE_APPLICATION_DEPENDENCY_ERROR(TestProjectPaths.SIMPLE_APPLICATION,
-    patch = {
-      // Refer to an absurd dependency version
-      it.resolve("app/build.gradle").apply {
-        replaceInContent("com.google.guava:guava:19.0", "com.google.guava:guava:99999.9999")
-      }
-    },
-    expectedSyncIssues = setOf(SyncIssue.TYPE_UNRESOLVED_DEPENDENCY)
-  ),
   SIMPLE_APPLICATION_PLUGINS_DSL(TestProjectPaths.SIMPLE_APPLICATION_PLUGINS_DSL),
   SIMPLE_APPLICATION_VERSION_CATALOG(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG),
   SPLIT_BUILD_FILES(TestProjectPaths.SPLIT_BUILD_FILES),

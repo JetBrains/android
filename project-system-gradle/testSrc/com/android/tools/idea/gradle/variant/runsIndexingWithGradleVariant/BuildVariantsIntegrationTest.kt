@@ -27,6 +27,8 @@ import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariants
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.replaceInContent
+import com.android.tools.idea.gradle.project.sync.snapshots.withAdditionalPatch
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -330,7 +332,13 @@ class BuildVariantsIntegrationTest {
 
   @Test
   fun testSwitchVariantsWithFeatureModulesAndDefaults() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DYNAMIC_APP_WITH_VARIANTS_AND_DEFAULTS)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.DYNAMIC_APP_WITH_VARIANTS.withAdditionalPatch {
+      // Set two flavors as default
+      it.resolve("app/build.gradle").apply {
+        replaceInContent("fl2 { dimension \"dim1\" }", "fl2 { dimension \"dim1\"; isDefault = true }")
+        replaceInContent("xy { dimension \"dim2\" }", "xy { dimension \"dim2\"; isDefault = true }")
+      }
+    })
     preparedProject.open { project ->
       expect.consistentConfigurationOf(project)
       // default flavors are set as "fl2" and "xy" in :app

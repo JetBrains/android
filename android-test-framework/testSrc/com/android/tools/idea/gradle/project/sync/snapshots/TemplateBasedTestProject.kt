@@ -247,12 +247,40 @@ fun TemplateBasedTestProject.withAdditionalPatch(
     override fun getTestDataDirectoryWorkspaceRelativePath() = this@withAdditionalPatch.getTestDataDirectoryWorkspaceRelativePath()
     override fun getAdditionalRepos(): Collection<File> = this@withAdditionalPatch.getAdditionalRepos()
 
-
     override val patch: AgpVersionSoftwareEnvironment.(File) -> Unit
       get() = { e: AgpVersionSoftwareEnvironment, f: File ->
         this@withAdditionalPatch.patch?.invoke(e, f)
         additionalPatch(e, f)
       }
+  }
+  return result
+}
+
+fun TemplateBasedTestProject.withAdditionalExpectedSyncIssues(
+  additionalSyncIssues: Set<Int>
+) : TemplateBasedTestProject {
+
+  val result = object : TemplateBasedTestProject {
+    override val name: String get() = this@withAdditionalExpectedSyncIssues.name
+    override val template: String get() = this@withAdditionalExpectedSyncIssues.template
+    override val pathToOpen: String get() = this@withAdditionalExpectedSyncIssues.pathToOpen
+    override val testName: String? get() = this@withAdditionalExpectedSyncIssues.testName
+    override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean
+      get() = this@withAdditionalExpectedSyncIssues.isCompatibleWith
+    override val autoMigratePackageAttribute: Boolean get() = this@withAdditionalExpectedSyncIssues.autoMigratePackageAttribute
+    override val setup: () -> () -> Unit get() = this@withAdditionalExpectedSyncIssues.setup
+    override val patch: (AgpVersionSoftwareEnvironment.(File) -> Unit)? get() = this@withAdditionalExpectedSyncIssues.patch
+    override val verifyOpened: ((Project) -> Unit)? get() = this@withAdditionalExpectedSyncIssues.verifyOpened
+    override val switchVariant: TemplateBasedTestProject.VariantSelection? get() = this@withAdditionalExpectedSyncIssues.switchVariant
+    override val projectName: String get() = this@withAdditionalExpectedSyncIssues.projectName
+    override val templateAbsolutePath: File get() = this@withAdditionalExpectedSyncIssues.templateAbsolutePath
+
+    override fun getTestDataDirectoryWorkspaceRelativePath() =
+      this@withAdditionalExpectedSyncIssues.getTestDataDirectoryWorkspaceRelativePath()
+    override fun getAdditionalRepos(): Collection<File> = this@withAdditionalExpectedSyncIssues.getAdditionalRepos()
+
+    override val expectedSyncIssues: Set<Int> get() =
+      this@withAdditionalExpectedSyncIssues.expectedSyncIssues.union(additionalSyncIssues)
   }
   return result
 }
