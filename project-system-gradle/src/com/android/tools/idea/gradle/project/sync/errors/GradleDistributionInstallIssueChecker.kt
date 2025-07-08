@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.sync.extensions.findCauseMessage
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioProxySettingsQuickFix
@@ -33,8 +34,9 @@ import java.util.function.Consumer
 class GradleDistributionInstallIssueChecker : GradleIssueChecker {
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = issueData.error.message ?: return null
-    if (!message.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX)) return null
+    val message = issueData.error.findCauseMessage {
+      message?.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX) == true
+    } ?: return null
 
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR)
