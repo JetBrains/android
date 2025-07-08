@@ -116,7 +116,6 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
@@ -1398,7 +1397,7 @@ class ComposePreviewRepresentation(
    * [hasPreviewsCachedValue] accordingly.
    */
   override suspend fun hasPreviews(): Boolean {
-    val vFile = smartReadAction(project) { psiFilePointer.element?.virtualFile } ?: return false
+    val vFile = readAction { psiFilePointer.element?.virtualFile } ?: return false
     findAnnotatedMethodsValues(
         project,
         vFile,
