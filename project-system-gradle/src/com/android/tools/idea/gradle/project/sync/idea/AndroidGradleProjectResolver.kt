@@ -89,6 +89,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.execution.configurations.SimpleJavaParameters
 import com.intellij.externalSystem.JavaModuleData
 import com.intellij.gradle.toolingExtension.impl.model.sourceSetModel.DefaultGradleSourceSetModel
+import com.intellij.ide.impl.ProjectUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationType
@@ -776,19 +777,18 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       else if (rootCause is AndroidSyncException) {
         SyncFailureUsageReporter.getInstance().collectFailure(projectPath, rootCause.toGradleSyncFailure())
         val ideSyncIssues = rootCause.syncIssues
-        if (ideSyncIssues?.isNotEmpty() == true) {
-          val ideaProject = resolverCtx.getRootModel(IdeaProject::class.java)
-          val ideaModule = ideaProject?.modules?.firstOrNull {
-            it.matchesPath(rootCause.buildPath, rootCause.modulePath)
-          }
-          ideaModule?.let {
-            val maybeModule = project?.findModule(it.getHolderProjectPath())
-            maybeModule?.let { module ->
-              SyncIssuesReporter.getInstance().report(
-                mapOf(module to ideSyncIssues),
-                ExternalSystemApiUtil.getExternalRootProjectPath(module))
-              return ExternalSystemException(rootCause.message)
-            }
+        val buildPath = rootCause.buildPath
+        val modulePath = rootCause.modulePath
+        if (ideSyncIssues?.isNotEmpty() == true && buildPath != null && modulePath != null) {
+          val moduleGradleHolder = GradleHolderProjectPath(buildPath, modulePath)
+          // With IntelliJ 2025.2 the getUserFriendlyError() gets invoked without provided ProjectResolverContext
+          val project = findOpenProject(projectPath)
+          val maybeModule = project?.findModule(moduleGradleHolder)
+          maybeModule?.let { module ->
+            SyncIssuesReporter.getInstance().report(
+              mapOf(module to ideSyncIssues),
+              ExternalSystemApiUtil.getExternalRootProjectPath(module))
+            return ExternalSystemException(rootCause.message)
           }
         }
         return ExternalSystemException(rootCause.message)
@@ -1139,13 +1139,12 @@ private fun IdeAndroidSyncIssuesAndExceptions.process(moduleDataNode: DataNode<M
   exceptions.forEach { logger<AndroidGradleProjectResolver>().warn(it) }
 }
 
-private fun IdeaModule.matchesPath(buildPath: String?, modulePath: String?): Boolean {
-  return projectIdentifier.buildIdentifier.rootDir.path == buildPath
-         && projectIdentifier.projectPath?.equals(modulePath) == true
-}
-
-private fun IdeaModule.getHolderProjectPath(): GradleHolderProjectPath {
-  return GradleHolderProjectPath(
-    projectIdentifier.buildIdentifier.rootDir.path,
-    projectIdentifier.projectPath)
+private fun findOpenProject(projectPath: String): Project? {
+  for (openProject in ProjectUtil.getOpenProjects()) {
+    val projectBasePath = openProject.basePath ?: continue
+    if (projectBasePath == projectPath) {
+      return openProject
+    }
+  }
+  return null
 }
