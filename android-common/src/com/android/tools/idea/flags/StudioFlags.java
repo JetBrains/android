@@ -1621,11 +1621,6 @@ public final class StudioFlags {
     "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting on Wear OS devices.",
     true);
 
-  public static final Flag<Boolean> COMPOSE_UI_CHECK_AI_QUICK_FIX = new BooleanFlag(
-    COMPOSE, "ui.check.mode.ai.quickfix", "Enable AI-powered quick fix action for UI Check",
-    "Enable an AI-powered quick fix action for UI Check issues.",
-    enabledUpTo(DEV));
-
   public static final Flag<Boolean> COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI = new BooleanFlag(
     COMPOSE, "transform.ui.with.ai", "Enable action to transform UI with Gemini",
     "Enables a context-menu action to transform UI with Gemini.",
