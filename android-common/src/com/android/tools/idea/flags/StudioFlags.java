@@ -2248,6 +2248,12 @@ public final class StudioFlags {
                     "When enabled, the chat will show a banner that will allow cancelling ongoing responses.",
                     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> STUDIOBOT_STOP_BUTTON_ENABLED =
+    new BooleanFlag(STUDIOBOT, "chat.stop.button.enabled",
+                    "Enable Stop Button",
+                    "When enabled, the query box will show a button to stop ongoing responses.",
+                    enabledUpTo(STABLE));
+
   public static final Flag<Boolean> STUDIOBOT_SHOW_MODEL_NAME_IN_QUERY_BOX =
     new BooleanFlag(STUDIOBOT, "chat.show.model.name",
                     "Show model name in query box",
