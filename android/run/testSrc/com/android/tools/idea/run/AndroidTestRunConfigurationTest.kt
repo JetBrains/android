@@ -17,6 +17,8 @@ package com.android.tools.idea.run
 
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.placeNamespaceProperty
+import com.android.tools.idea.gradle.project.sync.snapshots.withAdditionalPatch
 import com.android.tools.idea.testartifacts.TestConfigurationTesting
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.switchVariant
@@ -54,7 +56,13 @@ class AndroidTestRunConfigurationTest {
 
   @Test
   fun testCanRunLibTestsInDebugBuildWithNoAndroidManifest() {
-    projectRule.prepareTestProject(AndroidCoreTestProject.PROJECT_WITH_APP_AND_LIB_DEPENDENCY_NO_LIB_MANIFEST).open {
+    projectRule.prepareTestProject(AndroidCoreTestProject.PROJECT_WITH_APP_AND_LIB_DEPENDENCY.withAdditionalPatch { root ->
+      root.resolve("lib/build.gradle").apply {
+        val contents = readText().placeNamespaceProperty("com.example.projectwithappandlib.lib")
+        writeText(contents)
+      }
+      root.resolve("lib/src/main/AndroidManifest.xml").delete()
+    }).open {
       val androidTestRunConfiguration = invokeAndWaitIfNeeded {
         TestConfigurationTesting.createAndroidTestConfigurationFromClass(
           it,

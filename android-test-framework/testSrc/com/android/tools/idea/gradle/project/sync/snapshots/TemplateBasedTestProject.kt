@@ -347,7 +347,7 @@ fun migratePackageAttribute(root: File) {
   }
 }
 
-private fun String.placeNamespaceProperty(namespace: String): String {
+fun String.placeNamespaceProperty(namespace: String): String {
   val marker = "\nandroid {\n"
   val firstIndex = indexOf(marker)
   val insertionIndex = if (firstIndex < 0) -1 else firstIndex + marker.length
