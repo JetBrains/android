@@ -2271,7 +2271,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "mcp.host.enabled",
                     "Enable Model Context Protocol (MCP) support",
                     "Allows the agent to use custom tools provided by Model Context Protocol (MCP) servers",
-                    enabledUpTo(CANARY));
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
