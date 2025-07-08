@@ -95,11 +95,6 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
     get() =
       suppressList.filter { it.action !is VisualLintSuppressTask || it.action.isValid() }.stream()
 
-  private val fixList: MutableList<Fix> = mutableListOf()
-
-  override val fixes: Stream<Fix>
-    get() = fixList.stream()
-
   private var frozenNavigatable: Navigatable? = null
 
   val navigatable: Navigatable?
@@ -159,10 +154,6 @@ class VisualLintRenderIssue private constructor(builder: Builder) : Issue() {
 
   fun addSuppress(suppress: Suppress) {
     suppressList.add(suppress)
-  }
-
-  fun addFix(fix: Fix) {
-    fixList.add(fix)
   }
 
   fun customizeIsSuppressed(isComponentSuppressedMethod: (NlComponent) -> Boolean) {
