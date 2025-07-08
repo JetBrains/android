@@ -44,5 +44,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="android.sdktools.deployer" />
+    <orderEntry type="library" name="studio-proto" level="project" />
   </component>
 </module>

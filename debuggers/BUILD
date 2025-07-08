@@ -35,6 +35,8 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger",
         "//prebuilts/r8",
+        "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
+        "//tools/adt/idea/.idea/libraries:studio-proto",
     ],
 )
 

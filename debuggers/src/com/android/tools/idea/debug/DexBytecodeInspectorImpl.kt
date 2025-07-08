@@ -15,28 +15,16 @@
  */
 package com.android.tools.idea.debug
 
-import com.android.ddmlib.IDevice
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.ApkFileUnit
-import com.android.tools.idea.run.ApkProvider
-import com.android.zipflinger.ZipRepo
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DebuggerEvent
 import com.google.wireless.android.sdk.stats.DebuggerEvent.SmartStepTargetFilteringPerformed.DexSearchStatus
 import com.intellij.debugger.PositionManager
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.openapi.application.readAction
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.roots.ProjectFileIndex
-import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.getOrCreateUserData
 import com.intellij.psi.util.parentOfType
-import com.intellij.xdebugger.impl.XDebugSessionImpl
 import com.sun.jdi.Location
 import com.sun.jdi.Method
-import com.sun.jdi.ReferenceType
-import java.util.LinkedList
 import kexter.Dex
 import kexter.DexBytecode
 import kexter.DexMethod
@@ -52,8 +40,8 @@ import org.jetbrains.kotlin.idea.debugger.core.isInlineFunctionMarkerVariableNam
 import org.jetbrains.kotlin.idea.debugger.stepping.smartStepInto.KotlinMethodSmartStepTarget
 import org.jetbrains.kotlin.idea.debugger.stepping.smartStepInto.KotlinSmartStepTargetFilterer
 import org.jetbrains.kotlin.idea.debugger.stepping.smartStepInto.SmartStepIntoContext
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import java.util.LinkedList
 
 class DexBytecodeInspectorImpl : DexBytecodeInspector {
   /**
@@ -121,12 +109,13 @@ class DexBytecodeInspectorImpl : DexBytecodeInspector {
     val location =
       debugProcess.suspendManager.pausedContext?.frameProxy?.safeLocation() ?: return targets
     val method = location.safeMethod() ?: return targets
-
     val start = System.currentTimeMillis()
-    val (dex, status) = findDexWithLocationCacheAwareSafe(debugProcess, expression, location)
+    val (dex, status) = DexFinder.findDex(debugProcess, expression, location)
     val time = System.currentTimeMillis() - start
 
-    logSmartStepTargetFilteringEvent(status, time)
+    // TODO: b/430271228
+    // Statistics are temporarily disabled until the corresponding proto is updated in G3.
+    //logSmartStepTargetFilteringEvent(status, time)
 
     if (dex == null) {
       return targets
@@ -136,14 +125,6 @@ class DexBytecodeInspectorImpl : DexBytecodeInspector {
     filterer.visitMethodUntilLocation(debugProcess, method, location, dex)
     return filterer.getUnvisitedTargets()
   }
-}
-
-private class DexCache {
-  companion object {
-    val DEX_CACHE_KEY = Key.create<DexCache?>("DEX_CACHE_KEY")
-  }
-
-  val typeToDex = mutableMapOf<ReferenceType, Dex>()
 }
 
 private fun logSmartStepTargetFilteringEvent(status: DexSearchStatus, timeMs: Long) {
@@ -160,95 +141,6 @@ private fun logSmartStepTargetFilteringEvent(status: DexSearchStatus, timeMs: Lo
           )
       )
   UsageTracker.log(event)
-}
-
-private suspend fun findDexWithLocationCacheAwareSafe(
-  debugProcess: DebugProcessImpl,
-  expression: KtElement,
-  location: Location,
-): Pair<Dex?, DexSearchStatus> {
-  return try {
-    findDexWithLocationCacheAware(debugProcess, expression, location)
-  } catch (ex: Exception) {
-    Pair(null, DexSearchStatus.UNKNOWN)
-  }
-}
-
-private suspend fun findDexWithLocationCacheAware(
-  debugProcess: DebugProcessImpl,
-  expression: KtElement,
-  location: Location,
-): Pair<Dex?, DexSearchStatus> {
-  val vmProxy = debugProcess.suspendManager.pausedContext.virtualMachineProxy
-  val cache = vmProxy.getOrCreateUserData<DexCache>(DexCache.DEX_CACHE_KEY) { DexCache() }
-
-  cache.typeToDex[location.declaringType()]?.let { dex ->
-    return dex to DexSearchStatus.FOUND
-  }
-
-  val configuration =
-    debugProcess.androidRunConfiguration
-      ?: return null to DexSearchStatus.APK_PROVIDER_NOT_AVAILABLE
-  val apkProvider =
-    configuration.apkProvider ?: return null to DexSearchStatus.APK_PROVIDER_NOT_AVAILABLE
-  val module = findModule(expression) ?: return null to DexSearchStatus.MODULE_NOT_FOUND
-  val project = debugProcess.project
-  val androidDevices =
-    configuration.deployTargetContext.currentDeployTargetProvider
-      .getDeployTarget(project)
-      .getAndroidDevices(project)
-
-  // Waiting for devices to become online can hang the debugger for a while,
-  // so fetch only the ones that are already running
-  val devices = androidDevices.mapNotNull { it.ddmlibDevice }
-  if (devices.isEmpty()) {
-    return null to DexSearchStatus.DEVICES_NOT_RUNNING
-  }
-
-  val apks = findApksWithModule(devices, apkProvider, module)
-  if (apks.isEmpty()) {
-    return null to DexSearchStatus.APK_NOT_FOUND
-  }
-
-  val dex = apks.firstNotNullOfOrNull { findDexWithLocation(it, location) }
-  if (dex != null) {
-    cache.typeToDex[location.declaringType()] = dex
-    return dex to DexSearchStatus.FOUND
-  }
-  return null to DexSearchStatus.DEX_NOT_FOUND
-}
-
-private fun findApksWithModule(
-  devices: List<IDevice>,
-  apkProvider: ApkProvider,
-  module: Module,
-): List<ApkFileUnit> {
-  val result = mutableListOf<ApkFileUnit>()
-  for (device in devices) {
-    for (apkInfos in apkProvider.getApks(device)) {
-      for (file in apkInfos.files) {
-        if (module.name.startsWith(file.moduleName)) {
-          result.add(file)
-        }
-      }
-    }
-  }
-  return result
-}
-
-private fun findDexWithLocation(file: ApkFileUnit, location: Location): Dex? {
-  val signature = location.declaringType().signature()
-  ZipRepo(file.apkPath).use { zipRepo ->
-    val dexEntries = zipRepo.entries.filter { (name, _) -> name.endsWith(".dex") }
-    for (entry in dexEntries) {
-      val content = zipRepo.getContent(entry.key).array()
-      val dex = Dex.fromBytes(content).getDexFileWithClass(signature)
-      if (dex != null) {
-        return dex
-      }
-    }
-  }
-  return null
 }
 
 private suspend fun KotlinSmartStepTargetFilterer.visitMethodUntilLocation(
@@ -323,20 +215,6 @@ private suspend fun KotlinSmartStepTargetFilterer.visitMethodUntilLocation(
     }
   }
 }
-
-private suspend fun findModule(element: KtElement): Module? {
-  return readAction {
-    val file = element.containingFile.virtualFile
-    ProjectFileIndex.getInstance(element.project).getModuleForFile(file)
-  }
-}
-
-@Suppress("UnstableApiUsage")
-private val DebugProcessImpl.androidRunConfiguration: AndroidRunConfiguration?
-  get() {
-    val xDebugSessionImpl = session.xDebugSession as? XDebugSessionImpl ?: return null
-    return xDebugSessionImpl.executionEnvironment?.runProfile as? AndroidRunConfiguration
-  }
 
 private val DexMethod.owner: String
   // Drop first 'L' and last ';'
