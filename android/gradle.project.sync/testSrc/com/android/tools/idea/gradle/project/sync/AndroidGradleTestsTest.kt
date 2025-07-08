@@ -19,11 +19,10 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.withAdditionalPatch
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.injectBuildOutputDumpingBuildViewManager
-import com.android.tools.idea.testing.resolve
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.fail
@@ -35,6 +34,32 @@ class AndroidGradleTestsTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+
+  @Test
+  fun testReplaceRegexGroup() {
+    val contents = """
+      // id 'com.android.library' version 'VERSION_TO_BE_REPLACED' apply false
+      // id 'com.android.application' version 'VERSION_TO_BE_REPLACED' apply false
+    """.trimIndent()
+    val result = AndroidGradleTests.replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", "1.2.3")
+    assertThat(result).isEqualTo("""
+      // id 'com.android.library' version '1.2.3' apply false
+      // id 'com.android.application' version '1.2.3' apply false
+    """.trimIndent())
+  }
+
+  @Test
+  fun testReplaceRegexGroupInitialMatchDoesNotStopSubsequentMatches() {
+    val contents = """
+      // id 'com.android.library' version '1.2.3' apply false
+      // id 'com.android.application' version 'VERSION_TO_BE_REPLACED' apply false
+    """.trimIndent()
+    val result = AndroidGradleTests.replaceRegexGroup(contents, "id ['\"]com\\.android\\..+['\"].*version ['\"](.+)['\"]", "1.2.3")
+    assertThat(result).isEqualTo("""
+      // id 'com.android.library' version '1.2.3' apply false
+      // id 'com.android.application' version '1.2.3' apply false
+    """.trimIndent())
+  }
 
   @Test
   fun testEmptyNotInEdt() {
@@ -69,23 +94,6 @@ class AndroidGradleTestsTest {
       assertThat(e.message).contains("a:a:1.0")
     }
   }
-
-  @Test
-  @RunsInEdt
-  fun testMultipleRegexMatches() {
-    val expectedVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT.resolve().agpVersion
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    val result = preparedProject.root.resolve("build.gradle").readText()
-
-    assertThat(result.contains("""
-      // id 'com.android.library' version '$expectedVersion' apply false
-      // id 'com.android.application' version '$expectedVersion' apply false
-    """.trimIndent())).isTrue()
-    assertThat(result.contains("""
-      // id 'com.android.library' version 'VERSION_TO_BE_REPLACED' apply false
-      // id 'com.android.application' version 'VERSION_TO_BE_REPLACED' apply false
-    """.trimIndent())).isFalse()
- }
 
   @Test
   @RunsInEdt

@@ -574,13 +574,15 @@ public class AndroidGradleTests {
   public static String replaceRegexGroup(String contents, String regex, String value) {
     Pattern pattern = Pattern.compile(regex);
     Matcher matcher = pattern.matcher(contents);
-    if (matcher.find() && !matcher.group(1).equals(value)) {
-      return contents.substring(0, matcher.start(1))
-             + value
-             // Keep replacing the found matches.
-             + replaceRegexGroup(contents.substring(matcher.end(1)), regex, value);
+    StringBuilder sb = new StringBuilder(contents.length());
+    int start = 0;
+    while (matcher.find(start)) {
+      sb.append(contents, start, matcher.start(1));
+      sb.append(value);
+      start = matcher.end(1);
     }
-    return contents;
+    sb.append(contents, start, contents.length());
+    return sb.toString();
   }
 
   /**
