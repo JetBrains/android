@@ -47,12 +47,13 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.KeyWithDefaultValue
-import com.intellij.openapi.util.UserDataHolderEx
-import com.intellij.openapi.util.getOrCreateUserData
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import com.intellij.serviceContainer.AlreadyDisposedException
 import java.lang.ref.WeakReference
 import java.util.WeakHashMap
@@ -93,7 +94,13 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
 
   private fun getBuildServicesStatus(buildTarget: GradleBuildTargetReference): GradleBuildServicesStatus {
     val module = buildTarget.module
-    return (module as UserDataHolderEx).getOrCreateUserData(GradleBuildServicesStatus.KEY) { GradleBuildServicesStatus(module) }
+    val project = module.project
+    return CachedValuesManager.getManager(project).getCachedValue(module) {
+      CachedValueProvider.Result.create(
+        GradleBuildServicesStatus(module),
+        ProjectRootModificationTracker.getInstance(project)
+      )
+    }
   }
 
   override fun getRenderingServices(buildTargetReference: GradleBuildTargetReference): BuildSystemFilePreviewServices.RenderingServices {
