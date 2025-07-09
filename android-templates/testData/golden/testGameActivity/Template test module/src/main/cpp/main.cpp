@@ -1,14 +1,12 @@
 #include <jni.h>
 
+#include <game-activity/native_app_glue/android_native_app_glue.h>
+#include <game-activity/GameActivity.h>
+
 #include "AndroidOut.h"
 #include "Renderer.h"
 
-#include <game-activity/GameActivity.cpp>
-#include <game-text-input/gametextinput.cpp>
-
 extern "C" {
-
-#include <game-activity/native_app_glue/android_native_app_glue.c>
 
 /*!
  * Handles commands sent to this Android application
