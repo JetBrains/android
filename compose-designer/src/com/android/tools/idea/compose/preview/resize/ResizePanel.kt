@@ -77,6 +77,7 @@ import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val TEXT_FIELD_WIDTH = 60
 
@@ -285,7 +286,8 @@ class ResizePanel(parentDisposable: Disposable) :
    * dropdown and the handling of the device selection to a [DeviceMenuAction] to reuse the complex
    * logic for building the device menu.
    */
-  private inner class DevicePickerAction :
+  @VisibleForTesting
+  internal inner class DevicePickerAction :
     DumbAwareAction("Device", "Select a device to resize the preview", AllIcons.General.ArrowDown),
     CustomComponentAction {
     private val deviceMenuAction =
@@ -523,7 +525,8 @@ class ResizePanel(parentDisposable: Disposable) :
     }
   }
 
-  private inner class CloseAction :
+  @VisibleForTesting
+  internal inner class CloseAction :
     DumbAwareAction(message("resize.panel.hide.revert.tooltip"), null, AllIcons.Actions.Close) {
     override fun actionPerformed(e: AnActionEvent) {
       revertResizing()
