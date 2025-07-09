@@ -20,8 +20,10 @@ import static com.android.resources.Density.DEFAULT_DENSITY;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.configurations.Configuration;
+import com.android.tools.configurations.ConfigurationUtilKt;
 import com.android.tools.configurations.Configurations;
 import com.android.tools.configurations.ConversionUtil;
+import com.android.tools.configurations.DeviceSize;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionEvent;
@@ -111,6 +113,10 @@ public class CanvasResizeInteraction implements Interaction {
     // Convert the min/max dp values to pixels for the current device's density.
     myMaxAndroidSizePx = (int)(1.0 * MAX_ANDROID_SIZE_DP * myCurrentDpi / DEFAULT_DENSITY);
     myMinAndroidSizePx = (int)(1.0 * MIN_ANDROID_SIZE_DP * myCurrentDpi / DEFAULT_DENSITY);
+
+    DeviceSize deviceSize = ConfigurationUtilKt.deviceSizePx(myScreenView.getConfiguration());
+    myCurrentAndroidWidth = deviceSize.getWidth();
+    myCurrentAndroidHeight = deviceSize.getHeight();
   }
 
   @Override
@@ -187,8 +193,12 @@ public class CanvasResizeInteraction implements Interaction {
     myDesignSurface.setResizeMode(false);
     myDesignSurface.setScrollableViewMinSize(new Dimension(0, 0));
 
-    Configurations.updateScreenSize(myConfiguration, myCurrentAndroidWidth, myCurrentAndroidHeight);
+    DeviceSize deviceSize = ConfigurationUtilKt.deviceSizePx(myScreenView.getConfiguration());
+    // If the user has not moved the mouse, then ignore the commit
+    if (myCurrentAndroidWidth == deviceSize.getWidth() && myCurrentAndroidHeight == deviceSize.getHeight()) return;
+
     ResizeTracker tracker = ResizeTracker.getTracker(myScreenView.getSceneManager());
+    Configurations.updateScreenSize(myConfiguration, myCurrentAndroidWidth, myCurrentAndroidHeight);
 
     int androidXDp = ConversionUtil.INSTANCE.pxToDp(myCurrentAndroidWidth, myCurrentDpi);
     int androidYDp = ConversionUtil.INSTANCE.pxToDp(myCurrentAndroidHeight, myCurrentDpi);
