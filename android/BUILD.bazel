@@ -318,7 +318,6 @@ jvm_library(
     "//plugins/kotlin/code-insight/api",
     "//android/android/editing/documentation",
     "//android/android/editing/documentation:documentation_test_lib",
-    "//xml/xml-ui-common:ui-common",
   ],
   runtime_deps = [
     "//android/gradle-dsl-kotlin",
