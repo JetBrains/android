@@ -804,10 +804,11 @@ class ComposePreviewRepresentation(
       var lastMode: PreviewMode? = null
 
       previewModeManager.mode.collect {
+        surface.resetZoomToFitNotifier(false)
+
         (it.selected as? PsiComposePreviewElementInstance).let { element ->
           composePreviewFlowManager.setSingleFilter(element)
         }
-
         if (PreviewModeManager.areModesOfDifferentType(lastMode, it)) {
           lastMode?.let { last -> onExit(last) }
           // The layout update needs to happen before onEnter, so that any zooming performed
@@ -830,7 +831,6 @@ class ComposePreviewRepresentation(
             // We don't need to wait for surface to resize because Focus mode has already run
             // onEnter() and the surface is already with the correct updated sizes.
             isPreviewModeChanging.set(true)
-            surface.resetZoomToFitNotifier(false)
           }
         }
         lastMode = it
