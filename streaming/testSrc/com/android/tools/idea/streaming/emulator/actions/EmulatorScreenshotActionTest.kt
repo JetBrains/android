@@ -42,6 +42,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
@@ -53,6 +54,7 @@ import com.intellij.util.ui.EDT
 import kotlinx.coroutines.runBlocking
 import org.intellij.images.editor.ImageFileEditor
 import org.junit.After
+import org.junit.Assume.assumeFalse
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
@@ -96,6 +98,7 @@ class EmulatorScreenshotActionTest {
 
   @Test
   fun testAction() {
+    assumeFalse(SystemInfo.isWindows) // b/430543555
     avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot)
     waitForDisplayViews(1)
 
