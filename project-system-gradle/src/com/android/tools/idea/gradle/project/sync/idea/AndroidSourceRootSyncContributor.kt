@@ -232,7 +232,7 @@ internal class SyncContributorAndroidProjectContext(
   }
 }
 
-private val MODULE_ACTION_KEY: Key<Map<String, List<ModuleAction>>> = Key.create("AndroidSourceRootSyncContributor.moduleActionKey")
+private val USER_MODULE_ACTIONS: Key<Map<String, List<ModuleAction>>> = Key.create("moduleActionsMap")
 
 internal class AndroidSourceRootSyncExtension : GradleSyncExtension {
 
@@ -249,7 +249,7 @@ internal class AndroidSourceRootSyncExtension : GradleSyncExtension {
    * This method performs any module operations registered earlier after the instances are created.
    */
   private fun performModuleActions(context: ProjectResolverContext) {
-    val moduleActions = context.getAndUpdateUserData(MODULE_ACTION_KEY, { null }) ?: return
+    val moduleActions = context.getAndUpdateUserData(USER_MODULE_ACTIONS, { null }) ?: return
     val modulesByName = context.project.modules.associateBy { it.name }
     moduleActions.forEach { (moduleName, actions) ->
       val module = checkNotNull(modulesByName[moduleName]) { "No module found for module with registered actions!" }
@@ -269,7 +269,7 @@ internal class AndroidSourceRootSyncContributor : GradleSyncContributor {
     val result = configureModulesForSourceSets(context, storage.toSnapshot())
     // Only replace the android related source sets
     storage.replaceBySource({ it in result.knownEntitySources }, result.updatedStorage)
-    context.putUserData(MODULE_ACTION_KEY, result.allModuleActions)
+    context.putUserData(USER_MODULE_ACTIONS, result.allModuleActions)
   }
 
   /**
