@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.Optional;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 class BazelBuildSystem implements BuildSystem {
 
@@ -37,7 +38,7 @@ class BazelBuildSystem implements BuildSystem {
   }
 
   @Override
-  public Optional<BuildInvoker> getBuildInvoker(Project project, Set<BuildInvoker.Capability> requirements) {
+  public Optional<BuildInvoker> getBuildInvoker(Project project, Set<? extends BuildInvoker.Capability> requirements) {
     return Optional.of(new LocalBazelInvoker(project, this, binaryPath(project)));
   }
 
@@ -72,5 +73,10 @@ class BazelBuildSystem implements BuildSystem {
       return projectSpecificBinary.getPath();
     }
     return BlazeUserSettings.getInstance().getBazelBinaryPath();
+  }
+
+  @Override
+  public @NotNull Optional<@NotNull String> getInvocationLink(@NotNull String invocationId) {
+    return Optional.empty();
   }
 }
