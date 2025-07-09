@@ -32,7 +32,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map.Entry;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -45,7 +45,7 @@ public class FileApiArtifactFetcher implements ArtifactFetcher<LocalFileOutputAr
       AppExecutorUtil.createBoundedApplicationPoolExecutor("FileApiArtifactFetcher",
                                                            new ThreadPoolExecutor(1, maxThreads.getValue(),
                                                                                   10L, TimeUnit.SECONDS,
-                                                                                  new SynchronousQueue<Runnable>()), maxThreads.getValue()));
+                                                                                  new LinkedBlockingQueue<>()), maxThreads.getValue()));
   @SuppressWarnings("NoNioFilesCopy")
   @Override
   public ListenableFuture<?> copy(
@@ -55,20 +55,20 @@ public class FileApiArtifactFetcher implements ArtifactFetcher<LocalFileOutputAr
     for (Entry<? extends LocalFileOutputArtifact, ArtifactDestination> entry :
         artifactToDest.entrySet()) {
       tasks.add(
-          EXECUTOR.submit(
-              () -> {
-                Path dest = entry.getValue().path;
-                LocalFileOutputArtifact localFileOutputArtifact = entry.getKey();
-                if (Files.exists(dest) && Files.isDirectory(dest)) {
-                  FileOperationProvider.getInstance().deleteRecursively(dest.toFile(), true);
-                }
-                Files.copy(
-                    Paths.get(localFileOutputArtifact.getFile().getPath()),
-                    dest,
-                    StandardCopyOption.REPLACE_EXISTING,
-                    StandardCopyOption.COPY_ATTRIBUTES);
-                return dest;
-              }));
+        EXECUTOR.submit(
+          () -> {
+            Path dest = entry.getValue().path;
+            LocalFileOutputArtifact localFileOutputArtifact = entry.getKey();
+            if (Files.exists(dest) && Files.isDirectory(dest)) {
+              FileOperationProvider.getInstance().deleteRecursively(dest.toFile(), true);
+            }
+            Files.copy(
+              Paths.get(localFileOutputArtifact.getFile().getPath()),
+              dest,
+              StandardCopyOption.REPLACE_EXISTING,
+              StandardCopyOption.COPY_ATTRIBUTES);
+            return dest;
+          }));
     }
     return Futures.allAsList(tasks.build());
   }
