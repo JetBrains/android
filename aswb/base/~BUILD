@@ -324,13 +324,19 @@ java_library(
 # neverlink library exposed so other plugins can provide dependency information
 java_library(
     name = "build_batching_service_api",
+    neverlink = 1,
+    visibility = G3PLUGINS_VISIBILITY,
+    exports = [":build_batching_service_api_lib"],
+)
+
+aswb_library(
+    name = "build_batching_service_api_lib",
     srcs = [
-        "src/com/google/idea/blaze/base/bazel/BuildSystem.java",
+        "src/com/google/idea/blaze/base/bazel/BuildSystem.kt",
         "src/com/google/idea/blaze/base/logging/utils/ShardStats.java",
         "src/com/google/idea/blaze/base/sync/sharding/BuildBatchingService.java",
     ],
-    neverlink = 1,
-    visibility = G3PLUGINS_VISIBILITY,
+    visibility = ["//visibility:private"],
     exports = [
         ":label_api",
     ],
