@@ -26,6 +26,8 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.border.CustomLineBorder;
 import com.intellij.util.ArrayUtil;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -53,10 +55,16 @@ public final class MultiLineTextAssetEditor extends JPanel implements AssetCompo
     List<String> fontFamilies = TextAsset.getAllFontFamilies();
     ComboBox<String> fontCombo = new ComboBox<>(ArrayUtil.toStringArray(fontFamilies));
 
+    JPanel fontComboWrapper = new JPanel(new GridBagLayout());
+    fontComboWrapper.setOpaque(false);
+    GridBagConstraints constraints = new GridBagConstraints();
+    constraints.fill = GridBagConstraints.HORIZONTAL;
+    constraints.weightx = 1.0;
+    fontComboWrapper.add(fontCombo, constraints);
+
     add(spacer, new TabularLayout.Constraint(0, 0));
     add(textPane, new TabularLayout.Constraint(0, 1));
-    add(fontCombo, new TabularLayout.Constraint(0, 2));
-
+    add(fontComboWrapper, new TabularLayout.Constraint(0, 2));
     myBindings.bindTwoWay(new TextProperty(textPane), myTextAsset.text());
 
     SelectedItemProperty<String> selectedFont = new SelectedItemProperty<>(fontCombo);
