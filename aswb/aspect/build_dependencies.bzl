@@ -16,8 +16,6 @@ load(
     _ide_kotlin_not_validated = "IDE_KOTLIN",
 )
 
-ALWAYS_BUILD_RULES = "java_proto_library,java_lite_proto_library,java_mutable_proto_library,kt_proto_library_helper,_java_grpc_library,_java_lite_grpc_library,kt_grpc_library_helper,java_stubby_library,kt_stubby_library_helper,aar_import,java_import, j2kt_native_import"
-
 def _rule_function(
         rule):  # @unused
     return []
@@ -367,19 +365,6 @@ def _collect_dependencies_impl(target, ctx, params):
         target,
         ctx,
         params,
-    )
-
-def collect_dependencies_for_test(target, ctx, include = []):
-    return _collect_dependencies_core_impl(
-        target,
-        ctx,
-        struct(
-            include = include,
-            exclude = "",
-            always_build_rules = ALWAYS_BUILD_RULES,
-            generate_aidl_classes = None,
-            use_generated_srcjars = True,
-        ),
     )
 
 def _package_prefix_match(package, prefix):
