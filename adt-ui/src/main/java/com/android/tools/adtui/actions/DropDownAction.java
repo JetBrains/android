@@ -37,7 +37,6 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Component;
-import java.awt.Graphics;
 import java.awt.Point;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -54,36 +53,10 @@ import org.jetbrains.annotations.Nullable;
  */
 public class DropDownAction extends DefaultActionGroup implements CustomComponentAction {
 
-  private static final Icon BLANK_ICON = new Icon() {
-    @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-
-    }
-
-    @Override
-    public int getIconWidth() {
-      return 0;
-    }
-
-    @Override
-    public int getIconHeight() {
-      return 0;
-    }
-  };
-
   public DropDownAction(@Nullable String title, @Nullable String description, @Nullable Icon icon) {
-    // TODO(b/215726556) Use the super constructor that takes title, description, icon after the merge of IJ2022.1.1
-    super(title, true);
-    Presentation presentation = getTemplatePresentation();
-    presentation.setPerformGroup(true);
-    presentation.setDescription(description);
-    if (icon != null) {
-      presentation.setIcon(icon);
-    }
-    else {
-      presentation.setIcon(BLANK_ICON);
-      presentation.setDisabledIcon(BLANK_ICON);
-    }
+    super(title, description, icon);
+    setPopup(true);
+    getTemplatePresentation().setPerformGroup(true);
   }
 
   @Override
