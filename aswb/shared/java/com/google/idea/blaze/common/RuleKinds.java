@@ -69,8 +69,4 @@ public final class RuleKinds {
   public static boolean isCc(String ruleClass) {
     return CC_RULE_KINDS.contains(ruleClass);
   }
-
-  public static boolean isProtoSource(String ruleClass) {
-    return PROTO_SOURCE_RULE_KINDS.contains(ruleClass);
-  }
 }
