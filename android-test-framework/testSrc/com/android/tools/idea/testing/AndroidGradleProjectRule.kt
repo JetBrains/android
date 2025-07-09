@@ -198,7 +198,7 @@ class AndroidGradleProjectRule(
 private fun gradleModuleNotFound(gradlePath: String): Nothing =
   throw RuntimeException("No module with Gradle path: $gradlePath")
 
-class EdtAndroidGradleProjectRule(val projectRule: AndroidGradleProjectRule) :
+class EdtAndroidGradleProjectRule(private val projectRule: AndroidGradleProjectRule) :
   TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
   val project: Project
     get() = projectRule.project
@@ -212,7 +212,8 @@ class EdtAndroidGradleProjectRule(val projectRule: AndroidGradleProjectRule) :
     chosenModuleName: String? = null,
     agpVersion: AgpVersionSoftwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     ndkVersion: String? = null,
-  ) = projectRule.loadProject(projectPath, chosenModuleName, agpVersion, ndkVersion)
+    preLoad: ((File) -> Unit)? = null
+  ) = projectRule.loadProject(projectPath, chosenModuleName, agpVersion, ndkVersion, preLoad)
 }
 
 fun AndroidGradleProjectRule.onEdt(): EdtAndroidGradleProjectRule =

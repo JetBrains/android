@@ -137,7 +137,7 @@ class DeclarativeVersionCatalogReferenceContributorTest {
 
     val file = File(File(project.basePath!!), buildFileName)
 
-    projectRule.projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG) {
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG) {
       file.writeText(withoutCaret)
     }
 

@@ -62,10 +62,10 @@ class GradleDslVersionCatalogHandlerTest  {
 
   @Test
   fun testGetVersionCatalogFilesWithTomlExtension() {
-    projectRule.projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG,
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG,
                             null,
                             AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
-                            null){ Unit
+                            null) { Unit
       it.resolve("settings.gradle")
         .replaceContent { content ->
           content
@@ -222,7 +222,7 @@ class GradleDslVersionCatalogHandlerTest  {
   // We use sync catalog data as a fallback in this case.
   @Test
   fun testCustomInclude() {
-    projectRule.projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG) { root ->
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG) { root ->
       val settings = File(root, "settings.gradle")
       settings.replaceContent {
         it.replace("include ':app'", "inc('app')\n " +
