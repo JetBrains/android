@@ -18,19 +18,18 @@ package com.android.tools.idea.logcat.messages
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogcatMessage
-import com.intellij.openapi.components.service
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.logcat.util.LOGGER
 import java.time.ZoneId
+import kotlin.time.measureTimedValue
 
 private val exceptionLinePattern = Regex("\n\\s*at .+\\((?<filename>.+)\\)\n")
 
 /** Formats [LogcatMessage]'s into a [TextAccumulator] */
 internal class MessageFormatter(
-  project: Project,
+  private val proguardMessageRewriter: ProguardMessageRewriter,
   private val logcatColors: LogcatColors,
   private val zoneId: ZoneId,
 ) {
-  private var proguardMessageRewriter = project.service<ProguardMessageRewriter>()
   private var softWrapEnabled = false
 
   fun setSoftWrapEnabled(value: Boolean) {
@@ -83,7 +82,7 @@ internal class MessageFormatter(
 
         val msg =
           when (exceptionLinePattern.containsMatchIn(message.message)) {
-            true -> rewriteException(message.message)
+            true -> rewriteException(message)
             false -> message.message
           }
 
@@ -105,12 +104,14 @@ internal class MessageFormatter(
     previousPid = null
   }
 
-  private fun rewriteException(message: String): String {
-    var result = message
+  private fun rewriteException(message: LogcatMessage): String {
+    var result = message.message
     if (StudioFlags.LOGCAT_DEOBFUSCATE.get()) {
-      result = proguardMessageRewriter.rewrite(message)
+      val timedValue = measureTimedValue { proguardMessageRewriter.rewrite(message) }
+      result = timedValue.value
+      LOGGER.debug("Proguard rewrite took ${timedValue.duration}")
     }
-    ExceptionMessageRewriter.EP_NAME.extensionList.forEach { result = it.rewrite(message) }
+    ExceptionMessageRewriter.EP_NAME.extensionList.forEach { result = it.rewrite(result) }
     return result
   }
 }

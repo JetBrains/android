@@ -307,7 +307,8 @@ constructor(
       reloadMessages()
     }
 
-  private val messageFormatter = MessageFormatter(project, logcatColors, zoneId)
+  private val messageFormatter =
+    MessageFormatter(project.service<ProguardMessageRewriter>(), logcatColors, zoneId)
 
   @VisibleForTesting
   internal val messageBacklog = AtomicReference(MessageBacklog(logcatSettings.bufferSize))

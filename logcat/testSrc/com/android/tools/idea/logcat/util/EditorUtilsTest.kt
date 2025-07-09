@@ -21,6 +21,7 @@ import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.MessageFormatter
+import com.android.tools.idea.logcat.messages.ProguardMessageRewriter
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.FilterHint.AppName
@@ -187,7 +188,11 @@ class EditorUtilsTest {
 
   private fun appendMessage(logcatMessage: LogcatMessage, formattingOptions: FormattingOptions) {
     val messageFormatter =
-      MessageFormatter(projectRule.project, LogcatColors(), ZoneId.systemDefault())
+      MessageFormatter(
+        ProguardMessageRewriter(projectRule.project),
+        LogcatColors(),
+        ZoneId.systemDefault(),
+      )
     val textAccumulator = TextAccumulator()
     messageFormatter.formatMessages(formattingOptions, textAccumulator, listOf(logcatMessage))
     documentAppender.appendToDocument(textAccumulator)

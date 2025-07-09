@@ -778,6 +778,14 @@ public final class StudioFlags {
     "Enable stack trace deobfuscation using R8 Retrace",
     true
   );
+
+  public static final Flag<Boolean> LOGCAT_AUTO_DEOBFUSCATE = new BooleanFlag(
+    LOGCAT,
+    "auto.deobfuscate",
+    "Enable automatic stack trace deobfuscation using R8 Retrace",
+    "Automatically load a proguard mapping file if the R8 map ID of the stack trace matches the mapping file in the build directory",
+    enabledUpTo(CANARY)
+  );
   //endregion
 
   //region Project System
