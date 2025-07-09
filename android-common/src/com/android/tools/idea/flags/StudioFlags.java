@@ -1642,6 +1642,11 @@ public final class StudioFlags {
     "Enables a context-menu action to analyze UI images and rewrite corresponding code to match the target design.",
     false);
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN = new BooleanFlag(
+    COMPOSE, "ai.agents.dropdown", "Enable dropdown action to list Compose Preview AI agent actions",
+    "Enables a dropdown action that lists actions that trigger AI agent flows related to Compose Previews.",
+    false);
+
   public static final Flag<Boolean> COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION = new BooleanFlag(
     COMPOSE, "preview.code.to.preview.navigation", "Enable the highlighting of preview components when clicking on code",
     "If a user moves their caret to a element present in a preview, we highlight those elements",
