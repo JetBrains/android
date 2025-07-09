@@ -55,7 +55,9 @@ import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.CanonicalPathPrefixTree
+import com.intellij.openapi.util.removeUserData
 import com.intellij.openapi.vfs.VfsUtilCore.pathToUrl
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
@@ -217,31 +219,31 @@ internal class SyncContributorAndroidProjectContext(
 @ApiStatus.Internal
 @Order(GradleSyncContributor.Order.SOURCE_ROOT_CONTRIBUTOR)
 class AndroidSourceRootSyncContributor : GradleSyncContributor {
-  var moduleActionsFromPreviousPhase: Map<String, List<ModuleAction>>? = null
+  private val USER_MODULE_ACTIONS: Key<Map<String, List<ModuleAction>>?> = Key.create("moduleActionsMap")
 
   override suspend fun onModelFetchPhaseCompleted(
     context: ProjectResolverContext,
     storage: MutableEntityStorage,
     phase: GradleModelFetchPhase,
   ) {
-    performModuleActionsFromPreviousPhase(context.project())
+    performModuleActionsFromPreviousPhase(context)
     if (context.isPhasedSyncEnabled) {
       if (phase == GradleModelFetchPhase.PROJECT_SOURCE_SET_PHASE) {
         val result = configureModulesForSourceSets(context, storage.toSnapshot())
         // Only replace the android related source sets
         storage.replaceBySource({ it in result.knownEntitySources }, result.updatedStorage)
-        moduleActionsFromPreviousPhase = result.allModuleActions
+        context.putUserDataIfAbsent(USER_MODULE_ACTIONS, result.allModuleActions)
       }
     }
   }
   override suspend fun onModelFetchCompleted(context: ProjectResolverContext, storage: MutableEntityStorage) {
-    performModuleActionsFromPreviousPhase(context.project())
+    performModuleActionsFromPreviousPhase(context)
   }
 
   override suspend fun onModelFetchFailed(context: ProjectResolverContext,
                                           storage: MutableEntityStorage,
                                           exception: Throwable) {
-    moduleActionsFromPreviousPhase = null
+    context.removeUserData(USER_MODULE_ACTIONS)
   }
 
   /**
@@ -249,15 +251,17 @@ class AndroidSourceRootSyncContributor : GradleSyncContributor {
    *
    * This method performs any module operations registered earlier after the instances are created.
    */
-  private fun performModuleActionsFromPreviousPhase(project: Project) {
-    if (moduleActionsFromPreviousPhase != null) {
+  private suspend fun performModuleActionsFromPreviousPhase(context: ProjectResolverContext) {
+    val modulesActionsFromPreviousPhaseMap = context.getUserData(USER_MODULE_ACTIONS)
+    val project = context.project()
+    if (modulesActionsFromPreviousPhaseMap != null) {
       val modulesByName = project.modules.associateBy { it.name }
       // This is fine, it will not be modified as we're being executed in a single-threaded context
-      moduleActionsFromPreviousPhase!!.forEach { (moduleName, actions) ->
+      modulesActionsFromPreviousPhaseMap.forEach { (moduleName, actions) ->
         val module = checkNotNull(modulesByName[moduleName]) { "No module found for module with registered actions!" }
         actions.forEach { it(module) }
       }
-      moduleActionsFromPreviousPhase = null
+      context.removeUserData(USER_MODULE_ACTIONS)
     }
   }
 
