@@ -22,6 +22,7 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.project.Project;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -78,6 +79,11 @@ public abstract class FakeBuildSystem implements BuildSystem {
   @Override
   public @NotNull Optional<@NotNull String> getInvocationLink(@NotNull String invocationId) {
     return Optional.empty();
+  }
+
+  @Override
+  public @NotNull Set<@NotNull String> getEmptyJarDigests() {
+    return Collections.emptySet();
   }
 
   /**

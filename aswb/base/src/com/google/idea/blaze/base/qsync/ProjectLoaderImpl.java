@@ -232,6 +232,7 @@ public class ProjectLoaderImpl implements ProjectLoader {
         new DependenciesProjectProtoUpdater(
             latestProjectDef,
             projectPathResolver,
+            buildSystem.getEmptyJarDigests(),
             QuerySync.ATTACH_DEP_SRCJARS::getValue));
     projectTransformRegistry.add(new CcProjectProtoTransform());
 

@@ -18,10 +18,10 @@ package com.google.idea.blaze.qsync.java;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.common.NoopContext;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
-import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker.State;
 import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.google.idea.blaze.qsync.deps.ProjectProtoUpdate;
@@ -31,6 +31,7 @@ import com.google.idea.blaze.qsync.project.ProjectProto.ProjectArtifact.Artifact
 import com.google.idea.blaze.qsync.testdata.ProjectProtos;
 import com.google.idea.blaze.qsync.testdata.TestData;
 import java.nio.file.Path;
+import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -39,7 +40,7 @@ import org.junit.runners.JUnit4;
 public class AddCompiledJavaDepsTest {
   @Test
   public void no_deps_built() throws Exception {
-    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps();
+    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps(Collections.emptySet());
     no_deps_built(javaDeps);
   }
 
@@ -66,28 +67,23 @@ public class AddCompiledJavaDepsTest {
 
   @Test
   public void dep_built() throws Exception {
-    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps();
-    dep_built(javaDeps,
-              ProjectProto.Library.newBuilder().setName("//java/com/google/common/collect:collect")
-                .addClassesJar(
-                  ProjectProto.JarDirectory.newBuilder().setPath(".bazel/javadeps/build-out/java/com/google/common/collect/libcollect.jar")
-                    .setRecursive(false).build()).build());
-  }
-
-  private void dep_built(AddCompiledJavaDeps javaDeps, ProjectProto.Library... expectedLibraries) throws Exception {
+    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps(Collections.emptySet());
+    State artifactState = State.forJavaArtifacts(
+      JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect")).toBuilder()
+        .setJars(
+          ImmutableList.of(
+            BuildArtifact.create(
+              "jardigest",
+              Path.of("build-out/java/com/google/common/collect/libcollect.jar"),
+              Label.of("//java/com/google/common/collect:collect"))))
+        .build());
+    ProjectProto.Library[] expectedLibraries =
+      new ProjectProto.Library[]{ProjectProto.Library.newBuilder().setName("//java/com/google/common/collect:collect")
+        .addClassesJar(
+          ProjectProto.JarDirectory.newBuilder().setPath(".bazel/javadeps/build-out/java/com/google/common/collect/libcollect.jar")
+            .setRecursive(false).build()).build()};
     ProjectProto.Project original =
       ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY);
-
-    ArtifactTracker.State artifactState =
-      ArtifactTracker.State.forJavaArtifacts(
-        JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect")).toBuilder()
-          .setJars(
-            ImmutableList.of(
-              BuildArtifact.create(
-                "jardigest",
-                Path.of("build-out/java/com/google/common/collect/libcollect.jar"),
-                Label.of("//java/com/google/common/collect:collect"))))
-          .build());
 
     ProjectProtoUpdate update =
       new ProjectProtoUpdate(original, BuildGraphData.EMPTY, new NoopContext());
@@ -109,5 +105,37 @@ public class AddCompiledJavaDepsTest {
           .setTransform(ArtifactTransform.COPY)
           .setTarget("//java/com/google/common/collect:collect")
           .build());
+  }
+
+  @Test
+  public void dep_built_empty_jar() throws Exception {
+    AddCompiledJavaDeps javaDeps = new AddCompiledJavaDeps(ImmutableSet.of("empty_jar_digest"));
+    State artifactState = State.forJavaArtifacts(
+      JavaArtifactInfo.empty(Label.of("//java/com/google/common/collect:collect")).toBuilder()
+        .setJars(
+          ImmutableList.of(
+            BuildArtifact.create(
+              "empty_jar_digest",
+              Path.of("build-out/java/com/google/common/collect/libcollect.jar"),
+              Label.of("//java/com/google/common/collect:collect"))))
+        .build());
+    ProjectProto.Library[] expectedLibraries = new ProjectProto.Library[]{};
+    ProjectProto.Project original =
+      ProjectProtos.forTestProject(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY);
+
+    ProjectProtoUpdate update =
+      new ProjectProtoUpdate(original, BuildGraphData.EMPTY, new NoopContext());
+    javaDeps.update(update, artifactState, new NoopContext());
+    ProjectProto.Project newProject = update.build();
+    assertThat(newProject.getLibraryList()).containsExactly(expectedLibraries);
+    assertThat(newProject.getArtifactDirectories().getDirectoriesMap().keySet())
+      .containsExactly(".bazel/javadeps");
+    assertThat(
+      newProject
+        .getArtifactDirectories()
+        .getDirectoriesMap()
+        .get(".bazel/javadeps")
+        .getContentsMap())
+      .isEmpty();
   }
 }
