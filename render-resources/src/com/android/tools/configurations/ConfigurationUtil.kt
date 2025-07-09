@@ -17,8 +17,14 @@ package com.android.tools.configurations
 
 import com.android.resources.Density
 import com.android.resources.ScreenOrientation
+import com.android.sdklib.AndroidCoordinate
+import com.android.sdklib.AndroidDpCoordinate
 import kotlin.math.roundToInt
 
+/**
+ * Represents the width and height of a device in pixels or dps.
+ */
+data class DeviceSize(val width: Int, val height: Int)
 
 /**
  * Calculates the width and height based on the given x and y dimensions and the screen orientation.
@@ -27,20 +33,21 @@ private fun calculateDimensions(
   x: Int,
   y: Int,
   mScreenOrientation: ScreenOrientation?,
-): Pair<Int, Int> {
+): DeviceSize {
   // Determine if the desired orientation needs a swap.
   val shouldSwapDimensions = (x > y) != (mScreenOrientation == ScreenOrientation.LANDSCAPE)
 
   return if (shouldSwapDimensions) {
-    Pair(y, x)
+    DeviceSize(y, x)
   } else {
-    Pair(x, y)
+    DeviceSize(x, y)
   }
 }
 
 /** Calculates the current width and height in PX for the given Configuration. */
-fun Configuration.deviceSizePx(): Pair<Int, Int> {
-  val deviceState = deviceState ?: return Pair(0, 0)
+@AndroidCoordinate
+fun Configuration.deviceSizePx(): DeviceSize {
+  val deviceState = deviceState ?: return DeviceSize(0, 0)
   val orientation = deviceState.orientation
   val x = deviceState.hardware.screen.xDimension
   val y = deviceState.hardware.screen.yDimension
@@ -48,8 +55,9 @@ fun Configuration.deviceSizePx(): Pair<Int, Int> {
 }
 
 /** Calculates the current width and height in DP for the given Configuration. */
-fun Configuration.deviceSizeDp(): Pair<Int, Int> {
-  val deviceState = deviceState ?: return Pair(0, 0)
+@AndroidDpCoordinate
+fun Configuration.deviceSizeDp(): DeviceSize {
+  val deviceState = deviceState ?: return DeviceSize(0, 0)
   val orientation = deviceState.orientation
   val x =
     ConversionUtil.pxToDp(
