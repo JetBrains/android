@@ -53,7 +53,7 @@ enum class TestProject(
   override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
   override val autoMigratePackageAttribute: Boolean = true,
   override val setup: () -> () -> Unit = { {} },
-  override val patch: AgpVersionSoftwareEnvironment.(projectRoot: File) -> Unit = {},
+  override val patch: (AgpVersionSoftwareEnvironment.(projectRoot: File) -> Unit)? = null,
   override val expectedSyncIssues: Set<Int> = emptySet(),
   override val verifyOpened: ((Project) -> Unit)? = null,
   override val switchVariant: TemplateBasedTestProject.VariantSelection? = null
@@ -489,7 +489,7 @@ enum class TestProjectOther(
   override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
   override val autoMigratePackageAttribute: Boolean = true,
   override val setup: () -> () -> Unit = { {} },
-  override val patch: AgpVersionSoftwareEnvironment.(projectRoot: File) -> Unit = {},
+  override val patch: (AgpVersionSoftwareEnvironment.(projectRoot: File) -> Unit)? = null,
   override val expectedSyncIssues: Set<Int> = emptySet(),
   override val verifyOpened: ((Project) -> Unit)? = null,
   override val switchVariant: TemplateBasedTestProject.VariantSelection? = null

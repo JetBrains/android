@@ -96,7 +96,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
   /**
    * An additional patch to be applied on top of an already prepared project.
    */
-  val patch: AgpVersionSoftwareEnvironment.(projectRoot: File) -> Unit get() = {}
+  val patch: (AgpVersionSoftwareEnvironment.(projectRoot: File) -> Unit)?
 
 
   /**
@@ -158,8 +158,10 @@ interface TemplateBasedTestProject : TestProjectDefinition {
     if (autoMigratePackageAttribute && agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80) {
       migratePackageAttribute(root)
     }
-    patch(agpVersion, root)
-
+    patch?.let {
+      it.invoke(agpVersion, root)
+      VfsUtil.markDirtyAndRefresh(false, true, true, root)
+    }
     return PreparedTemplateBasedTestProject(this, root, resolvedAgpVersion, integrationTestEnvironment, name)
   }
 }
@@ -330,6 +332,8 @@ fun testProjectTemplateFromAbsolutePath(path: String): TemplateBasedTestProject 
       get() = File(path).name
     override val template: String
       get() = error("unexpected")
+    override val patch: (AgpVersionSoftwareEnvironment.(File) -> Unit)?
+      get() = null
 
     override fun getTestDataDirectoryWorkspaceRelativePath(): String = error("unexpected")
 
@@ -348,6 +352,8 @@ fun testProjectTemplateFromPath(path: String, testDataPath: String, autoMigrateP
       get() = path
     override val autoMigratePackageAttribute: Boolean
       get() = autoMigratePackageAttribute
+    override val patch: (AgpVersionSoftwareEnvironment.(File) -> Unit)?
+      get() = null
 
     override fun getTestDataDirectoryWorkspaceRelativePath(): String = testDataPath
 
