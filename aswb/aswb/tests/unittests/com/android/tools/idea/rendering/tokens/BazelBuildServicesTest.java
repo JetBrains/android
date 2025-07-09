@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering.tokens;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.google.common.collect.MoreCollectors;
 import com.google.idea.blaze.android.google3.qsync.InBazelTestProjects;
 import com.google.idea.blaze.android.google3.qsync.testrules.BazelTestProjectContextKt;
 import com.google.idea.blaze.android.google3.qsync.testrules.QuerySyncIntegrationTestRule;
@@ -45,12 +46,12 @@ public final class BazelBuildServicesTest {
         tracing.clear();
         var file = BazelTestProjectContextKt.virtualFile(context, "main/java/com/basicapp/MainActivity.kt");
 
-        var references = BuildSystemFilePreviewServicesKt.getBuildTargetReferences(context.getIdeProject(), List.of(file)).stream()
-          .map(reference -> (BazelBuildTargetReference)reference)
-          .toList();
+        var reference = BuildSystemFilePreviewServicesKt.getBuildTargetReferences(context.getIdeProject(), List.of(file)).stream()
+          .map(r -> (BazelBuildTargetReference)r)
+          .collect(MoreCollectors.onlyElement());
 
         // Act
-        var deferred = BazelBuildServices.buildArtifactsAsync(references);
+        var deferred = BazelBuildServices.buildArtifactsAsync(reference);
 
         return ListenableFutureKt.asListenableFuture(deferred);
       });

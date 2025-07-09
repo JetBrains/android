@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.rendering.tokens;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus;
-import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.MoreCollectors;
+import com.google.common.collect.Iterables;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
@@ -36,7 +33,6 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
 import java.util.Collection;
@@ -59,34 +55,24 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
    */
   @Override
   public void buildArtifacts(@NotNull Collection<? extends @NotNull BazelBuildTargetReference> targets) {
-    buildArtifactsAsync(targets);
+    buildArtifactsAsync(Iterables.getOnlyElement(targets));
   }
 
   /**
    * Executed by an application pool thread
    */
   @VisibleForTesting
-  static Deferred<Boolean> buildArtifactsAsync(Collection<? extends BazelBuildTargetReference> targets) {
-    var project = targets.stream()
-      .map(BuildTargetReference::getModule)
-      .map(Module::getProject)
-      .distinct()
-      .collect(MoreCollectors.onlyElement());
+  static Deferred<Boolean> buildArtifactsAsync(BazelBuildTargetReference target) {
+    var project = target.getProject();
+    var file = target.getFile();
+    var scope = QuerySyncActionStatsScope.createForFile(BazelBuildServices.class, null, file);
 
-    var helper = new BuildDependenciesHelper(project);
-
-    var files = targets.stream()
-      .map(BazelBuildTargetReference::getFile)
-      .collect(toImmutableList());
-
-    var scope = QuerySyncActionStatsScope.createForFiles(BazelBuildServices.class, null, files);
-
-    return helper.determineTargetsAndRun(WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, files),
-                                         BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt(
-                                           popup -> popup.showCenteredInCurrentWindow(project)),
-                                         TargetDisambiguationAnchors.NONE,
-                                         scope,
-                                         labels -> buildAndRefresh(project, scope, labels));
+    return new BuildDependenciesHelper(project).determineTargetsAndRun(
+      WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, List.of(file)),
+      BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt(popup -> popup.showCenteredInCurrentWindow(project)),
+      TargetDisambiguationAnchors.NONE,
+      scope,
+      labels -> buildAndRefresh(project, scope, labels));
   }
 
   /**
