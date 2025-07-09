@@ -16,8 +16,7 @@
 package com.android.tools.idea.lang.proguardR8.inspections
 
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
-import com.android.tools.idea.projectsystem.androidProjectType
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
@@ -74,7 +73,7 @@ class AffectedClassesProjectService(private val project: Project) {
    * affected classes from the perspective of all application modules that we can find.
    */
   private fun applicationModules(): List<Module> {
-    return project.modules.filter { it.androidProjectType() == AndroidModuleSystem.Type.TYPE_APP }
+    return project.modules.filter { it.getModuleSystem().isProductionAndroidModule() }
   }
 
   private val androidJar = "android.jar"
