@@ -91,7 +91,7 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
 
   override fun getNorthGroup(): ActionGroup = ComposePreviewNorthGroup()
 
-  private inner class ComposePreviewNorthGroup :
+  private class ComposePreviewNorthGroup :
     DefaultActionGroup(
       listOfNotNull(
         StopInteractivePreviewAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
