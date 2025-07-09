@@ -32,9 +32,7 @@ import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
-import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.util.CommonAndroidUtil;
-import com.intellij.diagnostic.VMOptions;
 import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectWideFacetAdapter;
 import com.intellij.facet.ProjectWideFacetListenersRegistry;
@@ -53,13 +51,11 @@ import com.intellij.ide.projectView.impl.ProjectViewTree;
 import com.intellij.ide.projectView.impl.nodes.PackageElement;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -75,13 +71,8 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import icons.StudioIcons;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.Icon;
 import javax.swing.tree.DefaultTreeModel;
@@ -376,80 +367,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     if ((!ideInfo.isAndroidStudio()) && (!ideInfo.isGameTools())) {
       return super.isDefaultPane(project);
     }
-
-    if (Boolean.getBoolean(PROJECT_VIEW_DEFAULT_KEY)) {
-      handleCustomDefaultProjectViewProperty(project, settings);
-    }
-
     return !settings.isProjectViewDefault();
-  }
-
-  /**
-   * Update UI setting when custom property "studo.projectview=true" is present
-   * <p>
-   * When this property is enabled via custom properties, the UI setting is enabled and an
-   * informational notification is displayed. If the "studio.projectview" property is found in
-   * custom properties or custom VM options files, we remove the "studio.projectview" entry and
-   * notify the user that both the UI setting and the file have been updated. If we are unable to
-   * remove the entry, we notify the user that the UI setting has been updated and recommend
-   * removing the entry manually.
-   *
-   * @param project the current Project
-   * @param settings stores the state of the default project view UI setting
-   */
-  private void handleCustomDefaultProjectViewProperty(Project project, AndroidProjectViewSettings settings) {
-    // Set the UI setting to true
-    settings.setDefaultToProjectView(true);
-
-    // Clear custom property
-    System.clearProperty(PROJECT_VIEW_DEFAULT_KEY);
-
-    // Check for property in custom options
-    String propertyNotificationNote = "";
-    propertyNotificationNote = checkForProjectViewCustomProperty();
-
-    // If property was not found in custom options, check custom VM options
-    if (propertyNotificationNote.isBlank()) {
-      try {
-        String projectViewDefaultKeyOption = VMOptions.readOption("-D" + PROJECT_VIEW_DEFAULT_KEY + "=", false);
-        if (projectViewDefaultKeyOption != null && projectViewDefaultKeyOption.equals("true")) {
-          VMOptions.setProperty(PROJECT_VIEW_DEFAULT_KEY, null);
-          propertyNotificationNote = "This property has been removed from custom VM options.";
-        }
-      }
-      catch (IOException ignore) {}
-    }
-
-    // If we don't find the property or fail to remove it, notify the user that we recommend removing it manually and using the UI setting
-    if (propertyNotificationNote.isBlank()) {
-      propertyNotificationNote = "We recommend removing this property and using 'Advanced Settings -> Project View -> Set " +
-                                 "Project view as the default` to configure the default project view.";
-    }
-
-    // Inform the user that we have detected the custom property and updated the UI setting
-    AndroidNotification
-      .getInstance(project)
-      .showBalloon("Default Project View Setting Updated",
-                   "'Set Project view as the default' advanced setting was enabled due to the custom property" +
-                   " `studio.projectview=true`. " + propertyNotificationNote,
-                   NotificationType.INFORMATION);
-  }
-
-  private String checkForProjectViewCustomProperty() {
-    String customOptionsDirectory = PathManager.getCustomOptionsDirectory();
-    if (customOptionsDirectory != null) {
-      Path propertiesFilePath = Path.of(customOptionsDirectory, PathManager.PROPERTIES_FILE_NAME);
-      Properties properties = new Properties();
-      try {
-        properties.load(new FileInputStream(propertiesFilePath.toFile()));
-        if (properties.containsKey(PROJECT_VIEW_DEFAULT_KEY)) {
-          properties.remove(PROJECT_VIEW_DEFAULT_KEY);
-          properties.store(new FileOutputStream(propertiesFilePath.toFile()), null);
-          return "This property has been removed from " + propertiesFilePath;
-        }
-      } catch (IOException ignore) {}
-    }
-    return "";
   }
 
   private boolean isTopModuleDirectoryOrParent(@NotNull VirtualFile directory) {

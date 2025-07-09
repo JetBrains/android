@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.projectView
 
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
-import java.lang.Boolean.getBoolean
 
 interface AndroidProjectViewSettings {
   var defaultToProjectView: Boolean
@@ -32,11 +31,13 @@ interface AndroidProjectViewSettings {
    *  [PROJECT_VIEW_KEY] and the application settings.
    */
   fun isProjectViewDefault(): Boolean {
-    return if (StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS.get()) {
-      defaultToProjectView
+    if (StudioFlags.SHOW_DEFAULT_PROJECT_VIEW_SETTINGS.get()) {
+      if (java.lang.Boolean.getBoolean(PROJECT_VIEW_KEY))
+        return true
+      return defaultToProjectView
     } else {
-      // If flag is not enabled, fall back to studio.projectview custom property
-      getBoolean(PROJECT_VIEW_KEY)
+      // If flag is not enabled, fall back to studio.projectview flag
+      return java.lang.Boolean.getBoolean(PROJECT_VIEW_KEY)
     }
   }
 }

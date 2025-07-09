@@ -15,13 +15,9 @@
  */
 package com.android.tools.idea.navigator;
 
-import static com.android.tools.idea.navigator.AndroidProjectViewPane.PROJECT_VIEW_DEFAULT_KEY;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.testutils.VirtualTimeScheduler;
@@ -32,10 +28,8 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.projectView.AndroidProjectViewSettingsImpl;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
-import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.android.utils.FileUtils;
@@ -48,16 +42,13 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
 import com.intellij.ide.projectView.impl.ProjectViewState;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.projectView.TestProjectTreeStructure;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,16 +59,10 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 // TODO: Test available actions for each node!
 public class AndroidProjectViewTest extends AndroidGradleTestCase {
-  @Rule
-  public final TemporaryFolder tempFolder = new TemporaryFolder();
-
   private AndroidProjectViewPane myPane;
 
   public void testGeneratedSourceFiles_lightClasses() throws Exception {
@@ -249,8 +234,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     when(ideInfo.isGameTools()).thenReturn(true);
     assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(GameTools)").isTrue();
 
-    System.setProperty(PROJECT_VIEW_DEFAULT_KEY, "true");
-    assertThat(settings.isDefaultToProjectViewEnabled()).isTrue();
+    System.setProperty("studio.projectview", "true");
+    assertThat(settings.isDefaultToProjectViewEnabled()).isFalse();
     when(ideInfo.isAndroidStudio()).thenReturn(false);
     when(ideInfo.isGameTools()).thenReturn(false);
     assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(property)").isFalse();
@@ -264,7 +249,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(GameTools, property)").isFalse();
 
     settings.setDefaultToProjectView(true);
-    System.setProperty(PROJECT_VIEW_DEFAULT_KEY, "false");
+    System.setProperty("studio.projectview", "false");
     assertThat(settings.isDefaultToProjectViewEnabled()).isTrue();
     when(ideInfo.isAndroidStudio()).thenReturn(false);
     when(ideInfo.isGameTools()).thenReturn(false);
@@ -279,95 +264,13 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(GameTools, settings)").isFalse();
   }
 
-  public void testAndroidViewIsDefaultCustomPropertyHandling() {
-    myPane = createPane();
-    IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
-    AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
-    Project project = getProject();
-    AndroidNotification myMockNotification = Mockito.mock(AndroidNotification.class);
-    new IdeComponents(project).replaceProjectService(AndroidNotification.class, myMockNotification);
-
-    System.setProperty(PROJECT_VIEW_DEFAULT_KEY, "true");
-
-    // Assert that setting is set to true, custom property is removed, and user is notified
-    when(ideInfo.isAndroidStudio()).thenReturn(true);
-    when(ideInfo.isGameTools()).thenReturn(false);
-    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(AndroidStudio)").isFalse();
-    assertThat(settings.isDefaultToProjectViewEnabled()).isTrue();
-    assertThat(settings.isProjectViewDefault()).isTrue();
-    assertThat(java.lang.Boolean.getBoolean(PROJECT_VIEW_DEFAULT_KEY)).isFalse();
-
-    // Assert that no additional notifications are shown the next time isDefaultPane is called
-    myPane.isDefaultPane(project, ideInfo, settings);
-    verify(myMockNotification, times(1)).showBalloon("Default Project View Setting Updated", "'Set Project view as the default' advanced" +
-         " setting was enabled due to the custom property `studio.projectview=true`. We recommend removing this property and using" +
-         " 'Advanced Settings -> Project View -> Set Project view as the default` to configure the default project view.", NotificationType.INFORMATION);
-  }
-
-  public void testAndroidViewIsDefaultCustomPropertyHandlingWithCustomPropertiesFile() throws IOException {
-    MockedStatic<PathManager> mockedPathManager = mockStatic(PathManager.class);
-    tempFolder.create();
-    File customTempDir = tempFolder.getRoot();
-    File ideaFile = tempFolder.newFile(PathManager.PROPERTIES_FILE_NAME);
-    java.nio.file.Files.writeString(ideaFile.toPath(), PROJECT_VIEW_DEFAULT_KEY + "=true");
-    mockedPathManager.when(PathManager::getCustomOptionsDirectory)
-      .thenReturn(customTempDir.getPath());
-
-    myPane = createPane();
-    IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
-    AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
-    Project project = getProject();
-    AndroidNotification myMockNotification = Mockito.mock(AndroidNotification.class);
-    new IdeComponents(project).replaceProjectService(AndroidNotification.class, myMockNotification);
-
-    System.setProperty(PROJECT_VIEW_DEFAULT_KEY, "true");
-
-    // Assert that setting is set to true, custom property is removed, file is updated, and user is notified
-    when(ideInfo.isAndroidStudio()).thenReturn(true);
-    when(ideInfo.isGameTools()).thenReturn(false);
-    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(AndroidStudio)").isFalse();
-    assertThat(settings.isDefaultToProjectViewEnabled()).isTrue();
-    assertThat(settings.isProjectViewDefault()).isTrue();
-    assertThat(java.lang.Boolean.getBoolean(PROJECT_VIEW_DEFAULT_KEY)).isFalse();
-    verify(myMockNotification).showBalloon("Default Project View Setting Updated", "'Set Project view as the default' advanced" +
-        " setting was enabled due to the custom property `studio.projectview=true`. This property has been removed from " +
-        ideaFile.getPath(), NotificationType.INFORMATION);
-    assertThat(java.nio.file.Files.readString(ideaFile.toPath())).doesNotContain(PROJECT_VIEW_DEFAULT_KEY + "=true");
-    mockedPathManager.close();
-  }
-
-  public void testAndroidViewIsDefaultCustomPropertyHandlingWithCustomVMPropertiesFile() throws IOException {
-    myPane = createPane();
-    IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
-    AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
-    Project project = getProject();
-    AndroidNotification myMockNotification = Mockito.mock(AndroidNotification.class);
-    new IdeComponents(project).replaceProjectService(AndroidNotification.class, myMockNotification);
-    tempFolder.create();
-    File vmPropertiesFile = tempFolder.newFile("studio64.vmoptions");
-    java.nio.file.Files.writeString(vmPropertiesFile.toPath(), "-D" + PROJECT_VIEW_DEFAULT_KEY + "=true");
-    System.setProperty("jb.vmOptionsFile", vmPropertiesFile.getPath());
-    System.setProperty(PROJECT_VIEW_DEFAULT_KEY, "true");
-
-    // Assert that setting is set to true, custom property is removed, file is updated, and user is notified
-    when(ideInfo.isAndroidStudio()).thenReturn(true);
-    when(ideInfo.isGameTools()).thenReturn(false);
-    assertThat(myPane.isDefaultPane(project, ideInfo, settings)).named("isDefault(AndroidStudio)").isFalse();
-    assertThat(settings.isDefaultToProjectViewEnabled()).isTrue();
-    assertThat(settings.isProjectViewDefault()).isTrue();
-    assertThat(java.lang.Boolean.getBoolean(PROJECT_VIEW_DEFAULT_KEY)).isFalse();
-    verify(myMockNotification).showBalloon("Default Project View Setting Updated", "'Set Project view as the default' advanced" +
-      " setting was enabled due to the custom property `studio.projectview=true`. This property has been removed from custom VM options.",
-      NotificationType.INFORMATION);
-    assertThat(java.nio.file.Files.readString(vmPropertiesFile.toPath())).doesNotContain(PROJECT_VIEW_DEFAULT_KEY + "=true");
-  }
-
   public void testAndroidViewIsDefaultMetrics() {
     myPane = createPane();
     IdeInfo ideInfo = Mockito.spy(IdeInfo.getInstance());
     AndroidProjectViewSettingsImpl settings = new AndroidProjectViewSettingsImpl();
     Project project = getProject();
 
+    System.setProperty("studio.projectview", "false");
     settings.setDefaultToProjectView(true);
 
     TestUsageTracker testUsageTracker = new TestUsageTracker(new VirtualTimeScheduler());
