@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TestPreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
+import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -81,5 +82,26 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
     waitUntil("The editor was expected to switch to split mode when navigating to source") {
       editor.isSplitMode()
     }
+  }
+
+  @Test
+  fun testToolbarReleasedWhenEditorIsDisposed() = runBlocking {
+    val file = fixture.addFileToProject("src/Preview.kt", "")
+    val editorProvider =
+      SourceCodeEditorProvider.forTesting(
+        listOf(TestPreviewRepresentationProvider("Representation1", true))
+      )
+    val editor =
+      withContext(uiThread) {
+        (editorProvider.createEditor(file.project, file.virtualFile)
+          as TextEditorWithMultiRepresentationPreview<*>)
+      }
+
+    // Wait for representations to be fully initialized
+    waitUntil { editor.preview.representationNames.isNotEmpty() }
+
+    assertThat(editor.getToolbarComponentForTests()).isNotNull()
+    withContext(uiThread) { Disposer.dispose(editor) }
+    assertThat(editor.getToolbarComponentForTests()).isNull()
   }
 }

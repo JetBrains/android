@@ -25,6 +25,7 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import java.awt.Component
 import javax.swing.JComponent
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Utility method that ensures the current [TextEditorWithPreview.Layout] for this editor is the
@@ -107,6 +108,16 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(
   private fun setPureTextEditorVisibility() {
     myEditor.component.isVisible = true
     myPreview.component.isVisible = false
+  }
+
+  @TestOnly
+  fun getToolbarComponentForTests(): Component? {
+    return toolbarComponent
+  }
+
+  override fun dispose() {
+    super.dispose()
+    toolbarComponent = null
   }
 
   // TextEditorWithPreview#getTabActions() is a ConditionalActionGroup that shows the actions when
