@@ -625,4 +625,6 @@ class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
   override fun transformPreviewAction() = fakeAction
 
   override fun alignUiToTargetImageAction(): AnAction? = fakeAction
+
+  override fun previewAgentsDropDownAction(): AnAction? = fakeAction
 }

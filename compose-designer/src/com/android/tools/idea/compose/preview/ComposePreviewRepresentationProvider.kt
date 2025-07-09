@@ -100,6 +100,11 @@ private class ComposePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGr
         GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) })
           .visibleOnlyInDefaultPreview(),
         CommonViewControlAction().visibleOnlyInStaticPreview(),
+        StudioFlags.COMPOSE_PREVIEW_AI_AGENTS_DROPDOWN.ifEnabled {
+          ComposeStudioBotActionFactory.EP_NAME.extensionList.firstOrNull()?.let {
+            it.previewAgentsDropDownAction()?.let { action -> action.visibleOnlyInStaticPreview() }
+          }
+        },
         Separator.getInstance().visibleOnlyInUiCheck(),
         UiCheckDropDownAction().visibleOnlyInUiCheck(),
         StudioFlags.PREVIEW_FILTER.ifEnabled {

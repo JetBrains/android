@@ -34,6 +34,13 @@ interface ComposeStudioBotActionFactory {
    */
   fun alignUiToTargetImageAction(): AnAction?
 
+  /**
+   * Dropdown action to list Gemini agent-based actions that are not specific to a single existing
+   * previews. It's expected to be displayed in the surface toolbar as opposed to individual preview
+   * toolbars.
+   */
+  fun previewAgentsDropDownAction(): AnAction?
+
   companion object {
     val EP_NAME: ExtensionPointName<ComposeStudioBotActionFactory> =
       ExtensionPointName.create(
