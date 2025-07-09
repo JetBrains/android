@@ -660,6 +660,8 @@
 
     <writingAccessProvider implementation="com.android.tools.idea.sdk.SdkWritingAccessProvider"/>
     <postStartupActivity implementation="com.android.tools.idea.ndk.PageAlignProjectActivity"/>
+
+    <internalFileTemplate name="Version_Catalog_File.versions" />
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
