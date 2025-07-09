@@ -37,6 +37,7 @@ import com.google.idea.blaze.exception.BuildException;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -310,6 +311,11 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     @Override
     public @NotNull Optional<@NotNull String> getInvocationLink(@NotNull String invocationId) {
       return Optional.empty();
+    }
+
+    @Override
+    public @NotNull Set<@NotNull String> getEmptyJarDigests() {
+      return Collections.emptySet();
     }
   }
 }

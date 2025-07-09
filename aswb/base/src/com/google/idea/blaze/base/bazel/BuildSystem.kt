@@ -169,6 +169,13 @@ interface BuildSystem {
   val name: BuildSystemName
 
   /**
+   * Possible digests of empty .jar files in BEP.
+   *
+   * This is used for optimization purposes only.
+   */
+  val emptyJarDigests: Set<String>
+
+  /**
    * Get a Blaze invoker with desired capabilities.
    */
   fun getBuildInvoker(

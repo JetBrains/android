@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.base.bazel;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
@@ -31,6 +32,8 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 class BazelBuildSystem implements BuildSystem {
+
+  private static final String EMPTY_ZIP_SHA_256 = "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85";
 
   @Override
   public BuildSystemName getName() {
@@ -78,5 +81,11 @@ class BazelBuildSystem implements BuildSystem {
   @Override
   public @NotNull Optional<@NotNull String> getInvocationLink(@NotNull String invocationId) {
     return Optional.empty();
+  }
+
+  @Override
+  public @NotNull Set<@NotNull String> getEmptyJarDigests() {
+    // Bazel uses sha256sum by default.
+    return ImmutableSet.of(EMPTY_ZIP_SHA_256);
   }
 }
