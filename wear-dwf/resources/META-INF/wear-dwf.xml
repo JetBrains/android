@@ -54,6 +54,9 @@
     <lang.elementManipulator forClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionLiteralExpr"
                              implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionLiteralExprManipulator"/>
 
+    <completion.contributor language="WFFExpression"
+                            implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionCompletionContributor"/>
+
   </extensions>
   <actions>
     <action id="ImportWatchFaceStudioFileAction"

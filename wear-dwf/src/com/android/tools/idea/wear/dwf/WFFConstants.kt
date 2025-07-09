@@ -18,6 +18,7 @@ package com.android.tools.idea.wear.dwf
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.Function
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.PatternedDataSource
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.StaticDataSource
+import com.android.tools.wear.wff.WFFVersion
 import com.android.tools.wear.wff.WFFVersion.WFFVersion1
 import com.android.tools.wear.wff.WFFVersion.WFFVersion2
 import com.android.tools.wear.wff.WFFVersion.WFFVersion3
@@ -312,5 +313,8 @@ object WFFConstants {
       )
 
     val ALL_BY_ID = ALL.associateBy { it.id }
+
+    val ALL_AVAILABLE_FUNCTIONS_BY_VERSION =
+      WFFVersion.entries.associateWith { version -> ALL.filter { it.requiredVersion <= version } }
   }
 }

@@ -18,23 +18,16 @@ package com.android.tools.idea.wear.dwf.dom.raw.expressions
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
-import com.android.tools.idea.wear.dwf.dom.raw.CurrentWFFVersion
-import com.android.tools.idea.wear.dwf.dom.raw.CurrentWFFVersionService
-import com.android.tools.wear.wff.WFFVersion
+import com.android.tools.idea.wear.dwf.dom.raw.overrideCurrentWFFVersion
 import com.android.tools.wear.wff.WFFVersion.WFFVersion2
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.replaceService
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.kotlin.any
-import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class WFFExpressionAnnotatorTest {
@@ -80,7 +73,7 @@ class WFFExpressionAnnotatorTest {
 
   @Test
   fun `function ids requiring a higher WFF version are annotated with an error`() {
-    setCurrentWFFVersion(WFFVersion2)
+    overrideCurrentWFFVersion(WFFVersion2, projectRule.testRootDisposable)
 
     // floor requires version 1, icuBestText version 2 which are both ok
     // extractColorFromColors requires version 4 which is higher than the current
@@ -97,7 +90,7 @@ class WFFExpressionAnnotatorTest {
 
   @Test
   fun `function ids are not annotated with errors if the current WFF version is null`() {
-    setCurrentWFFVersion(null)
+    overrideCurrentWFFVersion(null, projectRule.testRootDisposable)
 
     // extractColorFromColors requires version 4
     fixture.configureByText(WFFExpressionFileType, "extractColorFromColors()")
@@ -130,7 +123,7 @@ class WFFExpressionAnnotatorTest {
 
   @Test
   fun `data sources requiring a higher WFF version are annotated with an error`() {
-    setCurrentWFFVersion(WFFVersion2)
+    overrideCurrentWFFVersion(WFFVersion2, projectRule.testRootDisposable)
 
     // UTC_TIMESTAMP requires version 1, FIRST_DAY_OF_WEEK version 2 which are both ok
     // HOURS_SINCE_EPOCH requires version 3 which is higher than the current
@@ -147,7 +140,7 @@ class WFFExpressionAnnotatorTest {
 
   @Test
   fun `data sources are not annotated with errors if the current WFF version is null`() {
-    setCurrentWFFVersion(null)
+    overrideCurrentWFFVersion(null, projectRule.testRootDisposable)
 
     // HOURS_SINCE_EPOCH requires version 3
     fixture.configureByText(WFFExpressionFileType, "[HOURS_SINCE_EPOCH]")
@@ -229,17 +222,5 @@ class WFFExpressionAnnotatorTest {
     assertThat(errors[1].forcedTextAttributesKey)
       .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
     assertThat(errors[1].toolTip).isEqualTo("<html>Unknown data source</html>")
-  }
-
-  private fun setCurrentWFFVersion(wffVersion: WFFVersion?) {
-    val mockCurrentWFFVersionService = mock<CurrentWFFVersionService>()
-    whenever(mockCurrentWFFVersionService.getCurrentWFFVersion(any()))
-      .thenReturn(wffVersion?.let { CurrentWFFVersion(wffVersion, isFallback = false) })
-    ApplicationManager.getApplication()
-      .replaceService(
-        CurrentWFFVersionService::class.java,
-        mockCurrentWFFVersionService,
-        projectRule.testRootDisposable,
-      )
   }
 }
