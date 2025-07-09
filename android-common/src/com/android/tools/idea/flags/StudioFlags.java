@@ -1562,7 +1562,7 @@ public final class StudioFlags {
     COMPOSE, "deploy.live.edit.compact.status.button",
     "LiveEdit: Use a Single Button to Display Live Edit Status in the Toolbar of the Running Devices Window",
     "If enabled, no status text will be displayed in the toolbar of the Running Devices window",
-    enabledUpTo(CANARY)
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = new BooleanFlag(
