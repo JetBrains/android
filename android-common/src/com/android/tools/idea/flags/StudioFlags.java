@@ -2157,12 +2157,6 @@ public final class StudioFlags {
                     "When enabled, experimental slash commands will be enabled.",
                     enabledUpTo(CANARY));
 
-  public static final Flag<Boolean> STUDIOBOT_USE_COMPOSE_TOOLWINDOW_UI =
-    new BooleanFlag(STUDIOBOT, "chat.use.compose.for.ui",
-                    "Use the Compose for Desktop/Jewel-based UI for the Chat toolwindow.",
-                    "When enabled, the Chat toolwindow will use the Jewel-based UI, implemented in Compose for Desktop.",
-                    true);
-
   public static final Flag<Boolean> STUDIOBOT_CONTEXT_ATTACHMENT_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.enable.context.attachment",
                     "Enable @file attachment and the context drawer.",
