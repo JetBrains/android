@@ -47,9 +47,6 @@ import java.util.concurrent.TimeUnit;
 /** The default implementation of QueryRunner. */
 public class BazelQueryRunner implements QueryRunner {
 
-  private static final BoolExperiment PREFER_REMOTE_QUERIES =
-      new BoolExperiment("query.sync.run.query.remotely", false);
-
   private static final Logger logger = Logger.getInstance(BazelQueryRunner.class);
   private final Project project;
   private final BuildSystem buildSystem;
@@ -68,10 +65,7 @@ public class BazelQueryRunner implements QueryRunner {
       return QuerySummary.EMPTY;
     }
     ImmutableSet.Builder<BuildInvoker.Capability> capabilityBuilder = new ImmutableSet.Builder<>();
-    if (PREFER_REMOTE_QUERIES.getValue()) {
-      capabilityBuilder.add(BuildInvoker.Capability.RUN_REMOTE_QUERIES);
-    }
-    BuildInvoker invoker = buildSystem.getBuildInvoker(project, capabilityBuilder.build()).orElseThrow();
+    BuildInvoker invoker = buildSystem.getBuildInvoker(project);
     Optional<SyncQueryStats.Builder> syncQueryStatsBuilder = SyncQueryStatsScope.fromContext(context);
     syncQueryStatsBuilder.ifPresent(stats -> stats.setBlazeBinaryType(invoker.getType()));
 
