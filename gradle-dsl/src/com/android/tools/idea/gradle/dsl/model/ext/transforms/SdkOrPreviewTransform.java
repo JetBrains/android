@@ -106,14 +106,30 @@ public class SdkOrPreviewTransform extends PropertyTransform {
                  ? ExternalNameInfo.ExternalNameSyntax.METHOD
                  : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
       }
-      else if (value instanceof String && isPreviewHash((String) value)) {
-        operatorName = previewSetter;
-        syntax = Objects.equals("gradle", holder.getDslFile().getFile().getExtension())
-                 ? ExternalNameInfo.ExternalNameSyntax.METHOD
-                 : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
-        value = ((String)value).substring("android-".length());
-      }
-      else { // RawText, literal Strings not beginning "android-"
+      else if (value instanceof String && ((String)value).startsWith("android-")) {
+        String valueAfterAndroid = ((String)value).substring("android-".length());
+        if (isPreviewHash((String) value)) {
+          operatorName = previewSetter;
+          syntax = Objects.equals("gradle", holder.getDslFile().getFile().getExtension())
+                   ? ExternalNameInfo.ExternalNameSyntax.METHOD
+                   : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+          value = valueAfterAndroid;
+        } else {
+          try {
+            int sdkVersion = Integer.parseInt(valueAfterAndroid);
+            operatorName = sdkSetter;
+            syntax = Objects.equals("gradle", holder.getDslFile().getFile().getExtension())
+                     ? ExternalNameInfo.ExternalNameSyntax.METHOD
+                     : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+            value = sdkVersion;
+          } catch (NumberFormatException e) {
+            operatorName = genericSetter;
+            syntax = holder.getDslFile().getWriter().getKind() == DECLARATIVE
+                     ? ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
+                     : ExternalNameInfo.ExternalNameSyntax.METHOD;
+          }
+        }
+      } else { // RawText, literal Strings not beginning "android-"
         // TODO(xof): if and when the genericSetter is removed from AGP, we will need to have some magic at this point.
         operatorName = genericSetter;
         syntax = holder.getDslFile().getWriter().getKind() == DECLARATIVE

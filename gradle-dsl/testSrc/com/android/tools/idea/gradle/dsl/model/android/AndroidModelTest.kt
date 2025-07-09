@@ -1889,6 +1889,19 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddAndApplyCompileSdk() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    android.compileSdkVersion().setValue("android-36")
+    assertEquals("compileSdkVersion", "36", android.compileSdkVersion())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_COMPILE_SDK_EXPECTED);
+  }
+
+  @Test
   fun testAddAndApplyCompileSdkWithMinor() {
     // TODO(b/411099168): Add additional test case for the new DSL once ready
     writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
@@ -1904,6 +1917,21 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddAndApplyCompileSdkWithCompileSdkMinor() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    android.compileSdkVersion().setValue(36)
+    android.compileSdkMinor().setValue(1)
+    assertEquals("compileSdkVersion", 36, android.compileSdkVersion())
+    assertEquals("compileSdkMinor", 1, android.compileSdkMinor())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_COMPILE_SDK_AND_COMPILE_SDK_MINOR_EXPECTED);
+  }
+
+  @Test
   fun testAddAndApplyCompileSdkWithExtension() {
     // TODO(b/411099168): Add additional test case for the new DSL once ready
     writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
@@ -1916,6 +1944,21 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("compileSdkVersion", "android-34-ext14", android.compileSdkVersion())
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_COMPILE_SDK_WITH_EXTENSION_EXPECTED);
+  }
+
+  @Test
+  fun testAddAndApplyCompileSdkWithCompileSdkExtension() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    android.compileSdkVersion().setValue(34)
+    android.compileSdkExtension().setValue(14)
+    assertEquals("compileSdkVersion", 34, android.compileSdkVersion())
+    assertEquals("compileSdkExtension", 14, android.compileSdkExtension())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_COMPILE_SDK_AND_COMPILE_SDK_EXTENSION_EXPECTED);
   }
 
   @Test
@@ -2535,8 +2578,11 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS("addAndApplyIntegerLiteralElements"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED("addAndApplyIntegerLiteralElementsExpected"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED_400("addAndApplyIntegerLiteralElementsExpected400"),
+    ADD_AND_APPLY_COMPILE_SDK_EXPECTED("addAndApplyCompileSdkExpected"),
     ADD_AND_APPLY_COMPILE_SDK_WITH_MINOR_EXPECTED("addAndApplyCompileSdkWithMinorExpected"),
     ADD_AND_APPLY_COMPILE_SDK_WITH_EXTENSION_EXPECTED("addAndApplyCompileSdkWithExtensionExpected"),
+    ADD_AND_APPLY_COMPILE_SDK_AND_COMPILE_SDK_MINOR_EXPECTED("addAndApplyCompileSdkAndCompileSdkMinorExpected"),
+    ADD_AND_APPLY_COMPILE_SDK_AND_COMPILE_SDK_EXTENSION_EXPECTED("addAndApplyCompileSdkAndCompileSdkExtensionExpected"),
     ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED("addAndApplyStringSdkElementsExpected"),
     ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED_400("addAndApplyStringSdkElementsExpected400"),
     REPLACE_AND_APPLY_LIST_ELEMENTS("replaceAndApplyListElements"),

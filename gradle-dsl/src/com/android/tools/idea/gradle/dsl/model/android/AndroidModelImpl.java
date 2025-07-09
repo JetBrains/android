@@ -129,6 +129,8 @@ public class AndroidModelImpl extends GradleDslBlockModel implements AndroidMode
   @NonNls public static final ModelPropertyDescription BUILD_TOOLS_VERSION = new ModelPropertyDescription("mBuildToolsVersion", STRING);
   //TODO compileSdkVersion may be integer or string while compileSdk can be only integer - need to handle this
   @NonNls public static final ModelPropertyDescription COMPILE_SDK_VERSION = new ModelPropertyDescription("mCompileSdkVersion", NUMERIC);
+  @NonNls public static final ModelPropertyDescription COMPILE_SDK_MINOR = new ModelPropertyDescription("mCompileSdkMinor", NUMERIC);
+  @NonNls public static final ModelPropertyDescription COMPILE_SDK_EXTENSION = new ModelPropertyDescription("mCompileSdkExtension", NUMERIC);
   @NonNls public static final ModelPropertyDescription DEFAULT_PUBLISH_CONFIG = new ModelPropertyDescription("mDefaultPublishConfig", STRING);
   @NonNls public static final ModelPropertyDescription DYNAMIC_FEATURES = new ModelPropertyDescription("mDynamicFeatures", MUTABLE_SET);
   @NonNls public static final ModelPropertyDescription FLAVOR_DIMENSIONS = new ModelPropertyDescription("mFlavorDimensions", MUTABLE_LIST);
@@ -249,6 +251,18 @@ public class AndroidModelImpl extends GradleDslBlockModel implements AndroidMode
     return GradlePropertyModelBuilder.create(myDslElement, COMPILE_SDK_VERSION)
       .addTransform(new SdkOrPreviewTransform(COMPILE_SDK_VERSION, "compileSdkVersion", "compileSdk", "compileSdkPreview", agp410plus))
       .buildResolved();
+  }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel compileSdkMinor() {
+    return getModelForProperty(COMPILE_SDK_MINOR);
+  }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel compileSdkExtension() {
+    return getModelForProperty(COMPILE_SDK_EXTENSION);
   }
 
   @NotNull

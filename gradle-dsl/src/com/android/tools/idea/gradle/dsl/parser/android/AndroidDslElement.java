@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.AIDL_PACKAGED_LIST;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.ASSET_PACKS;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_EXTENSION;
+import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_MINOR;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_VERSION;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.DEFAULT_PUBLISH_CONFIG;
 import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.DYNAMIC_FEATURES;
@@ -115,6 +117,8 @@ public class AndroidDslElement extends GradleDslBlockElement {
     {"buildToolsVersion", property, BUILD_TOOLS_VERSION, VAR},
     {"buildToolsVersion", exactly(1), BUILD_TOOLS_VERSION, SET, VersionConstraint.agpBefore("8.0.0")},
     {"compileSdk", property, COMPILE_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
+    {"compileSdkExtension", property, COMPILE_SDK_EXTENSION, VAR, VersionConstraint.agpFrom("4.1.0")},
+    {"compileSdkMinor", property, COMPILE_SDK_MINOR, VAR, VersionConstraint.agpFrom("4.1.0")},
     {"compileSdkPreview", property, COMPILE_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
     {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS, VersionConstraint.agpBefore("8.0.0")},
     {"compileSdkVersion", exactly(1), COMPILE_SDK_VERSION, SET, VersionConstraint.agpBefore("8.0.0")},
@@ -143,6 +147,10 @@ public class AndroidDslElement extends GradleDslBlockElement {
     {"buildToolsVersion", exactly(1), BUILD_TOOLS_VERSION, SET},
     {"compileSdk", property, COMPILE_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
     {"compileSdk", exactly(1), COMPILE_SDK_VERSION, SET, VersionConstraint.agpFrom("4.1.0")},
+    {"compileSdkExtension", property, COMPILE_SDK_EXTENSION, VAR, VersionConstraint.agpFrom("4.1.0")},
+    {"compileSdkExtension", exactly(1), COMPILE_SDK_EXTENSION, SET, VersionConstraint.agpFrom("4.1.0")},
+    {"compileSdkMinor", property, COMPILE_SDK_MINOR, VAR, VersionConstraint.agpFrom("4.1.0")},
+    {"compileSdkMinor", exactly(1), COMPILE_SDK_MINOR, SET, VersionConstraint.agpFrom("4.1.0")},
     {"compileSdkPreview", property, COMPILE_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
     {"compileSdkPreview", exactly(1), COMPILE_SDK_VERSION, SET, VersionConstraint.agpFrom("4.1.0")},
     {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR, VersionConstraint.agpBefore("8.0.0")},
@@ -173,6 +181,8 @@ public class AndroidDslElement extends GradleDslBlockElement {
     {"assetPacks", property, ASSET_PACKS, VAR},
     {"buildToolsVersion", property, BUILD_TOOLS_VERSION, VAR},
     {"compileSdk", property, COMPILE_SDK_VERSION, VAR},
+    {"compileSdkExtension", property, COMPILE_SDK_EXTENSION, VAR},
+    {"compileSdkMinor", property, COMPILE_SDK_MINOR, VAR},
     {"compileSdkPreview", property, COMPILE_SDK_VERSION, VAR},
     {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR, VersionConstraint.agpBefore("8.0.0")},
     {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},

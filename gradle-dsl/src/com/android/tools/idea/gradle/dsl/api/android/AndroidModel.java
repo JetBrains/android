@@ -58,6 +58,12 @@ public interface AndroidModel extends GradleBlockModel {
   ResolvedPropertyModel compileSdkVersion();
 
   @NotNull
+  ResolvedPropertyModel compileSdkMinor();
+
+  @NotNull
+  ResolvedPropertyModel compileSdkExtension();
+
+  @NotNull
   ComposeOptionsModel composeOptions();
 
   @NotNull
