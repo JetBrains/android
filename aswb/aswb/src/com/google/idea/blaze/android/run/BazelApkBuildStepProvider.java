@@ -56,8 +56,7 @@ public class BazelApkBuildStepProvider implements ApkBuildStepProvider {
       BuildInvoker buildInvoker =
           Blaze.getBuildSystemProvider(project)
               .getBuildSystem()
-              .getBuildInvoker(project, ImmutableSet.of(Capability.RUN_REMOTE_QUERIES))
-              .orElseThrow();
+              .getBuildInvoker(project);
 
        return BlazeApkBuildStep.blazeApkBuildStepBuilder()
                 .setProject(project)
