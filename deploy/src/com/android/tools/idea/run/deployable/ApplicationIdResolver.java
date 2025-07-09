@@ -20,31 +20,24 @@ import com.android.ddmlib.AndroidDebugBridge.IDebugBridgeChangeListener;
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ApplicationIdResolver implements IDebugBridgeChangeListener, IDeviceChangeListener {
   @NotNull private final Map<IDevice, Device> myDevices = new ConcurrentHashMap<>();
-  @NotNull private final ThreadPoolExecutor myApplicationIdResolverExecutor;
+  @NotNull private final ExecutorService myApplicationIdResolverExecutor;
 
   public ApplicationIdResolver() {
-    myApplicationIdResolverExecutor = new ThreadPoolExecutor(
-      4, // 4 permanent threads since we allow them to time out.
-      4, // We'll handle at max 4 threads/Clients at the same time.
-      1, // Let the threads live for max 1 second.
-      TimeUnit.SECONDS,
-      new LinkedBlockingQueue<>(),
-      new ThreadFactoryBuilder().setNameFormat("package-name-resolver-%d").build());
-    myApplicationIdResolverExecutor.allowCoreThreadTimeOut(true);
+    myApplicationIdResolverExecutor =
+      AppExecutorUtil.createBoundedApplicationPoolExecutor("Package-Name-Resolver", 4);
 
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
