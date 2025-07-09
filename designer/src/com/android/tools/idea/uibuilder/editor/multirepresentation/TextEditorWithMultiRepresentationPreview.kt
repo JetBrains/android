@@ -24,6 +24,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerKeys
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.progress.blockingContextScope
@@ -121,6 +122,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     SplitEditorActionDelegate(super.showPreviewAction)
 
   init {
+    putUserData(FileEditorManagerKeys.DUMB_AWARE, true)
     isPureTextEditor = preview.representationNames.isEmpty()
     preview.onRepresentationsUpdated = { isPureTextEditor = preview.representationNames.isEmpty() }
     preview.registerShortcuts(component)
