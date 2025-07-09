@@ -440,12 +440,9 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertFalse(surface.zoomController.zoomToFit())
 
     // Reset the zoom mask and change the zoom to a non zoom-to-fit value, we don't wait for
-    // DesignSurface.resize
+    // DesignSurface resize and the creation of DesignSurface layout creation
     surface.resetZoomToFitNotifier(shouldWaitForResize = false)
     assertTrue(surface.zoomController.setScale(0.45))
-
-    // Simulate layout creations.
-    surface.notifyLayoutCreatedForTest()
 
     // Scale is still not zoom-to-fit.
     assertEquals(0.45, surface.zoomController.scale)

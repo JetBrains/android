@@ -65,6 +65,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.UiDataProvider
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.progress.ProgressIndicator
@@ -109,6 +110,7 @@ import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -241,7 +243,7 @@ abstract class DesignSurface<T : SceneManager>(
         scope.launch {
           componentsUpdated.collect {
             if (readyToZoomToFitMask.get() != ZoomMaskConstants.ZOOM_TO_FIT_DONE_INT_MASK) {
-              withContext(uiThread) {
+              withContext(Dispatchers.EDT) {
                 // Premature zoom updates can occur if NOTIFY_COMPONENT_RESIZED_INT_MASK is updated
                 // before the component is created.
                 // This is avoided by calling NOTIFY_LAYOUT_CREATED_INT_MASK on component creation.
@@ -610,7 +612,8 @@ abstract class DesignSurface<T : SceneManager>(
       if (!shouldWaitForResize && height > 0 && width > 0) {
         // If we want to perform a zoom-to-fit, but we don't need that [DesignSurface] notifies that
         // has been resized we reset the mask adding [NOTIFY_COMPONENT_RESIZED_INT_MASK] already.
-        ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK
+        ZoomMaskConstants.NOTIFY_COMPONENT_RESIZED_INT_MASK or
+          ZoomMaskConstants.NOTIFY_LAYOUT_CREATED_INT_MASK
       } else ZoomMaskConstants.INITIAL_STATE_INT_MASK
 
     // If we want to perform a zoom-to-fit, and we need to wait for the creation of a layout and
