@@ -116,8 +116,9 @@ internal constructor(
           var step = 0
           withContext(Default) {
             reporter.onStep(Step(++step, steps, "Checking device..."))
-            if (!isDeviceSupported(serialNumber)) {
-              project.showDialog(message("error.device.not.supported"))
+            val result = checkDevice(serialNumber)
+            if (result != null) {
+              project.showDialog(result)
               return@withContext null
             }
 
@@ -250,8 +251,7 @@ internal constructor(
     return backupService.isInstalled(serialNumber, applicationId)
   }
 
-  override suspend fun isDeviceSupported(serialNumber: String) =
-    deviceChecker.isDeviceSupported(serialNumber)
+  override suspend fun checkDevice(serialNumber: String) = deviceChecker.checkDevice(serialNumber)
 
   @UiThread
   @VisibleForTesting

@@ -659,7 +659,7 @@ internal class BackupManagerImplTest {
       project,
       backupService,
       object : DeviceChecker {
-        override suspend fun isDeviceSupported(serialNumber: String) = true
+        override suspend fun checkDevice(serialNumber: String) = null
       },
       dialogFactory,
       virtualFileManager,

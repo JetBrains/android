@@ -16,19 +16,34 @@
 package com.android.tools.idea.backup
 
 import com.android.adblib.DeviceSelector
+import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.VisibleForTesting
 
-internal class DeviceCheckerImpl(project: Project) : DeviceChecker {
-  private val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
+internal class DeviceCheckerImpl
+@VisibleForTesting
+constructor(private val deviceProvisioner: DeviceProvisioner) : DeviceChecker {
+  constructor(
+    project: Project
+  ) : this(project.service<DeviceProvisionerService>().deviceProvisioner)
 
-  override suspend fun isDeviceSupported(serialNumber: String): Boolean {
+  override suspend fun checkDevice(serialNumber: String): String? {
     val deviceHandle =
       deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))
-        ?: return false
-    val deviceType = deviceHandle.state.properties.deviceType
-    return deviceType == DeviceType.HANDHELD
+        ?: return "Device not found"
+    val properties = deviceHandle.state.properties
+    val apiLevel = properties.androidVersion?.androidApiLevel?.majorVersion ?: 0
+    if (apiLevel < 31) {
+      return "Device API level $apiLevel is not supported"
+    }
+
+    return when (val deviceType = properties.deviceType) {
+      null -> "Unable to determine device type"
+      DeviceType.HANDHELD -> null
+      else -> "Device of type ${deviceType.stringValue} is not supported"
+    }
   }
 }

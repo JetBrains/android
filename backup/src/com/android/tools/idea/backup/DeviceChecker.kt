@@ -17,5 +17,10 @@ package com.android.tools.idea.backup
 
 /** Checks if device supports Backup/Restore. */
 internal interface DeviceChecker {
-  suspend fun isDeviceSupported(serialNumber: String): Boolean
+  /**
+   * Checks if a device supports Backup/Restore
+   *
+   * Returns a string describing the reason why not supported or null if supported
+   */
+  suspend fun checkDevice(serialNumber: String): String?
 }

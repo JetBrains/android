@@ -165,7 +165,7 @@ class RestoreAppActionTest {
   @Test
   fun actionPerformed_deviceNotSupported() {
     val actionHelper = FakeActionHelper("com.app", 1, "serial")
-    fakeBackupManager.isDeviceSupported = false
+    fakeBackupManager.deviceCheckResult = "Selected device is not supported"
     val action = RestoreAppAction(actionHelper = actionHelper, dialogFactory = fakeDialogFactory)
     val event = testEvent(project, "serial")
 

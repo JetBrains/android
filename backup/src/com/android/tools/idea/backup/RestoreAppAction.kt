@@ -90,9 +90,11 @@ internal class RestoreAppAction(
           val steps = 2
           var step = 0
           withContext(Dispatchers.Default) {
+            @Suppress("AssignedValueIsNeverRead") // ++step is fine here
             reporter.onStep(Step(++step, steps, "Checking device..."))
-            if (!backupManager.isDeviceSupported(serialNumber)) {
-              project.showDialog(message("error.device.not.supported"))
+            val result = backupManager.checkDevice(serialNumber)
+            if (result != null) {
+              project.showDialog(result)
               return@withContext false
             }
             return@withContext true

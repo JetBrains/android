@@ -34,7 +34,7 @@ import org.jetbrains.annotations.TestOnly
 
 @TestOnly
 class FakeBackupManager : BackupManager {
-  var isDeviceSupported = true
+  var deviceCheckResult: String? = null
   val showBackupDialogInvocations = mutableListOf<ShowBackupDialogInvocation>()
   val restoreModalInvocations = mutableListOf<RestoreModalInvocation>()
 
@@ -82,7 +82,7 @@ class FakeBackupManager : BackupManager {
 
   override suspend fun isInstalled(serialNumber: String, applicationId: String) = true
 
-  override suspend fun isDeviceSupported(serialNumber: String) = isDeviceSupported
+  override suspend fun checkDevice(serialNumber: String) = deviceCheckResult
 
   override fun getRestoreRunConfigSection(project: Project): RunConfigSection {
     return object : RunConfigSection {
