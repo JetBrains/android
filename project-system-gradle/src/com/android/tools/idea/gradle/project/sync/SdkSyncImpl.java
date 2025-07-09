@@ -129,11 +129,13 @@ public class SdkSyncImpl implements SdkSync {
                                                   @Nullable Project project,
                                                   @NotNull FindValidSdkPathTask findSdkPathTask) {
     assertProjectIsAndroid(localProperties, project);
-    File selectedPath = findSdkPathTask.selectValidSdkPath();
-    if (selectedPath == null) {
-      throw new ExternalSystemException("Unable to continue until an Android SDK is specified");
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      File selectedPath = findSdkPathTask.selectValidSdkPath();
+      if (selectedPath == null) {
+        throw new ExternalSystemException("Unable to continue until an Android SDK is specified");
+      }
+      setIdeSdk(localProperties, selectedPath);
     }
-    setIdeSdk(localProperties, selectedPath);
   }
 
   /**
