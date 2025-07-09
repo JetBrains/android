@@ -1021,7 +1021,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     @Override
     JComponent getComponent() {
       final JPanel panel = new JPanel(new VerticalFlowLayout());
-      final JBLabel label = new JBLabel("Platform API level:");
+      final JBLabel label = new JBLabel("Platform API level (should start with 'v' like 'v36.1'):");
       panel.add(label);
       label.setLabelFor(myTextField);
       myTextField.getDocument().addDocumentListener(myUpdatingDocumentListener);
