@@ -2253,11 +2253,17 @@ public final class StudioFlags {
                     "When enabled, the chat will show a button on the timeline to toggle auto-scrolling.",
                     enabledUpTo(STABLE));
 
-  public static final Flag<Boolean> STUDIOBOT_RESPONSE_CANCELLATION_ENABLED =
-    new BooleanFlag(STUDIOBOT, "chat.response.cancellation.enabled",
-                    "Enable cancellation in Chat Timeline",
-                    "When enabled, the chat will show a banner that will allow cancelling ongoing responses.",
-                    enabledUpTo(CANARY));
+  public static final Flag<Boolean> STUDIOBOT_CHAT_QUERY_STATUS_BANNER_ENABLED =
+    new BooleanFlag(STUDIOBOT, "chat.query.status.banner.enabled",
+                    "Enable thinking banner in Chat Timeline",
+                    "When enabled, the chat timeline will show a banner that shows the thinking stream of an ongoing response.",
+                    enabledUpTo(DEV));
+
+  public static final Flag<Boolean> STUDIOBOT_AGENT_MODE_QUERY_STATUS_BANNER_ENABLED =
+    new BooleanFlag(STUDIOBOT, "agent.query.status.banner.enabled",
+                    "Enable query status banner in Agent Mode Timeline",
+                    "When enabled, the agent mode timeline will show a banner showing thinking stream and tool usage of an ongoing response.",
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> STUDIOBOT_STOP_BUTTON_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.stop.button.enabled",
