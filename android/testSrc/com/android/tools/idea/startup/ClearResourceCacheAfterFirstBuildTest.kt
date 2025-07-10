@@ -22,6 +22,7 @@ import com.android.tools.idea.res.StudioResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Facets
+import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
@@ -30,6 +31,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.LocalResourceManager
@@ -43,11 +45,11 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 
-@RunWith(JUnit4::class)
+@RunsInEdt
 class ClearResourceCacheAfterFirstBuildTest {
   @JvmField
   @Rule
-  val projectRule = AndroidProjectRule.onDisk().initAndroid(false)
+  val projectRule = AndroidProjectRule.onDisk().initAndroid(false).onEdt()
 
   private lateinit var project: Project
   private lateinit var projectSystem: TestProjectSystem
@@ -180,7 +182,7 @@ class ClearResourceCacheAfterFirstBuildTest {
 
   @Test
   fun cacheActuallyCleared() {
-    val module = projectRule.module
+    val module = projectRule.fixture.module
     Facets.createAndAddAndroidFacet(module)
 
     val disposable = projectRule.testRootDisposable
@@ -205,7 +207,7 @@ class ClearResourceCacheAfterFirstBuildTest {
 
   @Test
   fun cacheDoesNotTriggerResourceInitialization() {
-    val module = projectRule.module
+    val module = projectRule.fixture.module
     Facets.createAndAddAndroidFacet(module)
 
     clearResourceCacheAfterFirstBuild.syncSucceeded()
