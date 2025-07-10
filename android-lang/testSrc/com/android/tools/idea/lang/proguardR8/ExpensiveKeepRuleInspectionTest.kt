@@ -95,6 +95,35 @@ class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
     }
   }
 
+  fun testOverlyBroadKeepRulesWithZeroAffectedClasses() {
+    val rules = listOf(
+      "-keep class **",
+      "-keep class **.*",
+      "-keep class **.*.*.*", // Makes no sense to do something like this, but this is a valid rule
+      "-keep class **.* { **; }",
+      "-keep class com.** { <fields>; }",
+      "-keep class com.** { <methods>; }",
+      "-keep class com.** { **; }",
+      "-keep class **.internal.** { **; }"
+    )
+
+    // We reduce the number of affected classes to make sure we don't end up highlighting
+    // these rules.
+    whenever(
+      methodCall = affectedClassesProjectService.affectedClassesForQualifiedName(
+        qualifiedName = any<ProguardR8QualifiedName>()
+      )
+    ).thenReturn(0) // 100 is the limit on the number of affected classes
+
+    rules.forEach { rule ->
+      myFixture.configureByText(
+        /* fileType = */ ProguardR8FileType.INSTANCE,
+        /* text = */rule
+      )
+      myFixture.checkHighlighting()
+    }
+  }
+
   fun testGoodRules() {
     val rules = listOf(
       "-keepclassmembers **.*",

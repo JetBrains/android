@@ -37,7 +37,13 @@ import com.intellij.psi.util.childrenOfType
 /**
  * The maximum number of classes that are allowed to be affected by a proguard rule.
  */
-internal const val CLASSES_AFFECTED_LIMIT = 100
+private const val CLASSES_AFFECTED_LIMIT = 100
+
+/**
+ * The inspection description when a proguard rule affects a large number of classes.
+ */
+private const val TOO_MANY_AFFECTED_CLASSES_DESCRIPTION =
+  "Scope rules using annotations, specific classes, or using specific field/method selectors"
 
 /**
  * Reports when overly broad Proguard rules are used.
@@ -120,13 +126,22 @@ private fun expensiveKeepRuleOrNull(rule: ProguardR8RuleWithClassSpecification):
   }
 
   // We have now identified that the name of the class has a wildcard.
+  val countAffected = service.affectedClassesForQualifiedName(
+    qualifiedName = className.qualifiedName
+  )
+
   val body = rule.classSpecificationBody
   if (body == null) {
-    return ExpensiveProguardR8Rule(
-      elementToHighlight = rule,
-      qualifiedName = className.qualifiedName,
-      description = "Scope rules using annotations, specific classes, or using specific field/method selectors"
-    )
+    return if (countAffected >= CLASSES_AFFECTED_LIMIT) {
+      ExpensiveProguardR8Rule(
+        elementToHighlight = rule,
+        qualifiedName = className.qualifiedName,
+        description = TOO_MANY_AFFECTED_CLASSES_DESCRIPTION
+      )
+    }
+    else {
+      null
+    }
   }
 
   val isBodyExpensive = body.childrenOfType<ProguardR8JavaRule>()
@@ -140,15 +155,13 @@ private fun expensiveKeepRuleOrNull(rule: ProguardR8RuleWithClassSpecification):
       methodSpecs.any { it.isExpensive() }
     }
 
-  val countAffected = service.affectedClassesForQualifiedName(
-    qualifiedName = className.qualifiedName
-  )
+
 
   if (isBodyExpensive && countAffected >= CLASSES_AFFECTED_LIMIT) {
     return ExpensiveProguardR8Rule(
       elementToHighlight = rule,
       qualifiedName = className.qualifiedName,
-      description = "Scope rules using annotations, specific classes, or using specific field/method selectors"
+      description = TOO_MANY_AFFECTED_CLASSES_DESCRIPTION
     )
   }
 
