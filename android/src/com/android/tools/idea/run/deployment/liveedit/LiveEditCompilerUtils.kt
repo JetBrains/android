@@ -25,10 +25,12 @@ import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil.getFileClassInfoNoResolve
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
+import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.mapToSetOrEmpty
+import java.util.LinkedList
 
 /**
  * Returns a list of the names of user-declared classes in a given [KtFile]. This will include the
@@ -53,9 +55,18 @@ internal fun validatePsiDiff(inputs: Collection<LiveEditCompilerInput>, file: Kt
 }
 
 internal fun List<KtFile>.checkPsiErrorElement() {
+  var errors = LinkedList<CompilerErrorSource>()
   forEach { file ->
-    val errorElement = file.descendantsOfType<PsiErrorElement>().firstOrNull()
-    errorElement?.let { throw LiveEditUpdateException.compilationError(it.errorDescription, it.containingFile, null) }
+    file.descendantsOfType<PsiErrorElement>().forEach() { error ->
+      var message = error.errorDescription
+      var file = error.containingFile
+      var lineNumber = error.getLineNumber()
+      errors.add(CompilerErrorSource("ERROR", message, file, lineNumber))
+    }
+  }
+
+  if (errors.isNotEmpty()) {
+    throw LiveEditUpdateException.compilationError(errors)
   }
 }
 

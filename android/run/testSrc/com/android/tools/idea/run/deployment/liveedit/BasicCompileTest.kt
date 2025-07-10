@@ -114,7 +114,7 @@ class BasicCompileTest {
       compile(file, cache)
       Assert.fail("RecoverableError.kt contains a lexical error and should not be updated by Live Edit")
     } catch (e: LiveEditUpdateException) {
-      Assert.assertEquals("Expecting a top level declaration", e.message)
+      Assert.assertTrue(e.message!!.contains("Expecting a top level declaration RecoverableError.kt at line 1"))
     }
 
     // Step 3: Fix syntax error
@@ -559,7 +559,7 @@ class BasicCompileTest {
     }
     catch (e: LiveEditUpdateException) {
       if (KotlinPluginModeProvider.isK2Mode()) {
-        Assert.assertEquals("[INVISIBLE_REFERENCE] Cannot access 'fun invisibleFunction(): Unit': it is protected in '/Child'.", e.message)
+        Assert.assertTrue(e.message!!.contains("[INVISIBLE_REFERENCE] Cannot access 'fun invisibleFunction(): Unit': it is protected in '/Child'. A.kt at line 10"))
       } else {
         Assert.assertTrue(e.message?.contains("Analyze Error. INVISIBLE_MEMBER") == true)
       }

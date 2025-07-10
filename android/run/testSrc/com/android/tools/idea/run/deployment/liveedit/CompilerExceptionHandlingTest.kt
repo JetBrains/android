@@ -54,7 +54,8 @@ class CompilerExceptionHandlingTest {
     val file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
     val input = LiveEditCompilerInput(file, getPsiValidationState(file))
     val cache = Mockito.spy(MutableIrClassCache())
-    Mockito.`when`(cache["AKt"]).thenThrow(LiveEditUpdateException.compilationError("some syntax error in file A.kt"))
+    Mockito.`when`(cache["AKt"]).thenThrow(LiveEditUpdateException.compilationError(
+      listOf(CompilerErrorSource("ERROR", "some syntax error", file, 1))))
 
     try {
       LiveEditCompiler(file.project, cache)

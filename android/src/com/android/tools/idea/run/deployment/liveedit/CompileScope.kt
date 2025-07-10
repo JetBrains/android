@@ -84,7 +84,8 @@ private fun handleCompilerErrors(e: Throwable): Nothing {
       }
     }
   }
-  throw LiveEditUpdateException.compilationError(e.message ?: "No error message", null, e)
+  throw LiveEditUpdateException.compilationError(
+    listOf(CompilerErrorSource("ERROR", "$e ${e.message ?: " No error message"}", null, -1)))
 }
 
 /**

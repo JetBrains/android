@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit.k2
 
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.run.deployment.liveedit.CompilerErrorSource
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
@@ -30,10 +31,15 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.KaCompilationResult
 import org.jetbrains.kotlin.analysis.api.components.KaCompilerTarget
+import org.jetbrains.kotlin.analysis.api.diagnostics.KaDiagnostic
+import org.jetbrains.kotlin.analysis.api.diagnostics.KaDiagnosticWithPsi
 import org.jetbrains.kotlin.analysis.api.diagnostics.getDefaultMessageWithFactoryName
 import org.jetbrains.kotlin.analysis.api.projectStructure.contextModule
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -108,7 +114,38 @@ fun backendCodeGenForK2(file: KtFile, module: Module, configuration: CompilerCon
     }
     when (result) {
       is KaCompilationResult.Success -> return result
-      is KaCompilationResult.Failure -> throw compilationError(result.errors.joinToString { it.getDefaultMessageWithFactoryName() })
+      is KaCompilationResult.Failure -> throw compilationError(result.errors.map{it.getErrorMessage()})
     }
   }
+}
+
+private fun KaDiagnostic.getErrorMessage() : CompilerErrorSource {
+  var message = getDefaultMessageWithFactoryName()
+  if (this is KaDiagnosticWithPsi<*>) {
+    var lineNumber = getLineNumberFromKaDiagnostic()
+    var file = psi.containingFile
+    return CompilerErrorSource(severity.toString(), message, file, lineNumber)
+  } else {
+    return CompilerErrorSource(severity.toString(), message, null, -1)
+  }
+}
+
+private fun KaDiagnosticWithPsi<*>.getLineNumberFromKaDiagnostic(): Int {
+  val containingFile = psi.containingFile
+  if (containingFile == null) {
+    return -1
+  }
+
+  val project: Project = containingFile.project
+  val psiDocumentManager: PsiDocumentManager = PsiDocumentManager.getInstance(project)
+  val document = psiDocumentManager.getDocument(containingFile)
+
+  if (document == null) {
+    return -1
+  }
+
+  val textOffset = psi.textOffset
+  val lineNumber = document.getLineNumber(textOffset)
+
+  return lineNumber + 1
 }

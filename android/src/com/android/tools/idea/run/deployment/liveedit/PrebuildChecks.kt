@@ -18,9 +18,10 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.res.isGradleFile
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.gradleBuildFile
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.iwiDisabled
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.kotlinEap
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.noComposePlugIn
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlin
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlinIsJava
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlinIsXml
@@ -59,7 +60,7 @@ internal fun prebuildChecks(project: Project, changedFiles: List<PsiFile>) {
 
 internal fun checkIwiAvailable() {
   if (StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get() == StudioFlags.OptimisticInstallSupportLevel.DISABLED) {
-    throw compilationError("Cannot perform Live Edit without optimistic install support", null, null)
+    throw iwiDisabled()
   }
 }
 
@@ -111,7 +112,7 @@ internal fun checkJetpackCompose(project: Project) {
     }
   }
   if (!found) {
-    throw compilationError("Cannot find Jetpack Compose plugin in Android Studio. Is it enabled?", null, null)
+    throw noComposePlugIn()
   }
 }
 

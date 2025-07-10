@@ -20,6 +20,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 
+data class CompilerErrorSource(val severity: String, val desc: String, val file: PsiFile?, val lineNumber: Int) {
+  fun displayMessage() = "[$severity] $desc ${file?.let { "${it.name} at line $lineNumber" } ?: ""}"
+}
+
 class LiveEditUpdateException private constructor(val error: Error, val details: String = "", val sourceFilename: String?, cause : Throwable?) : RuntimeException(details, cause) {
 
   /**
@@ -34,8 +38,11 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     ANALYSIS_ERROR("Resolution Analysis Error", "%", true, Status.ANALYSIS_ERROR),
     COMPILATION_ERROR("Compilation Error", "%", true, Status.COMPILATION_ERROR),
     GRADLE_BUILD_FILE("Gradle build file changes", "%", false, Status.NON_KOTLIN),
+    IWI_DISABLED("Compilation Error", "%", true, Status.COMPILATION_ERROR), // TODO: Add new metrics.
     KOTLIN_EAP("Compilation Error", "%", true, Status.KOTLIN_EAP),
     NON_COMPOSE("Non-Compose Module", "%", false, Status.NON_KOTLIN), // TODO: ADD REAL METRICS. (Currently treated as internal error)
+    NO_COMPOSE_PLUG_IN("Compilation Error", "%", true, Status.COMPILATION_ERROR), // TODO: Add new metrics.
+
     NON_KOTLIN("Non-Kotlin file not supported", "%", false, Status.NON_KOTLIN),
     NON_KOTLIN_IS_JAVA("Java file not supported", "%", false, Status.NON_KOTLIN), // TODO: Add new metrics.
     NON_KOTLIN_IS_XML("XML file not supported", "%", false, Status.NON_KOTLIN), // TODO: Add new metrics.
@@ -86,13 +93,14 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
 
     fun analysisError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
       LiveEditUpdateException(Error.ANALYSIS_ERROR, details, source?.name, cause)
-
-    @JvmStatic
-    fun compilationError(details: String, source: PsiFile? = null, cause: Throwable? = null) =
-      LiveEditUpdateException(Error.COMPILATION_ERROR, details, source?.name, cause)
+    
+    fun compilationError(errors : List<CompilerErrorSource>) =
+      LiveEditUpdateException(Error.COMPILATION_ERROR, errors.joinToString("\n") { it.displayMessage() }, errors.firstOrNull()?.file?.name, null)
 
     fun gradleBuildFile(source: PsiFile? = null) =
       LiveEditUpdateException(Error.GRADLE_BUILD_FILE, "Modification of Gradle build file not supported", source?.name, null)
+
+    fun iwiDisabled() = LiveEditUpdateException(Error.IWI_DISABLED, "Cannot perform Live Edit without optimistic install support", null, null)
 
     fun internalErrorCodeGenException(file: PsiFile, cause: Throwable) =
       LiveEditUpdateException(Error.INTERNAL_ERROR_FILE_CODE_GEN, "Internal Error During Code Gen", file.name, cause)
@@ -114,6 +122,8 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
 
     fun kotlinEap() = LiveEditUpdateException(Error.KOTLIN_EAP,"Live Edit does not support running with this Kotlin Plugin version"+
                                                                " and will only work with the bundled Kotlin Plugin", null, null)
+
+    fun noComposePlugIn() = LiveEditUpdateException(Error.NO_COMPOSE_PLUG_IN, "Cannot find Jetpack Compose plugin in Android Studio. Is it enabled?", null, null)
 
     fun nonKotlin(file: PsiFile) = LiveEditUpdateException(Error.NON_KOTLIN, "Modification to ${file.name} not supported", sourceFilename = null, cause = null)
 
