@@ -64,12 +64,10 @@ class ScreenshotTestRunLineMarkerContributorTest {
 
   @Before
   fun setup() {
-    projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/screenshot-testing/testData").toString()
     projectRule.loadProject(TestProjectPaths.SIMPLE_APP_WITH_SCREENSHOT_TEST)
     stubComposeAnnotation()
     stubPreviewAnnotation()
     stubPreviewTestAnnotation()
-
   }
 
   @Test

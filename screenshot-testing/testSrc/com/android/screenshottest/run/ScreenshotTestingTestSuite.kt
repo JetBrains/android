@@ -29,6 +29,7 @@ class ScreenshotTestingTestSuite : IdeaTestSuiteBase() {
       linkIntoOfflineMavenRepo(
         "tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest"
       )
+      linkIntoOfflineMavenRepo("tools/adt/idea/screenshot-testing/test_deps.manifest")
     }
   }
 }
