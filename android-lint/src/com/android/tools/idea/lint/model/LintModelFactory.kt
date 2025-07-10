@@ -80,7 +80,6 @@ import com.android.tools.lint.model.LintModelSerialization
 import com.android.tools.lint.model.LintModelSeverity
 import com.android.tools.lint.model.LintModelSourceProvider
 import com.android.tools.lint.model.LintModelVariant
-import com.android.utils.FileUtils
 import java.io.File
 
 /** Converter from the builder model library to lint's own model. */
@@ -153,20 +152,14 @@ class LintModelFactory : LintModelModuleLoader {
   }
 
   /** Returns the list of Lint Rule file, no matter what the AGP version is. */
-  private fun IdeAndroidProject.getLintRuleJarsForAnyAgpVersion() =
-    lintChecksJars
-      ?: listOf(
-        FileUtils.join(buildFolder, "intermediates", "lint", "lint.jar"),
-        FileUtils.join(buildFolder, "intermediates", "lint_jar", "lint.jar"),
-        FileUtils.join(
-          buildFolder,
-          "intermediates",
-          "lint_jar",
-          "global",
-          "prepareLintJar",
-          "lint.jar",
-        ),
-      )
+  private fun IdeAndroidProject.getLintRuleJarsForAnyAgpVersion(): List<File> {
+    // This function used to attempt to find lint.jar in several places (for compatibility with
+    // older versions of AGP), hence the name. Removed this code when cleaning up similar code in
+    // LintClient because the code in LintClient seemed to never actually be used. The code here
+    // _might_ have been used in the IDE for very old versions of AGP, but it is good to try to
+    // remove it eventually, and remain consistent with LintClient.
+    return lintChecksJars ?: emptyList()
+  }
 
   /**
    * Ensures that the given [library] (if applicable, module or artifact) has a corresponding object
@@ -395,12 +388,7 @@ class LintModelFactory : LintModelModuleLoader {
       if (variant.buildType == buildTypeContainer.buildType.name) {
         debugVariant = buildTypeContainer.buildType.isDebuggable
         buildTypeContainer.sourceProvider?.let { sourceProvider ->
-          providers.add(
-            getSourceProvider(
-              provider = sourceProvider,
-              debugOnly = debugVariant,
-            )
-          )
+          providers.add(getSourceProvider(provider = sourceProvider, debugOnly = debugVariant))
         }
       }
     }
@@ -893,7 +881,8 @@ class LintModelFactory : LintModelModuleLoader {
     fun getModuleType(type: IdeAndroidProjectType): LintModelModuleType {
       return when (type) {
         IdeAndroidProjectType.PROJECT_TYPE_APP -> LintModelModuleType.APP
-        IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> LintModelModuleType.LIBRARY
+        IdeAndroidProjectType.PROJECT_TYPE_LIBRARY,
+        IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> LintModelModuleType.LIBRARY
         IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY -> LintModelModuleType.FUSED_LIBRARY
         IdeAndroidProjectType.PROJECT_TYPE_TEST -> LintModelModuleType.TEST
         IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> LintModelModuleType.INSTANT_APP
