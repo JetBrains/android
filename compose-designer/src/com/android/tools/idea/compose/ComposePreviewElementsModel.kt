@@ -17,6 +17,8 @@ package com.android.tools.idea.compose
 
 import com.android.tools.idea.concurrency.FlowableCollection
 import com.android.tools.idea.concurrency.flatMap
+import com.android.tools.idea.concurrency.map
+import com.android.tools.idea.preview.BackgroundManager
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.psi.PsiElement
@@ -30,6 +32,25 @@ typealias PsiComposePreviewElementInstance =
   ComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>
 
 /**
+ * Method that applies a background to the given [PsiComposePreviewElementInstance] if any has been
+ * set in the [BackgroundManager]. This is used to allow individual previews having a custom
+ * background. Currently used in glasses to have a Compose background.
+ */
+private fun applyBackground(
+  it: PsiComposePreviewElementInstance
+): PsiComposePreviewElementInstance {
+  val project = it.previewBody?.project ?: return it
+  val background = BackgroundManager.getInstance(project).getBackground(it.previewBody!!)
+  if (background != null) {
+    return it.createDerivedInstance(
+      it.displaySettings.copy(background = background),
+      it.configuration,
+    )
+  }
+  return it
+}
+
+/**
  * Class containing all the support methods that provide the model for the [ComposePreviewMananger].
  * These methods are responsible for the flow transformation from the initial
  * [ComposePreviewElement]s in the file to the output [ComposePreviewElementInstance].
@@ -39,5 +60,7 @@ object ComposePreviewElementsModel {
   fun instantiatedPreviewElementsFlow(
     input: Flow<FlowableCollection<PsiComposePreviewElement>>
   ): Flow<FlowableCollection<PsiComposePreviewElementInstance>> =
-    input.map { inputPreviews -> inputPreviews.flatMap { it.resolve() } }
+    input.map { inputPreviews ->
+      inputPreviews.flatMap { it.resolve() }.map { applyBackground(it) }
+    }
 }

@@ -126,6 +126,9 @@ abstract class ComposePreviewElementInstance<T> :
         xmlBuilder.androidAttribute(ATTR_BACKGROUND, DEFAULT_PREVIEW_BACKGROUND)
       is PreviewDisplaySettings.Background.Color ->
         xmlBuilder.androidAttribute(ATTR_BACKGROUND, background.color)
+      // Images are not passed down to the xml since they are not rendered by layoutlib but
+      // composited by Android Studio.
+      is PreviewDisplaySettings.Background.Image -> {}
       is PreviewDisplaySettings.Background.None -> {}
     }
 

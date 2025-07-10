@@ -20,10 +20,10 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
+import com.android.tools.idea.compose.preview.actions.glasses.GlassesBlendDropdownAction
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.zoomTargetProvider
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.glasses.GlassesBlendDropdownAction
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.BackNavigationAction
 import com.android.tools.idea.preview.actions.CommonPreviewActionManager

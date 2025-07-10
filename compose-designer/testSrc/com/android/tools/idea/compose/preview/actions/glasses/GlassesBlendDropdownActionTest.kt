@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glasses
+package com.android.tools.idea.compose.preview.actions.glasses
 
 import com.android.flags.junit.FlagRule
 import com.android.sdklib.SystemImageTags.AI_GLASSES_TAG

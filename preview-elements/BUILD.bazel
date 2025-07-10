@@ -45,6 +45,7 @@ jvm_library(
     "//android/render-resources",
     "//android/layoutlib-loader",
     "//platform/core-api:core",
+    "//android/android-test-framework:testFramework_test_lib",
   ],
   runtime_deps = [":preview-elements-tests"]
 )

@@ -85,6 +85,7 @@ private fun PreviewDisplaySettings.asTestDisplayString(): String {
         "showBackground=true, backgroundColor=${(background as PreviewDisplaySettings.Background.Color).color}"
       is Background.Default -> "showBackground=true, backgroundColor=null"
       is Background.None -> "showBackground=false, backgroundColor=null"
+      is Background.Image -> "" // Images are not represented as part of the annotation
     }
   return "PreviewDisplaySettings(name=$name, baseName=$baseName, parameterName=$parameterName, group=$group, showDecoration=$showDecoration, $backgroundString, displayPositioning=$displayPositioning, organizationGroup=$organizationGroup, organizationName=$organizationName)"
 }
