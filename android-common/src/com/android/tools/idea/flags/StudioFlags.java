@@ -2071,25 +2071,6 @@ public final class StudioFlags {
                     "When enabled, the type of the last user action is included in inline code completion requests.",
                     enabledUpTo(CANARY));
 
-  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_SHORTCUT_HINT_ENABLED =
-    new BooleanFlag(STUDIOBOT, "inline.code.completion.shortcut.hint.enabled",
-                    "Enable the inline completion shortcut key hint.",
-                    "When enabled, a custom inlay displaying 'TAB to complete' or similar text will be shown alongside inline completions.",
-                    enabledUpTo(STABLE));
-
-  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_DEFERRED_MULTILINE_SUGGESTIONS_ENABLED =
-    new BooleanFlag(STUDIOBOT, "inline.code.completion.deferred.multiline.suggestions.enabled",
-                    "Enable deferred multiline suggestions.",
-                    "When enabled, any part of a multi-line suggestion hidden behind the autosuggest popup will be removed, and " +
-                    "offered later to the user if they accept the first line of the completion.",
-                    enabledUpTo(STABLE));
-
-  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_SYNTAX_HIGHLIGHTING_ENABLED =
-    new BooleanFlag(STUDIOBOT, "inline.code.completion.syntax.highlighting.enabled",
-                    "Enable syntax highlighting for inline suggestions.",
-                    "When inline completions will use lexical syntax highlighting colors.",
-                    enabledUpTo(STABLE));
-
   public static final Flag<Boolean> STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "compiler.error.context.enabled",
                     "Enable sending context with compiler error queries.",
