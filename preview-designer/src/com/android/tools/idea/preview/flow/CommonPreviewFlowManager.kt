@@ -23,6 +23,7 @@ import com.android.tools.idea.concurrency.syntaxErrorFlow
 import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.build.outOfDateKtFiles
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.BackgroundManager
 import com.android.tools.idea.preview.PsiPreviewElement
 import com.android.tools.idea.preview.PsiPreviewElementInstance
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
@@ -184,14 +185,19 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
         val previewElementsFlow =
           previewElementsOnFileChangesFlow(project) { previewElementProvider }
 
-        // Combine both the flow of global ModuleClassLoaderOverlay modifications and the preview
-        // elements flow. If Fast Preview is used and a new class is injected into the
-        // ModuleClassLoader, it might change the number of content of instantiated previews.
-        // This ensures that the previews are resolved and instantiated.
-        previewElementsFlow
-          .combine(
-            ModuleClassLoaderOverlays.NotificationManager.getInstance(project).modificationFlow
-          ) { previewElements, _ ->
+        // Combine three flows:
+        // - Flow containing all the previews that have been found in the files
+        // - ModuleClassLoaderOverlay modification flow: If Fast Preview is used and a new class is
+        //   injected in the ModuleClassLoaderOverlay, this could make the render different or
+        //   event alter the number of content of instances.
+        // - BackgroundManager modification flow: If any preview uses a new background, this ensures
+        //   that the ComposePreviewElementInstances are recreated to reflect any potential changes
+        //   in the background.
+        combine(
+            previewElementsFlow,
+            ModuleClassLoaderOverlays.NotificationManager.getInstance(project).modificationFlow,
+            BackgroundManager.getInstance(project).modificationFlow,
+          ) { previewElements, _, _ ->
             previewElements
           }
           .let { toInstantiatedPreviewElementsFlow(it) }

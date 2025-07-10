@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glasses
+package com.android.tools.idea.compose.preview.actions.glasses
 
 import com.android.sdklib.devices.Device
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.actions.SCENE_VIEW
+import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
@@ -28,10 +29,15 @@ import icons.StudioIcons
  * heuristics used to simulate how Composables look like in AI Glasses environment.
  */
 class GlassesBlendDropdownAction :
-  DropDownAction("Select Preset Backgrounds", null, StudioIcons.Avd.DEVICE_GLASS) {
+  DropDownAction(
+    message("action.glasses.blend.title"),
+    message("action.glasses.blend.description"),
+    StudioIcons.Avd.DEVICE_GLASS,
+  ) {
 
-  // TODO(b/413740393): Create actions to set the preset background and add each one of them as
-  //  options in the dropdown
+  init {
+    GlassesBackground.entries.forEach { addAction(SetGlassesBackgroundAction(it)) }
+  }
 
   override fun update(e: AnActionEvent) {
     super.update(e)

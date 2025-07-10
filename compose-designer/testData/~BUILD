@@ -19,6 +19,12 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "glassespreview",
+    srcs = glob(["glassesPreview/**"]),
+    visibility = ["//visibility:public"],
+)
+
 maven_repository(
     name = "simple_compose_application_test_deps",
     artifacts = SIMPLE_COMPOSE_APPLICATION_DEPS,

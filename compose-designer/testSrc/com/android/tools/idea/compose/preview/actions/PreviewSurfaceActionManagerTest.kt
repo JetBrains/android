@@ -6,9 +6,9 @@ import com.android.tools.idea.common.util.EnableUnderConditionWrapper
 import com.android.tools.idea.common.util.ShowGroupUnderConditionWrapper
 import com.android.tools.idea.common.util.ShowUnderConditionWrapper
 import com.android.tools.idea.compose.preview.ComposeStudioBotActionFactory
+import com.android.tools.idea.compose.preview.actions.glasses.GlassesBlendDropdownAction
 import com.android.tools.idea.compose.preview.util.FakeStudioBotActionFactory
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.glasses.GlassesBlendDropdownAction
 import com.android.tools.idea.preview.actions.AnimationInspectorAction
 import com.android.tools.idea.preview.actions.BackNavigationAction
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
