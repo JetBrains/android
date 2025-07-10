@@ -83,11 +83,6 @@ interface BuildSystem {
       BUILD_PARALLEL_SHARDS,
 
       /**
-       * Capability to run blaze/bazel query command via remote invocation
-       */
-      RUN_REMOTE_QUERIES,
-
-      /**
        * Capability to run blaze/bazel query command with --query_file flag
        */
       SUPPORT_QUERY_FILE,
