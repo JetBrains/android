@@ -16,6 +16,8 @@
 package com.android.tools.preview
 
 import com.android.tools.preview.PreviewDisplaySettings.Background
+import java.awt.image.BufferedImage
+import java.util.function.Consumer
 
 enum class DisplayPositioning {
   TOP, // Previews with this priority will be displayed at the top
@@ -71,6 +73,9 @@ data class PreviewDisplaySettings(
      * of either "#AARRGGBB" or "0xAARRGGBB" are accepted even with alpha omitted.
      */
     data class Color(val color: String) : Background
+
+    /** An image background. At the moment only used for Glasses preview. */
+    data class Image(val image: Consumer<BufferedImage>) : Background
   }
 }
 

@@ -221,6 +221,8 @@ internal fun toPreviewAnnotationText(
       is PreviewDisplaySettings.Background.Default -> {
         params.add("$PARAMETER_SHOW_BACKGROUND = true")
       }
+      // Images are not persisted to the annotation.
+      is PreviewDisplaySettings.Background.Image -> {}
       is PreviewDisplaySettings.Background.None -> {}
     }
 

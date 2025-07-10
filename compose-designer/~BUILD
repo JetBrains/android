@@ -113,6 +113,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/compose-designer/testData:classloader",
+        "//tools/adt/idea/compose-designer/testData:glassespreview",
         "//tools/adt/idea/compose-designer/testData:simple_compose_application_test_deps",
         "//tools/adt/idea/compose-designer/testData:test_projects",
         "//tools/adt/idea/compose-ide-plugin/testData",

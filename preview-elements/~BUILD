@@ -37,6 +37,8 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
