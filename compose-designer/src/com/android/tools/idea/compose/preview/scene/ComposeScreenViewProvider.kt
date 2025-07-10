@@ -20,7 +20,6 @@ import com.android.tools.idea.common.surface.DEVICE_CONFIGURATION_SHAPE_POLICY
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SQUARE_SHAPE_POLICY
 import com.android.tools.idea.common.surface.SceneLayer
-import com.android.tools.idea.common.surface.layer.HighlightLayer
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.util.isRootComponentSelected
@@ -36,6 +35,7 @@ import com.android.tools.idea.uibuilder.surface.layer.BorderLayer
 import com.android.tools.idea.uibuilder.surface.layer.CanvasResizeLayer
 import com.android.tools.idea.uibuilder.surface.layer.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer
+import com.android.tools.idea.uibuilder.surface.layer.HighlightLayer
 import com.android.tools.idea.uibuilder.surface.layer.UiCheckWarningLayer
 import com.android.tools.idea.uibuilder.surface.sizepolicy.ImageContentSizePolicy
 import com.google.common.collect.ImmutableList
@@ -66,7 +66,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
               )
             }
             add(ScreenViewLayer(it, surface, surface::rotateSurfaceDegree))
-            add(HighlightLayer(it, surface))
+            add(HighlightLayer(surface))
             add(
               SceneLayer(surface, it, false).apply {
                 isShowOnHover = true

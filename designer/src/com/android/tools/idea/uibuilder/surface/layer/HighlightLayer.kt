@@ -13,26 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.surface.layer
+package com.android.tools.idea.uibuilder.surface.layer
 
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.ScreenView
-import com.android.tools.idea.uibuilder.surface.layer.BorderPainter
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.Graphics2D
 import java.awt.Rectangle
-import org.jetbrains.annotations.NotNull
 import java.util.concurrent.CopyOnWriteArrayList
 
 private val selectedBorderColor =
   JBColor.namedColor("ScreenView.selectedBorderColor", JBColor(0x3573f0, 0x548af7))
 
-public class HighlightLayer
-@JvmOverloads
-constructor(@NotNull screenView: ScreenView, @NotNull private val surface: NlDesignSurface) :
-  Layer() {
+class HighlightLayer(private val surface: NlDesignSurface) : Layer() {
   private var rectanglesToHighlight = CopyOnWriteArrayList<Rectangle>()
   private val borderPainter =
     BorderPainter(JBUI.scale(2), selectedBorderColor, selectedBorderColor, useHighQuality = true)
