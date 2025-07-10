@@ -64,6 +64,10 @@ class AppInsightsTabPanel : JPanel(BorderLayout()), Disposable {
       AppInsightsDeprecationBanner(project, deprecationData, tracker) { deprecatedBanner = null }
   }
 
+  fun clearDeprecatedBanner() {
+    deprecatedBanner = null
+  }
+
   override fun dispose() = Unit
 
   // Start of stubbed overrides section.

@@ -17,9 +17,11 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gservices.DeprecationBanner
 import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
@@ -29,28 +31,31 @@ import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.ServiceUnsupportedPanel
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
-import java.awt.Component
-import java.awt.event.ContainerAdapter
-import java.awt.event.ContainerEvent
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.trySendBlocking
-import kotlinx.coroutines.flow.Flow
+import com.intellij.util.application
+import com.intellij.util.ui.JBUI
+import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.whenever
 
 class VitalsTabProviderTest {
 
@@ -62,20 +67,32 @@ class VitalsTabProviderTest {
   private lateinit var service: VitalsConfigurationService
   private lateinit var tabPanel: AppInsightsTabPanel
   private lateinit var tabProvider: VitalsTabProvider
-  private lateinit var deprecation: DevServicesDeprecationData
+  private lateinit var deprecationDataFlow: MutableStateFlow<DevServicesDeprecationData>
 
   @Before
   fun setUp() {
+    deprecationDataFlow = MutableStateFlow(DevServicesDeprecationData.EMPTY)
+    val mockDeprecationDataProvider =
+      mock<DevServicesDeprecationDataProvider>().apply {
+        doReturn(deprecationDataFlow.value).whenever(this).getCurrentDeprecationData(any(), any())
+        runBlocking {
+          doReturn(deprecationDataFlow)
+            .whenever(this@apply)
+            .registerServiceForChange(any(), any(), any<Disposable>())
+        }
+      }
+    application.replaceService(
+      DevServicesDeprecationDataProvider::class.java,
+      mockDeprecationDataProvider,
+      projectRule.disposable,
+    )
+
     modelStateFlow = MutableStateFlow(AppInsightsModel.Uninitialized)
-    deprecation =
-      DevServicesDeprecationData("", "", "", false, DevServicesDeprecationStatus.SUPPORTED)
     manager =
       object : AppInsightsConfigurationManager {
         override val project = projectRule.project
         override val configuration = modelStateFlow
         override val offlineStatusManager = OfflineStatusManagerImpl()
-        override val deprecationData: DevServicesDeprecationData
-          get() = deprecation
 
         override fun refreshConfiguration() {}
       }
@@ -93,51 +110,37 @@ class VitalsTabProviderTest {
     Disposer.register(projectRule.disposable, tabPanel)
   }
 
-  private fun populateTabAndGetComponentsFlow(): Flow<Component> = callbackFlow {
-    tabPanel.addContainerListener(
-      object : ContainerAdapter() {
-        override fun componentAdded(e: ContainerEvent) {
-          trySendBlocking(e.child)
-        }
-      }
-    )
-    tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
-    awaitClose()
-  }
-
   @Test
   fun `model change triggers different UI presentation`() = runTest {
-    val callbackFlow = populateTabAndGetComponentsFlow()
+    // Setup
+    tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
 
-    callbackFlow.take(3).collectIndexed { index, component ->
-      when (index) {
-        0 -> {
-          assertThat(component.toString()).contains("placeholderContent")
-          val stubController =
-            object : StubAppInsightsProjectLevelController() {
-              override val project = projectRule.project
-            }
-          modelStateFlow.value = AppInsightsModel.Authenticated(stubController)
-        }
-        1 -> {
-          assertThat(component).isInstanceOf(VitalsTab::class.java)
-          modelStateFlow.value = AppInsightsModel.Unauthenticated
-        }
-        2 -> {
-          val expect =
-            if (StudioFlags.USE_1P_LOGIN_UI.get()) {
-              "loggedOut1pPanel"
-            } else {
-              "loggedOutErrorStateComponent"
-            }
-          assertThat(component.toString()).contains(expect)
-          modelStateFlow.value = AppInsightsModel.InitializationFailed
-        }
-        3 -> {
-          assertThat(component.toString()).contains("initializationFailedComponent")
-        }
+    assertThat(tabPanel.components.single().toString()).contains("placeholderContent")
+    val stubController =
+      object : StubAppInsightsProjectLevelController() {
+        override val project = projectRule.project
       }
+
+    modelStateFlow.value = AppInsightsModel.Authenticated(stubController)
+    delayUntilCondition(200) {
+      val single = tabPanel.components.firstOrNull()
+      single is VitalsTab
     }
+
+    modelStateFlow.value = AppInsightsModel.Unauthenticated
+    val expect =
+      if (StudioFlags.USE_1P_LOGIN_UI.get()) {
+        "loggedOut1pPanel"
+      } else {
+        "loggedOutErrorStateComponent"
+      }
+    delayUntilCondition(200) { tabPanel.components.firstOrNull().toString().contains(expect) }
+
+    modelStateFlow.value = AppInsightsModel.InitializationFailed
+    delayUntilCondition(200) {
+      tabPanel.components.firstOrNull().toString().contains("initializationFailedComponent")
+    }
+    println("InitializationFailed delay complete")
   }
 
   @Test
@@ -152,27 +155,34 @@ class VitalsTabProviderTest {
         }
       }
 
-    val flow = populateTabAndGetComponentsFlow()
-    val collection = launch {
-      flow.collectIndexed { index, _ ->
-        when (index) {
-          0 -> modelStateFlow.value = AppInsightsModel.Authenticated(controller)
-          1 -> modelStateFlow.value = AppInsightsModel.Unauthenticated
-          2 -> modelStateFlow.value = AppInsightsModel.Authenticated(controller)
-          3 -> modelStateFlow.value = AppInsightsModel.InitializationFailed
-          4 -> modelStateFlow.value = AppInsightsModel.Authenticated(controller)
-          else -> cancel()
-        }
-      }
-    }
+    modelStateFlow.value = AppInsightsModel.Authenticated(controller)
+    tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
+    withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
-    collection.join()
-    assertThat(controller.refreshCount).isEqualTo(2)
+    modelStateFlow.value = AppInsightsModel.Unauthenticated
+    waitForCondition(2.seconds) {
+      tabPanel.components.firstOrNull().toString().contains("loggedOut")
+    }
+    assertThat(controller.refreshCount).isEqualTo(0)
+
+    modelStateFlow.value = AppInsightsModel.Authenticated(controller)
+    withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    waitForCondition(2.seconds) { controller.refreshCount == 1 }
+
+    modelStateFlow.value = AppInsightsModel.InitializationFailed
+    waitForCondition(2.seconds) {
+      tabPanel.components.firstOrNull().toString().contains("initializationFailedComponent")
+    }
+    assertThat(controller.refreshCount).isEqualTo(1)
+
+    modelStateFlow.value = AppInsightsModel.Authenticated(controller)
+    withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    waitForCondition(2.seconds) { controller.refreshCount == 2 }
   }
 
   @Test
   fun `show service unsupported panel when service is unsupported`() = runTest {
-    deprecation =
+    deprecationDataFlow.update {
       DevServicesDeprecationData(
         "header",
         "desc",
@@ -180,15 +190,15 @@ class VitalsTabProviderTest {
         true,
         DevServicesDeprecationStatus.UNSUPPORTED,
       )
-    val flow = populateTabAndGetComponentsFlow()
-    flow.take(1).collect { component ->
-      assertThat(component).isInstanceOf(ServiceUnsupportedPanel::class.java)
     }
+    tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
+    withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    waitForCondition(2.seconds) { tabPanel.components.any { it is ServiceUnsupportedPanel } }
   }
 
   @Test
-  fun `show deprecated banner when service is unsupported`() = runTest {
-    deprecation =
+  fun `show deprecated banner when service is deprecated`() = runTest {
+    deprecationDataFlow.update {
       DevServicesDeprecationData(
         "header",
         "desc",
@@ -196,15 +206,111 @@ class VitalsTabProviderTest {
         true,
         DevServicesDeprecationStatus.DEPRECATED,
       )
-    val flow = populateTabAndGetComponentsFlow()
-    flow.take(3).collectIndexed { idx, comp ->
-      when (idx) {
-        0,
-        1 -> assertThat(comp).isInstanceOf(DeprecationBanner::class.java)
-        2 -> assertThat(comp.toString()).contains("placeholderContent")
-      }
     }
+    tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
+    withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    waitForCondition(1.seconds) { tabPanel.components.any { it is DeprecationBanner } }
+
+    val banner = tabPanel.components.first { it is DeprecationBanner }
+    assertThat(banner.background).isEqualTo(JBUI.CurrentTheme.Banner.WARNING_BACKGROUND)
+
+    val placeHolder = tabPanel.components.firstOrNull { it is JPanel }
+    assertThat(placeHolder.toString()).contains("placeholderContent")
   }
+
+  @Test
+  fun `service restored when deprecation data changes from UNSUPPORTED to SUPPORTED`() = runTest {
+    modelStateFlow.value = AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController())
+    deprecationDataFlow.update {
+      DevServicesDeprecationData(
+        "header",
+        "desc",
+        "url",
+        true,
+        DevServicesDeprecationStatus.UNSUPPORTED,
+      )
+    }
+
+    tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
+    withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    waitForCondition(2.seconds) { tabPanel.components.any { it is ServiceUnsupportedPanel } }
+
+    deprecationDataFlow.update {
+      DevServicesDeprecationData(
+        "header",
+        "desc",
+        "url",
+        true,
+        DevServicesDeprecationStatus.SUPPORTED,
+      )
+    }
+    withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    waitForCondition(2.seconds) { tabPanel.components.none { it is ServiceUnsupportedPanel } }
+    waitForCondition(2.seconds) { tabPanel.components.any { it is VitalsTab } }
+  }
+
+  @Test
+  fun `service restored when deprecation data changes from UNSUPPORTED to DEPRECATED`() = runTest {
+    modelStateFlow.value = AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController())
+    deprecationDataFlow.update {
+      DevServicesDeprecationData(
+        "header",
+        "desc",
+        "url",
+        true,
+        DevServicesDeprecationStatus.UNSUPPORTED,
+      )
+    }
+
+    tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
+    withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    waitForCondition(2.seconds) { tabPanel.components.any { it is ServiceUnsupportedPanel } }
+
+    deprecationDataFlow.update {
+      DevServicesDeprecationData(
+        "header",
+        "desc",
+        "url",
+        true,
+        DevServicesDeprecationStatus.DEPRECATED,
+      )
+    }
+    withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    waitForCondition(2.seconds) { tabPanel.components.none { it is ServiceUnsupportedPanel } }
+    waitForCondition(2.seconds) { tabPanel.components.any { it is DeprecationBanner } }
+    waitForCondition(2.seconds) { tabPanel.components.any { it is VitalsTab } }
+  }
+
+  @Test
+  fun `deprecation banner hidden when deprecation data changes from DEPRECATED TO SUPPORTED`() =
+    runTest {
+      modelStateFlow.value = AppInsightsModel.Authenticated(StubAppInsightsProjectLevelController())
+      deprecationDataFlow.update {
+        DevServicesDeprecationData(
+          "header",
+          "desc",
+          "url",
+          true,
+          DevServicesDeprecationStatus.DEPRECATED,
+        )
+      }
+      tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
+      withContext(Dispatchers.EDT) { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+      waitForCondition(2.seconds) { tabPanel.components.any { it is DeprecationBanner } }
+      waitForCondition(2.seconds) { tabPanel.components.any { it is VitalsTab } }
+
+      deprecationDataFlow.update {
+        DevServicesDeprecationData(
+          "header",
+          "desc",
+          "url",
+          true,
+          DevServicesDeprecationStatus.SUPPORTED,
+        )
+      }
+
+      waitForCondition(2.seconds) { tabPanel.components.none { it is DeprecationBanner } }
+    }
 
   @Test
   fun `test 1p login screen`() = runTest {

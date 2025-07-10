@@ -17,8 +17,6 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.gservices.DevServicesDeprecationData
-import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
@@ -48,7 +46,6 @@ import com.google.gct.login2.GoogleLoginService
 import com.google.gct.login2.LoginFeature
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -120,11 +117,6 @@ class VitalsConfigurationManager(
       .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
   override val offlineStatusManager = OfflineStatusManagerImpl()
-
-  override val deprecationData: DevServicesDeprecationData
-    get() =
-      service<DevServicesDeprecationDataProvider>()
-        .getCurrentDeprecationData("aqi/vitals", VitalsInsightsProvider.displayName)
 
   override val configuration =
     flow {

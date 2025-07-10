@@ -16,8 +16,8 @@
 package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -34,6 +34,8 @@ import com.google.gct.login2.toText
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.updateSettings.impl.UpdateChecker
@@ -52,6 +54,9 @@ import java.awt.GridBagLayout
 import java.time.Clock
 import javax.swing.JButton
 import javax.swing.JPanel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -62,36 +67,76 @@ class VitalsTabProvider : AppInsightsTabProvider {
 
   override val icon = StudioIllustrations.Common.PLAY_CONSOLE_ICON
 
+  private var populateTabJob: Job? = null
+
   override fun populateTab(
     project: Project,
     tabPanel: AppInsightsTabPanel,
     activeTabFlow: Flow<Boolean>,
   ) {
     val scope = AndroidCoroutineScope(tabPanel)
-    val deprecationData = getConfigurationManager(project).deprecationData
     val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
-    if (deprecationData.isUnsupported()) {
-      tabPanel.setComponent(
-        ServiceUnsupportedPanel(scope, activeTabFlow, tracker, deprecationData) {
-          UpdateChecker.updateAndShowResult(project)
-        }
-      )
-      return
-    }
-    if (deprecationData.isDeprecated()) {
-      tabPanel.addDeprecatedBanner(project, deprecationData, tracker)
-    }
     tabPanel.setComponent(placeholderContent())
-    scope.launch(AndroidDispatchers.diskIoThread) {
-      val configManager = project.service<VitalsConfigurationService>().manager
-      val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
-      withContext(AndroidDispatchers.uiThread) {
-        // Combine with active user flow to get the logged out -> logged in + not authorized update
-        val loginService = service<GoogleLoginService>()
-        var shouldRefresh = false
-        val flow =
-          configManager.configuration.combine(loginService.activeUserFlow) { config, _ -> config }
-        flow.collect { appInsightsModel ->
+
+    scope.launch {
+      service<DevServicesDeprecationDataProvider>()
+        .registerServiceForChange("aqi/vitals", VitalsInsightsProvider.displayName, tabPanel)
+        .collect { deprecationData ->
+          when {
+            deprecationData.isSupported() -> {
+              tabPanel.clearDeprecatedBanner()
+              tabPanel.setComponent(placeholderContent())
+              startPopulateTabJob(project, tracker, tabPanel, activeTabFlow)
+            }
+            deprecationData.isDeprecated() -> {
+              if (populateTabJob == null) {
+                startPopulateTabJob(project, tracker, tabPanel, activeTabFlow)
+              }
+              runInEdt { tabPanel.addDeprecatedBanner(project, deprecationData, tracker) }
+            }
+            deprecationData.isUnsupported() -> {
+              populateTabJob?.cancel()
+              runInEdt {
+                tabPanel.clearDeprecatedBanner()
+                tabPanel.setComponent(
+                  ServiceUnsupportedPanel(scope, activeTabFlow, tracker, deprecationData) {
+                    UpdateChecker.updateAndShowResult(project)
+                  }
+                )
+              }
+            }
+          }
+        }
+    }
+  }
+
+  private fun CoroutineScope.startPopulateTabJob(
+    project: Project,
+    tracker: AppInsightsTracker,
+    tabPanel: AppInsightsTabPanel,
+    activeTabFlow: Flow<Boolean>,
+  ) {
+    populateTabJob?.cancel()
+    populateTabJob =
+      launch(Dispatchers.EDT) { launchPopulateTabJob(project, tracker, tabPanel, activeTabFlow) }
+  }
+
+  private suspend fun launchPopulateTabJob(
+    project: Project,
+    tracker: AppInsightsTracker,
+    tabPanel: AppInsightsTabPanel,
+    activeTabFlow: Flow<Boolean>,
+  ) =
+    try {
+      val configManager =
+        withContext(Dispatchers.IO) { project.service<VitalsConfigurationService>().manager }
+      // Combine with active user flow to get the logged out -> logged in + not authorized
+      // update
+      val loginService = service<GoogleLoginService>()
+      var shouldRefresh = false
+      configManager.configuration
+        .combine(loginService.activeUserFlow) { config, _ -> config }
+        .collect { appInsightsModel ->
           when (appInsightsModel) {
             AppInsightsModel.Unauthenticated -> {
               tracker.logZeroState(
@@ -122,7 +167,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
                   appInsightsModel.controller,
                   project,
                   Clock.systemDefaultZone(),
-                  AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS),
+                  tracker,
                   activeTabFlow,
                 )
               )
@@ -134,9 +179,9 @@ class VitalsTabProvider : AppInsightsTabProvider {
             else -> {}
           }
         }
-      }
+    } finally {
+      populateTabJob = null
     }
-  }
 
   override fun isApplicable(): Boolean = true
 
