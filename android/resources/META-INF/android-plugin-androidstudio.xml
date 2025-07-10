@@ -72,7 +72,7 @@
                         serviceImplementation="com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier"/>
     <execution.applicationRunLineMarkerHider implementation="com.android.tools.idea.run.AndroidRunMarkerHider"/>
     <postStartupActivity implementation="com.android.tools.idea.project.LibraryToolWindowInitializer"/>
-    <postStartupActivity implementation="com.android.tools.idea.gservices.StudioDeprecationChecker" />
+    <postStartupActivity implementation="com.android.tools.idea.gservices.StudioDeprecationChecker$Initializer" />
     <notificationGroup displayType="STICKY_BALLOON" id="StudioDeprecationNotification" />
   </extensions>
 

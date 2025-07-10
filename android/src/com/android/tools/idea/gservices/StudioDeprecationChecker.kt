@@ -26,11 +26,14 @@ import com.google.wireless.android.sdk.stats.StudioDeprecationNotificationEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -41,6 +44,8 @@ import com.intellij.openapi.updateSettings.impl.UpdateChecker
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 private const val STUDIO_FLAG_NAME = "studio"
 private const val NOTIFICATION_GROUP_NAME = "StudioDeprecationNotification"
@@ -49,99 +54,136 @@ private const val DEPRECATION_DATE_PROPERTIES_KEY =
 private const val DEPRECATION_DATE_PATTERN = "yyyy-MM-dd"
 private const val SHOW_NOTIFICATION_THRESHOLD = 30
 
-class StudioDeprecationChecker : ProjectActivity {
+@Service
+class StudioDeprecationChecker(scope: CoroutineScope) : Disposable {
 
   private val notificationGroup: NotificationGroup
     get() =
       NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_NAME)
         ?: throw RuntimeException("NotificationGroup not found")
 
-  override suspend fun execute(project: Project) {
-    val deprecationData =
-      service<DevServicesDeprecationDataProvider>().getCurrentDeprecationData(STUDIO_FLAG_NAME, "")
-    if (deprecationData.isSupported()) return
-
-    if (deprecationData.isDeprecated()) {
-      val date = deprecationData.date
-      if (date == null) {
-        thisLogger().warn("Deprecation date not provided")
-        return
-      }
-      if (checkDateDiff(date)) {
-        thisLogger()
-          .info(
-            "Skip showing deprecation notification because diff is more than $SHOW_NOTIFICATION_THRESHOLD days"
-          )
-        return
-      }
-      if (hasShownForDate(date)) {
-        thisLogger()
-          .info("Skip showing deprecation notification because notification already shown")
-        return
-      }
+  private var notification: Notification? = null
+    set(value) {
+      val oldField = field
+      field = value
+      oldField?.expire()
     }
 
-    val header =
-      if (deprecationData.isDeprecated()) {
-        "Cloud services won't be accessible after ${deprecationData.formattedDate()}"
-      } else {
-        "Unsupported Android Studio version"
-      }
+  private var userClickedUpdateAction = false
 
-    val description =
-      if (deprecationData.isDeprecated()) {
-        "Please update Android Studio to ensure uninterrupted access to cloud services."
-      } else {
-        "This version of Android Studio is no longer compatible with cloud services."
-      }
+  init {
+    scope.launch {
+      service<DevServicesDeprecationDataProvider>()
+        .registerServiceForChange(STUDIO_FLAG_NAME, "", this@StudioDeprecationChecker)
+        .collect { deprecationData ->
+          // If there's an existing notification, clear it.
+          notification = null
+          if (deprecationData.isSupported()) {
+            return@collect
+          }
 
-    val notification =
-      notificationGroup.createNotification(
-        header,
-        description,
+          if (deprecationData.isDeprecated()) {
+            val date = deprecationData.date
+            if (!shouldShowNotificationForData(date)) {
+              return@collect
+            }
+          }
+
+          notification =
+            createNotification(deprecationData).apply {
+              showNotification(this)
+              trackEvent(deprecationData.status, userNotified = true)
+              runInEdt {
+                balloon?.addListener(
+                  object : JBPopupListener {
+                    override fun onClosed(event: LightweightWindowEvent) {
+                      super.onClosed(event)
+                      expire()
+                    }
+                  }
+                )
+              }
+            }
+        }
+    }
+  }
+
+  private fun createNotification(deprecationData: DevServicesDeprecationData) =
+    notificationGroup
+      .createNotification(
+        deprecationData.getHeader(),
+        deprecationData.getDescription(),
         deprecationData.getNotificationType(),
       )
+      .apply {
+        if (deprecationData.showUpdateAction) {
+          // Shows the update action as a button.
+          isSuggestionType = true
 
-    if (deprecationData.showUpdateAction) {
-      // Shows the update action as a button.
-      notification.isSuggestionType = true
-
-      notification.addAction(
-        NotificationAction.createSimpleExpiring("Update Android Studio") {
-          UpdateChecker.updateAndShowResult(project)
-          trackEvent(deprecationData.status, updateClicked = true)
+          addAction(
+            NotificationAction.createSimpleExpiring("Update Android Studio") {
+              userClickedUpdateAction = true
+              UpdateChecker.updateAndShowResult(null)
+              trackEvent(deprecationData.status, updateClicked = true)
+            }
+          )
         }
-      )
-    }
 
-    if (deprecationData.moreInfoUrl.isNotEmpty()) {
-      notification.addAction(
-        NotificationAction.createSimple("More info") {
-          BrowserUtil.browse(deprecationData.moreInfoUrl)
-          trackEvent(deprecationData.status, moreInfoClicked = true)
+        if (deprecationData.moreInfoUrl.isNotEmpty()) {
+          addAction(
+            NotificationAction.createSimple("More info") {
+              BrowserUtil.browse(deprecationData.moreInfoUrl)
+              trackEvent(deprecationData.status, moreInfoClicked = true)
+            }
+          )
         }
-      )
-    }
 
-    notification
-      .setImportant(true)
-      .setIcon(deprecationData.getNotificationIcon())
-      .whenExpired { maybeStoreDeprecationDate(deprecationData) }
-      .notify(project)
-
-    trackEvent(deprecationData.status, userNotified = true)
-
-    invokeLater {
-      notification.balloon?.addListener(
-        object : JBPopupListener {
-          override fun onClosed(event: LightweightWindowEvent) {
-            super.onClosed(event)
-            notification.expire()
-            trackEvent(deprecationData.status, notificationDismissed = true)
+        setImportant(true)
+        setIcon(deprecationData.getNotificationIcon())
+        whenExpired {
+          if (notification == this) {
+            if (!userClickedUpdateAction) {
+              trackEvent(deprecationData.status, notificationDismissed = true)
+            }
+            maybeStoreDeprecationDate(deprecationData)
+            notification = null
           }
         }
-      )
+      }
+
+  private fun DevServicesDeprecationData.getHeader() =
+    when {
+      isDeprecated() -> "Cloud services won't be accessible after ${formattedDate()}"
+      isUnsupported() -> "Unsupported Android Studio version"
+      else -> throw IllegalStateException("Cannot request header for $this")
     }
+
+  private fun DevServicesDeprecationData.getDescription() =
+    when {
+      isDeprecated() ->
+        "Please update Android Studio to ensure uninterrupted access to cloud services."
+      isUnsupported() ->
+        "This version of Android Studio is no longer compatible with cloud services."
+      else -> throw IllegalStateException("Cannot request description for $this")
+    }
+
+  private fun shouldShowNotificationForData(date: LocalDate?): Boolean {
+    if (date == null) {
+      thisLogger().warn("Deprecation date not provided")
+      return false
+    }
+    if (checkDateDiff(date)) {
+      thisLogger()
+        .info(
+          "Skip showing deprecation notification because diff is more than $SHOW_NOTIFICATION_THRESHOLD days"
+        )
+      return false
+    }
+    if (hasShownForDate(date)) {
+      thisLogger().info("Skip showing deprecation notification because notification already shown")
+      return false
+    }
+    return true
   }
 
   private fun checkDateDiff(deprecationDate: LocalDate) =
@@ -183,6 +225,12 @@ class StudioDeprecationChecker : ProjectActivity {
       else -> throw IllegalStateException("Cannot request notification type for $this")
     }
 
+  private fun showNotification(notif: Notification) {
+    notif.notify(null)
+    // Reset var for new notification
+    userClickedUpdateAction = false
+  }
+
   private fun trackEvent(
     deprStatus: DevServicesDeprecationStatus,
     userNotified: Boolean? = null,
@@ -217,5 +265,15 @@ class StudioDeprecationChecker : ProjectActivity {
             .build()
       }
     )
+  }
+
+  override fun dispose() {
+    notification = null
+  }
+
+  class Initializer : ProjectActivity {
+    override suspend fun execute(project: Project) {
+      service<StudioDeprecationChecker>()
+    }
   }
 }
