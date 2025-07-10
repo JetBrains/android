@@ -21,9 +21,11 @@ import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
 import com.intellij.debugger.ui.impl.watch.ValueDescriptorImpl;
 import com.intellij.debugger.ui.tree.render.CompoundReferenceRenderer;
 import com.intellij.xdebugger.frame.XFullValueEvaluator;
+import com.intellij.xdebugger.frame.XValueNode;
 import com.sun.jdi.ObjectReference;
 import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class BitmapRenderer extends CompoundReferenceRenderer implements FullValueEvaluatorProvider {
   static final String BITMAP_FQCN = "android.graphics.Bitmap";
@@ -49,5 +51,13 @@ final class BitmapRenderer extends CompoundReferenceRenderer implements FullValu
         }
       };
     }
+  }
+
+  @Override
+  @NotNull
+  public XFullValueEvaluator getFullValueEvaluator(@NotNull XValueNode node,
+                                                             @NotNull EvaluationContextImpl evaluationContext,
+                                                             @NotNull ValueDescriptorImpl valueDescriptor) {
+    return getFullValueEvaluator(evaluationContext, valueDescriptor);
   }
 }
