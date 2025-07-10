@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.layoutlib.androidx.annotation.VisibleForTesting
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.errors.ui.MessageTip
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
@@ -42,6 +44,7 @@ import java.awt.BorderLayout
 import java.awt.Font
 import java.io.File
 import javax.swing.BoxLayout
+import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
@@ -49,9 +52,15 @@ import javax.swing.ToolTipManager
 import javax.swing.event.HyperlinkListener
 import org.jetbrains.annotations.TestOnly
 
+/** The name of the "Fix with AI" button. */
+@VisibleForTesting const val FIX_WITH_AI_BUTTON_NAME = "fixWithAiButton"
+
 /** The side panel to show the detail of issue and its source code if available */
-class DesignerCommonIssueSidePanel(private val project: Project, parentDisposable: Disposable) :
-  JPanel(BorderLayout()), Disposable {
+class DesignerCommonIssueSidePanel(
+  private val project: Project,
+  parentDisposable: Disposable,
+  private val onFixWitAiButtonClicked: (VisualLintRenderIssue) -> Unit,
+) : JPanel(BorderLayout()), Disposable {
 
   private val splitter: OnePixelSplitter = OnePixelSplitter(true, 0.5f, 0.1f, 0.9f)
 
@@ -83,7 +92,9 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
    */
   fun loadIssueNode(issueNode: DesignerCommonIssueNode?): Boolean {
     splitter.firstComponent =
-      (issueNode as? IssueNode)?.let { node -> DesignerCommonIssueDetailPanel(project, node.issue) }
+      (issueNode as? IssueNode)?.let { node ->
+        DesignerCommonIssueDetailPanel(project, node.issue, onFixWitAiButtonClicked)
+      }
     return splitter.firstComponent != null
   }
 
@@ -99,7 +110,11 @@ class DesignerCommonIssueSidePanel(private val project: Project, parentDisposabl
 
 /** The side panel to show the details of issue detail in [DesignerCommonIssuePanel]. */
 @Suppress("DialogTitleCapitalization")
-private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : JPanel() {
+class DesignerCommonIssueDetailPanel(
+  project: Project,
+  issue: Issue,
+  onFixWitAiButtonClicked: (VisualLintRenderIssue) -> Unit,
+) : JPanel() {
 
   init {
     border = JBUI.Borders.empty(18, 12, 0, 0)
@@ -136,7 +151,7 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
     descriptionEditorPane.readHTML(description)
 
     if (issue is VisualLintRenderIssue) {
-      contentPanel.addVisualRenderIssue(issue, project)
+      contentPanel.addVisualRenderIssue(issue, project, onFixWitAiButtonClicked)
     }
   }
 
@@ -178,7 +193,11 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
     }
   }
 
-  private fun JPanel.addVisualRenderIssue(issue: VisualLintRenderIssue, project: Project) {
+  private fun JPanel.addVisualRenderIssue(
+    issue: VisualLintRenderIssue,
+    project: Project,
+    onFixWitAiButtonClicked: (VisualLintRenderIssue) -> Unit,
+  ) {
     val affectedFilePanel = JPanel().apply { border = JBUI.Borders.empty(4, 0) }
     affectedFilePanel.layout = BoxLayout(affectedFilePanel, BoxLayout.Y_AXIS)
 
@@ -215,6 +234,15 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
         ToolTipManager.sharedInstance().registerComponent(link)
         affectedFilePanel.add(link)
       }
+    }
+    if (StudioFlags.COMPOSE_UI_CHECK_FIX_WITH_AI.get()) {
+      affectedFilePanel.add(
+        JButton("Fix with AI").apply {
+          name = FIX_WITH_AI_BUTTON_NAME
+          alignmentX = LEFT_ALIGNMENT
+          addActionListener { onFixWitAiButtonClicked(issue) }
+        }
+      )
     }
     add(affectedFilePanel, BorderLayout.CENTER)
   }

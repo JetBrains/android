@@ -80,6 +80,7 @@ class DesignerCommonIssuePanel(
   nodeFactoryProvider: () -> NodeFactory,
   issueFilter: DesignerCommonIssueProvider.Filter,
   private val emptyMessageProvider: suspend () -> String,
+  fixWithAiAction: (VisualLintRenderIssue) -> Unit = {},
   private val onContentPopulated: (Content) -> Unit = {},
 ) : SimpleToolWindowPanel(vertical), ProblemsViewTab, Disposable {
 
@@ -136,7 +137,7 @@ class DesignerCommonIssuePanel(
         toolbar = component
       }
 
-    sidePanel = DesignerCommonIssueSidePanel(project, this)
+    sidePanel = DesignerCommonIssueSidePanel(project, this, fixWithAiAction)
 
     splitter = OnePixelSplitter(vertical, 0.5f, 0.3f, 0.7f)
     splitter.proportion = 0.5f

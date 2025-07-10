@@ -23,7 +23,8 @@ import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanelProvider
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
-import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils.addTab
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils.getTabById
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.SmartPsiElementPointer
@@ -50,6 +51,7 @@ class UiCheckPanelProvider(
       { UICheckNodeFactory },
       NotSuppressedFilter,
       { "UI Check did not find any issues to report" },
+      { /* TODO(b/429618186): Add the Agent in this callback */ },
     ) { content ->
       (instance.previewElementDefinition as? SmartPsiElementPointer<*>)?.let {
         content.putUserData(TAB_PREVIEW_DEFINITION, it)
@@ -62,12 +64,11 @@ class UiCheckPanelProvider(
 
   fun getPanel(): DesignerCommonIssuePanel {
     val id = instance.instanceId
-    val existingTab =
-      ProblemsViewToolWindowUtils.getTabById(project, id) as? DesignerCommonIssuePanel
+    val existingTab = getTabById(project, id) as? DesignerCommonIssuePanel
     if (existingTab != null) {
       return existingTab
     }
-    ProblemsViewToolWindowUtils.addTab(project, this)
-    return ProblemsViewToolWindowUtils.getTabById(project, id) as DesignerCommonIssuePanel
+    addTab(project, this)
+    return getTabById(project, id) as DesignerCommonIssuePanel
   }
 }
