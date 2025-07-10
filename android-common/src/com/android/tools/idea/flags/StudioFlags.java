@@ -2669,14 +2669,14 @@ public final class StudioFlags {
     new BooleanFlag(
       DEPRECATION_POLICY,
       "use.policy.with.deprecate",
-      "Use N2 deprecation policy",
-      "Use N2 deprecation policy that supports DEPRECATED state",
-      enabledUpTo(CANARY));
+      "Use compatibility policy with DEPRECATE support",
+      "Use compatibility policy that supports DEPRECATED state",
+      true);
   public static final Flag<String> DEFAULT_MORE_INFO_URL =
     new StringFlag(
       DEPRECATION_POLICY,
       "default.more.info.url",
-      "Defaul More Info URL",
+      "Default More Info URL",
       "Redirect to this URL if moreInfoUrl is not provided",
       "https://developer.android.com/studio/releases#service-compat"
     );
