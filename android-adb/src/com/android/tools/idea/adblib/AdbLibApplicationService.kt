@@ -151,8 +151,13 @@ class AdbLibApplicationService : Disposable {
         object : AdbServerChannelProvider {
           override suspend fun createChannel(timeout: Long, unit: TimeUnit): AdbChannel {
             return host.timeProvider.withErrorTimeout(timeout, unit) {
-              ensureAndroidDebugBridgeStarted(adbFileLocationTracker)
-              controller.waitIsStarted()
+              if (!ApplicationManager.getApplication().isUnitTestMode) {
+                // Note that ADB creation is not forced in unit tests as it's typically
+                // managed by test rules like `FakeAdbRule`, which configure ADB on
+                // a non-default port.
+                ensureAndroidDebugBridgeStarted(adbFileLocationTracker)
+                controller.waitIsStarted()
+              }
               controller.channelProvider.createChannel(timeout, unit)
             }
           }
