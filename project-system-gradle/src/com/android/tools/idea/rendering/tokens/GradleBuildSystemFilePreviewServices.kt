@@ -42,6 +42,7 @@ import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.Bu
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.tokens.GradleApplicationLiveEditServices
+import com.android.tools.idea.util.findAndroidModule
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
@@ -75,7 +76,10 @@ class GradleBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Grad
 
   override val buildTargets: BuildSystemFilePreviewServices.BuildTargets = object: BuildSystemFilePreviewServices.BuildTargets {
     override fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
-      return GradleBuildTargetReference(module)
+      return GradleBuildTargetReference(
+        // For KMP modules, we should use the Android implementation module instead if available.
+        module.findAndroidModule() ?: module
+      )
     }
   }
 
