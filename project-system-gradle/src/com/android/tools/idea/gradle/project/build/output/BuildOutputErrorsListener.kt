@@ -78,7 +78,9 @@ fun toBuildErrorMessage(buildEvent: BuildEvent): BuildErrorMessage? {
   }
   if (buildEvent is FileMessageEvent) {
     builder.fileLocationIncluded = true
-    builder.fileIncludedType = getFileType(buildEvent.filePosition.file!!)
+    buildEvent.filePosition.file?.let {
+      builder.fileIncludedType = getFileType(it)
+    }
     if (buildEvent.filePosition.startLine >= 0) {
       builder.lineLocationIncluded = true
     }

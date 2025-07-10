@@ -133,9 +133,10 @@ class OpenFileWithLocationQuickFix(uniqueId: String, val myFilePosition: FilePos
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val projectFile = project.projectFile ?: return CompletableFuture.completedFuture<Any>(null)
+    val filePositionPath = myFilePosition.file?.path ?: return CompletableFuture.completedFuture<Any>(null)
     val future = CompletableFuture<Any>()
     invokeLater {
-      val file = projectFile.parent.fileSystem.findFileByPath(myFilePosition.file!!.path)
+      val file = projectFile.parent.fileSystem.findFileByPath(filePositionPath)
       if (file != null) {
         val openFile = OpenFileDescriptor(project, file, myFilePosition.startLine, myFilePosition.startColumn, false)
         if (openFile.canNavigate()) {

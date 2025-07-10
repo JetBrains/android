@@ -193,11 +193,11 @@ class OpenFileAtLocationQuickFix(val myFilePosition: FilePosition) : BuildIssueQ
   override val id = "open.file"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
-    val future = CompletableFuture<Any>()
-
     val projectFile = project.projectFile ?: return CompletableFuture.completedFuture<Any>(null)
+    val filePositionFile = myFilePosition.file?.path ?: return CompletableFuture.completedFuture<Any>(null)
+    val future = CompletableFuture<Any>()
     invokeLater {
-      val file = projectFile.parent.fileSystem.findFileByPath(myFilePosition.file!!.path)
+      val file = projectFile.parent.fileSystem.findFileByPath(filePositionFile)
       if (file != null) {
         val openFile = OpenFileDescriptor(project, file, myFilePosition.startLine, myFilePosition.startColumn, false)
         if (openFile.canNavigate()) {

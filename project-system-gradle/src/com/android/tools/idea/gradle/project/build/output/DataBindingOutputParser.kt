@@ -169,7 +169,7 @@ class DataBindingOutputParser : BuildOutputParser {
 
         val sourceFile = File(file)
         val filePosition = FilePosition(sourceFile, startLine, startCol, endLine, endCol)
-        val fileLink = StringBuilder(filePosition.file!!.path)
+        val fileLink = StringBuilder(filePosition.file?.path.orEmpty())
         if (filePosition.startLine > 0) {
           fileLink.append(":").append(filePosition.startLine + 1)
           if (filePosition.startColumn > 0) {
