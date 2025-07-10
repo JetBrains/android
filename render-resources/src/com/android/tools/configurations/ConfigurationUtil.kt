@@ -62,16 +62,18 @@ fun Configuration.deviceSizeDp(): DeviceSize {
   val x =
     ConversionUtil.pxToDp(
       deviceState.hardware.screen.xDimension,
-      deviceState.hardware.screen.pixelDensity.dpiValue,
+      dpi(),
     )
   val y =
     ConversionUtil.pxToDp(
       deviceState.hardware.screen.yDimension,
-      deviceState.hardware.screen.pixelDensity.dpiValue,
+      dpi(),
     )
   return calculateDimensions(x, y, orientation)
 }
 
+/** Returns the [Configuration]'s density dpi. */
+fun Configuration.dpi(): Int = deviceState?.hardware?.screen?.pixelDensity?.dpiValue ?: 0
 
 /**
  * Utility object for converting between density-independent pixels (dp) and pixels (px) based on

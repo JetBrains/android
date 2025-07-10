@@ -35,7 +35,6 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -187,7 +186,7 @@ class ResizePanel(parentDisposable: Disposable) :
   private fun revertResizing() {
     dimensionInputsAction.resetErrors()
     currentSceneManager?.sceneRenderConfiguration?.clearOverrideRenderSize = true
-    currentSceneManager?.forceNextResizeToWrapContent = isOriginalPreviewSizeModeWrap()
+    currentSceneManager?.forceNextResizeToUseOriginalSize = true
     currentConfiguration?.setEffectiveDevice(originalDeviceSnapshot, originalDeviceStateSnapshot)
     ComposeResizeToolingUsageTracker.logResizeReverted(
       currentSceneManager?.scene?.designSurface,
@@ -257,31 +256,6 @@ class ResizePanel(parentDisposable: Disposable) :
       }
     }
     updatePanelFromConfiguration()
-  }
-
-  /**
-   * Determines if the original @Preview annotation for the currently focused element implies a
-   * "wrap content" sizing behavior when in shrink mode.
-   *
-   * This is true if:
-   * 1. The preview is in "shrink mode" (showDecorations = false).
-   * 2. The original @Preview annotation did not specify explicit widthDp or heightDp.
-   */
-  private fun isOriginalPreviewSizeModeWrap(): Boolean {
-    val element = currentFocusedPreviewElement ?: return false
-
-    val isShrinkMode = !element.displaySettings.showDecoration
-
-    if (!isShrinkMode) {
-      return false
-    }
-
-    val originalAnnotationConfig = element.configuration
-    val originalDefinesNoExplicitDimensions =
-      originalAnnotationConfig.width == UNDEFINED_DIMENSION &&
-        originalAnnotationConfig.height == UNDEFINED_DIMENSION
-
-    return originalDefinesNoExplicitDimensions
   }
 
   private fun updatePanelFromConfiguration() {

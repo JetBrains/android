@@ -114,13 +114,13 @@ open class LayoutlibSceneManager(
 
   /**
    * If `true`, the next layout pass triggered via `ConfigurationResizeListener` should attempt to
-   * size the Composable content to `WRAP_CONTENT`.
+   * size the Composable content to its `@Preview` original size.
    *
    * This flag is set by UI actions (like reverting to original size in `ResizePanel`) when a
    * "shrink-mode" Composable (where `showDecorations` is false and its original `@Preview` did not
-   * define explicit dimensions) should revert to truly wrapping its content.
+   * define explicit dimensions) should revert to its original size.
    */
-  var forceNextResizeToWrapContent: Boolean = false
+  var forceNextResizeToUseOriginalSize: Boolean = false
 
   /** The configuration to use when inflating and rendering. */
   val sceneRenderConfiguration: LayoutlibSceneRenderConfiguration
