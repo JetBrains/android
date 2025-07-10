@@ -1338,13 +1338,10 @@ MODULE                        : MainActivity
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/google/dagger/dagger/2.6/dagger-2.6.jar
-                                source                        : <M2>/com/google/dagger/dagger/2.6/dagger-2.6-sources.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
-                                source                        : <M2>/javax/inject/javax.inject/1/javax.inject-1-sources.jar
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javaLib/build/classes/java/main [-]
                                 - files                       : <ROOT>/javaLib/build/classes/kotlin/main [-]
@@ -1376,13 +1373,10 @@ MODULE                        : MainActivity
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/google/dagger/dagger/2.6/dagger-2.6.jar
-                                source                        : <M2>/com/google/dagger/dagger/2.6/dagger-2.6-sources.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
-                                source                        : <M2>/javax/inject/javax.inject/1/javax.inject-1-sources.jar
                             - dependencies                : DefaultFileCollectionDependency
                                 - files                       : <ROOT>/javaLib/build/classes/java/test [-]
                                 - files                       : <ROOT>/javaLib/build/classes/kotlin/test [-]
@@ -2484,6 +2478,7 @@ MODULE                        : MainActivity.app
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    returnValueChecker            : disable
                     useFirLT                      : true
             localDebugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2501,6 +2496,7 @@ MODULE                        : MainActivity.app
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    returnValueChecker            : disable
                     useFirLT                      : true
             localDebugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2518,6 +2514,7 @@ MODULE                        : MainActivity.app
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    returnValueChecker            : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -2600,6 +2597,7 @@ MODULE                        : MainActivity.javaLib
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    returnValueChecker            : disable
                     useFirLT                      : true
             test
                 compilerArguments             : K2JVMCompilerArguments
@@ -2616,6 +2614,7 @@ MODULE                        : MainActivity.javaLib
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    returnValueChecker            : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -3723,6 +3722,7 @@ MODULE                        : MainActivity.lib
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    returnValueChecker            : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3740,6 +3740,7 @@ MODULE                        : MainActivity.lib
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    returnValueChecker            : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3757,6 +3758,7 @@ MODULE                        : MainActivity.lib
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    returnValueChecker            : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true

@@ -2341,6 +2341,7 @@ MODULE                        : MainActivity.app
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
+                    returnValueChecker            : disable
                     useFirLT                      : true
             localDebugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2360,6 +2361,7 @@ MODULE                        : MainActivity.app
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
+                    returnValueChecker            : disable
                     useFirLT                      : true
             localDebugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -2378,6 +2380,7 @@ MODULE                        : MainActivity.app
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
+                    returnValueChecker            : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -2464,6 +2467,7 @@ MODULE                        : MainActivity.javaLib
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    returnValueChecker            : disable
                     useFirLT                      : true
             test
                 compilerArguments             : K2JVMCompilerArguments
@@ -2488,6 +2492,7 @@ MODULE                        : MainActivity.javaLib
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    returnValueChecker            : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
@@ -3555,6 +3560,7 @@ MODULE                        : MainActivity.lib
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    returnValueChecker            : disable
                     useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3573,6 +3579,7 @@ MODULE                        : MainActivity.lib
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    returnValueChecker            : disable
                     useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
@@ -3590,6 +3597,7 @@ MODULE                        : MainActivity.lib
                     autoAdvanceLanguageVersion    : true
                     explicitApi                   : disable
                     explicitReturnTypes           : disable
+                    returnValueChecker            : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true

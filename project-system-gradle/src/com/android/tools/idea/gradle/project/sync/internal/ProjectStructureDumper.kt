@@ -550,6 +550,6 @@ class DumpProjectAction : InternalDumpAction("Structure") {
   }
 }
 
-private val Module.isKotlinBuildScript
-  get() = name.startsWith("Kotlin Scripts.KotlinBuildScript")
+val Module.isKotlinBuildScript
+  get() = name.startsWith("Kotlin Scripts.") || name.startsWith("kotlin.scripts.")
 

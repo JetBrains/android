@@ -2160,6 +2160,7 @@
                         autoAdvanceLanguageVersion    : true
                         explicitApi                   : disable
                         explicitReturnTypes           : disable
+                        returnValueChecker            : disable
                         useFirLT                      : true
                 debugAndroidTest
                     compilerArguments             : K2JVMCompilerArguments
@@ -2178,6 +2179,7 @@
                         autoAdvanceLanguageVersion    : true
                         explicitApi                   : disable
                         explicitReturnTypes           : disable
+                        returnValueChecker            : disable
                         useFirLT                      : true
                 debugUnitTest
                     compilerArguments             : K2JVMCompilerArguments
@@ -2195,6 +2197,7 @@
                         autoAdvanceLanguageVersion    : true
                         explicitApi                   : disable
                         explicitReturnTypes           : disable
+                        returnValueChecker            : disable
                         useFirLT                      : true
             gradleUserHome                : <GRADLE>
             hasKotlinPlugin               : true
@@ -2325,6 +2328,7 @@ Required by:
                         - freeArgs                    : <ROOT>/jsModule/build/classes/kotlin/main
                         - freeArgs                    : never
                         - freeArgs                    : es5
+                        returnValueChecker            : disable
                         useFirLT                      : true
                     - declaredSourceSets          : main (KotlinSourceSetImpl) (*seen*)
                     - dependencies                : 3
@@ -2380,6 +2384,7 @@ Required by:
                         - freeArgs                    : <ROOT>/jsModule/build/classes/kotlin/test
                         - freeArgs                    : never
                         - freeArgs                    : es5
+                        returnValueChecker            : disable
                         useFirLT                      : true
                     - declaredSourceSets          : test (KotlinSourceSetImpl) (*seen*)
                     - dependencies                : 7
@@ -2866,6 +2871,7 @@ Required by:
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        returnValueChecker            : disable
                         useFirLT                      : true
                     - declaredSourceSets          : androidMain (KotlinSourceSetImpl) (*seen*)
                     disambiguationClassifier      : android
@@ -2934,6 +2940,7 @@ Required by:
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        returnValueChecker            : disable
                         useFirLT                      : true
                     - declaredSourceSets          : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
                     disambiguationClassifier      : android
@@ -3007,6 +3014,7 @@ Required by:
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        returnValueChecker            : disable
                         useFirLT                      : true
                     - declaredSourceSets          : androidUnitTest (KotlinSourceSetImpl) (*seen*)
                     disambiguationClassifier      : android

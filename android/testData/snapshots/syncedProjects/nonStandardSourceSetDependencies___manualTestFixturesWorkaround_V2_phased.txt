@@ -2488,7 +2488,6 @@ PROJECT                       : NonStandardSourceSetDependencies
             isCompilerPathInherited       : true
             isExcludeOutput               : true
         ModuleFile                    :  [-]
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/jvmMain
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2508,7 +2507,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         TEST_MODULE_PROPERTIES
             productionModuleName          : NonStandardSourceSetDependencies.kmp-java.sample.main
         ModuleFile                    :  [-]
-        CONENT_ENTRY                  : file://<PROJECT>/kmp-java/sample/src/jvmTest [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>

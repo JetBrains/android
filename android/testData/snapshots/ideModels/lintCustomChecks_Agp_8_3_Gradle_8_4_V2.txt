@@ -477,6 +477,7 @@ MODULE                        : project
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                                source                        : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency
                                 file                          : <M2>/com/android/tools/annotations/<VERSION>/annotations-<VERSION>.jar
                             - dependencies                : DefaultExternalLibraryDependency

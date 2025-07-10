@@ -217,6 +217,7 @@ private val jbModelDumpers = listOf(
       }
     }
   },
+  SpecializedDumper(property = K2JVMCompilerArguments::configurator),
   SpecializedDumper<DefaultExternalSourceSet> { externalSourceSet ->
     head(propertyName)
     nest {
