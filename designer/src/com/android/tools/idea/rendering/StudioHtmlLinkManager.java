@@ -183,7 +183,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       handleEditClassPathUrl(url, module);
     }
     else if (url.startsWith(URL_CREATE_CLASS)) {
-      assert module != null && file != null;
+      assert module != null;
       handleNewClassUrl(url, module);
     }
     else if (url.startsWith(URL_OPEN)) {
@@ -195,19 +195,19 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       handleOpenClassUrl(url, module);
     }
     else if (url.equals(URL_SHOW_XML)) {
-      assert module != null && file != null;
+      assert module != null;
       handleShowXmlUrl(url, module, file);
     }
     else if (url.startsWith(URL_SHOW_TAG)) {
-      assert module != null && file != null;
+      assert module != null;
       handleShowTagUrl(url, module, file);
     }
     else if (url.startsWith(URL_ASSIGN_FRAGMENT_URL)) {
-      assert module != null && file != null;
+      assert module != null;
       handleAssignFragmentUrl(url, module, file);
     }
     else if (url.startsWith(URL_ASSIGN_LAYOUT_URL)) {
-      assert module != null && file != null;
+      assert module != null;
       handleAssignLayoutUrl(url, module, file);
     }
     else if (url.equals(URL_ACTION_IGNORE_FRAGMENTS)) {
@@ -216,13 +216,13 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     }
     else if (url.startsWith(URL_EDIT_ATTRIBUTE)) {
       assert hasRenderResult;
-      if (module != null && file != null) {
+      if (module != null) {
         handleEditAttribute(url, module, file);
       }
     }
     else if (url.startsWith(URL_REPLACE_ATTRIBUTE_VALUE)) {
       assert hasRenderResult;
-      if (module != null && file != null) {
+      if (module != null) {
         handleReplaceAttributeValue(url, module, file);
       }
     }
