@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.visual.colorblindmode
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import java.lang.StringBuilder
-import java.util.function.Function
 import kotlin.math.pow
 
 /** All the numbers, math and explanation on how things work is documented in: go/cbm_simulator */
@@ -39,7 +39,7 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
    */
   fun convert(startImage: BufferedImage, postImage: BufferedImage): Boolean {
     if (cbmCLut == null || removeGammaCLut == null) {
-      removeGammaCLut = buildGammaCLut(Function { (it / 255.0).pow(GAMMA) })
+      removeGammaCLut = buildGammaCLut { (it / 255.0).pow(GAMMA) }
       cbmCLut = buildColorLut(DIM, mode, removeGammaCLut!!)
     }
 
@@ -47,7 +47,8 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
       startImage.type != BufferedImage.TYPE_INT_ARGB_PRE ||
         postImage.type != BufferedImage.TYPE_INT_ARGB_PRE
     ) {
-      println("Error:: BufferedImage not supported for color blind mode.")
+      Logger.getInstance(ColorConverter::class.java)
+        .warn("Error:: BufferedImage not supported for color blind mode.")
       return false
     }
 
