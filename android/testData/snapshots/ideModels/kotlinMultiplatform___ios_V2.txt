@@ -726,6 +726,7 @@ MODULE                        : kotlinMultiPlatform
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -777,6 +778,8 @@ MODULE                        : kotlinMultiPlatform
                         releaseWearApp                : <empty>
                         releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1206,6 +1209,7 @@ MODULE                        : kotlinMultiPlatform
                         iosX64TestIntransitiveDependenciesMetadata        : <empty>
                         iosX64TestResolvableDependenciesMetadata          : <empty>
                         iosX64TestRuntimeOnly         : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -1302,6 +1306,8 @@ MODULE                        : kotlinMultiPlatform
                         resolvableIosX64CompilationApi          : <empty>
                         resolvableIosX64TestCompilationApi      : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
                         testDebugAnnotationProcessor  : <empty>
@@ -2443,7 +2449,7 @@ MODULE                        : kotlinMultiPlatform.app
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 2
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties

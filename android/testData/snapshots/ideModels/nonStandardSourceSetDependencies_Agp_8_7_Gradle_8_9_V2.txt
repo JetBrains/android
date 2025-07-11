@@ -866,6 +866,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -917,6 +918,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseWearApp                : <empty>
                         releaseWearBundling           : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1067,6 +1070,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         jvmTestResolvableDependenciesMetadata   : <empty>
                         jvmTestRuntimeClasspath       : <empty>
                         jvmTestRuntimeOnly            : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -1085,6 +1089,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         metadataCompilationRuntimeOnly          : <empty>
                         metadataCompileClasspath      : <empty>
                         - metadataSourcesElements     : <ROOT>/common/build/libs/common-kotlin-sources.jar [-]
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testKotlinScriptDef           : <empty>
                         testKotlinScriptDefExtensions : <empty>
                     sourceSets
@@ -1177,6 +1183,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -1194,6 +1201,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         - runtimeElements             : <ROOT>/desktop/build/libs/desktop.jar [-]
                         - runtimeElements-published   : <ROOT>/desktop/build/libs/desktop.jar [-]
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1394,6 +1403,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -1448,6 +1458,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseUnitTestRuntimeOnly    : <empty>
                         releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -1721,6 +1733,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         debugWearApp                  : <empty>
                         default                       : <empty>
                         implementation                : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -1762,6 +1775,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseUnitTestRuntimeClasspath         : <empty>
                         releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testCompileOnly               : <empty>
                         testDebugAnnotationProcessor  : <empty>
@@ -1850,6 +1865,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -1868,6 +1884,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         - runtimeElements             : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                         - runtimeElements-published   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -2083,6 +2101,7 @@ MODULE                        : NonStandardSourceSetDependencies
                                 jvmTestResolvableDependenciesMetadata   : <empty>
                                 jvmTestRuntimeClasspath       : <empty>
                                 jvmTestRuntimeOnly            : <empty>
+                                kotlinBouncyCastleConfiguration         : <empty>
                                 kotlinBuildToolsApiClasspath  : <empty>
                                 kotlinCompilerClasspath       : <empty>
                                 kotlinCompilerPluginClasspath : <empty>
@@ -2103,6 +2122,8 @@ MODULE                        : NonStandardSourceSetDependencies
                                 - metadataSourcesElements     : <ROOT>/kmp-java/sample/build/libs/sample-kotlin-sources.jar [-]
                                 runtimeClasspath              : <empty>
                                 runtimeOnly                   : <empty>
+                                swiftExportClasspath          : <empty>
+                                swiftExportClasspathResolvable          : <empty>
                                 testAnnotationProcessor       : <empty>
                                 testCompileClasspath          : <empty>
                                 testCompileOnly               : <empty>
@@ -2492,6 +2513,7 @@ MODULE                        : NonStandardSourceSetDependencies
                         implementation                : <empty>
                         implementationDependenciesMetadata      : <empty>
                         intransitiveDependenciesMetadata        : <empty>
+                        kotlinBouncyCastleConfiguration         : <empty>
                         kotlinBuildToolsApiClasspath  : <empty>
                         kotlinCompilerClasspath       : <empty>
                         kotlinCompilerPluginClasspath : <empty>
@@ -2547,6 +2569,8 @@ MODULE                        : NonStandardSourceSetDependencies
                         releaseUnitTestRuntimeOnly    : <empty>
                         releaseWearApp                : <empty>
                         runtimeOnly                   : <empty>
+                        swiftExportClasspath          : <empty>
+                        swiftExportClasspathResolvable          : <empty>
                         testAnnotationProcessor       : <empty>
                         testApi                       : <empty>
                         testApiDependenciesMetadata   : <empty>
@@ -3448,7 +3472,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 2
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -3735,7 +3759,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 2
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
@@ -4802,7 +4826,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 2
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
@@ -5571,7 +5595,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 2
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-platform-jvm
         kotlinTaskProperties
@@ -6617,7 +6641,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 2
             minor                         : 2
-            patch                         : 0
+            patch                         : 20
             versionString                 : <KOTLIN_VERSION_FOR_TESTS>
         kotlinTarget                  : kotlin-android
         kotlinTaskProperties
