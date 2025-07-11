@@ -19,16 +19,12 @@ import static com.intellij.openapi.application.ApplicationManager.getApplication
 
 import com.android.SdkConstants;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.rendering.RenderUtils;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.util.CommonAndroidUtil;
 import com.android.tools.rendering.AndroidXmlFiles;
 import com.android.tools.rendering.HtmlLinkManager;
-import java.lang.ref.WeakReference;
-import javax.swing.JEditorPane;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import com.android.utils.HtmlBuilder;
@@ -78,8 +74,6 @@ import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.text.html.HTMLDocument;
-import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidFacetProperties;
@@ -89,8 +83,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidUtils extends CommonAndroidUtil {
-  private static final Logger LOG = Logger.getInstance(AndroidUtils.class);
-
   @NonNls public static final String NAMESPACE_KEY = "android";
   @NonNls public static final String SYSTEM_RESOURCE_PACKAGE = "android";
 
