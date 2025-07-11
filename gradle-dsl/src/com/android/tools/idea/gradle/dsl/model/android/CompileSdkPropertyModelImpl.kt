@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPropertyModel
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPropertyModel.Companion.COMPILE_SDK_BLOCK_VERSION
 import com.android.tools.idea.gradle.dsl.api.android.CompileSdkPropertyModel.Companion.COMPILE_SDK_INTRODUCED_VERSION
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_VERSION
@@ -92,13 +93,22 @@ class CompileSdkPropertyModelImpl(private val internalModel: ResolvedPropertyMod
           createInPosition
         )
       ).buildResolved()
-  }
+
+    fun ResolvedPropertyModel.asCompileSdkString(): String? {
+      return when (valueType) {
+          ValueType.STRING -> getValue(GradlePropertyModel.STRING_TYPE)
+          ValueType.INTEGER -> getValue(GradlePropertyModel.INTEGER_TYPE)?.toString()
+          ValueType.CUSTOM -> getValue(GradlePropertyModel.INTEGER_TYPE)?.toString() ?: getValue(GradlePropertyModel.STRING_TYPE)
+          else -> null
+        }
+      }
+    }
 
   class CompileSdkBlockPropertyModel(val dslElement: CompileSdkBlockDslElement) : GradlePropertyModelImpl(
     dslElement
   ), ResolvedPropertyModel {
     val sdkBlockModel = CompileSdkBlockModelImpl(dslElement)
-    override fun getValueType(): GradlePropertyModel.ValueType = GradlePropertyModel.ValueType.CUSTOM
+    override fun getValueType(): ValueType = ValueType.CUSTOM
     override fun getResultModel(): GradlePropertyModel = PropertyUtil.resolveModel(this)
   }
 
