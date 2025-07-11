@@ -336,10 +336,8 @@ class ResizePanel(parentDisposable: Disposable) :
     }
 
     fun resetErrors() {
-      widthTextField.putClientProperty(OUTLINE_PROPERTY, null)
-      widthTextField.toolTipText = null
-      heightTextField.putClientProperty(OUTLINE_PROPERTY, null)
-      heightTextField.toolTipText = null
+      clearError(widthTextField)
+      clearError(heightTextField)
     }
 
     override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
@@ -368,7 +366,12 @@ class ResizePanel(parentDisposable: Disposable) :
       widthTextField.isEnabled = isEnabled
       heightTextField.isEnabled = isEnabled
       if (!widthTextField.hasFocus() && !heightTextField.hasFocus()) {
-        updateTextFieldsFromConfiguration()
+        if (
+          widthTextField.getClientProperty(OUTLINE_PROPERTY) != "error" &&
+            heightTextField.getClientProperty(OUTLINE_PROPERTY) != "error"
+        ) {
+          updateTextFieldsFromConfiguration()
+        }
       }
     }
 
@@ -424,37 +427,48 @@ class ResizePanel(parentDisposable: Disposable) :
     }
 
     private fun setUpTextFieldListeners() {
-      val onEnterListener = ActionListener {
-        if (validate(widthTextField) && validate(heightTextField)) {
-          updateConfigurationFromTextFields()
-        }
-      }
+      val onEnterListener = ActionListener { commitDimensionChanges() }
       widthTextField.addActionListener(onEnterListener)
       heightTextField.addActionListener(onEnterListener)
 
       val focusListener =
         object : FocusAdapter() {
           override fun focusLost(e: FocusEvent?) {
-            if (validate(widthTextField) && validate(heightTextField)) {
-              updateConfigurationFromTextFields()
-            }
+            commitDimensionChanges()
           }
         }
       widthTextField.addFocusListener(focusListener)
       heightTextField.addFocusListener(focusListener)
     }
 
+    /** Validates the dimension fields and, if they are both valid, updates the [Configuration]. */
+    private fun commitDimensionChanges() {
+      val widthIsValid = validate(widthTextField)
+      val heightIsValid = validate(heightTextField)
+      if (widthIsValid && heightIsValid) {
+        updateConfigurationFromTextFields()
+      }
+    }
+
     private fun validate(field: IntegerField): Boolean {
       try {
         field.validateContent()
-        field.putClientProperty(OUTLINE_PROPERTY, null)
-        field.toolTipText = null
+        clearError(field)
         return true
       } catch (e: ConfigurationException) {
-        field.putClientProperty(OUTLINE_PROPERTY, "error")
-        field.toolTipText = e.localizedMessage
+        setError(field, e.localizedMessage)
         return false
       }
+    }
+
+    private fun setError(field: IntegerField, message: String) {
+      field.putClientProperty(OUTLINE_PROPERTY, "error")
+      field.toolTipText = message
+    }
+
+    private fun clearError(field: IntegerField) {
+      field.putClientProperty(OUTLINE_PROPERTY, null)
+      field.toolTipText = null
     }
 
     private fun updateConfigurationFromTextFields() {
