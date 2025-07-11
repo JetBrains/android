@@ -26,7 +26,6 @@ import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.common.RuleKinds
-import com.google.idea.blaze.common.TargetPattern
 import com.google.idea.blaze.common.TargetPattern.ScopeStatus.INCLUDED
 import com.google.idea.blaze.common.TargetTree
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Location.Companion.Location
@@ -53,8 +52,10 @@ import kotlin.jvm.optionals.getOrNull
 data class BuildGraphDataImpl(
   @VisibleForTesting @JvmField val storage: Storage,
   private val sourceOwners: Map<Label, List<Label>>,
+  private val alwaysBuildTargets: Set<Label>,
   private val rdeps: ImmutableSetMultimap<Label, Label>,
-  private val packages: PackageSet
+  private val packages: PackageSet,
+  override val externalDependencyCountForStatsOnly: Int,
 ) : BuildGraphData {
 
   override fun packages(): PackageSet = packages
@@ -246,15 +247,13 @@ data class BuildGraphDataImpl(
   data class Storage(
     val sourceFileLabels: Set<Label>,
     val targetMap: Map<Label, ProjectTarget>,
-    val projectDeps: Set<Label>,
     val allSupportedTargets: TargetTree
   ) {
     constructor(
       sourceFileLabels: Set<Label>,
       targetMap: Map<Label, ProjectTarget>,
-      projectDeps: Set<Label>,
       allSupportedTargetLabels: Set<Label>
-    ) : this(sourceFileLabels, targetMap, projectDeps, TargetTree.create(allSupportedTargetLabels))
+    ) : this(sourceFileLabels, targetMap, TargetTree.create(allSupportedTargetLabels))
 
     /**
      * Builder for [BuildGraphDataImpl].
@@ -264,13 +263,17 @@ data class BuildGraphDataImpl(
       private val targetMapBuilder = ImmutableMap.builder<Label, ProjectTarget>()
       private val allTargetLabelsBuilder = ImmutableSet.builder<Label>()
 
-      fun build(projectDeps: Set<Label>): BuildGraphDataImpl {
-        val storage = Storage(sourceFileLabelsBuilder.build(), targetMapBuilder.build(), projectDeps, allTargetLabelsBuilder.build())
+      fun build(alwaysBuildRules: Set<String>): BuildGraphDataImpl {
+        val storage = Storage(sourceFileLabelsBuilder.build(), targetMapBuilder.build(), allTargetLabelsBuilder.build())
+        val sourceOwners = computeSourceOwners(storage)
+        val alwaysBuildTargets = computeAlwaysBuildTargets(storage, sourceOwners, alwaysBuildRules)
         return BuildGraphDataImpl(
           storage,
-          computeSourceOwners(storage),
-          computeRdeps(storage),
-          computePackages(storage)
+          sourceOwners,
+          alwaysBuildTargets,
+          rdeps = computeRdeps(storage),
+          packages = computePackages(storage),
+          externalDependencyCountForStatsOnly = computeExternalDependencyCount(storage)
         )
       }
 
@@ -301,6 +304,22 @@ data class BuildGraphDataImpl(
             .groupBy({ it.first }, { it.second })
         }
 
+        private fun computeAlwaysBuildTargets(
+          storage: Storage,
+          sourceOwners: Map<Label, List<Label>>,
+          alwaysBuildRules: Set<String>,
+        ): Set<Label> {
+          return storage.targetMap.values
+            .filter { target ->
+              val sourceLabels = target.sourceLabels()
+              return@filter target.kind() in alwaysBuildRules ||
+                            sourceLabels[SourceType.AIDL].isNotEmpty() ||
+                            sourceLabels.values().any { !sourceOwners.containsKey(it) }
+            }
+            .map { it.label() }
+            .toSet()
+        }
+
         private fun computeRdeps(storage: Storage): ImmutableSetMultimap<Label, Label> {
           val rdeps = ImmutableSetMultimap.builder<Label, Label>()
           for (target in storage.targetMap.values) {
@@ -324,10 +343,16 @@ data class BuildGraphDataImpl(
           return packages.build()
         }
       }
+
+      private fun computeExternalDependencyCount(storage: Storage): Int {
+        return storage.targetMap.values.asSequence()
+          .flatMap { target -> target.deps().asSequence().filter { !storage.targetMap.containsKey(it) } }
+          .distinct()
+          .count()
+      }
     }
 
     companion object {
-
       fun builder(): Builder {
         return Builder()
       }
@@ -494,7 +519,7 @@ data class BuildGraphDataImpl(
     while (!queue.isEmpty()) {
       val target = queue.removeFirst()
       val targetInfo = storage.targetMap[target]
-      if (targetInfo == null || this.storage.projectDeps.contains(target)) {
+      if (targetInfo == null || this.alwaysBuildTargets.contains(target)) {
         // External dependency.
         externalDeps.add(target)
         continue
@@ -506,9 +531,6 @@ data class BuildGraphDataImpl(
     }
     return externalDeps
   }
-
-  override val externalDependencyCountForStatsOnly: Int
-    get() = storage.projectDeps.size
 
   override val projectSupportedTargetCountForStatsOnly: Int
     get() = storage.allSupportedTargets.targetCountForStatsOnly

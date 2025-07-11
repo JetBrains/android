@@ -69,9 +69,6 @@ public class BlazeQueryParser {
 
   private final BuildGraphDataImpl.Storage.Builder graphBuilder = BuildGraphDataImpl.builder();
 
-  private final Set<Label> projectDeps = Sets.newHashSet();
-  // All the project targets the aspect needs to build
-  private final Set<Label> projectTargetsToBuild = new HashSet<>();
   // An aggregation of all the dependencies of java rules
   private final Set<Label> javaDeps = new HashSet<>();
 
@@ -173,33 +170,17 @@ public class BlazeQueryParser {
       }
 
       visitors.visit(this, ruleEntry.getKey(), rule, targetBuilder);
-      if (alwaysBuildRuleKinds.contains(rule.ruleClass())) {
-        projectTargetsToBuild.add(ruleEntry.getKey());
-      }
       targetBuilder.tags(rule.tags());
       ProjectTarget target = targetBuilder.build();
-
-      for (Label thisSource : target.sourceLabels().values()) {
-        addProjectTargetsToBuildIfGenerated(target.label(), thisSource);
-      }
 
       graphBuilder.addTarget(ruleEntry.getKey(), target);
     }
     int nTargets = query.getRulesCount();
 
-    // Calculate all the dependencies outside the project.
-    for (Label dep : javaDeps) {
-      if (!query.getRulesMap().containsKey(dep)) {
-        projectDeps.add(dep);
-      }
-    }
-    // Treat project targets the aspect needs to build as external deps
-    projectDeps.addAll(projectTargetsToBuild);
-
     long elapsedMs = (System.nanoTime() - now) / 1000000L;
     context.output(PrintOutput.log("%-10d Targets (%d ms):", nTargets, elapsedMs));
 
-    BuildGraphDataImpl graph = graphBuilder.build(projectDeps);
+    BuildGraphDataImpl graph = graphBuilder.build(alwaysBuildRuleKinds);
 
     graph.outputStats(context);
     context.output(PrintOutput.log("%-10d Dependencies", javaDeps.size()));
@@ -233,11 +214,6 @@ public class BlazeQueryParser {
     javaDeps.addAll(thisDeps);
 
     if (RuleKinds.isAndroid(rule.ruleClass())) {
-      // Add android targets with aidl files as external deps so the aspect generates
-      // the classes
-      if (!rule.idlSources().isEmpty()) {
-        projectTargetsToBuild.add(label);
-      }
       if (rule.manifest().isPresent()) {
         targetBuilder
             .sourceLabelsBuilder()
@@ -257,13 +233,6 @@ public class BlazeQueryParser {
 
     Set<Label> thisDeps = Sets.newHashSet(rule.deps());
     targetBuilder.depsBuilder().addAll(thisDeps);
-  }
-
-  /** Require build step for targets with generated sources. */
-  private void addProjectTargetsToBuildIfGenerated(Label label, Label source) {
-    if (!query.getSourceFilesMap().containsKey(source)) {
-      projectTargetsToBuild.add(label);
-    }
   }
 
   /** Returns a set of sources for a rule, expanding any in-project {@code filegroup} rules */

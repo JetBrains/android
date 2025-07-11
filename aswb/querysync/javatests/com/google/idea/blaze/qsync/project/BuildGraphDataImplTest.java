@@ -331,7 +331,6 @@ public class BuildGraphDataImplTest {
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/android:android"));
     assertThat(graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("android:android")))))
         .isEmpty();
-    assertThat(graph.storage.getProjectDeps()).isEmpty();
   }
 
   @Test
@@ -351,7 +350,6 @@ public class BuildGraphDataImplTest {
         .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"));
     assertThat(graph.getAndroidSourceFiles())
         .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"));
-    assertThat(graph.storage.getProjectDeps()).containsExactly(Label.of("//" + TESTDATA_ROOT + "/aidl:aidl"));
     assertThat(graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("aidl:aidl")))))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/aidl:aidl"));
   }
@@ -385,7 +383,6 @@ public class BuildGraphDataImplTest {
             .parseForTesting();
     Path sourceFile = TESTDATA_ROOT.resolve("filegroup/TestFileGroupSource.java");
     Path subgroupSourceFile = TESTDATA_ROOT.resolve("filegroup/TestSubFileGroupSource.java");
-    assertThat(graph.storage.getProjectDeps()).containsExactly(Label.of("@@maven//:com.google.guava.guava"));
     assertThat(graph.getJavaSourceFiles()).containsExactly(sourceFile, subgroupSourceFile);
     assertThat(graph.getSourceFileOwners(sourceFile))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/filegroup:filegroup"));
