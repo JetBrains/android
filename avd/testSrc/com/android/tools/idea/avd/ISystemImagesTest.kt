@@ -16,10 +16,17 @@
 package com.android.tools.idea.avd
 
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.RemoteSystemImage
+import com.android.sdklib.repository.targets.SystemImage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Rule
@@ -34,7 +41,7 @@ class ISystemImagesTest {
       val imageFlow = ISystemImages.systemImageFlow(sdkHandler)
       runBlocking {
         withTimeout(10.seconds) {
-          val state = imageFlow.first { it.hasLocal }
+          val state = imageFlow.first { it.hasLocal && it.hasRemote }
           assertThat(state.images).isEmpty()
         }
       }
@@ -42,7 +49,7 @@ class ISystemImagesTest {
   }
 
   @Test
-  fun systemImageFlow_hasRemote() {
+  fun systemImageFlow_local() {
     with(SdkFixture()) {
       repoPackages.setLocalPkgInfos(
         listOf(createLocalSystemImage("google_apis", listOf(), AndroidVersion(34)))
@@ -51,12 +58,47 @@ class ISystemImagesTest {
       val imageFlow = ISystemImages.systemImageFlow(sdkHandler)
       runBlocking {
         withTimeout(10.seconds) {
-          val state = imageFlow.first { it.hasRemote }
+          val state = imageFlow.first { it.hasLocal && it.hasRemote }
+          assertThat(state.images).hasSize(1)
+        }
+      }
+    }
+  }
+
+  @Test
+  fun systemImageFlow_download() {
+    with(SdkFixture()) {
+      repoPackages.setRemotePkgInfos(
+        listOf(createRemoteSystemImage("google_apis", listOf(), AndroidVersion(34)))
+      )
+
+      val flowScope = CoroutineScope(EmptyCoroutineContext)
+      val imageFlow =
+        ISystemImages.systemImageFlow(sdkHandler)
+          .stateIn(flowScope, SharingStarted.Eagerly, SystemImageState.INITIAL)
+
+      runBlocking {
+        withTimeout(5.seconds) {
+          // Initially we should see a remote system image
+          val state = imageFlow.first { it.hasLocal && it.hasRemote }
+          assertThat(state.images).hasSize(1)
+          assertThat(state.images[0]).isInstanceOf(RemoteSystemImage::class.java)
+        }
+
+        // Simulate download of the system image
+        repoManager.updateLocalPackages(
+          listOf(createLocalSystemImage("google_apis", listOf(), AndroidVersion(34)))
+        )
+
+        withTimeout(5.seconds) {
+          // Now the flow should update and it should be represented as a local system image
+          val state = imageFlow.first { it.images.any { it is SystemImage } }
           assertThat(state.images).hasSize(1)
           assertThat(state.hasLocal).isTrue()
           assertThat(state.hasRemote).isTrue()
         }
       }
+      flowScope.cancel()
     }
   }
 }
