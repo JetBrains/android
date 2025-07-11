@@ -23,10 +23,12 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.JdkConstants
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
+@RunsInEdt
 class AndroidStudioProjectActivityTest {
 
   @get:Rule
