@@ -287,15 +287,9 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // element *
+  // element
   static boolean root(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "root")) return false;
-    while (true) {
-      int c = current_position_(b);
-      if (!element(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "root", c)) break;
-    }
-    return true;
+    return element(b, l + 1);
   }
 
   /* ********************************************************** */

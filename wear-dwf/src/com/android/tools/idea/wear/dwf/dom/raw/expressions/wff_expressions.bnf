@@ -47,7 +47,7 @@
   ]
 }
 
-root ::= element *
+root ::= element
 private element ::= expr {recoverWhile=element_recover}
 private element_recover ::= !(OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | NUMBER | QUOTED_STRING)
 

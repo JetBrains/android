@@ -115,4 +115,18 @@ FILE
       toParseTreeText("[CONFIGURATION.themeColor.1]"),
     )
   }
+
+  fun testCanOnlyHaveOneRootExpression() {
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    PsiElement(NUMBER)('1')
+  PsiErrorElement:'1' unexpected
+    PsiElement(NUMBER)('1')
+          """
+        .trimIndent(),
+      toParseTreeText("1 1"),
+    )
+  }
 }
