@@ -34,18 +34,23 @@ import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.lint.checks.FontDetector;
 import com.android.tools.module.AndroidModuleInfo;
 import com.android.utils.XmlUtils;
 import com.intellij.core.CoreBundle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -148,7 +153,10 @@ public class FontFamilyCreator {
     VirtualFile resourceDirectory = ResourceFolderManager.getInstance(myFacet).getPrimaryFolder();
 
     if (resourceDirectory == null) {
-      throw new IOException("PrimaryResourceDirectory is null");
+      resourceDirectory = createResourceFolder();
+      if (resourceDirectory == null) {
+        throw new IOException("PrimaryResourceDirectory is null");
+      }
     }
 
     VirtualFile fontFolder = resourceDirectory.findChild(folderType.getName());
@@ -157,6 +165,32 @@ public class FontFamilyCreator {
       fontFolder = resourceDirectory.createChildDirectory(this, folderType.getName());
     }
     return fontFolder;
+  }
+
+  @Nullable
+  private VirtualFile createResourceFolder() {
+    NamedModuleTemplate template =
+      ProjectSystemService.getInstance(myFacet.getModule().getProject())
+        .getProjectSystem()
+        .getModuleSystem(myFacet.getModule())
+        .getModuleTemplates(null)
+        .stream()
+        .findFirst()
+        .orElse(null);
+    if (template == null) {
+      return null;
+    }
+    File resDir = template.getPaths().getResDirectories().stream().findFirst().orElse(null);
+    if (resDir == null) {
+      return null;
+    }
+    try {
+      return VfsUtil.createDirectories(VfsUtilCore.urlToPath(resDir.getAbsolutePath()));
+    }
+    catch (IOException ex) {
+      Logger.getInstance(FontFamilyCreator.class).warn(ex);
+      return null;
+    }
   }
 
   public static String getFontName(@NotNull FontDetail font) {

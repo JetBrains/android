@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,58 +13,78 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fonts;
+package com.android.tools.idea.fonts
 
-import static com.android.ide.common.fonts.FontDetailKt.ITALICS;
-import static com.android.ide.common.fonts.FontDetailKt.NORMAL;
-import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
-import static com.android.tools.idea.fonts.FontTestUtils.createFontDetail;
-import static com.android.tools.idea.fonts.FontTestUtils.getResourceFileContent;
-import static com.google.common.truth.Truth.assertThat;
+import com.android.SdkConstants
+import com.android.ide.common.fonts.GOOGLE_FONT_AUTHORITY
+import com.android.ide.common.fonts.ITALICS
+import com.android.ide.common.fonts.NORMAL
+import com.android.resources.ResourceFolderType
+import com.android.sdklib.AndroidVersion
+import com.android.testutils.TestUtils
+import com.android.testutils.annotation.AnnotationRule
+import com.android.testutils.annotation.MinApi
+import com.android.testutils.waitForCondition
+import com.android.tools.fonts.DownloadableFontCacheService
+import com.android.tools.fonts.DownloadableFontCacheServiceImpl
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.createMainSourceProviderForDefaultTestProjectStructure
+import com.android.tools.lint.checks.FontDetector
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.android.dom.manifest.Manifest
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.nio.charset.StandardCharsets
+import kotlin.time.Duration.Companion.seconds
 
-import com.android.SdkConstants;
-import com.android.ide.common.fonts.FontDetail;
-import com.android.resources.ResourceFolderType;
-import com.android.tools.lint.checks.FontDetector;
-import com.google.common.base.Charsets;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.ui.UIUtil;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.annotations.NotNull;
+@RunsInEdt
+class FontFamilyCreatorTest {
+  @get:Rule
+  val annotationRule = AnnotationRule()
+  private val projectRule = AndroidProjectRule.withAndroidModel(createProjectBuilder())
+  private lateinit var facet: AndroidFacet
+  private lateinit var creator: FontFamilyCreator
+  private lateinit var fontPath: File
 
-public class FontFamilyCreatorTest extends FontTestCase {
-  private FontFamilyCreator myCreator;
+  @get:Rule
+  val chain = RuleChain(projectRule, EdtRule())
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    myCreator = new FontFamilyCreator(myFacet);
+  @Before
+  fun setUp() {
+    facet = AndroidFacet.getInstance(projectRule.module)!!
+    val service: DownloadableFontCacheServiceImpl = FontCache()
+    projectRule.replaceService(DownloadableFontCacheService::class.java, service)
+    fontPath = service.fontPath!!
+    creator = FontFamilyCreator(facet)
+    projectRule.fixture.testDataPath =
+      TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
+    projectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
+
+    // Check that no resource folders exist for this module, i.e. the Font creator must create it
+    assertThat(ResourceFolderManager.getInstance(facet).folders).isEmpty()
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    myCreator = null;
-    super.tearDown();
-  }
-
-  @Override
-  protected boolean providesCustomManifest() {
-    return true;
-  }
-
-  public void testCreateFontUsingAppCompat() throws Exception {
-    setMinSdk("25");
-
-    FontDetail font = createFontDetail("Roboto", 400, 100f, NORMAL);
-    String newValue = myCreator.createFontFamily(font, "roboto", true);
-    UIUtil.dispatchAllInvocationEvents();
-    assertThat(newValue).isEqualTo("@font/roboto");
+  @MinApi(25)
+  @Test
+  fun testCreateFontUsingAppCompat() {
+    val font = FontTestUtils.createFontDetail("Roboto", 400, 100f, NORMAL)
+    val newValue = creator.createFontFamily(font, "roboto", true)
+    waitForFontReady()
+    assertThat(newValue).isEqualTo("@font/roboto")
     assertThat(getFontFileContent("roboto.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
       "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
@@ -73,7 +93,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
       "        app:fontProviderQuery=\"Roboto\"%n" +
       "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
       "</font-family>%n"
-    ));
+    ))
     assertThat(getValuesFileContent("font_certs.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
       "<resources>%n" +
@@ -92,7 +112,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
       "        </item>%n" +
       "    </string-array>%n" +
       "</resources>%n"
-    ));
+    ))
     assertThat(getValuesFileContent("preloaded_fonts.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
       "<resources>%n" +
@@ -100,27 +120,26 @@ public class FontFamilyCreatorTest extends FontTestCase {
       "        <item>@font/roboto</item>%n" +
       "    </array>%n" +
       "</resources>%n"
-    ));
-    assertThat(Manifest.getMainManifest(myFacet).getXmlTag().getText()).isEqualTo(
-      "<manifest package=\"p1.p2\" xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-      "    <uses-sdk android:minSdkVersion=\"25\"\n" +
-      "              android:targetSdkVersion=\"25\" />\n" +
+    ))
+    assertThat(Manifest.getMainManifest(facet)!!.getXmlTag()!!.getText()).isEqualTo(
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "          package=\"p1.p2\">\n" +
       "    <application android:icon=\"@drawable/icon\">\n" +
       "        <meta-data\n" +
       "            android:name=\"preloaded_fonts\"\n" +
       "            android:resource=\"@array/preloaded_fonts\" />\n" +
       "    </application>\n" +
       "</manifest>"
-    );
+    )
   }
 
-  public void testCreateFontUsingFrameworkFonts() throws Exception {
-    setMinSdk(String.valueOf(FontDetector.FUTURE_API_VERSION_WHERE_DOWNLOADABLE_FONTS_WORK_IN_FRAMEWORK));
-
-    FontDetail font = createFontDetail("Alegreya Sans SC", 900, 80f, ITALICS);
-    String newValue = myCreator.createFontFamily(font, "alegreya_sans_sc", true);
-    UIUtil.dispatchAllInvocationEvents();
-    assertThat(newValue).isEqualTo("@font/alegreya_sans_sc");
+  @MinApi(FontDetector.FUTURE_API_VERSION_WHERE_DOWNLOADABLE_FONTS_WORK_IN_FRAMEWORK)
+  @Test
+  fun testCreateFontUsingFrameworkFonts() {
+    val font = FontTestUtils.createFontDetail("Alegreya Sans SC", 900, 80f, ITALICS)
+    val newValue = creator.createFontFamily(font, "alegreya_sans_sc", true)
+    waitForFontReady()
+    assertThat(newValue).isEqualTo("@font/alegreya_sans_sc")
     assertThat(getFontFileContent("alegreya_sans_sc.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
       "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
@@ -129,43 +148,43 @@ public class FontFamilyCreatorTest extends FontTestCase {
       "        android:fontProviderQuery=\"Alegreya Sans SC:wght900:ital1:wdth80\"%n" +
       "        android:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
       "</font-family>%n"
-    ));
+    ))
   }
 
-  public void testCreateMultipleFiles() throws Exception {
-    setMinSdk("28");
-
-    myCreator.createFontFamily(createFontDetail("Roboto", 400, 100f, NORMAL), "roboto", true);
-    myCreator.createFontFamily(createFontDetail("Alegreya Sans SC", 900, 80f, ITALICS), "alegreya_sans_sc", true);
-    myCreator.createFontFamily(createFontDetail("Aladin", 400, 100f, NORMAL), "aladin", true);
-    UIUtil.dispatchAllInvocationEvents();
+  @MinApi(28)
+  @Test
+  fun testCreateMultipleFiles() {
+    creator.createFontFamily(FontTestUtils.createFontDetail("Roboto", 400, 100f, NORMAL), "roboto", true)
+    creator.createFontFamily(FontTestUtils.createFontDetail("Alegreya Sans SC", 900, 80f, ITALICS), "alegreya_sans_sc", true)
+    creator.createFontFamily(FontTestUtils.createFontDetail("Aladin", 400, 100f, NORMAL), "aladin", true)
+    waitForFontReady()
     assertThat(getFontFileContent("roboto.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
-      "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
-      "        app:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
-      "        app:fontProviderPackage=\"com.google.android.gms\"%n" +
-      "        app:fontProviderQuery=\"Roboto\"%n" +
-      "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
-      "</font-family>%n"
-    ));
+        "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
+        "        app:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
+        "        app:fontProviderPackage=\"com.google.android.gms\"%n" +
+        "        app:fontProviderQuery=\"Roboto\"%n" +
+        "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
+        "</font-family>%n"
+    ))
     assertThat(getFontFileContent("alegreya_sans_sc.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
-      "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
-      "        app:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
-      "        app:fontProviderPackage=\"com.google.android.gms\"%n" +
-      "        app:fontProviderQuery=\"Alegreya Sans SC:wght900:ital1:wdth80\"%n" +
-      "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
-      "</font-family>%n"
-    ));
+        "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
+        "        app:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
+        "        app:fontProviderPackage=\"com.google.android.gms\"%n" +
+        "        app:fontProviderQuery=\"Alegreya Sans SC:wght900:ital1:wdth80\"%n" +
+        "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
+        "</font-family>%n"
+    ))
     assertThat(getFontFileContent("aladin.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
-      "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
-      "        app:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
-      "        app:fontProviderPackage=\"com.google.android.gms\"%n" +
-      "        app:fontProviderQuery=\"Aladin\"%n" +
-      "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
-      "</font-family>%n"
-    ));
+        "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
+        "        app:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
+        "        app:fontProviderPackage=\"com.google.android.gms\"%n" +
+        "        app:fontProviderQuery=\"Aladin\"%n" +
+        "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
+        "</font-family>%n"
+    ))
     assertThat(getValuesFileContent("font_certs.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
       "<resources>%n" +
@@ -184,7 +203,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
       "        </item>%n" +
       "    </string-array>%n" +
       "</resources>%n"
-    ));
+    ))
     assertThat(getValuesFileContent("preloaded_fonts.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
       "<resources>%n" +
@@ -194,65 +213,70 @@ public class FontFamilyCreatorTest extends FontTestCase {
       "        <item>@font/roboto</item>%n" +
       "    </array>%n" +
       "</resources>%n"
-    ));
-    assertThat(Manifest.getMainManifest(myFacet).getXmlTag().getText()).isEqualTo(
-      "<manifest package=\"p1.p2\" xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-      "    <uses-sdk android:minSdkVersion=\"28\"\n" +
-      "              android:targetSdkVersion=\"28\" />\n" +
+    ))
+    assertThat(Manifest.getMainManifest(facet)!!.getXmlTag()!!.getText()).isEqualTo(
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "          package=\"p1.p2\">\n" +
       "    <application android:icon=\"@drawable/icon\">\n" +
       "        <meta-data\n" +
       "            android:name=\"preloaded_fonts\"\n" +
       "            android:resource=\"@array/preloaded_fonts\" />\n" +
       "    </application>\n" +
       "</manifest>"
-    );
+    )
   }
 
-  public void testCreateEmbeddedFont() throws Exception {
-    addFontFileToFontCache("raleway", "v6", "other.ttf");
-    FontDetail font = createFontDetail("Raleway", 700, 100f, ITALICS);
-    String newValue = myCreator.createFontFamily(font, "raleway_bold_italic", false);
-    UIUtil.dispatchAllInvocationEvents();
-    assertThat(newValue).isEqualTo("@font/raleway_bold_italic");
-    assertThat(getFontFileContent("raleway_bold_italic.ttf")).isEqualTo("TrueType file");
+  @Test
+  fun testCreateEmbeddedFont() {
+    addFontFileToFontCache("raleway", "v6", "other.ttf")
+    val font = FontTestUtils.createFontDetail("Raleway", 700, 100f, ITALICS)
+    val newValue = creator.createFontFamily(font, "raleway_bold_italic", false)
+    waitForFontReady()
+    assertThat(newValue).isEqualTo("@font/raleway_bold_italic")
+    assertThat(getFontFileContent("raleway_bold_italic.ttf")).isEqualTo("TrueType file")
   }
 
-  public void testGetFontName() {
-    FontDetail font = createFontDetail("Raleway", 700, 100f, ITALICS);
-    assertThat(FontFamilyCreator.getFontName(font)).isEqualTo("raleway_bold_italic");
+  @Test
+  fun testGetFontName() {
+    val font = FontTestUtils.createFontDetail("Raleway", 700, 100f, ITALICS)
+    assertThat(FontFamilyCreator.getFontName(font)).isEqualTo("raleway_bold_italic")
   }
 
-
-  @NotNull
-  private String getFontFileContent(@NotNull String fontFileName) throws IOException {
-    return getResourceFileContent(myFacet, ResourceFolderType.FONT, fontFileName);
+  private fun getFontFileContent(fontFileName: String): String {
+    return FontTestUtils.getResourceFileContent(facet, ResourceFolderType.FONT, fontFileName)
   }
 
-  @NotNull
-  private String getValuesFileContent(@NotNull String valuesFileName) throws IOException {
-    return getResourceFileContent(myFacet, ResourceFolderType.VALUES, valuesFileName);
+  private fun getValuesFileContent(valuesFileName: String): String {
+    return FontTestUtils.getResourceFileContent(facet, ResourceFolderType.VALUES, valuesFileName)
   }
 
-  @SuppressWarnings("SameParameterValue")
-  private void addFontFileToFontCache(@NotNull String fontFolder, @NotNull String versionFolder, @NotNull String fontFileName) throws IOException {
-    File folder = makeFile(myFontPath, GOOGLE_FONT_AUTHORITY, "fonts", fontFolder, versionFolder);
-    FileUtil.ensureExists(folder);
-    File file = new File(folder, fontFileName);
-    InputStream inputStream = new ByteArrayInputStream("TrueType file".getBytes(Charsets.UTF_8.toString()));
-    try (OutputStream outputStream = new FileOutputStream(file)) {
-      FileUtil.copy(inputStream, outputStream);
+  private fun waitForFontReady() {
+    // Wait until the ResourceFolderManager can see the created resource folder:
+    waitForCondition(10.seconds) { ResourceFolderManager.getInstance(facet).folders.isNotEmpty() }
+  }
+
+  @Suppress("SameParameterValue")
+  @Throws(IOException::class)
+  private fun addFontFileToFontCache(fontFolder: String, versionFolder: String, fontFileName: String) {
+    val folder = FontTestCase.makeFile(fontPath, GOOGLE_FONT_AUTHORITY, "fonts", fontFolder, versionFolder)
+    FileUtil.ensureExists(folder)
+    val file = File(folder, fontFileName)
+    val inputStream: InputStream = ByteArrayInputStream("TrueType file".toByteArray(charset(StandardCharsets.UTF_8.toString ())))
+    FileOutputStream(file).use { outputStream ->
+      FileUtil.copy(inputStream, outputStream)
     }
   }
 
-  private void setMinSdk(@NotNull String level) {
-    String xml = String.format(
-      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-      "<manifest package=\"p1.p2\" xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
-      "    <uses-sdk android:minSdkVersion=\"%1$s\"\n" +
-      "              android:targetSdkVersion=\"%1$s\" />\n" +
-      "    <application android:icon=\"@drawable/icon\">\n" +
-      "    </application>\n" +
-      "</manifest>\n", level);
-    myFixture.addFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, xml);
-  }
+  private fun createProjectBuilder(): AndroidProjectBuilder =
+    AndroidProjectBuilder(
+      projectType = { IdeAndroidProjectType.PROJECT_TYPE_APP },
+      namespace = { null },
+      minSdk = { annotationRule.minApi },
+      targetSdk = { AndroidVersion.VersionCodes.O_MR1 },
+      mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },
+      androidTestSourceProvider = { null },
+      unitTestSourceProvider = { null },
+      screenshotTestSourceProvider = { null },
+      releaseSourceProvider = { null },
+    )
 }
