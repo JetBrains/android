@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.wear.dwf
 
+import com.android.tools.idea.wear.dwf.dom.raw.expressions.Function
+import com.android.tools.idea.wear.dwf.dom.raw.expressions.PatternedDataSource
+import com.android.tools.idea.wear.dwf.dom.raw.expressions.StaticDataSource
+import com.android.tools.wear.wff.WFFVersion.WFFVersion1
+import com.android.tools.wear.wff.WFFVersion.WFFVersion2
+import com.android.tools.wear.wff.WFFVersion.WFFVersion3
+import com.android.tools.wear.wff.WFFVersion.WFFVersion4
+
 object WFFConstants {
   const val CONFIGURATION_PREFIX = "CONFIGURATION."
 
@@ -46,140 +54,202 @@ object WFFConstants {
    */
   val COLOR_ATTRIBUTES = setOf("color", "backgroundColor", "tintColor")
 
+  /**
+   * Data sources that can be used in an expression.
+   *
+   * @see <a
+   *   href="https://developer.android.com/reference/wear-os/wff/common/attributes/source-type">Source
+   *   Type</a>
+   */
   object DataSources {
     val TIME_UNIT =
-      setOf(
-        "MILLISECOND",
-        "SECOND_Z",
-        "SECOND",
-        "MINUTE_Z",
-        "MINUTE",
-        "AMPM_STATE",
-        "DAY_Z",
-        "DAY",
-        "MONTH_Z",
-        "MONTH_F",
-        "MONTH_S",
-        "MONTH",
-        "YEAR_S",
-        "YEAR",
+      listOf(
+        StaticDataSource(id = "MILLISECOND", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "SECOND_Z", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "SECOND", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "MINUTE_Z", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "MINUTE", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "AMPM_STATE", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "DAY_Z", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "DAY", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "MONTH_Z", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "MONTH_F", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "MONTH_S", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "MONTH", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "YEAR_S", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "YEAR", requiredVersion = WFFVersion1),
       )
     val TIME_SOURCE =
-      setOf(
-        "UTC_TIMESTAMP",
-        "SECOND_MILLISECOND",
-        "SECONDS_IN_DAY",
-        "SECONDS_SINCE_EPOCH",
-        "MINUTE_SECOND",
-        "MINUTES_SINCE_EPOCH",
-        "HOUR_0_11_Z",
-        "HOUR_0_11_MINUTE",
-        "HOUR_0_11",
-        "HOUR_1_12_Z",
-        "HOUR_1_12_MINUTE",
-        "HOUR_1_12",
-        "HOUR_0_23_Z",
-        "HOUR_0_23_MINUTE",
-        "HOUR_0_23",
-        "HOUR_1_24_Z",
-        "HOUR_1_24_MINUTE",
-        "HOUR_1_24",
-        "HOURS_SINCE_EPOCH",
-        "DAY_HOUR",
-        "DAY_0_30_HOUR",
-        "DAY_0_30",
-        "DAY_OF_YEAR",
-        "DAY_OF_WEEK_F",
-        "DAY_OF_WEEK_S",
-        "DAY_OF_WEEK",
-        "DAYS_IN_MONTH",
-        "MONTH_DAY",
-        "MONTH_0_11_DAY",
-        "MONTH_0_11",
-        "YEAR_MONTH_DAY",
-        "YEAR_MONTH",
-        "WEEK_IN_MONTH",
-        "WEEK_IN_YEAR",
-        "FIRST_DAY_OF_WEEK",
-        "IS_24_HOUR_MODE",
-        "IS_DAYLIGHT_SAVING_TIME",
-        "TIMEZONE_ABB",
-        "TIMEZONE_ID",
-        "TIMEZONE_OFFSET_DST",
-        "TIMEZONE_OFFSET",
-        "TIMEZONE_OFFSET_MINUTES",
-        "TIMEZONE_OFFSET_MINUTES_DST",
-        "TIMEZONE",
-        "AMPM_POSITION",
-        "AMPM_STRING_ENG",
-        "AMPM_STRING_SHORT",
-        "AMPM_STRING",
+      listOf(
+        StaticDataSource(id = "UTC_TIMESTAMP", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "SECOND_MILLISECOND", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "SECONDS_IN_DAY", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "MINUTE_SECOND", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HOUR_0_11_Z", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HOUR_0_11_MINUTE", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HOUR_0_11", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HOUR_1_12_Z", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HOUR_1_12_MINUTE", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HOUR_1_12", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HOUR_0_23_Z", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HOUR_0_23_MINUTE", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HOUR_0_23", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HOUR_1_24_Z", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HOUR_1_24_MINUTE", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HOUR_1_24", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "DAY_HOUR", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "DAY_0_30_HOUR", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "DAY_0_30", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "DAY_OF_YEAR", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "DAY_OF_WEEK_F", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "DAY_OF_WEEK_S", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "DAY_OF_WEEK", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "DAYS_IN_MONTH", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "MONTH_DAY", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "MONTH_0_11_DAY", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "MONTH_0_11", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "YEAR_MONTH_DAY", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "YEAR_MONTH", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "WEEK_IN_MONTH", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "WEEK_IN_YEAR", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "IS_24_HOUR_MODE", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "IS_DAYLIGHT_SAVING_TIME", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "TIMEZONE_ABB", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "TIMEZONE_ID", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "TIMEZONE_OFFSET_DST", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "TIMEZONE_OFFSET", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "TIMEZONE", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "AMPM_POSITION", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "AMPM_STRING_ENG", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "AMPM_STRING_SHORT", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "AMPM_STRING", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "FIRST_DAY_OF_WEEK", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "SECOND_TENS_DIGIT", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "SECOND_UNITS_DIGIT", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "MINUTE_TENS_DIGIT", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "MINUTE_UNITS_DIGIT", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "HOUR_TENS_DIGIT", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "HOUR_UNITS_DIGIT", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "SECONDS_SINCE_EPOCH", requiredVersion = WFFVersion3),
+        StaticDataSource(id = "MINUTES_SINCE_EPOCH", requiredVersion = WFFVersion3),
+        StaticDataSource(id = "HOURS_SINCE_EPOCH", requiredVersion = WFFVersion3),
+        StaticDataSource(id = "TIMEZONE_OFFSET_MINUTES", requiredVersion = WFFVersion3),
+        StaticDataSource(id = "TIMEZONE_OFFSET_MINUTES_DST", requiredVersion = WFFVersion3),
       )
     val LANGUAGE =
-      setOf(
-        "LANGUAGE_CODE",
-        "LANGUAGE_COUNTRY_CODE",
-        "LANGUAGE_LOCALE_NAME",
-        "LANGUAGE_TEXT_DIRECTION",
+      listOf(
+        StaticDataSource(id = "LANGUAGE_CODE", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "LANGUAGE_COUNTRY_CODE", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "LANGUAGE_LOCALE_NAME", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "LANGUAGE_TEXT_DIRECTION", requiredVersion = WFFVersion1),
       )
     val BATTERY =
-      setOf(
-        "BATTERY_PERCENT",
-        "BATTERY_CHARGING_STATUS",
-        "BATTERY_IS_LOW",
-        "BATTERY_TEMPERATURE_CELSIUS",
-        "BATTERY_TEMPERATURE_FAHRENHEIT",
+      listOf(
+        StaticDataSource(id = "BATTERY_PERCENT", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "BATTERY_CHARGING_STATUS", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "BATTERY_IS_LOW", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "BATTERY_TEMPERATURE_CELSIUS", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "BATTERY_TEMPERATURE_FAHRENHEIT", requiredVersion = WFFVersion1),
       )
-    val MOON_PHASE = setOf("MOON_PHASE_POSITION", "MOON_PHASE_TYPE_STRING", "MOON_PHASE_TYPE")
+    val MOON_PHASE =
+      listOf(
+        StaticDataSource(id = "MOON_PHASE_POSITION", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "MOON_PHASE_TYPE_STRING", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "MOON_PHASE_TYPE", requiredVersion = WFFVersion1),
+      )
     val SENSOR =
-      setOf(
-        "ACCELEROMETER_IS_SUPPORTED",
-        "ACCELEROMETER_X",
-        "ACCELEROMETER_Y",
-        "ACCELEROMETER_Z",
-        "ACCELEROMETER_ANGLE_Z",
-        "ACCELEROMETER_ANGLE_XY",
-        "ACCELEROMETER_ANGLE_X",
-        "ACCELEROMETER_ANGLE_Y",
+      listOf(
+        StaticDataSource(id = "ACCELEROMETER_IS_SUPPORTED", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "ACCELEROMETER_X", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "ACCELEROMETER_Y", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "ACCELEROMETER_Z", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "ACCELEROMETER_ANGLE_Z", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "ACCELEROMETER_ANGLE_XY", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "ACCELEROMETER_ANGLE_X", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "ACCELEROMETER_ANGLE_Y", requiredVersion = WFFVersion1),
       )
-    val HEALTH = setOf("STEP_COUNT", "STEP_GOAL", "STEP_PERCENT", "HEART_RATE_Z", "HEART_RATE")
+    val HEALTH =
+      listOf(
+        StaticDataSource(id = "STEP_COUNT", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "STEP_GOAL", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "STEP_PERCENT", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HEART_RATE_Z", requiredVersion = WFFVersion1),
+        StaticDataSource(id = "HEART_RATE", requiredVersion = WFFVersion1),
+      )
 
-    val NOTIFICATION = setOf("UNREAD_NOTIFICATION_COUNT")
+    val NOTIFICATION =
+      listOf(StaticDataSource(id = "UNREAD_NOTIFICATION_COUNT", requiredVersion = WFFVersion1))
 
     val WEATHER =
-      setOf(
-        "WEATHER.IS_AVAILABLE",
-        "WEATHER.IS_ERROR",
-        "WEATHER.CONDITION",
-        "WEATHER.CONDITION_NAME",
-        "WEATHER.IS_DAY",
-        "WEATHER.TEMPERATURE",
-        "WEATHER.TEMPERATURE_UNIT",
-        "WEATHER.TEMPERATURE_LOW",
-        "WEATHER.TEMPERATURE_HIGH",
-        "WEATHER.CHANCE_OF_PRECIPITATION",
-        "WEATHER.UV_INDEX",
-        "WEATHER.LAST_UPDATED",
+      listOf(
+        StaticDataSource(id = "WEATHER.IS_AVAILABLE", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "WEATHER.IS_ERROR", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "WEATHER.CONDITION", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "WEATHER.CONDITION_NAME", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "WEATHER.IS_DAY", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "WEATHER.TEMPERATURE", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "WEATHER.TEMPERATURE_UNIT", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "WEATHER.TEMPERATURE_LOW", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "WEATHER.TEMPERATURE_HIGH", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "WEATHER.CHANCE_OF_PRECIPITATION", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "WEATHER.UV_INDEX", requiredVersion = WFFVersion2),
+        StaticDataSource(id = "WEATHER.LAST_UPDATED", requiredVersion = WFFVersion2),
       )
 
     val WEATHER_PATTERNS =
-      setOf(
-        "WEATHER\\.HOURS\\.\\d+\\.IS_AVAILABLE".toRegex(),
-        "WEATHER\\.HOURS\\.\\d+\\.CONDITION".toRegex(),
-        "WEATHER\\.HOURS\\.\\d+\\.CONDITION_NAME".toRegex(),
-        "WEATHER\\.HOURS\\.\\d+\\.IS_DAY".toRegex(),
-        "WEATHER\\.HOURS\\.\\d+\\.TEMPERATURE".toRegex(),
-        "WEATHER\\.HOURS\\.\\d+\\.UV_INDEX".toRegex(),
-        "WEATHER\\.DAYS\\.\\d+\\.IS_AVAILABLE".toRegex(),
-        "WEATHER\\.DAYS\\.\\d+\\.CONDITION_DAY".toRegex(),
-        "WEATHER\\.DAYS\\.\\d+\\.CONDITION_DAY_NAME".toRegex(),
-        "WEATHER\\.DAYS\\.\\d+\\.CONDITION_NIGHT".toRegex(),
-        "WEATHER\\.DAYS\\.\\d+\\.CONDITION_NIGHT_NAME".toRegex(),
-        "WEATHER\\.DAYS\\.\\d+\\.TEMPERATURE_LOW".toRegex(),
-        "WEATHER\\.DAYS\\.\\d+\\.TEMPERATURE_HIGH".toRegex(),
-        "WEATHER\\.DAYS\\.\\d+\\.CHANCE_OF_PRECIPITATION".toRegex(),
-        "WEATHER\\.DAYS\\.\\d+\\.CHANCE_OF_PRECIPITATION_NIGHT".toRegex(),
-        "WEATHER\\.DAYS\\.\\d+\\.UV_INDEX".toRegex(),
+      listOf(
+        PatternedDataSource(
+          pattern = "WEATHER\\.HOURS\\.\\d+\\.IS_AVAILABLE".toRegex(),
+          WFFVersion2,
+        ),
+        PatternedDataSource(pattern = "WEATHER\\.HOURS\\.\\d+\\.CONDITION".toRegex(), WFFVersion2),
+        PatternedDataSource(
+          pattern = "WEATHER\\.HOURS\\.\\d+\\.CONDITION_NAME".toRegex(),
+          WFFVersion2,
+        ),
+        PatternedDataSource(pattern = "WEATHER\\.HOURS\\.\\d+\\.IS_DAY".toRegex(), WFFVersion2),
+        PatternedDataSource(
+          pattern = "WEATHER\\.HOURS\\.\\d+\\.TEMPERATURE".toRegex(),
+          WFFVersion2,
+        ),
+        PatternedDataSource(pattern = "WEATHER\\.HOURS\\.\\d+\\.UV_INDEX".toRegex(), WFFVersion2),
+        PatternedDataSource(
+          pattern = "WEATHER\\.DAYS\\.\\d+\\.IS_AVAILABLE".toRegex(),
+          WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "WEATHER\\.DAYS\\.\\d+\\.CONDITION_DAY".toRegex(),
+          WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "WEATHER\\.DAYS\\.\\d+\\.CONDITION_DAY_NAME".toRegex(),
+          WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "WEATHER\\.DAYS\\.\\d+\\.CONDITION_NIGHT".toRegex(),
+          WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "WEATHER\\.DAYS\\.\\d+\\.CONDITION_NIGHT_NAME".toRegex(),
+          WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "WEATHER\\.DAYS\\.\\d+\\.TEMPERATURE_LOW".toRegex(),
+          WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "WEATHER\\.DAYS\\.\\d+\\.TEMPERATURE_HIGH".toRegex(),
+          WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "WEATHER\\.DAYS\\.\\d+\\.CHANCE_OF_PRECIPITATION".toRegex(),
+          WFFVersion2,
+        ),
+        PatternedDataSource(
+          pattern = "WEATHER\\.DAYS\\.\\d+\\.CHANCE_OF_PRECIPITATION_NIGHT".toRegex(),
+          WFFVersion2,
+        ),
+        PatternedDataSource(pattern = "WEATHER\\.DAYS\\.\\d+\\.UV_INDEX".toRegex(), WFFVersion2),
       )
 
     val ALL_STATIC =
@@ -193,40 +263,54 @@ object WFFConstants {
         NOTIFICATION +
         WEATHER
 
+    val ALL_STATIC_BY_ID = ALL_STATIC.associateBy { it.id }
+
     val ALL_PATTERNS = WEATHER_PATTERNS
   }
 
+  /**
+   * Functions that can be called in an expression.
+   *
+   * @see <a
+   *   href="https://developer.android.com/reference/wear-os/wff/common/attributes/arithmetic-expression#functions">Functions</a>
+   */
   object Functions {
     val ALL =
-      setOf(
-        "round",
-        "floor",
-        "ceil",
-        "fract",
-        "sin",
-        "cos",
-        "tan",
-        "asin",
-        "acos",
-        "atan",
-        "abs",
-        "clamp",
-        "rand",
-        "log2",
-        "log10",
-        "log",
-        "sqrt",
-        "cbrt",
-        "expm1",
-        "exp",
-        "deg",
-        "rad",
-        "pow",
-        "numberFormat",
-        "icuText",
-        "icuBestText",
-        "subText",
-        "textLength",
+      listOf(
+        Function(id = "round", requiredVersion = WFFVersion1),
+        Function(id = "floor", requiredVersion = WFFVersion1),
+        Function(id = "ceil", requiredVersion = WFFVersion1),
+        Function(id = "fract", requiredVersion = WFFVersion1),
+        Function(id = "sin", requiredVersion = WFFVersion1),
+        Function(id = "cos", requiredVersion = WFFVersion1),
+        Function(id = "tan", requiredVersion = WFFVersion1),
+        Function(id = "asin", requiredVersion = WFFVersion1),
+        Function(id = "acos", requiredVersion = WFFVersion1),
+        Function(id = "atan", requiredVersion = WFFVersion1),
+        Function(id = "abs", requiredVersion = WFFVersion1),
+        Function(id = "clamp", requiredVersion = WFFVersion1),
+        Function(id = "rand", requiredVersion = WFFVersion1),
+        Function(id = "log2", requiredVersion = WFFVersion1),
+        Function(id = "log10", requiredVersion = WFFVersion1),
+        Function(id = "log", requiredVersion = WFFVersion1),
+        Function(id = "sqrt", requiredVersion = WFFVersion1),
+        Function(id = "cbrt", requiredVersion = WFFVersion1),
+        Function(id = "expm1", requiredVersion = WFFVersion1),
+        Function(id = "exp", requiredVersion = WFFVersion1),
+        Function(id = "deg", requiredVersion = WFFVersion1),
+        Function(id = "rad", requiredVersion = WFFVersion1),
+        Function(id = "pow", requiredVersion = WFFVersion1),
+        Function(id = "numberFormat", requiredVersion = WFFVersion1),
+        Function(id = "subText", requiredVersion = WFFVersion1),
+        Function(id = "textLength", requiredVersion = WFFVersion1),
+        Function(id = "icuText", requiredVersion = WFFVersion2),
+        Function(id = "icuBestText", requiredVersion = WFFVersion2),
+        Function(id = "colorRgb", requiredVersion = WFFVersion4),
+        Function(id = "colorArgb", requiredVersion = WFFVersion4),
+        Function(id = "extractColorFromColors", requiredVersion = WFFVersion4),
+        Function(id = "extractColorFromWeightedColors", requiredVersion = WFFVersion4),
       )
+
+    val ALL_BY_ID = ALL.associateBy { it.id }
   }
 }
