@@ -195,6 +195,10 @@ Task                          : :lib:bundleLibRuntimeToJarDebug
     PrimaryTaskCategory           : COMPILED_CLASSES
     SecondaryTaskCategories       : ZIPPING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:checkDebugAarMetadata
+    TaskType                      : com.android.build.gradle.internal.tasks.CheckAarMetadataTask
+    PrimaryTaskCategory           : VERIFICATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:compileDebugJavaWithJavac
     TaskType                      : org.gradle.api.tasks.compile.JavaCompile
     PrimaryTaskCategory           : JAVA
