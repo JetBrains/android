@@ -25,9 +25,14 @@ import com.intellij.openapi.vfs.VirtualFile
  */
 data class StringResourceKey
 @JvmOverloads
-constructor(val name: String, val directory: VirtualFile? = null) : Comparable<StringResourceKey> {
+constructor(
+    val name: String,
+    val directory: VirtualFile? = null,
+    val isFromDoNotTranslateFile: Boolean = false
+) : Comparable<StringResourceKey> {
   override fun compareTo(other: StringResourceKey): Int =
-      compareValuesBy(this, other, { it.name }, { it.directory?.path ?: "" })
+      compareValuesBy(this, other, { it.name }, { it.directory?.path ?: "" }, { it.isFromDoNotTranslateFile })
 
-  override fun toString(): String = if (directory == null) name else "$name ($directory)"
+  override fun toString(): String =
+      "$name${if (directory != null) " ($directory)" else ""} ($isFromDoNotTranslateFile)"
 }

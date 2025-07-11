@@ -338,7 +338,7 @@ class StringResourceDataTest {
   @Test
   fun keyChangeKeepsIterationOrder() {
     assertThat(data.resources.map { it.key.name }).containsExactly(
-      "key1", "key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10", "dynamic_key1"
+      "key1", "key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10", "donottranslate_key1", "donottranslate_key2", "dynamic_key1"
     ).inOrder()
     val key2 = data.resources.map { it.key }.single { it.name == "key2" }
     val value2 = data.getStringResource(key2)
@@ -352,7 +352,7 @@ class StringResourceDataTest {
     waitForCondition(2, TimeUnit.SECONDS) { future.isDone }
 
     assertThat(data.keys.map { it.name }).containsExactly(
-      "key1", "new_key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10", "dynamic_key1"
+      "key1", "new_key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10", "donottranslate_key1", "donottranslate_key2", "dynamic_key1"
     ).inOrder()
     val newKey2 = data.resources.map { it.key }.single { it.name == "new_key2" }
     val newValue2 = data.getStringResource(newKey2)

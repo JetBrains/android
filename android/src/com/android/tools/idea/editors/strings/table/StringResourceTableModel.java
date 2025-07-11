@@ -29,9 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -231,6 +229,8 @@ public class StringResourceTableModel extends AbstractTableModel {
   @Override
   @SuppressWarnings("DuplicateBranchesInSwitch")
   public boolean isCellEditable(int row, int column) {
+    if (getKey(row).isFromDoNotTranslateFile()) return false;
+
     switch (column) {
       case KEY_COLUMN:
         return true;

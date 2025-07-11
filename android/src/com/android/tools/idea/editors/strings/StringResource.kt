@@ -43,7 +43,7 @@ class StringResource(
 
   private val localeToTranslationMap: MutableMap<Locale, ResourceItemEntry> = mutableMapOf()
 
-  var isTranslatable: Boolean = true
+  var isTranslatable: Boolean = !key.isFromDoNotTranslateFile
 
   /** Holds the String default value we're in the process of assigning, to prevent duplicates.  */
   private var tentativeDefaultValue: String? = null

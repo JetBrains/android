@@ -151,10 +151,12 @@ private class StringResourceRepositoryImpl(repository: LocalResourceRepository<V
   override fun getKeys(): List<StringResourceKey> {
     val resourceDirectoryKeys = runReadAction {
       resourceDirectoryRepositoryMap.filter { !it.key.isGenerated }.flatMap { (dir, repo) ->
-        repo.getResourceNames(ResourceNamespace.TODO(), ResourceType.STRING).map { name ->
-          StringResourceKey(name, dir)
-        }
-      }
+        repo.getResources(ResourceNamespace.TODO(), ResourceType.STRING).values()
+          .map { item ->
+            val isFromDoNotTranslate = item.source?.fileName == "donottranslate.xml"
+            StringResourceKey(item.name, dir, isFromDoNotTranslate)
+          }
+      }.distinct()
     }
     val dynamicResourceKeys =
         dynamicResourceRepository

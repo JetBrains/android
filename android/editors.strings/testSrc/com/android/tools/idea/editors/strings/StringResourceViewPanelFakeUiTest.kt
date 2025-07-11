@@ -316,7 +316,7 @@ class StringResourceViewPanelFakeUiTest {
       .find { locale.qualifier == it.configuration.localeQualifier }
 
   companion object {
-    val DEFAULT_KEYS = listOf("key1", "key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10")
+    val DEFAULT_KEYS = listOf("key1", "key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10", "donottranslate_key1", "donottranslate_key2")
     val DEFAULT_LOCALES =
       listOf("English (en)", "English (en) in India (IN)", "English (en) in United Kingdom (GB)", "French (fr)", "Hindi (hi)")
   }

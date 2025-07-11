@@ -62,4 +62,14 @@ class StringResourceKeyTest {
     assertThat(emptyDirKey).isLessThan(barDirKey)
     assertThat(barDirKey).isGreaterThan(emptyDirKey)
   }
+
+  @Test
+  fun compareTo_withDoNotTranslateFlag() {
+    val directory = MockVirtualFile(true, "dirname")
+    val key1 = StringResourceKey("key", directory, isFromDoNotTranslateFile = false)
+    val key2 = StringResourceKey("key", directory, isFromDoNotTranslateFile = true)
+
+    assertThat(key1).isLessThan(key2)
+    assertThat(key2).isGreaterThan(key1)
+  }
 }

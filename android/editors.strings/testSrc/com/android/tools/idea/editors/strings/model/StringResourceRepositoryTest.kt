@@ -116,6 +116,8 @@ class StringResourceRepositoryTest {
             StringResourceKey("key4", resourceDirectory),
             StringResourceKey("key9", resourceDirectory),
             StringResourceKey("key10", resourceDirectory),
+            StringResourceKey("donottranslate_key1", resourceDirectory, true),
+            StringResourceKey("donottranslate_key2", resourceDirectory, true),
             StringResourceKey(DYNAMIC_KEY_1),
             StringResourceKey(DYNAMIC_KEY_2),
         )

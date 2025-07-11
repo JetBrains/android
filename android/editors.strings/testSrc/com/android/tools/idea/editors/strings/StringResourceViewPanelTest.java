@@ -110,7 +110,9 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       "key8",
       "key4",
       "key9",
-      "key10");
+      "key10",
+      "donottranslate_key1",
+      "donottranslate_key2");
 
     assertEquals(expectedColumn, myTable.getColumnAt(StringResourceTableModel.KEY_COLUMN));
 

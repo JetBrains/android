@@ -145,4 +145,41 @@ class StringResourceTableModelTest {
 
     assertThat(model.getColumnName(4)).isEqualTo("es-a00")
   }
+
+  @Test
+  fun isCellEditable() {
+    val doNotTranslateKey: StringResourceKey = StringResourceKey("key1", isFromDoNotTranslateFile = true)
+    val regularKey: StringResourceKey = StringResourceKey("key2")
+    keys.addAll(listOf(doNotTranslateKey, regularKey))
+
+    val enLocale = Locale.create(LocaleQualifier("en"))
+    locales.add(enLocale)
+
+    // Data from do not translate file should not be editable
+    assertThat(model.isCellEditable(0, KEY_COLUMN)).isFalse()
+    assertThat(model.isCellEditable(0, RESOURCE_FOLDER_COLUMN)).isFalse()
+    assertThat(model.isCellEditable(0, UNTRANSLATABLE_COLUMN)).isFalse()
+    assertThat(model.isCellEditable(0, DEFAULT_VALUE_COLUMN)).isFalse()
+    assertThat(model.isCellEditable(0, FIXED_COLUMN_COUNT)).isFalse()
+
+    val regularResource: StringResource = mock()
+    whenever(stringResourceData.getStringResource(regularKey)).thenReturn(regularResource)
+
+    assertThat(model.isCellEditable(1, KEY_COLUMN)).isTrue()
+    assertThat(model.isCellEditable(1, RESOURCE_FOLDER_COLUMN)).isFalse()
+    assertThat(model.isCellEditable(1, UNTRANSLATABLE_COLUMN)).isTrue()
+
+    // Default value column should be editable only if it does not contain a newline.
+    whenever(regularResource.defaultValueAsString).thenReturn("A value without a newline")
+    assertThat(model.isCellEditable(1, DEFAULT_VALUE_COLUMN)).isTrue()
+    whenever(regularResource.defaultValueAsString).thenReturn("A value with a\nnewline")
+    assertThat(model.isCellEditable(1, DEFAULT_VALUE_COLUMN)).isFalse()
+
+    // Translation columns should be editable only if they do not contain a newline.
+    val translationColumn = FIXED_COLUMN_COUNT
+    whenever(regularResource.getTranslationAsString(enLocale)).thenReturn("A translation without a newline")
+    assertThat(model.isCellEditable(1, translationColumn)).isTrue()
+    whenever(regularResource.getTranslationAsString(enLocale)).thenReturn("A translation\nwith a newline")
+    assertThat(model.isCellEditable(1, translationColumn)).isFalse()
+  }
 }
