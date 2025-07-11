@@ -18,16 +18,25 @@ package com.android.tools.idea.gradle.dsl.model;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
+import static com.intellij.openapi.util.io.FileUtil.loadFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.loadText;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.impl.source.PostprocessReformattingAspect;
 import java.io.File;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
+import org.jetbrains.plugins.gradle.model.VersionCatalogsModel;
 import org.junit.Test;
 
 public class PluginsBlockTest extends GradleFileModelTestCase {
@@ -242,6 +251,39 @@ public class PluginsBlockTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testAddPluginAsForNewProject() throws Exception {
+    writeToBuildFile(TestFile.ADD_PLUGIN_TO_EMPTY_PROJECT);
+    writeToVersionCatalogFile(
+      """
+        [plugins]
+        android-application = "com.android.application:8.1"
+        kotlin-android = "org.jetbrains.kotlin.android:2.0.21"
+        kotlin-compose = "org.jetbrains.kotlin.plugin.compose:2.0.21"
+        """
+    );
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
+    verifyPlugins(ImmutableList.of(), buildModel.plugins());
+    GradleVersionCatalogsModel versionCatalogsModel = projectBuildModel.getVersionCatalogsModel();
+
+    GradlePropertyModel app = versionCatalogsModel.plugins("libs").findProperty("android-application");
+    buildModel.applyPlugin(new ReferenceTo(app, buildModel), false);
+
+    GradlePropertyModel kotlinAndroid = versionCatalogsModel.plugins("libs").findProperty("kotlin-android");
+    buildModel.applyPlugin(new ReferenceTo(kotlinAndroid, buildModel), false);
+
+    GradlePropertyModel kotlinCompose = versionCatalogsModel.plugins("libs").findProperty("kotlin-compose");
+    buildModel.applyPlugin(new ReferenceTo(kotlinCompose, buildModel), false);
+
+    applyChanges(buildModel);
+
+    // We are not using verifyFileContents as it removes all whitespaces.
+    // Here we care about formatting=whitespaces a lot
+    String expected = loadFile(TestFile.ADD_PLUGIN_TO_EMPTY_PROJECT_EXPECTED.toFile(myTestDataResolvedPath, myTestDataExtension));
+    assertEquals(expected, loadText(myBuildFile));
+  }
+
+  @Test
   public void testAddExistingPluginToPluginsAndApplyBlock() throws Exception {
     writeToBuildFile(TestFile.ADD_EXISTING_PLUGIN_TO_PLUGINS_AND_APPLY_BLOCKS);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -348,6 +390,8 @@ public class PluginsBlockTest extends GradleFileModelTestCase {
   enum TestFile implements TestFileName {
     ADD_PLUGIN_TO_PLUGINS_BLOCK("addPluginToPluginsBlock"),
     ADD_PLUGIN_TO_PLUGINS_BLOCK_EXPECTED("addPluginToPluginsBlockExpected"),
+    ADD_PLUGIN_TO_EMPTY_PROJECT("addPluginForEmptyProject"),
+    ADD_PLUGIN_TO_EMPTY_PROJECT_EXPECTED("addPluginForEmptyProjectExpected"),
     ADD_PLUGIN_DSL_TO_PLUGINS_BLOCK_EXPECTED("addPluginDslToPluginsBlockExpected"),
     ADD_PLUGIN_AFTER_BUILDSCRIPT("addPluginAfterBuildscript"),
     ADD_PLUGIN_AFTER_BUILDSCRIPT_EXPECTED("addPluginAfterBuildscriptExpected"),

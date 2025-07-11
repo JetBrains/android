@@ -384,6 +384,23 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
         createAndAddClosure(methodCall.getUnsavedClosure(), methodCall);
       }
 
+      if (addedElement.getPrevSibling() instanceof GrParameterList) {
+        // Empty parameter list by default is added by parser for block so it looks like
+        // { <newline> `GrParameterList` <anchor to insert more elements> }
+        // Intellij formatter is smart so it formats only what was changed.
+        // If we just insert new elements it adjusts whitespace/newline element that belongs to
+        // closure content. Closure content begins after `GrParameterList`.
+        // Formatter updates newline after `{` only if we change it explicitly.
+        //
+        // Inserting whitespace after empty `GrParameterList` is impossible.
+        // `CodeEditUtil.addChildren/makePlaceHolderBetweenTokens` tries to add whitespace
+        // to previous psi WHITE_SPACE `\n` to havel all spaces united in one PSI element
+        // skipping non-visible list.
+        // However, `GrParameterList` list makes it impossible.
+        PsiElement whitespace = factory.createWhiteSpace();
+        parentPsiElement.addBefore(whitespace, addedElement.getPrevSibling());
+      }
+
       return methodCall.getPsiElement();
     }
 
