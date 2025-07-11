@@ -26,7 +26,6 @@ import com.intellij.debugger.engine.evaluation.EvaluationContextImpl
 import com.intellij.debugger.ui.tree.render.CustomPopupFullValueEvaluator
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.ui.Messages
-import com.intellij.util.ui.ImageUtil
 import com.sun.jdi.ArrayType
 import com.sun.jdi.IntegerValue
 import com.sun.jdi.ObjectReference
@@ -52,7 +51,7 @@ internal class BitmapPopupEvaluatorV2(private val evaluationContext: EvaluationC
       val width = bitmap.getWidth()
       val height = bitmap.getHeight()
       val pixels = bitmap.getPixels(width, height)
-      val image = ImageUtil.createImage(width, height, TYPE_INT_ARGB)
+      val image = BufferedImage(width, height, TYPE_INT_ARGB)
 
       for (x in 0 until width) {
         for (y in 0 until height) {
