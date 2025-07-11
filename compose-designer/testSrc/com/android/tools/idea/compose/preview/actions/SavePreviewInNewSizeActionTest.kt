@@ -103,6 +103,7 @@ class SavePreviewInNewSizeActionTest {
   @After
   fun tearDown() {
     Disposer.dispose(sceneManager)
+    ComposeResizeToolingUsageTracker.forceEnableForUnitTests = false
   }
 
   @Test

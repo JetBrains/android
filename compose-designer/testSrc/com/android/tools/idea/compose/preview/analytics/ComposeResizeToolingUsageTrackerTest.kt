@@ -29,6 +29,7 @@ import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.RESIZE_COMPOSE_PREVIEW_EVENT
 import com.google.wireless.android.sdk.stats.ResizeComposePreviewEvent
 import com.intellij.testFramework.runInEdtAndGet
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -65,6 +66,11 @@ class ComposeResizeToolingUsageTrackerTest {
     surface.addModelWithoutRender(model).join()
 
     ComposeResizeToolingUsageTracker.forceEnableForUnitTests = true
+  }
+
+  @After
+  fun tearDown() {
+    ComposeResizeToolingUsageTracker.forceEnableForUnitTests = false
   }
 
   @Test
