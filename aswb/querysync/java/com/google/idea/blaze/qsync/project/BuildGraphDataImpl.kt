@@ -507,7 +507,7 @@ data class BuildGraphDataImpl(
     return externalDeps
   }
 
-  override val externalDependencyCount: Int
+  override val externalDependencyCountForStatsOnly: Int
     get() = storage.projectDeps.size
 
   override val projectSupportedTargetCountForStatsOnly: Int
@@ -575,7 +575,7 @@ data class BuildGraphDataImpl(
     context.output(
       PrintOutput.log(
         "%-10d External dependencies",
-        storage.projectDeps.size
+        externalDependencyCountForStatsOnly
       )
     )
   }

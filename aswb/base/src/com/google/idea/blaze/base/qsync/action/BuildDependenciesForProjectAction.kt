@@ -19,14 +19,11 @@ import com.google.idea.blaze.base.actions.BlazeProjectAction
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.qsync.QuerySyncManager.Companion.getInstance
-import com.google.idea.blaze.base.qsync.QuerySyncProject
-import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
-import java.util.function.Function
 import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -54,7 +51,7 @@ class BuildDependenciesForProjectAction : BlazeProjectAction() {
       return
     }
 
-    val externalDeps = snapshot.graph().externalDependencyCount
+    val externalDeps = snapshot.graph().externalDependencyCountForStatsOnly
     logger.warn("Total external deps: $externalDeps")
     if (externalDeps > EXTERNAL_DEPS_WARNING_THRESHOLD) {
       if (!WarningDialog(project).showAndGet()) {

@@ -16,15 +16,11 @@
 package com.google.idea.blaze.qsync.project
 
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Predicate
 import com.google.common.collect.ImmutableSet
-import com.google.common.collect.ImmutableSetMultimap
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
-import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Companion.builder
 import com.google.idea.blaze.qsync.query.PackageSet
 import java.nio.file.Path
-import java.util.Optional
 
 interface BuildGraphData {
   /**
@@ -176,7 +172,7 @@ interface BuildGraphData {
   /**
    * Returns the number of external dependencies of the project for the purpose of stats reporting.
    */
-  val externalDependencyCount: Int
+  val externalDependencyCountForStatsOnly: Int
 
   /**
    * Returns the number of supported targets of the project for the purpose of stats reporting.

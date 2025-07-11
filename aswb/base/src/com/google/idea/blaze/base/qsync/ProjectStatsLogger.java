@@ -49,7 +49,7 @@ public class ProjectStatsLogger {
                           .map(WorkspacePath::asPath)
                           .collect(toImmutableSet()))
                   .setProjectTargetCount(instance.graph().getProjectSupportedTargetCountForStatsOnly())
-                  .setExternalDependencyCount(instance.graph().getExternalDependencyCount());
+                  .setExternalDependencyCount(instance.graph().getExternalDependencyCountForStatsOnly());
               scope
                   .getDependenciesInfoStatsBuilder()
                   .setTargetMapSize(instance.graph().getTargetMapSizeForStatsOnly())
