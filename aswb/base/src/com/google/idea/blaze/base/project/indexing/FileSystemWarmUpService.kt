@@ -62,20 +62,21 @@ class FileSystemWarmUpService(val project: Project, val coroutineScope: Coroutin
   }
 
   // Request is not a data class to make each request processed by state flows.
-  private /* not data */ class Request(val roots: Set<VirtualFile>)
+  private /* not data */ class VfsRefreshRequest(val roots: Set<VirtualFile>)
 
   private object FileSystemWarmUpActivityKey : ActivityKey {
     override val presentableName: String = "file-system-warm-up"
   }
 
-  private val requestFlow = MutableStateFlow(Request(roots = emptySet()))
+  private val warmUpDispatcher = Dispatchers.IO.limitedParallelism(fileSystemWarmUpExperimentThreads.value)
+  private val vfsRefreshRequestFlow = MutableStateFlow(VfsRefreshRequest(roots = emptySet()))
 
-  fun requestFileSystemWarmUp() {
+  fun requestVirtualFileSystemWarmUp() {
     if (!fileSystemWarmUpExperimentEnabled.value) return
     coroutineScope.launch {
       logger.info("Requesting file system warm-up...")
-      requestFlow.emit(
-        Request(
+      vfsRefreshRequestFlow.emit(
+        VfsRefreshRequest(
           roots = readAction {
             ModuleManager.getInstance(project)
               .findModuleByName(com.google.idea.blaze.qsync.project.BlazeProjectDataStorage.WORKSPACE_MODULE_NAME)
@@ -92,7 +93,7 @@ class FileSystemWarmUpService(val project: Project, val coroutineScope: Coroutin
   init {
     coroutineScope.launch {
       // Process requests with collectLatest {}, which automatically cancels any unfinished processing if a new state arrives.
-      requestFlow.collectLatest { request ->
+      vfsRefreshRequestFlow.collectLatest { request ->
         project.trackActivity(FileSystemWarmUpActivityKey) {
           processRequest(request)
         }
@@ -100,18 +101,18 @@ class FileSystemWarmUpService(val project: Project, val coroutineScope: Coroutin
     }
   }
 
-  private suspend fun processRequest(request: Request) {
+  private suspend fun processRequest(request: VfsRefreshRequest) {
     logger.info("Processing file system warm-up request...")
-    withContext(Dispatchers.IO.limitedParallelism(fileSystemWarmUpExperimentThreads.value)) {
+    withContext(warmUpDispatcher) {
       val processedFiles: Int
       val processedInMs = measureTimeMillis {
-        processedFiles = FileProcessor.processFiles(request.roots)
+        processedFiles = VirtualFileProcessor.processFiles(request.roots)
       }
       logger.info("File system warm-up request processed ${processedFiles} files in ${processedInMs}ms.")
     }
   }
 
-  private class FileProcessor private constructor(private val processorCoroutineScope: CoroutineScope) {
+  private class VirtualFileProcessor private constructor(private val processorCoroutineScope: CoroutineScope) {
     private val logger = thisLogger()
     private val processedFileCounter = AtomicInteger()
     private val queuedFileCounter = AtomicInteger()
@@ -148,9 +149,9 @@ class FileSystemWarmUpService(val project: Project, val coroutineScope: Coroutin
     companion object {
       suspend fun processFiles(files: Set<VirtualFile>): Int {
         return supervisorScope {
-          val fileProcessor = FileProcessor(this)
-          files.forEach { fileProcessor.launchFileProcessing(it) }
-          fileProcessor.queuedFileCounter
+          val virtualFileProcessor = VirtualFileProcessor(this)
+          files.forEach { virtualFileProcessor.launchFileProcessing(it) }
+          virtualFileProcessor.queuedFileCounter
         }.get()
       }
     }
@@ -169,7 +170,7 @@ class WarmUpTriggeringIndexableSetContributor() : IndexableSetContributor() {
   override fun getAdditionalRootsToIndex(): Set<VirtualFile> = emptySet()
 
   override fun getAdditionalProjectRootsToIndex(project: Project): Set<VirtualFile> {
-    project.service<FileSystemWarmUpService>().requestFileSystemWarmUp()
+    project.service<FileSystemWarmUpService>().requestVirtualFileSystemWarmUp()
     return emptySet()
   }
 }
