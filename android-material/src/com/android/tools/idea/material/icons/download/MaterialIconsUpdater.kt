@@ -39,6 +39,7 @@ import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.concurrent.CancellationException
 import kotlin.io.path.exists
 import kotlin.io.path.isSameFileAs
 import kotlin.io.path.name
@@ -88,38 +89,31 @@ internal fun updateIconsAtDir(
     return false
   }
 
-  var isCancelled = ProgressManager.getInstance().progressIndicator?.isCanceled ?: false
-  fun Collection<MaterialMetadataIcon>.cancellableForEachIcon(onIcon: (iconMetadata: MaterialMetadataIcon) -> Unit) {
-    this.forEach { iconMetadata: MaterialMetadataIcon ->
-      if (isCancelled || ProgressManager.getInstance().progressIndicator?.isCanceled == true) {
-        isCancelled = true
-        return@forEach
-      }
-      onIcon(iconMetadata)
+  try {
+    ProgressManager.checkCanceled();
+
+    updateData.iconsToRemove.forEach {
+      ProgressManager.checkCanceled();
+      metadataBuilder.removeIconMetadata(it)
     }
+
+    updateData.iconsToDownload.forEach {
+      ProgressManager.checkCanceled();
+      downloadIconStyles(newMetadata, targetDir, it)
+      metadataBuilder.addIconMetadata(it)
+    }
+  } catch (e: ProcessCanceledException) {
+
+  } catch (e: CancellationException) {
+
+  } catch (e: Exception) {
+    log.warn("Download error", e)
+  } finally {
+    // Update metadata file
+    MaterialIconsMetadata.writeAsJson(metadataBuilder.build(), targetDir.resolve(METADATA_FILE_NAME), log)
+    log.info("Updated icons remove=${updateData.iconsToRemove.size} download=${updateData.iconsToDownload}")
+    return true
   }
-
-  updateData.iconsToRemove.cancellableForEachIcon(metadataBuilder::removeIconMetadata)
-  updateData.iconsToDownload.cancellableForEachIcon { iconMetadata ->
-    try {
-      downloadIconStyles(newMetadata, targetDir, iconMetadata)
-
-      // Icon should be registered until after the download finishes
-      metadataBuilder.addIconMetadata(iconMetadata)
-    }
-    catch (e: Exception) {
-      when (e) {
-        // Don't include the ProcessCanceledException in the Log
-        is ProcessCanceledException -> log.info("Download cancelled for: ${iconMetadata.name}", e)
-        else -> log.warn("Download error for: ${iconMetadata.name}", e)
-      }
-    }
-  }
-
-  // Update metadata file
-  MaterialIconsMetadata.writeAsJson(metadataBuilder.build(), targetDir.resolve(METADATA_FILE_NAME), log)
-  log.info("Updated icons remove=${updateData.iconsToRemove.size} download=${updateData.iconsToDownload}")
-  return true
 }
 
 /**
