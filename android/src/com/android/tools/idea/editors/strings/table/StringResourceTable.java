@@ -21,10 +21,13 @@ import com.android.tools.idea.editors.strings.table.filter.StringResourceTableCo
 import com.android.tools.idea.editors.strings.table.filter.StringResourceTableRowFilter;
 import com.intellij.util.ui.JBUI;
 import java.awt.event.KeyEvent;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
 import javax.swing.KeyStroke;
+import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -115,7 +118,12 @@ public class StringResourceTable extends FrozenColumnTable<StringResourceTableMo
   @Override
   public void setModel(@NotNull StringResourceTableModel model) {
     super.setModel(model);
-    setRowSorter(new FrozenColumnTableRowSorter<>(new ThreeStateTableRowSorter<>(model), this));
+
+    List<? extends RowSorter.SortKey> keys = Optional.ofNullable(getRowSorter())
+      .map(FrozenColumnTableRowSorter::getSortKeys)
+      .orElse(Collections.emptyList());
+
+    setRowSorter(new FrozenColumnTableRowSorter<>(new ThreeStateTableRowSorter<>(model), this, keys));
 
     if (myColumnPreferredWidthsSet) {
       return;

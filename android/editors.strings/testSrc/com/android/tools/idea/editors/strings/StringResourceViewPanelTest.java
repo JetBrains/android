@@ -55,6 +55,7 @@ import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -245,6 +246,22 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     assertTrue(deleted.get());
     assertThat(myTable.getModel().getRowCount()).named("Number of rows should have changed").isEqualTo(beforeDelete - 1);
     assertThat(myTable.getModel().getKeys().stream().map(key -> key.getName()).toList()).containsNoneIn(new Object[]{"key5"});
+  }
+
+  public void testReloadDataRetainsSortOrder() throws TimeoutException {
+    int keyColumn = StringResourceTableModel.KEY_COLUMN;
+    myTable.getFrozenTable().getRowSorter().toggleSortOrder(keyColumn);
+    List<Object> sortedKeysBefore = myTable.getColumnAt(keyColumn);
+
+    myPanel.reloadData();
+
+    AtomicBoolean done = new AtomicBoolean();
+    myRepository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE, () -> done.set(true));
+    waitForCondition(2, TimeUnit.SECONDS, done::get);
+    dispatchAllInvocationEvents();
+
+    List<Object> sortedKeysAfter = myTable.getColumnAt(keyColumn);
+    assertThat(sortedKeysAfter).isEqualTo(sortedKeysBefore);
   }
 
   private void editCellAt(@NotNull Object value, int viewRowIndex, int viewColumnIndex) throws TimeoutException {

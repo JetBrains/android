@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import java.util.List;
 import javax.swing.DefaultRowSorter;
 import javax.swing.RowFilter;
 import javax.swing.RowSorter;
@@ -39,6 +40,12 @@ final class FrozenColumnTableRowSorter<M> {
     myScrollableTableRowSorter = new SubTableRowSorter<>(delegate, (SubTableModel)table.getScrollableTable().getModel());
   }
 
+  FrozenColumnTableRowSorter(@NotNull DefaultRowSorter<M, Integer> delegate, @NotNull FrozenColumnTable table, @NotNull List<? extends RowSorter.SortKey> keys) {
+    this(delegate, table);
+
+    myDelegate.setSortKeys(keys);
+  }
+
   @NotNull
   RowSorter<SubTableModel> getFrozenTableRowSorter() {
     return myFrozenTableRowSorter;
@@ -56,5 +63,9 @@ final class FrozenColumnTableRowSorter<M> {
 
   void setRowFilter(@Nullable RowFilter<M, Integer> rowFilter) {
     myDelegate.setRowFilter(rowFilter);
+  }
+
+  List<? extends RowSorter.SortKey> getSortKeys() {
+    return myDelegate.getSortKeys();
   }
 }
