@@ -223,7 +223,8 @@ public class BlazeQueryParser {
     targetBuilder
         .sourceLabelsBuilder()
         .putAll(SourceType.REGULAR, expandFileGroupValues(rule.sources()))
-        .putAll(SourceType.ANDROID_RESOURCES, expandFileGroupValues(rule.resourceFiles()));
+        .putAll(SourceType.ANDROID_RESOURCES, expandFileGroupValues(rule.resourceFiles()))
+        .putAll(SourceType.AIDL, expandFileGroupValues(rule.idlSources()));
 
     Set<Label> thisDeps = Sets.newHashSet(rule.deps());
     targetBuilder.depsBuilder().addAll(thisDeps);

@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.Expect;
 import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.common.RuleKinds;
 import com.google.idea.blaze.qsync.BlazeQueryParser;
 import com.google.idea.blaze.qsync.testdata.BuildGraphs;
 import com.google.idea.blaze.qsync.testdata.TestData;
@@ -353,6 +354,27 @@ public class BuildGraphDataImplTest {
     assertThat(graph.storage.getProjectDeps()).containsExactly(Label.of("//" + TESTDATA_ROOT + "/aidl:aidl"));
     assertThat(graph.getExternalDependencies(ImmutableList.of(Label.of("//" + TESTDATA_ROOT.resolve("aidl:aidl")))))
         .containsExactly(Label.of("//" + TESTDATA_ROOT + "/aidl:aidl"));
+  }
+
+  @Test
+  public void testProjectAndroidLibrariesWithAidlSource_aidlsAreSources() throws Exception {
+    BuildGraphDataImpl graph =
+        new BlazeQueryParser(
+                getQuerySummary(TestData.ANDROID_AIDL_SOURCE_QUERY),
+                NOOP_CONTEXT,
+                ImmutableSet.of())
+            .parseForTesting();
+    assertThat(graph.storage.getSourceFileLabels())
+      .containsExactly(
+        Label.of("//" + TESTDATA_ROOT + "/aidl:TestAndroidAidlClass.java"),
+        Label.of("//" + TESTDATA_ROOT + "/aidl:TestAidlService.aidl"),
+        Label.of("//" + TESTDATA_ROOT + "/aidl:BUILD"));
+    assertThat(graph.getJavaSourceFiles())
+        .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"));
+    assertThat(graph.getAndroidSourceFiles())
+        .containsExactly(TESTDATA_ROOT.resolve("aidl/TestAndroidAidlClass.java"));
+    assertThat(graph.getSourceFilesByRuleKindAndType(RuleKinds::isAndroid, ProjectTarget.SourceType.AIDL))
+      .containsExactly(Path.of(TESTDATA_ROOT + "/aidl/TestAidlService.aidl"));
   }
 
   @Test

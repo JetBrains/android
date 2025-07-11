@@ -41,7 +41,8 @@ public abstract class ProjectTarget implements BuildTarget {
     REGULAR,
     ANDROID_RESOURCES,
     ANDROID_MANIFEST,
-    CC_HEADERS;
+    CC_HEADERS,
+    AIDL;
 
     /** Helper method to improve code readability when passing an array of source types to match. */
     public static SourceType[] all() {
