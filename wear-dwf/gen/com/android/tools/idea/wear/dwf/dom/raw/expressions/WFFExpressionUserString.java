@@ -23,12 +23,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface WFFExpressionConfigurationId extends PsiElement {
+public interface WFFExpressionUserString extends PsiElement {
 
   @Nullable
-  WFFExpressionColorIndex getColorIndex();
+  PsiElement getId();
 
   @Nullable
-  WFFExpressionUserString getUserString();
+  PsiElement getInteger();
 
 }

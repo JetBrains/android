@@ -92,7 +92,9 @@ data_source ::= OPEN_BRACKET ID CLOSE_BRACKET
 color_index ::= DOT INTEGER {
   pin=1
 }
-configuration_id ::= 'CONFIGURATION' DOT ID color_index? {
+// can be a number by itself, a number followed by an id, or an id by itself
+user_string ::= INTEGER ID?| INTEGER? ID
+configuration_id ::= 'CONFIGURATION' DOT user_string color_index? {
   pin=2
 }
 configuration ::= OPEN_BRACKET configuration_id CLOSE_BRACKET {

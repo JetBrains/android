@@ -29,14 +29,14 @@ import static com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionT
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.*;
 
-public class WFFExpressionConfigurationIdImpl extends ASTWrapperPsiElement implements WFFExpressionConfigurationId {
+public class WFFExpressionUserStringImpl extends ASTWrapperPsiElement implements WFFExpressionUserString {
 
-  public WFFExpressionConfigurationIdImpl(@NotNull ASTNode node) {
+  public WFFExpressionUserStringImpl(@NotNull ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull WFFExpressionVisitor visitor) {
-    visitor.visitConfigurationId(this);
+    visitor.visitUserString(this);
   }
 
   @Override
@@ -47,14 +47,14 @@ public class WFFExpressionConfigurationIdImpl extends ASTWrapperPsiElement imple
 
   @Override
   @Nullable
-  public WFFExpressionColorIndex getColorIndex() {
-    return findChildByClass(WFFExpressionColorIndex.class);
+  public PsiElement getId() {
+    return findChildByType(ID);
   }
 
   @Override
   @Nullable
-  public WFFExpressionUserString getUserString() {
-    return findChildByClass(WFFExpressionUserString.class);
+  public PsiElement getInteger() {
+    return findChildByType(INTEGER);
   }
 
 }

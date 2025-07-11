@@ -51,6 +51,7 @@ public interface WFFExpressionTypes {
   IElementType UNARY_MIN_EXPR = new WFFExpressionElementType("UNARY_MIN_EXPR");
   IElementType UNARY_NOT_EXPR = new WFFExpressionElementType("UNARY_NOT_EXPR");
   IElementType UNARY_PLUS_EXPR = new WFFExpressionElementType("UNARY_PLUS_EXPR");
+  IElementType USER_STRING = new WFFExpressionElementType("USER_STRING");
 
   IElementType CLOSE_BRACKET = new WFFExpressionTokenType("]");
   IElementType CLOSE_PAREN = new WFFExpressionTokenType(")");
@@ -138,6 +139,9 @@ public interface WFFExpressionTypes {
       }
       else if (type == UNARY_PLUS_EXPR) {
         return new WFFExpressionUnaryPlusExprImpl(node);
+      }
+      else if (type == USER_STRING) {
+        return new WFFExpressionUserStringImpl(node);
       }
       throw new AssertionError("Unknown element type: " + type);
     }

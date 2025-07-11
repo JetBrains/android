@@ -38,7 +38,8 @@ FILE
             WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
               PsiElement(ID)('CONFIGURATION')
               PsiElement(.)('.')
-              PsiElement(ID)('showBackgroundInAfternoon')
+              WFFExpressionUserStringImpl(USER_STRING)
+                PsiElement(ID)('showBackgroundInAfternoon')
             PsiElement(])(']')
         WFFExpressionConditionalOpImpl(CONDITIONAL_OP)
           PsiElement(OPERATORS)('==')
@@ -152,7 +153,8 @@ FILE
       WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
         PsiElement(ID)('CONFIGURATION')
         PsiElement(.)('.')
-        PsiElement(ID)('themeColor')
+        WFFExpressionUserStringImpl(USER_STRING)
+          PsiElement(ID)('themeColor')
       PsiElement(])(']')
           """
         .trimIndent(),
@@ -168,7 +170,8 @@ FILE
       WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
         PsiElement(ID)('CONFIGURATION')
         PsiElement(.)('.')
-        PsiElement(ID)('themeColor')
+        WFFExpressionUserStringImpl(USER_STRING)
+          PsiElement(ID)('themeColor')
         WFFExpressionColorIndexImpl(COLOR_INDEX)
           PsiElement(.)('.')
           PsiElement(INTEGER)('1')
@@ -188,7 +191,7 @@ FILE
       WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
         PsiElement(ID)('CONFIGURATION')
         PsiElement(.)('.')
-        PsiErrorElement:ID expected
+        PsiErrorElement:<user string> expected
           <empty list>
           """
         .trimIndent(),
@@ -205,7 +208,8 @@ FILE
       WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
         PsiElement(ID)('CONFIGURATION')
         PsiElement(.)('.')
-        PsiElement(ID)('themeColor')
+        WFFExpressionUserStringImpl(USER_STRING)
+          PsiElement(ID)('themeColor')
         WFFExpressionColorIndexImpl(COLOR_INDEX)
           PsiElement(.)('.')
           PsiElement(INTEGER)('1')
@@ -215,6 +219,47 @@ FILE
         .trimIndent(),
       // missing closing bracket
       toParseTreeText("[CONFIGURATION.themeColor.1"),
+    )
+  }
+
+  fun testConfigurationsCanStartWithAnInteger() {
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    WFFExpressionConfigurationImpl(CONFIGURATION)
+      PsiElement([)('[')
+      WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
+        PsiElement(ID)('CONFIGURATION')
+        PsiElement(.)('.')
+        WFFExpressionUserStringImpl(USER_STRING)
+          PsiElement(INTEGER)('40')
+          PsiElement(ID)('fc6b01_0756_400d_8903_20a8808c8115')
+      PsiElement(])(']')
+          """
+        .trimIndent(),
+      // missing closing bracket
+      toParseTreeText("[CONFIGURATION.40fc6b01_0756_400d_8903_20a8808c8115]"),
+    )
+  }
+
+  fun testConfigurationsCanBeAnInteger() {
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    WFFExpressionConfigurationImpl(CONFIGURATION)
+      PsiElement([)('[')
+      WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
+        PsiElement(ID)('CONFIGURATION')
+        PsiElement(.)('.')
+        WFFExpressionUserStringImpl(USER_STRING)
+          PsiElement(INTEGER)('0')
+      PsiElement(])(']')
+          """
+        .trimIndent(),
+      // missing closing bracket
+      toParseTreeText("[CONFIGURATION.0]"),
     )
   }
 

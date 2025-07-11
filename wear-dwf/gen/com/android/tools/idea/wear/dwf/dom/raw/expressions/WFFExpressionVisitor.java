@@ -125,6 +125,10 @@ public class WFFExpressionVisitor extends PsiElementVisitor {
     visitExpr(o);
   }
 
+  public void visitUserString(@NotNull WFFExpressionUserString o) {
+    visitPsiElement(o);
+  }
+
   public void visitPsiElement(@NotNull PsiElement o) {
     visitElement(o);
   }

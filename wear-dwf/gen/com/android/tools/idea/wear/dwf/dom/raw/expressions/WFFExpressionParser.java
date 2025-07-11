@@ -180,15 +180,16 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'CONFIGURATION' DOT ID color_index?
+  // 'CONFIGURATION' DOT user_string color_index?
   public static boolean configuration_id(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "configuration_id")) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, CONFIGURATION_ID, "<configuration id>");
     r = consumeToken(b, "CONFIGURATION");
-    r = r && consumeTokens(b, 1, DOT, ID);
+    r = r && consumeToken(b, DOT);
     p = r; // pin = 2
-    r = r && configuration_id_3(b, l + 1);
+    r = r && report_error_(b, user_string(b, l + 1));
+    r = p && configuration_id_3(b, l + 1) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
@@ -307,6 +308,55 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
   // element
   static boolean root(PsiBuilder b, int l) {
     return element(b, l + 1);
+  }
+
+  /* ********************************************************** */
+  // INTEGER ID?| INTEGER? ID
+  public static boolean user_string(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "user_string")) return false;
+    if (!nextTokenIs(b, "<user string>", ID, INTEGER)) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NONE_, USER_STRING, "<user string>");
+    r = user_string_0(b, l + 1);
+    if (!r) r = user_string_1(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // INTEGER ID?
+  private static boolean user_string_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "user_string_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, INTEGER);
+    r = r && user_string_0_1(b, l + 1);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // ID?
+  private static boolean user_string_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "user_string_0_1")) return false;
+    consumeToken(b, ID);
+    return true;
+  }
+
+  // INTEGER? ID
+  private static boolean user_string_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "user_string_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = user_string_1_0(b, l + 1);
+    r = r && consumeToken(b, ID);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  // INTEGER?
+  private static boolean user_string_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "user_string_1_0")) return false;
+    consumeToken(b, INTEGER);
+    return true;
   }
 
   /* ********************************************************** */
