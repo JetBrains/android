@@ -38,7 +38,6 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
@@ -103,7 +102,7 @@ public class SdkSyncImpl implements SdkSync {
       setIdeSdk(localProperties, projectAndroidSdkPath);
     }
     else {
-      File selectedPath = findSdkPathTask.selectValidSdkPath();
+      File selectedPath = findSdkPathTask.selectValidSdkPath(project);
       if (selectedPath == null) {
         throw new ExternalSystemException("Unable to continue until an Android SDK is specified");
       }
@@ -129,13 +128,11 @@ public class SdkSyncImpl implements SdkSync {
                                                   @Nullable Project project,
                                                   @NotNull FindValidSdkPathTask findSdkPathTask) {
     assertProjectIsAndroid(localProperties, project);
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      File selectedPath = findSdkPathTask.selectValidSdkPath();
-      if (selectedPath == null) {
-        throw new ExternalSystemException("Unable to continue until an Android SDK is specified");
-      }
-      setIdeSdk(localProperties, selectedPath);
+    File selectedPath = findSdkPathTask.selectValidSdkPath(project);
+    if (selectedPath == null) {
+      throw new ExternalSystemException("Unable to continue until an Android SDK is specified");
     }
+    setIdeSdk(localProperties, selectedPath);
   }
 
   /**
@@ -306,29 +303,27 @@ public class SdkSyncImpl implements SdkSync {
   @VisibleForTesting
   public static class FindValidSdkPathTask { // TODO: rename to "AskUserToProvideValidSdkPathTask"
     @Nullable
-    File selectValidSdkPath() {
+    File selectValidSdkPath(@Nullable Project project) {
       Ref<File> pathRef = new Ref<>();
-      ApplicationManager.getApplication().invokeAndWait(() -> findValidSdkPath(pathRef));
+      ApplicationManager.getApplication().invokeAndWait(() -> findValidSdkPath(project, pathRef));
       return pathRef.get();
     }
 
-    private static void findValidSdkPath(@NotNull Ref<File> pathRef) {
-      Sdk jdk = IdeSdks.getInstance().getJdk();
-      String jdkPath = jdk != null ? jdk.getHomePath() : null;
-      SelectSdkDialog dialog = new SelectSdkDialog(jdkPath, null);
+    private static void findValidSdkPath(@Nullable Project project, @NotNull Ref<File> pathRef) {
+      SelectSdkDialog dialog = new SelectSdkDialog(project, null);
       dialog.setModal(true);
       if (!dialog.showAndGet()) {
         String msg = "An Android SDK is needed to continue. Would you like to try again?";
-        if (MessageDialogBuilder.yesNo(ERROR_DIALOG_TITLE, msg).ask((Project)null)) {
-          findValidSdkPath(pathRef);
+        if (MessageDialogBuilder.yesNo(ERROR_DIALOG_TITLE, msg).ask(project)) {
+          findValidSdkPath(project, pathRef);
         }
         return;
       }
       File path = new File(dialog.getAndroidHome());
       if (!AndroidSdkPath.isValid(path)) {
         String format = "The path\n'%1$s'\ndoes not refer to a valid Android SDK. Would you like to try again?";
-        if (MessageDialogBuilder.yesNo(ERROR_DIALOG_TITLE, String.format(format, path.getPath())).ask((Project)null)) {
-          findValidSdkPath(pathRef);
+        if (MessageDialogBuilder.yesNo(ERROR_DIALOG_TITLE, String.format(format, path.getPath())).ask(project)) {
+          findValidSdkPath(project, pathRef);
         }
         return;
       }

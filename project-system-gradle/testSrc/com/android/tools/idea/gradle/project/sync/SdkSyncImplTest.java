@@ -29,6 +29,7 @@ import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
@@ -189,7 +190,7 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
     SdkSyncImpl.FindValidSdkPathTask task = new SdkSyncImpl.FindValidSdkPathTask() {
       @Nullable
       @Override
-      File selectValidSdkPath() {
+      File selectValidSdkPath(Project project) {
         selectSdkDialogShown.set(true);
         return myAndroidSdkPath;
       }
@@ -217,7 +218,7 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
     SdkSyncImpl.FindValidSdkPathTask task = new SdkSyncImpl.FindValidSdkPathTask() {
       @Nullable
       @Override
-      File selectValidSdkPath() {
+      File selectValidSdkPath(Project project) {
         selectSdkDialogShown.set(true);
         return myAndroidSdkPath;
       }
@@ -245,7 +246,7 @@ public class SdkSyncImplTest extends HeavyPlatformTestCase {
     SdkSyncImpl.FindValidSdkPathTask task = new SdkSyncImpl.FindValidSdkPathTask() {
       @Nullable
       @Override
-      File selectValidSdkPath() {
+      File selectValidSdkPath(Project project) {
         return null;
       }
     };
