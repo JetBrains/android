@@ -103,7 +103,7 @@ public class BaseQuerySyncConversionUtility implements QuerySyncConversionUtilit
 
   private Optional<ConversionProjectFields> parseProjectFields(Path projectViewFilePath) {
     ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), null);
-    parser.parseProjectView(projectViewFilePath.toFile(), List.of(ShardBlazeBuildsSection.PARSER, UseQuerySyncSection.PARSER));
+    parser.parseProjectViewFile(projectViewFilePath.toFile(), List.of(ShardBlazeBuildsSection.PARSER, UseQuerySyncSection.PARSER));
     // Ignore parsing errors as they are expected when parsing a subset of sections.
     ProjectView projectView = Objects.requireNonNull(parser.getResult().getTopLevelProjectViewFile()).projectView;
     Optional<Boolean> useQuerySync = Optional.ofNullable(projectView.getScalarValue(UseQuerySyncSection.KEY));

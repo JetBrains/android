@@ -117,7 +117,7 @@ public class ProjectViewParserTest extends BlazeTestCase {
         "  //java/com/google:all",
         "  //java/com/google/...:all",
         "  -//java/com/google:thistarget");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertNoIssues();
 
     ProjectViewSet projectViewSet = projectViewParser.getResult();
@@ -149,7 +149,7 @@ public class ProjectViewParserTest extends BlazeTestCase {
         "",
         "targets:",
         "  //java/com/google:all");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertNoIssues();
 
     ProjectViewSet projectViewSet = projectViewParser.getResult();
@@ -214,7 +214,7 @@ public class ProjectViewParserTest extends BlazeTestCase {
     projectViewStorageManager.add("/parent.blazeproject", "directories:", "  parent", "");
     projectViewStorageManager.add(
         ".blazeproject", "import parent.blazeproject", "directories:", "  child", "");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertNoIssues();
 
     ProjectViewSet projectViewSet = projectViewParser.getResult();
@@ -241,7 +241,7 @@ public class ProjectViewParserTest extends BlazeTestCase {
         "import father.blazeproject",
         "directories:",
         "  child2");
-    projectViewParser.parseProjectView(new File("/child.blazeproject"));
+    projectViewParser.parseProjectViewFile(new File("/child.blazeproject"));
     errorCollector.assertNoIssues();
 
     ProjectViewSet projectViewSet = projectViewParser.getResult();
@@ -268,7 +268,7 @@ public class ProjectViewParserTest extends BlazeTestCase {
         "test_sources:",
         "  javatests/com/google",
         "  javatests/com/google/android/*");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertNoIssues();
 
     ProjectViewSet projectViewSet = projectViewParser.getResult();
@@ -283,7 +283,7 @@ public class ProjectViewParserTest extends BlazeTestCase {
   public void testMinimumIndentRequired() {
     projectViewStorageManager.add(
         ".blazeproject", "directories:", "  java/com/google", "java/com/google2", "");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertIssues("Could not parse: 'java/com/google2'");
   }
 
@@ -291,14 +291,14 @@ public class ProjectViewParserTest extends BlazeTestCase {
   public void testIncorrectIndentationResultsInIssue() {
     projectViewStorageManager.add(
         ".blazeproject", "directories:", "  java/com/google", " java/com/google2", "");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertIssues("Invalid indentation on line: 'java/com/google2'");
   }
 
   @Test
   public void testCanParseWithMissingCarriageReturnAtEndOfSection() {
     projectViewStorageManager.add(".blazeproject", "directories:", "  java/com/google");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     ProjectView projectView =
         projectViewParser.getResult().getTopLevelProjectViewFile().projectView;
     assertThat(projectView.getSectionsOfType(DirectorySection.KEY).get(0).items())
@@ -308,35 +308,35 @@ public class ProjectViewParserTest extends BlazeTestCase {
   @Test
   public void testImportMissingFileResultsInIssue() {
     projectViewStorageManager.add(".blazeproject", "import parent.blazeproject");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertIssues("Could not load project view file: '/parent.blazeproject'");
   }
 
   @Test
   public void testMissingSectionResultsInIssue() {
     projectViewStorageManager.add(".blazeproject", "nosuchsection:", "  java/com/google");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertIssues("Could not parse: 'nosuchsection:'");
   }
 
   @Test
   public void testMissingColonResultInIssue() {
     projectViewStorageManager.add(".blazeproject", "directories", "  java/com/google");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertIssues("Could not parse: 'directories'");
   }
 
   @Test
   public void testEmptySectionYieldsError() {
     projectViewStorageManager.add(".blazeproject", "directories:", "");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertIssues("Empty section: 'directories'");
   }
 
   @Test
   public void testTargetExpressionInGlobSectionResultsInIssue() {
     projectViewStorageManager.add(".blazeproject", "test_sources:", "  //javatests/com/google:one");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertIssues("test_sources is a list of file path globs, not target patterns.");
   }
 
@@ -344,7 +344,7 @@ public class ProjectViewParserTest extends BlazeTestCase {
   public void testUnsupportedWildcardInGlobSectionResultsInIssue() {
     projectViewStorageManager.add(
         ".blazeproject", "test_sources:", "  javatests/com/google...", "  javatests/**/google");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertIssueContaining("wildcard is not supported in test_sources");
   }
 
@@ -359,7 +359,7 @@ public class ProjectViewParserTest extends BlazeTestCase {
         "  # comment",
         "  java/com/google/android",
         "");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertNoIssues();
 
     ProjectViewSet projectViewSet = projectViewParser.getResult();
@@ -384,7 +384,7 @@ public class ProjectViewParserTest extends BlazeTestCase {
         "",
         "workspace_type: java",
         "workspace_type: android");
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertNoIssues();
 
     ProjectViewSet projectViewSet = projectViewParser.getResult();
@@ -416,7 +416,7 @@ public class ProjectViewParserTest extends BlazeTestCase {
                 "# comment",
                 "# comment");
     projectViewStorageManager.add(".blazeproject", text);
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertNoIssues();
 
     ProjectViewSet projectViewSet = projectViewParser.getResult();
@@ -470,7 +470,7 @@ public class ProjectViewParserTest extends BlazeTestCase {
                 "directories:",
                 "  java/com/google");
     projectViewStorageManager.add(".blazeproject", text);
-    projectViewParser.parseProjectView(new File(".blazeproject"));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"));
     errorCollector.assertNoIssues();
 
     ProjectViewSet projectViewSet = projectViewParser.getResult();
@@ -486,7 +486,7 @@ public class ProjectViewParserTest extends BlazeTestCase {
       ".blazeproject",
       "workspace_location: /google3/location",
             "use_query_sync: compatibility");
-    projectViewParser.parseProjectView(new File(".blazeproject"), List.of(WorkspaceLocationSection.PARSER));
+    projectViewParser.parseProjectViewFile(new File(".blazeproject"), List.of(WorkspaceLocationSection.PARSER));
     // Parser errors are expected from the parsers not included in the parsers list
 
     ProjectViewSet projectViewSet = projectViewParser.getResult();

@@ -28,7 +28,6 @@ import com.google.idea.blaze.exception.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -54,9 +53,9 @@ public final class ProjectViewManagerImpl extends ProjectViewManager {
 
   @Override
   public ProjectViewSet doLoadProjectView(BlazeContext context, BlazeImportSettings importSettings) throws ConfigurationException {
-    final var projectViewRootFile = importSettings.getProjectViewFile();
+    final var projectViewRootFile = new File(importSettings.getProjectViewFile());
     ProjectViewParser rootParser = new ProjectViewParser(BlazeContext.create(), null);
-    rootParser.parseProjectView(projectViewRootFile, List.of(WorkspaceLocationSection.PARSER));
+    rootParser.parseProjectViewFile(projectViewRootFile, List.of(WorkspaceLocationSection.PARSER));
     final var rootProjectViewSet = rootParser.getResult();
     final var rootProjectView = Optional.ofNullable(rootProjectViewSet.getTopLevelProjectViewFile()).map(it -> it.projectView);
     final var workspaceLocation = rootProjectView.map(it -> it.getScalarValue(WorkspaceLocationSection.KEY));
@@ -64,13 +63,12 @@ public final class ProjectViewManagerImpl extends ProjectViewManager {
     workspacePathResolver =
       new WorkspacePathResolverImpl(WorkspaceRoot.fromProto(workspaceLocation.orElseGet(importSettings::getWorkspaceRoot)));
 
-    File projectViewFile = new File(projectViewRootFile);
     ProjectViewParser parser = new ProjectViewParser(context, workspacePathResolver);
-    parser.parseProjectView(projectViewFile);
+    parser.parseProjectViewFile(projectViewRootFile);
 
     if (context.hasErrors()) {
       throw new ConfigurationException(
-          "Failed to read project view from " + projectViewFile.getAbsolutePath());
+          "Failed to read project view from " + projectViewRootFile.getAbsolutePath());
     }
     return parser.getResult();
   }

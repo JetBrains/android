@@ -48,10 +48,10 @@ public abstract class ProjectViewManager {
     return project.getService(ProjectViewManager.class);
   }
 
-  public static void migrateImportSettingsToProjectViewFile(Project project,
-                                                            BlazeImportSettings importSettings,
-                                                            ProjectViewSet.ProjectViewFile projectViewFile,
-                                                            QuerySyncConversionUtility querySyncConversionUtility) {
+  public static boolean migrateImportSettingsToProjectViewFile(Project project,
+                                                        BlazeImportSettings importSettings,
+                                                        ProjectViewSet.ProjectViewFile projectViewFile,
+                                                        QuerySyncConversionUtility querySyncConversionUtility) {
     ProjectView.Builder projectView = ProjectView.builder(projectViewFile.projectView);
     boolean isWorkspaceLocationUpdated = addUpdateWorkspaceLocationSection(importSettings, projectViewFile, projectView);
     boolean isUseQuerySyncSectionUpdated =
@@ -65,7 +65,9 @@ public abstract class ProjectViewManager {
       catch (IOException e) {
         logger.error(e);
       }
+      return true;
     }
+    return false;
   }
 
   private static boolean addUpdateWorkspaceLocationSection(BlazeImportSettings importSettings,

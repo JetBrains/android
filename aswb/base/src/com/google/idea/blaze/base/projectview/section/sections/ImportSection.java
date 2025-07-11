@@ -50,7 +50,7 @@ public class ImportSection {
       if (parser.isRecursive()) {
         File projectViewFile = parseContext.getWorkspacePathResolver().resolveToFile(workspacePath);
         if (projectViewFile != null) {
-          parser.parseProjectView(projectViewFile);
+          parser.parseProjectViewFile(projectViewFile);
         } else {
           parseContext.addError("Could not resolve import: " + workspacePath);
         }

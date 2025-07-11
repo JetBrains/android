@@ -31,6 +31,7 @@ import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.scopes.ToolWindowScopeRunner;
+import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -168,8 +169,8 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
 
   private ProjectViewSet.ProjectViewFile parseTopLevelProjectViewFile(File projectViewFile) {
     ProjectViewParser parser = new ProjectViewParser(BlazeContext.create(), null);
-    parser.parseProjectView(projectViewFile,
-                            List.of(WorkspaceLocationSection.PARSER, UseQuerySyncSection.PARSER));
+    parser.parseProjectViewFile(projectViewFile,
+                                List.of(WorkspaceLocationSection.PARSER, UseQuerySyncSection.PARSER));
     ProjectViewSet projectViewSet = parser.getResult();
     return projectViewSet.getTopLevelProjectViewFile();
   }
@@ -232,12 +233,19 @@ public class BlazeImportSettingsManager implements PersistentStateComponent<Blaz
                                                     "Parsing project view files", QuerySyncManager.TaskOrigin.AUTOMATIC,
                                                     BlazeUserSettings.getInstance(), context -> {
             final var importSettings = getImportSettings();
-            final var loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings);
-            migrateImportSettingsToProjectViewFile(project,
+            var loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings);
+            final var migrated = migrateImportSettingsToProjectViewFile(project,
                                                    importSettings,
                                                    Objects.requireNonNull(loadedProjectView.getTopLevelProjectViewFile()),
                                                    querySyncConversionUtility);
+            if (migrated) {
+              context.output(PrintOutput.output("Some project settings have been migrated to .bazelproject file. Re-parsing..."));
+              loadedProjectView = ProjectViewManager.getInstance(project).doLoadProjectView(context, importSettings);
+            }
             projectViewSet.set(loadedProjectView);
+            final var workspaceLocation = loadedProjectView.getScalarValue(WorkspaceLocationSection.KEY);
+            workspaceLocation.ifPresentOrElse(importSettings::setWorkspaceRoot,
+                                              () -> logger.error(new RuntimeException("Workspace location migration failed.")));
           }
         ))::apply).get();
   }

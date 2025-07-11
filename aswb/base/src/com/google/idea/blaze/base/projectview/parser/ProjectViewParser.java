@@ -47,11 +47,11 @@ public class ProjectViewParser {
     this.recursive = true;
   }
 
-  public void parseProjectView(File projectViewFile) {
-    parseProjectView(projectViewFile, Sections.getParsers());
+  public void parseProjectViewFile(File projectViewFile) {
+    parseProjectViewFile(projectViewFile, Sections.getParsers());
   }
 
-  public void parseProjectView(File projectViewFile, List<SectionParser> sectionParsers) {
+  public void parseProjectViewFile(File projectViewFile, List<SectionParser> sectionParsers) {
     if (!encounteredProjectViewFiles.add(projectViewFile)) {
       return;
     }
@@ -71,7 +71,7 @@ public class ProjectViewParser {
         new ParseContext(context, workspacePathResolver, projectViewFile, projectViewText), sectionParsers);
   }
 
-  public void parseProjectView(String text, List<SectionParser> sectionParsers) {
+  public void parseProjectViewFile(String text, List<SectionParser> sectionParsers) {
     if (text.isEmpty()) {
       ProjectView projectView = new ProjectView(ImmutableList.of());
       projectViewFiles.add(new ProjectViewSet.ProjectViewFile(projectView, null));
@@ -81,7 +81,7 @@ public class ProjectViewParser {
   }
 
   public void parseProjectView(String text) {
-    parseProjectView(text, Sections.getParsers());
+    parseProjectViewFile(text, Sections.getParsers());
   }
 
   private void parseProjectView(ParseContext parseContext, List<SectionParser> sectionParsers) {
