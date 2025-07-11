@@ -15,13 +15,8 @@
  */
 package com.android.tools.idea.wear.dwf.dom.raw
 
-import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.wear.dwf.analytics.DeclarativeWatchFaceUsageTracker
-import com.android.tools.wear.wff.WFFVersion
-import com.android.tools.wear.wff.WFFVersionExtractor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -32,20 +27,13 @@ import com.intellij.xml.util.XmlUtil
 import org.jetbrains.android.dom.isDeclarativeWatchFaceFile
 import org.jetbrains.annotations.NonNls
 
-class RawWatchfaceXmlSchemaProvider(
-  private val wffVersionExtractor: WFFVersionExtractor = WFFVersionExtractor()
-) : XmlSchemaProvider() {
+class RawWatchfaceXmlSchemaProvider() : XmlSchemaProvider() {
 
   override fun getSchema(url: @NonNls String, module: Module?, baseFile: PsiFile): XmlFile? {
-    val manifestDocument =
-      module?.let { MergedManifestManager.getMergedManifestSupplier(module).now?.document }
-        ?: return null
+    if (module == null) return null
+    val (schemaVersion, isFallback) = CurrentWFFVersionService.getInstance().getCurrentWFFVersion(module) ?: return null
 
-    val documentWFFVersion = wffVersionExtractor.extractFromManifest(manifestDocument)
-    val schemaVersion = documentWFFVersion ?: getFallbackVersion(module)
-
-    DeclarativeWatchFaceUsageTracker.getInstance()
-      .trackXmlSchemaUsed(schemaVersion, isFallback = documentWFFVersion == null)
+    DeclarativeWatchFaceUsageTracker.getInstance().trackXmlSchemaUsed(schemaVersion, isFallback)
 
     return XmlUtil.findXmlFile(
       baseFile,
@@ -53,13 +41,6 @@ class RawWatchfaceXmlSchemaProvider(
         VfsUtilCore.toIdeaUrl(FileUtil.unquote(schemaVersion.schemaUrl.toExternalForm()), false)
       ),
     )
-  }
-
-  private fun getFallbackVersion(module: Module?): WFFVersion {
-    val model = module?.let { AndroidModel.get(module) } ?: return WFFVersion.WFFVersion1
-    return if (model.minSdkVersion.isAtLeast(AndroidVersion.VersionCodes.UPSIDE_DOWN_CAKE))
-      WFFVersion.WFFVersion2
-    else WFFVersion.WFFVersion1
   }
 
   override fun isAvailable(file: XmlFile) =

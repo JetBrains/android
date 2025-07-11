@@ -295,34 +295,3 @@ class RawWatchfaceXmlSchemaProviderTest {
     MergedManifestManager.getMergedManifest(mainModule).get()
   }
 }
-
-private fun manifestWithWFFVersion(version: String) =
-  // language=XML
-  """
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.android.tools.idea.wear.dwf.dom.raw">
-    <uses-feature android:name="android.hardware.type.watch" />
-    <application
-        android:icon="@drawable/preview"
-        android:label="@string/app_name"
-        android:hasCode="false"
-        >
-
-        <meta-data
-            android:name="com.google.android.wearable.standalone"
-            android:value="true" />
-
-        <property
-            android:name="com.google.wear.watchface.format.version"
-            android:value="$version" />
-        <property
-            android:name="com.google.wear.watchface.format.publisher"
-            android:value="Test publisher" />
-
-        <uses-library
-            android:name="com.google.android.wearable"
-            android:required="false" />
-    </application>
-</manifest>
-        """
-    .trimIndent()
