@@ -189,6 +189,37 @@ class LogcatApplicationSettingsConfigurableTest {
   }
 
   @Test
+  @RunsInEdt
+  fun reset() {
+    val logcatSettings =
+      AndroidLogcatSettings(
+        bufferSize = 100 * 1024,
+        defaultFilter = "foo",
+        mostRecentlyUsedFilterIsDefault = false,
+        ignoredTags = emptySet(),
+        ignoredApps = emptySet(),
+      )
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+    configurable.cycleBufferSizeTextField.text = "200"
+    configurable.defaultFilterTextField.text = "bar"
+    configurable.mostRecentlyUsedFilterIsDefaultCheckbox.isSelected = true
+    configurable.overrideFontSize.isSelected = true
+    configurable.fontSize.text = "20"
+    configurable.ignoreTagsTextField.component.text = " foo  bar "
+    configurable.ignoreAppsTextField.component.text = " app1  app2 "
+
+    configurable.reset()
+
+    assertThat(configurable.cycleBufferSizeTextField.text).isEqualTo("100")
+    assertThat(configurable.defaultFilterTextField.text).isEqualTo("foo")
+    assertThat(configurable.mostRecentlyUsedFilterIsDefaultCheckbox.isSelected).isFalse()
+    assertThat(configurable.overrideFontSize.isSelected).isEqualTo(false)
+    assertThat(configurable.fontSize.text).isEqualTo("13")
+    assertThat(configurable.ignoreTagsTextField.getIgnoredValues()).isEmpty()
+    assertThat(configurable.ignoreAppsTextField.getIgnoredValues()).isEmpty()
+  }
+
+  @Test
   fun isModified_bufferSize() {
     logcatSettings.bufferSize = 100 * 1024
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)

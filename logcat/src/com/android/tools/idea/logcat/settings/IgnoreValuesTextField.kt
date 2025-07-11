@@ -59,6 +59,10 @@ internal class IgnoreValuesTextField(
 
   fun getIgnoredValues() = component.text.splitAndRemoveBlanks().toSet()
 
+  fun setIgnoredValues(values: Collection<String>) {
+    component.text = values.joinToString(" ")
+  }
+
   private inner class ExpandableSupport(editor: EditorTextField) :
     ExpandableEditorSupport(
       editor,

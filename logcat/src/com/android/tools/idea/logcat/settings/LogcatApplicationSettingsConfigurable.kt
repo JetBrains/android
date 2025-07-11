@@ -223,6 +223,18 @@ internal class LogcatApplicationSettingsConfigurable(
       ignoreAppsTextField.getIgnoredValues() != logcatSettings.ignoredApps
   }
 
+  override fun reset() {
+    cycleBufferSizeTextField.text = (logcatSettings.bufferSize / 1024).toString()
+    defaultFilterTextField.text = logcatSettings.defaultFilter
+    mostRecentlyUsedFilterIsDefaultCheckbox.isSelected =
+      logcatSettings.mostRecentlyUsedFilterIsDefault
+    filterHistoryAutocompleteCheckbox.isSelected = logcatSettings.filterHistoryAutocomplete
+    overrideFontSize.isSelected = logcatSettings.overrideFontSize
+    fontSize.text = logcatSettings.fontSize.toString()
+    ignoreTagsTextField.setIgnoredValues(logcatSettings.ignoredTags)
+    ignoreAppsTextField.setIgnoredValues(logcatSettings.ignoredApps)
+  }
+
   override fun apply() {
     logcatSettings.bufferSize = getBufferSizeKb()?.times(1024) ?: return
     logcatSettings.defaultFilter = defaultFilterTextField.text
@@ -240,7 +252,7 @@ internal class LogcatApplicationSettingsConfigurable(
   private fun getBufferSizeKb() =
     try {
       cycleBufferSizeTextField.text.toInt()
-    } catch (e: NumberFormatException) {
+    } catch (_: NumberFormatException) {
       null
     }
 }
