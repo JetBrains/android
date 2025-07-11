@@ -45,4 +45,16 @@ public class WFFExpressionConfigurationIdImpl extends ASTWrapperPsiElement imple
     else super.accept(visitor);
   }
 
+  @Override
+  @Nullable
+  public WFFExpressionColorIndex getColorIndex() {
+    return findChildByClass(WFFExpressionColorIndex.class);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getId() {
+    return findChildByType(ID);
+  }
+
 }

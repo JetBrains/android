@@ -21,7 +21,7 @@ import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.ID
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.NULL
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.NUMBER
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.OPERATORS
-import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.STRING
+import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.QUOTED_STRING
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.HighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
@@ -72,7 +72,7 @@ class WFFExpressionSyntaxHighlighter : SyntaxHighlighterBase() {
       in PARENTHESES -> WFFExpressionTextAttributes.PARENTHESES.keys
       in BRACKETS -> WFFExpressionTextAttributes.BRACKETS.keys
       NUMBER -> WFFExpressionTextAttributes.NUMBER.keys
-      STRING -> WFFExpressionTextAttributes.STRING.keys
+      QUOTED_STRING -> WFFExpressionTextAttributes.STRING.keys
       ID -> WFFExpressionTextAttributes.ID.keys
       OPERATORS -> WFFExpressionTextAttributes.OPERATORS.keys
       COMMA -> WFFExpressionTextAttributes.COMMA.keys

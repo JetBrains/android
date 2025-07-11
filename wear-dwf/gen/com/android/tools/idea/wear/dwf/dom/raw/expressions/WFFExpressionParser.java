@@ -134,6 +134,19 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // DOT INTEGER
+  public static boolean color_index(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "color_index")) return false;
+    if (!nextTokenIs(b, DOT)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, COLOR_INDEX, null);
+    r = consumeTokens(b, 1, DOT, INTEGER);
+    p = r; // pin = 1
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  /* ********************************************************** */
   // '<=' | '>=' | '==' | '!=' | '&&' | '||' | '<' | '>'
   public static boolean conditional_op(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "conditional_op")) return false;
@@ -156,61 +169,35 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
   public static boolean configuration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "configuration")) return false;
     if (!nextTokenIs(b, OPEN_BRACKET)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, CONFIGURATION, null);
     r = consumeToken(b, OPEN_BRACKET);
     r = r && configuration_id(b, l + 1);
+    p = r; // pin = 2
     r = r && consumeToken(b, CLOSE_BRACKET);
-    exit_section_(b, m, CONFIGURATION, r);
-    return r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
   }
 
   /* ********************************************************** */
-  // "CONFIGURATION" (DOT (ID | STRING | NUMBER))+
+  // 'CONFIGURATION' DOT ID color_index?
   public static boolean configuration_id(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "configuration_id")) return false;
-    boolean r;
+    boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, CONFIGURATION_ID, "<configuration id>");
     r = consumeToken(b, "CONFIGURATION");
-    r = r && configuration_id_1(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
+    r = r && consumeTokens(b, 1, DOT, ID);
+    p = r; // pin = 2
+    r = r && configuration_id_3(b, l + 1);
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
   }
 
-  // (DOT (ID | STRING | NUMBER))+
-  private static boolean configuration_id_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "configuration_id_1")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = configuration_id_1_0(b, l + 1);
-    while (r) {
-      int c = current_position_(b);
-      if (!configuration_id_1_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "configuration_id_1", c)) break;
-    }
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // DOT (ID | STRING | NUMBER)
-  private static boolean configuration_id_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "configuration_id_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, DOT);
-    r = r && configuration_id_1_0_1(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // ID | STRING | NUMBER
-  private static boolean configuration_id_1_0_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "configuration_id_1_0_1")) return false;
-    boolean r;
-    r = consumeToken(b, ID);
-    if (!r) r = consumeToken(b, STRING);
-    if (!r) r = consumeToken(b, NUMBER);
-    return r;
+  // color_index?
+  private static boolean configuration_id_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "configuration_id_3")) return false;
+    color_index(b, l + 1);
+    return true;
   }
 
   /* ********************************************************** */
@@ -237,7 +224,7 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // !(OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | NUMBER | QUOTED_STRING)
+  // !(OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | number | QUOTED_STRING)
   static boolean element_recover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "element_recover")) return false;
     boolean r;
@@ -247,7 +234,7 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | NUMBER | QUOTED_STRING
+  // OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | number | QUOTED_STRING
   private static boolean element_recover_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "element_recover_0")) return false;
     boolean r;
@@ -258,7 +245,7 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeToken(b, "!");
     if (!r) r = consumeToken(b, "~");
     if (!r) r = consumeToken(b, ID);
-    if (!r) r = consumeToken(b, NUMBER);
+    if (!r) r = number(b, l + 1);
     if (!r) r = consumeToken(b, QUOTED_STRING);
     return r;
   }
@@ -283,6 +270,36 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b, l, _AND_);
     r = consumeToken(b, OPEN_PAREN);
     exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // INTEGER (DOT INTEGER)?
+  public static boolean number(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "number")) return false;
+    if (!nextTokenIs(b, INTEGER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, INTEGER);
+    r = r && number_1(b, l + 1);
+    exit_section_(b, m, NUMBER, r);
+    return r;
+  }
+
+  // (DOT INTEGER)?
+  private static boolean number_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "number_1")) return false;
+    number_1_0(b, l + 1);
+    return true;
+  }
+
+  // DOT INTEGER
+  private static boolean number_1_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "number_1_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeTokens(b, 0, DOT, INTEGER);
+    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -455,16 +472,16 @@ public class WFFExpressionParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // NUMBER | QUOTED_STRING | ID | data_source | configuration | NULL
+  // number | QUOTED_STRING | ID | configuration | data_source | NULL
   public static boolean literal_expr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "literal_expr")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, LITERAL_EXPR, "<literal expr>");
-    r = consumeTokenSmart(b, NUMBER);
+    r = number(b, l + 1);
     if (!r) r = consumeTokenSmart(b, QUOTED_STRING);
     if (!r) r = consumeTokenSmart(b, ID);
-    if (!r) r = data_source(b, l + 1);
     if (!r) r = configuration(b, l + 1);
+    if (!r) r = data_source(b, l + 1);
     if (!r) r = consumeTokenSmart(b, NULL);
     exit_section_(b, l, m, r, false, null);
     return r;

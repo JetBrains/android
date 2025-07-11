@@ -41,6 +41,10 @@ public class WFFExpressionVisitor extends PsiElementVisitor {
     visitExpr(o);
   }
 
+  public void visitColorIndex(@NotNull WFFExpressionColorIndex o) {
+    visitPsiElement(o);
+  }
+
   public void visitConditionalExpr(@NotNull WFFExpressionConditionalExpr o) {
     visitExpr(o);
   }
@@ -91,6 +95,10 @@ public class WFFExpressionVisitor extends PsiElementVisitor {
 
   public void visitMulExpr(@NotNull WFFExpressionMulExpr o) {
     visitExpr(o);
+  }
+
+  public void visitNumber(@NotNull WFFExpressionNumber o) {
+    visitPsiElement(o);
   }
 
   public void visitOrExpr(@NotNull WFFExpressionOrExpr o) {

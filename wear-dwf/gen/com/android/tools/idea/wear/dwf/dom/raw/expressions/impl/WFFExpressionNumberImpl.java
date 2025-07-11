@@ -26,53 +26,23 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionTypes.*;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.*;
 
-public class WFFExpressionLiteralExprImpl extends WFFExpressionExprImpl implements WFFExpressionLiteralExpr {
+public class WFFExpressionNumberImpl extends ASTWrapperPsiElement implements WFFExpressionNumber {
 
-  public WFFExpressionLiteralExprImpl(@NotNull ASTNode node) {
+  public WFFExpressionNumberImpl(@NotNull ASTNode node) {
     super(node);
   }
 
-  @Override
   public void accept(@NotNull WFFExpressionVisitor visitor) {
-    visitor.visitLiteralExpr(this);
+    visitor.visitNumber(this);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof WFFExpressionVisitor) accept((WFFExpressionVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @Nullable
-  public WFFExpressionConfiguration getConfiguration() {
-    return findChildByClass(WFFExpressionConfiguration.class);
-  }
-
-  @Override
-  @Nullable
-  public WFFExpressionDataSource getDataSource() {
-    return findChildByClass(WFFExpressionDataSource.class);
-  }
-
-  @Override
-  @Nullable
-  public WFFExpressionNumber getNumber() {
-    return findChildByClass(WFFExpressionNumber.class);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getId() {
-    return findChildByType(ID);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getQuotedString() {
-    return findChildByType(QUOTED_STRING);
   }
 
 }

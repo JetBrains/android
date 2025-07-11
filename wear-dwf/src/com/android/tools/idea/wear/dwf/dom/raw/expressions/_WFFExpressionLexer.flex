@@ -41,11 +41,10 @@ EOL=\R
 WHITE_SPACE=\s+
 
 SPACE=[ \t\n\x0B\f\r]+
-NUMBER=[0-9]+(\.[0-9]*)?
+INTEGER=[0-9]+
 ID=[:letter:][a-zA-Z_0-9]*
 OPERATORS=\+|-|%|\*|==|=|>=|<=|>|<|\||\|\||&&|&|\~|\!|\!=|"/"
 QUOTED_STRING=('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")
-STRING=[a-zA-Z_0-9]+
 
 %%
 <YYINITIAL> {
@@ -60,11 +59,10 @@ STRING=[a-zA-Z_0-9]+
   "null"                { return NULL; }
 
   {SPACE}               { return SPACE; }
-  {NUMBER}              { return NUMBER; }
+  {INTEGER}             { return INTEGER; }
   {ID}                  { return ID; }
   {OPERATORS}           { return OPERATORS; }
   {QUOTED_STRING}       { return QUOTED_STRING; }
-  {STRING}              { return STRING; }
 
 }
 

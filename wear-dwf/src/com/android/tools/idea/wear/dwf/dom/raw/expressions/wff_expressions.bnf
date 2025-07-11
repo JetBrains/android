@@ -32,7 +32,7 @@
   extends(".*expr")=expr
   tokens = [
     SPACE='regexp:\s+'
-    NUMBER='regexp:\d+(\.\d*)?'
+    INTEGER='regexp:\d+'
     ID='regexp:\p{Alpha}\w*'
     OPERATORS='regexp:\+|-|%|\*|==|=|>=|<=|>|<|\||\|\||&&|&|\~|\!|\!=|/'
     OPEN_PAREN='('
@@ -43,13 +43,12 @@
     DOT = '.'
     NULL = 'null'
     QUOTED_STRING="regexp:('([^'\\]|\\.)*'|\"([^\"\\]|\\.)*\")"
-    STRING="regexp:\w+"
   ]
 }
 
 root ::= element
 private element ::= expr {recoverWhile=element_recover}
-private element_recover ::= !(OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | NUMBER | QUOTED_STRING)
+private element_recover ::= !(OPEN_PAREN | OPEN_BRACKET | '+' | '-' | '!' | '~' | ID | number | QUOTED_STRING)
 
 expr ::= add_group
   | conditional_group
@@ -67,10 +66,11 @@ private mul_group ::= mul_expr | div_expr | mod_expr
 private add_group ::= plus_expr | minus_expr
 private primary_group ::= literal_expr | paren_expr
 
+number ::= INTEGER (DOT INTEGER)?
 function_id ::= ID &OPEN_PAREN
 call_expr ::= function_id arg_list
 arg_list ::= OPEN_PAREN [ !CLOSE_PAREN expr  (',' expr) * ] CLOSE_PAREN
-literal_expr ::= NUMBER | QUOTED_STRING | ID | data_source | configuration | NULL
+literal_expr ::= number | QUOTED_STRING | ID | configuration | data_source | NULL
 unary_min_expr ::= '-' expr
 unary_plus_expr ::= '+' expr
 unary_not_expr ::= '!' expr
@@ -88,5 +88,13 @@ paren_expr ::= OPEN_PAREN expr CLOSE_PAREN
 elvis_expr ::= conditional_expr '?' expr ':' expr
 
 data_source ::= OPEN_BRACKET ID CLOSE_BRACKET
-configuration_id ::= "CONFIGURATION" (DOT (ID | STRING | NUMBER))+
-configuration ::= OPEN_BRACKET configuration_id CLOSE_BRACKET
+
+color_index ::= DOT INTEGER {
+  pin=1
+}
+configuration_id ::= 'CONFIGURATION' DOT ID color_index? {
+  pin=2
+}
+configuration ::= OPEN_BRACKET configuration_id CLOSE_BRACKET {
+ pin=2
+}

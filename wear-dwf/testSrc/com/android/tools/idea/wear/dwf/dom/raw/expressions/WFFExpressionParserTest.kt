@@ -63,13 +63,16 @@ FILE
           WFFExpressionArgListImpl(ARG_LIST)
             PsiElement(()('(')
             WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-              PsiElement(NUMBER)('10')
+              WFFExpressionNumberImpl(NUMBER)
+                PsiElement(INTEGER)('10')
             PsiElement(,)(',')
             WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-              PsiElement(NUMBER)('2')
+              WFFExpressionNumberImpl(NUMBER)
+                PsiElement(INTEGER)('2')
             PsiElement(,)(',')
             WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-              PsiElement(NUMBER)('3')
+              WFFExpressionNumberImpl(NUMBER)
+                PsiElement(INTEGER)('3')
             PsiElement())(')')
       PsiElement())(')')
           """
@@ -77,6 +80,65 @@ FILE
       toParseTreeText(
         "([CONFIGURATION.showBackgroundInAfternoon] == \"TRUE\") && ([SECONDS_IN_DAY] < log10(10, 2, 3))"
       ),
+    )
+  }
+
+  fun testParseNumber() {
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    WFFExpressionNumberImpl(NUMBER)
+      PsiElement(INTEGER)('1')
+          """
+        .trimIndent(),
+      toParseTreeText("1"),
+    )
+
+    // we expect an integer after the dot
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    WFFExpressionNumberImpl(NUMBER)
+      PsiElement(INTEGER)('1')
+  PsiElement(.)('.')
+  PsiErrorElement:INTEGER expected
+    <empty list>
+          """
+        .trimIndent(),
+      toParseTreeText("1."),
+    )
+
+    // this is a valid number
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    WFFExpressionNumberImpl(NUMBER)
+      PsiElement(INTEGER)('1')
+      PsiElement(.)('.')
+      PsiElement(INTEGER)('2')
+          """
+        .trimIndent(),
+      toParseTreeText("1.2"),
+    )
+
+    // this is not a valid number
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    WFFExpressionNumberImpl(NUMBER)
+      PsiElement(INTEGER)('1')
+      PsiElement(.)('.')
+      PsiElement(INTEGER)('2')
+  PsiErrorElement:<conditional op> expected, got '.'
+    PsiElement(.)('.')
+  PsiElement(INTEGER)('3')
+          """
+        .trimIndent(),
+      toParseTreeText("1.2.3"),
     )
   }
 
@@ -107,12 +169,52 @@ FILE
         PsiElement(ID)('CONFIGURATION')
         PsiElement(.)('.')
         PsiElement(ID)('themeColor')
-        PsiElement(.)('.')
-        PsiElement(NUMBER)('1')
+        WFFExpressionColorIndexImpl(COLOR_INDEX)
+          PsiElement(.)('.')
+          PsiElement(INTEGER)('1')
       PsiElement(])(']')
           """
         .trimIndent(),
       toParseTreeText("[CONFIGURATION.themeColor.1]"),
+    )
+
+    // An incomplete configuration should be considered as a configuration
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    WFFExpressionConfigurationImpl(CONFIGURATION)
+      PsiElement([)('[')
+      WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
+        PsiElement(ID)('CONFIGURATION')
+        PsiElement(.)('.')
+        PsiErrorElement:ID expected
+          <empty list>
+          """
+        .trimIndent(),
+      // missing everything after the configuration prefix
+      toParseTreeText("[CONFIGURATION."),
+    )
+
+    assertEquals(
+      """
+FILE
+  WFFExpressionLiteralExprImpl(LITERAL_EXPR)
+    WFFExpressionConfigurationImpl(CONFIGURATION)
+      PsiElement([)('[')
+      WFFExpressionConfigurationIdImpl(CONFIGURATION_ID)
+        PsiElement(ID)('CONFIGURATION')
+        PsiElement(.)('.')
+        PsiElement(ID)('themeColor')
+        WFFExpressionColorIndexImpl(COLOR_INDEX)
+          PsiElement(.)('.')
+          PsiElement(INTEGER)('1')
+      PsiErrorElement:']' expected
+        <empty list>
+          """
+        .trimIndent(),
+      // missing closing bracket
+      toParseTreeText("[CONFIGURATION.themeColor.1"),
     )
   }
 
@@ -121,9 +223,10 @@ FILE
       """
 FILE
   WFFExpressionLiteralExprImpl(LITERAL_EXPR)
-    PsiElement(NUMBER)('1')
+    WFFExpressionNumberImpl(NUMBER)
+      PsiElement(INTEGER)('1')
   PsiErrorElement:'1' unexpected
-    PsiElement(NUMBER)('1')
+    PsiElement(INTEGER)('1')
           """
         .trimIndent(),
       toParseTreeText("1 1"),

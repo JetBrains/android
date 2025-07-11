@@ -30,6 +30,7 @@ public interface WFFExpressionTypes {
   IElementType ARG_LIST = new WFFExpressionElementType("ARG_LIST");
   IElementType BIT_COMPL_EXPR = new WFFExpressionElementType("BIT_COMPL_EXPR");
   IElementType CALL_EXPR = new WFFExpressionElementType("CALL_EXPR");
+  IElementType COLOR_INDEX = new WFFExpressionElementType("COLOR_INDEX");
   IElementType CONDITIONAL_EXPR = new WFFExpressionElementType("CONDITIONAL_EXPR");
   IElementType CONDITIONAL_OP = new WFFExpressionElementType("CONDITIONAL_OP");
   IElementType CONFIGURATION = new WFFExpressionElementType("CONFIGURATION");
@@ -43,6 +44,7 @@ public interface WFFExpressionTypes {
   IElementType MINUS_EXPR = new WFFExpressionElementType("MINUS_EXPR");
   IElementType MOD_EXPR = new WFFExpressionElementType("MOD_EXPR");
   IElementType MUL_EXPR = new WFFExpressionElementType("MUL_EXPR");
+  IElementType NUMBER = new WFFExpressionElementType("NUMBER");
   IElementType OR_EXPR = new WFFExpressionElementType("OR_EXPR");
   IElementType PAREN_EXPR = new WFFExpressionElementType("PAREN_EXPR");
   IElementType PLUS_EXPR = new WFFExpressionElementType("PLUS_EXPR");
@@ -55,13 +57,12 @@ public interface WFFExpressionTypes {
   IElementType COMMA = new WFFExpressionTokenType(",");
   IElementType DOT = new WFFExpressionTokenType(".");
   IElementType ID = new WFFExpressionTokenType("ID");
+  IElementType INTEGER = new WFFExpressionTokenType("INTEGER");
   IElementType NULL = new WFFExpressionTokenType("null");
-  IElementType NUMBER = new WFFExpressionTokenType("NUMBER");
   IElementType OPEN_BRACKET = new WFFExpressionTokenType("[");
   IElementType OPEN_PAREN = new WFFExpressionTokenType("(");
   IElementType OPERATORS = new WFFExpressionTokenType("OPERATORS");
   IElementType QUOTED_STRING = new WFFExpressionTokenType("QUOTED_STRING");
-  IElementType STRING = new WFFExpressionTokenType("STRING");
 
   class Factory {
     public static PsiElement createElement(ASTNode node) {
@@ -77,6 +78,9 @@ public interface WFFExpressionTypes {
       }
       else if (type == CALL_EXPR) {
         return new WFFExpressionCallExprImpl(node);
+      }
+      else if (type == COLOR_INDEX) {
+        return new WFFExpressionColorIndexImpl(node);
       }
       else if (type == CONDITIONAL_EXPR) {
         return new WFFExpressionConditionalExprImpl(node);
@@ -113,6 +117,9 @@ public interface WFFExpressionTypes {
       }
       else if (type == MUL_EXPR) {
         return new WFFExpressionMulExprImpl(node);
+      }
+      else if (type == NUMBER) {
+        return new WFFExpressionNumberImpl(node);
       }
       else if (type == OR_EXPR) {
         return new WFFExpressionOrExprImpl(node);

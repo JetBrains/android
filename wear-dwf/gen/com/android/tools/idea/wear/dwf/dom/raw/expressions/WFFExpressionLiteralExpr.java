@@ -32,10 +32,10 @@ public interface WFFExpressionLiteralExpr extends WFFExpressionExpr {
   WFFExpressionDataSource getDataSource();
 
   @Nullable
-  PsiElement getId();
+  WFFExpressionNumber getNumber();
 
   @Nullable
-  PsiElement getNumber();
+  PsiElement getId();
 
   @Nullable
   PsiElement getQuotedString();
