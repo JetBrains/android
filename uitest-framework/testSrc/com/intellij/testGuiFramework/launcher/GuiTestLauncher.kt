@@ -1,4 +1,4 @@
-// Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.intellij.testGuiFramework.launcher
 
 import com.android.prefs.AbstractAndroidLocations
@@ -13,7 +13,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.impl.GuiTestStarter
-import com.intellij.util.lang.JavaVersion
+import com.intellij.util.currentJavaVersion
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
@@ -156,7 +156,7 @@ object GuiTestLauncher {
       options += "-DjbScreenMenuBar.enabled=false"
     }
     /* aspects agent options */
-    if (JavaVersion.current().feature < 9) {  // b/134524025
+    if (currentJavaVersion().feature < 9) {  // b/134524025
       options += "-javaagent:${GuiTestOptions.getAspectsAgentJar()}=${GuiTestOptions.getAspectsAgentRules()};${GuiTestOptions.getAspectsAgentBaseline()}"
       options += "-Daspects.baseline.export.path=${GuiTestOptions.getAspectsBaselineExportPath()}"
     }
@@ -205,7 +205,7 @@ object GuiTestLauncher {
 
   private fun getCurrentJavaExec(): String {
     val homeDir = File(System.getProperty("java.home"))
-    val binDir = File(if (JavaVersion.current().feature >= 9) homeDir else homeDir.parentFile, "bin")
+    val binDir = File(if (currentJavaVersion().feature >= 9) homeDir else homeDir.parentFile, "bin")
     val javaName = if (SystemInfo.isWindows) "java.exe" else "java"
     return File(binDir, javaName).path
   }

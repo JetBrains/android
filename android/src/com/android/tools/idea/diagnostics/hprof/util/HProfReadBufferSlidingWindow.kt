@@ -18,7 +18,7 @@ package com.android.tools.idea.diagnostics.hprof.util
 
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.lang.JavaVersion
+import com.intellij.util.currentJavaVersion
 import sun.misc.Unsafe
 import sun.nio.ch.DirectBuffer
 import java.nio.ByteBuffer
@@ -47,7 +47,7 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
 
   private fun invokeCleaner(byteBuffer: ByteBuffer) {
     try {
-      if (JavaVersion.current().feature >= 9) {
+      if (currentJavaVersion().feature >= 9) {
         val unsafeClass = Unsafe::class.java
         val invokeCleanerMethod = unsafeClass.getMethod("invokeCleaner", ByteBuffer::class.java)
         val theUnsafeField = unsafeClass.declaredFields.find { f -> f.name == "theUnsafe" }
