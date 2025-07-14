@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.util.runsGradle;
 
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ThreeState.NO;
 import static com.intellij.util.ThreeState.YES;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
@@ -26,51 +28,50 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.openapi.project.Project;
 import java.io.IOException;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Tests for {@link GradleVersions}.
  */
-public class GradleVersionsTest extends AndroidGradleTestCase {
+public class GradleVersionsTest {
   private GradleProjectSettingsFinder mySettingsFinder;
   private GradleVersions myGradleVersions;
-  private IdeComponents myIdeComponents;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Rule
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+
+  @Before
+  public void setup() throws Exception {
+    projectRule.loadProject(SIMPLE_APPLICATION);
     mySettingsFinder = mock(GradleProjectSettingsFinder.class);
-    new IdeComponents(getProject()).replaceApplicationService(GradleProjectSettingsFinder.class, mySettingsFinder);
+    new IdeComponents(projectRule.getProject()).replaceApplicationService(GradleProjectSettingsFinder.class, mySettingsFinder);
     myGradleVersions = new GradleVersions();
-    myIdeComponents = new IdeComponents(getProject());
   }
 
+  @Test
   public void testReadGradleVersionFromGradleSyncState() throws Exception {
-    loadSimpleApplication();
-    Project project = getProject();
-
     String expected = getGradleVersionFromWrapper();
 
-    GradleVersion gradleVersion = myGradleVersions.getGradleVersion(project);
-    assertNotNull(gradleVersion);
-    assertEquals(expected, gradleVersion.getVersion());
+    GradleVersion gradleVersion = myGradleVersions.getGradleVersion(projectRule.getProject());
+    assertThat(gradleVersion).isNotNull();
+    assertThat(gradleVersion.getVersion()).isEqualTo(expected);
 
     // double-check GradleSyncState, just in case
-    GradleVersion gradleVersionFromSync = GradleSyncState.getInstance(project).getLastSyncedGradleVersion();
-    assertNotNull(gradleVersionFromSync);
-    assertEquals(expected, GradleVersions.inferStableGradleVersion(gradleVersionFromSync.getVersion()));
+    GradleVersion gradleVersionFromSync = GradleSyncState.getInstance(projectRule.getProject()).getLastSyncedGradleVersion();
+    assertThat(gradleVersionFromSync).isNotNull();
+    assertThat(GradleVersions.inferStableGradleVersion(gradleVersionFromSync.getVersion())).isEqualTo(expected);
   }
 
+  @Test
   public void testReadGradleVersionFromWrapperWhenGradleSyncStateReturnsNullGradleVersion() throws Exception {
-    loadSimpleApplication();
-    Project project = getProject();
-
     GradleSyncState syncState = createMockGradleSyncState();
     when(syncState.isSyncNeeded()).thenReturn(NO);
     when(syncState.getLastSyncedGradleVersion()).thenReturn(null);
@@ -79,14 +80,12 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
 
     String expected = getGradleVersionFromWrapper();
 
-    GradleVersion gradleVersion = myGradleVersions.getGradleVersion(project);
-    assertEquals(expected, gradleVersion.getVersion());
+    GradleVersion gradleVersion = myGradleVersions.getGradleVersion(projectRule.getProject());
+    assertThat(gradleVersion.getVersion()).isEqualTo(expected);
   }
 
+  @Test
   public void testReadGradleVersionFromWrapperWhenSyncIsNeeded() throws Exception {
-    loadSimpleApplication();
-    Project project = getProject();
-
     GradleSyncState syncState = createMockGradleSyncState();
     // Simulate Gradle Sync is needed.
     when(syncState.isSyncNeeded()).thenReturn(YES);
@@ -95,14 +94,14 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
 
     String expected = getGradleVersionFromWrapper();
 
-    GradleVersion gradleVersion = myGradleVersions.getGradleVersion(project);
-    assertEquals(expected, gradleVersion.getVersion());
+    GradleVersion gradleVersion = myGradleVersions.getGradleVersion(projectRule.getProject());
+    assertThat(gradleVersion.getVersion()).isEqualTo(expected);
   }
 
   @NotNull
   private GradleSyncState createMockGradleSyncState() {
     GradleSyncState syncState = mock(GradleSyncState.class);
-    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, syncState);
+    new IdeComponents(projectRule.getProject()).replaceProjectService(GradleSyncState.class, syncState);
     return syncState;
   }
 
@@ -114,10 +113,10 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
 
   @NotNull
   private String getGradleVersionFromWrapper() throws IOException {
-    GradleWrapper gradleWrapper = GradleWrapper.find(getProject());
-    assertNotNull(gradleWrapper);
+    GradleWrapper gradleWrapper = GradleWrapper.find(projectRule.getProject());
+    assertThat(gradleWrapper).isNotNull();
     String expected = gradleWrapper.getGradleVersion();
-    assertNotNull(expected);
+    assertThat(expected).isNotNull();
     return GradleVersions.inferStableGradleVersion(expected);
   }
 }

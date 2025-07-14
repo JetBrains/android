@@ -15,22 +15,30 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
-public class GradleProjectSettingsFinderTest extends AndroidGradleTestCase {
+public class GradleProjectSettingsFinderTest {
   private GradleProjectSettingsFinder mySettingsFinder;
 
-  @Override
+  @Rule
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     mySettingsFinder = new GradleProjectSettingsFinder();
   }
 
+  @Test
   public void testWithNonGradleProject() {
-    Project project = getProject();
+    Project project = projectRule.getProject();
     GradleProjectSettings settings = mySettingsFinder.findGradleProjectSettings(project);
-    assertNull(settings);
+    assertThat(settings).isNull();
   }
 }

@@ -18,8 +18,13 @@ package com.android.tools.idea.gradle.project.sync.hyperlink.runsGradleErrors
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.processor.RemoveJcenterProcessor
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
+import com.android.tools.idea.testing.findAppModule
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.project.Project
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -28,10 +33,19 @@ import org.mockito.Mockito.verifyNoInteractions
 /**
  * Tests for [RemoveJcenterHyperlink]
  */
-class RemoveJcenterHyperlinkTest: AndroidGradleTestCase() {
+class RemoveJcenterHyperlinkTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  val project: Project by lazy { projectRule.project }
+
+  @Before
+  fun loadProject() {
+    projectRule.loadProject(SIMPLE_APPLICATION)
+  }
+
   @Test
   fun testExecuteNoRepository() {
-    loadSimpleApplication()
     val mockProcessor = mock(RemoveJcenterProcessor::class.java)
     val quickfix = RemoveJcenterHyperlink(project, listOf())
     quickfix.applyFix(project, mockProcessor)
@@ -40,9 +54,8 @@ class RemoveJcenterHyperlinkTest: AndroidGradleTestCase() {
 
   @Test
   fun testExecuteProjectBuildGradle() {
-    loadSimpleApplication()
     val projectBuildModel = ProjectBuildModel.get(project)
-    val module = getModule("app")
+    val module = project.findAppModule()
 
     // Add jcenter to project build.gradle
     projectBuildModel.projectBuildModel!!.buildscript().repositories().addRepositoryByMethodName("jcenter")
@@ -58,9 +71,8 @@ class RemoveJcenterHyperlinkTest: AndroidGradleTestCase() {
 
   @Test
   fun testExecuteProjectSettings() {
-    loadSimpleApplication()
     val projectBuildModel = ProjectBuildModel.get(project)
-    val module = getModule("app")
+    val module = project.findAppModule()
 
     // Add to settings.gradle
     projectBuildModel.projectSettingsModel!!.dependencyResolutionManagement().repositories().addRepositoryByMethodName("jcenter")
@@ -75,9 +87,8 @@ class RemoveJcenterHyperlinkTest: AndroidGradleTestCase() {
 
   @Test
   fun testExecuteModuleBuildGradle() {
-    loadSimpleApplication()
     val projectBuildModel = ProjectBuildModel.get(project)
-    val module = getModule("app")
+    val module = project.findAppModule()
 
     // Add to module build.gradle
     projectBuildModel.getModuleBuildModel(module)!!.repositories().addRepositoryByMethodName("jcenter")

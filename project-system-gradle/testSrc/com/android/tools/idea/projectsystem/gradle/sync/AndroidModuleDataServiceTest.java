@@ -16,64 +16,66 @@
 package com.android.tools.idea.projectsystem.gradle.sync;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.same;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
-import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.ProjectFiles;
-import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.facet.FacetManager;
-import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
-import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link AndroidModuleDataService}.
  */
-public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
+@RunsInEdt
+public class AndroidModuleDataServiceTest {
   @Mock private AndroidModuleValidator myValidator;
 
   private AndroidModuleDataService myService;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    initMocks(this);
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
 
+  @Rule
+  public RuleChain rule = RuleChain.outerRule(new EdtRule()).around(projectRule);
+
+  @Before
+  public void setup() throws Exception {
+    initMocks(this);
     AndroidModuleValidator.Factory validatorFactory = mock(AndroidModuleValidator.Factory.class);
-    when(validatorFactory.create(getProject())).thenReturn(myValidator);
+    when(validatorFactory.create(projectRule.getProject())).thenReturn(myValidator);
 
     myService = new AndroidModuleDataService(validatorFactory);
   }
+
+  @Test
   public void testGetTargetDataKey() {
-    assertSame(ANDROID_MODEL, myService.getTargetDataKey());
+    assertThat(myService.getTargetDataKey()).isSameAs(ANDROID_MODEL);
   }
 
+  @Test
   public void testImportDataWithoutModels() {
-    Module appModule = ProjectFiles.createModule(getProject(), "app");
+    Project project = projectRule.getProject();
+    Module appModule = ProjectFiles.createModule(project, "app");
     FacetManager.getInstance(appModule).createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-    IdeModifiableModelsProvider modelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
+    IdeModifiableModelsProvider modelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(project);
 
-    myService.importData(Collections.emptyList(), getProject(), modelsProvider, Collections.emptyMap());
-    assertNull(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME));
+    myService.importData(Collections.emptyList(), project, modelsProvider, Collections.emptyMap());
+    assertThat(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME)).isNull();
   }
 
 }

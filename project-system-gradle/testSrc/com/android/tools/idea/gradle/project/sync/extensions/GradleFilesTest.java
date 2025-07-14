@@ -29,7 +29,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.gradle.feature.flags.DeclarativeStudioSupport;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -37,58 +37,75 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.impl.PsiManagerEx;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
 
-public class GradleFilesTest extends AndroidGradleTestCase {
+@RunsInEdt
+public class GradleFilesTest {
   private GradleFiles myGradleFiles;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+
+  @Rule
+  public RuleChain rule = RuleChain.outerRule(new EdtRule()).around(projectRule);
+
+
+  @Before
+  public void setup() throws Exception {
     initMocks(this);
-
-    myGradleFiles = GradleFiles.getInstance(getProject());
+    myGradleFiles = GradleFiles.getInstance(projectRule.getProject());
   }
 
-  @Override
-  protected void tearDown() throws Exception {
+  @After
+  public void teardown() throws Exception {
     myGradleFiles = null;
-    super.tearDown();
   }
 
+  @Test
   public void testIsGradleFileWithBuildDotGradleFile() {
     PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder(FN_BUILD_GRADLE);
     assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
   }
 
+  @Test
   public void testIsGradleFileWithGradleDotPropertiesFile() {
     PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder(FN_GRADLE_PROPERTIES);
     assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
   }
 
+  @Test
   public void testIsGradleFileWithWrapperPropertiesFile() throws IOException {
-    Project project = getProject();
+    Project project = projectRule.getProject();
     GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(project), project);
     VirtualFile propertiesFile = wrapper.getPropertiesFile();
     PsiFile psiFile = findPsiFile(propertiesFile);
     assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
   }
 
+  @Test
   public void testIsGradleFileWithKotlinSettings() {
     // We need to create a file with EventSystemEnabled == false to get the PsiFile to return a null virtual file.
-    PsiFile psiFile = PsiFileFactory.getInstance(getProject())
+    PsiFile psiFile = PsiFileFactory.getInstance(projectRule.getProject())
       .createFileFromText(FN_SETTINGS_GRADLE_KTS, FileTypeManager.getInstance().getStdFileType("Kotlin"), "", 0L, false);
     assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
   }
 
+  @Test
   public void testIsGradleFileWithRenamedKts() {
-    PsiFile psiFile = PsiFileFactory.getInstance(getProject())
+    PsiFile psiFile = PsiFileFactory.getInstance(projectRule.getProject())
       .createFileFromText("app.gradle.kts", FileTypeManager.getInstance().getStdFileType("Kotlin"), "", 0L, false);
     assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
   }
 
+  @Test
   public void testIsGradleFileWithDeclarativeGradleFile() {
     DeclarativeStudioSupport.override(true);
     try {
@@ -100,10 +117,11 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     }
   }
 
+  @Test
   public void testIsGradleFileWithDeclarativeSettingsFile() {
     DeclarativeStudioSupport.override(true);
     try {
-      PsiFile psiFile = PsiFileFactory.getInstance(getProject())
+      PsiFile psiFile = PsiFileFactory.getInstance(projectRule.getProject())
         .createFileFromText(FN_SETTINGS_GRADLE_DECLARATIVE, FileTypeManager.getInstance().getStdFileType(""), "", 0L, false);
       assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
     }
@@ -112,11 +130,13 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     }
   }
 
+  @Test
   public void testIsGradleFileWithVersionsToml() {
     PsiFile psiFile = findOrCreatePsiFileRelativeToProjectRootFolder("gradle", "libs.versions.toml");
     assertThat(myGradleFiles.isGradleFile(psiFile)).isTrue();
   }
 
+  @Test
   public void testNothingInDefaultProject() {
     /* Prior to fix this would throw
     ERROR: Assertion failed: Please don't register startup activities for the default project: they won't ever be run
@@ -141,8 +161,8 @@ public class GradleFilesTest extends AndroidGradleTestCase {
 
   @NotNull
   private PsiFile findPsiFile(@NotNull VirtualFile file) {
-    PsiFile psiFile = PsiManagerEx.getInstanceEx(getProject()).findFile(file);
-    assertNotNull(psiFile);
+    PsiFile psiFile = PsiManagerEx.getInstanceEx(projectRule.getProject()).findFile(file);
+    assertThat(psiFile).isNotNull();
     return psiFile;
   }
 
@@ -150,21 +170,21 @@ public class GradleFilesTest extends AndroidGradleTestCase {
   private VirtualFile findOrCreateFileRelativeToProjectRootFolder(@NotNull String... names) {
     File filePath = findOrCreateFilePathRelativeToProjectRootFolder(names);
     VirtualFile file = findFileByIoFile(filePath, true);
-    assertNotNull(file);
+    assertThat(file).isNotNull();
     return file;
   }
 
   private @NotNull File findOrCreateFilePathRelativeToProjectRootFolder(@NotNull String... names) {
-    File parent = getBaseDirPath(getProject());
+    File parent = getBaseDirPath(projectRule.getProject());
     for (int i = 0; i < names.length - 1; i++) {
       File child = new File(parent, names[i]);
       if (!child.exists()) {
-        assertTrue(child.mkdirs());
+        assertThat(child.mkdirs()).isTrue();
       }
       parent = child;
     }
     File result = new File(parent, names[names.length - 1]);
-    assertTrue(createIfNotExists(result));
+    assertThat(createIfNotExists(result)).isTrue();
     return result;
   }
 }

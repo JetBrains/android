@@ -15,32 +15,38 @@
  */
 package com.android.tools.idea.gradle.util.runsGradle;
 
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Tests for {@link GradleProjectSettingsFinder}.
  */
-public class GradleProjectSettingsFinderTest extends AndroidGradleTestCase {
+public class GradleProjectSettingsFinderTest {
   private GradleProjectSettingsFinder mySettingsFinder;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Rule
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+
+  @Before
+  public void setup() throws Exception {
     mySettingsFinder = new GradleProjectSettingsFinder();
   }
 
+  @Test
   public void testWithAndroidGradleProject() throws Exception {
-    loadSimpleApplication();
-
-    Project project = getProject();
+    projectRule.loadProject(SIMPLE_APPLICATION);
+    Project project = projectRule.getProject();
     GradleProjectSettings settings = mySettingsFinder.findGradleProjectSettings(project);
-    assertNotNull(settings);
-
-    assertEquals(project.getBasePath(), toSystemIndependentName(settings.getExternalProjectPath()));
+    assertThat(settings).isNotNull();
+    assertThat(toSystemIndependentName(settings.getExternalProjectPath())).isEqualTo(project.getBasePath());
   }
 }

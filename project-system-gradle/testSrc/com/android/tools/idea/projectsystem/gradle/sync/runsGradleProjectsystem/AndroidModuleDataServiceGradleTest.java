@@ -16,6 +16,8 @@
 package com.android.tools.idea.projectsystem.gradle.sync.runsGradleProjectsystem;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
@@ -29,7 +31,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataService;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -40,12 +42,20 @@ import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.mockito.Mock;
 
-public class AndroidModuleDataServiceGradleTest extends AndroidGradleTestCase {
+@RunsInEdt
+public class AndroidModuleDataServiceGradleTest {
 
   @Mock private AndroidModuleValidator myValidator;
   @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
@@ -54,60 +64,57 @@ public class AndroidModuleDataServiceGradleTest extends AndroidGradleTestCase {
 
   private AndroidModuleDataService myService;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+
+  @Rule
+  public RuleChain rule = RuleChain.outerRule(new EdtRule()).around(projectRule);
+
+  @Before
+  public void setup() throws Exception {
     initMocks(this);
 
     AndroidModuleValidator.Factory validatorFactory = mock(AndroidModuleValidator.Factory.class);
-    when(validatorFactory.create(getProject())).thenReturn(myValidator);
+    when(validatorFactory.create(projectRule.getProject())).thenReturn(myValidator);
 
     myService = new AndroidModuleDataService(validatorFactory);
-    myModelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(getProject());
+    myModelsProvider = ProjectDataManager.getInstance().createModifiableModelsProvider(projectRule.getProject());
+    projectRule.loadProject(SIMPLE_APPLICATION);
   }
 
-  @Override
+  @After
   public void tearDown() throws Exception {
-    try {
-      myModelsProvider.dispose();
-    }
-    catch (Throwable e) {
-      addSuppressedException(e);
-    }
-    finally {
-      super.tearDown();
-    }
+    myModelsProvider.dispose();
   }
 
+  @Test
   public void testImportData() throws Exception {
-    loadSimpleApplication();
-    Module appModule = TestModuleUtil.findAppModule(getProject());
+    Project project = projectRule.getProject();
+    Module appModule = TestModuleUtil.findAppModule(project);
 
     GradleAndroidDependencyModel androidModel = GradleAndroidDependencyModel.get(appModule);
-    assertNotNull(androidModel);
+    assertThat(androidModel).isNotNull();
 
     ExternalProjectInfo externalInfo =
-      ProjectDataManager.getInstance().getExternalProjectData(getProject(), GradleConstants.SYSTEM_ID, getProjectFolderPath().getPath());
-    assertNotNull("Initial import failed", externalInfo);
+      ProjectDataManager.getInstance().getExternalProjectData(project, GradleConstants.SYSTEM_ID, project.getBasePath());
+    assertThat(externalInfo).named("Initial import failed").isNotNull();
     DataNode<ProjectData> projectStructure = externalInfo.getExternalProjectStructure();
-    assertNotNull("No project structure was found", projectStructure);
+    assertThat(projectStructure).named("No project structure was found").isNotNull();
 
     //noinspection unchecked
     DataNode<GradleAndroidModelData> androidModelNode = (DataNode<GradleAndroidModelData>)ExternalSystemApiUtil
       .findFirstRecursively(projectStructure, (node) -> ANDROID_MODEL.equals(node.getKey()));
-    Project project = getProject();
 
     when(myModuleSetupContextFactory.create(appModule, myModelsProvider)).thenReturn(myModuleSetupContext);
     myService.importData(Collections.singletonList(androidModelNode), mock(ProjectData.class), project, myModelsProvider);
 
-    assertNotNull(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME));
+    assertThat(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME)).isNotNull();
     verify(myValidator).validate(same(appModule), argThat(it -> ((GradleAndroidDependencyModel) it).containsTheSameDataAs(androidModel)));
     verify(myValidator).fixAndReportFoundIssues();
   }
 
+  @Test
   public void testOnSuccessSetsNewProjectToFalse() throws Exception {
-    loadSimpleApplication();
-    GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(getProject());
-    assertFalse(gradleProjectInfo.isNewProject());
+    GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(projectRule.getProject());
+    assertThat(gradleProjectInfo.isNewProject()).isFalse();
   }
 }

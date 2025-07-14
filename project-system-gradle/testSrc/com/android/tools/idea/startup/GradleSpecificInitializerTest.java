@@ -18,36 +18,44 @@ package com.android.tools.idea.startup;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.EmptyAction;
 import com.intellij.openapi.util.registry.Registry;
 import org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverExtension;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Tests for {@link GradleSpecificInitializer}
  */
-public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
+public class GradleSpecificInitializerTest {
+  @Rule
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
 
   /**
    * Verify {@link AndroidTemplateProjectStructureAction} is used in Welcome dialog
    */
+  @Test
   public void testAndroidTemplateProjectStructureActionInWelcomeDialog() {
     AnAction configureProjectStructureAction = ActionManager.getInstance().getAction("WelcomeScreen.Configure.ProjectStructure");
     assertThat(configureProjectStructureAction).isInstanceOf(AndroidTemplateProjectStructureAction.class);
   }
 
+  @Test
   public void testRefreshProjectsActionIsHidden() {
     AnAction refreshProjectsAction = ActionManager.getInstance().getAction("ExternalSystem.RefreshAllProjects");
     assertThat(refreshProjectsAction).isInstanceOf(EmptyAction.class);
   }
 
+  @Test
   public void testSelectProjectToImportActionIsHidden() {
     AnAction selectProjectToImportAction = ActionManager.getInstance().getAction("ExternalSystem.SelectProjectDataToImport");
     assertThat(selectProjectToImportAction).isInstanceOf(EmptyAction.class);
   }
 
+  @Test
   public void testGroovyResourceActionsAreHidden() {
     AnAction rebuildResourcesAction = ActionManager.getInstance().getAction("Groovy.CheckResources.Rebuild");
     assertThat(rebuildResourcesAction).isInstanceOf(EmptyAction.class);
@@ -56,7 +64,8 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
     assertThat(buildResourcesAction).isInstanceOf(EmptyAction.class);
   }
 
+  @Test
   public void testJetBrainsVersionCatalogActivation() {
-    assertTrue(Registry.get(CommonGradleProjectResolverExtension.GRADLE_VERSION_CATALOGS_DYNAMIC_SUPPORT).asBoolean());
+    assertThat(Registry.get(CommonGradleProjectResolverExtension.GRADLE_VERSION_CATALOGS_DYNAMIC_SUPPORT).asBoolean()).isTrue();
   }
 }
