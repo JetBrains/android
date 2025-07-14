@@ -18,7 +18,7 @@ package com.android.tools.idea.lint.common
 import com.android.tools.lint.detector.api.ClassContext
 import com.android.tools.lint.detector.api.Location
 import com.intellij.codeInsight.AnnotationUtil
-import com.intellij.codeInsight.intention.AddAnnotationFix
+import com.intellij.codeInsight.intention.AddAnnotationPsiFix
 import com.intellij.codeInspection.util.IntentionFamilyName
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.modcommand.ActionContext
@@ -33,6 +33,7 @@ import com.intellij.psi.PsiClassInitializer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.SyntheticElement
+import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -138,8 +139,10 @@ class AnnotateQuickFix(
             return annotation.parent.addBefore(newAnnotation, annotation)
           }
           val attributes = newAnnotation.parameterList.attributes
-          AddAnnotationFix(annotationName, element, attributes)
-            .invoke(project, null, element.containingFile)
+          val elementModifierList = element.modifierList ?: return null
+          AddAnnotationPsiFix.addPhysicalAnnotationIfAbsent(annotationName, attributes, elementModifierList)?.let {
+            JavaCodeStyleManager.getInstance(project).shortenClassReferences(it)
+          }
           return element.annotations.find { a ->
             a.qualifiedName == annotationName &&
               // The annotation fix sometimes applies changes to the attributes

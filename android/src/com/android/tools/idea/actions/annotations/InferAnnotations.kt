@@ -48,7 +48,7 @@ import com.android.tools.lint.helpers.DefaultJavaEvaluator
 import com.google.common.collect.Lists
 import com.intellij.analysis.AnalysisScope
 import com.intellij.codeInsight.FileModificationService
-import com.intellij.codeInsight.intention.AddAnnotationFix
+import com.intellij.codeInsight.intention.AddAnnotationPsiFix
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.ModuleUtilCore
@@ -78,6 +78,7 @@ import com.intellij.psi.PsiTypes
 import com.intellij.psi.PsiVariable
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.usageView.UsageInfo
@@ -1141,8 +1142,11 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       val elementFactory = JavaPsiFacade.getInstance(project).elementFactory
       val newAnnotation = elementFactory.createAnnotationFromText(code, element)
       val values = newAnnotation.parameterList.attributes
+      val elementModifierList = element.modifierList ?: return
       WriteCommandAction.runWriteCommandAction(project) {
-        AddAnnotationFix(fqn, element, values).invoke(project, null, element.containingFile)
+        AddAnnotationPsiFix.addPhysicalAnnotationIfAbsent(fqn, values, elementModifierList)?.let {
+          JavaCodeStyleManager.getInstance(project).shortenClassReferences(it)
+        }
       }
     }
 

@@ -24,7 +24,7 @@ import com.android.tools.lint.detector.api.firstLabelableParent
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.intellij.codeInsight.AnnotationUtil
-import com.intellij.codeInsight.intention.AddAnnotationFix
+import com.intellij.codeInsight.intention.AddAnnotationPsiFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.codeInspection.SuppressionUtilCore
@@ -46,6 +46,7 @@ import com.intellij.psi.PsiImportStatementBase
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiPackageStatement
 import com.intellij.psi.SyntheticElement
+import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
@@ -318,9 +319,11 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
         if (annotation != null && annotation !is SyntheticElement) {
           annotation.replace(newAnnotation)
         } else {
+          val ownerModifierList = modifierOwner.modifierList ?: return
           val attributes = newAnnotation.parameterList.attributes
-          AddAnnotationFix(annotationName, modifierOwner, attributes)
-            .invoke(project, null, container.containingFile) /*editor*/
+          AddAnnotationPsiFix.addPhysicalAnnotationIfAbsent(annotationName, attributes, ownerModifierList)?.let {
+            JavaCodeStyleManager.getInstance(project).shortenClassReferences(it)
+          }
         }
       }
     }

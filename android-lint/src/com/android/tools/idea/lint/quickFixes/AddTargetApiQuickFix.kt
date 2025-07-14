@@ -32,7 +32,6 @@ import com.android.tools.lint.detector.api.ExtensionSdk.Companion.ANDROID_SDK_ID
 import com.android.tools.lint.detector.api.VersionChecks.Companion.REQUIRES_API_ANNOTATION
 import com.android.tools.lint.detector.api.VersionChecks.Companion.REQUIRES_EXTENSION_ANNOTATION
 import com.intellij.codeInsight.AnnotationUtil
-import com.intellij.codeInsight.intention.AddAnnotationFix
 import com.intellij.codeInsight.intention.AddAnnotationPsiFix
 import com.intellij.codeInspection.util.IntentionFamilyName
 import com.intellij.lang.java.JavaLanguage
@@ -216,8 +215,10 @@ class AddTargetApiQuickFix(
       }
     } else {
       val attributes = newAnnotation.parameterList.attributes
-      val fix = AddAnnotationFix(fqcn, container, attributes)
-      fix.invoke(container.project, null, container.containingFile)
+      val containerModifierList = container.modifierList ?: return
+      AddAnnotationPsiFix.addPhysicalAnnotationIfAbsent(fqcn, attributes, containerModifierList)?.let {
+        JavaCodeStyleManager.getInstance(container.project).shortenClassReferences(it)
+      }
     }
   }
 
