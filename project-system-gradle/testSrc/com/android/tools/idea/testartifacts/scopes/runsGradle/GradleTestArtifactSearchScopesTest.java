@@ -22,6 +22,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_SC
 import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.android.utils.FileUtils.toSystemDependentPath;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -31,7 +32,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.projectsystem.gradle.LinkedAndroidModuleGroupUtilsKt;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.module.Module;
@@ -41,71 +42,74 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
 
-public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
+@RunsInEdt
+public class GradleTestArtifactSearchScopesTest {
 
   // Naming scheme follows "Gradle: " + name of the library. See LibraryDependency#setName method
   private static final String GRADLE_PREFIX = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
 
   private static final String GSON = GRADLE_PREFIX + "com.google.code.gson:gson:2.8.0";
   private static final String JUNIT = GRADLE_PREFIX + "junit:junit:4.12";
-  @Override
-  protected boolean shouldRunTest() {
-    if (SystemInfo.isWindows) {
-      System.out.println("Class '" + getClass().getName() +
-                         "' is skipped because it does not run on Windows (http://b.android.com/222904).");
-      return false;
-    }
-    return super.shouldRunTest();
-  }
 
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+  @Rule
+  public RuleChain rule = RuleChain.outerRule(new EdtRule()).around(projectRule);
+
+  @Test
   public void testPureJavaProject() throws Exception {
-    loadProject(PURE_JAVA_PROJECT);
+    projectRule.loadProject(PURE_JAVA_PROJECT);
 
-    File srcFile = new File(myFixture.getProject().getBasePath(), toSystemDependentPath("src/main/java/org/gradle/Person.java"));
-    assertTrue(srcFile.toString(), srcFile.exists());
+    File srcFile = new File(projectRule.getProject().getBasePath(), toSystemDependentPath("src/main/java/org/gradle/Person.java"));
+    assertThat(srcFile.exists()).named(srcFile.toString()).isTrue();
     VirtualFile srcVirtualFile = findFileByIoFile(srcFile, true);
-    assertNotNull(srcVirtualFile);
+    assertThat(srcVirtualFile).isNotNull();
 
-    Module mainModule = ModuleUtilCore.findModuleForFile(srcVirtualFile, getProject());
+    Module mainModule = ModuleUtilCore.findModuleForFile(srcVirtualFile, projectRule.getProject());
+    assertThat(mainModule).isNotNull();
     TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(mainModule);
 
-    assertFalse(testArtifactSearchScopes.isAndroidTestSource(srcVirtualFile));
+    assertThat(testArtifactSearchScopes.isAndroidTestSource(srcVirtualFile)).isFalse();
   }
 
+  @Test
   public void testSrcFolderIncluding() throws Exception {
-    loadProject(SIMPLE_APP_WITH_SCREENSHOT_TEST);
-    Module module1 = LinkedAndroidModuleGroupUtilsKt.getMainModule(TestModuleUtil.findModule(getProject(), "app"));
+    projectRule.loadProject(SIMPLE_APP_WITH_SCREENSHOT_TEST);
+    Module module1 = LinkedAndroidModuleGroupUtilsKt.getMainModule(TestModuleUtil.findAppModule(projectRule.getProject()));
     TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(module1);
-    assertNotNull(testArtifactSearchScopes);
+    assertThat(testArtifactSearchScopes).isNotNull();
 
     VirtualFile unitTestSource = createFileIfNotExists("app/src/test/java/Test.java");
     VirtualFile androidTestSource = createFileIfNotExists("app/src/androidTest/java/Test.java");
     VirtualFile screenshotTestSource = createFileIfNotExists("app/src/screenshotTest/java/Test.java");
 
-    assertTrue(testArtifactSearchScopes.isUnitTestSource(unitTestSource));
-    assertFalse(testArtifactSearchScopes.isUnitTestSource(androidTestSource));
-    assertFalse(testArtifactSearchScopes.isUnitTestSource(screenshotTestSource));
+    assertThat(testArtifactSearchScopes.isUnitTestSource(unitTestSource)).isTrue();
+    assertThat(testArtifactSearchScopes.isUnitTestSource(androidTestSource)).isFalse();
+    assertThat(testArtifactSearchScopes.isUnitTestSource(screenshotTestSource)).isFalse();
 
+    assertThat(testArtifactSearchScopes.isAndroidTestSource(androidTestSource)).isTrue();
+    assertThat(testArtifactSearchScopes.isAndroidTestSource(unitTestSource)).isFalse();
+    assertThat(testArtifactSearchScopes.isAndroidTestSource(screenshotTestSource)).isFalse();
 
-    assertTrue(testArtifactSearchScopes.isAndroidTestSource(androidTestSource));
-    assertFalse(testArtifactSearchScopes.isAndroidTestSource(unitTestSource));
-    assertFalse(testArtifactSearchScopes.isAndroidTestSource(screenshotTestSource));
-
-    assertFalse(testArtifactSearchScopes.isScreenshotTestSource(unitTestSource));
-    assertFalse(testArtifactSearchScopes.isScreenshotTestSource(androidTestSource));
-    assertTrue(testArtifactSearchScopes.isScreenshotTestSource(screenshotTestSource));
+    assertThat(testArtifactSearchScopes.isScreenshotTestSource(unitTestSource)).isFalse();
+    assertThat(testArtifactSearchScopes.isScreenshotTestSource(androidTestSource)).isFalse();
+    assertThat(testArtifactSearchScopes.isScreenshotTestSource(screenshotTestSource)).isTrue();
   }
 
+  @Test
   public void testProjectRootFolderOfTestProjectType() throws Exception {
     // Module4 is an android test project (applied plugin com.android.test).
     TestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module4");
@@ -113,21 +117,22 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     VirtualFile module4Root = createFileIfNotExists("module4/src/main");
     VirtualFile module4Source = createFileIfNotExists("module4/src/main/java/Test.java");
 
-    assertFalse(scopes.isUnitTestSource(module4Root));
-    assertFalse(scopes.isUnitTestSource(module4Source));
+    assertThat(scopes.isUnitTestSource(module4Root)).isFalse();
+    assertThat(scopes.isUnitTestSource(module4Source)).isFalse();
 
-    assertTrue(scopes.isAndroidTestSource(module4Root));
-    assertTrue(scopes.isAndroidTestSource(module4Source));
+    assertThat(scopes.isAndroidTestSource(module4Root)).isTrue();
+    assertThat(scopes.isAndroidTestSource(module4Source)).isTrue();
   }
 
+  @Test
   public void testIncludeLibrariesInUnitTestFromMainModule() throws Exception {
     loadMultiProjectAndGetTestScopesForModule("module1");
 
-    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(projectRule.getProject());
 
     Library gson = libraryTable.getLibraryByName(GSON);
 
-    Module module1holderModule = gradleModule(getProject(), ":module1");
+    Module module1holderModule = gradleModule(projectRule.getProject(), ":module1");
     assert module1holderModule != null;
     Module unitTestModule = LinkedAndroidModuleGroupUtilsKt.getUnitTestModule(module1holderModule);
     assert unitTestModule != null;
@@ -149,7 +154,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     // Now add gson to unit test dependencies as well
     VirtualFile buildFile = getGradleBuildFile(module1holderModule);
-    assertNotNull(buildFile);
+    assertThat(buildFile).isNotNull();
     appendToFile(virtualToIoFile(buildFile), "\n\ndependencies { api 'com.google.code.gson:gson:2.8.0' }\n");
 
     CountDownLatch latch = new CountDownLatch(1);
@@ -164,14 +169,14 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
         latch.countDown();
       }
     };
-    GradleSyncState.subscribe(getProject(), postSetupListener, getTestRootDisposable());
+    GradleSyncState.subscribe(projectRule.getProject(), postSetupListener, projectRule.getFixture().getTestRootDisposable());
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-    GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request, null);
+    GradleSyncInvoker.getInstance().requestProjectSync(projectRule.getProject(), request, null);
 
     latch.await();
 
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.getInstance(module1holderModule);
-    assertNotNull(scopes);
+    assertThat(scopes).isNotNull();
 
     // Now all modules should include GSON as a library dependency
     gson = libraryTable.getLibraryByName(GSON);
@@ -180,17 +185,19 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertScopeContainsLibrary(unitTestModule.getModuleWithLibrariesScope(), gson, true);
   }
 
+  @Test
   public void testResolvedScopeForTestOnlyModuleProject() throws Exception {
-    loadProject(TEST_ONLY_MODULE);
-    Module testModule = TestModuleUtil.findModule(getProject(), "test");
+    projectRule.loadProject(TEST_ONLY_MODULE);
+    Module testModule = TestModuleUtil.findModule(projectRule.getProject(), "test");
     TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(testModule);
-    assertNotNull(testArtifactSearchScopes);
+    assertThat(testArtifactSearchScopes).isNotNull();
 
-    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(projectRule.getProject());
     Library junit = libraryTable.getLibraryByName(JUNIT);
-    assertNotNull(junit);
+    assertThat(junit).isNotNull();
   }
 
+  @Test
   public void testGeneratedTestSourcesIncluded() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module1");
 
@@ -198,36 +205,36 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     VirtualFile unitTestSource = createFileIfNotExists("module1/build/generated/ap_generated_sources/debugUnitTest/out/Test.java");
     VirtualFile androidTestSource = createFileIfNotExists("module1/build/generated/ap_generated_sources/debugAndroidTest/out/Test.java");
 
-    assertTrue(scopes.isUnitTestSource(unitTestSource));
-    assertFalse(scopes.isUnitTestSource(androidTestSource));
+    assertThat(scopes.isUnitTestSource(unitTestSource)).isTrue();
+    assertThat(scopes.isUnitTestSource(androidTestSource)).isFalse();
 
-    assertTrue(scopes.isAndroidTestSource(androidTestSource));
-    assertFalse(scopes.isAndroidTestSource(unitTestSource));
+    assertThat(scopes.isAndroidTestSource(androidTestSource)).isTrue();
+    assertThat(scopes.isAndroidTestSource(unitTestSource)).isFalse();
   }
 
   @NotNull
   private VirtualFile createFileIfNotExists(@NotNull String relativePath) throws Exception {
-    File file = new File(myFixture.getProject().getBasePath(), toSystemDependentPath(relativePath));
+    File file = new File(projectRule.getProject().getBasePath(), toSystemDependentPath(relativePath));
     FileUtil.createIfDoesntExist(file);
     VirtualFile virtualFile = findFileByIoFile(file, true);
-    assertNotNull(virtualFile);
-    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(getProject());
+    assertThat(virtualFile).isNotNull();
+    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(projectRule.getProject());
     return virtualFile;
   }
 
   @NotNull
   private TestArtifactSearchScopes loadMultiProjectAndGetTestScopesForModule(String moduleName) throws Exception {
-    loadProject(SYNC_MULTIPROJECT);
-    Module module1 = LinkedAndroidModuleGroupUtilsKt.getMainModule(TestModuleUtil.findModule(getProject(), moduleName));
+    projectRule.loadProject(SYNC_MULTIPROJECT);
+    Module module1 = LinkedAndroidModuleGroupUtilsKt.getMainModule(TestModuleUtil.findModule(projectRule.getProject(), moduleName));
     TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(module1);
-    assertNotNull(testArtifactSearchScopes);
+    assertThat(testArtifactSearchScopes).isNotNull();
     return testArtifactSearchScopes;
   }
 
   private static void assertScopeContainsLibrary(@NotNull GlobalSearchScope scope, @Nullable Library library, boolean contains) {
-    assertNotNull(library);
+    assertThat(library).isNotNull();
     for (VirtualFile file : library.getFiles(OrderRootType.CLASSES)) {
-      assertEquals(contains, scope.accept(file));
+      assertThat(scope.accept(file)).isEqualTo(contains);
     }
   }
 }
