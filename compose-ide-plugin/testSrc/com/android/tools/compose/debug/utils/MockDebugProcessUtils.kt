@@ -31,7 +31,6 @@ import com.sun.jdi.ObjectReference
 import com.sun.jdi.ReferenceType
 import com.sun.jdi.Value
 import com.sun.jdi.request.ClassPrepareRequest
-import org.gradle.internal.impldep.org.eclipse.jgit.errors.NotSupportedException
 import org.mockito.kotlin.mock
 
 interface MockDebugProcessScope {
@@ -149,7 +148,7 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
 
     return when (referenceType) {
       is ClassType -> referenceType.invokeMethod(objRef.owningThread(), method, args, 0)
-      else -> throw NotSupportedException("$referenceType is not supported yet.")
+      else -> throw IllegalArgumentException("$referenceType is not supported yet.")
     }
   }
 

@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Helper methods for classes implementing {@link org.gradle.internal.impldep.aQute.bnd.service.repository.ResourceRepository} interface.
+ * Helper methods for classes implementing {@link aQute.bnd.service.repository.ResourceRepository} interface.
  */
 class ResourceRepositoryImplUtil {
   /**
