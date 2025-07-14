@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.dependencies.runsGradleDependencies
 
-import com.android.tools.idea.testing.AndroidGradleTestCase.fail
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
+import org.junit.Assert.fail
 import java.nio.file.Paths
 
 private fun isRootElement(string: String, elementPosition: Int): Boolean {

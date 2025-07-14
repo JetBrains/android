@@ -17,14 +17,19 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleJdkSettingsQuickfix
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
-import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 
-class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
+class DaemonContextMismatchIssueCheckerTest {
   private val daemonContextMismatchIssueChecker = DaemonContextMismatchIssueChecker()
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testCheckIssueWithErrorForGradlePost_8_8() {
     val errorMessage = """
       The newly created daemon process has a different context than expected.
@@ -35,7 +40,7 @@ class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
       """.trimIndent()
     val expectedNotificationMessage = "Expecting: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home' but was: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home/jre'."
 
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(errorMessage), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(errorMessage), null, null)
     val buildIssue = daemonContextMismatchIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
@@ -45,6 +50,7 @@ class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenGradleJdkSettingsQuickfix::class.java)
   }
 
+  @Test
   fun testCheckIssueWithErrorFromBugReport() {
     val errorMessage = """
       The newly created daemon process has a different context than expected.
@@ -55,7 +61,7 @@ class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
       """.trimIndent()
     val expectedNotificationMessage = "Expecting: 'c:\\Program Files\\Java\\jdk' but was: 'C:\\Program Files\\Java\\jdk\\jre'."
 
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(errorMessage), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(errorMessage), null, null)
     val buildIssue = daemonContextMismatchIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
@@ -65,6 +71,7 @@ class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenGradleJdkSettingsQuickfix::class.java)
   }
 
+  @Test
   fun testCheckIssueWithErrorFromGradleForum() {
     val errorMessage = """
       The newly created daemon process has a different context than expected.
@@ -75,7 +82,7 @@ class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
       """.trimIndent()
     val expectedNotificationMessage = "Expecting: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home' but was: '/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home/jre'."
 
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(errorMessage), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(errorMessage), null, null)
     val buildIssue = daemonContextMismatchIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
@@ -85,6 +92,7 @@ class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenGradleJdkSettingsQuickfix::class.java)
   }
 
+  @Test
   fun testCheckIssueHandled() {
     assertThat(
       daemonContextMismatchIssueChecker.consumeBuildOutputFailureMessage(
@@ -95,7 +103,7 @@ class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
         null,
         "",
         TestMessageEventConsumer()
-      )).isEqualTo(true)
+      )).isTrue()
     // Test for Gradle version before 8.8
     assertThat(
       daemonContextMismatchIssueChecker.consumeBuildOutputFailureMessage(
@@ -106,6 +114,6 @@ class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
         null,
         "",
         TestMessageEventConsumer()
-      )).isEqualTo(true)
+      )).isTrue()
   }
 }

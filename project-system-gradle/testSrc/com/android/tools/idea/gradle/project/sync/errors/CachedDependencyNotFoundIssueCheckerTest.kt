@@ -17,18 +17,24 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 
-class CachedDependencyNotFoundIssueCheckerTest : AndroidGradleTestCase() {
+class CachedDependencyNotFoundIssueCheckerTest {
   private val cachedDependencyNotFoundIssueChecker = CachedDependencyNotFoundIssueChecker()
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testCheckIssue() {
     val expectedNotificationMessage = "No cached version of dependency, available for offline mode."
     val error = "$expectedNotificationMessage\nExtra error message."
 
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(error), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(error), null, null)
     val buildIssue = cachedDependencyNotFoundIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
@@ -37,6 +43,7 @@ class CachedDependencyNotFoundIssueCheckerTest : AndroidGradleTestCase() {
     assertThat((buildIssue.quickFixes.first() as ToggleOfflineModeQuickFix).enableOfflineMode).isFalse()
   }
 
+  @Test
   fun testIssueHandled() {
     assertThat(
       cachedDependencyNotFoundIssueChecker.consumeBuildOutputFailureMessage(
@@ -46,6 +53,6 @@ class CachedDependencyNotFoundIssueCheckerTest : AndroidGradleTestCase() {
         null,
         "",
         TestMessageEventConsumer()
-      )).isEqualTo(true)
+      )).isTrue()
   }
 }

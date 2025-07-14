@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.project.sync.errors.AarDependencyCompatibil
 import com.android.tools.idea.gradle.project.sync.errors.UpdateCompileSdkQuickFix
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
@@ -37,23 +37,28 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.getBuildScriptPsiFile
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.junit.Rule
 import org.junit.Test
 
-class AarDependencyCompatibilityIssueCheckerIntegrationTest: AndroidGradleTestCase() {
+class AarDependencyCompatibilityIssueCheckerIntegrationTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+  val project by lazy { projectRule.project }
+
   @Test
   fun testAarDependencyCompatibilityIssue() {
-
-    loadProject(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE, null,
-                AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.resolve().withCompileSdk("33").resolve(),
-                null);
+    projectRule.loadProject(
+      TestProjectPaths.ANDROIDX_WITH_LIB_MODULE,
+      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST.resolve().withCompileSdk("33").resolve()
+    )
     val appModule = project.findAppModule()
     val libModule = project.findModule("mylibrary")
     val projectModel = ProjectBuildModel.get(project)
     val appBuildModel = projectModel.getModuleBuildModel(appModule)
     appBuildModel!!.dependencies().addModule("implementation", ":mylibrary")
-    libModule.getBuildScriptPsiFile()?.virtualFile?.toIoFile()
-      ?.appendText("\nandroid.defaultConfig.aarMetadata.minCompileSdk 34")
     ApplicationManager.getApplication().invokeAndWait {
+      libModule.getBuildScriptPsiFile()?.virtualFile?.toIoFile()
+        ?.appendText("\nandroid.defaultConfig.aarMetadata.minCompileSdk 34")
       WriteCommandAction.runWriteCommandAction(project) {
         projectModel.applyChanges()
       }

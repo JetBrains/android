@@ -17,7 +17,10 @@ package com.android.tools.idea.gradle.project.sync.hyperlink.runsGradleErrors
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddComposeCompilerGradlePluginHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.processor.AddComposeCompilerGradlePluginProcessor
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
+import com.android.tools.idea.testing.findAppModule
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -26,12 +29,16 @@ import org.mockito.Mockito.verifyNoInteractions
 /**
  * Tests for [AddComposeCompilerGradlePluginHyperlink]
  */
-class AddComposeCompilerGradlePluginHyperlinkTest: AndroidGradleTestCase() {
+class AddComposeCompilerGradlePluginHyperlinkTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+  val project by lazy { projectRule.project }
+
   @Test
   fun testQuickFixRunsProcessor() {
-    loadSimpleApplication()
+    projectRule.loadProject(SIMPLE_APPLICATION)
     val mockProcessor = mock(AddComposeCompilerGradlePluginProcessor::class.java)
-    val module = getModule("app")
+    val module = project.findAppModule()
     val quickfix = AddComposeCompilerGradlePluginHyperlink(project, listOf(module), "2.0.0")
     quickfix.applyFix(project, mockProcessor)
     verify(mockProcessor).run()
@@ -39,7 +46,7 @@ class AddComposeCompilerGradlePluginHyperlinkTest: AndroidGradleTestCase() {
 
   @Test
   fun testProcessorDoesNothingIfNoAffectedModules() {
-    loadSimpleApplication()
+    projectRule.loadProject(SIMPLE_APPLICATION)
     val mockProcessor = mock(AddComposeCompilerGradlePluginProcessor::class.java)
     val quickfix = AddComposeCompilerGradlePluginHyperlink(project, listOf(), "2.0.0")
     quickfix.applyFix(project, mockProcessor)

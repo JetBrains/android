@@ -16,18 +16,24 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import java.net.SocketException
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import org.junit.Rule
+import org.junit.Test
 
-class ConnectionPermissionDeniedIssueCheckerTest : AndroidGradleTestCase() {
+class ConnectionPermissionDeniedIssueCheckerTest {
   private val connectionPermissionDeniedIssueChecker = ConnectionPermissionDeniedIssueChecker()
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testCheckIssue() {
     val cause = SocketException("Permission denied: connect")
-    val issueData = GradleIssueData(projectFolderPath.path, cause, null,null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, cause, null,null)
 
     val buildIssue = connectionPermissionDeniedIssueChecker.check(issueData)
 
@@ -40,6 +46,7 @@ class ConnectionPermissionDeniedIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
   }
 
+  @Test
   fun testCheckIssueHandled() {
     assertThat(
       connectionPermissionDeniedIssueChecker.consumeBuildOutputFailureMessage(
@@ -49,6 +56,6 @@ class ConnectionPermissionDeniedIssueCheckerTest : AndroidGradleTestCase() {
         null,
         "",
         TestMessageEventConsumer()
-      )).isEqualTo(true)
+      )).isTrue()
   }
 }

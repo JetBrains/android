@@ -17,15 +17,21 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 
-class ErrorOpeningZipFileIssueCheckerTest : AndroidGradleTestCase() {
+class ErrorOpeningZipFileIssueCheckerTest {
   private val errorOpeningZipFileIssueChecker = ErrorOpeningZipFileIssueChecker()
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testCheckIssue() {
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable("error in opening zip file"), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable("error in opening zip file"), null, null)
     val buildIssue = errorOpeningZipFileIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
@@ -36,6 +42,7 @@ class ErrorOpeningZipFileIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(SyncProjectRefreshingDependenciesQuickFix::class.java)
   }
 
+  @Test
   fun testCheckIssueHandled() {
     assertThat(
       errorOpeningZipFileIssueChecker.consumeBuildOutputFailureMessage(

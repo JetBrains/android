@@ -26,27 +26,35 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.internal.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.gradle.project.sync.issues.processor.AddComposeCompilerGradlePluginProcessor
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PLUGINS_DSL
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG
+import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_ADD_COMPOSE_COMPILER_GRADLE_PLUGIN
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import org.junit.Rule
 import org.junit.Test
 
 /**
  * Tests for [AddComposeCompilerGradlePluginProcessor]
  */
-class AddComposeCompilerGradlePluginProcessorTest : AndroidGradleTestCase() {
+class AddComposeCompilerGradlePluginProcessorTest {
+
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+  val project by lazy { projectRule.project }
 
   /**
    * Test case when the Compose Compiler Gradle plugin is added to the buildscript classpath
    */
   @Test
   fun testBuildscriptClasspath() {
-    loadSimpleApplication()
-    val module = getModule("app")
+    projectRule.loadProject(SIMPLE_APPLICATION)
+    val module = project.findAppModule()
     val processor =
       AddComposeCompilerGradlePluginProcessor(project, listOf(module), KOTLIN_VERSION_FOR_TESTS)
 
@@ -80,9 +88,9 @@ class AddComposeCompilerGradlePluginProcessorTest : AndroidGradleTestCase() {
    */
   @Test
   fun testPluginsBlock() {
-    loadProject(SIMPLE_APPLICATION_PLUGINS_DSL)
+    projectRule.loadProject(SIMPLE_APPLICATION_PLUGINS_DSL)
 
-    val module = getModule("app")
+    val module = project.findAppModule()
     val processor =
       AddComposeCompilerGradlePluginProcessor(project, listOf(module), KOTLIN_VERSION_FOR_TESTS)
 
@@ -115,9 +123,9 @@ class AddComposeCompilerGradlePluginProcessorTest : AndroidGradleTestCase() {
    */
   @Test
   fun testPluginsBlockWithVersionCatalog() {
-    loadProject(SIMPLE_APPLICATION_VERSION_CATALOG)
+    projectRule.loadProject(SIMPLE_APPLICATION_VERSION_CATALOG)
 
-    val module = getModule("app")
+    val module = project.findAppModule()
     val processor =
       AddComposeCompilerGradlePluginProcessor(project, listOf(module), KOTLIN_VERSION_FOR_TESTS)
 
@@ -161,7 +169,7 @@ class AddComposeCompilerGradlePluginProcessorTest : AndroidGradleTestCase() {
    */
   @Test
   fun testPluginManagementBlock() {
-    loadProject(SIMPLE_APPLICATION_PLUGINS_DSL)
+    projectRule.loadProject(SIMPLE_APPLICATION_PLUGINS_DSL)
 
     // Add pluginManagement.plugins block
     var projectBuildModel = ProjectBuildModel.get(project)
@@ -173,7 +181,7 @@ class AddComposeCompilerGradlePluginProcessorTest : AndroidGradleTestCase() {
       projectBuildModel.applyChanges()
     }
 
-    val module = getModule("app")
+    val module = project.findAppModule()
     val processor =
       AddComposeCompilerGradlePluginProcessor(project, listOf(module), KOTLIN_VERSION_FOR_TESTS)
 
@@ -205,7 +213,7 @@ class AddComposeCompilerGradlePluginProcessorTest : AndroidGradleTestCase() {
    */
   private fun runProcessor(processor: AddComposeCompilerGradlePluginProcessor) {
     // Verify expected usages
-    val usages = processor.findUsages()
+    val usages = runReadAction { processor.findUsages() }
     assertThat(usages).hasLength(1)
 
     // Perform refactoring
@@ -214,7 +222,7 @@ class AddComposeCompilerGradlePluginProcessorTest : AndroidGradleTestCase() {
       override fun syncSucceeded(project: Project) {
         synced = true
       }
-    }, testRootDisposable)
+    }, projectRule.fixture.testRootDisposable)
     WriteCommandAction.runWriteCommandAction(project) {
       processor.updateProjectBuildModel()
     }

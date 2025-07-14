@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.gradle.dependencies
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.AttachSourcesProvider
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.testFramework.ApplicationRule
+import org.junit.Rule
+import org.junit.Test
 
-class DownloadSourceTest : AndroidGradleTestCase() {
+class DownloadSourceTest {
+  @get:Rule
+  val rule = ApplicationRule()
 
+  @Test
   fun testNoGradleAttachSourcesProvider() {
     val attachSourceProviders = ExtensionPointName<AttachSourcesProvider>("com.intellij.attachSourcesProvider")
     assertThat(attachSourceProviders.extensionList.map { it.javaClass.name })

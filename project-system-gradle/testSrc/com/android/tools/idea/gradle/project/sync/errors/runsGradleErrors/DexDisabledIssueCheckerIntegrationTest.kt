@@ -19,7 +19,8 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.errors.DexDisabledIssue
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -30,11 +31,21 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.pom.java.LanguageLevel
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
-class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
+@RunsInEdt
+class DexDisabledIssueCheckerIntegrationTest {
+  val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val rule: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule)
+  val project by lazy { projectRule.project }
+
   @Test
   fun testDependencyLibraryLambdaCausesBuildIssue() {
     checkLevel8Issue("library_lambda.jar", "Invoke-customs are only supported starting with Android O")
@@ -51,8 +62,7 @@ class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
   }
 
   private fun checkLevel8Issue(dependency: String, expectedMessage: String) {
-    loadSimpleApplication()
-    val project = project
+    projectRule.loadProject(SIMPLE_APPLICATION)
     addJarDependency(dependency)
 
     val generatedExceptions = mutableListOf<Exception>()
@@ -88,7 +98,7 @@ class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
     buildModel!!.android().compileOptions().sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_7)
     buildModel.android().compileOptions().targetCompatibility().setLanguageLevel(LanguageLevel.JDK_1_7)
     buildModel.java().toolchain().languageVersion().setVersion(17)
-    val dependencyFile = myFixture.copyFileToProject("desugaringErrors/$dependency", "jarDependencies/$dependency")
+    val dependencyFile = projectRule.fixture.copyFileToProject("desugaringErrors/$dependency", "jarDependencies/$dependency")
     assertThat(dependencyFile).isNotNull()
     buildModel.dependencies().addFile("implementation", dependencyFile.path)
     ApplicationManager.getApplication().invokeAndWait {
