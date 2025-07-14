@@ -176,7 +176,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
     object :
-        Task.Modal(
+      Task.Backgroundable(
           null,
           message("android.compile.messages.generating.r.java.content.name"),
           false,
