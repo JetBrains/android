@@ -424,10 +424,18 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       // It also centralizes all library information in one place.
       DataNodeCaches.getInstance(project).cachedProjectData?.let { projectData ->
         val libraryTable = ExternalSystemApiUtil.find(projectData, AndroidProjectKeys.IDE_LIBRARY_TABLE)
-        head("LIBRARY_TABLE")
-        nest {
-          libraryTable?.data?.let {
-            dump(it)
+        if (libraryTable != null) {
+          head("LIBRARY_TABLE")
+          nest {
+            dump(libraryTable.data)
+          }
+        }
+
+        val kmpLibraryTable = ExternalSystemApiUtil.find(projectData, AndroidProjectKeys.KMP_ANDROID_LIBRARY_TABLE)
+        if (kmpLibraryTable != null) {
+          head("KMP_LIBRARY_TABLE")
+          nest {
+            dump(kmpLibraryTable.data)
           }
         }
       }
