@@ -2385,6 +2385,12 @@ public final class StudioFlags {
                     "Enable Gemini Version Upgrade Agent.",
                     "Enables the agent that helps with upgrading dependencies to newer versions.", enabledUpTo(DEV));
 
+  public static final Flag<Boolean> GEMINI_NEW_PROJECT_AGENT =
+    new BooleanFlag(STUDIOBOT, "new.project.agent",
+                    "Enable New Project Agent",
+                    "Enables the 'New Project Agent'.",
+                    false);
+
   public enum CodeIndexingMode {NONE, BM25}
 
   public static final EnumFlag<CodeIndexingMode> GEMINI_INDEX_CODEBASE =
