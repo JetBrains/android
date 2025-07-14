@@ -2260,12 +2260,6 @@ public final class StudioFlags {
                     "When enabled, the query box will show a button to stop ongoing responses.",
                     enabledUpTo(STABLE));
 
-  public static final Flag<Boolean> STUDIOBOT_SHOW_MODEL_NAME_IN_QUERY_BOX =
-    new BooleanFlag(STUDIOBOT, "chat.show.model.name",
-                    "Show model name in query box",
-                    "Shows the model name in the query box, with an animation when a query is submitted.",
-                    false);
-
   public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
                     "Use ML model to suggest commit messages",
@@ -2398,7 +2392,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> GEMINI_AGENT_MODE =
     new BooleanFlag(STUDIOBOT, "agent.mode",
                     "Enable agent mode.",
-                    "When enabled, the agent mode will be enabled in the Gemini toolwindow.", enabledUpTo(CANARY));
+                    "When enabled, the agent mode will be enabled in the Gemini toolwindow.", true);
 
   public static final Flag<Boolean> GEMINI_VERSION_UPGRADE_AGENT =
     new BooleanFlag(STUDIOBOT, "version.upgrade.agent",
