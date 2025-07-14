@@ -2375,7 +2375,7 @@ public final class StudioFlags {
                     "Enable providing a public Gemini API key to override the default model.",
                     "When enabled, a setting and various UI is made visible to provide a Gemini API key, and when provided and" +
                     "enabled it replaces the default model with the public Gemini model.",
-                    enabledUpTo(CANARY));
+                    true);
 
   public static final Flag<Boolean> STUDIOBOT_INCLUDE_GRADLE_PROJECT_STRUCTURE_TOOLS_BY_DEFAULT =
     new BooleanFlag(STUDIOBOT, "include.gradle.project.structure.tools.by.default",
