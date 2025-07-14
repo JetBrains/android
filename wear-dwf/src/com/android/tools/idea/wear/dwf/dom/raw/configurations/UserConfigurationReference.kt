@@ -47,6 +47,9 @@ import com.intellij.psi.xml.XmlFile
  * However, as the different options depends on whatever a Watch Face User selects on their watch,
  * the references will point to the parent `<ColorConfiguration>`.
  *
+ *  The [filter] parameter is used to filter user configurations that can be resolved by the
+ *  reference and that should appear in the variants.
+ *
  * @see <a
  *   href="https://developer.android.com/training/wearables/wff/personalization/user-configurations">WFF
  *   User configurations</a>
@@ -55,6 +58,7 @@ class UserConfigurationReference(
   element: PsiElement,
   private val watchFaceFile: XmlFile,
   private val referenceValue: String = "",
+  private val filter: (UserConfiguration) -> Boolean = { true },
 ) : PsiReferenceBase<PsiElement>(element) {
   override fun resolve(): PsiElement? {
     if (!referenceValue.startsWith("[$CONFIGURATION_PREFIX")) return null
@@ -71,7 +75,10 @@ class UserConfigurationReference(
     val hasColorIndex = parts.size == 2
 
     val resolvedConfiguration =
-      watchFaceFile.extractUserConfigurations().find { it.id == userConfigurationId } ?: return null
+      watchFaceFile
+        .extractUserConfigurations()
+        .filter { filter(it) }
+        .find { it.id == userConfigurationId } ?: return null
 
     if (hasColorIndex && resolvedConfiguration !is ColorConfiguration) return null
     return resolvedConfiguration.xmlTag
@@ -79,13 +86,20 @@ class UserConfigurationReference(
 
   override fun getVariants(): Array<Any> {
     val ids =
-      watchFaceFile.extractUserConfigurations().flatMap { userConfiguration ->
-        if (userConfiguration is ColorConfiguration && userConfiguration.colorIndices.count() > 1) {
-          userConfiguration.colorIndices.map { colorIndex -> "${userConfiguration.id}.$colorIndex" }
-        } else {
-          listOf(userConfiguration.id)
+      watchFaceFile
+        .extractUserConfigurations()
+        .filter { filter(it) }
+        .flatMap { userConfiguration ->
+          if (
+            userConfiguration is ColorConfiguration && userConfiguration.colorIndices.count() > 1
+          ) {
+            userConfiguration.colorIndices.map { colorIndex ->
+              "${userConfiguration.id}.$colorIndex"
+            }
+          } else {
+            listOf(userConfiguration.id)
+          }
         }
-      }
     return ids
       .map { "[$CONFIGURATION_PREFIX$it]" }
       .map { LookupElementBuilder.create(it).insertBracketsAroundIfNeeded() }

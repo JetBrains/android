@@ -20,6 +20,7 @@ object WFFConstants {
 
   const val ATTRIBUTE_ID = "id"
   const val ATTRIBUTE_COLORS = "colors"
+  const val ATTRIBUTE_SOURCE = "source"
 
   const val TAG_USER_CONFIGURATIONS = "UserConfigurations"
   const val TAG_COLOR_CONFIGURATION = "ColorConfiguration"
@@ -27,6 +28,7 @@ object WFFConstants {
   const val TAG_LIST_CONFIGURATION = "ListConfiguration"
   const val TAG_BOOLEAN_CONFIGURATION = "BooleanConfiguration"
   const val TAG_PHOTOS_CONFIGURATION = "PhotosConfiguration"
+  const val TAG_PHOTOS = "Photos"
 
   /**
    * Attributes that can reference drawable resources.
@@ -35,6 +37,14 @@ object WFFConstants {
    *   Face Format reference</a>
    */
   val DRAWABLE_RESOURCE_ATTRIBUTES = setOf("resource", "icon")
+
+  /**
+   * Attributes that can reference colors.
+   *
+   * @see <a href="https://developer.android.com/reference/wear-os/wff/watch-face?version=1">Watch
+   *   Face Format reference</a>
+   */
+  val COLOR_ATTRIBUTES = setOf("color", "backgroundColor", "tintColor")
 
   object DataSources {
     val TIME_UNIT =

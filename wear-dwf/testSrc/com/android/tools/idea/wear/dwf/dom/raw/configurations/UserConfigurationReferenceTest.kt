@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionConfiguration
 import com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionDataSource
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlTag
@@ -48,6 +49,222 @@ class UserConfigurationReferenceTest {
   fun setup() {
     projectRule.fixture.testDataPath =
       TestUtils.resolveWorkspacePath("tools/adt/idea/wear-dwf/testData/").toString()
+  }
+
+  @Test
+  fun `references are created for xml attributes`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <ColorConfiguration id="some_color_config" />
+            <ColorConfiguration id="another_color_config" />
+            <PhotosConfiguration id="photo_config" />
+          </UserConfigurations>
+          <Scene backgroundColor="[CONFIGURATION.unknownColor]">
+            <PartDraw tintColor="[CONFIGURATION.some_color_config]">
+            <PartDraw tintColor="[CO">
+            <Stroke color="#80ffffff" />
+            <Stroke color="[CONFIGURATION.another_color_config]" />
+            <Stroke notAColorAttribute="[CONFIGURATION.some_color_config]" />
+            <Photos source="[CONFIGURATION.photo_config]" />
+            <Photos source="drawable_id" />
+            <NotAPhotos source="[CONFIGURATION.photo_config]" />
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    fixture.moveCaret("backgroundColor=\"[CONFIGURATION.|unknownColor]\"")
+    assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
+    assertThat(fixture.getReferenceAtCaretPosition())
+      .isInstanceOf(UserConfigurationReference::class.java)
+    assertThat(fixture.getReferenceAtCaretPosition()?.resolve()).isNull()
+
+    fixture.moveCaret("tintColor=\"[CONFIGURATION.|some_color_config]\"")
+    assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
+    assertThat(fixture.getReferenceAtCaretPosition())
+      .isInstanceOf(UserConfigurationReference::class.java)
+    assertThat(fixture.getReferenceAtCaretPosition()?.resolve())
+      .isEqualTo(
+        fixture.findElementByText(
+          "<ColorConfiguration id=\"some_color_config\" />",
+          XmlTag::class.java,
+        )
+      )
+
+    fixture.moveCaret("tintColor=\"[CO|\"")
+    assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
+    assertThat(fixture.getReferenceAtCaretPosition())
+      .isInstanceOf(UserConfigurationReference::class.java)
+    assertThat(fixture.getReferenceAtCaretPosition()?.resolve()).isNull()
+
+    fixture.moveCaret("color=\"#80|ffffff\"")
+    assertThat(fixture.getReferenceAtCaretPosition()).isNull()
+
+    fixture.moveCaret("color=\"[|CONFIGURATION.another_color_config]\"")
+    assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
+    assertThat(fixture.getReferenceAtCaretPosition())
+      .isInstanceOf(UserConfigurationReference::class.java)
+    assertThat(fixture.getReferenceAtCaretPosition()?.resolve())
+      .isEqualTo(
+        fixture.findElementByText(
+          "<ColorConfiguration id=\"another_color_config\" />",
+          XmlTag::class.java,
+        )
+      )
+
+    fixture.moveCaret("notAColorAttribute=\"[CONFIGURATION.|some_color_config]\"")
+    assertThat(fixture.getReferenceAtCaretPosition()).isNull()
+
+    fixture.moveCaret("<Photos source=\"[|CONFIGURATION.photo_config]\" />")
+    assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
+    assertThat(fixture.getReferenceAtCaretPosition())
+      .isInstanceOf(UserConfigurationReference::class.java)
+    assertThat(fixture.getReferenceAtCaretPosition()?.resolve())
+      .isEqualTo(
+        fixture.findElementByText("<PhotosConfiguration id=\"photo_config\" />", XmlTag::class.java)
+      )
+
+    fixture.moveCaret("<Photos source=\"draw|able_id\" />")
+    assertThat(fixture.getReferenceAtCaretPosition()).isNull()
+
+    fixture.moveCaret("<NotAPhotos source=\"[CONFIGURATION|.photo_config]\" />")
+    assertThat(fixture.getReferenceAtCaretPosition()).isNull()
+  }
+
+  @Test
+  fun `xml color attribute variants only contain color configurations`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <BooleanConfiguration id="boolean_configuration" />
+            <ColorConfiguration id="color_config_1" />
+            <ColorConfiguration id="color_config_2" />
+            <ColorConfiguration id="color_config_3" />
+            <PhotosConfiguration id="photo_config_1" />
+            <PhotosConfiguration id="photo_config_2" />
+            <ListConfiguration id="list_configuration" />
+          </UserConfigurations>
+          <Scene backgroundColor="[$caret" />
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsExactly(
+        "[CONFIGURATION.color_config_1]",
+        "[CONFIGURATION.color_config_2]",
+        "[CONFIGURATION.color_config_3]",
+      )
+  }
+
+  @Test
+  fun `xml color attribute variants contain color indices when there are more than one color`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <ColorConfiguration id="color_config_with_one_color">
+              <ColorOption colors="#ff0000" />
+            </ColorConfiguration>
+            <ColorConfiguration id="color_config_with_multiple_colors">
+              <ColorOption colors="#ff0000 #00ff00 #0000ff" />
+            </ColorConfiguration>
+          </UserConfigurations>
+          <Scene backgroundColor="[$caret" />
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsExactly(
+        "[CONFIGURATION.color_config_with_one_color]",
+        "[CONFIGURATION.color_config_with_multiple_colors.0]",
+        "[CONFIGURATION.color_config_with_multiple_colors.1]",
+        "[CONFIGURATION.color_config_with_multiple_colors.2]",
+      )
+  }
+
+  @Test
+  fun `xml photo attribute variants only contain photo configurations`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <BooleanConfiguration id="boolean_configuration" />
+            <ColorConfiguration id="color_config_1" />
+            <ColorConfiguration id="color_config_2" />
+            <ColorConfiguration id="color_config_3" />
+            <PhotosConfiguration id="photo_config_1" />
+            <PhotosConfiguration id="photo_config_2" />
+            <ListConfiguration id="list_configuration" />
+          </UserConfigurations>
+          <Scene>
+             <Photos source="[$caret" />
+          </Scene>
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    assertThat(fixture.completeBasic().map { it.lookupString })
+      .containsExactly("[CONFIGURATION.photo_config_1]", "[CONFIGURATION.photo_config_2]")
+  }
+
+  @Test
+  fun `autocompleting the variant doesn't add extra brackets`() {
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <ColorConfiguration id="color_config" />
+          </UserConfigurations>
+          <Scene backgroundColor="[CON$caret]" />
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
+
+    fixture.completeBasic()
+    fixture.finishLookup(Lookup.NORMAL_SELECT_CHAR)
+
+    fixture.checkResult(
+      // language=XML
+      """
+        <WatchFace>
+          <UserConfigurations>
+            <ColorConfiguration id="color_config" />
+          </UserConfigurations>
+          <Scene backgroundColor="[CONFIGURATION.color_config]" />
+        </WatchFace>
+      """
+        .trimIndent()
+    )
   }
 
   @Test
@@ -213,8 +430,9 @@ class UserConfigurationReferenceTest {
         // language=XML
         """
         <WatchFace>
-          <Scene>
+          <Scene backgroundColor="[CONFIGURATION.color_config]">
              <Parameter expression="[CONFIGURATION.boolean_config]" />
+             <Photos source="[CONFIGURATION.photo_config]" />
           </Scene>
         </WatchFace>
       """
@@ -228,6 +446,12 @@ class UserConfigurationReferenceTest {
       findInjectedElementAtCaret()?.parentOfType<WFFExpressionConfiguration>(withSelf = true)
     // this shouldn't be injected when the flag is disabled
     assertThat(expressionConfiguration).isNull()
+
+    fixture.moveCaret("backgroundColor=\"[CONFIGURATION|.color_config]")
+    assertThat(fixture.getReferenceAtCaretPosition()).isNull()
+
+    fixture.moveCaret("source=\"[CONFIGURATION.|photo_config]\"")
+    assertThat(fixture.getReferenceAtCaretPosition()).isNull()
   }
 
   @Test
@@ -244,9 +468,9 @@ class UserConfigurationReferenceTest {
             </ColorConfiguration>
           </UserConfigurations>
           <!-- this is valid -->
-          <Parameter expression="[CONFIGURATION.color_config.0]" />
+          <Stroke color="[CONFIGURATION.color_config.0]" />
           <!-- this is not valid -->
-          <Parameter expression="[CONFIGURATION.color_config.0.0]" />
+          <Stroke color="[CONFIGURATION.color_config.0.0]" />
         </WatchFace>
       """
           .trimIndent(),
@@ -254,19 +478,15 @@ class UserConfigurationReferenceTest {
     fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     fixture.moveCaret("[CONFIGURATION.|color_config.0]")
-    val validConfig =
-      findInjectedElementAtCaret()?.parentOfType<WFFExpressionConfiguration>(withSelf = true)
-    assertThat(validConfig).isNotNull()
-    assertThat(validConfig?.reference?.resolve())
+    assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
+    assertThat(fixture.getReferenceAtCaretPosition()?.resolve())
       .isEqualTo(
         fixture.findElementByText("<ColorConfiguration id=\"color_config\">", XmlTag::class.java)
       )
 
     fixture.moveCaret("[CONFIGURATION.|color_config.0.0]")
-    val invalidConfig =
-      findInjectedElementAtCaret()?.parentOfType<WFFExpressionConfiguration>(withSelf = true)
-    assertThat(invalidConfig).isNotNull()
-    assertThat(invalidConfig?.reference?.resolve()).isNull()
+    assertThat(fixture.getReferenceAtCaretPosition()).isNotNull()
+    assertThat(fixture.getReferenceAtCaretPosition()?.resolve()).isNull()
   }
 
   @Test

@@ -47,6 +47,10 @@
         language="WFFExpression"
         implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionAnnotator"/>
 
+    <psi.referenceContributor
+        language="XML"
+        implementation="com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfigurationReferenceContributor"/>
+
     <lang.elementManipulator forClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionConfiguration"
                              implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.WFFExpressionConfigurationManipulator"/>
 
