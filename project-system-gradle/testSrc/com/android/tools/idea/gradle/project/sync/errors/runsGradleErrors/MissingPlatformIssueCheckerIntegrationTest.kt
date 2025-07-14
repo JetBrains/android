@@ -17,17 +17,24 @@ package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 
 import com.android.tools.idea.gradle.project.sync.errors.InstallPlatformQuickFix
 import com.android.tools.idea.gradle.project.sync.errors.MissingPlatformIssueChecker
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 
-class MissingPlatformIssueCheckerIntegrationTest : AndroidGradleTestCase() {
+class MissingPlatformIssueCheckerIntegrationTest {
   private val missingPlatformIssueChecker = MissingPlatformIssueChecker()
 
-  fun testCheckIssue() {
-    loadSimpleApplication()
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
 
-    val issueDate = GradleIssueData(projectFolderPath.path, IllegalStateException("Failed to find target android-23"), null, null)
+  @Test
+  fun testCheckIssue() {
+    projectRule.loadProject(SIMPLE_APPLICATION)
+
+    val issueDate = GradleIssueData(projectRule.project.basePath!!, IllegalStateException("Failed to find target android-23"), null, null)
 
     val buildIssue = missingPlatformIssueChecker.check(issueDate)
     Truth.assertThat(buildIssue).isNotNull()

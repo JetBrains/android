@@ -16,11 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
+import org.junit.Test
 
-class InternetConnectionIssueCheckerTest : AndroidGradleTestCase() {
+class InternetConnectionIssueCheckerTest {
   private val internetConnectionIssueChecker = InternetConnectionIssueChecker()
+
+  @Test
   fun testCheckIssueHandled() {
     assertThat(
       internetConnectionIssueChecker.consumeBuildOutputFailureMessage(

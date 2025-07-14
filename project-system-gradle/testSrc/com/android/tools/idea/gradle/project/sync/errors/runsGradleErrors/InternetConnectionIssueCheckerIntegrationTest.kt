@@ -17,19 +17,25 @@ package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 
 import com.android.tools.idea.gradle.project.sync.errors.InternetConnectionIssueChecker
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.google.common.truth.Truth
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.settings.GradleSettings
+import org.junit.Rule
+import org.junit.Test
 
-class InternetConnectionIssueCheckerIntegrationTest : AndroidGradleTestCase() {
+class InternetConnectionIssueCheckerIntegrationTest {
   private val internetConnectionIssueChecker = InternetConnectionIssueChecker()
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testCheckIssue() {
-    loadSimpleApplication()
-    GradleSettings.getInstance(project).isOfflineWork = true
-    val issueData = GradleIssueData(project.basePath.toString(), Throwable("Network is unreachable"), null, null)
+    projectRule.loadProject(SIMPLE_APPLICATION)
+    GradleSettings.getInstance(projectRule.project).isOfflineWork = true
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable("Network is unreachable"), null, null)
     val buildIssue = internetConnectionIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()

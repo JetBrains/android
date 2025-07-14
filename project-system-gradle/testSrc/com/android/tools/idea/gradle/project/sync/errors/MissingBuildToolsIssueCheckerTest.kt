@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
+import org.junit.Test
 
-class MissingBuildToolsIssueCheckerTest: AndroidGradleTestCase() {
+class MissingBuildToolsIssueCheckerTest {
   private val missingBuildToolsIssueChecker = MissingBuildToolsIssueChecker()
 
+  @Test
   fun testCheckIssueHandled() {
     assertThat(
       missingBuildToolsIssueChecker.consumeBuildOutputFailureMessage(

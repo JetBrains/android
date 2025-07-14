@@ -17,10 +17,11 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.SystemProperties
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -29,12 +30,16 @@ import org.mockito.kotlin.whenever
 import java.io.File
 
 @RunWith(JUnit4::class)
-class FailedToParseSdkIssueCheckerTest: AndroidGradleTestCase() {
+class FailedToParseSdkIssueCheckerTest {
   private val failedToParseSdkIssueChecker = FailedToParseSdkIssueChecker()
+
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+  val projectFolderPath by lazy { projectRule.project.basePath!! }
 
   @Test
   fun testCheckIssueWithoutBrokenSdk() {
-    val issueData = GradleIssueData(projectFolderPath.path, RuntimeException("failed to parse SDK"), null, null)
+    val issueData = GradleIssueData(projectFolderPath, RuntimeException("failed to parse SDK"), null, null)
     val buildIssue = failedToParseSdkIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
@@ -51,9 +56,9 @@ class FailedToParseSdkIssueCheckerTest: AndroidGradleTestCase() {
       }
     }
     val mockChecker = Mockito.spy(failedToParseSdkIssueChecker)
-    whenever(mockChecker.findPathOfSdkWithoutAddonsFolder(projectFolderPath.path)).thenReturn(sdkPath)
+    whenever(mockChecker.findPathOfSdkWithoutAddonsFolder(projectFolderPath)).thenReturn(sdkPath)
 
-    val issueData = GradleIssueData(projectFolderPath.path, RuntimeException("failed to parse SDK"), null, null)
+    val issueData = GradleIssueData(projectFolderPath, RuntimeException("failed to parse SDK"), null, null)
     val buildIssue = mockChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
@@ -72,9 +77,9 @@ class FailedToParseSdkIssueCheckerTest: AndroidGradleTestCase() {
       }
     }
     val mockChecker = Mockito.spy(failedToParseSdkIssueChecker)
-    whenever(mockChecker.findPathOfSdkWithoutAddonsFolder(projectFolderPath.path)).thenReturn(sdkPath)
+    whenever(mockChecker.findPathOfSdkWithoutAddonsFolder(projectFolderPath)).thenReturn(sdkPath)
 
-    val issueData = GradleIssueData(projectFolderPath.path, RuntimeException("failed to parse SDK"), null, null)
+    val issueData = GradleIssueData(projectFolderPath, RuntimeException("failed to parse SDK"), null, null)
     val buildIssue = mockChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
@@ -93,7 +98,7 @@ class FailedToParseSdkIssueCheckerTest: AndroidGradleTestCase() {
         null,
         "",
         TestMessageEventConsumer()
-      )).isEqualTo(true)
+      )).isTrue()
 
     assertThat(
       failedToParseSdkIssueChecker.consumeBuildOutputFailureMessage(
@@ -103,6 +108,6 @@ class FailedToParseSdkIssueCheckerTest: AndroidGradleTestCase() {
         null,
         "",
         TestMessageEventConsumer()
-      )).isEqualTo(false)
+      )).isFalse()
   }
 }

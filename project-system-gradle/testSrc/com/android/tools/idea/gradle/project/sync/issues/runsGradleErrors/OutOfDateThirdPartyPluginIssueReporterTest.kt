@@ -21,61 +21,70 @@ import com.android.tools.idea.gradle.project.sync.issues.OutOfDateThirdPartyPlug
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter
 import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter
 import com.android.tools.idea.project.messages.MessageType
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
+import com.android.tools.idea.testing.findAppModule
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
-import junit.framework.Assert
+import com.intellij.testFramework.UsefulTestCase.assertSize
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
-class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
+class OutOfDateThirdPartyPluginIssueReporterTest {
   private lateinit var reporter: OutOfDateThirdPartyPluginIssueReporter
   private lateinit var usageReporter: TestSyncIssueUsageReporter
 
-  override fun setUp() {
-    super.setUp()
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
 
+  @Before
+  fun setUp() {
     reporter = OutOfDateThirdPartyPluginIssueReporter()
     usageReporter = TestSyncIssueUsageReporter()
   }
 
   @Test
   fun testReporterEmitsCorrectLinks() {
-    loadSimpleApplication()
+    projectRule.loadProject(SIMPLE_APPLICATION)
 
     val syncIssue = setUpMockSyncIssue("pluginName", "pluginGroup", "2.3.4", listOf("path/one", "path/two"))
 
-    val module = getModule("app")
+    val module = projectRule.project.findAppModule()
     val messages = reporter.report(syncIssue, module, null)
 
     assertSize(1, messages)
     val notification = messages[0].syncMessage
 
-    assertEquals("Gradle Sync Issues", notification.group)
-    assertEquals("This is some message:\npath/one\npath/two\n" +
-                   "<a href=\"update.plugins\">Update plugins</a>\n" +
-                   "Affected Modules: app",
-                 notification.message)
-    assertEquals(MessageType.WARNING, notification.type)
+    assertThat(notification.group).isEqualTo("Gradle Sync Issues")
+    assertThat(notification.message).isEqualTo(
+      "This is some message:\npath/one\npath/two\n" +
+      "<a href=\"update.plugins\">Update plugins</a>\n" +
+      "Affected Modules: app")
+
+    assertThat(notification.type).isEqualTo(MessageType.WARNING)
 
     val quickFixes = notification.quickFixes
     assertSize(1 + 1 /* affected modules */, quickFixes)
-    assertInstanceOf(quickFixes[0], UpdatePluginHyperlink::class.java)
+    assertThat(quickFixes[0]).isInstanceOf(UpdatePluginHyperlink::class.java)
     val pluginHyperlink = quickFixes[0] as UpdatePluginHyperlink
     assertSize(1, pluginHyperlink.pluginToVersionMap.values)
     val entry = pluginHyperlink.pluginToVersionMap.entries.first()
-    assertEquals("pluginName", entry.key.name)
-    assertEquals("pluginGroup", entry.key.group)
-    assertEquals("2.3.4", entry.value)
-    assertEquals(listOf(module), messages[0].affectedModules)
+    assertThat(entry.key.name).isEqualTo("pluginName")
+    assertThat(entry.key.group).isEqualTo("pluginGroup")
+    assertThat(entry.value).isEqualTo("2.3.4")
+    assertThat(messages[0].affectedModules).isEqualTo(listOf(module))
 
-    assertEquals(
-      listOf(
+    assertThat(
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD, messages.map { it.syncMessage }))
+      .isEqualTo(listOf(
         GradleSyncIssue
           .newBuilder()
           .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD)
           .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.UPDATE_PLUGIN_HYPERLINK)
-          .build()),
-      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD, messages.map { it.syncMessage }))
+          .build())
+      )
   }
 
   private fun setUpMockSyncIssue(name: String, group: String, minVersion: String, paths: List<String>): IdeSyncIssue = object : IdeSyncIssue {

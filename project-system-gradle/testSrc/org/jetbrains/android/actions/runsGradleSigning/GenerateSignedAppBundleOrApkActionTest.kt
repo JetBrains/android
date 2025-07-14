@@ -17,19 +17,27 @@ package org.jetbrains.android.actions.runsGradleSigning
 
 import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.KOTLIN_LIB
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.testing.disableKtsIndexing
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.actions.GenerateSignedAppBundleOrApkAction
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Tests for [GenerateSignedAppBundleOrApkAction]
  */
-class GenerateSignedAppBundleOrApkActionTest: AndroidGradleTestCase() {
+class GenerateSignedAppBundleOrApkActionTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+  val project by lazy { projectRule.project }
+
+  @Test
   fun testDefaultProjectSystemActionDisabled() {
-    loadSimpleApplication()
+    projectRule.loadProject(SIMPLE_APPLICATION)
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(DefaultProjectSystem(project))
     val action = GenerateSignedAppBundleOrApkAction()
     val event = TestActionEvent.createTestEvent(action)
@@ -38,8 +46,9 @@ class GenerateSignedAppBundleOrApkActionTest: AndroidGradleTestCase() {
     assertThat(event.presentation.isVisible).isFalse()
   }
 
+  @Test
   fun testSimpleProjectActionEnabled() {
-    loadSimpleApplication()
+    projectRule.loadProject(SIMPLE_APPLICATION)
     val action = GenerateSignedAppBundleOrApkAction()
     val event = TestActionEvent.createTestEvent(action)
     action.update(event)
@@ -47,9 +56,10 @@ class GenerateSignedAppBundleOrApkActionTest: AndroidGradleTestCase() {
     assertThat(event.presentation.isVisible).isTrue()
   }
 
+  @Test
   fun testLibraryOnlyProjectActionDisabled() {
-    disableKtsIndexing(project, testRootDisposable)
-    loadProject(KOTLIN_LIB)
+    disableKtsIndexing(project, projectRule.fixture.testRootDisposable)
+    projectRule.loadProject(KOTLIN_LIB)
     val action = GenerateSignedAppBundleOrApkAction()
     val event = TestActionEvent.createTestEvent(action)
     action.update(event)

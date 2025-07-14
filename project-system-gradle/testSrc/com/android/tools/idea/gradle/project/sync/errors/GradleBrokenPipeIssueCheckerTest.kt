@@ -17,15 +17,21 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 
-class GradleBrokenPipeIssueCheckerTest : AndroidGradleTestCase() {
+class GradleBrokenPipeIssueCheckerTest {
   private val gradleBrokenPipeIssueChecker = GradleBrokenPipeIssueChecker()
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testCheckIssue() {
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable("Broken pipe"))
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable("Broken pipe"))
     val buildIssue = gradleBrokenPipeIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
@@ -35,6 +41,7 @@ class GradleBrokenPipeIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
   }
 
+  @Test
   fun testCheckIssueHandled() {
     assertThat(
       gradleBrokenPipeIssueChecker.consumeBuildOutputFailureMessage(

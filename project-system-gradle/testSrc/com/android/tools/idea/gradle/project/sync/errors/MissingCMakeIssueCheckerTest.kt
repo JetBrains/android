@@ -26,9 +26,11 @@ import com.android.repository.testframework.FakeRepoManager
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallCmakeQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetCmakeDirQuickFix
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 import java.io.File
 import java.io.IOException
 import java.util.stream.Collectors
@@ -59,10 +61,12 @@ fun createRemotePackage(cmakeVersion: String): RemotePackage {
   return pkg
 }
 
-class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
+class MissingCMakeIssueCheckerTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
 
   private fun doTestAlreadyInstalledRemote(error: String) {
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(error), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(error), null, null)
 
     val issueChecker = MissingCmakeIssueCheckerFake(listOf("3.10.2"), listOf("3.10.2"), CMakeDirGetterResponse.FILE_ABSENT)
 
@@ -75,17 +79,20 @@ class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(SetCmakeDirQuickFix::class.java)
   }
 
+  @Test
   fun testAlreadyInstalledRemote() {
     doTestAlreadyInstalledRemote("CMake '3.10.2' was not found in PATH or by cmake.dir property.")
   }
 
+  @Test
   fun testAlreadyInstalledRemoteVersionWithin() {
     doTestAlreadyInstalledRemote("Unable to find CMake with version: 3.10.2 within")
   }
 
+  @Test
   fun testAlreadyInstalledRemoteMalformed() {
     val error = "Unable to find CMake with version: 3.10.2"
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(error), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(error), null, null)
     val issueChecker = MissingCmakeIssueCheckerFake(listOf("3.10.2"), listOf("3.10.2"), CMakeDirGetterResponse.THROW_IO_EXCEPTION)
 
     val buildIssue = issueChecker.check(issueData)
@@ -97,9 +104,10 @@ class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(InstallCmakeQuickFix::class.java)
   }
 
+  @Test
   fun testAlreadyInstalledRemoteReplaceInCMakeDir() {
     val error = "CMake '3.10.2' was not found in PATH or by cmake.dir property."
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(error), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(error), null, null)
     val issueChecker = MissingCmakeIssueCheckerFake(listOf("3.10.2"), listOf("3.10.2"), CMakeDirGetterResponse.FILE_PRESENT)
 
     val buildIssue = issueChecker.check(issueData)
@@ -111,9 +119,10 @@ class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(SetCmakeDirQuickFix::class.java)
   }
 
+  @Test
   fun testAlreadyInstalledRemoteCantAccessCMakeDir() {
     val error = "CMake '3.10.2' was not found in PATH or by cmake.dir property."
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(error), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(error), null, null)
     val issueChecker = MissingCmakeIssueCheckerFake(listOf("3.10.2"), listOf("3.10.2"), CMakeDirGetterResponse.THROW_IO_EXCEPTION)
 
     val buildIssue = issueChecker.check(issueData)
@@ -123,9 +132,10 @@ class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes).hasSize(0)
   }
 
+  @Test
   fun testInstallFromRemote() {
     val error = "CMake '3.10.2' was not found in PATH or by cmake.dir property."
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(error), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(error), null, null)
     val issueChecker = MissingCmakeIssueCheckerFake(listOf("3.8.2"), listOf("3.10.2"), CMakeDirGetterResponse.THROW_IO_EXCEPTION)
 
     val buildIssue = issueChecker.check(issueData)
@@ -138,92 +148,86 @@ class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
   }
 
   // Test that we correctly get the best matches.
+  @Test
   fun testFindBestMatchRejectsPrefixMatch() {
-    assertNull(
-      findBestMatch(listOf(createRemotePackage("3.8.2")), createRevision("3", false)))
-
-    assertNull(
-      findBestMatch(listOf(createRemotePackage("3.8.2")), createRevision("3.8", false)))
+    assertThat(findBestMatch(listOf(createRemotePackage("3.8.2")), createRevision("3", false))).isNull()
+    assertThat(findBestMatch(listOf(createRemotePackage("3.8.2")), createRevision("3.8", false))).isNull()
   }
 
+  @Test
   fun testFindBestMatchWithPlusExactMatch() {
-    assertEquals(Revision.parseRevision("3.8.2"),
-                 findBestMatch(listOf(createRemotePackage("3.8.2")), createRevision("3.8.2", true)))
+    assertThat(findBestMatch(listOf(createRemotePackage("3.8.2")), createRevision("3.8.2", true)))
+      .isEqualTo(Revision.parseRevision("3.8.2"),)
   }
 
+  @Test
   fun testFindBestMatchWithPlusMatchesHigherVersion() {
-    assertEquals(Revision.parseRevision("3.8.2"),
-                 findBestMatch(listOf(createRemotePackage("3.8.2")), createRevision("3.6.2", true)))
+    assertThat(findBestMatch(listOf(createRemotePackage("3.8.2")), createRevision("3.6.2", true)))
+      .isEqualTo(Revision.parseRevision("3.8.2"))
   }
 
+  @Test
   fun testFindBestMatchWithPlusSelectsFirstMatch() {
     // Plus matches both available versions (preview version is ignored). The first match is selected.
-    assertEquals(Revision.parseRevision("3.8.2-rc1"),
-                 findBestMatch(
-                   listOf(createRemotePackage("3.8.2-rc1"), createRemotePackage("3.8.2-rc2")),createRevision("3.8.2", true)))
-
-    assertEquals(Revision.parseRevision("3.8.2-rc1"),
-      findBestMatch(
-        listOf(createRemotePackage("3.8.2-rc1"), createRemotePackage("3.8.2-rc2")), createRevision("3.8.2-rc3", true)))
+    assertThat(findBestMatch(listOf(createRemotePackage("3.8.2-rc1"), createRemotePackage("3.8.2-rc2")),createRevision("3.8.2", true)))
+      .isEqualTo(Revision.parseRevision("3.8.2-rc1"))
+    assertThat(findBestMatch(listOf(createRemotePackage("3.8.2-rc1"), createRemotePackage("3.8.2-rc2")), createRevision("3.8.2-rc3", true)))
+      .isEqualTo(Revision.parseRevision("3.8.2-rc1"))
   }
 
+  @Test
   fun testFindBestMatchRejectForkVersionInput() {
     // We don't want the user to put "3.6.4111459" as input.
-    assertNull(
-      findBestMatch(listOf(createRemotePackage("3.6.0")), createRevision("3.6.4111459", false)))
+    assertThat(findBestMatch(listOf(createRemotePackage("3.6.0")), createRevision("3.6.4111459", false))).isNull()
   }
 
+  @Test
   fun testFindBestMatchTranslateForkVersionFromSdk() {
     // If the SDK contains "3.6.4111459", then we translate it before matching.
-    assertEquals(Revision.parseRevision("3.6.0"),
-      findBestMatch(listOf(createRemotePackage("3.6.4111459")), createRevision("3.6.0", false)))
+    assertThat(findBestMatch(listOf(createRemotePackage("3.6.4111459")), createRevision("3.6.0", false)))
+      .isEqualTo(Revision.parseRevision("3.6.0"))
   }
 
+  @Test
   fun testVersionSatisfiesExactMatch() {
-    assertTrue(versionSatisfies(
-      Revision.parseRevision("3.8.0"), createRevision("3.8.0", false)))
+    assertThat(versionSatisfies(Revision.parseRevision("3.8.0"), createRevision("3.8.0", false))).isTrue()
   }
 
+  @Test
   fun testVersionSatisfiesIgnoresPreview() {
-    assertTrue(versionSatisfies(
-      Revision.parseRevision("3.8.0-rc1"), createRevision("3.8.0", false)))
-
-    assertTrue(versionSatisfies(
-      Revision.parseRevision("3.8.0"), createRevision("3.8.0-rc2", false)))
-
-    assertTrue(versionSatisfies(
-      Revision.parseRevision("3.8.0-rc1"), createRevision("3.8.0-rc2", false)))
+    assertThat(versionSatisfies(Revision.parseRevision("3.8.0-rc1"), createRevision("3.8.0", false))).isTrue()
+    assertThat(versionSatisfies(Revision.parseRevision("3.8.0"), createRevision("3.8.0-rc2", false))).isTrue()
+    assertThat(versionSatisfies(Revision.parseRevision("3.8.0-rc1"), createRevision("3.8.0-rc2", false))).isTrue()
   }
 
+  @Test
   fun testVersionSatisfiesMismatch() {
-    assertFalse(versionSatisfies(
-      Revision.parseRevision("3.8.0"), createRevision("3.10.0", false)))
+    assertThat(versionSatisfies(Revision.parseRevision("3.8.0"), createRevision("3.10.0", false))).isFalse()
   }
 
+  @Test
   fun testVersionSatisfiesWithPlusExactMatch() {
-    assertTrue(versionSatisfies(
-      Revision.parseRevision("3.8.0"), createRevision("3.8.0", true)))
+    assertThat(versionSatisfies(Revision.parseRevision("3.8.0"), createRevision("3.8.0", true))).isTrue()
   }
 
+  @Test
   fun testVersionSatisfiesWithPlusMatchesHigherVersion() {
-    assertTrue(versionSatisfies(
-      Revision.parseRevision("3.10.0"), createRevision("3.8.0", true)))
+    assertThat(versionSatisfies(Revision.parseRevision("3.10.0"), createRevision("3.8.0", true))).isTrue()
   }
 
+  @Test
   fun testVersionSatisfiesWithPlusIgnoresPreview() {
-    assertTrue(versionSatisfies(
-      Revision.parseRevision("3.8.0-rc1"), createRevision("3.8.0", true)))
-    assertTrue(versionSatisfies(
-      Revision.parseRevision("3.8.0"), createRevision("3.8.0-rc2", true)))
-    assertTrue(versionSatisfies(
-      Revision.parseRevision("3.8.0-rc1"), createRevision("3.8.0-rc2", true)))
+    assertThat(versionSatisfies(Revision.parseRevision("3.8.0-rc1"), createRevision("3.8.0", true))).isTrue()
+    assertThat(versionSatisfies(Revision.parseRevision("3.8.0"), createRevision("3.8.0-rc2", true))).isTrue()
+    assertThat(versionSatisfies(Revision.parseRevision("3.8.0-rc1"), createRevision("3.8.0-rc2", true))).isTrue()
   }
 
+  @Test
   fun testVersionSatisfiesWithPlusMismatch() {
-    assertFalse(versionSatisfies(
-      Revision.parseRevision("3.8.0"), createRevision("3.10.0", true)))
+    assertThat(versionSatisfies(Revision.parseRevision("3.8.0"), createRevision("3.10.0", true)))
   }
 
+  @Test
   fun testCheckIssueHandled() {
     val missingCMakeIssueChecker = MissingCMakeIssueChecker()
     assertThat(
@@ -234,7 +238,7 @@ class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
         null,
         "",
         TestMessageEventConsumer()
-      )).isEqualTo(true)
+      )).isTrue()
 
     assertThat(
       missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
@@ -245,7 +249,7 @@ class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
         null,
         "",
         TestMessageEventConsumer()
-      )).isEqualTo(true)
+      )).isTrue()
 
     assertThat(
       missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
@@ -255,7 +259,7 @@ class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
         null,
         "",
         TestMessageEventConsumer()
-      )).isEqualTo(true)
+      )).isTrue()
 
     assertThat(
       missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
@@ -265,7 +269,7 @@ class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
         null,
         "",
         TestMessageEventConsumer()
-      )).isEqualTo(true)
+      )).isTrue()
 
     assertThat(
       missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
@@ -275,7 +279,7 @@ class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
         null,
         "",
         TestMessageEventConsumer()
-      )).isEqualTo(true)
+      )).isTrue()
 
     assertThat(
       missingCMakeIssueChecker.consumeBuildOutputFailureMessage(
@@ -285,7 +289,7 @@ class MissingCMakeIssueCheckerTest : AndroidGradleTestCase() {
         null,
         "",
         TestMessageEventConsumer()
-      )).isEqualTo(true)
+      )).isTrue()
   }
 
   private fun createRevision(revision: String?, orHigher: Boolean): RevisionOrHigher {

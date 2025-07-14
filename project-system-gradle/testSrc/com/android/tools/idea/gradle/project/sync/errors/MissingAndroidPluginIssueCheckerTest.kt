@@ -19,25 +19,37 @@ import com.android.mockito.kotlin.mockStatic
 import com.android.mockito.kotlin.whenever
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.BoundedTaskExecutor
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.MockedStatic
 import java.util.concurrent.TimeUnit
 
-class MissingAndroidPluginIssueCheckerTest : AndroidGradleTestCase() {
+@RunsInEdt
+class MissingAndroidPluginIssueCheckerTest {
   private val missingAndroidPluginIssueChecker = MissingAndroidPluginIssueChecker()
   private lateinit var mockAppExecutorUtil: MockedStatic<AppExecutorUtil>
   private lateinit var executor: BoundedTaskExecutor
 
-  override fun setUp() {
-    super.setUp()
+  val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val rule: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule)
+  val project by lazy { projectRule.project }
 
+  @Before
+  fun setup() {
     executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("TestService", 1) as BoundedTaskExecutor
     mockAppExecutorUtil = mockStatic()
     mockAppExecutorUtil.whenever<Any> {
@@ -45,17 +57,14 @@ class MissingAndroidPluginIssueCheckerTest : AndroidGradleTestCase() {
     }.thenReturn(executor)
   }
 
-  override fun tearDown() {
-    try {
-      mockAppExecutorUtil.close()
-    }
-    finally {
-      super.tearDown()
-    }
+  @After
+  fun teardown() {
+    mockAppExecutorUtil.close()
   }
 
+  @Test
   fun testCheckIssue() {
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable("Could not find com.android.tools.build:gradle:"), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable("Could not find com.android.tools.build:gradle:"), null, null)
     val buildIssue = missingAndroidPluginIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
@@ -75,6 +84,7 @@ class MissingAndroidPluginIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(future.get(1, TimeUnit.SECONDS)).isNull()
   }
 
+  @Test
   fun testCheckIssueHandled() {
     assertThat(
       missingAndroidPluginIssueChecker.consumeBuildOutputFailureMessage(
@@ -84,6 +94,6 @@ class MissingAndroidPluginIssueCheckerTest : AndroidGradleTestCase() {
         null,
         "",
         TestMessageEventConsumer()
-      )).isEqualTo(true)
+      )).isTrue()
   }
 }

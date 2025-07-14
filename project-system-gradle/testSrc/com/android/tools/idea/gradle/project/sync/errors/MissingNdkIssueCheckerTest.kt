@@ -19,13 +19,15 @@ import com.android.repository.Revision
 import com.android.repository.api.LocalPackage
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.replaceService
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.build.GradleEnvironment
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
@@ -37,14 +39,20 @@ import org.mockito.stubbing.Answer
 /**
  * Tests for [MissingNdkIssueChecker].
  */
-class MissingNdkIssueCheckerTest : AndroidGradleTestCase() {
+class MissingNdkIssueCheckerTest  {
   private val missingNdkIssueChecker = MissingNdkIssueChecker()
+
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testNullErrorMessage() {
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(null, null), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(null, null), null, null)
     val buildIssue = MissingNdkIssueChecker().check(issueData)
     assertThat(buildIssue).isNull()
   }
 
+  @Test
   fun testPatterns() {
     assertThat(
       tryExtractPreferredNdkDownloadVersion(
@@ -64,19 +72,23 @@ class MissingNdkIssueCheckerTest : AndroidGradleTestCase() {
       .isEqualTo("19.2")
   }
 
+  @Test
   fun testHandleErrorWithNdkLicenceMissing() {
     verifyWithFixVersion("java.Lang.RuntimeException: Failed to install the following Android SDK packages as some licences have not been accepted." +
                            "blah blah ndk-bundle NDK blah blah")
   }
 
+  @Test
   fun testHandleErrorWithNdkInstallFailed() {
     verifyWithFixVersion("Failed to install the following SDK components: blah blah ndk-bundle NDK blah blah")
   }
 
+  @Test
   fun testPreferredVersionNotAlreadyInstalled() {
     verifyWithInstall("No version of NDK matched the requested version 19.1.preferred")
   }
 
+  @Test
   fun testPreferredVersionAlreadyInstalled() {
     val localPackage = mock(LocalPackage::class.java, RuntimeExceptionAnswer())
     doReturn(Revision.parseRevision("19.1.3")).whenever(localPackage).version
@@ -84,43 +96,49 @@ class MissingNdkIssueCheckerTest : AndroidGradleTestCase() {
     verifyWithFixVersion("No version of NDK matched the requested version 19.1.3")
   }
 
+  @Test
   fun testHandleErrorWithNdkNotConfigured() {
     verifyWithFixVersion("NDK not configured. /some/path")
   }
 
+  @Test
   fun testHandleErrorWithNdkLocationNotFound() {
     verifyWithFixVersion("NDK location not found. Define location with ndk.dir in the local.properties file " +
                          "or with an ANDROID_NDK_HOME environment variable.")
   }
 
+  @Test
   fun testNotInstalledNoPreferred() {
     val spyIdeSdks = spy(IdeSdks.getInstance())
     doReturn(null).whenever(spyIdeSdks).getHighestLocalNdkPackage(anyBoolean())
-    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, spyIdeSdks, this.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, spyIdeSdks, projectRule.fixture.testRootDisposable)
     verifyWithInstall("NDK location not found.")
   }
 
+  @Test
   fun testOldAndroidGradlePluginDoesNotReturnAnything() {
     val buildEnvironment = mock(BuildEnvironment::class.java)
     val gradle = mock(GradleEnvironment::class.java)
     doReturn(gradle).whenever(buildEnvironment).gradle
     doReturn("6.2").whenever(gradle).gradleVersion
 
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable("NDK not configured."), buildEnvironment, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable("NDK not configured."), buildEnvironment, null)
     val buildIssue = missingNdkIssueChecker.check(issueData)
     assertThat(buildIssue).isNull()
   }
 
+  @Test
   fun testLessOldGradlePluginDoesReturnSomething() {
     val buildEnvironment = mock(BuildEnvironment::class.java)
     val gradle = mock(GradleEnvironment::class.java)
     doReturn(gradle).whenever(buildEnvironment).gradle
     doReturn("6.3").whenever(gradle).gradleVersion
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable("NDK not configured."), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable("NDK not configured."), null, null)
     val buildIssue = missingNdkIssueChecker.check(issueData)
     assertThat(buildIssue).isNotNull()
   }
 
+  @Test
   fun testCheckIssueHandled() {
     assertThat(
       missingNdkIssueChecker.consumeBuildOutputFailureMessage(
@@ -174,7 +192,7 @@ class MissingNdkIssueCheckerTest : AndroidGradleTestCase() {
   }
 
   private fun verifyWithFixVersion(errMsg: String) {
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(errMsg), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(errMsg), null, null)
     val buildIssue = missingNdkIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
@@ -185,7 +203,7 @@ class MissingNdkIssueCheckerTest : AndroidGradleTestCase() {
   }
 
   private fun verifyWithInstall(errMsg: String) {
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(errMsg), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(errMsg), null, null)
     val buildIssue = missingNdkIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()

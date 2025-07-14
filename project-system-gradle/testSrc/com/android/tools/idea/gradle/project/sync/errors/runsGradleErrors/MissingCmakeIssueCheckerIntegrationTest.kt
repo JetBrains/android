@@ -17,15 +17,22 @@ package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 
 import com.android.tools.idea.gradle.project.sync.errors.MissingCMakeIssueChecker
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallCmakeQuickFix
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 
-class MissingCmakeIssueCheckerIntegrationTest : AndroidGradleTestCase() {
+class MissingCmakeIssueCheckerIntegrationTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testIntegration() {
     val missingCMakeIssueChecker = MissingCMakeIssueChecker()
-    loadSimpleApplication()
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable("Failed to find CMake."), null, null)
+    projectRule.loadProject(SIMPLE_APPLICATION)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable("Failed to find CMake."), null, null)
     val buildIssue = missingCMakeIssueChecker.check(issueData)
 
     // Check results.

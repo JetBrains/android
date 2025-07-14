@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
+import org.junit.Test
 
-class MissingPlatformIssueCheckerTest : AndroidGradleTestCase() {
+class MissingPlatformIssueCheckerTest {
   private val missingPlatformIssueChecker = MissingPlatformIssueChecker()
 
+  @Test
   fun testGetMissingPlatform() {
     assertThat(getMissingPlatform("Failed to find target with hash string 'android-21' in: /pat/tp/sdk")).isEqualTo("android-21")
     assertThat(getMissingPlatform("failed to find target with hash string 'android-21' in: /pat/tp/sdk")).isEqualTo("android-21")
@@ -37,6 +38,7 @@ class MissingPlatformIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(getMissingPlatform("Cause: failed to find target android-21")).isEqualTo("android-21")
   }
 
+  @Test
   fun testCheckIssueHandled() {
     assertThat(
       missingPlatformIssueChecker.consumeBuildOutputFailureMessage(

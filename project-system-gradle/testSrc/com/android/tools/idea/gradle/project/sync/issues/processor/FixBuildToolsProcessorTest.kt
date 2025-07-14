@@ -15,29 +15,32 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues.processor
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.collect.ImmutableList
+import com.google.common.truth.Truth.assertThat
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
+import org.junit.Rule
 import org.junit.Test
 
-class FixBuildToolsProcessorTest : AndroidGradleTestCase() {
+class FixBuildToolsProcessorTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
   @Test
   fun testRemoveUsageViewDescriptor() {
-    val processor = FixBuildToolsProcessor(project, ImmutableList.of(), "77.7.7", false, true)
+    val processor = FixBuildToolsProcessor(projectRule.project, ImmutableList.of(), "77.7.7", false, true)
     val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
-    assertEquals("Values to remove " + UsageViewBundle.getReferencesString(1, 1),
-                 usageDescriptor.getCodeReferencesText(1, 1))
-    assertEquals("Remove Android Build Tools Versions", usageDescriptor.processedElementsHeader)
+    assertThat(usageDescriptor.getCodeReferencesText(1, 1)).isEqualTo("Values to remove " + UsageViewBundle.getReferencesString(1, 1))
+    assertThat(usageDescriptor.processedElementsHeader).isEqualTo("Remove Android Build Tools Versions")
   }
 
   @Test
   fun testUpdateUsageViewDescriptor() {
-    val processor = FixBuildToolsProcessor(project, ImmutableList.of(), "77.7.7", false, false)
+    val processor = FixBuildToolsProcessor(projectRule.project, ImmutableList.of(), "77.7.7", false, false)
     val usageDescriptor = processor.createUsageViewDescriptor(UsageInfo.EMPTY_ARRAY)
-    assertEquals("Values to update " + UsageViewBundle.getReferencesString(1, 1),
-                 usageDescriptor.getCodeReferencesText(1, 1))
-    assertEquals("Update Android Build Tools Versions", usageDescriptor.processedElementsHeader)
+    assertThat(usageDescriptor.getCodeReferencesText(1, 1)).isEqualTo("Values to update " + UsageViewBundle.getReferencesString(1, 1))
+    assertThat(usageDescriptor.processedElementsHeader).isEqualTo("Update Android Build Tools Versions")
   }
 }
 

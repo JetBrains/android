@@ -17,18 +17,24 @@ package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 
 import com.android.tools.idea.gradle.project.sync.errors.MissingBuildToolsIssueChecker
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallBuildToolsQuickFix
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 
-class MissingBuildToolsIssueCheckerIntegrationTest: AndroidGradleTestCase() {
+class MissingBuildToolsIssueCheckerIntegrationTest {
   private val missingBuildToolsIssueChecker = MissingBuildToolsIssueChecker()
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testCheckIssue() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
     val errMsg = "Failed to find Build Tools revision 24.0.0 rc4"
-    val issueData = GradleIssueData(projectFolderPath.path, IllegalStateException(errMsg), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, IllegalStateException(errMsg), null, null)
     val buildIssue = missingBuildToolsIssueChecker.check(issueData)
 
     Truth.assertThat(buildIssue).isNotNull()
