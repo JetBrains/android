@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.model.impl
 
 import com.android.ide.common.gradle.Component
-import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.model.IdeUnresolvedJavaLibrary
 import java.io.File
 import java.io.Serializable

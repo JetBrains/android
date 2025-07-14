@@ -57,7 +57,7 @@ import com.android.io.writeImage
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.repository.targets.SystemImageManager
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
 import com.android.tools.adtui.util.normalizedRotation
 import com.android.tools.idea.io.grpc.ForwardingServerCall.SimpleForwardingServerCall

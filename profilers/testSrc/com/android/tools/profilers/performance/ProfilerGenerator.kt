@@ -18,7 +18,6 @@ package com.android.tools.profilers.performance
 import com.android.tools.datastore.database.ProfilerTable
 
 import java.sql.Connection
-import java.util.Random
 
 class ProfilerGenerator(connection: Connection) : DataGenerator(connection) {
 

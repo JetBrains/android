@@ -150,7 +150,7 @@ public class SdkQuickfixUtilsTest {
 
     verify(myRepoManager, never()).loadSynchronously(eq(0), any(), any(), any(), any(), any(), any());
     verify(myRepoManager, times(1)).loadSynchronously(eq(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS), any(), any(), any(), any(),
-                                         any(), any());
+                                                      any(), any());
   }
 
   @Test

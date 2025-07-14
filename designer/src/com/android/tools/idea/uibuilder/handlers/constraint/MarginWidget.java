@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.intellij.openapi.module.Module;
@@ -26,7 +25,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.util.ui.JBUI;
 import java.awt.Font;
-import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.EnumSet;
 import javax.swing.JComboBox;
@@ -171,10 +169,5 @@ public class MarginWidget extends JComboBox<String> {
     }
     super.setSelectedItem(anObject);
     if(hasFocus()) requestFocusInWindow();
-  }
-
-  @Override
-  public void addActionListener(ActionListener actionListener) {
-    super.addActionListener(actionListener);
   }
 }

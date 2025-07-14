@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.templates.diff.activity
 
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE
+import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_XR_TEMPLATE
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.project.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
 import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
@@ -60,6 +63,9 @@ class TemplateDiffTest(private val testMode: TestMode) {
     else AndroidProjectRule.withAndroidModels()
 
   @get:Rule val disposableRule = DisposableRule()
+
+  @get:Rule val xrTemplateFlagRule = FlagRule(NPW_ENABLE_XR_TEMPLATE, true)
+  @get:Rule val navigationFlagRule = FlagRule(NPW_ENABLE_NAVIGATION_UI_TEMPLATE, true)
 
   companion object {
     /** Keeps track of whether the previous parameterized test failed */
@@ -107,12 +113,6 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
   @Before
   fun setUp() {
-    // This is to enforce that new or changed dependencies are added to the BUILD file
-    assertNotNull(
-      "TemplateDiffTest golden file generator must be run from Bazel! See go/template-diff-tests",
-      System.getenv("TEST_UNDECLARED_OUTPUTS_DIR"),
-    )
-
     // By default, this makes the suite fail early if there is a validation error. If
     // RUN_FULL_VALIDATION is set, then all validation is run, but golden generation is still
     // cancelled

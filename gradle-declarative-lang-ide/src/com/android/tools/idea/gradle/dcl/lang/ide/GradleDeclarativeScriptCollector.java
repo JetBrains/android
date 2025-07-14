@@ -20,7 +20,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SmartList;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -39,8 +38,8 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 public class GradleDeclarativeScriptCollector implements GradleAutoReloadSettingsCollector {
   private static final Logger LOG = Logger.getInstance(GradleDeclarativeScriptCollector.class);
   @Override
-  public @NotNull List<File> collectSettingsFiles(@NotNull Project project, @NotNull GradleProjectSettings projectSettings) {
-    List<File> files = new SmartList<>();
+  public @NotNull List<Path> collectSettingsFiles(@NotNull Project project, @NotNull GradleProjectSettings projectSettings) {
+    List<Path> files = new SmartList<>();
     if (!DeclarativeIdeSupport.isEnabled()) return files;
 
     for (String modulePath : projectSettings.getModules()) {
@@ -52,8 +51,7 @@ public class GradleDeclarativeScriptCollector implements GradleAutoReloadSetting
           public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
             String fileName = path.getFileName().toString();
             if (fileName.endsWith('.' + "gradle.dcl")) {
-              File file = path.toFile();
-              if (file.isFile()) files.add(file);
+              if (path.toFile().isFile()) files.add(path);
             }
             return FileVisitResult.CONTINUE;
           }

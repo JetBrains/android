@@ -1,0 +1,29 @@
+<!-- Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license. -->
+<idea-plugin package="com.android.tools.idea.gradle.dsl"
+             implementation-detail="true"
+             xmlns:xi="http://www.w3.org/2001/XInclude">
+  <id>org.jetbrains.idea.gradle.dsl</id>
+  <name>Gradle DSL API</name>
+  <vendor>JetBrains, Google</vendor>
+  <description>
+    <![CDATA[
+    Technical plugin, provides Gradle dsl API
+    ]]>
+  </description>
+
+  <xi:include href="/META-INF/gradle-dsl.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+  <dependencies>
+    <plugin id="com.intellij.gradle"/>
+    <plugin id="com.intellij.java"/>
+  </dependencies>
+
+  <content>
+    <module name="intellij.android.gradle.dsl.groovy"/>
+    <module name="intellij.android.gradle.dsl.kotlin"/>
+    <module name="intellij.android.gradle.dsl.toml"/>
+    <module name="intellij.android.gradle.dsl.declarative"/>
+    <module name="intellij.android.gradle.dsl.flags" />
+  </content>
+
+</idea-plugin>

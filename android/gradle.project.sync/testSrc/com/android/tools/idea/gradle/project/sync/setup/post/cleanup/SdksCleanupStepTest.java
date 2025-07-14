@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
 
 import static com.android.SdkConstants.FD_PKG_SOURCES;
-import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.sdk.SdksCleanupUtil.updateSdkIfNeeded;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Sdks.findAndroidTarget;
@@ -32,6 +31,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.Sdks;
@@ -61,7 +61,7 @@ public class SdksCleanupStepTest extends HeavyPlatformTestCase {
   public void testUpdateSdkWithMissingDocumentation() {
     createSdk();
     try {
-      IAndroidTarget target = findLatestAndroidTarget(getSdk().toFile());
+      IAndroidTarget target = findLatestAndroidTarget(TestUtils.getSdk().toFile());
       Sdk spy = spy(mySdk);
       File mockJdkHome = new File(getProject().getBasePath(), "jdkHome");
       when(spy.getHomePath()).thenReturn(mockJdkHome.getPath());
@@ -79,7 +79,7 @@ public class SdksCleanupStepTest extends HeavyPlatformTestCase {
     AndroidVersion version = new AndroidVersion(33);
     createSdk(version);
     try {
-      IAndroidTarget target = findAndroidTarget(getSdk().toFile(), version);
+      IAndroidTarget target = findAndroidTarget(TestUtils.getSdk().toFile(), version);
       Sdk spy = spy(mySdk);
       File mockJdkHome = new File(getProject().getBasePath(), "jdkHome");
       when(spy.getHomePath()).thenReturn(mockJdkHome.getPath());
@@ -191,7 +191,7 @@ public class SdksCleanupStepTest extends HeavyPlatformTestCase {
   }
 
   private void createSdk(AndroidVersion version) {
-    File sdkPath = getSdk().toFile();
+    File sdkPath = TestUtils.getSdk().toFile();
     Sdks.allowAccessToSdk(getTestRootDisposable());
     IAndroidTarget target = findAndroidTarget(sdkPath, version);
 

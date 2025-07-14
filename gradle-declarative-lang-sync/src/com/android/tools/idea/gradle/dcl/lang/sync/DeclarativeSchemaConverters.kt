@@ -76,12 +76,13 @@ fun AnalysisSchema.convert(): BuildDeclarativeSchema {
     )
   }
   safeRun {
-    infixFunctions.putAll(
-      infixFunctionsByFqName.mapNotNull {
-        keyValue ->
-        keyValue.value.convert()?.let { keyValue.key.simpleName to it }
-      }.toMap()
-    )
+    //TODO Upgrade to Gradle 8.15
+    //infixFunctions.putAll(
+    //  infixFunctionsByFqName.mapNotNull {
+    //    keyValue ->
+    //    keyValue.value.convert()?.let { keyValue.key.simpleName to it }
+    //  }.toMap()
+    //)
   }
   topFunctions.putAll(
     externalFunctionsByFqName.mapNotNull { keyValue ->

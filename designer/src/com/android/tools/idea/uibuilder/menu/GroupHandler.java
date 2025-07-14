@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
+import static com.android.SdkConstants.ATTR_CHECKABLE_BEHAVIOR;
+import static com.android.SdkConstants.ATTR_ENABLED;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_VISIBLE;
+
 import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
 
 public final class GroupHandler extends MenuHandler {
   @Override

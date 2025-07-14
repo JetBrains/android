@@ -19,6 +19,8 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION
 import com.android.tools.idea.run.AndroidDeclarativeWatchFaceProgramRunner
 import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.run.ShowLogcatListener
@@ -47,6 +49,9 @@ class AndroidDeclarativeWatchFaceConfigurationExecutorTest :
     "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-watchface --es watchFaceId com.example.app"
   private val showWatchFace =
     "broadcast -a com.google.android.wearable.app.DEBUG_SYSUI --es operation show-watchface"
+
+  @get:Rule
+  val flagRule = FlagRule(WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION, true)
 
   private fun getExecutionEnvironment(executorInstance: Executor): ExecutionEnvironment {
     val configSettings =

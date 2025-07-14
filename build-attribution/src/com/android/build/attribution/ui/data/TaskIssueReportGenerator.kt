@@ -18,11 +18,11 @@ package com.android.build.attribution.ui.data
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.percentageString
 import com.android.ide.common.repository.AgpVersion
+import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.util.text.Strings
 import com.intellij.util.LineSeparator
 import com.intellij.util.text.DateFormatUtil
 import java.text.SimpleDateFormat
-import java.util.Comparator
 import java.util.Date
 import java.util.Locale
 
@@ -52,7 +52,7 @@ ${generatePlatformInformationText()}
   private fun generateHeaderText(pluginName: String): String {
     val date = SimpleDateFormat("HH:mm, MMM dd, yyyy", Locale.US).format(
       Date(reportData.buildSummary.buildFinishedTimestamp))
-    return "At ${date}, Android Studio detected the following issue(s) with Gradle plugin ${pluginName}"
+    return "At ${date}, ${ApplicationNamesInfo.getInstance().fullProductName} detected the following issue(s) with Gradle plugin ${pluginName}"
   }
 
   private fun generateFoundIssuesText(taskData: TaskUiData): String =

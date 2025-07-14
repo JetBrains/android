@@ -26,9 +26,9 @@ import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent.LayoutEditorEventType
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult
 import com.intellij.openapi.diagnostic.Logger
+import org.jetbrains.android.facet.AndroidFacet
 import java.util.function.Consumer
 import java.util.function.Function
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Interface for usage tracking in the design tools. Note that implementations of these methods

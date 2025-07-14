@@ -30,6 +30,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
+import com.android.flags.junit.FlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.PathFileWrapper
 import com.android.sdklib.SystemImageTags
@@ -39,7 +40,9 @@ import com.android.sdklib.internal.avd.ConfigKey
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
+import com.intellij.idea.IJIgnore
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -52,6 +55,7 @@ class AddDeviceWizardTest {
   @get:Rule val edtRule = EdtRule()
   @get:Rule val applicationRule = ApplicationRule()
   @get:Rule val composeTestRule = createStudioComposeTestRule()
+  @get:Rule val flagRule = FlagRule(StudioFlags.XR_DEVICE_SUPPORT_ENABLED, true)
 
   /**
    * Pick a device, advance, and then finish (using default system image and settings). Verify that
@@ -97,6 +101,7 @@ class AddDeviceWizardTest {
   }
 
   @Test
+  @IJIgnore(issue = "IDEA-372166")
   fun addAutomotiveDevice() {
     with(SdkFixture()) {
       val api34Ext9Auto =

@@ -427,7 +427,7 @@ public final class GroovyDslUtil {
 
     if (currentParent instanceof GradleVersionCatalogFile && context.getDslFile() instanceof GradleScriptFile) {
       externalName.append(((GradleVersionCatalogFile)currentParent).getCatalogName()).append(".");
-      if (resolutionElements.size() > 0 && "libraries".equals(resolutionElements.get(0).getName())) {
+      if (!resolutionElements.isEmpty() && "libraries".equals(resolutionElements.get(0).getName())) {
         resolutionElements.remove(0);
       }
     }
@@ -463,7 +463,7 @@ public final class GroovyDslUtil {
       }
     }
 
-    if (externalName.length() == 0) {
+    if (externalName.isEmpty()) {
       return null;
     }
     else {

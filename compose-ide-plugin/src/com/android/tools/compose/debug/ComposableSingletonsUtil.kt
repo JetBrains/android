@@ -52,3 +52,17 @@ internal fun computeComposableSingletonsClassName(file: KtFile): String {
     append(shortName)
   }
 }
+
+/**
+ * Compute the class name for a given lambda
+ *
+ * @param composeSingletonsClassName: The 'ComposableSingletons' class: See
+ *   [computeComposableSingletonsClassName]
+ * @param lambdaIndex The index of the current lambda (first lambda has index 0)
+ */
+internal fun computeComposableSingletonsLambdaClassName(
+  composeSingletonsClassName: String,
+  lambdaIndex: Int,
+): String {
+  return "$composeSingletonsClassName\$lambda-${lambdaIndex + 1}\$1"
+}

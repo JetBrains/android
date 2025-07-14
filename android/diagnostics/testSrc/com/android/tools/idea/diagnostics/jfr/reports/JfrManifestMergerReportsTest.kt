@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.diagnostics.jfr.reports
 
-import com.android.tools.idea.diagnostics.jfr.reports.JfrManifestMergerReports.REPORTING_THRESHOLD
 import com.android.tools.idea.diagnostics.jfr.reports.JfrManifestMergerReports.MyMergedManifestSnapshotComputeListener
+import com.android.tools.idea.diagnostics.jfr.reports.JfrManifestMergerReports.REPORTING_THRESHOLD
 import com.android.tools.idea.stats.ManifestMergerStatsTracker.MergeResult
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi

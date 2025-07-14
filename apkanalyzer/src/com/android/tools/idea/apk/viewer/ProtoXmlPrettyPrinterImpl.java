@@ -18,16 +18,15 @@ package com.android.tools.idea.apk.viewer;
 import com.android.aapt.Resources;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.utils.XmlUtils;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
 
 public class ProtoXmlPrettyPrinterImpl implements ProtoXmlPrettyPrinter {
   private static final String HTTP_WWW_W3_ORG_2000_XMLNS_URI = "http://www.w3.org/2000/xmlns/";

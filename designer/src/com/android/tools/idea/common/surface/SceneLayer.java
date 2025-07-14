@@ -19,11 +19,15 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.Display;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-import java.awt.geom.Rectangle2D;
 
 /**
  * Basic display layer for Scene

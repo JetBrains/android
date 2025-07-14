@@ -15,19 +15,19 @@
  */
 package com.android.tools.datastore.poller
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.datastore.DataStorePollerTest
 import com.android.tools.datastore.DataStoreService
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.database.UnifiedEventsTable
-import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Transport.GetEventsRequest
-import com.android.tools.profiler.proto.TransportServiceGrpc
-import com.google.common.truth.Truth.assertThat
 import com.android.tools.idea.io.grpc.Server
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
 import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder
 import com.android.tools.idea.io.grpc.stub.StreamObserver
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Transport.GetEventsRequest
+import com.android.tools.profiler.proto.TransportServiceGrpc
+import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
 import org.junit.Test

@@ -1,0 +1,25 @@
+### auto-generated section `build intellij.android.bleak-config` start
+load("@community//build:tests-options.bzl", "jps_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "bleak-config_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "//android/bleak",
+    "//platform/util",
+    "//platform/util/base",
+    "//platform/util/trove",
+  ]
+)
+
+jps_test(
+  name = "bleak-config_test",
+  runtime_deps = [":bleak-config_test_lib"]
+)
+### auto-generated section `build intellij.android.bleak-config` end

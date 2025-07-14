@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
@@ -42,10 +42,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
-import java.awt.Dimension
-import java.awt.event.KeyEvent
-import java.awt.event.MouseEvent
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -53,6 +49,10 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import java.awt.Dimension
+import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
+import kotlin.time.Duration.Companion.seconds
 
 class GotoDeclarationActionTest {
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.rendering.classloading.loaders
 
-import org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.ClassReader
 
 /**
  * A [DelegatingClassLoader.Loader] that has a static mapping of the FQCN and the byte array

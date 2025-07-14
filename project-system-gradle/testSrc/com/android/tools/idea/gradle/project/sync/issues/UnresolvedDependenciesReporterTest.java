@@ -32,7 +32,6 @@ import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.junit.Test;
 import org.mockito.Mock;
 
 /**

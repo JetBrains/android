@@ -23,8 +23,8 @@ import com.android.tools.idea.backup.BackupManager.Source.RUN_CONFIG
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.ExecutionManager
 import com.intellij.execution.RunnerAndConfigurationSettings
-import com.intellij.execution.impl.ExecutionManagerImpl
 import com.intellij.execution.impl.isOfSameType
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.project.Project
@@ -32,7 +32,7 @@ import org.jetbrains.kotlin.tools.projectWizard.core.asPath
 
 
 fun RunnerAndConfigurationSettings.getProcessHandlersForDevices(project: Project, devices: List<IDevice>): List<ProcessHandler> {
-  return ExecutionManagerImpl.getInstance(project)
+  return ExecutionManager.getInstance(project)
     .getRunningDescriptors { it.isOfSameType(this) }
     .mapNotNull { it.processHandler }
     .filter { AndroidSessionInfo.from(it)?.devices?.intersect(devices.toSet())?.isNotEmpty() == true }

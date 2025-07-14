@@ -20,7 +20,7 @@ import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.extensions.ExtensionPointName
 import org.jetbrains.plugins.gradle.action.GradleAttachSourcesProvider
 
-class DisableGradleAttachSourcesProvider : ApplicationInitializedListener {
+private class DisableGradleAttachSourcesProvider : ApplicationInitializedListener {
   // Unregister the extension to make "Download Source" button disappear
   override suspend fun execute() {
     ExtensionPointName<AttachSourcesProvider>("com.intellij.attachSourcesProvider")

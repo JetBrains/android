@@ -76,7 +76,13 @@ class HeapDumpSnapshotRunnable(
 
     if (analysisOption == AnalysisOption.SCHEDULE_ON_NEXT_START) {
       try {
-        val instance = AndroidStudioSystemHealthMonitor.getInstance()
+        val instance = AndroidStudioSystemHealthMonitor.getInstance() ?: return
+
+        if (instance == null) {
+          LOG.error(ApplicationNamesInfo.getInstance().fullProductName+ " System Health Monitor not initialized.")
+          return
+        }
+
         val isHeapReportPending = instance.hasPendingHeapReport()
         if (isHeapReportPending) {
           if (userInvoked) {
@@ -217,7 +223,7 @@ class HeapDumpSnapshotRunnable(
 
     private fun confirmRestart() {
       val title = AndroidBundle.message("heap.dump.snapshot.restart.dialog.title")
-      val message = AndroidBundle.message("heap.dump.snapshot.restart.dialog.message")
+      val message = AndroidBundle.message("heap.dump.snapshot.restart.dialog.message", ApplicationNamesInfo.getInstance().getFullProductName())
       val yesString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.now")
       val noString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.later")
       val result = MessageDialogBuilder.yesNo(title, message)
@@ -260,7 +266,8 @@ class HeapDumpSnapshotRunnable(
 
       when (analysisOption) {
         AnalysisOption.SCHEDULE_ON_NEXT_START -> {
-          AndroidStudioSystemHealthMonitor.getInstance().addHeapReportToDatabase(report)
+          val instance = AndroidStudioSystemHealthMonitor.getInstance() ?: return
+          instance.addHeapReportToDatabase(report)
           ApplicationManager.getApplication().invokeLater {
             val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
               AndroidBundle.message("heap.dump.analysis.notification.title"),

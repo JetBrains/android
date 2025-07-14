@@ -42,6 +42,7 @@ import com.intellij.openapi.util.Conditions;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.ui.UIUtil;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -253,7 +254,7 @@ public class DataModel implements Disposable {
 
   @UiThread
   private void update() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
 
     assert myLayoutType != null;
     boolean isUserSearch = myFilterPattern.hasPattern();

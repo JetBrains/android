@@ -37,6 +37,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,10 +74,10 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Expe
   @Nls
   public String getDisplayName() {
     if (forAndroidStudio) {
-      return "Experimental";
+      return AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.display.name");
     }
     else {
-      return "Android (Experimental)";
+      return AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.idea.display.name");
     }
   }
 

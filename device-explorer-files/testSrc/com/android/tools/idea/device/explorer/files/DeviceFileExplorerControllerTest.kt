@@ -877,7 +877,7 @@ class DeviceFileExplorerControllerTest {
     val newDirectoryName = myFooDir.name // Existing name to create conflict
     replaceTestInputDialog(newDirectoryName)
     val futureMessageDialog = SettableFuture.create<String>()
-    replaceTestDialog { s: String? ->
+    replaceTestDialog { s: String ->
       futureMessageDialog.set(s)
 
       // Simulate a "Cancel" dialog in the "New Folder Name" dialog, since the controller
@@ -1013,10 +1013,10 @@ class DeviceFileExplorerControllerTest {
     checkNotNull(action)
     val e = createContentMenuItemEvent()
     action.update(e)
-    val showProblemsFuture = SettableFuture.create<Void>()
+    val showProblemsFuture = SettableFuture.create<Unit>()
     replaceTestDialog { s: String ->
       if (s.contains("Could not erase")) {
-        showProblemsFuture.set(null)
+        showProblemsFuture.set(Unit)
       }
       0 // "OK" button
     }

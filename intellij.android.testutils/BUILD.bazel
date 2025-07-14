@@ -1,0 +1,40 @@
+### auto-generated section `build intellij.android.testutils` start
+load("@community//build:tests-options.bzl", "jps_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "testutils",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
+  name = "testutils_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform",
+    "@lib//:studio-test-platform",
+    "@lib//:commons-compress",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "@lib//:kotlin-stdlib",
+    "//platform/build-scripts/downloader",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//platform/util/base",
+    "//plugins/kotlin/base/plugin",
+    "//plugins/kotlin/base/plugin:plugin_test_lib",
+    "//android/android-common:common",
+  ]
+)
+
+jps_test(
+  name = "testutils_test",
+  runtime_deps = [":testutils_test_lib"]
+)
+### auto-generated section `build intellij.android.testutils` end

@@ -1,0 +1,98 @@
+### auto-generated section `build intellij.android.screenshot-test` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+create_kotlinc_options(
+  name = "custom",
+  context_receivers = True
+)
+
+jvm_resources(
+  name = "screenshot-test_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "screenshot-test",
+  module_name = "intellij.android.screenshot-test",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  kotlinc_opts = ":custom",
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//android/artwork-compose",
+    "//android/adt-ui-compose",
+    "//android/adt-ui-model",
+    "//android/android:core",
+    "//android/project-system",
+    "//android/android-common:common",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/execution-impl",
+    "//platform/platform-impl:ide-impl",
+    "//uast/uast-common:uast",
+    "//plugins/kotlin/base/util",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//platform/diff-api:diff",
+    "//images",
+    "//platform/diff-impl",
+    "//platform/core-ui",
+  ],
+  runtime_deps = [":screenshot-test_resources"],
+  plugins = ["@lib//:compose-plugin"]
+)
+### auto-generated section `build intellij.android.screenshot-test` end
+
+### auto-generated section `build intellij.android.screenshot-test.tests` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@community//build:tests-options.bzl", "jps_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+create_kotlinc_options(
+  name = "custom_screenshot-test-tests",
+  context_receivers = True
+)
+
+jvm_library(
+  name = "screenshot-test-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  kotlinc_opts = ":custom_screenshot-test-tests",
+  deps = [
+    "//android/screenshot-testing:screenshot-test",
+    "//android/adt-ui-compose",
+    "//android/adt-ui-compose:adt-ui-compose_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android:core",
+    "//android/android-common:common",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "@lib//:junit4",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/execution-impl",
+    "//jps/model-api:model",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/util",
+    "//plugins/kotlin/base/util",
+    "//plugins/kotlin/base/util:util_test_lib",
+    "@lib//:kotlinc-kotlin-compiler-common",
+    "@lib//:studio-test-platform",
+    "@lib//:studio-platform-provided",
+  ],
+  plugins = ["@lib//:compose-plugin"]
+)
+
+jps_test(
+  name = "screenshot-test-tests_test",
+  runtime_deps = [":screenshot-test-tests_test_lib"]
+)
+### auto-generated section `build intellij.android.screenshot-test.tests` end

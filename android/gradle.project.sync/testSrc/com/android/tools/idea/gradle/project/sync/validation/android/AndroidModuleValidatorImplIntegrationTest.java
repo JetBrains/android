@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator.AndroidModuleValidatorImpl;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link AndroidModuleValidatorImpl}.

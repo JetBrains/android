@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.model.formatter.NumberFormatter
-import com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.Companion.getUnitFromTrackName
 import com.google.common.annotations.VisibleForTesting
 import javax.swing.JComponent
 import javax.swing.JPanel

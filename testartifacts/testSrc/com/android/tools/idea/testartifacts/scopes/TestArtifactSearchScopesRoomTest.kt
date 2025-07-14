@@ -20,6 +20,7 @@ import com.google.common.io.Files
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.writeChild
 
 class TestArtifactSearchScopesRoomTest : AndroidGradleTestCase() {
@@ -27,7 +28,7 @@ class TestArtifactSearchScopesRoomTest : AndroidGradleTestCase() {
     super.setUp()
     loadSimpleApplication()
 
-    val appBuildDotGradle = project.baseDir.findFileByRelativePath("app/build.gradle")!!
+    val appBuildDotGradle = PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("app/build.gradle")!!
     WriteCommandAction.runWriteCommandAction(project) {
       VfsUtil.saveText(
           appBuildDotGradle,
@@ -42,7 +43,7 @@ class TestArtifactSearchScopesRoomTest : AndroidGradleTestCase() {
   }
 
   private fun createEntity(className: String, path: String) {
-    project.baseDir.writeChild(path, """
+    PlatformTestUtil.getOrCreateProjectBaseDir(project).writeChild(path, """
       package com.example;
 
       import android.arch.persistence.room.Entity;
@@ -54,7 +55,7 @@ class TestArtifactSearchScopesRoomTest : AndroidGradleTestCase() {
 
   private fun doTest(path: String, vararg expected: String) {
     val daoName = Files.getNameWithoutExtension(path)
-    val dao = project.baseDir.writeChild(
+    val dao = PlatformTestUtil.getOrCreateProjectBaseDir(project).writeChild(
         path,
         """
           package com.example;

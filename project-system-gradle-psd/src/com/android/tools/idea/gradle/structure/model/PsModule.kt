@@ -20,14 +20,14 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
-import com.android.tools.idea.gradle.structure.model.meta.DslText
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.repositories.search.GoogleRepository
 import com.android.tools.idea.gradle.repositories.search.JCenterRepository
 import com.android.tools.idea.gradle.repositories.search.LocalMavenRepository.Companion.maybeCreateLocalMavenRepository
 import com.android.tools.idea.gradle.repositories.search.MavenCentralRepository
 import com.android.tools.idea.gradle.structure.model.android.DependencyResultLocation
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.util.EventDispatcher

@@ -72,6 +72,7 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.VetoableProjectManagerListener
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx
@@ -93,6 +94,9 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.model.build.BuildEnvironment
+import org.jetbrains.plugins.gradle.service.GradleFileModificationTracker
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionContextImpl
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 import java.io.IOException
@@ -118,11 +122,11 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
   override fun internalIsBuildRunning(project: Project): Boolean {
     val frame = (WindowManager.getInstance() as WindowManagerEx).findFrameFor(project)
     val statusBar = (if (frame == null) null else frame.statusBar as StatusBarEx?) ?: return false
-    for (backgroundProcess in statusBar.backgroundProcesses) {
+    for (backgroundProcess in statusBar.backgroundProcessModels) {
       val task = backgroundProcess.getFirst()
       if (task is TaskImpl) {
         val second = backgroundProcess.getSecond()
-        if (second.isRunning) {
+        if (second.isRunning()) {
           return true
         }
       }
@@ -137,6 +141,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     private val myListener: ExternalSystemTaskNotificationListener,
     private val myResultFuture: SettableFuture<GradleInvocationResult>
   ) : Task.Backgroundable(myRequest.project, "Gradle Build Running", true) {
+
     @Volatile
     private var myErrorCount = 0
 
@@ -218,11 +223,13 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         val id = myRequest.taskId
         val taskListener = myListener
         val cancellationTokenSource = GradleConnector.newCancellationTokenSource()
+        val cancellationToken = cancellationTokenSource.token()
         myBuildStopper.register(id, cancellationTokenSource)
         taskListener.onStart(gradleRootProjectPath, id)
         taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), true)
         val buildState = GradleBuildState.getInstance(project)
         val buildCompleter = buildState.buildStarted(BuildContext(myRequest))
+        var buildEnvironment: BuildEnvironment? = null
         var buildAttributionManager: BuildAttributionManager? = null
         val enableBuildAttribution = isBuildAttributionEnabledForProject(project)
         val invocationResult = try {
@@ -297,8 +304,9 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               }
             }
           }
-          val buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener, cancellationTokenSource.token(), executionSettings)
-          GradleExecutionHelper.prepareForExecution(operation, cancellationTokenSource.token(), id, executionSettings, listener, buildEnvironment)
+          val context = GradleExecutionContextImpl(gradleRootProjectPath, id, executionSettings, listener, cancellationToken)
+          context.buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, context).also { buildEnvironment = it }
+          GradleExecutionHelper.prepareForExecution(operation, context)
           if (enableBuildAttribution) {
             buildAttributionManager = project.getService(BuildAttributionManager::class.java)
             setUpBuildAttributionManager(
@@ -310,6 +318,11 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             (operation as BuildActionExecuter<*>).forTasks(*ArrayUtil.toStringArray(gradleTasks))
           } else {
             (operation as BuildLauncher).forTasks(*ArrayUtil.toStringArray(gradleTasks))
+          }
+          if (Registry.`is`("gradle.report.recently.saved.paths")) {
+            ApplicationManager.getApplication()
+              .getService(GradleFileModificationTracker::class.java)
+              .notifyConnectionAboutChangedPaths(connection)
           }
           if (isRunBuildAction) {
             model.set((operation as BuildActionExecuter<*>).run())
@@ -352,7 +365,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               taskListener.onFailure(
                 gradleRootProjectPath, id,
                 GradleProjectResolver.createProjectResolverChain()
-                  .getUserFriendlyError(null, buildError, gradleRootProjectPath, null)
+                  .getUserFriendlyError(buildEnvironment, buildError, gradleRootProjectPath, null)
               )
             }
           }

@@ -145,7 +145,7 @@ public class ScenePickerImpl implements ScenePicker.Writer, ScenePicker.Reader {
   /**
    * Base class for all selection
    */
-  private abstract class SelectionEngine {
+  public abstract class SelectionEngine {
     protected int mObject;
     protected int mMouseX;
     protected int mMouseY;

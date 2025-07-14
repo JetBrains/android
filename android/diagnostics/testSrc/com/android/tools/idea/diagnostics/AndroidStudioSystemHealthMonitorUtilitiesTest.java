@@ -43,7 +43,7 @@ public class AndroidStudioSystemHealthMonitorUtilitiesTest extends LightPlatform
 
       }
     }.getClass(), new Presentation("Foo")));
-    // class outside of our packages should yield full class name.
+    // class outside our packages should yield full class name.
     assertEquals("java.lang.String", AndroidStudioSystemHealthMonitor.getActionName(String.class, new Presentation("Foo")));
   }
 

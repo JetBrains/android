@@ -17,9 +17,8 @@ package com.android.tools.idea.uibuilder.api;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public interface CustomPanel {
   JPanel getPanel();

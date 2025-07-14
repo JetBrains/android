@@ -35,14 +35,14 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, StatusBarWidget {
+public final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, StatusBarWidget {
   @VisibleForTesting
-  static final String ID = "AdbConnectionWidget";
+  public static final String ID = "AdbConnectionWidget";
 
   @NotNull private ConnectionState myLastConnectionState;
   @Nullable private StudioAdapter myAdapter;
 
-  AdbConnectionWidget(@NotNull StudioAdapter adapter) {
+  public AdbConnectionWidget(@NotNull StudioAdapter adapter) {
     myAdapter = adapter;
 
     myAdapter.setOnUpdate(this::updateIfNeeded);
@@ -112,7 +112,7 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
   }
 
   @SuppressWarnings("UseJBColor")
-  enum ConnectionState {
+  public enum ConnectionState {
     STUDIO_MANAGED_DISCONNECTED(getStatusIcon(ADB_MANAGED, RED), "Not initialized/connected to local adb"),
     STUDIO_MANAGED_CONNECTED(getStatusIcon(ADB_MANAGED, GREEN), "Initialized/connected to local adb"),
     USER_MANAGED_DISCONNECTED(getStatusIcon(ADB_UNMANAGED, RED), "Not connected to remote adb"),
@@ -120,7 +120,7 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
 
     @VisibleForTesting
     @NotNull
-    Icon myIcon;
+    public Icon myIcon;
     @VisibleForTesting
     @NotNull
     private String myTooltip;
@@ -140,7 +140,7 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
    * Abstraction for interactions with ADB and Studio due to those dependencies being heavy and/or static.
    * This allows the widget class itself to be easily testable.
    */
-  interface StudioAdapter extends Disposable {
+  public interface StudioAdapter extends Disposable {
     boolean isBridgeConnected();
 
     boolean isBridgeInUserManagedMode();

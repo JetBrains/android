@@ -16,10 +16,9 @@
 package com.android.tools.idea.observable.expressions.integer;
 
 import com.android.tools.idea.observable.ObservableValue;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An expression which returns a sum of all {@link ObservableValue <Integer>} arguments.

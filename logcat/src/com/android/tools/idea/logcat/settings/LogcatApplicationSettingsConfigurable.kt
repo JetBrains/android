@@ -86,13 +86,13 @@ internal class LogcatApplicationSettingsConfigurable(
 
   // VisibleForTesting
   internal val ignoreTagsTextField by
-    lazy(NONE) { IgnoreValuesTextField(logcatSettings.ignoredTags, LogcatPresenter::getTags) }
+  lazy(NONE) { IgnoreValuesTextField(logcatSettings.ignoredTags, LogcatPresenter::getTags) }
 
   // VisibleForTesting
   internal val ignoreAppsTextField by
-    lazy(NONE) {
-      IgnoreValuesTextField(logcatSettings.ignoredApps, LogcatPresenter::getPackageNames)
-    }
+  lazy(NONE) {
+    IgnoreValuesTextField(logcatSettings.ignoredApps, LogcatPresenter::getPackageNames)
+  }
 
   @VisibleForTesting
   internal val ignoreValuesNote =
@@ -211,16 +211,16 @@ internal class LogcatApplicationSettingsConfigurable(
   override fun isModified(): Boolean {
     val bufferSizeKb = getBufferSizeKb()
     return (bufferSizeKb != null &&
-      isValidBufferSize(bufferSizeKb) &&
-      bufferSizeKb != logcatSettings.bufferSize / 1024) ||
-      defaultFilterTextField.text != logcatSettings.defaultFilter ||
-      mostRecentlyUsedFilterIsDefaultCheckbox.isSelected !=
-        logcatSettings.mostRecentlyUsedFilterIsDefault ||
-      filterHistoryAutocompleteCheckbox.isSelected != logcatSettings.filterHistoryAutocomplete ||
-      overrideFontSize.isSelected != logcatSettings.overrideFontSize ||
-      fontSize.text != logcatSettings.fontSize.toString() ||
-      ignoreTagsTextField.getIgnoredValues() != logcatSettings.ignoredTags ||
-      ignoreAppsTextField.getIgnoredValues() != logcatSettings.ignoredApps
+            isValidBufferSize(bufferSizeKb) &&
+            bufferSizeKb != logcatSettings.bufferSize / 1024) ||
+           defaultFilterTextField.text != logcatSettings.defaultFilter ||
+           mostRecentlyUsedFilterIsDefaultCheckbox.isSelected !=
+           logcatSettings.mostRecentlyUsedFilterIsDefault ||
+           filterHistoryAutocompleteCheckbox.isSelected != logcatSettings.filterHistoryAutocomplete ||
+           overrideFontSize.isSelected != logcatSettings.overrideFontSize ||
+           fontSize.text != logcatSettings.fontSize.toString() ||
+           ignoreTagsTextField.getIgnoredValues() != logcatSettings.ignoredTags ||
+           ignoreAppsTextField.getIgnoredValues() != logcatSettings.ignoredApps
   }
 
   override fun apply() {

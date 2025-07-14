@@ -15,8 +15,10 @@
  */
 package com.android.tools.adtui.workbench;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
+
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
@@ -24,16 +26,14 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-
-import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.LayoutFocusTraversalPolicy;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The {@link LayeredPanel} implements {@link AutoHide} tool windows.
@@ -42,7 +42,7 @@ import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_P
  *
  * @param <T> Specifies the type of data controlled by the {@link WorkBench}.
  */
-class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Disposable {
+public class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Disposable {
   private final String myBenchName;
   private final PropertiesComponent myPropertiesComponent;
   private final ThreeComponentsSplitter mySplitter;

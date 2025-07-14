@@ -34,10 +34,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.io.DataExternalizer
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.DataInput
 import java.io.DataOutput
 import kotlin.reflect.KClass
-import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * An index value for the Dagger index. Each [DaggerConcept] is responsible for defining the exact

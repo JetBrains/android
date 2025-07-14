@@ -21,6 +21,7 @@ import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.android.tools.idea.adb.PreInitAndroidDebugBridgeRule
+import com.intellij.facet.impl.FacetUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
 import com.intellij.testFramework.ProjectRule
@@ -28,6 +29,7 @@ import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -76,6 +78,7 @@ class DeviceCableMonitorTest {
       maxSpeedMbps = 5000L,
       negotiatedSpeedMbps = 480L,
     )
+    FacetUtil.addFacet(projectRule.module, AndroidFacet.getFacetType())
 
     monitor = DeviceCableMonitor()
     CoroutineScope(Dispatchers.IO).launch { monitor.execute(projectRule.project) }

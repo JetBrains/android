@@ -137,8 +137,8 @@ class SystemHealthDataCollection: Disposable {
       triggers::gcThresholdMetAfterCollection,
       LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC, this)
 
-    AndroidStudioSystemHealthMonitor.getInstance().registerOutOfMemoryErrorListener(
-      Runnable { triggers.outOfMemoryErrorRaised() }, this)
+    AndroidStudioSystemHealthMonitor.getInstance()
+      ?.registerOutOfMemoryErrorListener({ triggers.outOfMemoryErrorRaised() }, this)
   }
 
   private fun logLowMemoryWarning(type: LowMemoryWatcher.LowMemoryWatcherType) {

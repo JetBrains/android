@@ -19,8 +19,6 @@ import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.LibraryDependenciesTroubleInfoCollectorToken
-import com.android.tools.idea.projectsystem.gradle.isAndroidTestModule
-import com.android.tools.idea.projectsystem.gradle.isScreenshotTestModule
 import com.intellij.openapi.module.Module
 
 class LibraryDependenciesTroubleInfoCollectorGradleToken : LibraryDependenciesTroubleInfoCollectorToken<GradleModuleSystem>, GradleToken {

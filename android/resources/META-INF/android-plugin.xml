@@ -17,22 +17,27 @@
 
   <depends>JUnit</depends>
   <depends>com.intellij.properties</depends>
+  <depends>com.intellij.modules.json</depends>
   <depends>intellij.webp</depends>
   <depends>com.intellij.gradle</depends>
   <depends>org.jetbrains.plugins.gradle</depends>
   <depends>org.intellij.groovy</depends>
-  <depends>com.android.tools.idea.smali</depends>
   <depends>org.jetbrains.kotlin</depends>
   <depends>org.toml.lang</depends>
+  <depends>org.jetbrains.idea.gradle.dsl</depends>
+  <depends>com.intellij.modules.json</depends>
 
   <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="android-plugin-idea.xml">com.intellij.modules.idea</depends>
+  <depends optional="true" config-file="android-webp.xml">intellij.webp</depends>
+  <depends optional="true" config-file="android-smali.xml">com.android.tools.idea.smali</depends>
 
   <xi:include href="/org/jetbrains/android/dom/android-xml.xml"/>
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
   <actions>
-    <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip" text="Export to Zip File...">
+    <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip" text="Export Project to Zip File...">
+      <override-text place="MainMenu" text="Project to Zip File..."/>
       <add-to-group group-id="FileExportGroup" anchor="last"/>
     </action>
 
@@ -62,12 +67,11 @@
     <action id="Android.OpenStringResourceEditor" class="com.android.tools.idea.actions.OpenStringResourceEditorAction">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="EditSource"/>
     </action>
-    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="StudioIcons.Common.ANDROID_HEAD">
+    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="StudioIcons.Common.ANDROID_HEAD" popup="true">
       <separator/>
       <group id="AndroidDeviceManagerPlaceholder"/>
       <separator/>
       <action id="ResourceExplorer.open"
-              text="Resource Manager"
               icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS"
               class="com.android.tools.idea.ui.resourcemanager.actions.OpenResourceManagerAction"/>
       <separator/>
@@ -81,15 +85,6 @@
       <separator/>
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="MainToolBarSettings" />
     </group>
-
-    <action internal="true"
-            text="Validate Essential Plugins"
-            id="Android.ValidateEssentialPlugins"
-            class="com.android.tools.idea.actions.ValidateEssentialPluginsAction"/>
-    <action internal="true"
-            text="Disable All Plugins"
-            id="Android.DisableAllPlugins"
-            class="com.android.tools.idea.actions.DisableAllPluginsAction"/>
 
     <group id="Internal.Android" text="Android" popup="true" internal="true">
       <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.actions.GetAdbAction" />
@@ -158,21 +153,13 @@
             text="Use Style _Where Possible..." description="Replaces attributes by Android style reference where possible">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
+    <action id="Android.AddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
             text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
 
     <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferAnnotationsAction">
       <add-to-group group-id="AnalyzeActions" anchor="after" relative-to-action="InferNullity"/>
-    </action>
-    <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp" text="Convert to WebP...">
-      <add-to-group group-id="ProjectViewPopupMenu"/>
-      <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
-    </action>
-    <action class="com.android.tools.idea.rendering.webp.ConvertFromWebpAction" id="ConvertFromWebp" text="Convert to PNG...">
-      <add-to-group group-id="ProjectViewPopupMenu"/>
-      <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
     </action>
     <action id="Android.Device.Picker.Help" class="com.android.tools.idea.actions.DevicePickerHelpAction"/>
 
@@ -195,6 +182,23 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <registryKey key="android.task.runner.restricted"
+                 description="Forbid android-plugin to handle run/debug actions on modules with no Android facet."
+                 defaultValue="false"
+                 restartRequired="false"/>
+
+    <registryKey key="android.gradle.importer.enabled"
+                 description="Use Android-Gradle importer. If disabled, platform gradle importer will be used."
+                 defaultValue="false"
+                 restartRequired="false"/>
+
+    <groupConfigurable id="build.android" parentId="build"
+                       displayNameKey="configurable.group.android.settings.display.name"
+                       descriptionKey="configurable.group.build.android.settings.description"/>
+    <groupConfigurable id="tools.android" parentId="tools"
+                       displayNameKey="configurable.group.android.settings.display.name"
+                       descriptionKey="configurable.group.tools.android.settings.description"/>
+
     <titleInfoProvider implementation="com.intellij.android.safemode.SafeMode$TitleProvider"/>
     <postStartupActivity implementation="com.android.tools.idea.res.AndroidPsiTreeChangeListener$MyProjectActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild$MyStartupActivity"/>
@@ -215,7 +219,7 @@
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
 
     <actionConfigurationCustomizer implementation="org.jetbrains.android.AndroidPlugin$ActionCustomizer"/>
-    <applicationService serviceImplementation="org.jetbrains.android.AndroidPlugin" preload="true"/>
+    <applicationService serviceImplementation="org.jetbrains.android.AndroidPlugin"/>
     <applicationService serviceImplementation="com.android.tools.idea.streaming.DeviceMirroringSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.streaming.DeviceMirroringSettings$SettingsV1"/>
     <applicationService serviceImplementation="com.android.tools.idea.streaming.EmulatorSettings"/>
@@ -244,7 +248,7 @@
                         serviceImplementation="com.android.tools.idea.diagnostics.crash.ExceptionDataConfigurationImpl"/>
     <applicationService serviceInterface="com.android.tools.idea.serverflags.ServerFlagService"
                         serviceImplementation="com.android.tools.idea.serverflags.ServerFlagServiceImpl"/>
-    <applicationService serviceImplementation="com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService"/>
+<!--    <applicationService serviceImplementation="com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService"/>-->
 
     <applicationConfigurable groupId="build" id="instant.run"
                              provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"
@@ -557,8 +561,6 @@
 
     <projectService serviceImplementation="com.android.tools.idea.res.ProjectNamespacingStatusService" />
 
-
-    <editorNotificationProvider implementation="com.android.tools.idea.apk.debugging.editor.SmaliFileNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.manifest.StaleManifestNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider"/>
 
@@ -595,8 +597,6 @@
     <refactoring.safeDeleteProcessor
         id="android_string_resource"
         implementation="com.android.tools.idea.editors.strings.StringResourceSafeDeleteProcessorDelegate"/>
-
-    <projectService serviceImplementation="com.android.tools.idea.stats.ToolWindowTrackerService"/>
 
     <fileBasedIndex implementation="com.android.tools.idea.databinding.index.BindingXmlIndex"/>
     <projectStructureDetector implementation="com.android.tools.idea.apk.debugging.KotlinProjectStructureDetector"/>
@@ -697,7 +697,8 @@
     <extensionPoint qualifiedName="com.android.tools.idea.ui.designer.overlays.overlayProvider"
                     interface="com.android.tools.idea.ui.designer.overlays.OverlayProvider"/>
     <extensionPoint qualifiedName="com.android.rendering.renderSecurityManagerOverrides"
-                    interface="com.android.tools.rendering.security.RenderSecurityManagerOverrides"/>
+                    interface="com.android.tools.rendering.security.RenderSecurityManagerOverrides"
+                    dynamic="true"/>
     <extensionPoint qualifiedName="com.android.tools.idea.lang.databinding.dataBindingCompletionSupport"
                     interface="com.android.tools.idea.lang.databinding.DataBindingCompletionSupport"/>
     <extensionPoint qualifiedName="com.android.tools.idea.lang.databinding.dataBindingExpressionSupport"
@@ -761,8 +762,6 @@
   </extensions>
 
   <applicationListeners>
-    <listener class="com.android.tools.idea.stats.CompletionStats$MyCompletionPhaseListener"
-              topic="com.intellij.codeInsight.completion.CompletionPhaseListener"/>
     <listener class="com.android.tools.idea.editors.liveedit.LiveEditAnActionListener"
               topic="com.intellij.openapi.actionSystem.ex.AnActionListener"/>
     <listener class="com.android.tools.idea.stats.ManifestMergerStatsTracker"
@@ -770,8 +769,6 @@
   </applicationListeners>
 
   <projectListeners>
-    <listener class="com.android.tools.idea.stats.CompletionStats$MyLookupManagerListener"
-              topic="com.intellij.codeInsight.lookup.LookupManagerListener"/>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.stats.ProjectSizeUsageTrackerListener"

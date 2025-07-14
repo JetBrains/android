@@ -17,15 +17,13 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
 import static com.android.tools.idea.navigator.nodes.ndk.includes.utils.NdkVersionUtilsKt.getNdkVersionName;
 
-import com.android.repository.Revision;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.regex.Matcher;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A resolver that matches a regular expression with certain well-known elements like library name, relative folder, and home folder.

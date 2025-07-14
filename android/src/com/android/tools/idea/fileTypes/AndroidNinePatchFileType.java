@@ -18,11 +18,9 @@ package com.android.tools.idea.fileTypes;
 
 import com.android.SdkConstants;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -51,7 +49,6 @@ public final class AndroidNinePatchFileType implements FileType {
     return EXTENSION;
   }
 
-  @Nullable
   @Override
   public Icon getIcon() {
     return PlatformIcons.FILE_ICON;

@@ -31,6 +31,7 @@ import com.intellij.execution.actions.RunConfigurationProducer
 import com.intellij.execution.junit.JUnitConfigurationType
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.mock.MockModule
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -50,12 +51,13 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import java.util.Calendar
 import java.util.Date
+import kotlin.collections.map
 
 /**
  * Tests for [AndroidGradleProjectStartupActivity].
  */
 class AndroidGradleProjectStartupActivityTest {
-  private val myProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val myProjectRule = AndroidProjectRule.inMemory()
 
   @Mock
   private lateinit var myInfo: Info
@@ -69,6 +71,8 @@ class AndroidGradleProjectStartupActivityTest {
 
   @get:Rule
   val ruleChain = RuleChain(myProjectRule, notificationRule)
+  private val myTestRootDisposable: Disposable
+    get() = myProjectRule.testRootDisposable
 
   val syncDueNotifications: List<NotificationRule.NotificationInfo>
     get() = notificationRule.notifications.filter { it.groupId == SYNC_DUE_BUT_AUTO_SYNC_DISABLED_ID }
@@ -87,7 +91,7 @@ class AndroidGradleProjectStartupActivityTest {
         myRequest = request
       }
     }
-    ApplicationManager.getApplication().replaceService(GradleSyncInvoker::class.java, syncInvoker, myProjectRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(GradleSyncInvoker::class.java, syncInvoker, myTestRootDisposable)
     myInfo = mock()
     myStartupActivity = AndroidGradleProjectStartupActivity()
     TestDialogManager.setTestDialog(TestDialog.NO)

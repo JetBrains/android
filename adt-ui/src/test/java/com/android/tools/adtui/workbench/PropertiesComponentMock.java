@@ -17,13 +17,12 @@ package com.android.tools.adtui.workbench;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.util.ArrayUtilRt;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PropertiesComponentMock extends PropertiesComponent {
   private final Properties myProperties;

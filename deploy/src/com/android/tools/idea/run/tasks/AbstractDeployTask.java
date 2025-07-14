@@ -32,6 +32,7 @@ import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.DeployerOption;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
+import com.android.tools.deployer.UIService;
 import com.android.tools.deployer.model.App;
 import com.android.tools.deployer.model.BaselineProfile;
 import com.android.tools.deployer.model.component.ApkParserException;
@@ -43,7 +44,6 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.DeploymentService;
-import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.util.LocalInstallerPathManager;
 import com.android.utils.ILogger;
 import com.google.common.base.Stopwatch;
@@ -140,7 +140,7 @@ public abstract class AbstractDeployTask {
     );
 
     DeploymentService service = DeploymentService.getInstance();
-    IdeService ideService = new IdeService(myProject);
+    UIService uiService = myProject.getService(UIService.class);
 
     EnumSet<ChangeType> optimisticInstallSupport = EnumSet.noneOf(ChangeType.class);
     if (!myAlwaysInstallWithPm) {
@@ -156,7 +156,7 @@ public abstract class AbstractDeployTask {
       .setFastRestartOnSwapFail(getFastRerunOnSwapFailure()).enableCoroutineDebugger(StudioFlags.COROUTINE_DEBUGGER_ENABLE.get())
       .setMaxDeltaInstallPatchSize(StudioFlags.DELTA_INSTALL_CUSTOM_MAX_PATCH_SIZE.get()).build();
     Deployer deployer =
-      new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(), installer, ideService,
+      new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(), installer, uiService,
                    metrics, logger, option);
     List<String> idsSkippedInstall = new ArrayList<>();
     List<Deployer.Result> results = new ArrayList<>();

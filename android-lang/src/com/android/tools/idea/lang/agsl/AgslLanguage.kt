@@ -16,7 +16,6 @@
 package com.android.tools.idea.lang.agsl
 
 import com.intellij.lang.Language
-import com.intellij.lang.java.JavaLanguage
 import org.jetbrains.annotations.NonNls
 
 /**

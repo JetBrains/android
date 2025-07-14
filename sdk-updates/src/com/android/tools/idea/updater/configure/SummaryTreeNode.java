@@ -21,19 +21,18 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.AndroidVersionUtils;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.google.common.collect.Sets;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.util.Set;
 import java.util.function.Function;
+import javax.swing.JTree;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tree node representing all packages corresponding to a specified AndroidVersion. The checked state and the effect of
  * checking/unchecking this node is taken from and applies to children where {@code includeInSummary()} is true. The revision
  * number will be taken from a child where {@code isPrimary()} is true.
  */
-class SummaryTreeNode extends UpdaterTreeNode {
+public class SummaryTreeNode extends UpdaterTreeNode {
   private AndroidVersion myVersion;
   private Set<UpdaterTreeNode> myAllChildren;
   private Set<UpdaterTreeNode> myIncludedChildren = Sets.newHashSet();

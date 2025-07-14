@@ -17,8 +17,6 @@
 package org.jetbrains.android.facet
 
 import com.android.tools.idea.projectsystem.SourceProviders
-import com.intellij.openapi.vfs.VfsUtil
-import java.io.File
 
 fun createSourceProvidersForLegacyModule(facet: AndroidFacet): SourceProviders =
   com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule(facet)

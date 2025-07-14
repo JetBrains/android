@@ -57,9 +57,9 @@ internal class DeviceNamePropertiesFetcherTest {
   private fun createDeviceNamePropertiesProvider(result: AtomicReference<ResultType>,
                                                  successLatch: List<CountDownLatch>,
                                                  failureLatch: CountDownLatch = CountDownLatch(1)): DeviceNamePropertiesFetcher {
-    return DeviceNamePropertiesFetcher(myDisposable, object : FutureCallback<DeviceNameProperties> {
+    return DeviceNamePropertiesFetcher(myDisposable, object : FutureCallback<DeviceNameProperties?> {
       var successCount = 0
-      override fun onFailure(t: Throwable?) {
+      override fun onFailure(t: Throwable) {
         result.set(ResultType.FAIL)
         failureLatch.countDown()
       }
@@ -71,10 +71,10 @@ internal class DeviceNamePropertiesFetcherTest {
     })
   }
 
-  private fun createDevice(manufacturer: ListenableFuture<String>,
-                           model: ListenableFuture<String>,
-                           buildVersion: ListenableFuture<String>,
-                           apiLevel: ListenableFuture<String>): IDevice {
+  private fun createDevice(manufacturer: ListenableFuture<String?>,
+                           model: ListenableFuture<String?>,
+                           buildVersion: ListenableFuture<String?>,
+                           apiLevel: ListenableFuture<String?>): IDevice {
     val d = Mockito.mock(IDevice::class.java)
     whenever(d.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn(manufacturer)
     whenever(d.getSystemProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn(model)

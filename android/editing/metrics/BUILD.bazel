@@ -1,0 +1,67 @@
+### auto-generated section `build intellij.android.core.editing.metrics` start
+load("@community//build:tests-options.bzl", "jps_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "metrics_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "metrics",
+  module_name = "intellij.android.core.editing.metrics",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "@lib//:studio-platform-provided",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/lang-api:lang",
+    "//platform/lang-impl",
+    "@lib//:kotlinx-datetime-jvm",
+    "//platform/refactoring",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+  ],
+  runtime_deps = [":metrics_resources"]
+)
+
+jvm_library(
+  name = "metrics_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = [":metrics"],
+  deps = [
+    "@lib//:kotlin-stdlib",
+    "@lib//:protobuf",
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:truth",
+    "//platform/core-api:core",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "@lib//:kotlinx-coroutines-test",
+    "//android/android-test-framework:testFramework_test_lib",
+    "@lib//:mockito",
+    "@lib//:mockito-kotlin",
+    "//platform/lang-api:lang",
+    "//platform/lang-impl",
+    "@lib//:kotlinx-datetime-jvm",
+    "//platform/refactoring",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+  ],
+  runtime_deps = [":metrics_resources"]
+)
+
+jps_test(
+  name = "metrics_test",
+  runtime_deps = [":metrics_test_lib"]
+)
+### auto-generated section `build intellij.android.core.editing.metrics` end

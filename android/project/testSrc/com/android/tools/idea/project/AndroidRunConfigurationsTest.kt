@@ -252,6 +252,19 @@ class AndroidRunConfigurationsTest {
       assertThat(runManager.allConfigurationsList.filterIsInstance<AndroidWearConfiguration>()).isEmpty()
     }
   }
+}
+
+// we split the test into two, to avoid issues with re-used static instances leading to some tests failing.
+class AndroidRunConfigurationsTestDfw {
+  @get:Rule
+  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+
+  @After
+  fun tearDown() {
+    StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.clearOverride()
+    StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_MAX_TOTAL_RUN_CONFIGS.clearOverride()
+    StudioFlags.WEAR_DECLARATIVE_WATCH_FACE_RUN_CONFIGURATION.clearOverride()
+  }
 
   @Test
   fun `a declarative watch face configuration is added`() {
@@ -378,6 +391,7 @@ class AndroidRunConfigurationsTest {
       assertThat(declarativeWatchFaceConfigurations).hasSize(1)
     }
   }
+}
 
   private fun removeWatchFeatureRequirement(project: Project) {
     runWriteCommandAction(project) {
@@ -404,4 +418,3 @@ class AndroidRunConfigurationsTest {
     configuration.componentLaunchOptions.componentName = componentName
     addConfiguration(settings)
   }
-}

@@ -16,6 +16,7 @@
 package com.android.tools.idea.connection.assistant.actions
 
 import com.android.ddmlib.IDevice
+import com.intellij.openapi.application.ApplicationNamesInfo
 
 /**
  * Identifies a category of device in the connection assistant.
@@ -56,7 +57,7 @@ fun summarize(crossReference: DeviceCrossReference): DeviceSummary {
     val adbDevice = crossReference.adbDevice.firstOrNull()
     if (adbDevice != null && adbDevice.state != devState) {
       section = ConnectionAssistantSection.POSSIBLE_PROBLEM
-      errorMessage = "ADB reports that the device is in the '${adbDevice.state?.state ?: "unknown"}' state but Android Studio reports" +
+      errorMessage = "ADB reports that the device is in the '${adbDevice.state?.state ?: "unknown"}' state but ${ApplicationNamesInfo.getInstance().fullProductName} reports" +
                      " that it is in the '${devState?.state ?: "unknown"}' state"
     }
     else {
@@ -77,7 +78,7 @@ fun summarize(crossReference: DeviceCrossReference): DeviceSummary {
   }
   else if (!crossReference.adbDevice.isEmpty()) {
     section = ConnectionAssistantSection.POSSIBLE_PROBLEM
-    errorMessage = "Device was detected by ADB but not Android Studio."
+    errorMessage = "Device was detected by ADB but not ${ApplicationNamesInfo.getInstance().fullProductName}."
   }
   else {
     section = ConnectionAssistantSection.OTHER_USB

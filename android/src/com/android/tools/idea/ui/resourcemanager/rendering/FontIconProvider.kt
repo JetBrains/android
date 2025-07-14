@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.ide.common.fonts.FontFamily
-import com.android.tools.fonts.DownloadableFontCacheService
 import com.android.tools.fonts.ProjectFonts
 import com.android.tools.idea.fonts.StudioDownloadableFontCacheService
 import com.android.tools.idea.res.StudioResourceRepositoryManager

@@ -72,9 +72,6 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import icons.StudioIcons
-import java.util.concurrent.Executor
-import java.util.concurrent.TimeUnit
-import javax.swing.JComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -87,6 +84,9 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
+import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
 
 /** Implementation of the application logic related to viewing/editing sqlite databases. */
 class DatabaseInspectorControllerImpl(
@@ -696,7 +696,7 @@ class DatabaseInspectorControllerImpl(
       .addCallback(
         edtExecutor,
         object : FutureCallback<Unit> {
-          override fun onSuccess(result: Unit?) {}
+          override fun onSuccess(result: Unit) {}
 
           override fun onFailure(t: Throwable) {
             view.reportError("Error reading Sqlite table \"${table.name}\"", t)

@@ -23,14 +23,14 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiJavaFile
 import com.intellij.util.indexing.FileContent
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.DataInputStream
-import java.io.DataOutputStream
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtFile
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 
 fun serializeAndDeserializeIndexValue(indexValue: IndexValue): IndexValue =
   serializeAndDeserializeIndexValues(setOf(indexValue)).single()

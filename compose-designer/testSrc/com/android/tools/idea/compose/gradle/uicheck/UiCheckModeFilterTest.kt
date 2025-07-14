@@ -23,7 +23,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.junit.Rule
 import org.junit.Test
 

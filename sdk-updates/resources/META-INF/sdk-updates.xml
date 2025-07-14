@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <depends optional="true" config-file="sdk-updates-as.xml">com.intellij.modules.androidstudio</depends>
-  <actions>
+  <actions resource-bundle="messages.AndroidBundle">
     <action id="Android.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
             icon="StudioIcons.Shell.Toolbar.SDK_MANAGER" >
       <add-to-group group-id="AndroidToolsGroup" anchor="after" relative-to-action="AndroidDeviceManagerPlaceholder" />
@@ -24,7 +24,8 @@
   </actions>
   <extensions defaultExtensionNs="com.intellij">
     <applicationConfigurable parentId="language"
-                             displayName="Android SDK"
+                             bundle="messages.AndroidBundle"
+                             key="configurable.SdkUpdaterConfigurable.display.name"
                              provider="com.android.tools.idea.updater.configure.SdkUpdaterConfigurableProvider"
                              id="AndroidSdkUpdater"/>
 

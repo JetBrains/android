@@ -19,7 +19,7 @@ import com.google.common.truth.Truth
 import org.junit.Test
 import java.awt.Dimension
 import java.awt.Point
-import java.util.*
+import java.util.Arrays
 
 class InstructionsRendererTest {
 

@@ -38,6 +38,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -317,7 +318,7 @@ public class VirtualWidget extends JComponent {
 
   public static void main(String[] args) {
     JFrame f = new JFrame("test Trackball");
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     JPanel base = new JPanel(new BorderLayout());
     JPanel control = new JPanel();

@@ -26,6 +26,7 @@ import org.jetbrains.annotations.VisibleForTesting
  */
 interface RenderSecurityManagerOverrides {
   fun allowsPropertiesAccess(): Boolean
+  fun allowsLibraryLinking(lib: String): Boolean
 }
 
 @VisibleForTesting
@@ -38,3 +39,10 @@ val EP_NAME: ExtensionPointName<RenderSecurityManagerOverrides> =
  * access during layout rendering, false otherwise.
  */
 fun isPropertyAccessAllowed() = EP_NAME.extensions.any { it.allowsPropertiesAccess() }
+
+
+/**
+ * Returns true if any registered [RenderSecurityManagerOverrides] extension allows
+ * linkage of the library [lib], false otherwise.
+ */
+fun isLibraryLinkingAllowed(lib: String) = EP_NAME.extensions.any { it.allowsLibraryLinking(lib) }

@@ -31,7 +31,7 @@ import com.android.tools.idea.run.DeviceProvisionerAndroidDevice
 import com.android.tools.idea.run.LaunchCompatibility
 import com.android.tools.idea.run.LaunchCompatibilityChecker
 import com.google.common.truth.Truth.assertThat
-import com.jetbrains.rd.util.enumSetOf
+import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import icons.StudioIcons
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.cancel
@@ -45,8 +45,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import org.junit.Test
 import org.mockito.kotlin.mock
+import java.util.EnumSet
 
-class DeploymentTargetDevicesServiceTest {
+class DeploymentTargetDevicesServiceTest : LightPlatformCodeInsightFixture4TestCase() {
   companion object {
     fun runTestWithFixture(test: suspend Fixture.() -> Unit) {
       runTest {
@@ -83,7 +84,7 @@ class DeploymentTargetDevicesServiceTest {
           device.canRun(
             AndroidVersion(31),
             MockPlatformTarget(31, 0),
-            { enumSetOf<IDevice.HardwareFeature>() },
+            { EnumSet.noneOf(IDevice.HardwareFeature::class.java) },
             setOf(Abi.ARM64_V8A),
           )
         }

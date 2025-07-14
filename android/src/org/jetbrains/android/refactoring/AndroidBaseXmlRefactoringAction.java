@@ -1,3 +1,4 @@
+// Copyright 2000-2025 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.concurrency.UiThread;
@@ -28,7 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-abstract class AndroidBaseXmlRefactoringAction extends BaseRefactoringAction {
+public abstract class AndroidBaseXmlRefactoringAction extends BaseRefactoringAction {
   @Override
   protected boolean isAvailableOnElementInEditorAndFile(@NotNull PsiElement element, @NotNull Editor editor, @NotNull PsiFile file, @NotNull DataContext context) {
     final XmlTag[] tags = getXmlTagsFromExternalContext(context);

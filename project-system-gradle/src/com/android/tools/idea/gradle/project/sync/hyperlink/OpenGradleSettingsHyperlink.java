@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getManager;
+
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.externalSystem.ExternalSystemManager;
@@ -25,9 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.plugins.gradle.GradleManager;
 import org.jetbrains.plugins.gradle.service.settings.GradleConfigurable;
-
-import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getManager;
 
 public class OpenGradleSettingsHyperlink extends SyncIssueNotificationHyperlink {
   public OpenGradleSettingsHyperlink() {

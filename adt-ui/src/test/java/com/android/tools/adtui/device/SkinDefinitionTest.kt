@@ -17,7 +17,7 @@ package com.android.tools.adtui.device
 
 import com.android.io.readImage
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.utils.HashCodes

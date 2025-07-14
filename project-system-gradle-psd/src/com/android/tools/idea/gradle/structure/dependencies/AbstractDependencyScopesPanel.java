@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies;
 
-import com.intellij.openapi.Disposable;
-import com.intellij.ui.HyperlinkAdapter;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import java.awt.*;
-
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.intellij.ide.BrowserUtil.browse;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
 import static javax.swing.BorderFactory.createEmptyBorder;
+
+import com.intellij.openapi.Disposable;
+import com.intellij.ui.HyperlinkAdapter;
+import java.awt.BorderLayout;
+import javax.swing.JComponent;
+import javax.swing.JEditorPane;
+import javax.swing.JPanel;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractDependencyScopesPanel extends JPanel implements Disposable, DependencyScopesSelector {
   protected AbstractDependencyScopesPanel() {

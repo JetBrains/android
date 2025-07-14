@@ -23,7 +23,6 @@ import com.google.gson.stream.JsonWriter
 import com.intellij.diagnostic.ThreadDumper
 import org.apache.http.entity.ContentType
 import org.apache.http.entity.mime.MultipartEntityBuilder
-import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path

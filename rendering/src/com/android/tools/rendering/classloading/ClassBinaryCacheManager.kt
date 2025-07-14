@@ -19,11 +19,11 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.google.common.base.Ticker
 import com.google.common.cache.CacheBuilder
+import org.jetbrains.annotations.TestOnly
 import java.time.Duration
 import java.util.WeakHashMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import org.jetbrains.annotations.TestOnly
 
 private const val MAX_WEIGHT_BYTES =
   100_000_000L // We will store no more than 100Mb of cached classes

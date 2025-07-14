@@ -1,4 +1,4 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android
 
 import com.android.tools.idea.AndroidStartupActivity
@@ -24,7 +24,8 @@ import org.jetbrains.android.facet.AndroidFacet
 
 class AndroidStartupManager : ProjectActivity {
 
-  // A project level service to be used as a parent disposable. Future implementation may reduce the life-time of such disposable to the
+  // A project level service to be used as a parent disposable.
+  // Future implementation may reduce the life-time of such a disposable to the
   // moment when the last Android facet is removed (from a non-Gradle project).
   @Service(Service.Level.PROJECT)
   class ProjectDisposableScope(val coroutineScope: CoroutineScope) : Disposable {

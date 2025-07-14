@@ -18,7 +18,7 @@
 package com.android.tools.idea.naveditor
 
 import com.android.ide.common.repository.GoogleMavenRepository
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 
 private const val NAVIGATION_ID = "android.arch.navigation"
 private const val SUPPORT_ID = "com.android.support"

@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.stdui.OUTLINE_PROPERTY
 import com.android.tools.adtui.swing.FakeUi
@@ -49,6 +49,7 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.concurrency.SameThreadExecutor
 import org.jetbrains.android.facet.AndroidFacet
@@ -94,9 +95,11 @@ class StringResourceViewPanelFakeUiTest {
   }
 
   @Test
+  @RunsInEdt
   fun toolbarConstructedProperly() {
     val toolbar: ActionToolbar = stringResourceViewPanel.loadingPanel.getDescendant { it.component.name == "toolbar" }
-    assertThat(toolbar.actions).hasSize(8)
+    PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
+    assertThat(toolbar.actions).hasSize(7)
     assertThat(toolbar.actions[0]).isInstanceOf(AddKeyAction::class.java)
     assertThat(toolbar.actions[1]).isInstanceOf(RemoveKeysAction::class.java)
     assertThat(toolbar.actions[2]).isInstanceOf(AddLocaleAction::class.java)
@@ -104,7 +107,6 @@ class StringResourceViewPanelFakeUiTest {
     assertThat(toolbar.actions[4]).isInstanceOf(FilterLocalesAction::class.java)
     assertThat(toolbar.actions[5]).isInstanceOf(ReloadStringResourcesAction::class.java)
     assertThat(toolbar.actions[6]).isInstanceOf(BrowserHelpAction::class.java)
-    assertThat(toolbar.actions[7]).isInstanceOf(Separator::class.java)
   }
 
   @Test

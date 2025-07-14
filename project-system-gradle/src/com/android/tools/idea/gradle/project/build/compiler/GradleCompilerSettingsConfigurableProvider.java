@@ -1,6 +1,5 @@
 package com.android.tools.idea.gradle.project.build.compiler;
 
-import com.android.tools.idea.IdeInfo;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableProvider;
 import com.intellij.openapi.project.Project;

@@ -16,18 +16,19 @@
 
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.refactoring.rtl.RtlSupportManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidAddRtlSupportAction extends AnAction implements DumbAware {
-
-  public AndroidAddRtlSupportAction() {
-    super("Add Right-to-Left (RTL) Support...");
-  }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
@@ -35,5 +36,21 @@ public class AndroidAddRtlSupportAction extends AnAction implements DumbAware {
     if (project != null) {
       new RtlSupportManager(project).showDialog();
     }
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    Module module = e.getData(PlatformCoreDataKeys.MODULE);
+    e.getPresentation().setEnabledAndVisible(module != null && isIdeaAndroidModule(module));
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
+  private static boolean isIdeaAndroidModule(Module module){
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    return androidFacet != null && AndroidModel.isRequired(androidFacet);
   }
 }

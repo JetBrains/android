@@ -18,9 +18,11 @@ package com.android.tools.idea.logcat.devices
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.google.common.annotations.VisibleForTesting
 
 /** A representation of a device used by [DeviceComboBox]. */
-data class Device(
+@Suppress("DataClassPrivateConstructor") // Exposed via copy which we use in tests
+data class Device @VisibleForTesting constructor(
   val deviceId: String,
   val name: String,
   val serialNumber: String,

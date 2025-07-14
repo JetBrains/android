@@ -155,6 +155,14 @@ bool HasBuildCharacteristic(const char* characteristic, const string& build_char
   return false;
 }
 
+string GetBuildCharacteristics() {
+  char result[PROP_VALUE_MAX] = { 0 };
+  if (__system_property_get("ro.build.characteristics", result) < 1) {
+    return "";
+  }
+  return result;
+}
+
 }  // namespace
 
 void Agent::Initialize(const vector<string>& args) {

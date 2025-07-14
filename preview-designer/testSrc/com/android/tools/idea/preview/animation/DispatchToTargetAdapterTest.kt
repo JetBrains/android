@@ -16,13 +16,13 @@
 package com.android.tools.idea.preview.animation
 
 import com.android.tools.adtui.swing.FakeUi
+import org.junit.Assert.assertEquals
+import org.junit.Test
 import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JPanel
 import kotlin.test.assertNotNull
-import org.junit.Assert.assertEquals
-import org.junit.Test
 
 class DispatchToTargetAdapterTest {
   @Test

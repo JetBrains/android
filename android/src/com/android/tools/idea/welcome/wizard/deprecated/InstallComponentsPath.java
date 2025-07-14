@@ -46,6 +46,7 @@ import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.welcome.wizard.FirstRunWizardTracker;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -175,7 +176,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   @NotNull
   @Override
   public String getPathName() {
-    return "Setup Android Studio Components";
+    return "Setup " + ApplicationNamesInfo.getInstance().getFullProductName() + " Components";
   }
 
   @Override

@@ -1,0 +1,64 @@
+### auto-generated section `build intellij.android.core.gradle.project.sync` start
+load("@community//build:tests-options.bzl", "jps_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "gradle.project.sync_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:guava",
+    "@lib//:junit4",
+    "@lib//:jetbrains-annotations",
+    "@lib//:mockito",
+    "@lib//:mockito-kotlin",
+    "@lib//:protobuf",
+    "@lib//:truth",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/android:core-tests_test_lib",
+    "//android/jps-model",
+    "//android/project-system",
+    "//android/project-system-gradle:projectSystem-gradle",
+    "//android/project-system-gradle-models:projectSystem-gradle-models",
+    "//android/project-system-gradle-sync:projectSystem-gradle-sync",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//plugins/gradle:gradle-common",
+    "//platform/analysis-api:analysis",
+    "//java/testFramework",
+    "//platform/core-api:core",
+    "//platform/core-ui",
+    "//platform/editor/shared:editor",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/extensions",
+    "//platform/external-system-api:externalSystem",
+    "//platform/external-system-impl:externalSystem-impl",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//jps/model-api:model",
+    "//platform/lang-core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/projectModel-impl",
+    "//platform/refactoring",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/usageView",
+    "//platform/util",
+    "//platform/util/jdom",
+    "//platform/util-rt",
+    "//platform/util-rt:util-rt_test_lib",
+    "//xml/dom-openapi:dom",
+  ]
+)
+
+jps_test(
+  name = "gradle.project.sync_test",
+  runtime_deps = [":gradle.project.sync_test_lib"]
+)
+### auto-generated section `build intellij.android.core.gradle.project.sync` end

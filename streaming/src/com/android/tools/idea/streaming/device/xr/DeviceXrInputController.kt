@@ -33,10 +33,10 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import io.ktor.util.collections.ConcurrentMap
 import java.awt.Dimension
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.min
 
 /**
@@ -168,7 +168,7 @@ internal class DeviceXrInputController(private val deviceClient: DeviceClient) :
 @Service(Service.Level.PROJECT)
 internal class DeviceXrInputControllerService(project: Project): Disposable {
 
-  private val xrControllers = ConcurrentMap<DeviceClient, DeviceXrInputController>()
+  private val xrControllers = ConcurrentHashMap<DeviceClient, DeviceXrInputController>()
   private val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
 
   fun getXrInputController(deviceClient: DeviceClient): DeviceXrInputController {

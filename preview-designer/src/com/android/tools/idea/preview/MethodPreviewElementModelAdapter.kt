@@ -27,11 +27,11 @@ import com.intellij.openapi.util.Disposer
 abstract class MethodPreviewElementModelAdapter<
   T : MethodPreviewElement<*>,
   M : NlDataProviderHolder,
->(private val elementKey: DataKey<T>) : PreviewElementModelAdapter<T, M> {
+  >(private val elementKey: DataKey<T>) : PreviewElementModelAdapter<T, M> {
 
   override fun modelToElement(model: M): T? =
     if (!Disposer.isDisposed(model)) {
-      model.dataProvider?.getData(elementKey)
+      model.dataProvider?.getData(elementKey) as? T
     } else null
 
   /**

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.ddmlib.IDevice;
-import org.junit.Test;
-
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.android.ddmlib.IDevice;
+import org.junit.Test;
 
 public class AndroidProfilerToolWindowTest {
 

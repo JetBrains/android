@@ -1,0 +1,18 @@
+### auto-generated section `build intellij.android.device-explorer-common` start
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+jvm_library(
+  name = "device-explorer-common",
+  module_name = "intellij.android.device-explorer-common",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:kotlin-stdlib",
+    "//android/android-common:common",
+    "//platform/core-api:core",
+    "//platform/projectModel-api:projectModel",
+    "//platform/util",
+  ]
+)
+### auto-generated section `build intellij.android.device-explorer-common` end

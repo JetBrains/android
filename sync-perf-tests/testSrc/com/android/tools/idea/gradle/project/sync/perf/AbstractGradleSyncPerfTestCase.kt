@@ -45,7 +45,6 @@ import org.junit.runners.MethodSorters
 import java.io.File
 import java.time.Duration
 import java.time.Instant
-import java.util.ArrayList
 import java.util.Scanner
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Logger
@@ -84,6 +83,7 @@ abstract class AbstractGradleSyncPerfTestCase {
   @Before
   @Throws(Exception::class)
   open fun setUp() {
+    //TODO use CleanVFSExtension for that:
     FSRecords.invalidateCaches("Cleanup before performance test")
     myScheduler = VirtualTimeScheduler()
     myUsageTracker = TestUsageTracker(myScheduler!!)

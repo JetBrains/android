@@ -57,4 +57,24 @@ object AgpIntegrationTestUtil {
       AndroidTestBase.refreshProjectFiles()
     }
   }
+
+  /**
+   * Imports `project`, without invoking sync.
+   */
+  @JvmStatic
+  fun importProjectNoSync(project: Project, jdkVersion: JavaSdkVersion) {
+    GradleProjectImporter.withAfterCreate(
+      afterCreate = { overrideProjectGradleJdkPathWithVersion(Projects.getBaseDirPath(project), jdkVersion) }
+    ) {
+      runInEdtAndWait {
+        val request = GradleProjectImporter.Request(project)
+        configureNewProject(project)
+        GradleProjectImporter.getInstance().importProjectNoSync(request)
+      }
+
+      IndexingTestUtil.waitUntilIndexesAreReady(project);
+      AndroidTestBase.refreshProjectFiles()
+    }
+  }
+
 }

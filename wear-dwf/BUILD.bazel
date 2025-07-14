@@ -1,0 +1,90 @@
+### auto-generated section `build intellij.android.wear-dwf` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "wear-dwf_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "wear-dwf",
+  module_name = "intellij.android.wear-dwf",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "//android/android-common:common",
+    "//android/android:core",
+    "//android/render-resources",
+    "@lib//:studio-platform-provided",
+    "//platform/analysis-api:analysis",
+    "//xml/xml-psi-api:psi",
+    "//platform/core-api:core",
+    "//platform/ide-core",
+    "//platform/util",
+    "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "@lib//:kotlin-stdlib",
+    "//platform/projectModel-api:projectModel",
+    "//platform/editor-ui-api:editor-ui",
+    "//xml/xml-psi-impl:psi-impl",
+    "//xml/dom-openapi:dom",
+    "//platform/platform-api:ide",
+    "//android/project-system",
+    "@lib//:aapt-proto",
+    "//android/apkanalyzer",
+    "@lib//:protobuf",
+    "@lib//:gson",
+  ],
+  runtime_deps = [":wear-dwf_resources"]
+)
+### auto-generated section `build intellij.android.wear-dwf` end
+
+### auto-generated section `build intellij.android.wear-dwf.tests` start
+load("@community//build:tests-options.bzl", "jps_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources", "jvm_test")
+
+jvm_resources(
+  name = "wear-dwf-tests_test_resources",
+  files = glob(["testData/**/*"]),
+  strip_prefix = "testData"
+)
+
+jvm_library(
+  name = "wear-dwf-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  associates = ["//android/wear-dwf"],
+  deps = [
+    "//android/android-common:common",
+    "//android/android:core",
+    "@lib//:kotlin-test",
+    "@lib//:truth",
+    "@lib//:mockito",
+    "@lib//:mockito-kotlin",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "@lib//:studio-test-platform",
+    "@lib//:junit4",
+    "@lib//:studio-platform-provided",
+    "//platform/analysis-api:analysis",
+    "//platform/core-api:core",
+    "//platform/ide-core-impl",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//java/testFramework",
+    "//xml/xml-psi-api:psi",
+    "@lib//:guava",
+    "//xml/dom-openapi:dom",
+    "@lib//:kotlinx-coroutines-test",
+    "//platform/core-ui",
+  ],
+  runtime_deps = [":wear-dwf-tests_test_resources"]
+)
+
+jps_test(
+  name = "wear-dwf-tests_test",
+  runtime_deps = [":wear-dwf-tests_test_lib"]
+)
+### auto-generated section `build intellij.android.wear-dwf.tests` end

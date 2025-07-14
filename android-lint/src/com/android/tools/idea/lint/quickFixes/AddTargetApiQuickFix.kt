@@ -61,6 +61,7 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
+import java.util.Locale
 
 /** Fix which adds a `@TargetApi` annotation at the nearest surrounding method or class. */
 @Suppress("UnstableApiUsage")

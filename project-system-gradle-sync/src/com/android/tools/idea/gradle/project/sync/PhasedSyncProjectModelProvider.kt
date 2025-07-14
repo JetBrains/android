@@ -53,9 +53,9 @@ class PhasedSyncProjectModelProvider : ProjectImportModelProvider {
             controller.findModel(gradleProject, Versions::class.java)
               // TODO(b/384022658): Reconsider this check if we implement a cache between model providers to avoid fetching the models twice
               ?.takeIf { it.isAtLeastAgp8() } ?: return@BuildAction null,
-            controller.findModel(gradleProject, BasicAndroidProject::class.java),
-            controller.findModel(gradleProject, AndroidProject::class.java),
-            controller.findModel(gradleProject, AndroidDsl::class.java)
+            controller.findModel(gradleProject, BasicAndroidProject::class.java)!!,
+            controller.findModel(gradleProject, AndroidProject::class.java)!!,
+            controller.findModel(gradleProject, AndroidDsl::class.java)!!
           )
         }
       }

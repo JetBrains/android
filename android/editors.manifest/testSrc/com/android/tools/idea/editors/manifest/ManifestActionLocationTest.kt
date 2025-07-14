@@ -27,17 +27,22 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
 import java.util.concurrent.TimeUnit
 
+@RunsInEdt
 @RunWith(JUnit4::class)
 class ManifestActionLocationTest {
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule)
 
   private val mergedManifest get() : MergedManifestSnapshot {
     return MergedManifestManager

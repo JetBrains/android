@@ -55,13 +55,13 @@ object RecipeUtils {
 
   @JvmStatic
   @WorkerThread
-  /**
-   * Creates a [RecipeMetadata] for the given [Recipe] for each module in the [Project]
-   *
-   * A [RecipeMetadata] contains information about what will be changed when the recipe is applied
-   * to a module. This can potentially be a slow process (particularly for projects with a lot of
-   * modules) as it does a bunch of file I/O for each module.
-   */
+    /**
+     * Creates a [RecipeMetadata] for the given [Recipe] for each module in the [Project]
+     *
+     * A [RecipeMetadata] contains information about what will be changed when the recipe is applied
+     * to a module. This can potentially be a slow process (particularly for projects with a lot of
+     * modules) as it does a bunch of file I/O for each module.
+     */
   fun getRecipeMetadata(recipe: Recipe, project: Project): List<RecipeMetadata> {
     val key = Pair(recipe, project)
 
@@ -83,12 +83,12 @@ object RecipeUtils {
 
   @JvmStatic
   @UiThread
-  /**
-   * Executes the given [Recipe] in the context of the given [Module]
-   *
-   * Any new files that are generated will be saved in a unique temporary directory that will be
-   * deleted either by the operating system or when the virtual machine terminates
-   */
+    /**
+     * Executes the given [Recipe] in the context of the given [Module]
+     *
+     * Any new files that are generated will be saved in a unique temporary directory that will be
+     * deleted either by the operating system or when the virtual machine terminates
+     */
   fun execute(recipe: Recipe, module: Module) {
     val moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module)!!
     val rootPath = File(FileUtil.generateRandomTemporaryPath(), "unused")
@@ -183,8 +183,8 @@ object RecipeUtils {
           ) {
             if (
               tagName == SdkConstants.TAG_USES_PERMISSION ||
-                tagName == SdkConstants.TAG_USES_PERMISSION_SDK_23 ||
-                tagName == SdkConstants.TAG_USES_PERMISSION_SDK_M
+              tagName == SdkConstants.TAG_USES_PERMISSION_SDK_23 ||
+              tagName == SdkConstants.TAG_USES_PERMISSION_SDK_M
             ) {
               // Most permissions are "android.permission.XXX", so for readability, just remove the
               // prefix if present

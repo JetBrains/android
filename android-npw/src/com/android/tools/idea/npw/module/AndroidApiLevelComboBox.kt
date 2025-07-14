@@ -19,7 +19,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.util.concurrency.ThreadingAssertions
 import java.awt.event.ItemEvent
 import java.awt.event.ItemListener
 import javax.swing.JComboBox
@@ -31,7 +31,7 @@ class AndroidApiLevelComboBox : JComboBox<VersionItem?>() {
   private lateinit var formFactor: FormFactor
 
   fun init(newFormFactor: FormFactor, items: List<VersionItem>) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
     val isSameFormFactor = ::formFactor.isInitialized && formFactor == newFormFactor
     formFactor = newFormFactor
     name = "minSdkComboBox" // Name used for testing

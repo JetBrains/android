@@ -55,8 +55,11 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <toolWindow factoryClass="com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory"
-                id="Layout Validation" anchor="right" icon="StudioIcons.Shell.ToolWindows.MULTI_PREVIEW" canCloseContents="false" />
+    <android.toolWindow factoryClass="com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory"
+                        id="Layout Validation"
+                        anchor="right"
+                        icon="StudioIcons.Shell.ToolWindows.MULTI_PREVIEW"
+                        canCloseContents="false" />
 
     <projectService serviceInterface="com.android.tools.idea.common.error.DesignerCommonIssuePanelModelProvider"
                     serviceImplementation="com.android.tools.idea.common.error.AsyncDesignerCommonIssuePanelModelProvider"/>
@@ -91,12 +94,6 @@
     <moduleService serviceImplementation="com.android.tools.idea.uibuilder.palette.NlPaletteModel" />
   </extensions>
 
-  <module-components>
-    <component>
-      <implementation-class>com.android.tools.idea.uibuilder.palette.NlPaletteModel</implementation-class>
-    </component>
-  </module-components>
-
   <!-- The design tool actions which the shortcuts are configurable. -->
   <!-- The action ids should be listed in com.android.tools.idea.actions.DesignerActions.kt file  -->
   <actions resource-bundle="messages.AndroidDesignerActionsBundle">
@@ -127,11 +124,11 @@
 
     <!-- Layout Editor specific actions -->
     <group id="Android.Designer.LayoutEditorActions" text="Layout Editor">
-      <action id="Android.Designer.SwitchLayoutQualifier"
-              class="com.android.tools.idea.uibuilder.actions.LayoutQualifierDropdownMenu"
-              text="Switch Layout Qualifier"
-              description="Switch or create the new qualifier for current layout">
-      </action>
+      <group id="Android.Designer.SwitchLayoutQualifier"
+             class="com.android.tools.idea.uibuilder.actions.LayoutQualifierDropdownMenu"
+             text="Switch Layout Qualifier"
+             description="Switch or create the new qualifier for current layout">
+      </group>
       <action id="Android.Designer.SwitchDesignMode"
               icon="StudioIcons.LayoutEditor.Toolbar.VIEW_MODE"
               class="com.android.tools.idea.uibuilder.actions.SwitchToNextScreenViewProviderAction"

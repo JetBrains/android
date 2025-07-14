@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.refactoring;
 
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
+
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -28,8 +30,6 @@ import com.intellij.refactoring.rename.RenameInputValidatorEx;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 
 /**
  * Issues a warning if a user tries to rename source root of a gradle-backed module

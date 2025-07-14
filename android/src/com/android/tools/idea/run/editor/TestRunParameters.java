@@ -293,7 +293,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myAllInPackageTestButton.setActionCommand(
       getMessageFromBundle("messages/ExecutionBundle", "jnit.configuration.all.tests.in.package.radio"));
     loadButtonText(myAllInPackageTestButton,
-                              getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.all.in.package.radio"));
+                   getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.all.in.package.radio"));
     myContentPanel.add(myAllInPackageTestButton, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                                      null, null, null, 0, false));
@@ -302,7 +302,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myClassTestButton.setEnabled(true);
     myClassTestButton.setSelected(false);
     loadButtonText(myClassTestButton,
-                              getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.class.radio"));
+                   getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.class.radio"));
     myContentPanel.add(myClassTestButton, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
                                                               null, null, 0, false));
@@ -311,7 +311,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
       getMessageFromBundle("messages/ExecutionBundle", "junit.configuration.test.method.radio"));
     myMethodTestButton.setSelected(false);
     loadButtonText(myMethodTestButton,
-                              getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.method.radio"));
+                   getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.method.radio"));
     myContentPanel.add(myMethodTestButton, new GridConstraints(0, 4, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
                                                                null, null, 0, false));
@@ -320,7 +320,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     jBLabel1.setHorizontalTextPosition(2);
     jBLabel1.setIconTextGap(4);
     loadLabelText(jBLabel1,
-                             getMessageFromBundle("messages/ExecutionBundle", "junit.configuration.configure.junit.test.label"));
+                  getMessageFromBundle("messages/ExecutionBundle", "junit.configuration.configure.junit.test.label"));
     myContentPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                      GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null,
                                                      0, false));
@@ -330,7 +330,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
                                                     null, null, 0, false));
     myAllInModuleTestButton = new JRadioButton();
     loadButtonText(myAllInModuleTestButton,
-                              getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.all.in.module.radio"));
+                   getMessageFromBundle("messages/AndroidBundle", "android.run.configuration.all.in.module.radio"));
     myContentPanel.add(myAllInModuleTestButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                                     GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED,
                                                                     null, null, null, 0, false));

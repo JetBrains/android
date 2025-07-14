@@ -23,6 +23,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import org.jetbrains.annotations.NotNull;
 
 public class AbstractBaselineInspection extends AndroidLintInspectionBase {
@@ -41,6 +42,7 @@ public class AbstractBaselineInspection extends AndroidLintInspectionBase {
     // from there we can invoke it. There's one wrinkle: we need to persist the analysis scope. Luckily
     // we only need to do this very temporarily (from the rerun action to the LintGlobalInspectionContext
     // processes it.)
+    ThreadingAssertions.assertEventDispatchThread();
     ApplicationManager.getApplication().invokeLater(
       () -> {
         ApplicationManager.getApplication().assertIsDispatchThread();

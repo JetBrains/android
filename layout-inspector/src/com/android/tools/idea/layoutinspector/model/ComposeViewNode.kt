@@ -17,11 +17,11 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
+import org.jetbrains.annotations.TestOnly
 import java.awt.Rectangle
 import java.awt.Shape
 import kotlin.math.absoluteValue
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
-import org.jetbrains.annotations.TestOnly
 
 // Flags in ComposeViewNode.composeFlags
 const val FLAG_SYSTEM_DEFINED =

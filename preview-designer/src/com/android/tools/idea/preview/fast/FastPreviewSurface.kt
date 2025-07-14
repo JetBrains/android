@@ -136,7 +136,7 @@ class CommonFastPreviewSurface(
       previewStatusProvider(),
       fastPreviewCompilationLauncher,
     ) { outputAbsolutePath ->
-      ModuleClassLoaderOverlays.getInstance(previewFileBuildTargetReference)
+      ModuleClassLoaderOverlays.getInstance(previewFileAndroidModule)
         .pushOverlayPath(File(outputAbsolutePath).toPath())
       delegateRefresh()
     }

@@ -22,10 +22,9 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.CheckBoxListListener;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class PsCheckBoxList<T> extends CheckBoxList<T> {
   @NotNull private final List<CheckBoxListListener> myListeners = Lists.newCopyOnWriteArrayList();

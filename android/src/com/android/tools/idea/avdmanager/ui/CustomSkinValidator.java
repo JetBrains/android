@@ -24,7 +24,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-final class CustomSkinValidator implements Validator<Optional<Path>> {
+public final class CustomSkinValidator implements Validator<Optional<Path>> {
   private final @NotNull ObservableBool mySelectedSkinLargeEnough;
   private final @NotNull ObservableBool myEnableDeviceFrame;
 
@@ -33,7 +33,7 @@ final class CustomSkinValidator implements Validator<Optional<Path>> {
     myEnableDeviceFrame = builder.myEnableDeviceFrame;
   }
 
-  static final class Builder {
+  public static final class Builder {
     private ObservableBool mySelectedSkinLargeEnough;
     private @NotNull ObservableBool myEnableDeviceFrame = ObservableBool.TRUE;
 

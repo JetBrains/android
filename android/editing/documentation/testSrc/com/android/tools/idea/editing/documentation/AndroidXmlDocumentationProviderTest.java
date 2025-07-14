@@ -17,7 +17,7 @@ package com.android.tools.idea.editing.documentation;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.codeInsight.navigation.CtrlMouseHandler;

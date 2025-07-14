@@ -20,9 +20,9 @@ import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.ThemingStyle
 import com.android.mockito.kotlin.whenever
+import com.android.test.testutils.TestUtils
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType

@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.observable;
 
+import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.TestCase.fail;
+
 import com.google.common.base.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.TestCase.fail;
 
 public final class BatchInvokerTest {
 

@@ -15,17 +15,16 @@
  */
 package com.android.tools.swingp;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-
 import java.util.HashSet;
 import java.util.Set;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 public class RenderStatsManagerTest {
   @Test

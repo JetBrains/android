@@ -28,10 +28,10 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
-import javax.swing.JCheckBox
-import javax.swing.JPanel
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JCheckBox
+import javax.swing.JPanel
 import org.mockito.kotlin.mock
 
 class LayoutInspectorConfigurableProviderTest {

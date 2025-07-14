@@ -27,7 +27,6 @@ import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.details.JetifierWarningDetailsView
 import com.android.buildanalyzer.common.TaskCategory
-import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.ui.awt.RelativePoint
 import java.util.function.Supplier

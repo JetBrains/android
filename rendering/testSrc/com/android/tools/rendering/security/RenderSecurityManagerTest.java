@@ -15,47 +15,51 @@
  */
 package com.android.tools.rendering.security;
 
+import static com.google.common.truth.Truth.assertThat;
+import static java.io.File.separator;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import com.android.ide.common.resources.RecordingLogger;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.utils.SdkUtils;
-import com.google.common.base.Predicates;
 import com.google.common.io.Files;
 import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.util.Disposer;
-import java.io.IOException;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import java.nio.charset.Charset;
-import java.nio.file.Path;
-import java.util.UUID;
-import java.util.function.Supplier;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
+import com.intellij.openapi.extensions.ExtensionPoint;
+import com.intellij.openapi.util.Disposer;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FilePermission;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.security.Permission;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.google.common.truth.Truth.assertThat;
-import static java.io.File.separator;
-import static org.junit.Assert.*;
+import java.util.function.Supplier;
+import javax.imageio.ImageIO;
+import javax.swing.SwingUtilities;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
 @Ignore("Calls System.setSecurityManager which is not supported by GoogleTestSecurityManager that runs in bazel")
 public class RenderSecurityManagerTest {

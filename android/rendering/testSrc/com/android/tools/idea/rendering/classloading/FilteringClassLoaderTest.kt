@@ -19,7 +19,7 @@ import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.classloading.loaders.StaticLoader
 import org.junit.Assert.fail
 import org.junit.Test
-import org.objectweb.asm.Type
+import org.jetbrains.org.objectweb.asm.Type
 
 class A1
 

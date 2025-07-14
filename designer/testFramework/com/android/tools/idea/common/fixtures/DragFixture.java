@@ -18,8 +18,10 @@ package com.android.tools.idea.common.fixtures;
 import static org.mockito.Mockito.mock;
 
 import com.android.sdklib.AndroidCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DragEnterEvent;
 import com.android.tools.idea.common.surface.DragOverEvent;
 import com.android.tools.idea.common.surface.DropEvent;
@@ -27,21 +29,18 @@ import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.InteractionNonInputEvent;
 import com.android.tools.idea.common.surface.KeyPressedEvent;
 import com.android.tools.idea.common.surface.KeyReleasedEvent;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.interaction.DragDropInteraction;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.interaction.DragDropInteraction;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DropTargetContext;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
-import org.intellij.lang.annotations.MagicConstant;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
+import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Fixture to simulate dragging across swing components. See {@link java.awt.dnd.DropTargetListener}.

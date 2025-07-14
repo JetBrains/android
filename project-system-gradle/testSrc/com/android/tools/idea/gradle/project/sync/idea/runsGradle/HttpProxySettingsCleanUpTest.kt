@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.idea.runsGradle
 import com.android.tools.idea.gradle.util.PropertiesFiles
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
 import org.junit.After
 import org.junit.Before
@@ -65,7 +64,7 @@ class HttpProxySettingsCleanUpTest {
 
   private fun getUserGradlePropertiesFile(): File {
     val home = System.getProperty("user.home")
-    return File(File(home), FileUtil.toSystemDependentName(".gradle/gradle.properties"))
+    return File(File(home), FileUtilRt.toSystemDependentName(".gradle/gradle.properties"))
   }
 
 }

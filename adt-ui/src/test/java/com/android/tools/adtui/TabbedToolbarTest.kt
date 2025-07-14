@@ -16,7 +16,6 @@
 package com.android.tools.adtui
 
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt

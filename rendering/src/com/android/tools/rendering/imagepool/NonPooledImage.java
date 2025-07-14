@@ -18,15 +18,16 @@ package com.android.tools.rendering.imagepool;
 import static com.android.tools.rendering.imagepool.ImagePoolUtil.stackTraceToAssertionString;
 
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-class NonPooledImage implements ImagePool.Image, DisposableImage {
+public class NonPooledImage implements ImagePool.Image, DisposableImage {
   private static final Logger LOG = Logger.getInstance(NonPooledImage.class);
   // Track dispose call when assertions are enabled
   private static final boolean ourTrackDisposeCall = NonPooledImage.class.desiredAssertionStatus();

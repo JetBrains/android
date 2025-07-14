@@ -19,7 +19,7 @@ import com.intellij.openapi.util.text.Formats
 import java.time.Duration
 
 /**
- * Converts the given duration to a display string that contains minutes (if the duration is greater than 60s), seconds and
+ * Converts the given duration to a display string that contains minutes (if the duration is greater than 60s), seconds, and
  * milliseconds.
  */
 fun Duration.toDisplayString(): String {

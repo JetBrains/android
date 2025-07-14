@@ -39,13 +39,13 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.util.lang.JavaVersion
-import java.io.File
-import java.io.IOException
-import java.security.InvalidParameterException
 import org.jetbrains.android.uipreview.EditorUtil.openEditor
 import org.jetbrains.android.uipreview.EditorUtil.selectEditor
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
+import java.io.File
+import java.io.IOException
+import java.security.InvalidParameterException
 
 /** Utility methods pertaining to templates for projects, modules, and activities. */
 object TemplateUtils {

@@ -17,17 +17,12 @@
 package com.android.tools.idea.gradle.model
 
 import com.android.ide.common.gradle.Component
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
-import com.android.tools.idea.projectsystem.gradle.convertLibraryToExternalLibrary
-import com.android.tools.idea.gradle.project.sync.ModelCache
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
-import com.android.projectmodel.DynamicResourceValue
 import com.android.projectmodel.RecursiveResourceFolder
-import com.android.resources.ResourceType
-import com.android.tools.idea.gradle.model.impl.IdeClassFieldImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.projectsystem.gradle.convertLibraryToExternalLibrary
 import com.google.common.truth.Expect
-import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import java.io.File

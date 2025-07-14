@@ -1,0 +1,48 @@
+### auto-generated section `build intellij.android.device.tests` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@community//build:tests-options.bzl", "jps_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+create_kotlinc_options(
+  name = "custom",
+  context_receivers = True
+)
+
+jvm_library(
+  name = "device-tests",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True)
+)
+
+jvm_library(
+  name = "device-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  kotlinc_opts = ":custom",
+  associates = ["//android/intellij.android.device:device"],
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:kotlin-stdlib",
+    "@lib//:junit4",
+    "@lib//:mockito",
+    "@lib//:guava",
+    "@lib//:truth",
+    "@lib//:kotlinx-coroutines-core",
+    "@lib//:kotlinx-collections-immutable",
+    "//android/adt-ui-compose",
+    "//android/adt-ui-compose:adt-ui-compose_test_lib",
+    "//android/android:core",
+    "//platform/core-api:core",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//android/artwork-compose",
+  ],
+  plugins = ["@lib//:compose-plugin"]
+)
+
+jps_test(
+  name = "device-tests_test",
+  runtime_deps = [":device-tests_test_lib"]
+)
+### auto-generated section `build intellij.android.device.tests` end

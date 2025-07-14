@@ -26,13 +26,19 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import org.jetbrains.android.actions.*;
+import java.util.Collection;
+import java.util.function.Function;
+import org.jetbrains.android.actions.CreateResourceDirectoryDialog;
+import org.jetbrains.android.actions.CreateResourceDirectoryDialogBase;
+import org.jetbrains.android.actions.CreateResourceFileDialog;
+import org.jetbrains.android.actions.CreateResourceFileDialogBase;
+import org.jetbrains.android.actions.CreateTypedResourceFileAction;
+import org.jetbrains.android.actions.CreateXmlResourcePanel;
+import org.jetbrains.android.actions.CreateXmlResourcePanelImpl;
+import org.jetbrains.android.actions.NewResourceCreationHandler;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.function.Function;
 
 /**
  * Decides which create resource dialogs to use for Gradle projects.

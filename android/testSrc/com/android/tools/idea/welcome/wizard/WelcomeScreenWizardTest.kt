@@ -345,8 +345,8 @@ class WelcomeScreenWizardTest {
 
     val canContinueLoading = CompletableFuture<Boolean>()
     whenever(
-        fakeRepoManager.loadSynchronously(any(), anyOrNull(), any(), any(), any(), any(), any())
-      )
+      fakeRepoManager.loadSynchronously(any(), anyOrNull(), any(), any(), any(), any(), any())
+    )
       .doAnswer { kInvocationOnMock: KInvocationOnMock ->
         canContinueLoading.get()
         kInvocationOnMock.callRealMethod()

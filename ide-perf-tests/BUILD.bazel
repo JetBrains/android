@@ -1,0 +1,51 @@
+### auto-generated section `build intellij.android.ide-perf-tests` start
+load("@community//build:tests-options.bzl", "jps_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+jvm_library(
+  name = "ide-perf-tests_test_lib",
+  visibility = ["//visibility:public"],
+  srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:studio-platform-provided",
+    "@lib//:studio-test-platform",
+    "@lib//:junit4",
+    "//android/android-test-framework:testFramework_test_lib",
+    "//android/android:core",
+    "//android/adt-testutils:adt-testutils_test_lib",
+    "//android/android-plugin:plugin_test_lib",
+    "@lib//:truth",
+    "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "//platform/editor-ui-api:editor-ui",
+    "//platform/lang-impl",
+    "//android/intellij.android.testutils:testutils_test_lib",
+    "//java/java-frontback-psi-impl:frontback-psi-impl",
+    "//java/java-psi-api:psi",
+    "//platform/analysis-api:analysis",
+    "//platform/analysis-impl",
+    "//platform/core-api:core",
+    "//platform/core-impl",
+    "//platform/ide-core",
+    "//platform/platform-impl:ide-impl",
+    "//platform/platform-impl:ide-impl_test_lib",
+    "//platform/indexing-api:indexing",
+    "//platform/projectModel-api:projectModel",
+    "//platform/testFramework",
+    "//platform/testFramework:testFramework_test_lib",
+    "//platform/testFramework/common",
+    "//platform/util",
+    "//platform/util:util-ui",
+    "//xml/xml-psi-impl:psi-impl",
+    "//plugins/kotlin/base/util",
+    "//plugins/kotlin/base/util:util_test_lib",
+    "//plugins/kotlin/base/plugin",
+    "//plugins/kotlin/base/plugin:plugin_test_lib",
+    "//plugins/toml/core",
+  ]
+)
+
+jps_test(
+  name = "ide-perf-tests_test",
+  runtime_deps = [":ide-perf-tests_test_lib"]
+)
+### auto-generated section `build intellij.android.ide-perf-tests` end

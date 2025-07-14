@@ -17,9 +17,8 @@ package com.android.tools.idea.gradle.structure.configurables.issues;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.intellij.ui.HyperlinkAdapter;
-import org.jetbrains.annotations.NotNull;
-
 import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class NavigationHyperlinkListener extends HyperlinkAdapter {
   @NotNull private final PsContext myContext;

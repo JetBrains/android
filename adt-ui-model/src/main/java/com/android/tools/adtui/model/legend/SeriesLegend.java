@@ -21,20 +21,18 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.google.common.annotations.VisibleForTesting;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Render data used for displaying LineChart data. In particular, it will show the most recent data in the RangedContinuousSeries
  * based on the max value of the input range.
  */
 public final class SeriesLegend implements Legend {
-
-  @VisibleForTesting final static String UNAVAILABLE_MESSAGE = "N/A";
+  public @VisibleForTesting final static String UNAVAILABLE_MESSAGE = "N/A";
 
   @NotNull private final Range myRange;
   @NotNull private final RangedContinuousSeries mySeries;

@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.PREFIX_THEME_REF;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
@@ -26,21 +30,16 @@ import com.android.utils.XmlUtils;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.AndroidTestCase;
-import org.w3c.dom.Node;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.SdkConstants.PREFIX_THEME_REF;
-import static com.google.common.truth.Truth.assertThat;
+import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import org.jetbrains.android.AndroidTestCase;
+import org.w3c.dom.Node;
 
 public class GutterIconFactoryTest extends AndroidTestCase {
 

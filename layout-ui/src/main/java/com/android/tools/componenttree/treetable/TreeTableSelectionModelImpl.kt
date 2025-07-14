@@ -17,8 +17,8 @@ package com.android.tools.componenttree.treetable
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
+import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.tree.TreeUtil
 import javax.swing.tree.DefaultTreeSelectionModel
@@ -85,7 +85,7 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
   @UiThread
   fun update(operation: () -> Unit) {
     // Protect the "isUpdating" var against multi threading:
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     val wasUpdating = isUpdating
     isUpdating = true

@@ -18,11 +18,10 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.structure.PsdGradleFileModelTestCase
 import com.android.tools.idea.gradle.structure.MODEL_LIST_PROPERTY_IMPL_PROPERTY_VALUES
 import com.android.tools.idea.gradle.structure.MODEL_LIST_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY
 import com.android.tools.idea.gradle.structure.MODEL_LIST_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY_EXPECTED
-import com.android.tools.idea.gradle.structure.MODEL_MAP_PROPERTY_IMPL_PROPERTY_VALUES
+import com.android.tools.idea.gradle.structure.PsdGradleFileModelTestCase
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.helpers.parseInt
 import com.android.tools.idea.gradle.structure.model.helpers.parseString

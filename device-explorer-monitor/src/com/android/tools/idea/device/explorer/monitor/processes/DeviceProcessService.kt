@@ -37,6 +37,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.ThreadingAssertions
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.nio.file.Path
@@ -138,6 +139,8 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
   }
 
   suspend fun debugProcess(project: Project, process: ProcessInfo, device: IDevice) {
+    ThreadingAssertions.assertEventDispatchThread()
+
     if (process.device.serialNumber == device.serialNumber) {
       withContext(workerThreadDispatcher) {
         val client = device.getClient(process.safeProcessName)

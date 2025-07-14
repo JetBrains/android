@@ -20,14 +20,19 @@
   Adds support for building native UI on Android via the <a href="https://developer.android.com/jetpack/compose">Jetpack Compose</a> toolkit.
 ]]></description>
   <category>Android</category>
-  <vendor url="http://www.android.com">Android, JetBrains</vendor>
+  <vendor url="https://www.android.com">JetBrains, Google</vendor>
 
   <depends>org.jetbrains.android</depends>
   <depends>com.intellij.java</depends>
   <depends>org.jetbrains.kotlin</depends>
-  <dependencies>
-    <module name="intellij.json.split"/>
-  </dependencies>
+  <depends>com.intellij.modules.json</depends>
+
+  <change-notes><![CDATA[
+    This release contains updates from Android Studio Narwhal Canary 3.
+
+    For detailed information, please refer to the release notes available at:
+    <a href="https://androidstudio.googleblog.com/2024/08/android-studio-narwhal-202511-canary-3.html">Android Studio Ladybug Canary 7</a>.]]>
+  </change-notes>
 
   <extensions defaultExtensionNs="com.intellij">
     <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>

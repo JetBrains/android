@@ -16,7 +16,6 @@
 package com.android.tools.idea.model;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;

@@ -29,10 +29,10 @@ import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth
-import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.coroutineToIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -87,9 +87,11 @@ class AllVariantsSyncWithGradleSyncExecutorTest : SnapshotComparisonTest {
     Truth.assertThat(svsAndroidModel!!.variants.size).isEqualTo(1)
 
     // Run AllVariantsSync using the GradleSyncExecutor.
-    val gradleModules = ProgressManager.getInstance().runProcessWithProgressSynchronously(ThrowableComputable {
-      syncExecutor.fetchGradleModels()
-    }, "Test Run AllVariantsSync", false, project)
+    val gradleModules = runWithModalProgressBlocking(project, "Test Android Gradle Sync") {
+      coroutineToIndicator {
+        syncExecutor.fetchGradleModels()
+      }
+    }
     val allVariantsSyncAndroidModel = gradleModules.modules[0].findModel(GradleAndroidModelData::class.java)
     Truth.assertThat(allVariantsSyncAndroidModel).isNotNull()
     // Assert that we fetched all the variants of the module in this case.

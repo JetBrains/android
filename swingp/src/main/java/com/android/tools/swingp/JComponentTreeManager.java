@@ -17,14 +17,14 @@ package com.android.tools.swingp;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Container;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A side-channel per-thread local storage to store fragments of Swing hierarchy information for Swing hierarchy tree serialization.
@@ -32,7 +32,9 @@ import java.util.Stack;
  * Render passes over a Swing tree are sparse, skipping some elements, so this class provides the path between the current
  * node and the most recently rendered parent.
  */
-class JComponentTreeManager {
+@ApiStatus.Internal
+@VisibleForTesting
+public final class JComponentTreeManager {
   // It's theoretically possible to have more than one Swing EDTs.
   private static final ThreadLocal<Stack<JComponent>> ourStack = ThreadLocal.withInitial(() -> new Stack<>());
   private static boolean ourIsEnabled;

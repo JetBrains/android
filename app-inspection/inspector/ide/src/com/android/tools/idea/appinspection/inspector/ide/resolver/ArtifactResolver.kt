@@ -16,8 +16,8 @@
 package com.android.tools.idea.appinspection.inspector.ide.resolver
 
 import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
-import java.nio.file.Path
 import kotlinx.coroutines.runBlocking
+import java.nio.file.Path
 
 /** A class that handles the downloading of gradle/maven artifacts. */
 interface ArtifactResolver {

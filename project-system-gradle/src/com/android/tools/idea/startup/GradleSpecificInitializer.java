@@ -39,6 +39,8 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.jetbrains.plugins.gradle.service.syncContributor.bridge.GradleBridgeProjectDataService;
+import org.jetbrains.plugins.gradle.service.execution.GradleTaskExecutionMeasuringExtension;
+import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelperExtension;
 
 /**
  * Performs Gradle-specific IDE initialization
@@ -55,6 +57,9 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
       cleanProjectJdkTableForNewIdeVersion();
       migrateAgpUpgradeAssistantSettingForNewIdeVersion();
     }
+    // Disable the extension because it causes performance issues, see http://b/298372819.
+    //noinspection UnstableApiUsage
+    GradleExecutionHelperExtension.EP_NAME.getPoint().unregisterExtension(GradleTaskExecutionMeasuringExtension.class);
 
     useIdeGooglePlaySdkIndexInGradleDetector();
     initializePhasedSync();
@@ -72,6 +77,7 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
       ProjectDataService.EP_NAME.getPoint().unregisterExtension(GradleBridgeProjectDataService.class);
     }
   }
+
 
   /**
    * The definition of <tt>jar:</tt> scheme URLs uses the sequence <tt>!/</tt> as a separator between the inner URL pointing to a jar

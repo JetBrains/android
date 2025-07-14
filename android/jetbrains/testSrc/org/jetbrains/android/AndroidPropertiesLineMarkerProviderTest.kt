@@ -25,7 +25,7 @@ import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.descendants
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.plugins.gradle.properties.GRADLE_PROPERTIES_FILE_NAME
+import org.jetbrains.plugins.gradle.util.GradleConstants.GRADLE_PROPERTIES_FILE_NAME
 import org.mockito.Mockito.verify
 import org.mockito.kotlin.mock
 import java.awt.event.MouseEvent

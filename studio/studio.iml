@@ -3,7 +3,6 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/monobuild/out" />
     </content>
     <orderEntry type="inheritedJdk" />
@@ -26,8 +25,5 @@
     <orderEntry type="module" module-name="aiplugin.android-plugin" />
     <orderEntry type="module" module-name="aiplugin.experimental" />
     <orderEntry type="module" module-name="studio-sdk-all-plugins" />
-    <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
-    <orderEntry type="module" module-name="aiplugin.mcp.server" />
   </component>
 </module>

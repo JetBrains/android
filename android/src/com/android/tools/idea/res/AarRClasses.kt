@@ -33,16 +33,16 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiManager
-import java.io.File
-import java.io.IOException
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.AAR_ADDRESS_KEY
 import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.LIGHT_CLASS_KEY
 import org.jetbrains.android.augment.AndroidLightClassBase
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.augment.InnerRClassBase
 import org.jetbrains.android.augment.StyleableAttrFieldUrl
+import java.io.File
+import java.io.IOException
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Top-level R class for an AARv2 used in namespaced mode, backed by the AAR [ResourceRepository]

@@ -15,9 +15,10 @@
  */
 package com.android.tools.swingp.instrumenter;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Window;
 import java.lang.instrument.Instrumentation;
+import javax.swing.JComponent;
+import javax.swing.RepaintManager;
 
 public class Agent {
   public static void premain(String agentArgs, Instrumentation instrumentation) {

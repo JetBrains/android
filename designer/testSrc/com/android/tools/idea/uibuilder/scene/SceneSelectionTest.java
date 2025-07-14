@@ -21,7 +21,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.event.InputEvent;
 import java.util.List;
 
 import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;

@@ -83,7 +83,7 @@ public class MultiDexKeepParserDefinition implements ParserDefinition {
 
   @NotNull
   @Override
-  public PsiFile createFile(FileViewProvider viewProvider) {
+  public PsiFile createFile(@NotNull FileViewProvider viewProvider) {
     return new MultiDexKeepFile(viewProvider);
   }
 }

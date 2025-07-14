@@ -18,11 +18,11 @@ package com.android.tools.idea.logcat.messages
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.ui.JBColor
+import junit.framework.TestCase.fail
+import org.junit.Test
 import java.awt.Color
 import java.util.concurrent.atomic.AtomicInteger
-import junit.framework.TestCase.fail
 import kotlin.concurrent.thread
-import org.junit.Test
 
 /** Tests for [LogcatColors] */
 class LogcatColorsTest {

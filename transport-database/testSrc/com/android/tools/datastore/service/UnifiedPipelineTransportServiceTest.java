@@ -25,10 +25,11 @@ import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.database.UnifiedEventsTable;
+import com.android.tools.idea.io.grpc.Channel;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.Event;
-import com.android.tools.profiler.proto.Common.Stream;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.ExecuteRequest;
@@ -41,8 +42,6 @@ import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.Transport.VersionRequest;
 import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import com.android.tools.idea.io.grpc.Channel;
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -219,11 +218,6 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
                                 .setPid(1)
                                 .build());
       responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getEventGroups(GetEventGroupsRequest request, StreamObserver<GetEventGroupsResponse> responseObserver) {
-      super.getEventGroups(request, responseObserver);
     }
   }
 }

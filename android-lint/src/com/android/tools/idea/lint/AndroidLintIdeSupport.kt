@@ -69,7 +69,7 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.isGradleFile
 import org.toml.lang.psi.TomlFileType
 
-class AndroidLintIdeSupport : LintIdeSupport() {
+open class AndroidLintIdeSupport : LintIdeSupport() {
   override fun getIssueRegistry() = AndroidLintIdeIssueRegistry()
 
   override fun getBaselineFile(client: LintIdeClient, module: Module): File? {
@@ -159,13 +159,13 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     return AndroidLintIdeProject.createForSingleFile(client, file, module)
   }
 
-  override fun createClient(project: Project, lintResult: LintResult) =
+  override fun createClient(project: Project, lintResult: LintResult): LintIdeClient =
     AndroidLintIdeClient(project, lintResult)
 
-  override fun createBatchClient(lintResult: LintBatchResult) =
+  override fun createBatchClient(lintResult: LintBatchResult): LintIdeClient =
     AndroidLintIdeClient(lintResult.project, lintResult)
 
-  override fun createEditorClient(lintResult: LintEditorResult) =
+  override fun createEditorClient(lintResult: LintEditorResult): LintIdeClient =
     AndroidLintIdeClient(lintResult.getModule().project, lintResult)
 
   override fun createIsolatedClient(

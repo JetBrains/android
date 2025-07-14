@@ -16,9 +16,9 @@
 package com.android.tools.idea.rendering.classloading
 
 import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
 
 /**
  * Replaces all the occurrences of constructors and superclasses of [fromFqcn] class with the [toFqcn] class. It is the

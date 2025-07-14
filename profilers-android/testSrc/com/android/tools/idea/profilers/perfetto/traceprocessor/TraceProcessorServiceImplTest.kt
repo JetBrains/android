@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.android.tools.idea.profilers.performance.TraceProcessorDaemonBenchmarkTest.Companion.fakeProcess
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
@@ -26,9 +27,8 @@ import com.android.utils.Pair
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
-import com.intellij.openapi.util.io.FileUtil
-import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.DisposableRule
 import org.junit.Assert.fail
 import org.junit.Rule

@@ -39,7 +39,6 @@ import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Link
-import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 fun PastRecordingsBanner(onBannerClose: () -> Unit, onBannerDoNotAskAgainClick: () -> Unit) {
