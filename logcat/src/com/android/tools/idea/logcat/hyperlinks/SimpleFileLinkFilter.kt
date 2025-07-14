@@ -23,6 +23,7 @@ import com.intellij.execution.filters.HyperlinkInfoFactory
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.PsiShortNamesCache
+import java.util.concurrent.CancellationException
 import kotlin.text.RegexOption.IGNORE_CASE
 
 // Only include Java and Kotlin files because logs tend to have a lot of irrelevant
@@ -64,6 +65,9 @@ internal class SimpleFileLinkFilter(private val project: Project) : Filter, Dumb
         else -> Result(items)
       }
     } catch (e: Exception) {
+      if (e is CancellationException) {
+        throw e
+      }
       LOGGER.warn("Error detecting hyperlinks", e)
       return null
     }

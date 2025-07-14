@@ -31,6 +31,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Expirable
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.concurrency.AppExecutorUtil
+import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutorService
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -74,6 +75,9 @@ internal class EditorHyperlinkDetector(
     try {
       editorHyperlinkSupport.highlightHyperlinksLater(filter, startLine, endLine, expirableToken)
     } catch (e: Exception) {
+      if (e is CancellationException) {
+        throw e
+      }
       LOGGER.warn("Error detecting hyperlinks", e)
     }
   }
