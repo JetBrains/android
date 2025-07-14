@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.proguardR8
 
 import com.android.tools.idea.lang.proguardR8.inspections.AffectedClassesProjectService
+import com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspection.Companion.CLASSES_AFFECTED_LIMIT
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
@@ -124,7 +125,8 @@ class AffectedClassesProjectServiceTest {
   fun matchAllModuleSources() {
     val count = affectedClassesProjectService()
       .affectedClassesForQualifiedName(
-        qualifiedPattern = "**.*"
+        qualifiedPattern = "**.*",
+        limit = CLASSES_AFFECTED_LIMIT
       )
     assertThat(count).isEqualTo(/* expected = */ 5)
   }
@@ -133,7 +135,8 @@ class AffectedClassesProjectServiceTest {
   fun matchPackageA() {
     val count = affectedClassesProjectService()
       .affectedClassesForQualifiedName(
-        qualifiedPattern = "com.packageA.**"
+        qualifiedPattern = "com.packageA.**",
+        limit = CLASSES_AFFECTED_LIMIT
       )
     assertThat(count).isEqualTo(/* expected = */ 3)
   }
@@ -142,7 +145,8 @@ class AffectedClassesProjectServiceTest {
   fun matchPackageB() {
     val count = affectedClassesProjectService()
       .affectedClassesForQualifiedName(
-        qualifiedPattern = "com.packageB.**"
+        qualifiedPattern = "com.packageB.**",
+        limit = CLASSES_AFFECTED_LIMIT
       )
     assertThat(count).isEqualTo(/* expected = */ 2)
   }
@@ -151,7 +155,8 @@ class AffectedClassesProjectServiceTest {
   fun matchPackageBWildCardPattern1() {
     val count = affectedClassesProjectService()
       .affectedClassesForQualifiedName(
-        qualifiedPattern = "**.packageB.**"
+        qualifiedPattern = "**.packageB.**",
+        limit = CLASSES_AFFECTED_LIMIT
       )
     assertThat(count).isEqualTo(/* expected = */ 2)
   }
@@ -160,7 +165,8 @@ class AffectedClassesProjectServiceTest {
   fun matchPackageBWildCardsPattern2() {
     val count = affectedClassesProjectService()
       .affectedClassesForQualifiedName(
-        qualifiedPattern = "*.packageB.**"
+        qualifiedPattern = "*.packageB.**",
+        limit = CLASSES_AFFECTED_LIMIT
       )
     assertThat(count).isEqualTo(/* expected = */ 2)
   }
@@ -169,7 +175,8 @@ class AffectedClassesProjectServiceTest {
   fun matchPackageBWildCardsPattern3() {
     val count = affectedClassesProjectService()
       .affectedClassesForQualifiedName(
-        qualifiedPattern = "*.p*B.**"
+        qualifiedPattern = "*.p*B.**",
+        limit = CLASSES_AFFECTED_LIMIT
       )
     assertThat(count).isEqualTo(/* expected = */ 2)
   }
@@ -178,7 +185,8 @@ class AffectedClassesProjectServiceTest {
   fun matchAllModuleSourcesWildCardsPattern1() {
     val count = affectedClassesProjectService()
       .affectedClassesForQualifiedName(
-        qualifiedPattern = "*.**.*"
+        qualifiedPattern = "*.**.*",
+        limit = CLASSES_AFFECTED_LIMIT
       )
     assertThat(count).isEqualTo(/* expected = */ 5)
   }

@@ -17,6 +17,9 @@ package com.android.tools.idea.lang.proguardR8
 
 import com.android.tools.idea.lang.proguardR8.inspections.AffectedClassesProjectService
 import com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspection
+import com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspection.Companion.CLASSES_AFFECTED_LIMIT
+import com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspection.Companion.RULE_USES_NEGATION_DESCRIPTION
+import com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspection.Companion.TOO_MANY_AFFECTED_CLASSES_DESCRIPTION
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
 import com.android.tools.idea.testing.highlightedAs
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
@@ -35,9 +38,10 @@ abstract class ExpensiveKeepRuleTestCase : JavaCodeInsightFixtureAdtTestCase() {
     affectedClassesProjectService = mock()
     whenever(
       methodCall = affectedClassesProjectService.affectedClassesForQualifiedName(
-        qualifiedName = any<ProguardR8QualifiedName>()
+        qualifiedName = any<ProguardR8QualifiedName>(),
+        limit = any<Int>()
       )
-    ).thenReturn(101) // 100 is the limit on the number of affected classes
+    ).thenReturn(CLASSES_AFFECTED_LIMIT + 1) // Return 1 more than what we allow.
     // Only turn on expensive keep rule inspections
     myFixture.enableInspections(ExpensiveKeepRuleInspection::class.java)
     project.registerServiceInstance(
@@ -63,7 +67,7 @@ class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
     rules.forEach { rule ->
       val highlight = rule.highlightedAs(
         level = ERROR,
-        message = "Scope rules using annotations, specific classes, or using specific field/method selectors"
+        message = TOO_MANY_AFFECTED_CLASSES_DESCRIPTION
       )
 
       myFixture.configureByText(
@@ -83,7 +87,7 @@ class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
     rules.forEach { rule ->
       val highlight = rule.highlightedAs(
         level = ERROR,
-        message = "Rules that use negation typically end up keeping a lot more classes than intended, prefer one that does not use (!)"
+        message = RULE_USES_NEGATION_DESCRIPTION
       )
 
       myFixture.configureByText(
@@ -111,7 +115,8 @@ class ExpensiveKeepRuleInspectionTest : ExpensiveKeepRuleTestCase() {
     // these rules.
     whenever(
       methodCall = affectedClassesProjectService.affectedClassesForQualifiedName(
-        qualifiedName = any<ProguardR8QualifiedName>()
+        qualifiedName = any<ProguardR8QualifiedName>(),
+        limit = any<Int>()
       )
     ).thenReturn(0) // 100 is the limit on the number of affected classes
 

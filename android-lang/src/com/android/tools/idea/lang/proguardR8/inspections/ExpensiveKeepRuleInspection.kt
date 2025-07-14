@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.lang.proguardR8.inspections
 
+import com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspection.Companion.CLASSES_AFFECTED_LIMIT
+import com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspection.Companion.RULE_USES_NEGATION_DESCRIPTION
+import com.android.tools.idea.lang.proguardR8.inspections.ExpensiveKeepRuleInspection.Companion.TOO_MANY_AFFECTED_CLASSES_DESCRIPTION
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8AnnotationName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMemberName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassName
@@ -32,18 +35,6 @@ import com.intellij.openapi.components.service
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.util.childrenOfType
-
-
-/**
- * The maximum number of classes that are allowed to be affected by a proguard rule.
- */
-private const val CLASSES_AFFECTED_LIMIT = 100
-
-/**
- * The inspection description when a proguard rule affects a large number of classes.
- */
-private const val TOO_MANY_AFFECTED_CLASSES_DESCRIPTION =
-  "Scope rules using annotations, specific classes, or using specific field/method selectors"
 
 /**
  * Reports when overly broad Proguard rules are used.
@@ -70,6 +61,24 @@ class ExpensiveKeepRuleInspection : LocalInspectionTool() {
         }
       }
     }
+  }
+
+  companion object {
+    /**
+     * The maximum number of classes that are allowed to be affected by a proguard rule.
+     */
+    const val CLASSES_AFFECTED_LIMIT = 100
+
+    /**
+     * The inspection description when a proguard rule affects a large number of classes.
+     */
+    const val TOO_MANY_AFFECTED_CLASSES_DESCRIPTION =
+      "Overly broad keep rule affecting more than $CLASSES_AFFECTED_LIMIT classes." +
+      " Scope rules using annotations, specific classes, or using specific field/method selectors"
+
+    const val RULE_USES_NEGATION_DESCRIPTION =
+      "Rules that use negation typically end up keeping a lot more classes than intended," +
+      " prefer one that does not use (!)"
   }
 }
 
@@ -110,7 +119,7 @@ private fun expensiveKeepRuleOrNull(rule: ProguardR8RuleWithClassSpecification):
     return ExpensiveProguardR8Rule(
       elementToHighlight = rule,
       qualifiedName = className.qualifiedName,
-      description = "Rules that use negation typically end up keeping a lot more classes than intended, prefer one that does not use (!)"
+      description = RULE_USES_NEGATION_DESCRIPTION
     )
   }
 
@@ -127,7 +136,8 @@ private fun expensiveKeepRuleOrNull(rule: ProguardR8RuleWithClassSpecification):
 
   // We have now identified that the name of the class has a wildcard.
   val countAffected = service.affectedClassesForQualifiedName(
-    qualifiedName = className.qualifiedName
+    qualifiedName = className.qualifiedName,
+    CLASSES_AFFECTED_LIMIT
   )
 
   val body = rule.classSpecificationBody

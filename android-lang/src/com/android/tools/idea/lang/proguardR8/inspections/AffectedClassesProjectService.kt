@@ -16,15 +16,20 @@
 package com.android.tools.idea.lang.proguardR8.inspections
 
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.androidProjectType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.impl.scopes.JdkScope
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
-import com.intellij.openapi.vfs.JarFileSystem
-import com.intellij.psi.PsiClass
+import com.intellij.openapi.roots.JdkOrderEntry
+import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AllClassesSearch
+import com.intellij.util.Processor
 import org.jetbrains.annotations.VisibleForTesting
 
 
@@ -40,29 +45,40 @@ class AffectedClassesProjectService(private val project: Project) {
    * **Note:** This method does not handle complex rules like negation, and filters on
    * method / field specifiers given we want this check to be fast.
    */
-  fun affectedClassesForQualifiedName(qualifiedName: ProguardR8QualifiedName): Int =
-    affectedClassesForQualifiedName(qualifiedPattern = qualifiedName.text)
+  fun affectedClassesForQualifiedName(
+    qualifiedName: ProguardR8QualifiedName,
+    limit: Int,
+  ): Int =
+    affectedClassesForQualifiedName(qualifiedPattern = qualifiedName.text, limit = limit)
 
   // Helper to make testing easier.
   @VisibleForTesting
   fun affectedClassesForQualifiedName(
-    qualifiedPattern: String
+    qualifiedPattern: String,
+    limit: Int,
   ): Int {
     val regex = qualifiedPattern.asRegex() ?: return 0
 
-    return applicationModules().maxOf { module ->
-      val searchScope = module.getModuleWithDependenciesAndLibrariesScope(
-        false
-      )
-      AllClassesSearch.search(searchScope, project)
-        .count { psiClass ->
-          val name = psiClass.qualifiedName
-          if (name == null) {
-            false
-          } else {
-            !psiClass.isPartOfAndroidSdk() && regex.matches(input = name)
-          }
-        }
+    val appModules = applicationModules()
+    return if (appModules.isNotEmpty()) {
+      appModules.maxOf { module ->
+        val searchScope = module.getModuleWithDependenciesAndLibrariesScope(false)
+          .intersectWith(GlobalSearchScope.notScope(androidSdkScope(module)))
+
+        var counter = 0
+        AllClassesSearch.search(searchScope, project)
+          .forEach( Processor { psiClass ->
+            psiClass.qualifiedName?.let { name ->
+              if (regex.matches(input = name)) {
+                counter += 1
+              }
+            }
+            counter < limit
+          })
+        counter
+      }
+    } else {
+      0
     }
   }
 
@@ -73,20 +89,21 @@ class AffectedClassesProjectService(private val project: Project) {
    * affected classes from the perspective of all application modules that we can find.
    */
   private fun applicationModules(): List<Module> {
-    return project.modules.filter { it.getModuleSystem().isProductionAndroidModule() }
+    return project.modules.filter {
+      it.getModuleSystem().isProductionAndroidModule() &&
+      it.androidProjectType() == AndroidModuleSystem.Type.TYPE_APP
+    }
   }
 
-  private val androidJar = "android.jar"
+  private fun androidSdkScope(module: Module): GlobalSearchScope {
+    val jdk = ModuleRootManager.getInstance(module).orderEntries
+      .filterIsInstance<JdkOrderEntry>()
+      .firstOrNull()
 
-  private fun PsiClass.isPartOfAndroidSdk(): Boolean {
-    val virtualFile = containingFile.virtualFile
-    val fileSystem = virtualFile.fileSystem
-    return if (fileSystem is JarFileSystem) {
-      // The class should be coming from android.jar
-      val rootName = fileSystem.getRootByEntry(virtualFile)?.name
-      rootName == androidJar
+    return if (jdk?.jdk?.sdkType?.name == "Android SDK") {
+      JdkScope(module.project, jdk)
     } else {
-      false
+      GlobalSearchScope.EMPTY_SCOPE
     }
   }
 
