@@ -27,14 +27,13 @@ import com.android.tools.idea.compose.preview.ComposeVisualLintSuppressTask
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.getPreviewNodes
-import com.android.tools.idea.preview.rendering.createRenderTaskFutureForTest
+import com.android.tools.idea.preview.rendering.createRenderResultFuture
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue.Companion.createVisualLintRenderIssue
 import com.android.tools.preview.applyTo
-import com.android.tools.rendering.RenderResult
 import com.android.tools.visuallint.VisualLintErrorType
 import com.android.tools.visuallint.analyzers.ButtonSizeAnalyzer
 import com.android.tools.visuallint.analyzers.TextFieldSizeAnalyzer
@@ -42,8 +41,6 @@ import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.IndexingTestUtil
-import com.intellij.util.concurrency.AppExecutorUtil
-import java.util.concurrent.CompletableFuture
 import kotlin.test.assertEquals
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -90,8 +87,8 @@ class ComposeVisualLintSuppressTaskTest {
         previewElement.toPreviewXml().buildString(),
         targetFile,
       )
-    val renderTaskFuture =
-      createRenderTaskFutureForTest(
+    val renderResultFuture =
+      createRenderResultFuture(
         facet = facet,
         file = file,
         privateClassLoader = false,
@@ -101,13 +98,6 @@ class ComposeVisualLintSuppressTaskTest {
         configure = previewElement::applyTo,
       )
 
-    val renderResultFuture =
-      CompletableFuture.supplyAsync(
-          { renderTaskFuture.get() },
-          AppExecutorUtil.getAppExecutorService(),
-        )
-        .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
-    renderResultFuture.handle { _, _ -> renderTaskFuture.get().dispose() }
     val renderResult = renderResultFuture.get()!!
     val nlModel =
       SyncNlModel.create(
@@ -196,8 +186,8 @@ class ComposeVisualLintSuppressTaskTest {
         previewElement.toPreviewXml().buildString(),
         targetFile,
       )
-    val renderTaskFuture =
-      createRenderTaskFutureForTest(
+    val renderResultFuture =
+      createRenderResultFuture(
         facet = facet,
         file = file,
         privateClassLoader = false,
@@ -207,13 +197,6 @@ class ComposeVisualLintSuppressTaskTest {
         configure = previewElement::applyTo,
       )
 
-    val renderResultFuture =
-      CompletableFuture.supplyAsync(
-          { renderTaskFuture.get() },
-          AppExecutorUtil.getAppExecutorService(),
-        )
-        .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
-    renderResultFuture.handle { _, _ -> renderTaskFuture.get().dispose() }
     val renderResult = renderResultFuture.get()!!
     val nlModel =
       SyncNlModel.create(

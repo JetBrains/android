@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.preview.rendering
 
-import com.android.annotations.TestOnly
 import com.android.ide.common.rendering.api.SessionParams
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.ide.common.resources.configuration.FolderConfiguration
@@ -27,19 +26,22 @@ import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
+import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
+import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.CompletableFuture
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Returns a [CompletableFuture] that creates a [RenderTask] for a single [VirtualFile]. It is the
  * responsibility of a client of this function to dispose the resulting [RenderTask] when no longer
  * needed.
  */
-@TestOnly
-fun createRenderTaskFutureForTest(
+@VisibleForTesting
+fun createRenderTaskFuture(
   facet: AndroidFacet,
   file: VirtualFile,
   privateClassLoader: Boolean = false,
@@ -84,4 +86,40 @@ fun createRenderTaskFutureForTest(
 
   customViewInfoParser?.let { builder.setCustomContentHierarchyParser(it) }
   return builder.build()
+}
+
+/**
+ * Returns a [CompletableFuture] that creates a [RenderResult] for a single [VirtualFile]. This
+ * function first creates a [RenderTask] and sets its disposal to happen when the [RenderResult]
+ * future gets completed.
+ */
+fun createRenderResultFuture(
+  facet: AndroidFacet,
+  file: VirtualFile,
+  privateClassLoader: Boolean = false,
+  useLayoutScanner: Boolean = false,
+  classesToPreload: Collection<String> = emptyList(),
+  customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
+  showDecorations: Boolean = false,
+  configure: (Configuration) -> Unit = {},
+): CompletableFuture<RenderResult> {
+  val renderTaskFuture =
+    createRenderTaskFuture(
+      facet,
+      file,
+      privateClassLoader,
+      useLayoutScanner,
+      classesToPreload,
+      customViewInfoParser,
+      showDecorations,
+      configure,
+    )
+  val renderResultFuture =
+    CompletableFuture.supplyAsync(
+        { renderTaskFuture.get() },
+        AppExecutorUtil.getAppExecutorService(),
+      )
+      .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
+  renderResultFuture.handle { _, _ -> renderTaskFuture.get().dispose() }
+  return renderResultFuture
 }

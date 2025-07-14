@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.customview.preview
 
-import com.android.tools.idea.preview.rendering.createRenderTaskFutureForTest
+import com.android.tools.idea.preview.rendering.createRenderTaskFuture
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.StudioRenderService
@@ -74,7 +74,7 @@ class CustomViewRenderTest {
       CustomViewLightVirtualFile("custom_preview.xml", fileContent, virtualFile)
 
     val renderTask =
-      createRenderTaskFutureForTest(
+      createRenderTaskFuture(
           projectRule.gradleModule(":app").getMainModule().androidFacet!!,
           customPreviewXml,
           true,
