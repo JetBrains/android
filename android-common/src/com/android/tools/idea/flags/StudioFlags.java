@@ -776,7 +776,7 @@ public final class StudioFlags {
     "deobfuscate",
     "Enable stack trace deobfuscation using R8 Retrace",
     "Enable stack trace deobfuscation using R8 Retrace",
-    true
+    enabledUpTo(CANARY)
   );
 
   public static final Flag<Boolean> LOGCAT_AUTO_DEOBFUSCATE = new BooleanFlag(
