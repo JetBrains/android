@@ -20,7 +20,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.util.lang.UrlClassLoader
 import io.github.classgraph.ClassGraph
+import io.github.classgraph.ClassInfo
 
 /**
  * This internal action is only used for checking the consistency of the final system.  Since interfaces of [Token]
@@ -35,22 +37,22 @@ class VerifyGradleTokensAction : AnAction("Verify Gradle Tokens") {
       val tokenClass = Token::class.java
       val gradleTokenClass = GradleToken::class.java
       val projectSystemTokenClass = ProjectSystemToken::class.java
-      val interfaces = mutableSetOf<Class<*>>()
-      val classes = mutableSetOf<Class<*>>()
-      val problems = mutableSetOf<Class<*>>()
+      val interfaces = mutableSetOf<ClassInfo>()
+      val classes = mutableSetOf<ClassInfo>()
+      val problems = mutableSetOf<ClassInfo>()
       val classLoaders = PluginManager.getLoadedPlugins().map { it.classLoader }.plus(tokenClass.classLoader).toSet()
+      val classLoaderUrls = classLoaders.filterIsInstance<UrlClassLoader>().flatMap { it.urls }
 
       ClassGraph()
-        .apply { classLoaders.forEach { addClassLoader(it) } }
+        .overrideClasspath(classLoaderUrls)
         .enableClassInfo().scan()
         .allClasses
-        .mapNotNull { try { it.loadClass() } catch (e: Throwable) { null } }
-        .filter { tokenClass.isAssignableFrom(it) }
+        .filter { it.implementsInterface(tokenClass) }
         .forEach {
           when {
             it == tokenClass -> Unit
             // Skip interfaces like `interface GradleToken: ProjectSystemToken`
-            it.isInterface && projectSystemTokenClass.isAssignableFrom(it) -> Unit
+            it.isInterface && (it.implementsInterface(projectSystemTokenClass) || it.name == projectSystemTokenClass.name) -> Unit
 
             it.isInterface -> interfaces.add(it)
             else -> classes.add(it)
@@ -58,7 +60,7 @@ class VerifyGradleTokensAction : AnAction("Verify Gradle Tokens") {
         }
 
       interfaces.forEach { i ->
-        classes.filter { c -> i.isAssignableFrom(c) && gradleTokenClass.isAssignableFrom(c) }.let { l ->
+        classes.filter { c -> c.implementsInterface(i.name) && c.implementsInterface(gradleTokenClass) }.let { l ->
           when {
             l.isEmpty() -> problems.add(i).also { LOG.info("no GradleToken class implementing ${i.name}") }
             l.size > 1 -> problems.add(i).also { LOG.info("more than one GradleToken class ($l) implementing ${i.name}") }
@@ -67,9 +69,9 @@ class VerifyGradleTokensAction : AnAction("Verify Gradle Tokens") {
         }
       }
 
-      classes.filter { gradleTokenClass.isAssignableFrom(it) }
+      classes.filter { it.implementsInterface(gradleTokenClass) }
         .forEach { c ->
-          interfaces.filter { i -> i.isAssignableFrom(c) }.let { l ->
+          interfaces.filter { i -> c.implementsInterface(i.name) }.let { l ->
             when {
               l.isEmpty() -> problems.add(c).also { LOG.info("GradleToken subclass ${c.name} does not implement any interface") }
               l.size > 1 -> problems.add(c).also { LOG.info("GradleToken subclass ${c.name} implements more than one Token interface: $l") }
