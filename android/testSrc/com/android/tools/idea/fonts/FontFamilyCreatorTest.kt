@@ -133,7 +133,7 @@ class FontFamilyCreatorTest {
     )
   }
 
-  @MinApi(FontDetector.FUTURE_API_VERSION_WHERE_DOWNLOADABLE_FONTS_WORK_IN_FRAMEWORK)
+  @MinApi(FontDetector.FIRST_API_VERSION_WITH_DOWNLOADABLE_FONTS_WORK_IN_FRAMEWORK)
   @Test
   fun testCreateFontUsingFrameworkFonts() {
     val font = FontTestUtils.createFontDetail("Alegreya Sans SC", 900, 80f, ITALICS)
@@ -160,29 +160,29 @@ class FontFamilyCreatorTest {
     waitForFontReady()
     assertThat(getFontFileContent("roboto.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
-        "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
-        "        app:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
-        "        app:fontProviderPackage=\"com.google.android.gms\"%n" +
-        "        app:fontProviderQuery=\"Roboto\"%n" +
-        "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
+        "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
+        "        android:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
+        "        android:fontProviderPackage=\"com.google.android.gms\"%n" +
+        "        android:fontProviderQuery=\"Roboto\"%n" +
+        "        android:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
         "</font-family>%n"
     ))
     assertThat(getFontFileContent("alegreya_sans_sc.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
-        "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
-        "        app:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
-        "        app:fontProviderPackage=\"com.google.android.gms\"%n" +
-        "        app:fontProviderQuery=\"Alegreya Sans SC:wght900:ital1:wdth80\"%n" +
-        "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
+        "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
+        "        android:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
+        "        android:fontProviderPackage=\"com.google.android.gms\"%n" +
+        "        android:fontProviderQuery=\"Alegreya Sans SC:wght900:ital1:wdth80\"%n" +
+        "        android:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
         "</font-family>%n"
     ))
     assertThat(getFontFileContent("aladin.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
-        "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
-        "        app:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
-        "        app:fontProviderPackage=\"com.google.android.gms\"%n" +
-        "        app:fontProviderQuery=\"Aladin\"%n" +
-        "        app:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
+        "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
+        "        android:fontProviderAuthority=\"com.google.android.gms.fonts\"%n" +
+        "        android:fontProviderPackage=\"com.google.android.gms\"%n" +
+        "        android:fontProviderQuery=\"Aladin\"%n" +
+        "        android:fontProviderCerts=\"@array/com_google_android_gms_fonts_certs\">%n" +
         "</font-family>%n"
     ))
     assertThat(getValuesFileContent("font_certs.xml")).isEqualTo(String.format(

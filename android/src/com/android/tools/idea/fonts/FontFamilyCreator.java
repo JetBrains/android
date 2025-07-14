@@ -217,7 +217,7 @@ public class FontFamilyCreator {
     FontProvider provider = family.getProvider();
     AndroidModuleInfo info = StudioAndroidModuleInfo.getInstance(myFacet);
     AndroidVersion minSdkVersion = info.getMinSdkVersion();
-    if (minSdkVersion.getApiLevel() >= FontDetector.FUTURE_API_VERSION_WHERE_DOWNLOADABLE_FONTS_WORK_IN_FRAMEWORK) {
+    if (minSdkVersion.getApiLevel() >= FontDetector.FIRST_API_VERSION_WITH_DOWNLOADABLE_FONTS_WORK_IN_FRAMEWORK) {
       return String.format(
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
         "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
