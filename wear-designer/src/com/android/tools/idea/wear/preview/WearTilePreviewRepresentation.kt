@@ -17,7 +17,6 @@ package com.android.tools.idea.wear.preview
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.actions.CommonPreviewActionManager
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
@@ -75,7 +74,6 @@ internal class WearTilePreviewRepresentation(
     val wearPreviewElement = element as? WearTilePreviewElement<*> ?: return null
 
     return WearTileAnimationPreview(
-      surface.createCoroutineScope(),
       project,
       surface,
       wearPreviewElement,

@@ -536,7 +536,7 @@ class CommonPreviewRepresentationTest {
 
   // Regression test for b/370595516
   @Test
-  fun animationPreviewScopeIsCancelledWhenExitingAnimationInspectorMode() {
+  fun animationPreviewIsDisposedWhenExitingAnimationInspectorMode() {
     runBlocking(workerThread) {
       val animationPreview =
         mock<AnimationPreview<AnimationManager>>().also {
@@ -560,7 +560,7 @@ class CommonPreviewRepresentationTest {
         it is PreviewMode.Default
       }
       retryUntilPassing(1.seconds) {
-        verify(animationPreview, times(1)).cancelScope()
+        verify(animationPreview, times(1)).dispose()
         assertThat(previewRepresentation.currentAnimationPreview).isNull()
       }
       previewRepresentation.onDeactivateImmediately()

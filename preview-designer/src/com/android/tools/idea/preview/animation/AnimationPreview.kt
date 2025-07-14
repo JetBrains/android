@@ -18,14 +18,14 @@ package com.android.tools.idea.preview.animation
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.TooltipLayeredPane
-import com.android.tools.idea.concurrency.createChildScope
-import com.android.tools.idea.concurrency.scopeDisposable
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.uibuilder.scene.LayoutlibCallbacksConfig
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
@@ -43,12 +43,9 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.utils.findIsInstanceAnd
@@ -70,12 +67,11 @@ private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
  * T is subclass of AnimationManager AnimationPreview can work with.
  */
 abstract class AnimationPreview<T : AnimationManager>(
-  parentScope: CoroutineScope,
   project: Project,
   @VisibleForTesting val sceneManagerProvider: () -> LayoutlibSceneManager?,
   rootComponent: JComponent,
   private val tracker: AnimationTracker,
-) {
+) : Disposable {
 
   private val logger: Logger = Logger.getInstance(AnimationPreview::class.java)
 
@@ -91,24 +87,14 @@ abstract class AnimationPreview<T : AnimationManager>(
       add(errorLabel)
     }
 
-  val scope =
-    parentScope.createChildScope(
-      context =
-        CoroutineExceptionHandler { _, throwable ->
-          invokeLater { showErrorPanel(message("animation.inspector.error.panel.message")) }
-          logger.error("Error in Animation Inspector", throwable)
-        }
+  protected val scope =
+    AndroidCoroutineScope(
+      this,
+      CoroutineExceptionHandler { _, throwable ->
+        invokeLater { showErrorPanel(message("animation.inspector.error.panel.message")) }
+        logger.error("Error in Animation Inspector", throwable)
+      },
     )
-
-  init {
-    scope.coroutineContext.job.invokeOnCompletion {
-      timeline.sliderUI.elements.forEach { Disposer.dispose(it) }
-    }
-  }
-
-  fun cancelScope() {
-    scope.cancel()
-  }
 
   // ******************
   // Properties: UI Components
@@ -123,19 +109,18 @@ abstract class AnimationPreview<T : AnimationManager>(
    * from/to state combo boxes.
    */
   @VisibleForTesting
-  val tabbedPane =
-    AnimationTabs(project, scope.scopeDisposable()).apply { addListener(TabChangeListener()) }
+  val tabbedPane = AnimationTabs(project, this).apply { addListener(TabChangeListener()) }
   private val bottomPanel = BottomPanel(rootComponent)
 
   /** Loading panel displayed when the preview has no animations subscribed. */
   private val noAnimationsPanel =
-    JBLoadingPanel(BorderLayout(), scope.scopeDisposable()).apply {
+    JBLoadingPanel(BorderLayout(), this).apply {
       name = "Loading Animations Panel"
       setLoadingText(message("animation.inspector.loading.animations.panel.message"))
     }
 
   /** A special tab that displays an overview of all the animations being inspected. */
-  @VisibleForTesting val coordinationTab = AllTabPanel(scope.scopeDisposable())
+  @VisibleForTesting val coordinationTab = AllTabPanel(this)
 
   // ************************
   // Properties: State Management
@@ -178,7 +163,7 @@ abstract class AnimationPreview<T : AnimationManager>(
    * animation.
    */
   protected val playbackControls =
-    PlaybackControls(clockControl, tracker, rootComponent, scope.scopeDisposable()).apply {
+    PlaybackControls(clockControl, tracker, rootComponent, this).apply {
       coordinationTab.addPlayback(createToolbar())
     }
 
@@ -248,7 +233,7 @@ abstract class AnimationPreview<T : AnimationManager>(
             .also { element -> currentY += element.heightScaled() }
         }
       }
-    elements.forEach { Disposer.tryRegister(scope.scopeDisposable(), it) }
+    elements.forEach { Disposer.tryRegister(this@AnimationPreview, it) }
     return elements
   }
 
@@ -451,5 +436,9 @@ abstract class AnimationPreview<T : AnimationManager>(
       animationPreviewPanel.revalidate()
       animationPreviewPanel.repaint()
     }
+  }
+
+  override fun dispose() {
+    timeline.sliderUI.elements.forEach { Disposer.dispose(it) }
   }
 }

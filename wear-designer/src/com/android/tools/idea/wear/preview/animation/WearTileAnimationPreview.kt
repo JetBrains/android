@@ -25,7 +25,6 @@ import com.android.tools.wear.preview.WearTilePreviewElement
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import javax.swing.JComponent
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -35,21 +34,18 @@ import kotlinx.coroutines.withContext
  * A specialized [AnimationPreview] for Wear Tile animations, providing controls and visualization
  * for animating Wear Tile elements within the Android Studio preview.
  *
- * @param parentScope parent [CoroutineScope] for this preview
  * @param project The project associated with this preview.
  * @param surface The design surface containing the Wear Tile preview.
  * @param wearPreviewElement The specific Wear Tile preview element to inspect.
  * @param tracker The tracker used to log events.
  */
 class WearTileAnimationPreview(
-  parentScope: CoroutineScope,
   val project: Project,
   private val surface: NlDesignSurface,
   private val wearPreviewElement: WearTilePreviewElement<*>,
   private val tracker: WearTileAnimationTracker,
 ) :
   AnimationPreview<SupportedWearTileAnimationManager>(
-    parentScope,
     project,
     sceneManagerProvider = getter@{
         val modelForElement =
