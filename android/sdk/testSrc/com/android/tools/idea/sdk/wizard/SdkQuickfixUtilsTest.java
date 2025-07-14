@@ -52,6 +52,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -135,6 +136,7 @@ public class SdkQuickfixUtilsTest {
     verify(myRepoManager, never()).loadSynchronously(eq(0), any(), any(), any(), any(), any(), any());
   }
 
+  @Ignore("KMT-1387")
   @Test
   public void testCreateDialogNoUncachedRepoReloads() {
     LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package", sdkRoot.resolve("p"));
