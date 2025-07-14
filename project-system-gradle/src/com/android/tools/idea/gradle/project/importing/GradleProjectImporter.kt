@@ -198,6 +198,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
       GradleJdkConfigurationInitializer.getInstance().initialize(newProject, externalProjectPath, projectSettings, configuration)
 
       beforeOpen(newProject)
+      GradleProjectImporterExtension.EP_NAME.extensionList.forEach { it.beforeOpen(newProject) }
     }
   }
 }

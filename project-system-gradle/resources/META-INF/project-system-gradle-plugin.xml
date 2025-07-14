@@ -443,5 +443,7 @@
                     interface="com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataServiceExtension"/>
     <extensionPoint qualifiedName="com.android.tools.idea.gradle.errorQuickFixProvider"
                     interface="com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.gradle.project.importing.gradleProjectImporter"
+                    interface="com.android.tools.idea.gradle.project.importing.GradleProjectImporterExtension"/>
   </extensionPoints>
 </idea-plugin>
