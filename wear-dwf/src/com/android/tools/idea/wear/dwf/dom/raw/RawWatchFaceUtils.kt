@@ -15,9 +15,26 @@
  */
 package com.android.tools.idea.wear.dwf.dom.raw
 
+import com.android.SdkConstants.TAG_WATCH_FACE
+import com.android.tools.idea.wear.dwf.WFFConstants.ATTRIBUTE_COLORS
+import com.android.tools.idea.wear.dwf.WFFConstants.ATTRIBUTE_ID
+import com.android.tools.idea.wear.dwf.WFFConstants.TAG_BOOLEAN_CONFIGURATION
+import com.android.tools.idea.wear.dwf.WFFConstants.TAG_COLOR_CONFIGURATION
+import com.android.tools.idea.wear.dwf.WFFConstants.TAG_COLOR_OPTION
+import com.android.tools.idea.wear.dwf.WFFConstants.TAG_LIST_CONFIGURATION
+import com.android.tools.idea.wear.dwf.WFFConstants.TAG_PHOTOS_CONFIGURATION
+import com.android.tools.idea.wear.dwf.WFFConstants.TAG_USER_CONFIGURATIONS
+import com.android.tools.idea.wear.dwf.dom.raw.configurations.BooleanConfiguration
+import com.android.tools.idea.wear.dwf.dom.raw.configurations.ColorConfiguration
+import com.android.tools.idea.wear.dwf.dom.raw.configurations.ListConfiguration
+import com.android.tools.idea.wear.dwf.dom.raw.configurations.PhotosConfiguration
+import com.android.tools.idea.wear.dwf.dom.raw.configurations.UnknownConfiguration
+import com.android.tools.idea.wear.dwf.dom.raw.configurations.UserConfiguration
 import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.util.TextRange
+import com.intellij.psi.xml.XmlFile
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 
 /**
  * Adds an [InsertHandler] that inserts the `[` and `]` around
@@ -44,3 +61,33 @@ fun LookupElementBuilder.insertBracketsAroundIfNeeded() =
       textWithBrackets.toString(),
     )
   }
+
+/** Extracts [UserConfiguration]s from a Declarative Watch Face file. */
+@RequiresReadLock
+fun XmlFile.extractUserConfigurations(): List<UserConfiguration> {
+  if (rootTag?.name != TAG_WATCH_FACE) return emptyList()
+  val userConfigurationTags =
+    rootTag?.findSubTags(TAG_USER_CONFIGURATIONS)?.flatMap { it.subTags.toList() }
+      ?: return emptyList()
+
+  return userConfigurationTags.mapNotNull { userConfigurationTag ->
+    val id = userConfigurationTag.getAttribute(ATTRIBUTE_ID)?.value ?: return@mapNotNull null
+
+    when (userConfigurationTag.name) {
+      TAG_COLOR_CONFIGURATION -> {
+        val availableColorIndices =
+          userConfigurationTag.subTags
+            .filter { it.name == TAG_COLOR_OPTION }
+            .firstNotNullOfOrNull { colorOptionTag ->
+              colorOptionTag.getAttribute(ATTRIBUTE_COLORS)?.value?.split("\\s+".toRegex())
+            }
+            ?.indices ?: IntRange.EMPTY
+        ColorConfiguration(id, userConfigurationTag, availableColorIndices)
+      }
+      TAG_LIST_CONFIGURATION -> ListConfiguration(id, userConfigurationTag)
+      TAG_BOOLEAN_CONFIGURATION -> BooleanConfiguration(id, userConfigurationTag)
+      TAG_PHOTOS_CONFIGURATION -> PhotosConfiguration(id, userConfigurationTag)
+      else -> UnknownConfiguration(id, userConfigurationTag)
+    }
+  }
+}

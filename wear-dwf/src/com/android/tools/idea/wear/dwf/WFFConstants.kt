@@ -16,6 +16,15 @@
 package com.android.tools.idea.wear.dwf
 
 object WFFConstants {
+  const val ATTRIBUTE_ID = "id"
+  const val ATTRIBUTE_COLORS = "colors"
+
+  const val TAG_USER_CONFIGURATIONS = "UserConfigurations"
+  const val TAG_COLOR_CONFIGURATION = "ColorConfiguration"
+  const val TAG_COLOR_OPTION = "ColorOption"
+  const val TAG_LIST_CONFIGURATION = "ListConfiguration"
+  const val TAG_BOOLEAN_CONFIGURATION = "BooleanConfiguration"
+  const val TAG_PHOTOS_CONFIGURATION = "PhotosConfiguration"
 
   /**
    * Attributes that can reference drawable resources.
