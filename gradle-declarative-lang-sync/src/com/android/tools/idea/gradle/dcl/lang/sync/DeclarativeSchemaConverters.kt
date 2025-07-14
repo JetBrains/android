@@ -76,7 +76,7 @@ fun AnalysisSchema.convert(): BuildDeclarativeSchema {
     )
   }
   safeRun {
-    //TODO Upgrade to Gradle 8.15
+    //TODO IDEA-374715 Uncomment once Gradle API 9.0 migration is done
     //infixFunctions.putAll(
     //  infixFunctionsByFqName.mapNotNull {
     //    keyValue ->
