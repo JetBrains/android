@@ -25,88 +25,65 @@ import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.classloading.toClassTransform
 import java.io.IOException
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runCurrent
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.createUrlClassLoader
 import org.junit.Assert.*
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class ComposeAnimationSubscriberTest : InspectorTests() {
-
   @Test
-  fun subscribeAndUnsubscribe() = runTest {
-    val animationPreview = createAnimationPreview(backgroundScope)
-
+  fun subscribeAndUnsubscribe() = runBlocking {
     ComposeAnimationSubscriber.setHandler(animationPreview)
 
     val animation = createComposeAnimation()
-    advanceUntilIdle()
-    assertTrue(animationPreview.hasNoAnimationsForTests())
+    assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
     ComposeAnimationSubscriber.onAnimationSubscribed(TestClock(), animation)
-    advanceUntilIdle()
-    assertFalse(animationPreview.hasNoAnimationsForTests())
+    assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
     val otherAnimation = createComposeAnimation()
     ComposeAnimationSubscriber.onAnimationUnsubscribed(otherAnimation)
-    advanceUntilIdle()
-    assertFalse(animationPreview.hasNoAnimationsForTests())
+    assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
     ComposeAnimationSubscriber.onAnimationUnsubscribed(animation)
-    advanceUntilIdle()
-    assertTrue(animationPreview.hasNoAnimationsForTests())
-    ComposeAnimationSubscriber.setHandler(null)
+    assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
   }
 
   @Test
-  fun setNullHandlerClearsSubscriptions() = runTest {
-    val animationPreview = createAnimationPreview(backgroundScope)
+  fun setNullHandlerClearsSubscriptions() = runBlocking {
     ComposeAnimationSubscriber.setHandler(animationPreview)
 
     ComposeAnimationSubscriber.onAnimationSubscribed(TestClock(), createComposeAnimation())
-    advanceUntilIdle()
-    assertFalse(animationPreview.hasNoAnimationsForTests())
+    assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
     ComposeAnimationSubscriber.setHandler(null)
-    advanceUntilIdle()
-    assertTrue(animationPreview.hasNoAnimationsForTests())
+    assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
   }
 
   @Test
-  fun subscriptionNewClockClearsPreviousClockAnimations() = runTest {
-    val animationPreview = createAnimationPreview(backgroundScope)
-    ComposeAnimationSubscriber.setScopeForTests(backgroundScope)
+  fun subscriptionNewClockClearsPreviousClockAnimations() = runBlocking {
     ComposeAnimationSubscriber.setHandler(animationPreview)
-    advanceUntilIdle()
+
     assertNull(animationPreview.tabbedPane.parent)
     assertEquals(0, animationPreview.animations.size)
 
     val clock = TestClock()
     ComposeAnimationSubscriber.onAnimationSubscribed(clock, createComposeAnimation())
-    advanceUntilIdle()
     assertNotNull(animationPreview.tabbedPane.parent)
     assertEquals(1, animationPreview.animations.size)
 
     val anotherClock = TestClock()
     ComposeAnimationSubscriber.onAnimationSubscribed(anotherClock, createComposeAnimation())
-    advanceUntilIdle()
+    println("Animations tab: ${animationPreview.animations}")
     assertEquals(1, animationPreview.animations.size)
 
     ComposeAnimationSubscriber.onAnimationSubscribed(anotherClock, createComposeAnimation())
-    advanceUntilIdle()
     assertEquals(2, animationPreview.animations.size)
-    ComposeAnimationSubscriber.setHandler(null)
-    ComposeAnimationSubscriber.setScopeForTests(null)
   }
 
   @Test
   @Throws(IOException::class, ClassNotFoundException::class)
-  fun classLoaderRedirectsSubscriptionToAnimationManager() = runTest {
-    val animationPreview = createAnimationPreview(scope = backgroundScope)
-    ComposeAnimationSubscriber.setScopeForTests(scope = backgroundScope)
+  fun classLoaderRedirectsSubscriptionToAnimationManager() {
     ComposeAnimationSubscriber.setHandler(animationPreview)
     class PreviewAnimationClockClassLoader :
       DelegatingClassLoader(
@@ -134,17 +111,11 @@ class ComposeAnimationSubscriberTest : InspectorTests() {
       previewAnimationClock.getDeclaredMethod("notifySubscribe", ComposeAnimation::class.java)
     val animation = createComposeAnimation()
     notifySubscribe.invoke(previewAnimationClock.newInstance(), animation)
-    runCurrent()
-    advanceUntilIdle()
-    assertFalse(animationPreview.hasNoAnimationsForTests())
+    assertFalse(ComposeAnimationSubscriber.hasNoAnimationsForTests())
 
     val notifyUnsubscribe =
       previewAnimationClock.getDeclaredMethod("notifyUnsubscribe", ComposeAnimation::class.java)
     notifyUnsubscribe.invoke(previewAnimationClock.newInstance(), animation)
-    runCurrent()
-    advanceUntilIdle()
-    assertTrue(animationPreview.hasNoAnimationsForTests())
-    ComposeAnimationSubscriber.setScopeForTests(null)
-    ComposeAnimationSubscriber.setHandler(null)
+    assertTrue(ComposeAnimationSubscriber.hasNoAnimationsForTests())
   }
 }

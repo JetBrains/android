@@ -380,8 +380,7 @@ abstract class AnimationPreview<T : AnimationManager>(
        * AllTabPanel, animationsMap, and tabs from tabbedPane. It will also show the
        * noAnimationsPanel when removing all tabs.
        */
-      val toRemove = animations.toList()
-      toRemove.forEach { removeAnimationManager(it) }
+      animations.forEach { removeAnimationManager(it) }
     }
 
   protected suspend fun removeAnimationManager(animationManager: T) {
