@@ -18,18 +18,24 @@ package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallBuildToolsQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 
-class SdkBuildToolsTooLowIssueCheckerIntegrationTest: AndroidGradleTestCase() {
+class SdkBuildToolsTooLowIssueCheckerIntegrationTest {
   private val sdkBuildToolsTooLowIssueChecker = SdkBuildToolsTooLowIssueChecker()
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testCheckIssue() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
     val error = "The SDK Build Tools revision (1.0.0) is too low for project ':app'. Minimum required is 2.0.3"
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(Throwable(error)), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, Throwable(Throwable(error)), null, null)
     val buildIssue = sdkBuildToolsTooLowIssueChecker.check(issueData)
 
     Truth.assertThat(buildIssue).isNotNull()

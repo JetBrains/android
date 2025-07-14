@@ -18,20 +18,26 @@ package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 import com.android.tools.idea.gradle.project.sync.errors.UnknownHostIssueChecker
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.settings.GradleSettings
+import org.junit.Rule
+import org.junit.Test
 import java.net.UnknownHostException
 
-class UnknownHostIssueCheckerIntegrationTest: AndroidGradleTestCase() {
+class UnknownHostIssueCheckerIntegrationTest {
   private val unknownHostIssueChecker = UnknownHostIssueChecker()
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testCheckIssue() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-    GradleSettings.getInstance(project).isOfflineWork = false
-    val issueData = GradleIssueData(projectFolderPath.path, UnknownHostException("my host"), null, null)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    GradleSettings.getInstance(projectRule.project).isOfflineWork = false
+    val issueData = GradleIssueData(projectRule.project.basePath!!, UnknownHostException("my host"), null, null)
     val buildIssue = unknownHostIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
@@ -40,6 +46,5 @@ class UnknownHostIssueCheckerIntegrationTest: AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(ToggleOfflineModeQuickFix::class.java)
     assertThat((buildIssue.quickFixes.first() as ToggleOfflineModeQuickFix).enableOfflineMode).isTrue()
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
-
   }
 }

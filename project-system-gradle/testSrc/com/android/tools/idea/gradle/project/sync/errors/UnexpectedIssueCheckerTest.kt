@@ -16,17 +16,23 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import org.gradle.tooling.UnsupportedVersionException
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 
-class UnexpectedIssueCheckerTest: AndroidGradleTestCase() {
+class UnexpectedIssueCheckerTest {
   private val unexpectedIssueChecker = UnexpectedIssueChecker()
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testCheckIssue() {
     val error = "This is an unexpected error. Please file a bug containing the idea.log file."
-    val issueData = GradleIssueData(projectFolderPath.path, UnsupportedVersionException(error), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, UnsupportedVersionException(error), null, null)
     val buildIssue = unexpectedIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
@@ -36,6 +42,7 @@ class UnexpectedIssueCheckerTest: AndroidGradleTestCase() {
     assertThat(buildIssue.quickFixes[1]).isInstanceOf(ShowLogQuickFix::class.java)
   }
 
+  @Test
   fun testCheckIssueHandled() {
     assertThat(
       unexpectedIssueChecker.consumeBuildOutputFailureMessage(

@@ -22,30 +22,42 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.issues.processor.UpdateCompileSdkProcessor
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
+import com.android.tools.idea.testing.findAppModule
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_MIN_COMPILE_SDK_UPDATED
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.EdtRule
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
-class UpdateCompileSdkProcessorTest : AndroidGradleTestCase() {
+class UpdateCompileSdkProcessorTest {
   private lateinit var appModule: Module
   private lateinit var buildFile: VirtualFile
   private var currentCompileSdkVersion: Int = 0
 
-  @Throws(Exception::class)
-  override fun setUp() {
-    super.setUp()
-    loadSimpleApplication()
+  val projectRule = AndroidGradleProjectRule()
+  @get:Rule
+  val rule: RuleChain = RuleChain.outerRule(EdtRule()).around(projectRule)
+  val project: Project by lazy { projectRule.project }
+
+  @Before
+  fun setUp() {
+    projectRule.loadProject(SIMPLE_APPLICATION)
     // setup test project module with a lower compileSdk. In the test, we update the compileSdk to latest using
     // UpdateCompileSdkProcessor.
     decrementCompileSdkVersionForTesting()
   }
 
   private fun decrementCompileSdkVersionForTesting() {
-    appModule = getModule("app")
+    appModule = project.findAppModule()
     val projectBuildModel: ProjectBuildModel = ProjectBuildModel.get(project)
     buildFile = GradleProjectSystemUtil.getGradleBuildFile(appModule)!!
     val androidBuildModel = projectBuildModel.getModuleBuildModel(buildFile).android()
@@ -61,29 +73,29 @@ class UpdateCompileSdkProcessorTest : AndroidGradleTestCase() {
   fun testFindUsages() {
     val newCompileSdkVersion = currentCompileSdkVersion + 1
     val processor = UpdateCompileSdkProcessor(project, mapOf(buildFile to newCompileSdkVersion))
-    val usages = processor.findUsages()
-    assertSize(1, usages)
-    assertEquals("""$currentCompileSdkVersion""", usages[0].element!!.text)
+    val usages = runReadAction { processor.findUsages() }
+    assertThat(usages).hasLength(1)
+    assertThat(runReadAction { usages[0].element!!.text }).isEqualTo("""$currentCompileSdkVersion""")
   }
 
   @Test
   fun testPerformRefactoring() {
     val newCompileSdkVersion = currentCompileSdkVersion + 1
     val processor = UpdateCompileSdkProcessor(project, mapOf(buildFile to newCompileSdkVersion))
-    val usages = processor.findUsages()
+    val usages = runReadAction { processor.findUsages() }
     var synced = false
     GradleSyncState.subscribe(project, object : GradleSyncListener {
       override fun syncSucceeded(project: Project) {
         synced = true
       }
-    }, testRootDisposable)
+    }, projectRule.fixture.testRootDisposable)
 
     WriteCommandAction.runWriteCommandAction(project) {
       processor.updateProjectBuildModel(usages)
     }
     GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_MIN_COMPILE_SDK_UPDATED)
 
-    assertTrue(String(buildFile.contentsToByteArray()).contains("compileSdk $newCompileSdkVersion"))
-    assertTrue(synced)
+    assertThat(String(buildFile.contentsToByteArray()).contains("compileSdk $newCompileSdkVersion")).isTrue()
+    assertThat(synced).isTrue()
   }
 }

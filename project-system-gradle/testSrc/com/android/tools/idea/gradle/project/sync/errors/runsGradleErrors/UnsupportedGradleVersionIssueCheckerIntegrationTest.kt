@@ -17,22 +17,28 @@ package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 
 import com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionIssueChecker
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth
 import org.gradle.tooling.UnsupportedVersionException
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 
-class UnsupportedGradleVersionIssueCheckerIntegrationTest: AndroidGradleTestCase() {
+class UnsupportedGradleVersionIssueCheckerIntegrationTest {
   private val unsupportedGradleVersionIssueChecker = UnsupportedGradleVersionIssueChecker()
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testCheckIssueWithPlugin2_3AndGradleOlderThan3_3() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION)
 
     val errMessage = "Minimum supported Gradle version is 3.3. Current version is 2.14.1. " +
                      "If using the gradle wrapper, try editing the distributionUrl in " +
                      "/MyApplication/gradle/wrapper/gradle-wrapper.properties to gradle-3.3-all.zip"
-    val issueData = GradleIssueData(projectFolderPath.path, UnsupportedVersionException(errMessage), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, UnsupportedVersionException(errMessage), null, null)
     val buildIssue = unsupportedGradleVersionIssueChecker.check(issueData)
 
     Truth.assertThat(buildIssue).isNotNull()

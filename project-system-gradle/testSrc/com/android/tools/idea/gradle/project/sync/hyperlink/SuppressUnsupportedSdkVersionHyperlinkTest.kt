@@ -16,27 +16,34 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
 import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.whenever
 import java.io.File
 
-class SuppressUnsupportedSdkVersionHyperlinkTest: AndroidGradleTestCase() {
+class SuppressUnsupportedSdkVersionHyperlinkTest {
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun `test when project is disposed`() {
-    val gradlePropertiesPath = File(projectFolderPath, FN_GRADLE_PROPERTIES)
+    val gradlePropertiesPath = File(projectRule.project.basePath!!, FN_GRADLE_PROPERTIES)
     deleteGradlePropertiesFile(gradlePropertiesPath)
 
     val mockProject = mock(Project::class.java)
     whenever(mockProject.isDisposed).thenReturn(true)
     SuppressUnsupportedSdkVersionHyperlink("abc=x").execute(mockProject)
-    assertFalse(gradlePropertiesPath.exists())
+    assertThat(gradlePropertiesPath.exists()).isFalse()
   }
 
   private fun deleteGradlePropertiesFile(path: File) {
     if (path.exists()) {
-      assertTrue(path.delete())
+      assertThat(path.delete()).isTrue()
     }
   }
 }

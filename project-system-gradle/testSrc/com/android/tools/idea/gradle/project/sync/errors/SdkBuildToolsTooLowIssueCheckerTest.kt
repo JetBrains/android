@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
+import org.junit.Test
 
-class SdkBuildToolsTooLowIssueCheckerTest: AndroidGradleTestCase() {
+class SdkBuildToolsTooLowIssueCheckerTest {
   private val sdkBuildToolsTooLowIssueChecker = SdkBuildToolsTooLowIssueChecker()
 
+  @Test
   fun testCheckIssueHandled() {
     assertThat(
       sdkBuildToolsTooLowIssueChecker.consumeBuildOutputFailureMessage(

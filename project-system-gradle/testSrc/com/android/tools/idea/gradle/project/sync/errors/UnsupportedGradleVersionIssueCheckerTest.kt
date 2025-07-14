@@ -16,24 +16,31 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import org.gradle.tooling.UnsupportedVersionException
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.junit.Rule
+import org.junit.Test
 
-class UnsupportedGradleVersionIssueCheckerTest : AndroidGradleTestCase() {
+class UnsupportedGradleVersionIssueCheckerTest {
   private val unsupportedGradleVersionIssueChecker = UnsupportedGradleVersionIssueChecker()
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+
+  @Test
   fun testCheckIssueOneQuickFix() {
     // This is to check we still show one quickFix if we can't fetch the IDEA project for the current Gradle project.
     val errMessage = "Minimum supported Gradle version is (6.3). Current version is 4.3"
-    val issueData = GradleIssueData(projectFolderPath.path, UnsupportedVersionException(errMessage), null, null)
+    val issueData = GradleIssueData(projectRule.project.basePath!!, UnsupportedVersionException(errMessage), null, null)
     val buildIssue = unsupportedGradleVersionIssueChecker.check(issueData)
 
     assertThat(buildIssue!!.quickFixes).hasSize(1)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(UnsupportedGradleVersionIssueChecker.OpenGradleSettingsQuickFix::class.java)
   }
 
+  @Test
   fun testCheckIssueHandled() {
     assertThat(
       unsupportedGradleVersionIssueChecker.consumeBuildOutputFailureMessage(
