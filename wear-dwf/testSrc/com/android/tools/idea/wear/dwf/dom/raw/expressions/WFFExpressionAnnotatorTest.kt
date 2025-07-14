@@ -64,7 +64,8 @@ class WFFExpressionAnnotatorTest {
 
     val error = highlightInfos.single { it.severity == HighlightSeverity.ERROR }
     assertThat(error.text).isEqualTo("unknownFunction")
-    assertThat(error.forcedTextAttributesKey).isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
+    assertThat(error.forcedTextAttributesKey)
+      .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
     assertThat(error.toolTip).isEqualTo("<html>Unknown function</html>")
   }
 
@@ -85,26 +86,46 @@ class WFFExpressionAnnotatorTest {
 
     val error = highlightInfos.single { it.severity == HighlightSeverity.ERROR }
     assertThat(error.text).isEqualTo("UNKNOWN_DATA_SOURCE")
-    assertThat(error.forcedTextAttributesKey).isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
+    assertThat(error.forcedTextAttributesKey)
+      .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
     assertThat(error.toolTip).isEqualTo("<html>Unknown data source</html>")
   }
 
   @Test
-  fun `configurations are annotated`() {
-    fixture.configureByText(
-      WFFExpressionFileType,
-      "[CONFIGURATION.someConfig] * [CONFIGURATION.someConfig.1]",
-    )
+  fun `configuration are annotated`() {
+    // wrap in a watch face file for the configuration references to resolve
+    val watchFaceFile =
+      fixture.addFileToProject(
+        "res/raw/watch_face.xml",
+        // language=XML
+        """
+        <WatchFace>
+          <UserConfigurations>
+            <BooleanConfiguration id="someConfig" />
+          </UserConfigurations>
+          <Parameter expression="[CONFIGURATION.someConfig] * [CONFIGURATION.unknownConfig]" />
+        </WatchFace>
+      """
+          .trimIndent(),
+      )
+
+    fixture.configureFromExistingVirtualFile(watchFaceFile.virtualFile)
 
     val highlightInfos = fixture.doHighlighting()
-    assertThat(highlightInfos).hasSize(2)
 
     val infos = highlightInfos.filter { it.severity == HighlightSeverity.INFORMATION }
+    assertThat(infos).hasSize(2)
     assertThat(infos[0].text).isEqualTo("CONFIGURATION.someConfig")
     assertThat(infos[0].forcedTextAttributesKey)
       .isEqualTo(WFFExpressionTextAttributes.CONFIGURATION.key)
-    assertThat(infos[1].text).isEqualTo("CONFIGURATION.someConfig.1")
+    assertThat(infos[1].text).isEqualTo("CONFIGURATION.unknownConfig")
     assertThat(infos[1].forcedTextAttributesKey)
       .isEqualTo(WFFExpressionTextAttributes.CONFIGURATION.key)
+
+    val error = highlightInfos.single { it.severity == HighlightSeverity.ERROR }
+    assertThat(error.text).isEqualTo("CONFIGURATION.unknownConfig")
+    assertThat(error.forcedTextAttributesKey)
+      .isEqualTo(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
+    assertThat(error.toolTip).isEqualTo("<html>Unknown configuration</html>")
   }
 }

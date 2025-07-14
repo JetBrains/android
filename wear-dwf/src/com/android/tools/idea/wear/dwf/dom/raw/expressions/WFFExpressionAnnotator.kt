@@ -76,6 +76,17 @@ class WFFExpressionAnnotator : Annotator {
     configuration: WFFExpressionConfiguration,
     holder: AnnotationHolder,
   ) {
+    val resolvedConfiguration = configuration.reference?.resolve()
+    if (resolvedConfiguration == null) {
+      holder
+        .newAnnotation(
+          HighlightSeverity.ERROR,
+          message("wff.expression.annotator.unknown.configuration"),
+        )
+        .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
+        .range(configuration.configurationId)
+        .create()
+    }
     holder
       .newSilentAnnotation(HighlightSeverity.INFORMATION)
       .range(configuration.configurationId)
