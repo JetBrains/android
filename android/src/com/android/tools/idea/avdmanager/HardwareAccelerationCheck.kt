@@ -15,15 +15,21 @@
  */
 package com.android.tools.idea.avdmanager
 
-import com.intellij.openapi.util.SystemInfo.isChromeOS
-import java.io.File
+import com.intellij.util.system.OS
+import java.nio.file.Path
+import kotlin.io.path.exists
 
 object HardwareAccelerationCheck {
+  private val isChromeOS: Boolean by lazy {
+    @Suppress("SpellCheckingInspection")
+    OS.CURRENT == OS.Linux && Path.of("/dev/.cros_milestone").exists()
+  }
+
   /**
    * This should only be executed on Crostini. On any other OS, it will throw an [UnsupportedOperationException].
    */
   private val isHWAccelerated: Boolean by lazy {
-    if (isChromeOS) File("/dev/kvm").exists()
+    if (isChromeOS) Path.of("/dev/kvm").exists()
     else throw UnsupportedOperationException("Can only check for existence of /dev/kvm on Crostini")
   }
 
@@ -33,5 +39,5 @@ object HardwareAccelerationCheck {
    * when making choices about virtual devices.
    */
   @JvmStatic
-  fun isChromeOSAndIsNotHWAccelerated() = isChromeOS && !isHWAccelerated
+  fun isChromeOSAndIsNotHWAccelerated(): Boolean = isChromeOS && !isHWAccelerated
 }
