@@ -64,6 +64,9 @@ class ComposeProjectRule(
   val buildSystemServices: FakeBuildSystemFilePreviewServices
     get() = implRule.buildSystemServices
 
+  val testRootDisposable
+    get() = projectRule.testRootDisposable
+
   val delegate = RuleChain.outerRule(TestLoggerRule()).around(projectRule).around(implRule)
 
   override fun apply(base: Statement, description: Description): Statement =
