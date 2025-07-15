@@ -28,6 +28,7 @@ import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.tools.adtui.ZoomController
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationListener.CFG_ACTIVITY
 import com.android.tools.configurations.ConfigurationListener.CFG_NIGHT_MODE
@@ -40,11 +41,13 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneRenderConfiguration
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ApplicationRule
 import java.util.concurrent.CompletableFuture
 import kotlin.test.assertEquals
 import kotlinx.coroutines.CompletableDeferred
@@ -54,6 +57,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -69,6 +73,8 @@ import org.mockito.kotlin.whenever
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(JUnit4::class)
 class ConfigurationResizeListenerTest {
+
+  @get:Rule val applicationRule = ApplicationRule()
 
   private val layoutlibSceneManagerConfiguration = mock<LayoutlibSceneRenderConfiguration>()
   val configurationSettings = TestConfigurationSettingsImpl()
@@ -97,13 +103,21 @@ class ConfigurationResizeListenerTest {
     Disposer.dispose(sceneManager)
   }
 
+  private fun createSceneManager(showDecorations: Boolean): LayoutlibSceneManager {
+    this.showDecoration = showDecorations
+    return mock<LayoutlibSceneManager>().also {
+      whenever(it.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
+      val surface = mock<NlDesignSurface>()
+      val zoomController = mock<ZoomController>()
+      whenever(surface.zoomController).thenReturn(zoomController)
+      whenever(surface.isCanvasResizing).thenReturn(true)
+      whenever(it.designSurface).thenReturn(surface)
+    }
+  }
+
   @Test
   fun `listener triggers render with showDecoration true`() = runTest {
-    val sceneManager =
-      mock<LayoutlibSceneManager>().also {
-        whenever(it.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
-        showDecoration = true
-      }
+    val sceneManager = createSceneManager(true)
     val configuration = createConfiguration(500, 600)
 
     val listener =
@@ -124,11 +138,7 @@ class ConfigurationResizeListenerTest {
 
   @Test
   fun `listener triggers render with swapped x and y due to landscape orientation`() = runTest {
-    val sceneManager =
-      mock<LayoutlibSceneManager>().also {
-        whenever(it.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
-        showDecoration = true
-      }
+    val sceneManager = createSceneManager(true)
     val configuration = createConfiguration(500, 600)
 
     val listener =
@@ -152,11 +162,7 @@ class ConfigurationResizeListenerTest {
 
   @Test
   fun `listener modifies LayoutParams and triggers render with showDecoration false`() = runTest {
-    val sceneManager =
-      mock<LayoutlibSceneManager>().also {
-        whenever(it.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
-        showDecoration = false
-      }
+    val sceneManager = createSceneManager(false)
     val configuration = createConfiguration(500, 600)
     val testView = mock<View>()
     val layoutParams = ViewGroup.LayoutParams(500, 600)
@@ -190,11 +196,7 @@ class ConfigurationResizeListenerTest {
 
   @Test
   fun `listener handles null viewObject gracefully`() = runTest {
-    val sceneManager =
-      mock<LayoutlibSceneManager>().also {
-        whenever(it.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
-        showDecoration = false
-      }
+    val sceneManager = createSceneManager(false)
     val configuration = createConfiguration(500, 600)
 
     whenever(sceneManager.viewObject).thenReturn(null) // Return null viewObject
@@ -218,11 +220,7 @@ class ConfigurationResizeListenerTest {
 
   @Test
   fun `executeInRenderSession cancels on rapid updates test`() = runTest {
-    val sceneManager =
-      mock<LayoutlibSceneManager>().also {
-        whenever(it.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
-        showDecoration = false
-      }
+    val sceneManager = createSceneManager(false)
     val configuration = createConfiguration(500, 600)
     val testView = mock<View>()
     val layoutParams = ViewGroup.LayoutParams(500, 600)
@@ -267,11 +265,7 @@ class ConfigurationResizeListenerTest {
 
   @Test
   fun `multiple device changes are handled sequentially`() = runTest {
-    val sceneManager =
-      mock<LayoutlibSceneManager>().also {
-        whenever(it.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
-        showDecoration = true
-      }
+    val sceneManager = createSceneManager(true)
     val configuration = createConfiguration(500, 600)
     val dispatcher = StandardTestDispatcher(testScheduler)
     val listener =
@@ -297,11 +291,7 @@ class ConfigurationResizeListenerTest {
 
   @Test
   fun `listener is removed on SceneManager disposal`() = runTest {
-    val sceneManager =
-      mock<LayoutlibSceneManager>().also {
-        whenever(it.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
-        showDecoration = true
-      }
+    val sceneManager = createSceneManager(true)
     val configuration = createConfiguration(500, 600)
     val listener =
       ConfigurationResizeListener(
@@ -323,11 +313,7 @@ class ConfigurationResizeListenerTest {
 
   @Test
   fun `collectLatest continues after exception in requestRender`() = runTest {
-    val sceneManager =
-      mock<LayoutlibSceneManager>().also {
-        whenever(it.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
-        showDecoration = true
-      }
+    val sceneManager = createSceneManager(true)
     val configuration = createConfiguration(500, 600)
     val dispatcher = StandardTestDispatcher(testScheduler)
     val listener =
@@ -379,9 +365,8 @@ class ConfigurationResizeListenerTest {
         )
 
       val sceneManager =
-        mock<LayoutlibSceneManager>().also { sm ->
+        createSceneManager(false).also { sm ->
           whenever(sm.model).thenReturn(model)
-          whenever(sm.sceneRenderConfiguration).thenReturn(layoutlibSceneManagerConfiguration)
           whenever(sm.forceNextResizeToUseOriginalSize).doAnswer { true }
           whenever(sm.viewObject).thenReturn(viewObj)
           whenever(sm.executeInRenderSessionAsync(any(), any(), any())).then {
@@ -390,7 +375,6 @@ class ConfigurationResizeListenerTest {
             CompletableFuture.completedFuture(null)
           }
         }
-      showDecoration = false
 
       val initialWidth = 500
       val initialHeight = 600
