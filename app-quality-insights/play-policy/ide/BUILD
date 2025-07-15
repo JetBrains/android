@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.play-policy.ide.iml"],
     resources = ["resources"],
+    test_class = "com.android.tools.idea.play.PlayPolicyTestSuite",
     # do not sort: must match IML order
     test_deps = [
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
@@ -15,6 +16,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
