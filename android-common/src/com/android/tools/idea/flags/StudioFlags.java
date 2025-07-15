@@ -1636,6 +1636,11 @@ public final class StudioFlags {
     "Enables a context-menu action to transform UI with Gemini.",
     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI_AGENTIC = new BooleanFlag(
+    COMPOSE, "transform.ui.with.ai.agentic", "Use agent for Transform UI with Gemini",
+    "Uses agentic approach when performing transform UI with Gemini.",
+    enabledUpTo(DEV));
+
   public static final Flag<Boolean> COMPOSE_CRITIQUE_AGENT_CODE_REWRITE = new BooleanFlag(
     COMPOSE, "critique.agent.code.rewrite", "Enable action to rewrite UI from Image",
     "Enables a context-menu action to analyze UI images and rewrite corresponding code to match the target design.",
