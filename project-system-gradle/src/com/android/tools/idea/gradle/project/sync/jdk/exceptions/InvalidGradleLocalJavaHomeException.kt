@@ -19,8 +19,6 @@ import com.android.tools.idea.gradle.project.sync.jdk.exceptions.base.GradleJdkE
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.InvalidGradleLocalJavaHome
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.UndefinedGradleLocalJavaHome
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectRootManager
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
@@ -39,7 +37,4 @@ class InvalidGradleLocalJavaHomeException(
   override val cause =
     if (resolvedGradleJdkPath == null) UndefinedGradleLocalJavaHome else InvalidGradleLocalJavaHome(resolvedGradleJdkPath)
 
-  override val recoveryJdkCandidates = listOf(
-    AndroidBundle.message("gradle.project.jdk.name") to ProjectRootManager.getInstance(project).projectSdk?.homePath.orEmpty()
-  ).plus(super.recoveryJdkCandidates)
 }

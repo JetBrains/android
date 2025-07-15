@@ -22,7 +22,6 @@ import com.android.ide.common.repository.GoogleMavenArtifactId.Companion.android
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.support.AndroidxNameUtils
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel.Companion.get
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
@@ -363,11 +362,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
         }
       } else if (AndroidModel.isRequired(facet)) {
         val androidModel = AndroidModel.get(facet)
-        if (
-          androidModel is GradleAndroidModel &&
-            androidModel.androidProject.projectType !=
-              IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM
-        ) {
+        if (androidModel is GradleAndroidModel) {
           val variantName = androidModel.selectedVariantName
 
           val lintModel = getLintModuleModel(facet, shallowModel)
@@ -407,7 +402,7 @@ internal constructor(client: LintClient, dir: File, referenceDir: File) :
       shallowModel: Boolean,
     ): Result<LintModelModule> {
       val model = get(facet)
-      checkNotNull(model) { "GradleAndroidMode l not available for $facet" }
+      checkNotNull(model) { "GradleAndroidModel not available for $facet" }
       val builderModelProject = model.androidProject
       val multiVariantData = builderModelProject.multiVariantData
       checkNotNull(multiVariantData) {

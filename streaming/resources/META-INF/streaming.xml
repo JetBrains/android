@@ -135,11 +135,20 @@
         <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X 10.5+"/>
       </action>
+      <action id="android.streaming.xr.interaction"
+              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$Interaction"
+              icon="StudioIcons.LayoutEditor.Motion.GESTURE"
+              text="Interact with Apps"
+              description="Mouse and keyboard are used to interact with running apps">
+        <keyboard-shortcut first-keystroke="control I" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X 10.5+"/>
+      </action>
       <action id="android.streaming.xr.hand.tracking"
               class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$HandTracking"
               icon="StudioIcons.Emulator.XR.HAND_TRACKING"
               text="Hand Tracking"
-              description="Mouse is used to simulate hand tracking. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
+              description="Mouse is used to simulate hand tracking. The arrow keys control direction of the view.">
         <keyboard-shortcut first-keystroke="control H" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X 10.5+"/>
@@ -148,7 +157,7 @@
               class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$EyeTracking"
               icon="StudioIcons.Emulator.XR.EYE_GAZE"
               text="Eye Tracking"
-              description="Mouse is used to simulate eye tracking. The arrow keys control direction of the view. The WASDQE keys control location in the virtual space.">
+              description="Mouse is used to simulate eye tracking. The arrow keys control direction of the view.">
         <keyboard-shortcut first-keystroke="control Y" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X 10.5+"/>
@@ -224,14 +233,10 @@
               icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete emulator snapshots"/>
       <action id="android.streaming.hardware.input" class="com.android.tools.idea.streaming.actions.StreamingHardwareInputAction"
               icon="StudioIcons.Emulator.Toolbar.HARDWARE_INPUT"
-              text="Hardware Input" description="Enable transparent forwarding of keyboard and mouse events to the device">
-        <keyboard-shortcut first-keystroke="control W" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="control W" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="control W" keymap="Mac OS X 10.5+"/>
-      </action>
+              text="Hardware Input" description="Enable transparent forwarding of keyboard and mouse events to the device"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show emulator extended controls"/>
-      <action id="android.streaming.ui.settings" class="com.android.tools.idea.streaming.actions.StreamingUiSettingsAction"
+      <action id="android.streaming.ui.settings" class="com.android.tools.idea.streaming.uisettings.actions.StreamingUiSettingsAction"
               icon="StudioIcons.Emulator.Toolbar.DEVICE_SETTINGS" text="Device UI Shortcuts" description="Shortcuts to common Android settings"/>
     </group>
 
@@ -249,56 +254,45 @@
 
     <group id="android.streaming.xr.navigation.group" class="com.android.tools.idea.streaming.actions.XrMainToolbarGroup">
       <group id="android.streaming.xr.input.mode.group" class="com.android.tools.idea.streaming.actions.StreamingXrOnlyGroup">
+        <reference ref="android.streaming.xr.interaction"/>
         <reference ref="android.streaming.xr.hand.tracking"/>
         <reference ref="android.streaming.xr.eye.tracking"/>
-        <reference ref="android.streaming.hardware.input"/>
         <reference ref="android.streaming.xr.view.direction"/>
         <reference ref="android.streaming.xr.location.in.space.xy"/>
         <reference ref="android.streaming.xr.location.in.space.z"/>
-        <separator/>
       </group>
+      <separator/>
       <group id="android.streaming.xr.recenter.group" class="com.android.tools.idea.streaming.actions.StreamingXrOnlyGroup">
         <reference ref="android.streaming.xr.recenter"/>
-        <separator/>
       </group>
-    </group>
-    <group id="android.streaming.input.mode.group" class="com.android.tools.idea.streaming.actions.StreamingInputModeGroup">
-      <reference ref="android.streaming.hardware.input"/>
-      <separator/>
     </group>
     <group id="android.streaming.xr.passthrough.group" class="com.android.tools.idea.streaming.actions.StreamingXrOnlyGroup">
       <reference ref="android.streaming.xr.passthrough"/>
     </group>
 
-    <group id="ContextMenuVirtualDevice">
-      <reference ref="android.streaming.ui.settings"/>
-      <!-- Placeholder group for placing the Wear Health Services button registered in a separate module. -->
-      <reference ref="android.emulator.wear.health.services"/>
-      <separator/>
-      <reference ref="android.device.screenshot"/>
-      <reference ref="android.device.screen.record"/>
-      <separator/>
+    <group id="ContextMenuOnlyVirtualDevice">
       <reference ref="android.streaming.backup"/>
       <separator/>
       <reference ref="android.emulator.snapshots"/>
       <reference ref="android.emulator.extended.controls"/>
     </group>
 
-    <group id="ContextMenuPhysicalDevice">
-      <reference ref="android.streaming.ui.settings"/>
-      <separator/>
-      <reference ref="android.device.screenshot"/>
-      <reference ref="android.device.screen.record"/>
-      <separator/>
+    <group id="ContextMenuOnlyPhysicalDevice">
       <reference ref="android.streaming.backup"/>
     </group>
 
     <group id="StreamingContextMenuVirtualDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuEnabledActionGroup">
-      <reference ref="ContextMenuVirtualDevice"/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
+      <separator/>
+      <reference ref="ContextMenuOnlyVirtualDevice"/>
     </group>
 
     <group id="StreamingContextMenuPhysicalDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuEnabledActionGroup">
-      <reference ref="ContextMenuPhysicalDevice"/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
+      <separator/>
+      <reference ref="ContextMenuOnlyPhysicalDevice"/>
     </group>
 
     <group id="StreamingToolbarVirtualDevice">
@@ -326,10 +320,17 @@
       <reference ref="android.device.overview.button"/>
       <separator/>
       <reference ref="android.streaming.xr.navigation.group"/>
-      <reference ref="android.streaming.input.mode.group"/>
       <reference ref="android.streaming.xr.passthrough.group"/>
+      <separator/>
+      <reference ref="android.streaming.ui.settings"/>
+      <reference ref="android.emulator.wear.health.services"/>
+      <reference ref="android.streaming.hardware.input"/>
+      <separator/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
       <group id="InToolbarContextMenuVirtualDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuDisabledActionGroup">
-        <reference ref="ContextMenuVirtualDevice"/>
+        <separator/>
+        <reference ref="ContextMenuOnlyVirtualDevice"/>
       </group>
     </group>
 
@@ -350,10 +351,16 @@
       <reference ref="android.device.overview.button"/>
       <separator/>
       <reference ref="android.streaming.xr.navigation.group"/>
-      <reference ref="android.streaming.input.mode.group"/>
       <reference ref="android.streaming.xr.passthrough.group"/>
+      <separator/>
+      <reference ref="android.streaming.ui.settings"/>
+      <reference ref="android.streaming.hardware.input"/>
+      <separator/>
+      <reference ref="android.device.screenshot"/>
+      <reference ref="android.device.screen.record"/>
       <group id="InToolbarContextMenuPhysicalDevice" class="com.android.tools.idea.streaming.actions.StreamingContextMenuDisabledActionGroup">
-        <reference ref="ContextMenuPhysicalDevice"/>
+        <separator/>
+        <reference ref="ContextMenuOnlyPhysicalDevice"/>
       </group>
       <separator/>
       <reference ref="android.device.reservation.extend"/>

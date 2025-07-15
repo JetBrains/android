@@ -143,6 +143,18 @@ class StudioLabsSettingsConfigurable :
             imageDescription = "Generate Compose Preview menu",
           ),
           StudioLabsFeaturePanelUi(
+            flag = StudioFlags.COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI,
+            heading = "Transform UI with AI",
+            description =
+              """
+              Allows the transformation of existing UI within the Compose Preview environment using Gemini.
+            """
+                .trimIndent(),
+            imageSourceDefault = "images/studio_labs/transform-compose-preview.png",
+            imageSourceDark = "images/studio_labs/transform-compose-preview_dark.png",
+            imageDescription = "Transform UI with Gemini action",
+          ),
+          StudioLabsFeaturePanelUi(
             flag = StudioFlags.STUDIOBOT_ATTACHMENTS,
             heading = "Attach Images",
             description =
@@ -165,6 +177,18 @@ class StudioLabsSettingsConfigurable :
             imageSourceDefault = "images/studio_labs/at-file.png",
             imageSourceDark = "images/studio_labs/at-file_dark.png",
             imageDescription = "@file attaching menu",
+          ),
+          StudioLabsFeaturePanelUi(
+            flag = StudioFlags.SUGGEST_A_FIX,
+            heading = "Generate suggested fix in AQI",
+            description =
+              """
+                Enables AQI to generate suggested fixes based on Gemini insight.
+              """
+                .trimIndent(),
+            imageSourceDefault = "images/studio_labs/suggested-fix.png",
+            imageSourceDark = "images/studio_labs/suggested-fix_dark.png",
+            imageDescription = "Suggested Fix in AQI",
           ),
         )
 

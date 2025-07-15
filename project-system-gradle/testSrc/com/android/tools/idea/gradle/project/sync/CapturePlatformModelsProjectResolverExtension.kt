@@ -24,6 +24,8 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerExtension
 import org.gradle.tooling.model.idea.IdeaModule
+import org.gradle.tooling.model.idea.IdeaProject
+import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
@@ -41,19 +43,30 @@ sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleM
     private val kaptModels = mutableMapOf<String, KaptGradleModel>()
     private val mppModels = mutableMapOf<String, KotlinMPPGradleModel>()
     private val externalProjectModels = mutableMapOf<String, ExternalProject>()
+    private val ideaProjectModels = mutableMapOf<String, IdeaProject>()
     private val testGradleModels = mutableMapOf<String, TestGradleModel>()
     private val testParameterizedGradleModels = mutableMapOf<String, TestParameterizedGradleModel>()
     private val testExceptionModels = mutableMapOf<String, TestExceptionModel>()
 
     fun getKotlinModel(module: Module): KotlinGradleModel? = kotlinModels[getGradleProjectPath(module)]
+    fun getKotlinModel(gradleProjectPath: @SystemIndependent String): KotlinGradleModel? = kotlinModels[gradleProjectPath]
     fun getKaptModel(module: Module): KaptGradleModel? = kaptModels[getGradleProjectPath(module)]
+    fun getKaptModel(gradleProjectPath: @SystemIndependent String): KaptGradleModel? = kaptModels[gradleProjectPath]
     fun getMppModel(module: Module): KotlinMPPGradleModel? = mppModels[getGradleProjectPath(module)]
+    fun getMppModel(gradleProjectPath: @SystemIndependent String): KotlinMPPGradleModel? = mppModels[gradleProjectPath]
     fun getExternalProjectModel(module: Module): ExternalProject? = externalProjectModels[getGradleProjectPath(module)]
+    fun getExternalProjectModel(gradleProjectPath: @SystemIndependent String): ExternalProject? = externalProjectModels[gradleProjectPath]
+    fun getIdeaProjectModel(module: Module): IdeaProject? = ideaProjectModels[getGradleProjectPath(module)]
+    fun getIdeaProjectModel(gradleProjectPath: @SystemIndependent String): IdeaProject? = ideaProjectModels[gradleProjectPath]
     fun getTestGradleModel(module: Module): TestGradleModel? = testGradleModels[getGradleProjectPath(module)]
+    fun getTestGradleModel(gradleProjectPath: @SystemIndependent String): TestGradleModel? = testGradleModels[gradleProjectPath]
     fun getTestParameterizedGradleModel(module: Module): TestParameterizedGradleModel? =
       testParameterizedGradleModels[getGradleProjectPath(module)]
+    fun getTestParameterizedGradleModel(gradleProjectPath: @SystemIndependent String): TestParameterizedGradleModel? =
+      testParameterizedGradleModels[gradleProjectPath]
 
     fun getTestExceptionModel(module: Module): TestExceptionModel? = testExceptionModels[getGradleProjectPath(module)]
+    fun getTestExceptionModel(gradleProjectPath: @SystemIndependent String): TestExceptionModel? = testExceptionModels[gradleProjectPath]
 
     private fun getGradleProjectPath(module: Module): String? {
       return ExternalSystemApiUtil.getExternalProjectPath(module)
@@ -100,6 +113,9 @@ sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleM
       it.kaptGradleModel?.let { kaptModel ->
         kaptModels[gradleProjectPath] = kaptModel
       }
+    }
+    resolverCtx.getExtraProject(gradleModule, IdeaProject::class.java)?.let {
+      ideaProjectModels[gradleProjectPath] = it
     }
     resolverCtx.getExtraProject(gradleModule, ExternalProject::class.java)?.let {
       externalProjectModels[gradleProjectPath] = it

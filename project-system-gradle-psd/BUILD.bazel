@@ -20,6 +20,7 @@ jvm_library(
     "@lib//:jetbrains-annotations",
     "@lib//:kotlin-stdlib",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
+    "@lib//:kotlinc-kotlin-jps-common-provided",
     "@lib//:protobuf",
     "@lib//:swingx",
     "//android/adt-ui",
@@ -69,6 +70,7 @@ jvm_library(
     "//platform/util/jdom",
     "//platform/util-rt",
     "//platform/util:util-ui",
+    "//plugins/kotlin/base/facet",
   ],
   runtime_deps = [":projectSystem-gradle-psd_resources"]
 )
@@ -139,6 +141,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
+    "//platform/eel-provider",
     "//android/gradle-declarative-lang-ide",
     "@lib//:kotlinx-datetime-jvm",
     "//android/gradle-declarative-lang-flags",

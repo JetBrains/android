@@ -48,7 +48,6 @@ import com.google.idea.blaze.qsync.artifacts.DigestMap;
 import com.google.idea.blaze.qsync.artifacts.DigestMapImpl;
 import com.google.idea.blaze.qsync.java.ArtifactTrackerProto;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts;
-import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaTargetArtifacts;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcTargetInfo;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcToolchainInfo;
@@ -150,13 +149,11 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
       OutputInfo outputInfo, DigestMap digestMap) {
 
     ImmutableSet.Builder<TargetBuildInfo> targetBuildInfoSet = ImmutableSet.builder();
-    for (JavaArtifacts javaArtifacts : outputInfo.getArtifactInfo()) {
-      for (JavaTargetArtifacts javaTarget : javaArtifacts.getArtifactsList()) {
-        JavaArtifactInfo artifactInfo = JavaArtifactInfo.create(javaTarget, digestMap);
-        TargetBuildInfo targetInfo =
-            TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
-        targetBuildInfoSet.add(targetInfo);
-      }
+    for (JavaArtifacts javaTarget : outputInfo.getArtifactInfo()) {
+      JavaArtifactInfo artifactInfo = JavaArtifactInfo.create(javaTarget, digestMap);
+      TargetBuildInfo targetInfo =
+          TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
+      targetBuildInfoSet.add(targetInfo);
     }
 
     for (CcCompilationInfoOuterClass.CcCompilationInfo ccInfo : outputInfo.getCcCompilationInfo()) {
@@ -324,6 +321,12 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
             .flatMap(Optional::stream)
             .map(JavaArtifactInfo::jars)
             .forEach(combinedJava.jarsBuilder()::addAll);
+          targetInfos.stream()
+            .skip(1)
+            .map(TargetBuildInfo::javaInfo)
+            .flatMap(Optional::stream)
+            .map(JavaArtifactInfo::outputJars)
+            .forEach(combinedJava.outputJarsBuilder()::addAll);
           info = first.toBuilder().javaInfo(combinedJava.build()).build();
         } else {
           info = first.toBuilder().build();

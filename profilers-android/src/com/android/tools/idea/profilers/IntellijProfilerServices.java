@@ -473,11 +473,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isProfileableBuildsEnabled() {
-      return StudioFlags.PROFILEABLE_BUILDS.get();
-    }
-
-    @Override
     public boolean isTestingModeEnabled() {
       return StudioFlags.PROFILER_TESTING_MODE.get();
     }
@@ -510,6 +505,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     @Override
     public boolean isLeakCanaryEnabled() {
       return StudioFlags.PROFILER_LEAKCANARY.get();
+    }
+
+    @Override
+    public boolean isTaskTitleV2Enabled() {
+      return StudioFlags.PROFILER_TASK_TITLE_V2.get();
     }
   }
 }

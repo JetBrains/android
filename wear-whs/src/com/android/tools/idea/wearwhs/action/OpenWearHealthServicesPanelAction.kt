@@ -22,8 +22,9 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.findComponentForAction
-import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
+import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.streaming.emulator.actions.AbstractEmulatorAction
 import com.android.tools.idea.streaming.emulator.isReadyForAdbCommands
 import com.android.tools.idea.wearwhs.communication.ContentProviderDeviceManager
@@ -64,22 +65,22 @@ class OpenWearHealthServicesPanelAction :
   }
 
   private fun isReadyForAdbCommands(event: AnActionEvent): Boolean {
-    val emulatorView = EMULATOR_VIEW_KEY.getData(event.dataContext) ?: return false
+    val deviceSerialNumber = event.getData(DISPLAY_VIEW_KEY)?.deviceSerialNumber ?: return false
     val project = event.project ?: return false
-    return isReadyForAdbCommands(project, emulatorView.deviceSerialNumber)
+    return isReadyForAdbCommands(project, deviceSerialNumber)
   }
 
   private fun showWearHealthServicesToolPopup(action: AnAction, event: AnActionEvent) {
-    val emulatorView = EMULATOR_VIEW_KEY.getData(event.dataContext) ?: return
     val project = event.project ?: return
+    val emulatorController = event.getData(EMULATOR_CONTROLLER_KEY) ?: return
+    val displayView = event.getData(DISPLAY_VIEW_KEY) ?: return
 
-    val emulatorController = emulatorView.emulator
     val panelController =
       emulatorController.getOrCreateUserData(PANEL_CONTROLLER_KEY) {
         val workerScope: CoroutineScope = AndroidCoroutineScope(emulatorController, workerThread)
         val uiScope: CoroutineScope = AndroidCoroutineScope(emulatorController, uiThread)
         val adbSessionProvider = { AdbLibService.getSession(project) }
-        val serialNumber = emulatorController.emulatorId.serialNumber
+        val serialNumber = displayView.deviceSerialNumber
         val deviceManager = ContentProviderDeviceManager(adbSessionProvider)
         val stateManager =
           WearHealthServicesStateManagerImpl(deviceManager, workerScope = workerScope).also {
@@ -96,10 +97,10 @@ class OpenWearHealthServicesPanelAction :
     // Show the UI settings popup relative to the ActionButton.
     // If such a component is not found use the displayView. The action was likely activated from
     // the keyboard.
-    val component = event.findComponentForAction(action) as? JComponent ?: emulatorView
-    val position = findRelativePoint(component, emulatorView)
+    val component = event.findComponentForAction(action) as? JComponent ?: displayView
+    val position = findRelativePoint(component, displayView)
 
-    panelController.showWearHealthServicesToolPopup(emulatorView, position)
+    panelController.showWearHealthServicesToolPopup(displayView, position)
   }
 }
 

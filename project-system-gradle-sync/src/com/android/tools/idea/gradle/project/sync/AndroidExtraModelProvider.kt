@@ -17,11 +17,13 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.composites.BuildMap
+import com.android.ide.gradle.model.dependencies.DeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.IdeDebugInfo
 import com.android.tools.idea.gradle.model.impl.IdeBuildImpl
 import com.android.tools.idea.gradle.model.impl.IdeCompositeBuildMapImpl
 import com.android.tools.idea.gradle.model.impl.IdeDebugInfoImpl
+import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.BasicGradleProject
@@ -55,9 +57,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     modelConsumer: GradleModelConsumer,
   ) {
     for (buildModel in buildModels) {
-      for (projectModel in buildModel.projects) {
-        impl.populateProjectModels(controller, projectModel, modelConsumer)
-      }
+      impl.populateProjectModels(controller, buildModel.projects, modelConsumer)
       impl.populateBuildModels(controller, buildModel, modelConsumer)
     }
   }
@@ -142,11 +142,24 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
 
   fun populateProjectModels(
     controller: BuildController,
-    projectModel: BasicGradleProject,
-    modelConsumer: GradleModelConsumer
-  ) {
-    val pluginModel = controller.findModel(projectModel, GradlePluginModel::class.java) ?: return
-    modelConsumer.consumeProjectModel(projectModel, pluginModel, GradlePluginModel::class.java)
+    projectModels: Set<BasicGradleProject>,
+    modelConsumer: GradleModelConsumer) {
+    val modelsToFetch = listOf(
+      GradlePluginModel::class.java,
+      DeclaredDependencies::class.java
+    )
+    controller.run(projectModels.map { projectModel ->
+      BuildAction {
+        modelsToFetch.mapNotNull { fetchedClass ->
+            controller.findModel(projectModel, fetchedClass)?.let { fetchedModel ->
+              // We have to consume models in a single threaded context (i.e. outside the build action), so need to juggle this data around.
+              Triple(projectModel, fetchedModel, fetchedClass)
+            }
+          }
+        }
+    }).flatten().forEach { (projectModel, fetchedModel, fetchedClass) ->
+      modelConsumer.consumeProjectModel(projectModel, fetchedModel, fetchedClass)
+    }
   }
 
   private fun populateDebugInfo(buildModel: GradleBuild, consumer: GradleModelConsumer) {

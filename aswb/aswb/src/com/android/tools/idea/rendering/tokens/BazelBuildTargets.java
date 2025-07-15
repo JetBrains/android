@@ -24,11 +24,6 @@ import org.jetbrains.annotations.NotNull;
 final class BazelBuildTargets implements BuildTargets {
   @Override
   public @NotNull BuildTargetReference from(@NotNull Module module, @NotNull VirtualFile file) {
-    return fromModuleOnly(module);
-  }
-
-  @Override
-  public @NotNull BuildTargetReference fromModuleOnly(@NotNull Module module) {
-    return new BazelBuildTargetReference(module);
+    return new BazelBuildTargetReference(module, file);
   }
 }

@@ -1,6 +1,16 @@
 ### auto-generated section `build intellij.android.core` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "jvm_resources")
 load("@rules_kotlin//kotlin:jvm.bzl", "kt_javac_options")
+
+create_kotlinc_options(
+  name = "custom",
+  opt_in = [
+    "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
+    "org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction",
+    "org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt",
+  ]
+)
 
 kt_javac_options(
   name = "custom-javac-options",
@@ -29,6 +39,7 @@ jvm_library(
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
   javac_opts = ":custom-javac-options",
+  kotlinc_opts = ":custom",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:jetbrains-annotations",
@@ -164,6 +175,7 @@ jvm_library(
     "//platform/lang-impl",
     "//platform/lang-impl:lang-tests",
     "//platform/lvcs-api:lvcs",
+    "//platform/vcs-api:vcs",
     "//platform/projectModel-api:projectModel",
     "//platform/projectModel-impl",
     "//platform/refactoring",
@@ -213,6 +225,7 @@ jvm_library(
     "//plugins/kotlin/base/code-insight",
     "//plugins/kotlin/code-insight/api",
     "//plugins/kotlin/base/facet",
+    "//plugins/kotlin/base/fir/project-structure",
     "//plugins/kotlin/base/fe10/analysis",
     "//plugins/kotlin/base/fe10/code-insight",
     "//plugins/kotlin/base/plugin",
@@ -389,6 +402,7 @@ jvm_library(
     "@lib//:kotlin-stdlib",
     "@lib//:asm",
     "@lib//:guava",
+    "@lib//:assert_j",
     "@lib//:junit4",
     "@lib//:asm-tools",
     "@lib//:jetbrains-annotations",
@@ -457,6 +471,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
+    "//platform/ui.jcef",
     "//tools/intellij.tools.ide.metrics.benchmark:ide-metrics-benchmark",
     "//tools/intellij.tools.ide.metrics.benchmark:ide-metrics-benchmark_test_lib",
     "//xml/dom-openapi:dom",

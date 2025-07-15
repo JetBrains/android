@@ -52,7 +52,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -117,6 +116,7 @@ private fun configureLayoutlibSceneManagerForPreviewElement(
     requestPrivateClassLoader = false,
     runVisualAnalysis = false,
     quality = 1f,
+    disableAnimation = false,
   )
 
 /** Converts an [InstructionsPanel] into text that can be easily used in assertions. */
@@ -155,6 +155,7 @@ class ComposePreviewViewImplTest {
   private lateinit var mainFileSmartPointer: SmartPsiElementPointer<PsiFile>
   private lateinit var previewView: ComposePreviewView
   private lateinit var fakeUi: FakeUi
+  private val fakeStudioBotActionFactory = FakeStudioBotActionFactory()
 
   private val geminiPluginApi =
     object : GeminiPluginApi {
@@ -186,7 +187,7 @@ class ComposePreviewViewImplTest {
       .registerExtension(GeminiPluginApi.EP_NAME, geminiPluginApi, projectRule.testRootDisposable)
     ExtensionTestUtil.maskExtensions(
       ComposeStudioBotActionFactory.EP_NAME,
-      listOf(FakeStudioBotActionFactory()),
+      listOf(fakeStudioBotActionFactory),
       projectRule.testRootDisposable,
     )
     runBlocking(Dispatchers.EDT) {
@@ -327,16 +328,14 @@ class ComposePreviewViewImplTest {
         mainFileSmartPointer.element!!,
         fixture.testRootDisposable,
         EmptyProgressIndicator(),
-        {
-          previewView.hasRendered = true
-          previewView.hasContent = true
-        },
         testPreviewElementModelAdapter,
         DefaultModelUpdater(),
         navigationHandler = ComposePreviewNavigationHandler(),
         configureLayoutlibSceneManager = configureLayoutlibSceneManager,
         null,
       )
+      previewView.hasRendered = true
+      previewView.hasContent = true
     }
     ApplicationManager.getApplication().invokeAndWait {
       previewView.updateVisibilityAndNotifications()
@@ -345,45 +344,35 @@ class ComposePreviewViewImplTest {
   }
 
   @Test
-  fun `empty preview state when generate all previews is disabled`() = runBlocking {
+  fun `empty preview state when flag is disabled`() {
     StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(false)
-    previewView.hasRendered = true
-    previewView.hasContent = false
-    runBlocking { previewView.updateVisibilityAndNotifications() }
-
-    var instructionPanel: InstructionsPanel? = null
-    delayUntilCondition(250) {
-      instructionPanel = (fakeUi.findComponent<InstructionsPanel> { it.isShowing })
-      instructionPanel != null
-    }
-
-    retryUntilPassing(2.seconds) {
-      assertEquals(
-        """
-        No preview found.
-        Add preview by annotating Composables with @Preview
-        [Using the Compose preview]
-      """
-          .trimIndent(),
-        instructionPanel?.toDisplayText(),
-      )
-    }
-  }
-
-  @Test
-  fun `empty preview state when generate all previews is enabled and context-sharing disabled`() {
+    geminiPluginApi.contextAllowed = true
     checkEmptyPreviewState(false)
   }
 
   @Test
-  fun `empty preview state when both generate all previews and context-sharing are enabled`() {
+  fun `empty preview state when context-sharing is disabled`() {
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
+    geminiPluginApi.contextAllowed = false
+    checkEmptyPreviewState(false)
+  }
+
+  @Test
+  fun `empty preview state when preview generator is null`() {
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
+    geminiPluginApi.contextAllowed = true
+    fakeStudioBotActionFactory.isNullPreviewGeneratorAction = true
+    checkEmptyPreviewState(false)
+  }
+
+  @Test
+  fun `empty preview state when flag and context-sharing are enabled`() {
+    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
+    geminiPluginApi.contextAllowed = true
     checkEmptyPreviewState(true)
   }
 
-  private fun checkEmptyPreviewState(contextSharingEnabled: Boolean) = runBlocking {
-    StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.override(true)
-    geminiPluginApi.contextAllowed = contextSharingEnabled
-
+  private fun checkEmptyPreviewState(showAutoGenerateAction: Boolean) = runBlocking {
     previewView.hasRendered = true
     previewView.hasContent = false
     runBlocking { previewView.updateVisibilityAndNotifications() }
@@ -399,7 +388,7 @@ class ComposePreviewViewImplTest {
         No preview found.
         Add preview by annotating Composables with @Preview
         [Using the Compose preview]
-        ${if (contextSharingEnabled) "[Auto-generate Compose Previews for this file]" else ""}
+        ${if (showAutoGenerateAction) "[Auto-generate Compose Previews for this file]" else ""}
       """
           .trimIndent()
           .trim(),
@@ -461,43 +450,6 @@ class ComposePreviewViewImplTest {
     assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel> { it.isShowing }.size)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display1" }!!.isShowing)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display2" }!!.isShowing)
-  }
-
-  @Test
-  fun `configuration listeners are not triggered before the whole setup of the model is completed`() {
-    val composePreviewManager = TestComposePreviewManager()
-    val previews =
-      listOf(
-        SingleComposePreviewElementInstance.forTesting<SmartPsiElementPointer<PsiElement>>(
-          "Fake Test Method",
-          "Display1",
-        )
-      )
-    val fakePreviewProvider =
-      object : PreviewElementProvider<PsiComposePreviewElementInstance> {
-        override suspend fun previewElements(): Sequence<PsiComposePreviewElementInstance> =
-          previews.asSequence()
-      }
-    var listenerInvoked = 0
-    var layoutSceneManagerConfigured = false
-    updatePreviewAndRefreshWithProvider(fakePreviewProvider, composePreviewManager)
-    val configureLayoutlibSceneManager =
-      { _: PreviewDisplaySettings, layoutSceneManager: LayoutlibSceneManager ->
-        layoutSceneManagerConfigured = true
-        layoutSceneManager
-      }
-    previewView.mainSurface.models.single().configuration.addListener { change ->
-      // Check that listener invoked after we updated sceneManager.sceneRenderConfiguration
-      assertThat(layoutSceneManagerConfigured).isTrue()
-      listenerInvoked++
-      true
-    }
-    updatePreviewAndRefreshWithProvider(
-      fakePreviewProvider,
-      composePreviewManager,
-      configureLayoutlibSceneManager = configureLayoutlibSceneManager,
-    )
-    assertThat(listenerInvoked).isEqualTo(1)
   }
 
   @Test
@@ -597,12 +549,15 @@ class ComposePreviewViewImplTest {
 }
 
 class FakeStudioBotActionFactory : ComposeStudioBotActionFactory {
+
+  var isNullPreviewGeneratorAction = false
+
   private val fakeAction =
     object : AnAction() {
       override fun actionPerformed(e: AnActionEvent) {}
     }
 
-  override fun createPreviewGenerator() = fakeAction
+  override fun createPreviewGenerator() = if (isNullPreviewGeneratorAction) null else fakeAction
 
-  override fun createSendPreviewAction() = fakeAction
+  override fun transformPreviewAction() = fakeAction
 }

@@ -54,6 +54,7 @@ import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.rendering.api.IncludeReference;
 import com.android.tools.rendering.api.RenderModelManifest;
@@ -80,7 +81,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.serviceContainer.AlreadyDisposedException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.event.KeyEvent;
@@ -161,6 +161,15 @@ public class RenderTask {
   private static final int DEFAULT_DOWNSCALED_IMAGE_MAX_BYTES = 2_500_000; // 2.5MB
 
   /**
+   * Maximum amount of native memory linked through JNI by layoutlib before triggering a garbage collection.
+   * <p>
+   * Layoutlib cleans up native memory when their related Java objects get garbage collected. This means a lot of native memory
+   * can be used while at the same time the JVM not needing to do a garbage collection as the related Java objects may be very small.
+   * In this situation, we want to manually trigger a garbage collection to reclaim the native memory.
+   */
+  private static final long MAX_NATIVE_MEMORY = Runtime.getRuntime().maxMemory() / 2;
+
+  /**
    * Executor to run the dispose tasks. The thread will run them sequentially.
    */
   @VisibleForTesting
@@ -209,6 +218,7 @@ public class RenderTask {
   @NotNull private String myDefaultForegroundColor = "#333333";
   @NotNull private final ModuleClassLoaderManager.Reference<?> myModuleClassLoaderReference;
   @NotNull private final TestEventListener myTestEventListener;
+  private final float myAnimatorDurationScale;
 
   /**
    * If true, the {@link RenderTask#render()} will report when the user classes loaded by this class loader are out of date.
@@ -247,12 +257,14 @@ public class RenderTask {
              boolean reportOutOfDateUserClasses,
              @NotNull RenderAsyncActionExecutor.RenderingTopic topic,
              boolean useCustomInflater,
-             @NotNull TestEventListener testEventListener) throws NoDeviceException {
+             @NotNull TestEventListener testEventListener,
+             float animatorDurationScale) throws NoDeviceException {
     myTracker = tracker;
     myImagePool = imagePool;
     myContext = renderContext;
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
     this.reportOutOfDateUserClasses = reportOutOfDateUserClasses;
+    myAnimatorDurationScale = animatorDurationScale;
 
     if (!isSecurityManagerEnabled) {
       LOG.debug("Security manager was disabled");
@@ -733,6 +745,8 @@ public class RenderTask {
 
     params.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
     params.setImageTransformation(configuration.getImageTransformation());
+
+    params.setAnimatorDurationScale(myAnimatorDurationScale);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -1534,7 +1548,14 @@ public class RenderTask {
    */
   @NotNull
   private CompletableFuture<Void> disposeRenderSession(@NotNull RenderSession renderSession) {
-    return RenderSessionCleaner.dispose(renderSession, myModuleClassLoaderReference.getClassLoader());
+    long nativeMemoryUsage =
+      LayoutLibraryLoader.getLayoutLibraryProvider().map(LayoutLibraryLoader.LayoutLibraryProvider::getNativeMemoryUsage).orElse(0L);
+    return RenderSessionCleaner.dispose(renderSession, myModuleClassLoaderReference.getClassLoader())
+      .thenRun(() -> {
+        if (nativeMemoryUsage > MAX_NATIVE_MEMORY) {
+          myContext.getModule().getEnvironment().cleanLayoutlibNativeMemory();
+        }
+      });
   }
 
   @TestOnly

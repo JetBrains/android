@@ -1,5 +1,11 @@
 ### auto-generated section `build intellij.android.testartifacts` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+create_kotlinc_options(
+  name = "custom",
+  context_receivers = True
+)
 
 jvm_resources(
   name = "testartifacts_resources",
@@ -12,6 +18,7 @@ jvm_library(
   module_name = "intellij.android.testartifacts",
   visibility = ["//visibility:public"],
   srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  kotlinc_opts = ":custom",
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
@@ -37,24 +44,36 @@ jvm_library(
     "//platform/util",
     "//platform/util/jdom",
     "//platform/util:util-ui",
+    "//android/adt-ui-compose",
+    "//android/artwork-compose",
   ],
-  runtime_deps = [":testartifacts_resources"]
+  runtime_deps = [":testartifacts_resources"],
+  plugins = ["@lib//:compose-plugin"]
 )
 ### auto-generated section `build intellij.android.testartifacts` end
 
 ### auto-generated section `build intellij.android.testartifacts.tests` start
+load("//build:compiler-options.bzl", "create_kotlinc_options")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_test")
+
+create_kotlinc_options(
+  name = "custom_testartifacts-tests",
+  context_receivers = True
+)
 
 jvm_library(
   name = "testartifacts-tests_test_lib",
   visibility = ["//visibility:public"],
   srcs = glob(["testSrc/**/*.kt", "testSrc/**/*.java"], allow_empty = True),
+  kotlinc_opts = ":custom_testartifacts-tests",
   deps = [
     "@lib//:kotlin-stdlib",
     "@lib//:studio-platform",
     "@lib//:studio-test-platform",
     "//android/android:core",
+    "//android/adt-ui-compose",
+    "//android/adt-ui-compose:adt-ui-compose_test_lib",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
     "//android/adt-testutils:adt-testutils_test_lib",
@@ -106,7 +125,8 @@ jvm_library(
     "//xml/dom-openapi:dom",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//android/project-system-gradle-sync:projectSystem-gradle-sync",
-  ]
+  ],
+  plugins = ["@lib//:compose-plugin"]
 )
 
 jps_test(

@@ -33,6 +33,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 
@@ -281,7 +282,6 @@ private val EXPECTED_CONTEXT =
       EXPECTED_CIRCLE_ACTIVITY_CONTEXT,
       EXPECTED_MAIN_ACTIVITY_CONTEXT,
     ),
-    CodeContextTrackingInfo(4, 53, 1309),
     ContextSharingState.ALLOWED,
   )
 
@@ -347,5 +347,23 @@ class CodeContextResolverTest {
       )
 
     assertThat(contextData).isEqualTo(EXPECTED_CONTEXT)
+  }
+
+  @Test
+  fun `resolver returns empty context data when context sharing is off`() = runBlocking {
+    val resolver = CodeContextResolverImpl(projectRule.project)
+
+    fakeGeminiPluginApi.contextAllowed = false
+    assertThat(resolver.getSource(mock(), STACKTRACE))
+      .isEqualTo(CodeContextData(emptyList(), contextSharingState = ContextSharingState.DISABLED))
+  }
+
+  @Test
+  fun `resolver returns empty context data when connection is mismatched`() = runBlocking {
+    val connection = mock<Connection>()
+    `when`(connection.isMatchingProject()).thenReturn(false)
+    val resolver = CodeContextResolverImpl(projectRule.project)
+    assertThat(resolver.getSource(connection, STACKTRACE))
+      .isEqualTo(CodeContextData(emptyList(), contextSharingState = ContextSharingState.ALLOWED))
   }
 }

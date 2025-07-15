@@ -66,6 +66,30 @@ class PrebuildChecksTest {
     }
   }
 
+  @Test
+  fun bailOnResource() {
+    val file = projectRule.fixture.addFileToProject(
+      "strings.xml", "<xml></xml>")
+    try {
+      checkSupportedFiles(file)
+      fail("Expecting Exception")
+    } catch (e : LiveEditUpdateException) {
+      assertEquals(LiveEditUpdateException.Error.NON_KOTLIN_IS_XML, e.error)
+    }
+  }
+
+  @Test
+  fun bailOnJava() {
+    val file = projectRule.fixture.addFileToProject(
+      "Test.java", "public class Test {}")
+    try {
+      checkSupportedFiles(file)
+      fail("Expecting Exception")
+    } catch (e : LiveEditUpdateException) {
+      assertEquals(LiveEditUpdateException.Error.NON_KOTLIN_IS_JAVA, e.error)
+    }
+  }
+
   /**
    * Legacy check for non-compose module check. This is now supported and should not expect an exception.
    */

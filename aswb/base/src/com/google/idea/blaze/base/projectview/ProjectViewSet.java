@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -88,6 +89,20 @@ public final class ProjectViewSet implements Serializable {
     return !projectViewFiles.isEmpty() ? projectViewFiles.get(projectViewFiles.size() - 1) : null;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof ProjectViewSet that)) {
+      return false;
+    }
+
+    return projectViewFiles.equals(that.projectViewFiles);
+  }
+
+  @Override
+  public int hashCode() {
+    return projectViewFiles.hashCode();
+  }
+
   /** A project view/file pair */
   public static class ProjectViewFile implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -97,6 +112,24 @@ public final class ProjectViewSet implements Serializable {
     public ProjectViewFile(ProjectView projectView, @Nullable File projectViewFile) {
       this.projectView = projectView;
       this.projectViewFile = projectViewFile;
+    }
+
+    @Override
+    @SuppressWarnings("FileComparisons")
+    public final boolean equals(Object o) {
+      if (!(o instanceof ProjectViewFile that)) {
+        return false;
+      }
+
+      return projectView.equals(that.projectView) && Objects.equals(projectViewFile,
+                                                                    that.projectViewFile);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = projectView.hashCode();
+      result = 31 * result + Objects.hashCode(projectViewFile);
+      return result;
     }
   }
 

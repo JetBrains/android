@@ -49,6 +49,7 @@ interface TestProjectDefinition {
     agpVersion: AgpVersionSoftwareEnvironment,
     ndkVersion: String?,
     sdk: Sdk? = null,
+    syncReady: Boolean = true
   ): PreparedTestProject
 
 
@@ -59,9 +60,11 @@ interface TestProjectDefinition {
       testProject: TestProjectDefinition,
       name: String = "project",
       agpVersion: AgpVersionSoftwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.selected,
-      ndkVersion: String? = SdkConstants.NDK_DEFAULT_VERSION
+      ndkVersion: String? = SdkConstants.NDK_DEFAULT_VERSION,
+      sdk: Sdk? = null,
+      syncReady: Boolean = true
     ): PreparedTestProject {
-      return testProject.prepareTestProject(this, name, agpVersion, ndkVersion)
+      return testProject.prepareTestProject(this, name, agpVersion, ndkVersion, sdk, syncReady)
     }
   }
 }

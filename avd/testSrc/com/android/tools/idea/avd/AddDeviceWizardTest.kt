@@ -237,7 +237,7 @@ class AddDeviceWizardTest {
       composeTestRule.waitForIdle()
       assertThat(wizard.nextAction.enabled).isFalse()
 
-      composeTestRule.onNodeWithText("XR Device").performClick()
+      composeTestRule.onNodeWithText("XR Headset").performClick()
       composeTestRule.waitForIdle()
       wizard.performAction(wizard.nextAction)
 

@@ -242,7 +242,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
    */
   fun createTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs) {
     val taskTab = findTaskTab()
-    val taskTabTitle = StringUtils.getTaskTabTitle(taskType)
+    val taskTabTitle = StringUtils.getTaskTabTitle(taskType, profilers.ideServices.featureConfig.isTaskTitleV2Enabled)
 
     val taskIcon = TaskIconUtils.getTaskIcon(taskType)
     if (taskTab != null) {

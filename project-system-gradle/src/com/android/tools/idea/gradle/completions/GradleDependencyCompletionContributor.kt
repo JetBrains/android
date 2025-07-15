@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.completions
 
 import com.android.SdkConstants
-import com.android.tools.idea.imports.MavenClassRegistryBase
+import com.android.tools.idea.imports.MavenClassRegistry
 import com.android.tools.idea.imports.MavenClassRegistryManager
 import com.intellij.codeInsight.completion.CompletionConfidence
 import com.intellij.codeInsight.completion.CompletionContributor
@@ -249,7 +249,7 @@ class GradleDependencyCompletionContributor : CompletionContributor() {
       .toSortedSet()
   }
 
-  private class CoordinateLookUpElement(val coordinate: MavenClassRegistryBase.Coordinate) : LookupElement(), Comparable<LookupElement> {
+  private class CoordinateLookUpElement(val coordinate: MavenClassRegistry.Coordinate) : LookupElement(), Comparable<LookupElement> {
     override fun getLookupString(): String {
       return "${coordinate.groupId}:${coordinate.artifactId}:${coordinate.version}"
     }

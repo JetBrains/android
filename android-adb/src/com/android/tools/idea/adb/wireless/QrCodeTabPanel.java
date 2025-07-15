@@ -33,12 +33,12 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.util.Locale;
 import javax.swing.BorderFactory;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.text.StyleContext;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @UiThread
 public class QrCodeTabPanel {
@@ -56,8 +56,13 @@ public class QrCodeTabPanel {
   @NotNull private JBLabel myPairingStatusLabel;
   @NotNull private JPanel myScanNewDevicePanel;
   @NotNull private LinkLabel<Void> myScanNewDeviceLink;
+  @Nullable private final TrackingMdnsService mdnsServiceUnderPairing;
 
-  public QrCodeTabPanel(@NotNull Runnable scanAnotherDeviceRunnable, @NotNull Disposable parentDisposable) {
+
+  public QrCodeTabPanel(@NotNull Runnable scanAnotherDeviceRunnable,
+                        @NotNull Disposable parentDisposable,
+                        @Nullable TrackingMdnsService mdnsServiceUnderPairing) {
+    this.mdnsServiceUnderPairing = mdnsServiceUnderPairing;
     setupUI();
     myRootComponent.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myQrCodePanel.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
@@ -176,7 +181,8 @@ public class QrCodeTabPanel {
   public void setBold(JBLabel label, boolean isBold) {
     if (isBold) {
       label.setFont(label.getFont().deriveFont(Font.BOLD));
-    } else {
+    }
+    else {
       label.setFont(label.getFont().deriveFont(Font.PLAIN));
     }
   }
@@ -189,7 +195,9 @@ public class QrCodeTabPanel {
     myRootComponent.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
                                                      GridConstraints.SIZEPOLICY_FIXED, new Dimension(5, 15), null, null, 0, false));
     myTopLabel1 = new JBLabel();
-    myTopLabel1.setText("<html>To pair an <b>Android 11+</b> device<html>");
+    if (mdnsServiceUnderPairing == null) {
+      myTopLabel1.setText("<html>To pair an <b>Android 11+</b> device<html>");
+    }
     myRootComponent.add(myTopLabel1, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
                                                          null, 0, false));
@@ -197,7 +205,11 @@ public class QrCodeTabPanel {
     myRootComponent.add(spacer2, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
                                                      GridConstraints.SIZEPOLICY_FIXED, new Dimension(5, 4), null, null, 0, false));
     myTopLabel2 = new JBLabel();
-    myTopLabel2.setText("scan the QR code from your device");
+    String topLabel2Text = "scan the QR code from your device";
+    if (mdnsServiceUnderPairing != null) {
+      topLabel2Text = "Scan the QR code from your " + mdnsServiceUnderPairing.getDisplayString();
+    }
+    myTopLabel2.setText(topLabel2Text);
     myRootComponent.add(myTopLabel2, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
                                                          null, 0, false));

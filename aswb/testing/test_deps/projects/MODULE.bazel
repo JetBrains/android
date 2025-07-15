@@ -18,6 +18,7 @@ maven.install(
     ],
 )
 use_repo(maven, "maven")
+
 maven.install(
     name = "rules_compose_maven",
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
@@ -60,6 +61,9 @@ maven.install(
     ],
     repositories = [
         # "file://m2", # <-- Replaced by the test framework.
+        "https://maven.google.com",
+        "https://mvnrepository.com/artifact",
+        "https://repo1.maven.org/maven2",
     ],
     use_starlark_android_rules = True,
 )
@@ -233,6 +237,11 @@ bazel_dep(
 bazel_dep(
     name = "bazel_skylib",
     version = "1.7.1",
+)
+bazel_dep(
+    name = "rules_testing",
+    version = "0.8.0",
+    dev_dependency=True
 )
 
 remote_android_extensions = use_extension(

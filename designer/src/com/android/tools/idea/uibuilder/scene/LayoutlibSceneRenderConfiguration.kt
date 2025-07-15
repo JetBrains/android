@@ -202,6 +202,11 @@ class LayoutlibSceneRenderConfiguration(
   /** If true, layoutlib will search for a custom inflater when rendering and try to use it. */
   var useCustomInflater = true
 
+  /**
+   * If true sets value of Settings.Global.ANIMATOR_DURATION_SCALE to 0f, otherwise sets it to 1f.
+   */
+  var disableAnimation = false
+
   /** No-op in production, intended to be used for testing purposes only. */
   private var wrapRenderModule: (RenderModelModule) -> RenderModelModule = identity()
 
@@ -243,6 +248,9 @@ class LayoutlibSceneRenderConfiguration(
     customContentHierarchyParser?.let { taskBuilder.setCustomContentHierarchyParser(it) }
     if (!surface.layoutPreviewHandler.previewWithToolsVisibilityAndPosition) {
       taskBuilder.disableToolsVisibilityAndPosition()
+    }
+    if (disableAnimation) {
+      taskBuilder.disableAnimation()
     }
     val disposable = Disposer.newCheckedDisposable("RenderTaskBuilderDisposable")
     // Register a disposal callback that will be executed when the coroutine scope completes

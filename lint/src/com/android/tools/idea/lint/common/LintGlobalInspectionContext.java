@@ -281,7 +281,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
       }
     }
 
-    LintRequest request = new LintIdeRequest(client, project, files, modules, false);
+    LintRequest request = new LintIdeRequest(client, project, files, modules, files != null && files.size() == 1);
     request.setScope(lintScope);
     final LintDriver lint = client.createDriver(request);
 

@@ -30,7 +30,7 @@ public enum Category {
   AUTOMOTIVE("Automotive", "automotive_1024p_landscape", definition ->
     !definition.getIsDeprecated() && Device.isAutomotive(definition)),
 
-  XR("XR", "xr_device", definition -> Device.isXr(definition)),
+  XR("XR", "xr_headset_device", definition -> Device.isXr(definition)),
   LEGACY("Legacy", "Nexus S", Device::getIsDeprecated);
 
   @NotNull

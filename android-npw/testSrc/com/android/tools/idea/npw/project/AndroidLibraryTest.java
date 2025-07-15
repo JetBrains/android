@@ -110,7 +110,7 @@ public class AndroidLibraryTest {
       assertThat(moduleTemplates).isNotEmpty();
 
       ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-      wizardBuilder.addStep(new ConfigureTemplateParametersStep(render, "Add new Activity Test", moduleTemplates));
+      wizardBuilder.addStep(new ConfigureTemplateParametersStep(render, "Add new Activity Test", moduleTemplates, true));
       ModelWizard modelWizard = wizardBuilder.build();
       Disposer.register(project, modelWizard);
       myInvokeStrategy.updateAllSteps();

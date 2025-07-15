@@ -445,7 +445,7 @@ public class BlazeRenderErrorContributor implements RenderErrorContributor {
   public static class Provider implements RenderErrorContributor.Provider {
 
     public boolean isApplicable(Project project) {
-      return Blaze.getProjectType(project) != ProjectType.UNKNOWN
+      return Blaze.isBlazeProject(project)
              && Blaze.getBuildSystemName(project) == BuildSystemName.Blaze;
     }
 

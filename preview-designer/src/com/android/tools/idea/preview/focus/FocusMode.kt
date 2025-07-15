@@ -15,23 +15,33 @@
  */
 package com.android.tools.idea.preview.focus
 
+import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.concurrency.asCollection
+import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.actions.findPreviewManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.actionSystem.DataContext
+import java.awt.BorderLayout
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.JComponent
 import javax.swing.JPanel
 import org.jetbrains.annotations.TestOnly
 
 /**
  * If Focus mode is enabled, one preview at a time is available with dropdown to select between
- * them. Focus mode is always enabled for Essentials mode.
+ * them. Focus mode is always enabled for Essentials mode. To listen for selection changes, use
+ * [addSelectionListener].
  */
-class FocusMode(rootComponent: JComponent) {
+class FocusMode(rootComponent: JComponent, vararg additionalComponents: JComponent) {
 
+  /**
+   * Listener for selection changes in the [FocusModeTabs]. When a new [PreviewElementKey] is
+   * selected, it updates the [PreviewModeManager] to set the mode to [PreviewMode.Focus] with the
+   * selected element.
+   */
   private val selectionListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, key ->
     val previewElement = key?.element
     dataContext.findPreviewManager(PreviewModeManager.KEY)?.let { previewManager ->
@@ -39,6 +49,15 @@ class FocusMode(rootComponent: JComponent) {
     }
   }
 
+  /**
+   * Additional listeners for selection changes in the [FocusModeTabs]. These listeners are notified
+   * after the internal [selectionListener] has been executed.
+   */
+  private val additionalSelectionListeners = CopyOnWriteArrayList<(PreviewElement<*>?) -> Unit>()
+
+  /**
+   * Provides the set of available [PreviewElementKey]s based on the current [DataContext].
+   */
   private val keysProvider: (DataContext) -> Set<PreviewElementKey> = { dataContext ->
     dataContext
       .findPreviewManager(PreviewFlowManager.KEY)
@@ -49,6 +68,9 @@ class FocusMode(rootComponent: JComponent) {
       ?.toSet() ?: emptySet()
   }
 
+  /**
+   * Provides the currently selected [PreviewElementKey] based on the current [DataContext].
+   */
   private val selectedProvider: (DataContext) -> PreviewElementKey? = { dataContext ->
     dataContext.findPreviewManager(PreviewModeManager.KEY)?.let { previewManager ->
       (previewManager.mode.value as? PreviewMode.Focus)?.selected?.let { PreviewElementKey(it) }
@@ -56,10 +78,22 @@ class FocusMode(rootComponent: JComponent) {
   }
 
   private val focusModeTabs =
-    FocusModeTabs(rootComponent, selectedProvider, keysProvider, selectionListener)
+    FocusModeTabs(rootComponent, selectedProvider, keysProvider) { dataContext, key ->
+        selectionListener(dataContext, key)
+        additionalSelectionListeners.forEach { it(key?.element) }
+      }
+      .apply {
+        component.border = ActionsToolbar.BORDER
+        component.background = Colors.DEFAULT_BACKGROUND_COLOR
+      }
 
-  /** [JPanel] for [FocusTabs]. */
-  val component: JComponent = focusModeTabs.component
+  /** [JPanel] for [FocusMode]. */
+  val component: JComponent = JPanel(BorderLayout())
+
+  init {
+    component.add(focusModeTabs, BorderLayout.NORTH)
+    additionalComponents.forEach { component.add(it, BorderLayout.CENTER) }
+  }
 
   /**
    * Simulates a selected [PreviewElementKey] change, firing the [selectionListener]. Intended to be
@@ -73,4 +107,8 @@ class FocusMode(rootComponent: JComponent) {
   @get:TestOnly
   val selectedKey: PreviewElementKey?
     get() = focusModeTabs.selectedKey
+
+  fun addSelectionListener(listener: (PreviewElement<*>?) -> Unit) {
+    additionalSelectionListeners.add(listener)
+  }
 }

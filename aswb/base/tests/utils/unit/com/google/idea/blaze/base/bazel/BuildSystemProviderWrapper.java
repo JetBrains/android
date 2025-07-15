@@ -27,12 +27,14 @@ import com.google.idea.blaze.base.lang.buildfile.language.semantics.RuleDefiniti
 import com.google.idea.blaze.base.model.BlazeVersionData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.BazelQueryRunner;
+import com.google.idea.blaze.base.qsync.ProjectLoader;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
 import com.google.idea.blaze.exception.BuildException;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import java.io.InputStream;
 import java.util.Optional;
@@ -136,6 +138,16 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
   }
 
   @Override
+  public ProjectLoader createProjectLoader(Project project) {
+    return inner.createProjectLoader(project);
+  }
+
+  @Override
+  public Optional<String> getQuerySyncDocumentationUrl() {
+    return inner().getQuerySyncDocumentationUrl();
+  }
+
+  @Override
   public WorkspaceRootProvider getWorkspaceRootProvider() {
     return inner().getWorkspaceRootProvider();
   }
@@ -200,6 +212,12 @@ public class BuildSystemProviderWrapper implements BuildSystemProvider {
     public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext)
         throws BuildException {
       return inner.invoke(blazeCommandBuilder, blazeContext);
+    }
+
+    @Override
+    public ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder,
+                                                 BlazeContext blazeContext) throws BuildException {
+      return inner.invokeAsProcessHandler(blazeCommandBuilder, blazeContext);
     }
 
     @Override

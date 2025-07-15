@@ -16,7 +16,6 @@ import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.Iconable
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.Pair
-import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VirtualFile
@@ -58,10 +57,16 @@ import javax.swing.Icon
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE
 import org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE
+import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
+import org.jetbrains.kotlin.idea.base.fir.projectStructure.K2KaModuleFactory
+import org.jetbrains.kotlin.idea.base.projectStructure.KaSourceModuleKind
 import org.jetbrains.kotlin.idea.base.projectStructure.KotlinResolveScopeEnlarger
 import org.jetbrains.kotlin.idea.base.projectStructure.customLibrary
 import org.jetbrains.kotlin.idea.base.projectStructure.customSdk
 import org.jetbrains.kotlin.idea.base.projectStructure.customSourceRootType
+import org.jetbrains.kotlin.idea.base.projectStructure.toKaLibraryModule
+import org.jetbrains.kotlin.idea.base.projectStructure.toKaLibraryModules
+import org.jetbrains.kotlin.idea.base.projectStructure.toKaSourceModule
 
 abstract class AndroidLightClassBase
 private constructor(
@@ -324,7 +329,7 @@ private constructor(
             .createFileFromText("$shortName.java", JavaFileType.INSTANCE, contents) as PsiJavaFile
 
         javaFile.packageName = packageName
-        moduleInfo.setModuleInfoOnContainingFile(javaFile)
+        moduleInfo.setInfoOnContainingFile(javaFile)
 
         return ContainingFileProviderImpl(javaFile)
       }
@@ -339,7 +344,15 @@ private constructor(
   protected sealed class AndroidLightClassModuleInfo {
     abstract fun setInfoOnUserData(lightClassUserData: UserDataHolder)
 
-    abstract fun setModuleInfoOnContainingFile(containingFile: PsiFile)
+    fun setInfoOnContainingFile(containingFile: PsiFile) {
+      setModuleInfoOnContainingFile(containingFile)
+      val kaModule = getKaModule(containingFile.project)
+      containingFile.putUserData(KA_MODULE, kaModule)
+    }
+
+    protected abstract fun setModuleInfoOnContainingFile(containingFile: PsiFile)
+
+    abstract fun getKaModule(project: Project): KaModule?
 
     /**
      * Sets the forced [AndroidLightClassModuleInfo] of the containing [PsiFile] to point to the
@@ -358,6 +371,9 @@ private constructor(
         containingFile.putUserData(ModuleUtilCore.KEY_MODULE, module)
         containingFile.customSourceRootType = if (isTest) TEST_SOURCE else SOURCE
       }
+
+      override fun getKaModule(project: Project): KaModule? =
+        module.toKaSourceModule(if (isTest) KaSourceModuleKind.TEST else KaSourceModuleKind.PRODUCTION)
     }
 
     /**
@@ -373,6 +389,9 @@ private constructor(
       override fun setModuleInfoOnContainingFile(containingFile: PsiFile) {
         containingFile.customLibrary = library
       }
+
+      override fun getKaModule(project: Project): KaModule? =
+        library.toKaLibraryModules(project).firstOrNull()
     }
 
     /**
@@ -385,6 +404,9 @@ private constructor(
       override fun setModuleInfoOnContainingFile(containingFile: PsiFile) {
         containingFile.customSdk = sdk
       }
+
+      override fun getKaModule(project: Project): KaModule? =
+        sdk.toKaLibraryModule(project)
     }
 
     companion object {
@@ -409,18 +431,25 @@ private constructor(
 
     val scopeType = this.scopeType
     val moduleResolveScope = module.getModuleSystem().getResolveScope(scopeType)
-    val result = Ref.create<GlobalSearchScope>(moduleResolveScope)
-    KotlinResolveScopeEnlarger.EP_NAME.forEachExtensionSafe { ext: KotlinResolveScopeEnlarger ->
-      ext.getAdditionalResolveScope(module, scopeType.isForTest)?.let {
-        result.set(result.get().union(it))
-      }
-    }
-
-    return result.get()
+    return KotlinResolveScopeEnlarger.enlargeScope(moduleResolveScope, module, scopeType.isForTest)
   }
 
   companion object {
     private val LIBRARY =
       Key.create<Library>(AndroidLightClassBase::class.java.getName() + ".LIBRARY")
+
+    private val KA_MODULE =
+      Key.create<KaModule>(AndroidLightClassBase::class.java.getName() + ".KA_MODULE")
+  }
+
+  // Hacky fix for b/412606827. Ideally, support for overriding KaModule based on a PsiFile
+  // will be upstreamed (see b/415168694), but as of 251, it's not, so we instead force the
+  // KaModule for our generated light classes to the correct value here.
+  //
+  // Note that this only works for the new K2-specific project structure provider (KTIJ-31422).
+  // The original ModuleInfo-based ProjectStructureProvider will pick up the customSourceRootType /
+  // customLibrary / customSdk attributes used by K1.
+  internal class AndroidLightClassKaModuleFactory : K2KaModuleFactory {
+    override fun createKaModuleByPsiFile(file: PsiFile): KaModule? = file.getUserData(KA_MODULE)
   }
 }

@@ -27,6 +27,9 @@ public interface DeclarativePair extends DeclarativeValue {
   DeclarativePair getPair();
 
   @NotNull
+  DeclarativePairOperator getPairOperator();
+
+  @NotNull
   DeclarativeSimpleLiteral getSimpleLiteral();
 
   @NotNull

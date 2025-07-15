@@ -7,6 +7,12 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
+jvm_resources(
+  name = "debuggers_resources_1",
+  files = glob(["testResources/**/*"]),
+  strip_prefix = "testResources"
+)
+
 jvm_library(
   name = "debuggers",
   module_name = "intellij.android.debuggers",
@@ -63,7 +69,10 @@ jvm_library(
     "//android/project-system",
     "@lib//:kotlinc-kotlin-compiler-common-provided",
   ],
-  runtime_deps = [":debuggers_resources"]
+  runtime_deps = [
+    ":debuggers_resources",
+    ":debuggers_resources_1",
+  ]
 )
 ### auto-generated section `build intellij.android.debuggers` end
 
@@ -124,6 +133,7 @@ jvm_library(
     "//platform/util/base",
     "//platform/util/jdom",
     "//platform/util:util-ui",
+    "//platform/projectModel-api:projectModel",
     "//plugins/maven",
   ]
 )

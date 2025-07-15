@@ -20,6 +20,8 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.platform.performance.testing.PlatformPerformanceBenchmark
+import com.intellij.openapi.util.SystemInfo
+import java.util.Map
 import org.junit.Rule
 import org.junit.Test
 
@@ -75,16 +77,38 @@ class StartupPerformanceTest {
     stats.get("STARTUP_PERFORMANCE_FRAME_BECAME_VISIBLE").findFirst().get().let {
       benchmark.log("startup_performance_frame_became_visible", it.startupPerformanceFrameBecameVisibleEvent.durationMs.toLong())
     }
+
+    // [Linux test const term, Windows test const term]
+    val metricConstTerms = Map.of("pausedTimeInIndexingOrScanning", listOf(6, 6),
+                                   "indexingTimeWithoutPauses", listOf(31, 225),
+                                   "scanningTimeWithoutPauses", listOf(88, 760),
+                                   "startup_performance_code_loaded_and_visible_in_editor", listOf(200, 200),
+                                   "startup_performance_frame_became_visible", listOf(120, 384),
+                                   "startup_performance_frame_became_interactive", listOf(145, 664),
+                                   "startup_event", listOf(5, 300),
+                                   "dumbModeTimeWithPauses", listOf(0, 330),
+                                   "startup_performance_first_ui_shown", listOf(40, 10))
+
     system.installation.indexingMetrics.get(project).forEach {
       // Per-filetype metrics are too volatile and fine-granular. Let's report them without analyzer.
       if (it.metricLabel.startsWith("processingSpeedAvg_") ||
           it.metricLabel.startsWith("processingSpeedOfBaseLanguageAvg_") ||
           it.metricLabel.startsWith("processingSpeedWorst_") ||
           it.metricLabel.startsWith("processingSpeedOfBaseLanguageWorst_") ||
-          it.metricLabel.startsWith("processingTime_")) {
+          it.metricLabel.startsWith("processingTime_") ||
+          // Indexing is asynchronously scheduled, and there can be natural variations (e.g. two nearby update requests being conflated into
+          // one, or races with other background processes that modify files or request an index refresh).
+          it.metricLabel.startsWith("numberOfRunsOfIndexing") ||
+          it.metricLabel.startsWith("numberOfIndexedFilesWithNothingToWrite")
+        ) {
         benchmark.logWithoutAnalyzer(it.metricLabel, it.metricValue)
         return
       }
+      metricConstTerms[it.metricLabel]?.get(if (SystemInfo.isWindows) 0 else 1)?.toLong()?.let { constTerm ->
+        benchmark.log(it.metricLabel, it.metricValue, constTerm)
+        return
+      }
+
       benchmark.log(it.metricLabel, it.metricValue)
     }
   }

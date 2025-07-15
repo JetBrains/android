@@ -51,8 +51,11 @@ final class TasksTreeConsoleBehaviour implements Behavior<TasksTreeConsoleModel>
     TasksTreeModel treeModel = model.getTreeModel();
     treeModel.tasksTreeProperty().addTask(task);
     model
-        .getConsolesOfTasks()
-        .computeIfAbsent(task, t -> ConsoleView.create(project, filters, parentDisposable));
+      .getConsolesOfTasks()
+      .computeIfAbsent(task, t -> ConsoleView.create(project, filters, parentDisposable));
+    if (task.getParent().isEmpty()) {
+      model.getTreeModel().selectedTaskProperty().setValue(task);
+    }
   }
 
   void removeTask(Task task) {

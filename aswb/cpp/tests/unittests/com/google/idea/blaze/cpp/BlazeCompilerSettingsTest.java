@@ -61,7 +61,7 @@ public class BlazeCompilerSettingsTest extends BlazeTestCase {
     BlazeImportSettingsManager importSettingsManager = new BlazeImportSettingsManager(project);
     BlazeImportSettings importSettings =
         new BlazeImportSettings(
-            "/root", "", "", "", BuildSystemName.Bazel, ProjectType.ASPECT_SYNC);
+            "/root", "", "", "", "", BuildSystemName.Bazel, ProjectType.ASPECT_SYNC);
     importSettingsManager.setImportSettings(importSettings);
     projectServices.register(BlazeImportSettingsManager.class, importSettingsManager);
 

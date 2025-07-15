@@ -65,6 +65,7 @@ jvm_library(
     "//xml/xml-psi-impl:psi-impl",
     "//platform/platform-impl/ui",
   ],
+  exports = ["@lib//:android-adt-ui-ibm-db2-jcc"],
   runtime_deps = [":adt-ui_resources"]
 )
 
@@ -129,6 +130,7 @@ jvm_library(
     "//platform/testFramework/junit5",
     "//platform/testFramework/junit5:junit5_test_lib",
     "//platform/platform-impl/ui",
+    "@lib//:android-adt-ui-ibm-db2-jcc",
   ],
   runtime_deps = [
     ":adt-ui_resources",

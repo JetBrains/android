@@ -15,6 +15,8 @@
  */
 package com.google.idea.blaze.base.settings;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
+
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 
@@ -23,6 +25,6 @@ public class IsBlazeProjectCondition implements Condition<Project> {
 
   @Override
   public boolean value(Project project) {
-    return project != null && Blaze.isBlazeProject(project);
+    return project != null && getProjectSystem(project).getClass().getSimpleName().equals("BazelProjectSystem");
   }
 }

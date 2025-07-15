@@ -33,6 +33,10 @@ public class GuiTestingService {
     return ApplicationManager.getApplication().getService(GuiTestingService.class);
   }
 
+  public static GuiTestingService getInstanceIfCreated() {
+    return ApplicationManager.getApplication().getServiceIfCreated(GuiTestingService.class);
+  }
+
   private GuiTestingService() {
     ExtensionPointName<GuiTestingStatusProvider> epName = ExtensionPointName.create("com.android.tools.idea.ui.guiTestingStatusProvider");
     for (GuiTestingStatusProvider provider : epName.getExtensions()) {

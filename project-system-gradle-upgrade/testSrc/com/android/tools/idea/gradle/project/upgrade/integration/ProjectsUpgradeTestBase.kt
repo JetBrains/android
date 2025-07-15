@@ -189,7 +189,8 @@ abstract class ProjectsUpgradeTestBase {
       AndroidGradleTests.defaultPatchPreparedProject(
         projectRoot,
         resolvedAgpVersion,
-        expectedProjectState.ndkVersion()
+        expectedProjectState.ndkVersion(),
+        true
       )
       JdkUtils.overrideProjectGradleJdkPathWithVersion(projectRoot, resolvedAgpVersion.jdkVersion)
       // Patch base project with files expected to change.

@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
-import com.android.adblib.ConnectedDevice
-import com.android.adblib.scope
-import com.android.adblib.tools.debugging.JdwpProcessChange
-import com.android.adblib.tools.debugging.jdwpProcessChangeFlow
+import com.android.adblib.serialNumber
 import com.android.annotations.concurrency.UiThread
+import com.android.ddmlib.IDevice
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -27,8 +25,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.common.DeviceExplorerControllerListener
 import com.android.tools.idea.device.explorer.common.DeviceExplorerTab
 import com.android.tools.idea.device.explorer.common.DeviceExplorerTabController
-import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
-import com.android.tools.idea.device.explorer.monitor.processes.toProcessInfo
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorView
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
@@ -38,23 +34,23 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.swing.JComponent
 
 @UiThread
 class DeviceMonitorControllerImpl(
   private val project: Project,
   private val model: DeviceMonitorModel,
-  private val view: DeviceMonitorView
+  private val view: DeviceMonitorView,
+  private val deviceService: DeviceService
 ) : Disposable, DeviceExplorerTabController {
 
   private val uiThreadScope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
+  private val setupJob = CompletableDeferred<Unit>()
+  private val deviceServiceListener = ModelDeviceServiceListener()
   private val viewListener = ViewListener()
-  private var activeDevice: ConnectedDevice? = null
-  private var processTrackerJob: Job? = null
   override var controllerListener: DeviceExplorerControllerListener? = null
 
   init {
@@ -64,8 +60,20 @@ class DeviceMonitorControllerImpl(
 
   override fun setup() {
     view.addListener(viewListener)
+    deviceService.addListener(deviceServiceListener)
     view.setup()
     view.trackModelChanges(uiThreadScope)
+
+    uiThreadScope.launch {
+      model.projectApplicationIdListChanged()
+      try {
+        deviceService.start()
+        setupJob.complete(Unit)
+      }
+      catch (t: Throwable) {
+        setupJob.completeExceptionally(t)
+      }
+    }
 
     project.messageBus.connect(this).subscribe(
       PROJECT_APPLICATION_IDS_CHANGED_TOPIC,
@@ -78,34 +86,10 @@ class DeviceMonitorControllerImpl(
   }
 
   override fun setActiveConnectedDevice(deviceHandle: DeviceHandle?) {
-    activeDevice = deviceHandle?.state?.connectedDevice
-    model.setActiveDevice(activeDevice)
-    startDebuggableProcessTracking()
-  }
-
-  private fun startDebuggableProcessTracking() {
-    processTrackerJob?.cancel()
-    processTrackerJob = null
-    model.setAllProcesses(listOf())
-    activeDevice?.let { currentDevice ->
-      processTrackerJob = currentDevice.scope.launch {
-        val allProcesses = mutableMapOf<Int, ProcessInfo>()
-        currentDevice.jdwpProcessChangeFlow.collect { processChange ->
-          when (processChange) {
-            is JdwpProcessChange.Added ->
-              allProcesses[processChange.processInfo.properties.pid] = processChange.processInfo.toProcessInfo()
-
-            is JdwpProcessChange.Updated ->
-              allProcesses[processChange.processInfo.properties.pid] = processChange.processInfo.toProcessInfo()
-
-            is JdwpProcessChange.Removed ->
-              allProcesses.remove(processChange.processInfo.properties.pid)
-          }
-          withContext(AndroidDispatchers.uiThread) {
-            model.setAllProcesses(allProcesses.values.toList())
-          }
-        }
-      }
+    val serialNumber = deviceHandle?.state?.connectedDevice?.serialNumber
+    uiThreadScope.launch {
+      val iDevice = deviceService.getIDeviceFromSerialNumber(serialNumber)
+      model.activeDeviceChanged(iDevice)
     }
   }
 
@@ -114,12 +98,14 @@ class DeviceMonitorControllerImpl(
   override fun getTabName(): String = DeviceExplorerTab.Processes.name
 
   override fun setPackageFilter(isActive: Boolean) {
-    model.setPackageFilter(isActive)
+    uiThreadScope.launch {
+      model.setPackageFilter(isActive)
+    }
   }
 
   override fun dispose() {
     view.removeListener(viewListener)
-    processTrackerJob?.cancel()
+    deviceService.removeListener(deviceServiceListener)
     uiThreadScope.cancel("${javaClass.simpleName} has been disposed")
   }
 
@@ -134,11 +120,21 @@ class DeviceMonitorControllerImpl(
     )
   }
 
+  private inner class ModelDeviceServiceListener : DeviceServiceListener {
+    override fun deviceProcessListUpdated(device: IDevice) {
+      uiThreadScope.launch {
+        model.refreshProcessListForDevice(device)
+      }
+    }
+  }
+
   @UiThread
   private inner class ViewListener : DeviceMonitorViewListener {
     override fun refreshInvoked() {
-      startDebuggableProcessTracking()
-      trackAction(DeviceExplorerEvent.Action.REFRESH_PROCESSES)
+      uiThreadScope.launch {
+        model.refreshCurrentProcessList()
+        trackAction(DeviceExplorerEvent.Action.REFRESH_PROCESSES)
+      }
     }
 
     override fun killNodesInvoked(rows: IntArray) {

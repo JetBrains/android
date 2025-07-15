@@ -15,6 +15,7 @@
  */
 package com.android.tools.asdriver.tests;
 
+import com.android.tools.testlib.TestLogger;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;

@@ -30,12 +30,14 @@ import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.actions.RESIZE_PANEL_INSTANCE_KEY
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationPreview
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationSubscriber
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.flow.ComposePreviewFlowManager
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
+import com.android.tools.idea.compose.preview.resize.ResizePanel
 import com.android.tools.idea.compose.preview.scene.ComposeAnimationToolbarUpdater
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
@@ -85,6 +87,7 @@ import com.android.tools.idea.preview.modes.CommonPreviewModeManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
+import com.android.tools.idea.preview.pagination.PreviewPaginationManager
 import com.android.tools.idea.preview.representation.CommonPreviewStateManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
@@ -197,6 +200,7 @@ private fun createPreviewElementDataProvider(
       COMPOSE_PREVIEW_MANAGER,
       PreviewModeManager.KEY,
       PreviewGroupManager.KEY,
+      PreviewPaginationManager.KEY,
       PreviewFlowManager.KEY,
       PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE,
       PREVIEW_ELEMENT_INSTANCE,
@@ -209,6 +213,7 @@ private fun createPreviewElementDataProvider(
       when (dataId) {
         COMPOSE_PREVIEW_MANAGER.name,
         PreviewModeManager.KEY.name -> composePreviewManager
+        PreviewPaginationManager.KEY.name -> previewFlowManager.previewFlowPaginator
         PreviewGroupManager.KEY.name,
         PreviewFlowManager.KEY.name -> previewFlowManager
         PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name,
@@ -242,6 +247,7 @@ fun configureLayoutlibSceneManager(
   requestPrivateClassLoader: Boolean,
   runVisualAnalysis: Boolean,
   quality: Float,
+  disableAnimation: Boolean,
 ): LayoutlibSceneManager =
   sceneManager.apply {
     sceneRenderConfiguration.let { config ->
@@ -264,6 +270,7 @@ fun configureLayoutlibSceneManager(
       // During configure of SceneManager, always clear the override render size in SceneManagers,
       // as they are reused and may have old resize data.
       config.clearOverrideRenderSize = true
+      config.disableAnimation = disableAnimation
     }
     visualLintMode =
       if (runVisualAnalysis) {
@@ -303,6 +310,8 @@ class ComposePreviewRepresentation(
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
   private val project
     get() = psiFilePointer.project
+
+  override val caretNavigationHandler = CaretNavigationHandlerImpl()
 
   private val previewBuildListenersManager =
     PreviewBuildListenersManager(
@@ -483,7 +492,12 @@ class ComposePreviewRepresentation(
             }
             emptyUiCheckPanel.setHasErrors(count > 0)
             VisualLintUsageTracker.getInstance().trackVisiblePreviews(count, facet)
-            surface.zoomController.zoomToFit()
+            val totalContentToShow = surface.sceneManagers.flatMap { it.sceneViews }.size
+            // If after applying the filter the number of Previews to show is different we need to
+            // re-apply zoom-to-fit.
+            if (count != totalContentToShow) {
+              surface.zoomController.zoomToFit()
+            }
             surface.repaint()
           }
         } else {
@@ -630,12 +644,11 @@ class ComposePreviewRepresentation(
       requestRefresh()
     }
 
-  override var isFilterEnabled: Boolean = false
-
   private val dataProvider = DataProvider {
     when (it) {
       COMPOSE_PREVIEW_MANAGER.name,
       PreviewModeManager.KEY.name -> this@ComposePreviewRepresentation
+      PreviewPaginationManager.KEY.name -> composePreviewFlowManager.previewFlowPaginator
       PreviewGroupManager.KEY.name,
       PreviewFlowManager.KEY.name -> composePreviewFlowManager
       PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { slowId -> getSlowData(slowId) }
@@ -643,6 +656,7 @@ class ComposePreviewRepresentation(
       PREVIEW_VIEW_MODEL_STATUS.name -> status()
       FastPreviewSurface.KEY.name -> this@ComposePreviewRepresentation
       PreviewInvalidationManager.KEY.name -> this@ComposePreviewRepresentation
+      RESIZE_PANEL_INSTANCE_KEY.name -> activeResizePanelInFocusMode
       else -> null
     }
   }
@@ -770,6 +784,15 @@ class ComposePreviewRepresentation(
       previewFlowManager = composePreviewFlowManager,
       previewModeManager = previewModeManager,
     )
+
+  /**
+   * The [ResizePanel] instance used when [PreviewMode.Focus] is active.
+   *
+   * This panel allows modifying the device configuration for the focused preview element. It is
+   * `null` when not in Focus mode and its lifecycle (creation/disposal) is tied to entering and
+   * exiting [PreviewMode.Focus].
+   */
+  private var activeResizePanelInFocusMode: ResizePanel? = null
 
   init {
     launch {
@@ -939,47 +962,6 @@ class ComposePreviewRepresentation(
 
   // endregion
 
-  override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
-    if (StudioFlags.COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION.get())
-      staticNavHandler.onCaretMoved(event.newPosition.line + 1)
-    if (PreviewEssentialsModeManager.isEssentialsModeEnabled) return
-    if (isModificationTriggered) return // We do not move the preview while the user is typing
-    if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
-    if (mode.value is PreviewMode.Interactive) return
-    // If we have not changed line, ignore
-    if (event.newPosition.line == event.oldPosition.line) return
-    val offset = event.editor.logicalPositionToOffset(event.newPosition)
-
-    lifecycleManager.executeIfActive {
-      launch(uiThread) {
-        val filePreviewElements =
-          withContext(workerThread) { composePreviewFlowManager.allPreviewElementsFlow.value }
-        // Workaround for b/238735830: The following withContext(uiThread) should not be needed but
-        // the code below ends up being executed
-        // in a worker thread under some circumstances so we need to prevent that from happening by
-        // forcing the context switch.
-        withContext(uiThread) {
-          when (filePreviewElements) {
-            is FlowableCollection.Uninitialized -> {}
-            is FlowableCollection.Present -> {
-              filePreviewElements.collection
-                .find { element ->
-                  element.previewBody?.psiRange.containsOffset(offset) ||
-                    element.previewElementDefinition?.psiRange.containsOffset(offset)
-                }
-                ?.let { selectedPreviewElement ->
-                  surface.models.find {
-                    previewElementModelAdapter.modelToElement(it) == selectedPreviewElement
-                  }
-                }
-                ?.let { surface.scrollToVisible(it, true) }
-            }
-          }
-        }
-      }
-    }
-  }
-
   override fun dispose() {
     isDisposed.set(true)
     if (mode.value is PreviewMode.Interactive) {
@@ -1055,6 +1037,7 @@ class ComposePreviewRepresentation(
       requestPrivateClassLoader = usePrivateClassLoader(),
       runVisualAnalysis = mode.value is PreviewMode.UiCheck,
       quality = qualityManager.getTargetQuality(layoutlibSceneManager),
+      disableAnimation = mode.value.isNormal,
     )
 
   private fun onAfterRender(previewsCount: Int) {
@@ -1085,6 +1068,22 @@ class ComposePreviewRepresentation(
             surface.notifyZoomToFit()
           }
         }
+      }
+      updateResizePanel()
+    }
+  }
+
+  /**
+   * Updates the [activeResizePanelInFocusMode] with the currently focused [LayoutlibSceneManager].
+   * This is called after a render completes in Focus mode.
+   */
+  private fun updateResizePanel() {
+    activeResizePanelInFocusMode?.let { panel ->
+      val focusedSceneManager = surface.sceneManagers.singleOrNull()
+      if (focusedSceneManager != null) {
+        panel.setSceneManager(focusedSceneManager)
+      } else {
+        log.error("activeResizePanelInFocusMode is not null, but there are no single scene manager")
       }
     }
   }
@@ -1141,10 +1140,7 @@ class ComposePreviewRepresentation(
     // Restore
     stateManager.restoreState()
 
-    // We need to hide the panel if in focus mode to avoid the flickering b/287484743
-    if (previewModeManager.mode.value.isFocus) {
-      surface.interactionPane.isVisible = false
-    }
+    hidePanelsBeforeRender()
 
     val showingPreviewElements =
       composeWorkBench.updatePreviewsAndRefresh(
@@ -1152,13 +1148,14 @@ class ComposePreviewRepresentation(
         filteredPreviews,
         psiFile,
         progressIndicator,
-        this::onAfterRender,
         previewElementModelAdapter,
         if (mode.value is PreviewMode.UiCheck) accessibilityModelUpdater else defaultModelUpdater,
         navigationHandler,
         this::configureLayoutlibSceneManagerForPreviewElement,
         refreshEventBuilder,
       )
+
+    onAfterRender(showingPreviewElements.size)
 
     if (previewModeManager.mode.value.isFocus) {
       // We need to get rid of the flickering when switching tabs in focus tabs b/287484743
@@ -1174,6 +1171,20 @@ class ComposePreviewRepresentation(
     }
     // Restoring the surface visibility after render as it may have been hidden in focus mode.
     surface.interactionPane.isVisible = true
+  }
+
+  /**
+   * Hides the panels before rendering.
+   *
+   * We need to hide the interaction panel if in focus mode to avoid the flickering b/287484743.
+   * Also, we need to clear and hide the resize panel before rendering otherwise it will be shown
+   * during rendering as configuration can be updated.
+   */
+  private fun hidePanelsBeforeRender() {
+    if (previewModeManager.mode.value.isFocus) {
+      surface.interactionPane.isVisible = false
+    }
+    activeResizePanelInFocusMode?.clearPanelAndHidePanel()
   }
 
   private fun requestRefresh(
@@ -1332,7 +1343,7 @@ class ComposePreviewRepresentation(
 
           val previewsToRender =
             withContext(workerThread) {
-              composePreviewFlowManager.filteredPreviewElementsFlow.value.asCollection().toList()
+              composePreviewFlowManager.toRenderPreviewElementsFlow.value.asCollection().toList()
             }
           composeWorkBench.hasContent =
             previewsToRender.isNotEmpty() || mode.value is PreviewMode.UiCheck
@@ -1571,8 +1582,20 @@ class ComposePreviewRepresentation(
       }
       is PreviewMode.Focus -> {
         withContext(uiThread) {
-          composeWorkBench.focusMode = FocusMode(composeWorkBench.mainSurface)
+          if (StudioFlags.COMPOSE_PREVIEW_RESIZING.get()) {
+            activeResizePanelInFocusMode = ResizePanel(composeWorkBench.mainSurface)
+          }
+          composeWorkBench.focusMode =
+            activeResizePanelInFocusMode?.let { resizePanel ->
+              FocusMode(composeWorkBench.mainSurface, resizePanel).apply {
+                addSelectionListener { resizePanel.clearPanelAndHidePanel() }
+              }
+            } ?: FocusMode(composeWorkBench.mainSurface)
         }
+        // If file had one Preview, on Entering Focus mode render will not be invoked,
+        // so [onAfterRender] and [updateResizePanel] will not be invoked either, we need to do it
+        // manually
+        surface.sceneManagers.singleOrNull()?.let { updateResizePanel() }
       }
     }
     surface.background = mode.backgroundColor
@@ -1599,10 +1622,15 @@ class ComposePreviewRepresentation(
           it.tracker.closeAnimationInspector()
         }
         currentAnimationPreview = null
+        ComposeAnimationSubscriber.setHandler(null)
         requestVisibilityAndNotificationsUpdate()
       }
       is PreviewMode.Focus -> {
-        withContext(uiThread) { composeWorkBench.focusMode = null }
+        withContext(uiThread) {
+          composeWorkBench.focusMode = null
+          Disposer.dispose(activeResizePanelInFocusMode!!)
+          activeResizePanelInFocusMode = null
+        }
       }
     }
   }
@@ -1625,6 +1653,58 @@ class ComposePreviewRepresentation(
   }
 
   private var currentAnimationPreview: ComposeAnimationPreview? = null
+
+  /**
+   * Manages the preview's response to caret movements, including highlighting components at the
+   * caret's position and scrolling components into view.
+   */
+  inner class CaretNavigationHandlerImpl() : PreviewRepresentation.CaretNavigationHandler {
+    override var isNavigatingToCode: Boolean = false
+
+    override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
+      if (StudioFlags.COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION.get() && !isNavigatingToCode) {
+        staticNavHandler.onCaretMoved(event.newPosition.line + 1)
+      }
+
+      // If isNavigatingToCode was true it was correctly handled above so we should reset it
+      isNavigatingToCode = false
+      if (PreviewEssentialsModeManager.isEssentialsModeEnabled) return
+      if (isModificationTriggered) return // We do not move the preview while the user is typing
+      if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
+      if (mode.value is PreviewMode.Interactive) return
+      // If we have not changed line, ignore
+      if (event.newPosition.line == event.oldPosition.line) return
+      val offset = event.editor.logicalPositionToOffset(event.newPosition)
+
+      lifecycleManager.executeIfActive {
+        launch(uiThread) {
+          val filePreviewElements =
+            withContext(workerThread) { composePreviewFlowManager.allPreviewElementsFlow.value }
+          // Workaround for b/238735830: The following withContext(uiThread) should not be needed
+          // but the code below ends up being executed in a worker thread under some circumstances
+          // so we need to prevent that from happening by forcing the context switch.
+          withContext(uiThread) {
+            when (filePreviewElements) {
+              is FlowableCollection.Uninitialized -> {}
+              is FlowableCollection.Present -> {
+                filePreviewElements.collection
+                  .find { element ->
+                    element.previewBody?.psiRange.containsOffset(offset) ||
+                      element.previewElementDefinition?.psiRange.containsOffset(offset)
+                  }
+                  ?.let { selectedPreviewElement ->
+                    surface.models.find {
+                      previewElementModelAdapter.modelToElement(it) == selectedPreviewElement
+                    }
+                  }
+                  ?.let { surface.scrollToVisible(it, true) }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
   private interface ComposeAnimationListener {
     companion object {

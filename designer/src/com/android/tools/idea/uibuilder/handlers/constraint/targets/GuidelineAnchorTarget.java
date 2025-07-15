@@ -20,10 +20,9 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.target.Target;
+import java.awt.Cursor;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 /**
  * Guideline anchors
@@ -73,7 +72,7 @@ public class GuidelineAnchorTarget extends ConstraintAnchorTarget {
 
   @Override
   public void addHit(@NotNull SceneContext transform,
-                     @NotNull ScenePicker picker,
+                     @NotNull ScenePicker.Writer picker,
                      @JdkConstants.InputEventMask int modifiersEx) {
     picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
                    transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));

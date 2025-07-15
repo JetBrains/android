@@ -33,7 +33,11 @@ import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.idea.util.projectStructure.module
 
 /** Returns class by name. It can be either short name for library classes or FQCN. */
-private fun findClassByName(facet: AndroidFacet, name: String, baseClassName: String): PsiClass? {
+private fun findClassByName(
+  facet: AndroidFacet,
+  name: String, baseClassName: String,
+  filter: (PsiClass) -> Boolean = { true }): PsiClass? {
+
   val module = facet.module
   val project = module.project
   val baseClass =
@@ -45,13 +49,13 @@ private fun findClassByName(facet: AndroidFacet, name: String, baseClassName: St
       PsiShortNamesCache.getInstance(project)
         .getClassesByName(name, module.moduleWithLibrariesScope)
     classes.find {
-      it.qualifiedName != null && InheritanceUtil.isInheritorOrSelf(it, baseClass, true)
+      it.qualifiedName != null && InheritanceUtil.isInheritorOrSelf(it, baseClass, true) && filter(it)
     }
   } else {
     val classes =
       JavaPsiFacade.getInstance(project)
         .findClasses(name, module.getModuleSystem().getResolveScope(ScopeType.MAIN))
-    classes.find { InheritanceUtil.isInheritorOrSelf(it, baseClass, true) }
+    classes.find { InheritanceUtil.isInheritorOrSelf(it, baseClass, true) && filter(it) }
   }
 }
 
@@ -60,20 +64,16 @@ private fun findClassByName(facet: AndroidFacet, name: String, baseClassName: St
  * FQCN.
  */
 fun findClassValidInXMLByName(facet: AndroidFacet, name: String, baseClassName: String): PsiClass? {
-  val candidate = findClassByName(facet, name, baseClassName) ?: return null
-  if (!candidate.isVisibleInXml(facet.module)) return null
-  if (
-    candidate.name == name &&
-      isClassPackageNeeded(
-        candidate.qualifiedName!!,
-        candidate,
-        StudioAndroidModuleInfo.getInstance(facet).moduleMinApi,
-        baseClassName,
-      )
-  ) {
-    return null
+  return findClassByName(facet, name, baseClassName) { candidate ->
+      candidate.isVisibleInXml(facet.module) &&
+      (candidate.name != name ||
+       !isClassPackageNeeded(
+         candidate.qualifiedName!!,
+         candidate,
+         StudioAndroidModuleInfo.getInstance(facet).moduleMinApi,
+         baseClassName,
+       ))
   }
-  return candidate
 }
 
 /** Return view by name. It can be either short name for library classes or FQCN. */

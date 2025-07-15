@@ -29,6 +29,7 @@ class WiFiPairingViewImpl(
   private val notificationService: WiFiPairingNotificationService,
   override val model: WiFiPairingModel,
   hyperlinkListener: HyperlinkListener,
+  mdnsServiceUnderPairing: TrackingMdnsService?,
 ) : WiFiPairingView {
   private val dlg: WiFiPairingDialog
   private val listeners = ArrayList<WiFiPairingView.Listener>()
@@ -36,7 +37,14 @@ class WiFiPairingViewImpl(
   init {
     // Note: No need to remove the listener, as the Model and View have the same lifetime
     model.addListener(ModelListener())
-    dlg = WiFiPairingDialog(project, true, DialogWrapper.IdeModalityType.IDE, hyperlinkListener)
+    dlg =
+      WiFiPairingDialog(
+        project,
+        true,
+        DialogWrapper.IdeModalityType.IDE,
+        hyperlinkListener,
+        mdnsServiceUnderPairing,
+      )
     dlg.pairingCodePairInvoked = { service ->
       listeners.forEach { it.onPairingCodePairAction(service) }
     }
@@ -110,7 +118,7 @@ class WiFiPairingViewImpl(
     dlg.showQrCodePairingStarted()
   }
 
-  override fun showQrCodePairingInProgress(mdnsService: MdnsService) {
+  override fun showQrCodePairingInProgress(pairingMdnsService: PairingMdnsService) {
     dlg.showQrCodePairingInProgress()
   }
 
@@ -118,12 +126,15 @@ class WiFiPairingViewImpl(
     dlg.showQrCodePairingWaitForDevice()
   }
 
-  override fun showQrCodePairingSuccess(mdnsService: MdnsService, device: AdbOnlineDevice) {
+  override fun showQrCodePairingSuccess(
+    pairingMdnsService: PairingMdnsService,
+    device: AdbOnlineDevice,
+  ) {
     dlg.showQrCodePairingSuccess(device)
     notificationService.showPairingSuccessBalloon(device)
   }
 
-  override fun showQrCodePairingError(mdnsService: MdnsService, error: Throwable) {
+  override fun showQrCodePairingError(pairingMdnsService: PairingMdnsService, error: Throwable) {
     dlg.showQrCodePairingError(error)
   }
 
@@ -178,11 +189,11 @@ class WiFiPairingViewImpl(
       updateQrCodeImage(newImage)
     }
 
-    override fun qrCodeServicesDiscovered(services: List<MdnsService>) {
+    override fun qrCodeServicesDiscovered(services: List<PairingMdnsService>) {
       // Ignore, as this is handled by the controller via the model
     }
 
-    override fun pairingCodeServicesDiscovered(services: List<MdnsService>) {
+    override fun pairingCodeServicesDiscovered(services: List<PairingMdnsService>) {
       // TODO: Move logic to controller?
       dlg.showPairingCodeServices(services)
     }

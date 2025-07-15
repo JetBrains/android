@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.LibraryReference
@@ -48,6 +49,8 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
 import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
+import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
+import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
@@ -57,6 +60,8 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl.Companion.wellKnownOrCreate
+import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
+import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
@@ -257,9 +262,8 @@ class KotlinModelConverter {
         folder = androidLibraryData.resFolder.convertAndDeduplicate().parentFile.deduplicateFile(),
         artifact = if (androidLibrary.hasArtifact()) androidLibrary.artifact.convertAndDeduplicate() else File(""),
         lintJar = if (androidLibrary.hasLintJar()) androidLibrary.lintJar.convertAndDeduplicate().path else null,
-        srcJar = if (useAdditionalArtifactsFromLibraries && androidLibrary.hasSrcJar()) androidLibrary.srcJar.convertAndDeduplicate().path else null,
+        srcJars = if (useAdditionalArtifactsFromLibraries) androidLibrary.srcJarsList.map { it.convertAndDeduplicate().path } else listOf(),
         docJar = if (useAdditionalArtifactsFromLibraries && androidLibrary.hasDocJar()) androidLibrary.docJar.convertAndDeduplicate().path else null,
-        samplesJar = if (useAdditionalArtifactsFromLibraries && androidLibrary.hasSamplesJar()) androidLibrary.samplesJar.convertAndDeduplicate().path else null,
         manifest = androidLibraryData.manifest.convertAndDeduplicate().path ?: "",
         compileJarFiles = androidLibraryData.compileJarFilesList.map { it.convertAndDeduplicate().path },
         runtimeJarFiles = androidLibraryData.runtimeJarFilesList.map { it.convertAndDeduplicate().path },
@@ -314,9 +318,8 @@ class KotlinModelConverter {
                   }
                 },
                 artifact = dependency.classpath.first(),
-                srcJar = if (useAdditionalArtifactsFromLibraries) dependency.sourcesClasspath.firstOrNull() else null,
+                srcJars = if (useAdditionalArtifactsFromLibraries) dependency.sourcesClasspath.toList() else listOf(),
                 docJar = if (useAdditionalArtifactsFromLibraries) dependency.documentationClasspath.firstOrNull() else null,
-                samplesJar = null,
               )
             )
           }
@@ -362,6 +365,58 @@ class KotlinModelConverter {
       seenDependencies.clear()
       libraries.clear()
     }
+  }
+
+  private fun createDefaultConfigForKmp(): IdeProductFlavorImpl {
+    return  IdeProductFlavorImpl(
+      name = "",
+      applicationIdSuffix = null,
+      versionNameSuffix = null,
+      resValues = emptyMap(),
+      proguardFiles = emptyList(),
+      consumerProguardFiles = emptyList(),
+      manifestPlaceholders = emptyMap(),
+      multiDexEnabled = null,
+      dimension = null,
+      applicationId = null,
+      versionCode = null,
+      versionName = null,
+      minSdkVersion = null,
+      targetSdkVersion = null,
+      maxSdkVersion = null,
+      testApplicationId = null,
+      testInstrumentationRunner = null,
+      testInstrumentationRunnerArguments = emptyMap(),
+      testHandleProfiling = null,
+      testFunctionalTest = null,
+      resourceConfigurations = emptyList(),
+      vectorDrawables = null,
+      isDefault = null
+    )
+  }
+
+  private fun createBuildTypeForKmp(mainAndroidCompilation: AndroidCompilation): IdeBuildTypeContainerImpl {
+    return IdeBuildTypeContainerImpl(
+      buildType = IdeBuildTypeImpl(
+        name = "", // matches the "" build type set for IdeVariantCoreImpl.buildType
+        resValues = mapOf(),
+        proguardFiles = listOf(),
+        consumerProguardFiles = listOf(),
+        manifestPlaceholders = mapOf(),
+        applicationIdSuffix = null,
+        versionNameSuffix = null,
+        multiDexEnabled = null,
+        isDebuggable = true, // for kmp we hardcode this to be always debuggable as we need at least the test components to be so
+        isJniDebuggable = false,
+        isPseudoLocalesEnabled = false,
+        isRenderscriptDebuggable = false,
+        renderscriptOptimLevel = -1,
+        isMinifyEnabled = mainAndroidCompilation.mainInfo.minificationEnabled,
+        isZipAlignEnabled = false,
+        isDefault = null
+      ),
+      sourceProvider = null,
+      extraSourceProviders = listOf())
   }
 
   fun createGradleAndroidModelData(
@@ -441,7 +496,11 @@ class KotlinModelConverter {
           }
         }
       ),
-      multiVariantData = null,
+      multiVariantData = IdeMultiVariantDataImpl(
+        defaultConfig = createDefaultConfigForKmp(),
+        buildTypes = listOf(createBuildTypeForKmp(mainAndroidCompilation)),
+        productFlavors = emptyList()
+      ),
       flavorDimensions = emptyList(),
       compileTarget = mainAndroidCompilation.mainInfo.compileSdkTarget,
       bootClasspath = targetInfo.bootClasspathList.map { it.absolutePath.deduplicate() },
@@ -626,6 +685,7 @@ class KotlinModelConverter {
       rootDirPath = rootModulePath!!,
       androidProject = androidProject,
       selectedVariantName = kotlinMultiplatformAndroidVariantName,
+      declaredDependencies = IdeDeclaredDependenciesImpl(mapOf()),
       variants = listOf(androidMainVariant)
     )
   }

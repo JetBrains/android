@@ -8,7 +8,11 @@ load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.projectSystem.gradle",
-    srcs = ["src"],
+    # do not sort: must match IML order
+    srcs = [
+        "src",
+        "gen",
+    ],
     iml_files = ["intellij.android.projectSystem.gradle.iml"],
     lint_baseline = "lint_baseline.xml",
     # NOTE: For edits to module_visibility, please see note at end of list
@@ -30,6 +34,7 @@ iml_module(
         "//tools/vendor/google/url-assistant/gradle:url-assistant.gradle",
         "//tools/adt/idea/databinding/gradle:intellij.android.databinding.gradle",
         "//tools/adt/idea/screenshot-testing/gradle:intellij.android.screenshot-test.gradle",
+        "//tools/vendor/google/ml/aiplugin/android/journeys/gradle:aiplugin.android.journeys.gradle",
         # Templates and Wizards
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
         "//tools/adt/idea/android-templates:intellij.android.templates",
@@ -41,13 +46,11 @@ iml_module(
         "//tools/adt/idea/android-lint:intellij.android.lint",
         "//tools/adt/idea/android-navigator:intellij.android.navigator",
         "//tools/adt/idea/mlkit:intellij.android.mlkit",
-        "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
         "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle",
         "//tools/vendor/google/ml/aiplugin/experimental:aiplugin.experimental",
         "//tools/vendor/google/android-ndk:android-ndk",
         "//tools/vendor/google/firebase:firebase",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion",
-        "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as",
     ],
     # NOTE: If you are tempted to add to the above module_visibility list, please
     # first read  go/as-project-system-cleanup, and discuss with and get agreement
@@ -169,7 +172,7 @@ iml_module(
             ],
         },
         "runs_gradle": {
-            "test_filter": ".runsGradle",
+            "test_filter": ".runsGradle\\.",
             "tags": [
                 "cpu:4",
                 "noci:studio-win",
@@ -310,6 +313,24 @@ iml_module(
                 "cpu:4",
                 "noci:studio-win",
             ],
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+                "//tools/data-binding:data_binding_runtime.zip",
+                "//prebuilts/studio/jdk/jdk17:jdk_runtime_files",
+                "//prebuilts/studio/jdk:jdk21",
+            ],
+        },
+        "runs_gradle_phased_sync": {
+            "test_filter": ".runsIndexingWithGradlePhasedSync",
+            "additional_jvm_args": ["-Didea.skip.indices.initialization=false"],
+            "tags": [
+                "cpu:4",
+                "noci:studio-win",
+            ],
+            "shard_count": 3,
             "data": [
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",

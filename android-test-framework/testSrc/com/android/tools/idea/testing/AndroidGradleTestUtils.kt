@@ -20,9 +20,9 @@ import com.android.builder.model.SyncIssue
 import com.android.ide.common.gradle.Component
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
-import com.android.test.testutils.TestUtils
-import com.android.test.testutils.TestUtils.getLatestAndroidPlatform
-import com.android.test.testutils.TestUtils.getSdk
+import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getLatestAndroidPlatform
+import com.android.testutils.TestUtils.getSdk
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
@@ -211,6 +212,7 @@ import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.MultiMap
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
+import com.intellij.workspaceModel.ide.impl.jps.serialization.DelayedProjectSynchronizer
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidTestBase
@@ -248,7 +250,8 @@ import java.util.concurrent.TimeUnit
 data class AndroidProjectModels(
   val androidProject: IdeAndroidProjectImpl,
   val variants: Collection<IdeVariantCoreImpl>,
-  val ndkModel: NdkModel?
+  val ndkModel: NdkModel?,
+  val declaredDependencies: IdeDeclaredDependenciesImpl
 )
 
 typealias AndroidProjectBuilderCore = (
@@ -332,9 +335,8 @@ data class JavaLibraryDependency(val library: IdeJavaLibraryImpl) {
         component = Component.parse(fakeCoordinates),
         name = "",
         artifact = jarFile,
-        srcJar = null,
+        srcJars = listOf(),
         docJar = null,
-        samplesJar = null,
       )
 
       return JavaLibraryDependency(libraryImpl)
@@ -374,6 +376,7 @@ interface AndroidProjectStubBuilder {
   val dynamicFeatures: List<String>
   val viewBindingOptions: IdeViewBindingOptionsImpl
   val dependenciesInfo: IdeDependenciesInfoImpl
+  val declaredDependencies: IdeDeclaredDependenciesImpl
   val supportsBundleTask: Boolean
   fun productFlavors(dimension: String): List<IdeProductFlavorImpl>
   fun productFlavorSourceProvider(flavor: String): IdeSourceProviderImpl
@@ -439,6 +442,7 @@ data class AndroidProjectBuilder(
   val dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
   val viewBindingOptions: AndroidProjectStubBuilder.() -> IdeViewBindingOptionsImpl = { buildViewBindingOptions() },
   val dependenciesInfo: AndroidProjectStubBuilder.() -> IdeDependenciesInfoImpl = { buildDependenciesInfo() },
+  val declaredDependencies: AndroidProjectStubBuilder.() -> IdeDeclaredDependenciesImpl = { IdeDeclaredDependenciesImpl(emptyList()) },
   val supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean = { true },
   val applicationIdFor: AndroidProjectStubBuilder.(variant: String) -> String = { "applicationId" },
   val testApplicationId: AndroidProjectStubBuilder.() -> String = { "testApplicationId" },
@@ -603,6 +607,7 @@ data class AndroidProjectBuilder(
         override val dynamicFeatures: List<String> = dynamicFeatures()
         override val viewBindingOptions: IdeViewBindingOptionsImpl = viewBindingOptions()
         override val dependenciesInfo: IdeDependenciesInfoImpl = dependenciesInfo()
+        override val declaredDependencies: IdeDeclaredDependenciesImpl = declaredDependencies()
         override val supportsBundleTask: Boolean = supportsBundleTask()
         override fun applicationId(variant: String): String = applicationIdFor(variant)
         override val testApplicationId: String get() = testApplicationId()
@@ -636,7 +641,8 @@ data class AndroidProjectBuilder(
       return AndroidProjectModels(
         androidProject = builder.androidProject,
         variants = builder.variants,
-        ndkModel = builder.ndkModel
+        ndkModel = builder.ndkModel,
+        declaredDependencies = builder.declaredDependencies
       )
     }
 }
@@ -1526,7 +1532,7 @@ private fun setupTestProjectFromAndroidModelCore(
     val qualifiedModuleName = if (gradlePath == ":") projectName else projectName + gradlePath.replace(":", ".")
     val moduleDataNode = when (moduleBuilder) {
       is AndroidModuleModelBuilder -> {
-        val (androidProject, variants, ndkModel) = moduleBuilder.projectBuilder(
+        val (androidProject, variants, ndkModel, declaredDependencies) = moduleBuilder.projectBuilder(
           projectName,
           gradlePath,
           rootProjectBasePath,
@@ -1553,6 +1559,7 @@ private fun setupTestProjectFromAndroidModelCore(
           agpVersion = moduleBuilder.agpVersion,
           androidProject = androidProject.populateBaseFeature(),
           variants = variants.let { if (!setupAllVariants) it.filter { it.name == moduleBuilder.selectedBuildVariant } else it },
+          declaredDependencies = declaredDependencies,
           ndkModel = ndkModel,
           selectedVariantName = moduleBuilder.selectedBuildVariant,
           selectedAbiName = moduleBuilder.selectedAbiVariant,
@@ -1645,6 +1652,7 @@ private fun createAndroidModuleDataNode(
   agpVersion: String?,
   androidProject: IdeAndroidProjectImpl,
   variants: Collection<IdeVariantCoreImpl>,
+  declaredDependencies: IdeDeclaredDependenciesImpl,
   ndkModel: NdkModel?,
   selectedVariantName: String,
   selectedAbiName: String?,
@@ -1685,6 +1693,7 @@ private fun createAndroidModuleDataNode(
     qualifiedModuleName,
     moduleBasePath,
     androidProject,
+    declaredDependencies,
     variants,
     selectedVariantName
   )
@@ -2166,7 +2175,8 @@ internal fun IntegrationTestEnvironment.prepareGradleProject(
   resolvedAgpVersion: ResolvedAgpVersionSoftwareEnvironment,
   additionalRepositories: Collection<File>,
   name: String,
-  ndkVersion: String?
+  ndkVersion: String?,
+  syncReady: Boolean = true
 ): File {
   val projectPath = nameToPath(name)
   if (projectPath.exists()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
@@ -2175,12 +2185,13 @@ internal fun IntegrationTestEnvironment.prepareGradleProject(
     testProjectAbsolutePath,
     projectPath
   ) { projectRoot ->
-    AndroidGradleTests.defaultPatchPreparedProject(
-      projectRoot,
-      resolvedAgpVersion,
-      ndkVersion,
-      *additionalRepositories.toTypedArray()
-    )
+      AndroidGradleTests.defaultPatchPreparedProject(
+        projectRoot,
+        resolvedAgpVersion,
+        ndkVersion,
+        syncReady,
+        *additionalRepositories.toTypedArray()
+      )
   }
   if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.lowercase(Locale.getDefault()) == "y") {
     println("Test project ${testProjectAbsolutePath.name} prepared at '$projectPath'")
@@ -2205,7 +2216,8 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val subscribe: (MessageBusConnection) -> Unit = {},
   val disableKtsRelatedIndexing: Boolean = false,
   val reportProjectSizeUsage: Boolean = false,
-  val overrideProjectGradleJdkPath: File? = null
+  val overrideProjectGradleJdkPath: File? = null,
+  val onProjectCreated: Project.() -> Unit = {}
 )
 
 fun OpenPreparedProjectOptions.withoutKtsRelatedIndexing(): OpenPreparedProjectOptions = copy(disableKtsRelatedIndexing = true)
@@ -2242,6 +2254,7 @@ private fun <T> openPreparedProject(
         var afterCreateCalled = false
 
         fun afterCreate(project: Project) {
+          options.onProjectCreated(project)
           if (options.disableKtsRelatedIndexing) {
             // [KotlinScriptWorkspaceFileIndexContributor] contributes a lot of classes/sources to index in order to provide Ctrl+Space
             // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
@@ -2306,6 +2319,7 @@ private fun <T> openPreparedProject(
         // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
         emulateStartupActivityForTest(project)
         val awaitGradleStartupActivity = project.coroutineScope.launch {
+          DelayedProjectSynchronizer.Util.backgroundPostStartupProjectLoading(project)
           project.service<AndroidGradleProjectStartupActivity.StartupService>().awaitInitialization()
         }
         PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(10))
@@ -2431,7 +2445,8 @@ private fun Project.verifyModelsAttached() {
 @JvmOverloads
 fun Project.requestSyncAndWait(
   ignoreSyncIssues: Set<Int> = emptySet(),
-  syncRequest: GradleSyncInvoker.Request = GradleSyncInvoker.Request.testRequest()
+  syncRequest: GradleSyncInvoker.Request = GradleSyncInvoker.Request.testRequest(),
+  waitForIndexes: Boolean = true,
 ) {
   AndroidGradleTests.syncProject(this, syncRequest) {
     AndroidGradleTests.checkSyncStatus(this, it, ignoreSyncIssues)
@@ -2445,7 +2460,9 @@ fun Project.requestSyncAndWait(
       AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(this)
     }
   }
-  IndexingTestUtil.waitUntilIndexesAreReady(this);
+  if (waitForIndexes) {
+    IndexingTestUtil.waitUntilIndexesAreReady(this)
+  }
 }
 
 /**
@@ -2473,7 +2490,7 @@ private fun setupDataNodesForSelectedVariant(
     val libraryFilePaths = LibraryFilePaths.getInstance(project)
     moduleNode.setupAndroidDependenciesForMpss({ path: GradleSourceSetProjectPath -> moduleIdToDataMap[path] }, { lib ->
       AdditionalArtifactsPaths(
-        listOfNotNull(lib.srcJar, lib.samplesJar),
+        lib.srcJars,
         lib.docJar,
       )
     }, newVariant, IdentityHashMap())

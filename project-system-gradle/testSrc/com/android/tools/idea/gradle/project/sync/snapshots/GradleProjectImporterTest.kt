@@ -24,7 +24,7 @@ import com.android.tools.idea.testing.saveAndDump
 
 class GradleProjectImporterTest : AndroidGradleTestCase(), SnapshotComparisonTest {
   fun testImportNoSync() {
-    prepareProjectForImport(TestProjectToSnapshotPaths.SIMPLE_APPLICATION)
+    prepareProjectForImportNoSync(TestProjectToSnapshotPaths.SIMPLE_APPLICATION)
     val project = super.getProject()
     val request = GradleProjectImporter.Request(project)
     GradleProjectImporter.configureNewProject(project)

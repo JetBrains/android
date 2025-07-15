@@ -152,7 +152,6 @@ public class GradleProjectSystemUtil {
    *
    * TODO(b/129543943): Investigate moving this logic into the data binding module
    */
-  @VisibleForTesting
   public static boolean isDataBindingGeneratedBaseClassesFolder(@NotNull File folder, @NotNull File buildFolder) {
     File generatedFolder = new File(buildFolder, FilenameConstants.GENERATED);
     File dataBindingSources = new File(generatedFolder, FilenameConstants.DATA_BINDING_BASE_CLASS_SOURCES);

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.settings
 
+import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
@@ -27,24 +28,26 @@ import java.util.stream.Stream
 class DefaultsDslElement(parent: GradleDslElement, name: GradleNameElement): GradleDslBlockElement(parent, name) {
   companion object {
     @JvmField
-    internal val DEFAULTS_DSL_ELEMENT = PropertiesElementDescription("defaults",
+    val DEFAULTS_DSL_ELEMENT = PropertiesElementDescription("defaults",
                                                             DefaultsDslElement::class.java) {
       parent, name -> DefaultsDslElement(parent, name)
     }
 
 
-    private val CHILD_PROPERTIES_ELEMENT_MAP = Stream.of(*arrayOf(
+    val CHILD_PROPERTIES_ELEMENT_MAP = Stream.of(*arrayOf(
       arrayOf("androidApp", AndroidDslElement.ANDROID_APP),
       arrayOf("androidLibrary", AndroidDslElement.ANDROID_LIBRARY),
     )).collect(ImmutableMap.toImmutableMap({ data: Array<*> -> data[0] as String },
                                            { data: Array<*> -> data[1] as PropertiesElementDescription<*> }))
 
   }
-
   override fun getChildPropertiesElementsDescriptionMap(
-    kind: GradleDslNameConverter.Kind?
-  ): Map<String, PropertiesElementDescription<*>?> {
-    return CHILD_PROPERTIES_ELEMENT_MAP
+    kind: GradleDslNameConverter.Kind
+  ): ImmutableMap<String, PropertiesElementDescription<*>> {
+      return ImmutableMap.builder<String, PropertiesElementDescription<*>>()
+        .putAll(CHILD_PROPERTIES_ELEMENT_MAP)
+        .putAll(GradleBlockModelMap.getElementMap(DefaultsDslElement::class.java, kind))
+        .build()
   }
 }
 

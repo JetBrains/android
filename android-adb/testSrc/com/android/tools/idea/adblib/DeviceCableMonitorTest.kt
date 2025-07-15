@@ -18,10 +18,13 @@ package com.android.tools.idea.adblib
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.adb.FakeAdbServiceRule
+import com.android.tools.idea.adb.PreInitAndroidDebugBridgeRule
 import com.intellij.facet.impl.FacetUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
+import com.intellij.openapi.application.WriteAction
 import com.intellij.testFramework.ProjectRule
 import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.CoroutineScope
@@ -32,15 +35,21 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 class DeviceCableMonitorTest {
-  @get:Rule val projectRule = ProjectRule()
-  @get:Rule val adbRule = FakeAdbRule()
-  @get:Rule val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
+  private val projectRule = ProjectRule()
+  private val preInitRule = PreInitAndroidDebugBridgeRule()
+  private val adbRule = FakeAdbRule()
+  private val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
   private lateinit var monitor: DeviceCableMonitor
 
   private var notificationDetected = false
   private val latch = CountDownLatch(1)
+
+  @get:Rule
+  val ruleChain =
+    RuleChain.outerRule(projectRule).around(preInitRule).around(adbRule).around(adbServiceRule)!!
 
   @Before
   fun setup() {
@@ -64,13 +73,15 @@ class DeviceCableMonitorTest {
       manufacturer = "Google",
       model = "Pixel7",
       release = "eng",
-      sdk = "34",
+      sdk = AndroidApiLevel(34),
       abi = "x85_64",
       hostConnectionType = DeviceState.HostConnectionType.USB,
       maxSpeedMbps = 5000L,
       negotiatedSpeedMbps = 480L,
     )
-    FacetUtil.addFacet(projectRule.module, AndroidFacet.getFacetType())
+    WriteAction.runAndWait<Throwable> {
+      FacetUtil.addFacet(projectRule.module, AndroidFacet.getFacetType())
+    }
 
     monitor = DeviceCableMonitor()
     CoroutineScope(Dispatchers.IO).launch { monitor.execute(projectRule.project) }

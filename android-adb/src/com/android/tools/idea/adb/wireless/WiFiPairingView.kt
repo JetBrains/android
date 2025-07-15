@@ -41,13 +41,13 @@ interface WiFiPairingView {
 
   fun showQrCodePairingStarted()
 
-  fun showQrCodePairingInProgress(mdnsService: MdnsService)
+  fun showQrCodePairingInProgress(pairingMdnsService: PairingMdnsService)
 
   fun showQrCodePairingWaitForDevice(pairingResult: PairingResult)
 
-  fun showQrCodePairingSuccess(mdnsService: MdnsService, device: AdbOnlineDevice)
+  fun showQrCodePairingSuccess(pairingMdnsService: PairingMdnsService, device: AdbOnlineDevice)
 
-  fun showQrCodePairingError(mdnsService: MdnsService, error: Throwable)
+  fun showQrCodePairingError(pairingMdnsService: PairingMdnsService, error: Throwable)
 
   fun showMacMdnsEnvironmentIsBroken()
 
@@ -61,7 +61,7 @@ interface WiFiPairingView {
   interface Listener {
     fun onScanAnotherQrCodeDeviceAction()
 
-    fun onPairingCodePairAction(mdnsService: MdnsService)
+    fun onPairingCodePairAction(pairingMdnsService: PairingMdnsService)
 
     fun onClose()
   }

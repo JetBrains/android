@@ -18,11 +18,14 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags.SHOW_GRADLE_AUTO_SYNC_SETTING_IN_NON_EXPERIMENTAL_UI
 import com.android.tools.idea.gradle.project.SYNC_DUE_DIALOG_SHOWN
-import com.android.tools.idea.gradle.project.SYNC_DUE_SNOOZED_SETTING
+import com.android.tools.idea.gradle.project.SYNC_DUE_SNOOZED_SETTING_AT_DATE
+import com.android.tools.idea.gradle.project.SyncDueMessage
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior
 import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AutoSyncSettingChangeEvent
+import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle.message
 import com.intellij.openapi.observable.util.whenItemSelected
@@ -66,6 +69,11 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
         AutoSyncSettingStore.autoSyncBehavior = it
         clearAutoSyncVariables()
         trackAutoSyncSettingChanged()
+        if (it == AutoSyncBehavior.Default) {
+          SyncDueMessage.getProjectsWhereNotificationShown().forEach {
+            GradleSyncInvoker.getInstance().requestProjectSync(it, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+          }
+        }
       }
       autoSyncBehaviorAwaitingSetting = null
     }
@@ -123,7 +131,7 @@ class AndroidStudioBuildToolsConfigurable : BoundSearchableConfigurable(
    * Clears snooze and first dialog flags that are used by Optional Auto Sync feature.
    */
   private fun clearAutoSyncVariables() {
-    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_SNOOZED_SETTING)
+    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_SNOOZED_SETTING_AT_DATE)
     PropertiesComponent.getInstance().unsetValue(SYNC_DUE_DIALOG_SHOWN)
   }
 }

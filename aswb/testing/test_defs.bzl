@@ -359,3 +359,35 @@ def _get_test_srcs(targets):
     for target in targets:
         files = depset(transitive = [files, target.files])
     return [f for f in files.to_list() if (f.basename.endswith("Test.java") or f.basename.endswith("Test.kt"))]
+
+def aswb_test(
+        name,
+        srcs,
+        deps = [],
+        runtime_deps = [],
+        visibility = None,
+        **kwargs):
+    """A regular ASwB test target."""
+    target_compatible_with = kwargs.get("target_compatible_with", None)
+    kotlin_library(
+        name = name + ".testlib",
+        srcs = srcs,
+        deps = deps,
+        testonly = True,
+        jvm_target = "17",
+        runtime_deps = runtime_deps,
+        jar = name + "_testlib.jar",
+        lint_enabled = False,
+        lint_is_test_sources = True,
+        visibility = visibility,
+        target_compatible_with = target_compatible_with,
+    )
+
+    native.java_test(
+        name = name,
+        runtime_deps = [
+            ":" + name + ".testlib",
+        ] + runtime_deps,
+        visibility = visibility,
+        **kwargs
+    )

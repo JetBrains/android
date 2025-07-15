@@ -20,7 +20,13 @@ import com.intellij.openapi.util.Disposer
 import java.awt.Container
 import javax.swing.JComponent
 
-/** Class used to wrap and unwrap [component] inside another view. */
+/**
+ * Class used to wrap and unwrap [component] inside another component. When unwrapped, [container]
+ * is the parent of [component]. When wrapped, [container] is the parent of the wrapper and the
+ * wrapper contains [component].
+ *
+ * If wrapped, [component] is unwrapped on disposal.
+ */
 class WrapLogic(
   parentDisposable: Disposable,
   private val component: JComponent,
@@ -32,6 +38,12 @@ class WrapLogic(
     Disposer.register(parentDisposable, this)
   }
 
+  /**
+   * Wraps [component] into a new container.
+   *
+   * @param wrap A function that takes [component] and wraps it into a new container. Returns a new
+   *   [JComponent] that contains [component].
+   */
   fun wrapComponent(wrap: (Disposable, JComponent) -> JComponent) {
     check(newContainer == null) { "Can't wrap, component is already wrapped" }
 

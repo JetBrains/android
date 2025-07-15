@@ -27,7 +27,6 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
@@ -53,6 +52,7 @@ import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
+import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.util.VersionChecker;
 import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler;
 import com.google.idea.blaze.common.Context;
@@ -65,14 +65,12 @@ import com.google.idea.blaze.common.artifact.OutputArtifact;
 import com.google.idea.blaze.common.proto.ProtoStringInterner;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.BlazeQueryParser;
-import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.google.idea.blaze.qsync.deps.DependencyBuildContext;
 import com.google.idea.blaze.qsync.deps.OutputGroup;
 import com.google.idea.blaze.qsync.deps.OutputInfo;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts;
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcCompilationInfo;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
-import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.common.experiments.BoolExperiment;
 import com.google.idea.common.experiments.StringExperiment;
 import com.google.protobuf.Message;
@@ -93,6 +91,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -104,11 +103,11 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.stream.Streams;
 import org.jetbrains.annotations.VisibleForTesting;
 
 /** An object that knows how to build dependencies for given targets */
-public class BazelDependencyBuilder implements DependencyBuilder {
+public class BazelDependencyBuilder implements DependencyBuilder, BazelDependencyBuilderPublicForTests {
+
   private static final Logger logger = Logger.getInstance(BazelDependencyBuilder.class);
 
   private static final BoolExperiment buildGeneratedSrcJars =
@@ -117,9 +116,6 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   // Note, this is currently incompatible with the build API.
   public static final BoolExperiment buildUseTargetPatternFile =
       new BoolExperiment("qsync.build.use.target.pattern.file", false);
-
-  public static final BoolExperiment multiInfoFile =
-      new BoolExperiment("qsync.multi.info.file.mode", true);
 
   public static final StringExperiment aspectLocation =
       new StringExperiment("qsync.build.aspect.location");
@@ -133,8 +129,7 @@ public class BazelDependencyBuilder implements DependencyBuilder {
       ImmutableList<String> exclude,
       ImmutableList<String> alwaysBuildRules,
       boolean generateIdlClasses,
-      boolean useGeneratedSrcJars,
-      boolean experimentMultiInfoFile) {}
+      boolean useGeneratedSrcJars) {}
 
   /**
    * Logs message if the number of artifact info files fetched is greater than
@@ -186,21 +181,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     this.buildArtifactCache = buildArtifactCache;
   }
 
-  private static final ImmutableMultimap<QuerySyncLanguage, OutputGroup> OUTPUT_GROUPS_BY_LANGUAGE =
-      ImmutableMultimap.<QuerySyncLanguage, OutputGroup>builder()
-          .putAll(
-              QuerySyncLanguage.JVM,
-              OutputGroup.JARS,
-              OutputGroup.AARS,
-              OutputGroup.GENSRCS,
-              OutputGroup.ARTIFACT_INFO_FILE)
-          .putAll(QuerySyncLanguage.CC, OutputGroup.CC_HEADERS, OutputGroup.CC_INFO_FILE)
-          .build();
-
   @Override
-  public OutputInfo build(
-      BlazeContext context, Set<Label> buildTargets, Set<QuerySyncLanguage> languages)
-      throws IOException, BuildException {
+  public OutputInfo build(BlazeContext context, Set<Label> buildTargets, Collection<OutputGroup> outputGroups)
+    throws IOException, BuildException {
     try (final var ignoredLock =
         ApplicationManager.getApplication()
             .getService(BuildDependenciesLockService.class)
@@ -210,12 +193,11 @@ public class BazelDependencyBuilder implements DependencyBuilder {
             "The IDE has been upgraded in the background. Bazel build aspect files maybe"
                 + " incompatible. Please restart the IDE.");
       }
-      final var buildDependenciesBazelInvocationInfo =
-          getInvocationInfo(context, buildTargets, languages);
+      final var buildDependenciesBazelInvocationInfo = getInvocationInfo(context, buildTargets, outputGroups);
       prepareInvocationFiles(
           context, buildDependenciesBazelInvocationInfo.invocationWorkspaceFiles());
 
-      BuildInvoker invoker = buildSystem.getDefaultInvoker(project);
+      BuildInvoker invoker = buildSystem.getBuildInvoker(project);
 
       Optional<BuildDepsStats.Builder> buildDepsStatsBuilder =
           BuildDepsStatsScope.fromContext(context);
@@ -247,8 +229,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
   }
 
   @VisibleForTesting
-  public BuildDependenciesBazelInvocationInfo getInvocationInfo(
-      BlazeContext context, Set<Label> buildTargets, Set<QuerySyncLanguage> languages) {
+  @Override
+  public BuildDependenciesBazelInvocationInfo getInvocationInfo(BlazeContext context,
+                                                                Set<Label> buildTargets, Collection<OutputGroup> outputGroups) {
     ImmutableList<String> includes =
         projectDefinition.projectIncludes().stream()
             .map(path -> "//" + path)
@@ -266,16 +249,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
             excludes,
             alwaysBuildRules,
             true,
-            buildGeneratedSrcJars.getValue(),
-            multiInfoFile.getValue());
+            buildGeneratedSrcJars.getValue());
 
     InvocationFiles invocationFiles = getInvocationFiles(buildTargets, parameters);
-
-    ImmutableSet<OutputGroup> outputGroups =
-        languages.stream()
-            .map(OUTPUT_GROUPS_BY_LANGUAGE::get)
-            .flatMap(Collection::stream)
-            .collect(ImmutableSet.toImmutableSet());
 
     ProjectViewSet projectViewSet = ProjectViewManager.getInstance(project).getProjectViewSet();
     // TODO This is not SYNC_CONTEXT, but also not OTHER_CONTEXT, we need to decide what kind
@@ -304,11 +280,11 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     querySyncFlags.add("--noexperimental_run_validations");
     querySyncFlags.add("--keep_going");
     querySyncFlags.addAll(
-        outputGroups.stream()
+      outputGroups.stream()
             .map(g -> "--output_groups=" + g.outputGroupName())
             .collect(toImmutableList()));
-    return new BuildDependenciesBazelInvocationInfo(
-        querySyncFlags.build(), outputGroups, invocationFiles.files());
+
+    return new BuildDependenciesBazelInvocationInfo(querySyncFlags.build(), ImmutableSet.copyOf(outputGroups), invocationFiles.files());
   }
 
   public record InvocationFiles(
@@ -367,8 +343,10 @@ public class BazelDependencyBuilder implements DependencyBuilder {
                                               it.queryData().querySummary().getAllBuildIncludedFiles().contains(RULES_ANDROID_RULES_BZL2))
       .orElse(false)) {
       return getBundledAspectPath("build_dependencies_android_rules_android_deps.bzl");
+    } else if (BlazeProjectDataManager.getInstance(project).getBlazeProjectData().getBlazeVersionData().bazelIsAtLeastVersion(7,1,0)) {
+      return getBundledAspectPath("build_dependencies_android_deps.bzl");
     }
-    return getBundledAspectPath("build_dependencies_android_deps.bzl");
+    return getBundledAspectPath("build_dependencies_legacy_android_deps.bzl");
   }
 
   private ByteSource getByteSourceFromString(String content) {
@@ -391,7 +369,6 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     appendStringList(result, "always_build_rules", parameters.alwaysBuildRules);
     appendBoolean(result, "generate_aidl_classes", parameters.generateIdlClasses);
     appendBoolean(result, "use_generated_srcjars", parameters.useGeneratedSrcJars);
-    appendBoolean(result, "experiment_multi_info_file", parameters.experimentMultiInfoFile);
     result.append(")\n");
     result.append("\n");
     result.append("collect_dependencies = _collect_dependencies(_config)\n");
@@ -449,7 +426,9 @@ public class BazelDependencyBuilder implements DependencyBuilder {
     }
   }
 
-  protected Path getBundledAspectPath(String filename) {
+  @VisibleForTesting
+  @Override
+  public Path getBundledAspectPath(String filename) {
     return getBundledAspectPath("aspect", filename);
   }
 
@@ -460,13 +439,57 @@ public class BazelDependencyBuilder implements DependencyBuilder {
    * the name of the aspect within that file. For example, {@code //package:aspect.bzl}.
    */
   @VisibleForTesting
+  @Override
   public void prepareInvocationFiles(
-      BlazeContext context, ImmutableMap<Path, ByteSource> invocationFiles)
+    BlazeContext context, ImmutableMap<Path, ByteSource> invocationFiles)
       throws IOException, BuildException {
     for (Map.Entry<Path, ByteSource> e : invocationFiles.entrySet()) {
-      Path absolutePath = workspaceRoot.path().resolve(e.getKey());
-      Files.createDirectories(absolutePath.getParent());
-      Files.copy(e.getValue().openStream(), absolutePath, StandardCopyOption.REPLACE_EXISTING);
+      copyInvocationFile(e.getKey(), e.getValue());
+    }
+  }
+
+  private void copyInvocationFile(Path path, ByteSource content) throws IOException, BuildException {
+    IOException lastException = null;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      Path absolutePath = workspaceRoot.path().resolve(path);
+      try {
+        Files.createDirectories(absolutePath.getParent());
+      }
+      catch (IOException ex) {
+        logger.warn("Failed to create directory " + absolutePath.getParent(), ex);
+        continue;
+      }
+      try {
+        if (Files.exists(absolutePath) && Arrays.equals(Files.readAllBytes(absolutePath), content.read())) {
+          continue;
+        }
+      }
+      catch (IOException ex) {
+        logger.warn("Failed to read " + absolutePath, ex);
+      }
+      try {
+        Files.deleteIfExists(absolutePath);
+      }
+      catch (IOException ex) {
+        logger.warn("Failed to delete " + absolutePath, ex);
+      }
+      try {
+        // Wait a little after deleting if not the first attempt.
+        Thread.sleep(100 * attempt);
+        Files.copy(content.openStream(), absolutePath, StandardCopyOption.REPLACE_EXISTING);
+      }
+      catch (IOException ex) {
+        logger.warn("Failed to copy to " + absolutePath, ex);
+        lastException = ex;
+        continue;
+      }
+      catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      break;
+    }
+    if (lastException != null) {
+      throw new BuildException(lastException);
     }
   }
 

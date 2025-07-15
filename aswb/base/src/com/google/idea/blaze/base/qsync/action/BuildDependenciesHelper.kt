@@ -22,7 +22,7 @@ import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsSc
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin
-import com.google.idea.blaze.base.qsync.QuerySyncManager.getInstance
+import com.google.idea.blaze.base.qsync.QuerySyncManager.Companion.getInstance
 import com.google.idea.blaze.base.qsync.settings.QuerySyncSettings
 import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.common.Label
@@ -55,7 +55,7 @@ class BuildDependenciesHelper(val project: Project) {
     fun showPrompt(displayFileName: String, targets: Set<Label>, onChosen: (Label) -> Unit, onCancelled: () -> Unit)
   }
 
-  fun canEnableAnalysisNow(): Boolean = syncManager.isProjectLoaded && !syncManager.operationInProgress()
+  fun canEnableAnalysisNow(): Boolean = syncManager.getLoadedProject().isPresent && !syncManager.operationInProgress()
 
   fun getTargetsToEnableAnalysisForPaths(workspaceRelativePaths: Collection<Path>): Set<TargetsToBuild> {
     if (!canEnableAnalysisNow()) {
@@ -88,10 +88,6 @@ class BuildDependenciesHelper(val project: Project) {
     get() =// TODO: Any output from the context here is not shown in the console.
       syncManager.getLoadedProject().orElseThrow().getWorkingSet(BlazeContext.create())
 
-  fun getAffectedTargetsForPaths(paths: Set<Path>): Set<Label> {
-    return getTargetsToEnableAnalysisForPaths(paths.toList()).flatMap { it.targets }.toSet()
-  }
-
   fun determineTargetsAndRun(
     workspaceRelativePaths: Collection<Path>,
     disambiguateTargetPrompt: DisambiguateTargetPrompt,
@@ -99,12 +95,17 @@ class BuildDependenciesHelper(val project: Project) {
     querySyncActionStats: QuerySyncActionStatsScope,
     consumer: (Set<Label>) -> Deferred<Boolean>
   ): Deferred<Boolean> {
+    fun displayWarning(title: String, content: String, items: List<String>) {
+      logger.warn("$title; $content\n${items.joinToString("\n")}")
+      getInstance(project).notifyWarning(title, content + "\n"+  items.joinToString(prefix = "  ", separator = ", ", limit = 3))
+    }
+
     return project.coroutineScope.async(Dispatchers.Default) {
       // semi sync - without updating project
       if (!canEnableAnalysisNow()) return@async false
       val syncResult =
         withContext(Dispatchers.EDT) {
-          syncManager.syncQueryDataIfNeeded(querySyncActionStats, TaskOrigin.AUTOMATIC)
+          syncManager.syncQueryDataIfNeeded(workspaceRelativePaths, querySyncActionStats, TaskOrigin.AUTOMATIC)
         }
           .asDeferred()
           .await()
@@ -116,6 +117,15 @@ class BuildDependenciesHelper(val project: Project) {
       val groupsToBuild = getTargetsToEnableAnalysisForPaths(workspaceRelativePaths)
       val disambiguator = TargetDisambiguator.createDisambiguatorForTargetGroups(groupsToBuild, targetDisambiguationAnchors)
       val ambiguousTargets = disambiguator.ambiguousTargetSets
+      val undefinedTargets = disambiguator.undefinedTargetSets
+
+      if (undefinedTargets.isNotEmpty()) {
+        displayWarning(
+          "Cannot find targets to build",
+          "Some paths requested to build cannot be mapped to project targets. Not building them:",
+          undefinedTargets.map { it.displayLabel }
+        )
+      }
 
       val targetsToBuild = when {
         ambiguousTargets.isEmpty() -> disambiguator.unambiguousTargets
@@ -138,15 +148,11 @@ class BuildDependenciesHelper(val project: Project) {
         }
 
         else -> {
-          logger.warn(
-            "Multiple ambiguous target sets; not building them: " +
-            ambiguousTargets.joinToString<TargetsToBuild>(",  ", limit = 3) { it.displayLabel })
-          getInstance(project)
-            .notifyWarning(
-              "Ambiguous target sets found",
-              "Ambiguous target sets found; not building them: "
-              + ambiguousTargets.joinToString<TargetsToBuild>(", ", limit = 3) { it.displayLabel }
-            )
+          displayWarning(
+            "Ambiguous target sets found",
+            "Ambiguous target sets found; not building them: ",
+            ambiguousTargets.map { it.displayLabel }
+          )
           when {
             disambiguator.unambiguousTargets.isNotEmpty<Label>() -> disambiguator.unambiguousTargets
             else -> {
@@ -161,26 +167,6 @@ class BuildDependenciesHelper(val project: Project) {
         consumer(targetsToBuild)
       }
       buildProcess.await()
-    }
-  }
-
-  val workingSetTargetsIfEnabled: Set<Label>
-    /**
-     * Returns the set of targets affected by files in the current working set if automatic building of the dependencies
-     * in the working set is enabled.
-     */
-    get() = if (QuerySyncSettings.getInstance().buildWorkingSet()) getWorkingSetTargets() else setOf()
-
-  private fun getWorkingSetTargets(): Set<Label> {
-    return try {
-      getAffectedTargetsForPaths(this.workingSet)
-    }
-    catch (be: BuildException) {
-      syncManager.notifyWarning(
-        "Could not obtain working set",
-        "Error trying to obtain working set. Not including it in build: $be",
-      )
-      setOf()
     }
   }
 }

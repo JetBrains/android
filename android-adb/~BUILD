@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.adb",
     srcs = ["src"],
     iml_files = ["intellij.android.adb.iml"],
+    kotlin_use_compose = True,
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
@@ -34,6 +35,9 @@ iml_module(
         "//tools/adt/idea/analytics",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
         "//tools/analytics-library/shared:analytics-shared",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+        "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
+        "//tools/adt/idea/intellij.android.device",
     ],
 )
 

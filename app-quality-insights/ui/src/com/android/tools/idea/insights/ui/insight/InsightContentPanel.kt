@@ -31,9 +31,10 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
@@ -46,8 +47,8 @@ import java.awt.CardLayout
 import java.awt.Graphics
 import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -71,22 +72,21 @@ private const val GENERATING_INSIGHT = "Generating insight..."
 class InsightContentPanel(
   controller: AppInsightsProjectLevelController,
   scope: CoroutineScope,
-  currentInsightFlow: Flow<LoadingState<AiInsight?>>,
+  currentInsightFlow: StateFlow<LoadingState<AiInsight?>>,
   parentDisposable: Disposable,
   permissionDeniedHandler: InsightPermissionDeniedHandler,
-) : JPanel(), DataProvider, Disposable {
+) : JPanel(), UiDataProvider, Disposable {
 
   private val cardLayout = CardLayout()
 
   private val insightTextPane = InsightTextPane(controller.project)
 
-  private val insightBottomPanel = InsightBottomPanel(controller, scope, currentInsightFlow)
+  private val insightBottomPanel = InsightBottomPanel(controller, currentInsightFlow, this)
 
   private val insightPanel =
     JPanel(VerticalLayout(JBUI.scale(8))).apply {
       add(InsightDisclaimerPanel(controller, scope, currentInsightFlow))
       add(insightTextPane)
-
       border = JBUI.Borders.empty(8, 16, 8, 8)
     }
 
@@ -204,14 +204,14 @@ class InsightContentPanel(
                     }
                     showEmptyCard()
                   } else {
-                    insightTextPane.text = insightText
+                    updateInsightText(insightText)
                     showContentCard()
                   }
                 }
               }
             }
             is LoadingState.Loading -> {
-              insightTextPane.text = ""
+              updateInsightText("")
               if (aiInsight.message.isNotEmpty()) {
                 loadingPanel.setLoadingText(aiInsight.message)
               } else {
@@ -298,6 +298,10 @@ class InsightContentPanel(
     }
   }
 
+  private fun updateInsightText(text: String) {
+    insightTextPane.text = text
+  }
+
   private fun reset() {
     enableInsightPanel.isVisible = false
   }
@@ -327,9 +331,7 @@ class InsightContentPanel(
 
   override fun dispose() = Unit
 
-  override fun getData(dataId: String) =
-    when {
-      PlatformDataKeys.COPY_PROVIDER.`is`(dataId) -> insightTextPane
-      else -> null
-    }
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[PlatformDataKeys.COPY_PROVIDER] = insightTextPane
+  }
 }

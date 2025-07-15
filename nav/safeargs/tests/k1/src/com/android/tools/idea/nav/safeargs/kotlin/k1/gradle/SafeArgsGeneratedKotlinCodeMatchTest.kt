@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.kotlin.k1.gradle
 
-import com.android.test.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.AndroidGradleProjectRule

@@ -23,6 +23,7 @@ import com.android.tools.idea.serverflags.protos.RecommendedVersions
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
@@ -36,6 +37,7 @@ import com.intellij.openapi.updateSettings.impl.UpdateSettings
  *
  * In case of incompatibility, a modal dialog will be surfaced prompting the user to upgrade AS version
  */
+@Service
 class AndroidSdkCompatibilityChecker {
 
   fun checkAndroidSdkVersion(importedModules: Collection<DataNode<GradleAndroidModelData>>,
@@ -62,14 +64,15 @@ class AndroidSdkCompatibilityChecker {
 
     if (modulesViolatingSupportRules.isEmpty()) return
 
-    // If multiple modules violate the rules, recommending upgrading to the highest one
+    // If multiple modules violate the rules, recommending upgrading to the highest sdk version
     val highestViolatingSdkVersion: AndroidVersion = modulesViolatingSupportRules.map { it.second }
-                                                       .maxWithOrNull(compareBy({ it.apiLevel }, { it.codename })) ?: return
+                                                       .maxWithOrNull(AndroidVersion.API_LEVEL_ORDERING) ?: return
 
     val recommendation = if (highestViolatingSdkVersion.isPreview) {
       highestViolatingSdkVersion.codename?.let { previewName -> serverFlag?.get(previewName) }
     } else {
-      serverFlag?.get(highestViolatingSdkVersion.apiLevel.toString())
+      // read the major.minor version from server flags with a fall back to read just the major version
+      serverFlag?.get(highestViolatingSdkVersion.androidApiLevel.toString()) ?: serverFlag?.get(highestViolatingSdkVersion.androidApiLevel.majorVersion.toString())
     } ?: return
 
 

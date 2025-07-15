@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless
 
-class PairingCodePairingModel(val service: MdnsService) {
+class PairingCodePairingModel(val service: PairingMdnsService) {
   var pairingCode: String = ""
 
   interface Listener {

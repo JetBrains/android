@@ -134,7 +134,6 @@ public final class ImageAsset extends BaseAsset {
   /**
    * Sets the clipart designation of the image asset.
    */
-  @UiThread
   public void setClipart(boolean clipart) {
     isClipart = clipart;
   }
@@ -142,12 +141,10 @@ public final class ImageAsset extends BaseAsset {
   /**
    * Checks if the image is clipart. All clipart images are black on a transparent background.
    */
-  @UiThread
   public boolean isClipart() {
     return isClipart;
   }
 
-  @UiThread
   @Override
   public boolean isColorable() {
     return isClipart;

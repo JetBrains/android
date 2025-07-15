@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-class MockDeviceHandle(override val scope: CoroutineScope, val serialNumber: String) : DeviceHandle {
+class MockDeviceHandle(override val scope: CoroutineScope, serialNumber: String) : DeviceHandle {
   override val id = DeviceId("TEST", false, "")
   private val mockDeviceState = mock<DeviceState.Connected>()
   private val mockConnectedDevice = mock<ConnectedDevice>()

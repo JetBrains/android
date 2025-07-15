@@ -17,6 +17,7 @@ package com.google.idea.blaze.base.bazel;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.UnmodifiableIterator;
 import com.google.devtools.build.lib.buildeventstream.BuildEventStreamProtos;
 import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
@@ -27,6 +28,7 @@ import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.exception.BuildException;
+import com.intellij.execution.process.ProcessHandler;
 import java.io.InputStream;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -39,6 +41,7 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     return new AutoValue_FakeBuildInvoker.Builder()
         .type(BuildBinaryType.NONE)
         .binaryPath("")
+        .capabilities(ImmutableSet.of())
         .buildSystem(FakeBuildSystem.builder(BuildSystemName.Blaze).build());
   }
 
@@ -51,6 +54,12 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   @Override
   public BuildEventStreamProvider invoke(BlazeCommand.Builder blazeCommandBuilder, BlazeContext blazeContext) {
     return fakeBuildEventStreamProvider();
+  }
+
+  @Override
+  public ProcessHandler invokeAsProcessHandler(BlazeCommand.Builder blazeCommandBuilder,
+                                               BlazeContext blazeContext) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -129,6 +138,8 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     public abstract Builder type(BuildBinaryType type);
 
     public abstract Builder binaryPath(String binaryPath);
+
+    public abstract Builder capabilities(com.google.common.collect.ImmutableSet<Capability> value);
 
     public abstract Builder buildSystem(BuildSystem buildSystem);
   }

@@ -65,6 +65,7 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.android.facet.AndroidFacet
 
 private class RenderRequest(val trigger: LayoutEditorRenderResult.Trigger?) {
@@ -155,6 +156,21 @@ class LayoutlibSceneRenderer(
   internal var sessionClock: SessionClock = RealTimeSessionClock()
     get() = renderTaskLock.withLock { field }
     private set
+
+  /**
+   * Executes all callbacks in the current [renderTask] until there are no more callbacks to
+   * execute. This method will suspend until all callbacks have been executed, or we reach time
+   * limit.
+   */
+  suspend fun executeAllCallbacks() {
+    var hasCallbacks = true
+    withTimeoutOrNull(timeMillis = 100L) {
+      while (hasCallbacks) {
+        hasCallbacks =
+          renderTask?.executeCallbacks(sessionClock.timeNanos)?.await()?.hasMoreCallbacks() ?: false
+      }
+    }
+  }
 
   // TODO(b/335424569): make this field private, or at least its setter
   var renderResult: RenderResult? = null

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,30 +15,24 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.codecontext.CodeContext
+import com.android.tools.idea.insights.ai.codecontext.FakeCodeContextResolver
+import com.android.tools.idea.insights.ai.transform.CodeTransformationDeterminerImpl
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.CopyProvider
-import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
-import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.TestActionEvent
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.test.fail
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
+import javax.swing.JButton
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -46,7 +40,6 @@ import org.junit.rules.RuleChain
 
 @RunsInEdt
 class InsightBottomPanelTest {
-
   private val projectRule = ProjectRule()
   private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
 
@@ -54,67 +47,51 @@ class InsightBottomPanelTest {
   val ruleChain: RuleChain =
     RuleChain.outerRule(EdtRule()).around(projectRule).around(controllerRule)
 
-  private lateinit var copyProvider: FakeCopyProvider
-  private lateinit var testEvent: AnActionEvent
   private lateinit var fakeUi: FakeUi
-  private val scope = CoroutineScope(EmptyCoroutineContext)
   private val currentInsightFlow =
     MutableStateFlow<LoadingState<AiInsight?>>(LoadingState.Ready(null))
 
   @Before
   fun setup() {
-    copyProvider = FakeCopyProvider()
     currentInsightFlow.update { LoadingState.Ready(null) }
-    testEvent =
-      TestActionEvent.createTestEvent {
-        when {
-          PlatformDataKeys.COPY_PROVIDER.`is`(it) -> copyProvider
-          else -> null
-        }
-      }
-  }
-
-  @After
-  fun tearDown() {
-    scope.cancel()
   }
 
   @Test
-  fun `test copy action`() = runBlocking {
-    val bottomPanel = createInsightBottomPanel()
+  fun `suggest a fix button changes presentation based on the availability of a suggested fix`() =
+    runBlocking {
+      createInsightBottomPanel()
+      val insight =
+        AiInsight(
+          rawInsight =
+            """
+        This is an insight.
+        
+        The fix should likely be in AndroidManifest.xml.
+      """
+              .trimIndent()
+        )
+      currentInsightFlow.value = LoadingState.Ready(insight)
 
-    val fakeUi = FakeUi(bottomPanel)
-    val toolbar =
-      fakeUi.findComponent<ActionToolbarImpl> { it.place == "InsightBottomPanelRightToolBar" }
-        ?: fail("Toolbar not found")
-    assertThat(toolbar.actions.size).isEqualTo(2)
-    val copyAction = toolbar.actions[0]
+      val button = fakeUi.findComponent<JButton> { it.name == "suggest_a_fix_button" }!!
+      waitForCondition(5.seconds) { button.text == "Suggest a fix" }
+      assertThat(button.isEnabled).isTrue()
+      assertThat(button.isBorderPainted).isTrue()
 
-    CopyPasteManager.copyTextToClipboard("default text")
-
-    copyAction.update(testEvent)
-    assertThat(testEvent.presentation.isEnabled).isFalse()
-    assertThat(testEvent.presentation.isVisible).isTrue()
-
-    copyProvider.text = "interesting insight"
-
-    copyAction.update(testEvent)
-    assertThat(testEvent.presentation.isEnabled).isTrue()
-    assertThat(testEvent.presentation.isVisible).isTrue()
-  }
-
-  private class FakeCopyProvider(var text: String = "") : CopyProvider {
-    override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-    override fun performCopy(dataContext: DataContext) = Unit
-
-    override fun isCopyEnabled(dataContext: DataContext) = text.isNotBlank()
-
-    override fun isCopyVisible(dataContext: DataContext) = true
-  }
+      currentInsightFlow.value = LoadingState.Ready(AiInsight("This is an insight"))
+      waitForCondition(5.seconds) { button.text == "No suggested fix available." }
+      assertThat(button.isBorderPainted).isFalse()
+      assertThat(button.isEnabled).isFalse()
+    }
 
   private fun createInsightBottomPanel() =
-    InsightBottomPanel(controllerRule.controller, scope, currentInsightFlow).also {
-      fakeUi = FakeUi(it)
-    }
+    InsightBottomPanel(
+        controllerRule.controller,
+        currentInsightFlow,
+        projectRule.disposable,
+        CodeTransformationDeterminerImpl(
+          projectRule.project,
+          FakeCodeContextResolver(listOf(CodeContext("a/b/c", "blah"))),
+        ),
+      )
+      .also { fakeUi = FakeUi(it) }
 }

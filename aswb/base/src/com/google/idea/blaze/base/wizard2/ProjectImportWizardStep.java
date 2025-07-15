@@ -15,28 +15,17 @@
  */
 package com.google.idea.blaze.base.wizard2;
 
-import com.intellij.ide.util.projectWizard.ProjectBuilder;
-import com.intellij.ide.util.projectWizard.WizardContext;
+import com.google.idea.blaze.base.wizard2.BlazeNewProjectWizard.WizardContext;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.ide.wizard.StepAdapter;
 import com.intellij.openapi.options.ConfigurationException;
 import javax.annotation.Nullable;
-import javax.swing.Icon;
 
 public abstract class ProjectImportWizardStep extends StepAdapter {
   private final WizardContext myContext;
 
   ProjectImportWizardStep(WizardContext context) {
     myContext = context;
-  }
-
-  @Override
-  public Icon getIcon() {
-    return myContext.getStepIcon();
-  }
-
-  protected ProjectBuilder getBuilder() {
-    return myContext.getProjectBuilder();
   }
 
   WizardContext getWizardContext() {
@@ -65,9 +54,6 @@ public abstract class ProjectImportWizardStep extends StepAdapter {
   public abstract void onWizardFinished() throws CommitStepException;
 
   protected BlazeNewProjectBuilder getProjectBuilder() {
-    BlazeProjectImportBuilder builder =
-        (BlazeProjectImportBuilder) getWizardContext().getProjectBuilder();
-    assert builder != null;
-    return builder.builder();
+    return myContext.projectBuilder();
   }
 }

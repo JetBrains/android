@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
-import com.android.tools.idea.concurrency.applicationCoroutineScope
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
@@ -26,6 +25,8 @@ import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.android.tools.idea.streaming.device.DeviceState.Property
 import com.android.tools.idea.streaming.device.UiSettingsChangeRequest.AppLocale
 import com.android.tools.idea.streaming.device.UiSettingsChangeRequest.UiCommand
+import com.android.tools.idea.streaming.xr.AbstractXrInputController.Companion.UNKNOWN_PASSTHROUGH_COEFFICIENT
+import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
 import com.intellij.openapi.Disposable
@@ -38,12 +39,14 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import java.io.EOFException
 import java.io.IOException
+import java.nio.channels.ClosedChannelException
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -68,12 +71,13 @@ internal class DeviceController(
   private val deviceClipboardListeners: MutableList<DeviceClipboardListener> = ContainerUtil.createLockFreeCopyOnWriteList()
   private val deviceStateListeners: MutableList<DeviceStateListener> = ContainerUtil.createLockFreeCopyOnWriteList()
   private val displayListeners:  MutableList<DisplayListener> = ContainerUtil.createLockFreeCopyOnWriteList()
-  @Volatile
-  internal var supportedFoldingStates: List<FoldingState> = emptyList()
+  private val xrEnvironmentListeners:  MutableList<XrEnvironmentListener> = ContainerUtil.createLockFreeCopyOnWriteList()
+  @Volatile internal var supportedFoldingStates: List<FoldingState> = emptyList()
     private set
-  @Volatile
-  internal var currentFoldingState: FoldingState? = null
+  @Volatile internal var currentFoldingState: FoldingState? = null
     private set
+  @Volatile private var xrPassthroughCoefficient: Float = UNKNOWN_PASSTHROUGH_COEFFICIENT
+  @Volatile private var xrEnvironment: XrEnvironment? = null
   private val responseCallbacks = ResponseCallbackMap()
   private val requestIdCounter = AtomicInteger()
   private val requestIdGenerator: () -> Int
@@ -217,9 +221,11 @@ internal class DeviceController(
   override fun dispose() {
     executor.shutdown()
     responseCallbacks.cancelAll()
-    applicationCoroutineScope.launch(Dispatchers.IO) { controlChannel.close() }
+    CoroutineScope(SupervisorJob() + Dispatchers.IO).launch { controlChannel.close() }
     try {
       executor.awaitTermination(2, TimeUnit.SECONDS)
+    }
+    catch (_: InterruptedException) {
     }
     finally {
       deviceClipboardListeners.clear()
@@ -256,6 +262,19 @@ internal class DeviceController(
     displayListeners.remove(listener)
   }
 
+  /** Adds a listener of that is when XR passthrough coefficient or environment is changed. */
+  internal fun addXrEnvironmentListener(listener: XrEnvironmentListener) {
+    xrEnvironmentListeners.add(listener)
+    if (xrPassthroughCoefficient >= 0) {
+      listener.onXrPassthroughCoefficientChanged(xrPassthroughCoefficient)
+    }
+    xrEnvironment?.let { listener.onXrEnvironmentChanged(it) }
+  }
+
+  internal fun removeXrEnvironmentListener(listener: XrEnvironmentListener) {
+    xrEnvironmentListeners.remove(listener)
+  }
+
   private fun startReceivingMessages() {
     receiverScope.launch {
       while (true) {
@@ -270,14 +289,19 @@ internal class DeviceController(
             is DeviceStateNotification -> onDeviceStateChanged(message)
             is DisplayAddedOrChangedNotification -> onDisplayAddedOrChanged(message)
             is DisplayRemovedNotification -> onDisplayRemoved(message)
+            is XrPassthroughCoefficientChangedNotification -> setXrPassthroughCoefficient(message.passthroughCoefficient)
+            is XrEnvironmentChangedNotification -> setXrEnvironment(message.environment)
             else -> logger.error("Unexpected type of a received message: ${message.type}")
           }
         }
         catch (_: EOFException) {
           break
         }
+        catch (_: ClosedChannelException) {
+          break
+        }
         catch (e: IOException) {
-          if (e.message?.startsWith("Connection reset") == true) {
+          if (e.message?.startsWith("Connection reset") == true || e.message?.endsWith("network name is no longer available") == true) {
             break
           }
           throw e
@@ -336,25 +360,48 @@ internal class DeviceController(
     }
   }
 
+  private fun setXrPassthroughCoefficient(passthroughCoefficient: Float) {
+    if (xrPassthroughCoefficient != passthroughCoefficient) {
+      xrPassthroughCoefficient = passthroughCoefficient
+      for (listener in xrEnvironmentListeners) {
+        listener.onXrPassthroughCoefficientChanged(passthroughCoefficient)
+      }
+    }
+  }
+
+  private fun setXrEnvironment(environment: XrEnvironment) {
+    if (xrEnvironment != environment) {
+      xrEnvironment = environment
+      for (listener in xrEnvironmentListeners) {
+        listener.onXrEnvironmentChanged(environment)
+      }
+    }
+  }
+
+  @AnyThread
   internal interface DeviceClipboardListener {
-    @AnyThread
     fun onDeviceClipboardChanged(text: String)
   }
 
+  @AnyThread
   internal interface DeviceStateListener {
-    @AnyThread
     fun onSupportedDeviceStatesChanged(deviceStates: List<FoldingState>)
 
-    @AnyThread
     fun onDeviceStateChanged(deviceState: Int)
   }
 
+  @AnyThread
   internal interface DisplayListener {
-    @AnyThread
     fun onDisplayAddedOrChanged(displayId: Int, width: Int, height: Int, rotation: Int, displayType: DisplayType)
 
-    @AnyThread
     fun onDisplayRemoved(displayId: Int)
+  }
+
+  @AnyThread
+  internal interface XrEnvironmentListener {
+    fun onXrPassthroughCoefficientChanged(passthroughCoefficient: Float)
+
+    fun onXrEnvironmentChanged(environment: XrEnvironment)
   }
 
   private class ResponseCallbackMap {

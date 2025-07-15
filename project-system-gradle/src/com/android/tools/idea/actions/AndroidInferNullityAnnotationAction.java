@@ -18,9 +18,9 @@ package com.android.tools.idea.actions;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
 import static org.jetbrains.kotlin.idea.util.application.ApplicationUtilsKt.isUnitTestMode;
 
-import com.android.ide.common.gradle.Component;
+import com.android.ide.common.gradle.Dependency;
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
@@ -28,9 +28,11 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.DependencyType;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.module.AndroidModuleInfo;
@@ -79,6 +81,7 @@ import com.intellij.usages.UsageViewManager;
 import com.intellij.usages.UsageViewPresentation;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
+import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -227,16 +230,13 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
           GoogleMavenArtifactId annotation = MigrateToAndroidxUtil.isAndroidx(project) ?
                                              GoogleMavenArtifactId.ANDROIDX_ANNOTATION :
                                              GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
-          Component annotationsComponent = manager.getArtifactComponent(annotation, true);
-          if (annotationsComponent != null) {
-            String annotationsIdentifier = annotationsComponent.toIdentifier();
-            if (annotationsIdentifier != null) {
-              for (Module module : modulesWithoutAnnotations) {
-                addDependency(module, annotationsIdentifier);
-              }
+          Version annotationsVersion = manager.findVersion(annotation.getGroupId(), annotation.getArtifactId(), null, true,
+                                                           FileSystems.getDefault());
+          if (annotationsVersion != null) {
+            for (Module module : modulesWithoutAnnotations) {
+              addDependency(module, annotation.getDependency(annotationsVersion.toString()));
             }
           }
-
           syncAndRestartAnalysis(project, scope);
         });
       }
@@ -354,10 +354,10 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     };
   }
 
-  private static void addDependency(@NotNull Module module, @NotNull String libraryIdentifier) {
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(libraryIdentifier);
-    if (coordinate != null) {
-      ProjectSystemUtil.getModuleSystem(module).registerDependency(coordinate, DependencyType.IMPLEMENTATION);
+  private static void addDependency(@NotNull Module module, @NotNull Dependency dependency) {
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+    if (moduleSystem instanceof GradleModuleSystem gradleModuleSystem) {
+      gradleModuleSystem.registerDependency(dependency, DependencyType.IMPLEMENTATION);
     }
   }
 

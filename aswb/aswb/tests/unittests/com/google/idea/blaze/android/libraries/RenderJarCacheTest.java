@@ -254,10 +254,11 @@ public class RenderJarCacheTest {
     File projectDataDir = temporaryFolder.newFolder("project_data");
     importSettingsManager.setImportSettings(
         new BlazeImportSettings(
-            /* workspaceRoot= */ "",
+            "",
             intellijRule.getProject().getName(),
             projectDataDir.getAbsolutePath(),
-            /* projectViewFile= */ "",
+            "",
+            "",
             BuildSystemName.Blaze,
             ProjectType.ASPECT_SYNC));
     intellijRule.registerProjectService(BlazeImportSettingsManager.class, importSettingsManager);

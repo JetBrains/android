@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 
 /**
  * Constants for databinding test data locations.

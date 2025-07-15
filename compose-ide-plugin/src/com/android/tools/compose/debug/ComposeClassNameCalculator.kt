@@ -52,8 +52,7 @@ class ComposeClassNameCalculator : ClassNameCalculator {
             val argument = lambdaExpression.parent as? KtLambdaArgument ?: return
             if (!argument.isComposableLambdaArgument()) return
             result[lambdaExpression] = className
-          }
-          finally {
+          } finally {
             super.visitLambdaExpression(lambdaExpression)
           }
         }

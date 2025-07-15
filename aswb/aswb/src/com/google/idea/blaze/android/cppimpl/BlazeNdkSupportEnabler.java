@@ -23,15 +23,16 @@ import com.google.common.collect.Sets;
 import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.LanguageClass;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.qsync.QuerySyncProject;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
+import com.google.idea.blaze.base.qsync.QuerySyncProjectListener;
 import com.google.idea.blaze.base.qsync.QuerySyncProjectListenerProvider;
+import com.google.idea.blaze.base.qsync.ReadonlyQuerySyncProject;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.sync.SyncListener;
 import com.google.idea.blaze.base.sync.SyncMode;
 import com.google.idea.blaze.base.sync.SyncResult;
 import com.google.idea.blaze.common.Context;
-import com.google.idea.blaze.qsync.QuerySyncProjectListener;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.intellij.openapi.application.ApplicationManager;
@@ -60,17 +61,16 @@ final class BlazeNdkSupportEnabler implements SyncListener, QuerySyncProjectList
   }
 
   @Override
-  public QuerySyncProjectListener createListener(QuerySyncProject project) {
+  public QuerySyncProjectListener createListener(QuerySyncManager querySyncManager) {
     return new QuerySyncProjectListener() {
       @Override
-      public void onNewProjectSnapshot(Context<?> context, QuerySyncProjectSnapshot instance) {
-
+      public void onNewProjectStructure(Context<?> context, ReadonlyQuerySyncProject querySyncProject, QuerySyncProjectSnapshot instance) {
         Set<QuerySyncLanguage> allLanguages =
             Sets.union(
                 instance.queryData().projectDefinition().languageClasses(),
                 QuerySyncLanguage.fromProtoList(instance.project().getActiveLanguagesList()));
 
-        enableCSupportInIde(project.getIdeProject(), allLanguages.contains(QuerySyncLanguage.CC));
+        enableCSupportInIde(querySyncManager.getIdeProject(), allLanguages.contains(QuerySyncLanguage.CC));
       }
     };
   }

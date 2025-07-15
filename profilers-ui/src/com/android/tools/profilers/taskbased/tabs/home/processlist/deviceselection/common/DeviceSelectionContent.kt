@@ -64,7 +64,7 @@ fun DeviceText(text: String) {
 @Composable
 private fun DeviceIcon(icon: Icon?, description: String) {
   DeviceIconUtils.getDeviceIconKey(icon)?.let {
-    Icon(it, contentDescription = description, iconClass = StudioIconsCompose::class.java)
+    Icon(it, contentDescription = description)
   }
 }
 

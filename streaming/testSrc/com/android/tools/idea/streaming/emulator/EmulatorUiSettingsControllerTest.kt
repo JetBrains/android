@@ -16,14 +16,13 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.adblib.testing.FakeAdbDeviceServices
+import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.UsageTrackerRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListenerValidator
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
-import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import com.google.wireless.android.sdk.stats.DeviceInfo.DeviceType.LOCAL_EMULATOR
@@ -62,8 +61,7 @@ class EmulatorUiSettingsControllerTest {
 
   private val model: UiSettingsModel by lazy { UiSettingsModel(Dimension(1344, 2992), DEFAULT_DENSITY, 33, DeviceType.HANDHELD) } // Pixel 8 Pro
   private val controller: EmulatorUiSettingsController by lazy { createController() }
-  private val resetWithDebugLayoutAndGestureNavigation =
-    (FACTORY_RESET_COMMAND + FACTORY_RESET_DEBUG_LAYOUT + FACTORY_RESET_GESTURE_NAVIGATION).format(APPLICATION_ID1, DEFAULT_DENSITY)
+  private val resetWithDebugLayoutAndGestureNavigation = (FACTORY_RESET_COMMAND).format(APPLICATION_ID1, DEFAULT_DENSITY)
 
   @Before
   fun before() {
@@ -97,8 +95,6 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testReadDefaultValueWhenAttachingAfterInit() {
-    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
     controller.initAndWait()
     val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = false, expectedSettable = true)
@@ -107,8 +103,6 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testReadDefaultValueWhenAttachingBeforeInit() {
-    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
     val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     controller.initAndWait()
     listeners.checkValues(expectedChanges = 2, expectedCustomValues = false, expectedSettable = true)
@@ -134,6 +128,23 @@ class EmulatorUiSettingsControllerTest {
     val listeners = UiControllerListenerValidator(model, customValues = false, settable = false)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = true, expectedSettable = true)
     assertThat(model.differentFromDefault.value).isTrue()
+  }
+
+  @Test
+  fun testResetStateOnWear() {
+    // Use default value for settings included for Wear
+    // Use non default values for settings not included for Wear
+    uiRule.configureUiSettings(
+      darkMode = true, // Not included
+      gestureNavigation = false, // Not included
+      talkBackInstalled = true,
+      selectToSpeakOn = true, // Not included
+      physicalDensity = DEFAULT_DENSITY,
+      overrideDensity = CUSTOM_DENSITY, // Not included
+    )
+    controller.initAndWait()
+    // All values should be recognized as default values:
+    assertThat(model.differentFromDefault.value).isFalse()
   }
 
   @Test
@@ -167,7 +178,6 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testGestureNavigationOn() {
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
     uiRule.configureUiSettings(gestureNavigation = false)
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isTrue()
@@ -181,7 +191,6 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testGestureNavigationOff() {
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isFalse()
     model.gestureNavigation.setFromUi(false)
@@ -338,8 +347,6 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testSetDebugLayout() {
-    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isFalse()
     model.debugLayout.setFromUi(true)
@@ -353,8 +360,6 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testResetWithoutDebugLayoutAndGestureNavigation() {
-    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.overrideForTest(false, testRootDisposable)
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(false, testRootDisposable)
     uiRule.configureUiSettings(
       darkMode = true,
       applicationId = APPLICATION_ID1,
@@ -383,8 +388,6 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testResetWithDebugLayoutAndGestureNavigation() {
-    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
-    StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.overrideForTest(true, testRootDisposable)
     uiRule.configureUiSettings(
       darkMode = true,
       gestureOverlayInstalled = true,
@@ -439,7 +442,7 @@ class EmulatorUiSettingsControllerTest {
       val event = usages[index].studioEvent
       assertThat(event.kind).isEqualTo(EventKind.UI_DEVICE_SETTINGS_EVENT)
       assertThat(event.deviceInfo.deviceType).isEqualTo(LOCAL_EMULATOR)
-      assertThat(event.deviceInfo.buildApiLevelFull).isEqualTo("33")
+      assertThat(event.deviceInfo.buildApiLevelFull).isEqualTo("${SdkVersionInfo.HIGHEST_KNOWN_STABLE_API}.0")
       assertThat(event.uiDeviceSettingsEvent.operation).isEqualTo(expected)
     }
     assertThat(usages).hasSize(operations.size)

@@ -21,7 +21,6 @@ import com.android.tools.preview.config.PARAMETER_FONT_SCALE
 import com.android.tools.preview.config.PARAMETER_HEIGHT
 import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
 import com.android.tools.preview.config.PARAMETER_LOCALE
-import com.android.tools.preview.config.PARAMETER_THEME
 import com.android.tools.preview.config.PARAMETER_UI_MODE
 import com.android.tools.preview.config.PARAMETER_WALLPAPER
 import com.android.tools.preview.config.PARAMETER_WIDTH
@@ -35,7 +34,6 @@ fun attributesToConfiguration(
   attributesProvider: AnnotationAttributesProvider
 ): PreviewConfiguration {
   val apiLevel = attributesProvider.getIntAttribute(PARAMETER_API_LEVEL)
-  val theme = attributesProvider.getStringAttribute(PARAMETER_THEME)
   // Both width and height have to support old ("width") and new ("widthDp") conventions
   val width =
     attributesProvider.getIntAttribute(PARAMETER_WIDTH)
@@ -51,7 +49,6 @@ fun attributesToConfiguration(
 
   return PreviewConfiguration.cleanAndGet(
     apiLevel,
-    theme,
     width,
     height,
     locale,

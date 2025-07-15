@@ -37,7 +37,7 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.ide.common.repository.AgpVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -46,6 +46,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.startup.GradleSpecificInitializer;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -77,6 +78,7 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
+import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
@@ -174,6 +176,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       // TODO(b/159600848)
       emulateStartupActivityForTest(getProject());
     }
+
+    // TODO(b/418973297): Consolidate all init logic in the different test frameworks
+    WorkspaceModelCacheImpl.forceEnableCaching(getTestRootDisposable());
+    GradleSpecificInitializer.initializePhasedSync();
 
     // Use per-project code style settings so we never modify the IDE defaults.
     CodeStyleSettingsManager.getInstance().USE_PER_PROJECT_SETTINGS = true;
@@ -303,7 +309,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                    @Nullable String chosenModuleName,
                                    @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
                                    @Nullable String ndkVersion) throws Exception {
-    File projectRoot = prepareProjectForImport(relativePath, agpVersion, ndkVersion);
+    File projectRoot = prepareProjectForImport(relativePath, agpVersion, ndkVersion, true);
     importProject(agpVersion.getJdkVersion());
 
     prepareProjectForTest(getProject(), chosenModuleName);
@@ -332,8 +338,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   protected void patchPreparedProject(@NotNull File projectRoot,
                                       @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
                                       @Nullable String ndkVersion,
+                                      boolean syncReady,
                                       File... localRepos) throws IOException {
-    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, agpVersion, ndkVersion, localRepos);
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, agpVersion, ndkVersion, syncReady, localRepos);
     AgpVersion agpVersionParsed = AgpVersion.tryParse(agpVersion.getAgpVersion());
     if (agpVersionParsed != null && agpVersionParsed.isAtLeastIncludingPreviews(8, 0, 0)) {
       migratePackageAttribute(projectRoot);
@@ -343,14 +350,21 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath) throws IOException {
     return prepareProjectForImport(relativePath, resolveAgpVersionSoftwareEnvironment(myAgpVersionSoftwareEnvironment),
-                                   null);
+                                   null, true);
   }
 
   @NotNull
-  protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @NotNull File targetPath)
+  protected File prepareProjectForImportNoSync(@NotNull @SystemIndependent String relativePath) throws IOException {
+    return prepareProjectForImport(relativePath, resolveAgpVersionSoftwareEnvironment(myAgpVersionSoftwareEnvironment),
+                                   null, false);
+  }
+
+  @NotNull
+  protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @NotNull File targetPath,
+                                               boolean syncReady)
     throws IOException {
     return prepareProjectForImport(relativePath, targetPath,
-                                   resolveAgpVersionSoftwareEnvironment(myAgpVersionSoftwareEnvironment), null);
+                                   resolveAgpVersionSoftwareEnvironment(myAgpVersionSoftwareEnvironment), null, syncReady);
   }
 
   /**
@@ -360,13 +374,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath,
                                                @NotNull File targetPath,
                                                @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
-                                               @Nullable String ndkVersion) throws IOException {
+                                               @Nullable String ndkVersion,
+                                               boolean syncReady) throws IOException {
     File projectSourceRoot = resolveTestDataPath(relativePath);
 
     prepareGradleProject(
       projectSourceRoot,
       targetPath,
-      file -> patchPreparedProject(file, agpVersion, ndkVersion,
+      file -> patchPreparedProject(file, agpVersion, ndkVersion, syncReady,
                                    getAdditionalRepos().toArray(new File[0])));
     return targetPath;
   }
@@ -374,9 +389,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   @NotNull
   protected final File prepareProjectForImport(@NotNull @SystemIndependent String relativePath,
                                                @NotNull ResolvedAgpVersionSoftwareEnvironment agpVersion,
-                                               @Nullable String ndkVersion) throws IOException {
+                                               @Nullable String ndkVersion,
+                                               boolean syncReady) throws IOException {
     File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
-    return prepareProjectForImport(relativePath, projectRoot, agpVersion, ndkVersion);
+    return prepareProjectForImport(relativePath, projectRoot, agpVersion, ndkVersion, syncReady);
   }
 
   @NotNull

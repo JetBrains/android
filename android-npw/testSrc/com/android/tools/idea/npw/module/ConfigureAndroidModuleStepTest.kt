@@ -264,7 +264,14 @@ class ConfigureAndroidModuleStepTest {
     }
 
     assertThat(newAndroidModuleModel.recommendedBuildSdk?.apiLevel).isEqualTo(LIB1_COMPILE_SDK)
-    assertThat(newAndroidModuleModel.moduleTemplateDataBuilder.build().apis.buildApi.api)
+    assertThat(
+        newAndroidModuleModel.moduleTemplateDataBuilder
+          .build()
+          .apis
+          .buildApi
+          .androidApiLevel
+          .majorVersion
+      )
       .isEqualTo(LIB1_COMPILE_SDK)
   }
 

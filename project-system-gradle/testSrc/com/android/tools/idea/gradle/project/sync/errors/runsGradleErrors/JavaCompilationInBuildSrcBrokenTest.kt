@@ -21,6 +21,7 @@ import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
+import com.intellij.build.events.DuplicateMessageAware
 import com.intellij.build.events.MessageEvent
 import org.junit.Test
 
@@ -38,11 +39,14 @@ class JavaCompilationInBuildSrcBrokenTest: AbstractSyncFailureIntegrationTest() 
       verifySyncViewEvents = { _, buildEvents ->
         // Expect single MessageEvent on Sync Output
         buildEvents.filterIsInstance<MessageEvent>().let { events ->
-          expect.that(events).hasSize(1)
-          events.firstOrNull()?.let {
-            expect.that(it.message).isEqualTo("class, interface, enum, or record expected")
-            expect.that(it.group).isEqualTo("Compiler")
-          }
+          // One message is generated from the task and another from failure.
+          // We make second one duplication aware so it will not be shown on UI.
+          // Unfortunately it will be reported to analytics twice, but this is minor issue.
+          expect.that(events.map { "message='${it.message}':group='${it.group}':duplicateMessageAware=${it is DuplicateMessageAware}" })
+            .containsExactly(
+              "message='class, interface, enum, or record expected':group='Compiler':duplicateMessageAware=false",
+              "message='class, interface, enum, or record expected':group='Compiler':duplicateMessageAware=true"
+            )
         }
         // Make sure no additional error build issue events are generated
         expect.that(buildEvents.filterIsInstance<BuildIssueEvent>()).isEmpty()
@@ -51,7 +55,7 @@ class JavaCompilationInBuildSrcBrokenTest: AbstractSyncFailureIntegrationTest() 
       verifyFailureReported = {
         expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.JAVA_COMPILATION_ERROR)
         expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
-          .containsExactly(BuildErrorMessage.ErrorType.JAVA_COMPILER)
+          .containsExactly(BuildErrorMessage.ErrorType.JAVA_COMPILER, BuildErrorMessage.ErrorType.JAVA_COMPILER)
 
         expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
           SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD

@@ -122,6 +122,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common",
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/adt/idea/backup:intellij.android.backup.api",
+        "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
     ],
     test_srcs = ["testSrc"],
     # Tests are run using explicit, local_old_agp_test targets
@@ -268,7 +269,7 @@ local_generate_old_agp_tests_from_list(
             ],
             "agp_version": AGP_3_5,
             "gradle_version": GRADLE_5_5,
-            "shard_count": 4,
+            "shard_count": 1,
             "tags": COMMON_OLD_AGP_TEST_TARGETS_TAGS,
         },
         {

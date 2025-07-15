@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.sdklib.AndroidApiLevel
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.messages.FormattingOptions
@@ -48,6 +50,71 @@ class LogcatPanelConfigTest {
 
     assertThat(fromJson!!.formattingConfig).isEqualTo(custom)
   }
+
+  @Test
+  fun missingFormattingConfig() {
+    val state =
+      """
+      {
+        'filter': 'tag:ActivityManager ',
+        'isSoftWrap': false
+      }"""
+        .trimIndent()
+
+    assertThat(LogcatPanelConfig.fromJson(state)).isNull()
+  }
+
+  @Test
+  fun badDevice() {
+    val state =
+      """
+      {
+        'device': {
+          'foobar': '1'
+        },
+        'formattingConfig': {
+          'preset': 'STANDARD'
+        },
+        'filter': 'tag:ActivityManager ',
+        'isSoftWrap': false
+      }"""
+        .trimIndent()
+
+    assertThat(LogcatPanelConfig.fromJson(state))
+      .isEqualTo(
+        LogcatPanelConfig(
+          device = null,
+          file = null,
+          formattingConfig = FormattingConfig.Preset(STANDARD),
+          filter = "tag:ActivityManager ",
+          isSoftWrap = false,
+          filterMatchCase = false,
+          proguardFile = null,
+        )
+      )
+  }
+
+  @Test
+  fun deviceRoundtrip() {
+    val device =
+      Device(
+        deviceId = "id",
+        name = "name",
+        serialNumber = "serial",
+        isOnline = true,
+        release = "Release",
+        apiLevel = AndroidApiLevel(77, 7),
+        featureLevel = 35,
+        model = "Model",
+        type = DeviceType.HANDHELD,
+      )
+    val config = logcatPanelConfig(device = device)
+
+    val json = LogcatPanelConfig.toJson(config)
+    val fromJson = LogcatPanelConfig.fromJson(json)
+
+    assertThat(fromJson!!.device).isEqualTo(device)
+  }
 }
 
 private fun logcatPanelConfig(
@@ -57,4 +124,14 @@ private fun logcatPanelConfig(
   filter: String = "",
   filterMatchCase: Boolean = false,
   isSoftWrap: Boolean = false,
-) = LogcatPanelConfig(device, file, formattingConfig, filter, filterMatchCase, isSoftWrap)
+  proguardFile: String? = null,
+) =
+  LogcatPanelConfig(
+    device,
+    file,
+    formattingConfig,
+    filter,
+    filterMatchCase,
+    isSoftWrap,
+    proguardFile,
+  )

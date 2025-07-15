@@ -33,6 +33,18 @@ open class TestPreviewRepresentation : PreviewRepresentation {
 
   override val component = JPanel()
 
+  override val caretNavigationHandler = CommonNavigationHandler()
+
+  inner class CommonNavigationHandler : PreviewRepresentation.CaretNavigationHandler {
+    override var isNavigatingToCode = false
+
+    override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
+      if (isModificationTriggered) return
+      nCaretNotifications++
+      lastCaretEvent = event
+    }
+  }
+
   override fun updateNotifications(parentEditor: FileEditor) {}
 
   override fun dispose() {}
@@ -56,12 +68,6 @@ open class TestPreviewRepresentation : PreviewRepresentation {
   }
 
   override fun getState(): PreviewRepresentationState? = mapOf()
-
-  override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
-    if (isModificationTriggered) return
-    nCaretNotifications++
-    lastCaretEvent = event
-  }
 }
 
 open class TestPreviewRepresentationProvider(

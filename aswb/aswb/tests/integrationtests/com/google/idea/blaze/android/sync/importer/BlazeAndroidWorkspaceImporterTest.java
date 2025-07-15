@@ -99,7 +99,7 @@ public class BlazeAndroidWorkspaceImporterTest extends BlazeAndroidIntegrationTe
       };
 
   private static final BlazeImportSettings DUMMY_IMPORT_SETTINGS =
-      new BlazeImportSettings("", "", "", "", BuildSystemName.Bazel, ProjectType.ASPECT_SYNC);
+      new BlazeImportSettings("", "", "", "", "", BuildSystemName.Bazel, ProjectType.ASPECT_SYNC);
 
   private BlazeContext context;
   private final MockJdepsMap jdepsMap = new MockJdepsMap();

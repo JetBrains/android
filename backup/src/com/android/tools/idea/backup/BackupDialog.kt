@@ -18,7 +18,11 @@ package com.android.tools.idea.backup
 
 import com.android.backup.BackupType
 import com.android.backup.BackupType.DEVICE_TO_DEVICE
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.backup.BackupBundle.message
+import com.android.tools.idea.util.absoluteInProject
+import com.android.tools.idea.util.relativeToProject
+import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -29,7 +33,8 @@ import com.intellij.ui.UIBundle
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.SwingHelper
 import java.awt.Dimension
-import java.awt.event.ItemEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import javax.swing.DefaultComboBoxModel
@@ -46,19 +51,16 @@ import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.isDirectory
 import kotlin.io.path.pathString
+import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.VisibleForTesting
 
 internal class BackupDialog(
   private val project: Project,
   initialApplicationId: String,
-  private val isBackupEnabled: Boolean,
+  private val appIdToBackupEnabledMap: Map<String, Boolean>,
+  private val dialogFactory: DialogFactory = DialogFactoryImpl(),
 ) : DialogWrapper(project) {
-  private val applicationIds = buildList {
-    if (StudioFlags.BACKUP_ALLOW_NON_PROJECT_APPS.get()) {
-      add(initialApplicationId)
-    }
-    addAll(project.getService(ProjectAppsProvider::class.java).getApplicationIds())
-  }
+  private val applicationIds = appIdToBackupEnabledMap.keys.toList()
 
   private val applicationIdComboBox =
     ComboBox(DefaultComboBoxModel(applicationIds.sorted().toTypedArray())).apply {
@@ -70,16 +72,28 @@ internal class BackupDialog(
       name = "typeComboBox"
       maximumSize = Dimension(TYPE_FIELD_WIDTH, preferredSize.height)
     }
+  private val typeHelpIcon: JLabel =
+    JLabel(AllIcons.General.ContextHelp).apply {
+      addMouseListener(
+        object : MouseAdapter() {
+          override fun mouseReleased(e: MouseEvent) {
+            BrowserUtil.browse("https://d.android.com//r/studio-ui/backup-restore/help/backup-type")
+          }
+        }
+      )
+    }
+
   private val backupNotEnabledWarning =
     SwingHelper.createHtmlViewer(false, JLabel().font, null, null).apply {
       name = "backupNotEnabledWarning"
       isEditable = false
       isOpaque = false
       putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
-      isVisible = !isBackupEnabled
       addHyperlinkListener { it ->
-        if (it.eventType == ACTIVATED) {
-          BackupManagerImpl.openBackupDisabledLearnMoreLink()
+        when {
+          it.eventType != ACTIVATED -> return@addHyperlinkListener
+          it.description == "learn-more" -> BackupManagerImpl.openBackupDisabledLearnMoreLink()
+          it.description == "enable-backup" -> enableBackupInManifest()
         }
       }
     }
@@ -115,28 +129,23 @@ internal class BackupDialog(
   init {
     init()
     title = "Backup App Data"
-    if (applicationIds.contains(initialApplicationId)) {
-      applicationIdComboBox.item = initialApplicationId
-    }
+    applicationIdComboBox.item = initialApplicationId
     typeComboBox.item = getLastUsedType()
     typeComboBox.renderer = ListCellRenderer { _, value, _, _, _ -> JLabel(value.displayName) }
 
-    if (!isBackupEnabled) {
-      fun doUpdate() {
-        backupNotEnabledWarning.text =
-          if (typeComboBox.item == DEVICE_TO_DEVICE) WARNING_DTD else WARNING_CLOUD
-        updateOkAction()
-      }
-
-      val itemListener: (ItemEvent) -> Unit = {
-        doUpdate()
-        pack()
-      }
-      doUpdate()
-      typeComboBox.addItemListener(itemListener)
-    }
-    pack()
+    applicationIdComboBox.addItemListener { checkBackupType() }
+    typeComboBox.addItemListener { checkBackupType() }
+    checkBackupType()
     isResizable = false
+  }
+
+  private fun checkBackupType() {
+    val isBackupEnabled = appIdToBackupEnabledMap[applicationId] != true
+    backupNotEnabledWarning.isVisible = isBackupEnabled
+    backupNotEnabledWarning.text =
+      if (typeComboBox.item == DEVICE_TO_DEVICE) WARNING_DTD else WARNING_CLOUD
+    updateOkAction()
+    pack()
   }
 
   override fun createCenterPanel(): JComponent {
@@ -162,6 +171,7 @@ internal class BackupDialog(
             createSequentialGroup()
               .addComponent(typeLabel)
               .addComponent(typeComboBox)
+              .addComponent(typeHelpIcon)
               .addComponent(backupNotEnabledWarning)
           )
           .addGroup(createSequentialGroup().addComponent(fileLabel).addComponent(fileTextField))
@@ -179,6 +189,7 @@ internal class BackupDialog(
                 createParallelGroup(GroupLayout.Alignment.CENTER)
                   .addComponent(typeLabel)
                   .addComponent(typeComboBox)
+                  .addComponent(typeHelpIcon)
               )
               .addComponent(backupNotEnabledWarning)
           )
@@ -193,6 +204,16 @@ internal class BackupDialog(
 
     panel.layout = layout
     return panel
+  }
+
+  override fun getHelpId(): @NonNls String? {
+    return "help"
+  }
+
+  override fun doHelpAction() {
+    BrowserUtil.browse(
+      "http://d.android.com/studio/preview/features?utm_source=android-studio#test-backup-restore"
+    )
   }
 
   override fun doOKAction() {
@@ -250,7 +271,7 @@ internal class BackupDialog(
       """
       App-data won't be backed up as allowBackup property is false.<br>
       Backup may contain Restore Keys, if present for the app.<br>
-      (<a href='http://bar.com/'>Learn more</a>)
+      (<a href='learn-more'>Learn more</a>, <a href='enable-backup'>Enable in manifest</a>)
     """
         .trimIndent()
 
@@ -258,7 +279,7 @@ internal class BackupDialog(
       """
       App-data won't be backed up as allowBackup property is false.<br>
       Restore Keys backup is not supported via this tool for Cloud.<br>
-      backup type. (<a href='http://bar.com/'>Learn more</a>)
+      backup type. (<a href='learn-more'>Learn more</a>, <a href='enable-backup'>Enable in manifest</a>)
     """
         .trimIndent()
 
@@ -267,7 +288,8 @@ internal class BackupDialog(
     @VisibleForTesting internal const val LAST_USED_TYPE_KEY = "Backup.Last.Used.Type"
   }
 
-  fun updateOkAction() {
+  private fun updateOkAction() {
+    val isBackupEnabled = appIdToBackupEnabledMap[applicationId] ?: false
     try {
       val path = Path.of(fileTextField.text)
       isOKActionEnabled =
@@ -276,6 +298,25 @@ internal class BackupDialog(
           (typeComboBox.item == DEVICE_TO_DEVICE || isBackupEnabled)
     } catch (_: InvalidPathException) {
       isOKActionEnabled = false
+    }
+  }
+
+  private fun enableBackupInManifest() {
+    when (ManifestPatcher(project).enableBackup(applicationId)) {
+      true -> {
+        close(CANCEL_EXIT_CODE)
+        dialogFactory.showDialog(
+          project,
+          message("enable.backup.success.title"),
+          message("enable.backup.success.text"),
+        )
+      }
+      false ->
+        dialogFactory.showDialog(
+          project,
+          message("enable.backup.failure.title"),
+          message("enable.backup.failure.text"),
+        )
     }
   }
 }

@@ -132,7 +132,7 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
 
     BlazeImportSettingsManager importSettingsManager = new BlazeImportSettingsManager(project);
     BlazeImportSettings settings =
-        new BlazeImportSettings("", "", "", "", BuildSystemName.Blaze, ProjectType.ASPECT_SYNC);
+        new BlazeImportSettings("", "", "", "", "", BuildSystemName.Blaze, ProjectType.ASPECT_SYNC);
     importSettingsManager.setImportSettings(settings);
     projectServices.register(BlazeImportSettingsManager.class, importSettingsManager);
 
@@ -163,12 +163,6 @@ public class BlazeRenderErrorContributorTest extends BlazeTestCase {
   @Test
   public void testProviderIsApplicable() {
     assertThat(provider.isApplicable(project)).isTrue();
-  }
-
-  @Test
-  public void testProviderNotApplicableIfNotBlaze() {
-    BlazeImportSettingsManager.getInstance(project).loadState(null);
-    assertThat(provider.isApplicable(project)).isFalse();
   }
 
   @Test

@@ -22,9 +22,7 @@ genquery(
     name = "java_library_external_dep_query",
     expression = "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/externaldep:*",
     opts = ["--output=streamed_proto"],
-    scope = scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/externaldep") + [
-        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/externaldep:java_info",
-    ],
+    scope = scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/externaldep"),
 )
 
 genquery(
@@ -35,9 +33,7 @@ genquery(
     ]),
     opts = ["--output=streamed_proto"],
     scope = scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/internaldep") +
-            scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/nodeps") + [
-        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/internaldep:java_info",
-    ],
+            scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/nodeps"),
 )
 
 genquery(
@@ -48,9 +44,7 @@ genquery(
     ]),
     opts = ["--output=streamed_proto"],
     scope = scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/transitivedep") +
-            scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/externaldep") + [
-        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/externaldep:java_info",
-    ],
+            scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/externaldep"),
 )
 
 genquery(
@@ -63,9 +57,7 @@ genquery(
     opts = ["--output=streamed_proto"],
     scope = scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/transitiveinternaldep") +
             scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/internaldep") +
-            scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/nodeps") + [
-        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/internaldep:java_info",
-    ],
+            scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/nodeps"),
 )
 
 genquery(
@@ -145,9 +137,7 @@ genquery(
     expression = "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/workspacerootincluded:*",
     opts = ["--output=streamed_proto"],
     scope =
-        scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/workspacerootincluded:workspacerootincluded") + [
-            "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/workspacerootincluded:java_info",
-        ],
+        scopeForJavaPackage("//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/workspacerootincluded:workspacerootincluded"),
 )
 
 genquery(
@@ -255,22 +245,5 @@ java_library(
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/project",
         "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync:TestUtils",
         "@maven//:com.google.guava.guava",
-    ],
-)
-
-java_library(
-    name = "java_info",
-    srcs = ["JavaInfoTxt.java"],
-    data = [
-        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/externaldep:java_info",
-        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/externalexports:java_info",
-        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/internaldep:java_info",
-        "//tools/adt/idea/aswb/querysync/javatests/com/google/idea/blaze/qsync/testdata/workspacerootincluded:java_info",
-    ],
-    deps = [
-        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/java:java_target_info_java_proto",
-        "@bazel_tools//tools/java/runfiles",
-        "@maven//:com.google.guava.guava",
-        "@maven//:com.google.protobuf.protobuf-java",
     ],
 )

@@ -57,10 +57,11 @@ class OrganizationGroup(
   val groupId: String,
   val displayName: String,
   val groupType: OrganizationGroupType = OrganizationGroupType.Default,
+  defaultOpenedState: Boolean = true,
   val saveState: (Boolean) -> Unit = { _ -> },
 ) {
 
-  private val _isOpened = MutableStateFlow(true)
+  private val _isOpened = MutableStateFlow(defaultOpenedState)
 
   /** If group is opened, all previews in this group are visible. */
   val isOpened: StateFlow<Boolean> = _isOpened.asStateFlow()

@@ -77,6 +77,7 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework",
         "//tools/adt/idea/.idea/libraries:mockito-kotlin",
+        "//tools/adt/idea/android-adb:intellij.android.adb.tests",
     ],
     test_friends = ["//tools/adt/idea/logcat:intellij.android.logcat"],
     test_srcs = ["testSrc"],

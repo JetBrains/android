@@ -33,7 +33,7 @@ class ComposeViewInfoTest {
   ) : SourceLocation
 
   @Test
-  fun checkLeafHitsInFile() {
+  fun checkFindAllHitsWithPoint() {
     //              root
     //            /     \
     //          fileA    fileC
@@ -81,14 +81,15 @@ class ComposeViewInfoTest {
                         ComposeViewInfo(
                           TestSourceLocation("fileA", lineNumber = 8),
                           PxBounds(0, 0, 200, 200),
-                          children = listOf(
-                            ComposeViewInfo(
-                              TestSourceLocation("fileC", lineNumber = 8),
-                              PxBounds(0, 0, 200, 200),
-                              children = listOf(),
-                              name = "",
-                            )
-                          ),
+                          children =
+                            listOf(
+                              ComposeViewInfo(
+                                TestSourceLocation("fileC", lineNumber = 8),
+                                PxBounds(0, 0, 200, 200),
+                                children = listOf(),
+                                name = "",
+                              )
+                            ),
                           name = "",
                         )
                       ),
@@ -107,65 +108,120 @@ class ComposeViewInfoTest {
         name = "",
       )
 
-    assertTrue(root.findLeafHitsInFile(2000, 2000, "fileA").isEmpty())
+    assertTrue(root.findAllHitsWithPoint(2000, 2000).isEmpty())
 
-    val leafHits = root.findLeafHitsInFile(125, 125, "fileA")
-    assertEquals(leafHits.size, 2)
-    assertEquals(leafHits.first().sourceLocation.fileName, "fileA")
-    assertEquals(leafHits.first().sourceLocation.lineNumber, 8)
-    assertEquals(leafHits[1].sourceLocation.fileName, "fileA")
-    assertEquals(leafHits[1].sourceLocation.lineNumber, 5)
+    val hits = root.findAllHitsWithPoint(125, 125)
+    assertEquals(hits.size, 6)
+    assertEquals("root", hits.first().sourceLocation.fileName)
+    assertEquals("fileB", hits[1].sourceLocation.fileName)
+    assertEquals(4, hits[1].sourceLocation.lineNumber)
+    assertEquals("fileB", hits[2].sourceLocation.fileName)
+    assertEquals(7, hits[2].sourceLocation.lineNumber)
+    assertEquals("fileA", hits[3].sourceLocation.fileName)
+    assertEquals(8, hits[3].sourceLocation.lineNumber)
+    assertEquals("fileC", hits[4].sourceLocation.fileName)
+    assertEquals(8, hits[4].sourceLocation.lineNumber)
+    assertEquals("fileA", hits[5].sourceLocation.fileName)
+    assertEquals(8, hits[3].sourceLocation.lineNumber)
+
   }
 
   @Test
-  fun checkAllLeafHits() {
-    //                        root
-    //                      /     \
-    //            fileA (10,10)     fileB (20,20)
+  fun checkFindHitsWithDepth() {
+    //                    root
+    //              /      |       \
+    //          fileA     fileB        fileC
+    //           /
+    //        fileB (line 4)
+    //       /              \
+    //     fileA (line 5)    fileB  (line 7)
+    //                             \
+    //                             fileA (line 8)
     //                                \
-    //                                fileB (20,10)
+    //                               fileC
     //
-    // Given that all the components shown above contain the point x, y calling findAllHits will
-    // return both components in file B.
+    // Given that all the components shown above contain the point x, y and the file A is passed
+    // into the function findLeafHitsInFile will return both components on line 5 and line 8 of
+    // file A.
+
     val root =
       ComposeViewInfo(
         TestSourceLocation("root"),
-        PxBounds(0, 0, 1000, 1000),
+        PxBounds(0, 0, 1000, 300),
         children =
           listOf(
             ComposeViewInfo(
-              TestSourceLocation("fileA"),
-              PxBounds(0, 0, 10, 10),
+              TestSourceLocation("fileA", lineNumber = 4),
+              PxBounds(0, 0, 0, 0),
+              children =
+                listOf(
+                  ComposeViewInfo(
+                    TestSourceLocation("fileA", lineNumber = 5),
+                    PxBounds(0, 0, 200, 200),
+                    children = listOf(),
+                    name = "",
+                  ),
+                  ComposeViewInfo(
+                    TestSourceLocation("fileB", lineNumber = 7),
+                    PxBounds(0, 0, 200, 200),
+                    children =
+                      listOf(
+                        ComposeViewInfo(
+                          TestSourceLocation("fileA", lineNumber = 8),
+                          PxBounds(0, 0, 0, 200),
+                          children =
+                            listOf(
+                              ComposeViewInfo(
+                                TestSourceLocation("fileC", lineNumber = 8),
+                                PxBounds(0, 0, 200, 200),
+                                children = listOf(),
+                                name = "",
+                              )
+                            ),
+                          name = "",
+                        )
+                      ),
+                    name = "",
+                  ),
+                ),
+              name = "",
+            ),
+            ComposeViewInfo(
+              TestSourceLocation("fileC", lineNumber = 10),
+              PxBounds(400, 200, 1000, 300),
               children = listOf(),
               name = "",
             ),
             ComposeViewInfo(
-              TestSourceLocation("fileB", lineNumber = 4),
-              PxBounds(0, 0, 20, 20),
-              children =
-                listOf(
-                  ComposeViewInfo(
-                    TestSourceLocation("fileB", lineNumber = 7),
-                    PxBounds(0, 0, 10, 20),
-                    children = listOf(),
-                    name = "",
-                  )
-                ),
+              TestSourceLocation("fileB"),
+              PxBounds(0, 0, 0, 0),
+              children = listOf(),
               name = "",
             ),
           ),
         name = "",
       )
 
-    assertTrue(root.findAllLeafHits(10000, 100000).isEmpty())
-    val allHits = root.findAllLeafHits(1, 1)
-    assertEquals(2, allHits.size)
-    assertEquals(allHits.first().sourceLocation.fileName, "fileB")
-    assertEquals(allHits.first().bounds.bottom, 20)
-    assertEquals(allHits.first().bounds.right, 10)
-    assertEquals(allHits.get(1).sourceLocation.fileName, "fileA")
-    assertEquals(allHits.get(1).bounds.bottom, 10)
-    assertEquals(allHits.get(1).bounds.right, 10)
+    assertTrue(root.findHitWithDepth(2000, 2000).isEmpty())
+
+    val hitsWithDepth = root.findHitWithDepth(125, 125)
+
+    assertEquals(4, hitsWithDepth.size)
+
+    val sortedHitsWithDepth = hitsWithDepth.sortedBy { it.first }
+    assertEquals(0, sortedHitsWithDepth.first().first)
+    assertEquals("root", sortedHitsWithDepth.first().second.sourceLocation.fileName)
+    assertEquals(2, sortedHitsWithDepth.get(1).first)
+    assertEquals("fileB", sortedHitsWithDepth.get(1).second.sourceLocation.fileName)
+    assertEquals(7, sortedHitsWithDepth.get(1).second.sourceLocation.lineNumber)
+
+    assertEquals(2, sortedHitsWithDepth.get(2).first)
+    assertEquals("fileA", sortedHitsWithDepth.get(2).second.sourceLocation.fileName)
+    assertEquals(5, sortedHitsWithDepth.get(2).second.sourceLocation.lineNumber)
+
+    assertEquals(4, sortedHitsWithDepth.get(3).first)
+    assertEquals("fileC", sortedHitsWithDepth.get(3).second.sourceLocation.fileName)
+    assertEquals(8, sortedHitsWithDepth.get(3).second.sourceLocation.lineNumber)
   }
 
   @Test

@@ -19,15 +19,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.state.ToggleableState
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.settingssync.PROVIDER_CODE_GOOGLE
 import com.android.tools.idea.settingssync.SettingsSyncFeature
+import com.android.tools.idea.settingssync.SyncEventsMetrics
+import com.android.tools.idea.settingssync.getActiveSyncUserEmail
 import com.android.tools.idea.settingssync.onboarding.Category.Companion.DESCRIPTORS
 import com.google.gct.login2.LoginFeature
 import com.google.gct.login2.PreferredUser
 import com.google.gct.login2.ui.onboarding.compose.GoogleSignInWizard
 import com.google.gct.wizard.WizardState
 import com.google.gct.wizard.WizardStateElement
+import com.google.wireless.android.sdk.stats.BackupAndSyncEvent
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.settingsSync.core.SettingsSyncBundle
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
 import com.intellij.settingsSync.core.SettingsSyncSettings
 import com.intellij.settingsSync.core.SettingsSyncState
@@ -35,8 +40,11 @@ import com.intellij.settingsSync.core.SettingsSyncStateHolder
 import com.intellij.settingsSync.core.UpdateResult
 import com.intellij.settingsSync.core.communicator.RemoteCommunicatorHolder
 import com.intellij.settingsSync.core.config.SettingsSyncEnabler
+import java.util.concurrent.CountDownLatch
+import javax.swing.JComponent
 
-internal val feature = LoginFeature.feature<SettingsSyncFeature>()
+internal val feature
+  get() = LoginFeature.feature<SettingsSyncFeature>()
 
 internal enum class PushOrPull {
   /** push local settings to remote */
@@ -55,10 +63,18 @@ private val LOG = Logger.getInstance(SyncConfigurationState::class.java)
 
 internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.Listener {
   private val syncEnabler = SettingsSyncEnabler()
-  val activeSyncUser =
-    SettingsSyncLocalSettings.getInstance().userId.takeIf {
-      SettingsSyncSettings.getInstance().syncEnabled
-    }
+  // "Update" here includes applying the remote settings to the IDE.
+  private val updateFromServerDone = CountDownLatch(1)
+
+  val activeSyncUser: String? = getActiveSyncUserEmail()
+
+  /**
+   * In-memory cache holding the results of the latest cloud status fetch operations.
+   *
+   * The map uses the user's email address as the key. The value is the `UpdateResult`, representing
+   * the state of the remote copy associated with that email address.
+   */
+  val cloudStatusCache: MutableMap<String, UpdateResult> = mutableMapOf()
 
   init {
     syncEnabler.addListener(this)
@@ -68,27 +84,63 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
   var pushOrPull: PushOrPull by mutableStateOf(PushOrPull.NOT_SPECIFIED)
   var configurationOption: SyncConfigurationOption by
     mutableStateOf(SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT)
-  val syncCategoryStates = DESCRIPTORS.map { it.toCheckboxNode(SettingsSyncStateHolder()) }
+  var syncCategoryStates = SettingsSyncStateHolder().mapToUIStates()
 
   // Returns the [PreferredUser] for the following configuration based on the selected
   // [configurationOption].
-  private fun getOnboardingUser(stateContext: WizardState): PreferredUser =
+  fun WizardState.getOnboardingUser(): PreferredUser =
     when (configurationOption) {
       SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT -> {
-        stateContext.getOrCreateState { GoogleSignInWizard.SignInState() }.signedInUser
+        getOrCreateState { GoogleSignInWizard.SignInState() }.signedInUser
       }
       SyncConfigurationOption.USE_EXISTING_SETTINGS -> {
         PreferredUser.User(email = activeSyncUser ?: error("Should not reach this state."))
       }
     }
 
+  fun SettingsSyncState.mapToUIStates() = DESCRIPTORS.map { it.toCheckboxNode(this) }
+
   fun WizardState.canSkipFeatureConfiguration(): Boolean {
     val signInState = getOrCreateState { GoogleSignInWizard.SignInState() }
 
     if (!signInState.requiredIntegrations.contains(feature)) return true
-    if (activeSyncUser != null && activeSyncUser == getOnboardingUser(this).email) return true
+    if (activeSyncUser != null && activeSyncUser == getOnboardingUser().email) return true
 
     return false
+  }
+
+  @UiThread
+  fun getCloudStatusWithModalProgressBlocking(
+    userEmail: String,
+    allowFetchIfCacheMiss: Boolean,
+    parentComponent: JComponent?,
+  ): UpdateResult? {
+    return cloudStatusCache[userEmail]
+      ?: run {
+        if (allowFetchIfCacheMiss) {
+          checkCloudUpdatesWithModalProgressBlocking(
+              userEmail,
+              PROVIDER_CODE_GOOGLE,
+              parentComponent,
+            )
+            .also { cloudStatusCache[userEmail] = it }
+        } else {
+          null
+        }
+      }
+  }
+
+  suspend fun getCloudStatus(userEmail: String, allowFetchIfCacheMiss: Boolean): UpdateResult? {
+    return cloudStatusCache[userEmail]
+      ?: run {
+        if (allowFetchIfCacheMiss) {
+          checkCloudUpdates(userEmail, PROVIDER_CODE_GOOGLE).also {
+            cloudStatusCache[userEmail] = it
+          }
+        } else {
+          null
+        }
+      }
   }
 
   override fun WizardState.handleFinished() {
@@ -98,7 +150,7 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
     // Update the following to ensure that we have a right communicator set up for the following
     // sync via [syncEnabler]. TODO: confirm with JB the right flow to invalidate communicator.
     RemoteCommunicatorHolder.invalidateCommunicator()
-    SettingsSyncLocalSettings.getInstance().userId = getOnboardingUser(stateContext = this).email
+    SettingsSyncLocalSettings.getInstance().userId = getOnboardingUser().email
     SettingsSyncLocalSettings.getInstance().providerCode = PROVIDER_CODE_GOOGLE
 
     // Sync...
@@ -107,6 +159,7 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
       PushOrPull.NOT_SPECIFIED -> {
         LOG.info("Push local settings to cloud...")
 
+        SettingsSyncSettings.getInstance().syncEnabled = true
         SettingsSyncSettings.getInstance()
           .applyFromState(syncCategoryStates.toSettingsSyncState(syncEnabled = true))
 
@@ -115,13 +168,41 @@ internal class SyncConfigurationState : WizardStateElement, SettingsSyncEnabler.
       }
       PushOrPull.PULL -> {
         LOG.info("Pull cloud settings per request from cloud and apply to local...")
-        // TODO:
+        syncEnabler.getSettingsFromServer(
+          syncCategoryStates.toSettingsSyncState(syncEnabled = true)
+        )
+        updateFromServerDone.await() // wait for [updateFromServerFinished]
       }
     }
+
+    SyncEventsMetrics.getInstance()
+      .trackEvent(
+        BackupAndSyncEvent.newBuilder().apply {
+          // TODO: Currently fine, but need to revisit this if this code is reused for the other
+          // enablement flow.
+          enablementFlow = BackupAndSyncEvent.EnablementFlow.UNIFIED_SIGN_IN_FLOW
+        }
+      )
   }
 
   override fun updateFromServerFinished(result: UpdateResult) {
-    // TODO
+    when (result) {
+      is UpdateResult.Success -> {
+        SettingsSyncSettings.getInstance().syncEnabled = true
+      }
+      UpdateResult.NoFileOnServer,
+      UpdateResult.FileDeletedFromServer -> {
+        LOG.warn(
+          SettingsSyncBundle.message("notification.title.update.error") +
+            SettingsSyncBundle.message("notification.title.update.no.such.file")
+        )
+      }
+      is UpdateResult.Error -> {
+        LOG.warn(SettingsSyncBundle.message("notification.title.update.error") + result.message)
+      }
+    }
+
+    updateFromServerDone.countDown()
   }
 }
 

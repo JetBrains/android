@@ -17,7 +17,7 @@ package com.android.screenshottest.run
 
 
 import com.android.flags.junit.FlagRule
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths

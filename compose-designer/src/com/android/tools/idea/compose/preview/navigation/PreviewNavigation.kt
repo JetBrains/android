@@ -22,8 +22,8 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.SourceLocation
 import com.android.tools.idea.compose.preview.findAllHitsInFile
+import com.android.tools.idea.compose.preview.findAllHitsWithPoint
 import com.android.tools.idea.compose.preview.findHitWithDepth
-import com.android.tools.idea.compose.preview.findLeafHitsInFile
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigation.LOG
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
@@ -133,7 +133,6 @@ private fun findBoundsOfComponentsInFile(
   if (allViewInfos.isEmpty()) return listOf()
   val rectangles =
     allViewInfos
-      .first()
       .findAllHitsInFile(fileName)
       .filter { it.sourceLocation.lineNumber == lineNumber }
       .map {
@@ -180,9 +179,9 @@ private fun findNavigatableComponents(
 
   if (shouldFindAllNavigatables) {
     return allViewInfos
-      .first()
-      .findLeafHitsInFile(x, y, fileName)
+      .findAllHitsWithPoint(x, y)
       .filter { it.sourceLocation.toNavigatable(module) != null }
+      .sortedWith(compareBy({ it.sourceLocation.fileName }, { it.sourceLocation.lineNumber }))
       .map {
         var name = it.name
         if (name.isNotBlank()) name += ", "

@@ -42,7 +42,7 @@ internal class ToggleFloatingXrToolbarAction : ToggleAction("Floating XR Navigat
     super.update(event)
     // Enabled only for XR devices.
     event.presentation.isEnabledAndVisible =
-        event.toolWindowContents.find { it.isSelected && (it.component as? StreamingDevicePanel)?.deviceType == DeviceType.XR } != null
+        event.toolWindowContents.find { it.isSelected && (it.component as? StreamingDevicePanel<*>)?.deviceType == DeviceType.XR } != null
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT

@@ -21,7 +21,6 @@ import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.getDescendant
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
 import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.DANISH_LANGUAGE
@@ -110,14 +109,12 @@ class UiSettingsDialogTest {
     ui.keyboard.pressAndRelease(VK_TAB)
     model.differentFromDefault.setFromController(true)
 
-    if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) {
-      assertThat(focusManager.focusOwner?.name).isEqualTo(GESTURE_NAVIGATION_TITLE)
-      val navigationComboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
-      // simulate: ui.keyboard.pressAndRelease(VK_DOWN), popup from comboBox cannot be intercepted
-      navigationComboBox.selectedItem = true
-      waitForCondition(1.seconds) { lastCommand == "gestures=true" }
-      ui.keyboard.pressAndRelease(VK_TAB)
-    }
+    assertThat(focusManager.focusOwner?.name).isEqualTo(GESTURE_NAVIGATION_TITLE)
+    val navigationComboBox = panel.getDescendant<JComboBox<*>> { it.name == GESTURE_NAVIGATION_TITLE }
+    // simulate: ui.keyboard.pressAndRelease(VK_DOWN), popup from comboBox cannot be intercepted
+    navigationComboBox.selectedItem = true
+    waitForCondition(1.seconds) { lastCommand == "gestures=true" }
+    ui.keyboard.pressAndRelease(VK_TAB)
 
     assertThat(focusManager.focusOwner?.name).isEqualTo(APP_LANGUAGE_TITLE)
     val comboBox = panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }
@@ -153,11 +150,9 @@ class UiSettingsDialogTest {
     waitForCondition(1.seconds) { lastCommand == "density=608" }
     ui.keyboard.pressAndRelease(VK_TAB)
 
-    if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
-      ui.keyboard.pressAndRelease(VK_SPACE)
-      waitForCondition(1.seconds) { lastCommand == "debugLayout=true" }
-      ui.keyboard.pressAndRelease(VK_TAB)
-    }
+    ui.keyboard.pressAndRelease(VK_SPACE)
+    waitForCondition(1.seconds) { lastCommand == "debugLayout=true" }
+    ui.keyboard.pressAndRelease(VK_TAB)
 
     assertThat(focusManager.focusOwner?.name).isEqualTo(RESET_TITLE)
     ui.keyboard.pressAndRelease(VK_SPACE)
@@ -173,11 +168,10 @@ class UiSettingsDialogTest {
     ui.keyboard.release(VK_SHIFT)
 
     // Back tab to skip the debug layout control:
-    if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
-      ui.keyboard.press(VK_SHIFT)
-      ui.keyboard.pressAndRelease(VK_TAB)
-      ui.keyboard.release(VK_SHIFT)
-    }
+    ui.keyboard.press(VK_SHIFT)
+    ui.keyboard.pressAndRelease(VK_TAB)
+    ui.keyboard.release(VK_SHIFT)
+
     assertThat(panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }.hasFocus()).isTrue()
   }
 

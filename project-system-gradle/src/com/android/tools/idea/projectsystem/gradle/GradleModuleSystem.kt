@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeDeclaredDependencies
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
@@ -89,7 +90,6 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
@@ -99,21 +99,6 @@ import java.nio.file.Path
 import java.util.Collections
 import java.util.concurrent.TimeUnit
 import com.android.ide.common.gradle.Module as ExternalModule
-
-/**
- * Make [.getRegisteredDependency] return the direct module dependencies.
- *
- * The method [.getRegisteredDependency] should return direct module dependencies,
- * but we do not have those available with the current model see b/128449813.
- *
- * The artifacts in
- *   [com.android.tools.idea.gradle.dsl.api.GradleBuildModel.dependencies().artifacts]
- * is a list of the direct dependencies parsed from the build.gradle files but the
- * information will not be available for complex build files.
- *
- * For now always look at the transitive closure of dependencies.
- */
-const val CHECK_DIRECT_GRADLE_DEPENDENCIES = false
 
 /** Creates a map for the given pairs, filtering out null values. */
 private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
@@ -198,14 +183,20 @@ class GradleModuleSystem(
       ?.second?.toPath()
   }
 
-  override fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): GradleRegisteredDependencyQueryId? =
+  override fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): GradleRegisteredDependencyQueryId =
     GradleRegisteredDependencyQueryId(id.getModule())
 
-  override fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): GradleRegisteredDependencyId? =
+  override fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): GradleRegisteredDependencyId =
     GradleRegisteredDependencyId(id.getDependency("+"))
 
+  fun getRegisteredDependencyId(component: Component): GradleRegisteredDependencyId =
+    GradleRegisteredDependencyId(component.dependency())
+
+  fun getRegisteredDependencyId(dependency: Dependency): GradleRegisteredDependencyId =
+    GradleRegisteredDependencyId(dependency)
+
   override fun getRegisteredDependency(id: GradleRegisteredDependencyQueryId): GradleRegisteredDependencyId? =
-    getRegisteredDependency(id.module)?.let{ GradleRegisteredDependencyId(it) }
+    getRegisteredDependency(id.module)?.let { GradleRegisteredDependencyId(it) }
 
   // TODO: b/129297171
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
@@ -238,27 +229,25 @@ class GradleModuleSystem(
   fun getRegisteredDependency(externalModule: ExternalModule): Dependency? =
     getDirectDependencies(module).find { it.name == externalModule.name && it.group == externalModule.group }
 
+  fun hasRegisteredDependency(externalModule: ExternalModule): Boolean = getRegisteredDependency(externalModule) != null
+
   private fun Component.dependency() = Dependency(group, name, RichVersion.require(version))
 
-  fun getDirectDependencies(module: Module): Sequence<Dependency> {
-    // TODO: b/129297171
-    @Suppress("ConstantConditionIf")
-    return if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
-      projectBuildModelHandler.read {
-        // TODO: Replace the below artifacts with the direct dependencies from the GradleAndroidModel see b/128449813
-        val artifacts = getModuleBuildModel(module)?.dependencies()?.artifacts() ?: return@read emptySequence<Dependency>()
-        artifacts
-          .asSequence()
-          .mapNotNull { Dependency.parse("${it.group()}:${it.name().forceString()}:${it.version()}") }
+  private fun IdeDeclaredDependencies.IdeCoordinates.dependency(): Dependency? =
+    this.takeIf { group != null }?.run {
+      when (this.version) {
+        null -> Dependency.parse("$group:$name")
+        else -> Dependency.parse("$group:$name:$version")
       }
-    } else {
-      getCompileDependenciesFor(module, DependencyScopeType.MAIN)
-        ?.libraries
-        ?.asSequence()
-        ?.filterIsInstance<IdeArtifactLibrary>()
-        ?.mapNotNull { it.component?.dependency() } ?: emptySequence()
     }
-  }
+
+  fun getDirectDependencies(module: Module): Sequence<Dependency> =
+    GradleAndroidModel.get(module)?.declaredDependencies?.configurationsToCoordinates
+      ?.filter { setOf("implementation", "api").contains(it.key) }
+      ?.flatMap { it.value }
+      ?.mapNotNull { it.dependency() }
+      ?.asSequence()
+    ?: emptySequence()
 
   override fun getResourceModuleDependencies() =
     AndroidDependenciesCache.getAllAndroidDependencies(module.getMainModule(), true).map(AndroidFacet::getModule)
@@ -354,6 +343,12 @@ class GradleModuleSystem(
       DependencyType.IMPLEMENTATION -> "implementation"
     }
 
+  fun registerDependency(component: Component, type: DependencyType) =
+    registerDependency(getRegisteredDependencyId(component), type)
+
+  fun registerDependency(dependency: Dependency, type: DependencyType) =
+    registerDependency(GradleRegisteredDependencyId(dependency), type)
+
   private fun registerDependencies(dependencies: List<Dependency>, type: DependencyType) {
     val manager = GradleDependencyManager.getInstance(module.project)
     manager.addDependencies(module, dependencies, type.configurationName)
@@ -401,6 +396,35 @@ class GradleModuleSystem(
         RegisteredDependencyCompatibilityResult(
           compatible = result.first.map { GradleRegisteredDependencyId(it.dependency()) },
           incompatible = result.second.map { GradleRegisteredDependencyId(it) },
+          warning = result.third
+        )
+      }
+  }
+
+  data class DependencyCompatibilityResult(
+    val compatible: List<Component>,
+    val incompatible: List<Dependency>,
+    val warning: String
+  )
+
+  @JvmName("analyzeGradleDependencyCompatibility")
+  fun analyzeDependencyCompatibility(dependencies: List<Dependency>): ListenableFuture<DependencyCompatibilityResult> {
+    return dependencyCompatibility.analyzeDependencyCompatibility(dependencies)
+      .transform(MoreExecutors.directExecutor()) { result ->
+        DependencyCompatibilityResult(
+          compatible = result.first,
+          incompatible = result.second,
+          warning = result.third
+        )
+      }
+  }
+
+  fun analyzeComponentCompatibility(components: List<Component>): ListenableFuture<DependencyCompatibilityResult> {
+    return dependencyCompatibility.analyzeComponentCompatibility(components)
+      .transform(MoreExecutors.directExecutor()) { result ->
+        DependencyCompatibilityResult(
+          compatible = result.first,
+          incompatible = result.second,
           warning = result.third
         )
       }
@@ -507,7 +531,7 @@ class GradleModuleSystem(
       ScopeType.MAIN -> mainModule?.getModuleWithDependenciesAndLibrariesScope(false)
       ScopeType.UNIT_TEST -> unitTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.ANDROID_TEST -> androidTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
-      ScopeType.TEST_FIXTURES -> fixturesModule?.getModuleWithDependenciesAndLibrariesScope(false)
+      ScopeType.TEST_FIXTURES -> fixturesModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.SCREENSHOT_TEST -> screenshotTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
     } ?: GlobalSearchScope.EMPTY_SCOPE
   }
@@ -578,7 +602,10 @@ class GradleModuleSystem(
     }
 
   override val supportsAndroidResources: Boolean
-    get() = readFromAgpFlags { it.androidResourcesEnabled } ?: true
+    get() = when {
+      module.isHolderModule() -> false
+      else -> readFromAgpFlags { it.androidResourcesEnabled } ?: true
+    }
 
   override val isRClassTransitive: Boolean get() = readFromAgpFlags { it.transitiveRClasses } ?: true
 

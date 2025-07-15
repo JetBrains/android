@@ -37,7 +37,7 @@ public final class NameComparatorTest {
     // Arrange
     var expectedDevices = List.of(mockDevice("Small Phone"),
                                   mockDevice("Medium Phone"),
-                                  mockDevice("Resizable (Experimental)"),
+                                  mockDevice("Resizable"),
                                   mockDevice("Pixel 9 Pro XL"),
                                   mockDevice("Pixel 9 Pro Fold"),
                                   mockDevice("Pixel 9 Pro"),
@@ -66,7 +66,7 @@ public final class NameComparatorTest {
                                   mockDevice("Pixel"));
 
     var actualDevices = shuffle(expectedDevices);
-    var comparator = new NameComparator(() -> true);
+    var comparator = new NameComparator();
 
     // Act
     actualDevices.sort(comparator);

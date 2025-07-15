@@ -17,18 +17,24 @@ package com.google.idea.blaze.android.wizard2;
 
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.wizard2.BlazeEditProjectViewImportWizardStep;
+import com.google.idea.blaze.base.wizard2.BlazeNewProjectBuilder;
 import com.google.idea.blaze.base.wizard2.BlazeNewProjectWizard;
-import com.google.idea.blaze.base.wizard2.BlazeSelectWorkspaceImportWizardStep;
+import com.google.idea.blaze.base.wizard2.BlazeNewProjectWizard.WizardContext;
+import com.google.idea.blaze.base.wizard2.BlazeProjectCommitException;
 import com.google.idea.blaze.base.wizard2.BlazeSelectProjectViewImportWizardStep;
+import com.google.idea.blaze.base.wizard2.BlazeSelectWorkspaceImportWizardStep;
 import com.google.idea.blaze.base.wizard2.ProjectImportWizardStep;
-import com.intellij.ide.util.projectWizard.WizardContext;
+import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.io.FileUtil;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 class BlazeImportProjectAction extends AnAction {
   private static final Logger logger = Logger.getInstance(BlazeImportProjectAction.class);
@@ -59,8 +65,7 @@ class BlazeImportProjectAction extends AnAction {
     if (!wizard.showAndGet()) {
       return;
     }
-    BlazeProjectCreator projectCreator = new BlazeProjectCreator(wizard.builder);
-    createFromWizard(projectCreator, wizard.context);
+    createFromWizard(wizard.builder, wizard.context);
   }
 
   @Override
@@ -76,12 +81,21 @@ class BlazeImportProjectAction extends AnAction {
   }
 
   private static void createFromWizard(
-      BlazeProjectCreator blazeProjectCreator, WizardContext wizardContext) {
+    BlazeNewProjectBuilder projectBuilder, WizardContext wizardContext) {
     try {
-      blazeProjectCreator.doCreate(
-          wizardContext.getProjectFileDirectory(),
-          wizardContext.getProjectName(),
-          wizardContext.getProjectStorageFormat());
+
+      Path projectFileDirectoryPath = Path.of(wizardContext.getProjectFileDirectory());
+      File projectDir = projectFileDirectoryPath.toFile();
+      FileUtil.ensureExists(projectDir);
+
+      try {
+        projectBuilder.commit();
+      }
+      catch (BlazeProjectCommitException e) {
+        throw new RuntimeException(e);
+      }
+
+      ProjectUtil.openOrImport(projectDir.toPath());
     } catch (final IOException e) {
       logger.error("Project creation failed", e);
       ApplicationManager.getApplication()

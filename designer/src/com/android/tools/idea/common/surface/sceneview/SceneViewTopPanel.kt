@@ -16,16 +16,17 @@
 package com.android.tools.idea.common.surface.sceneview
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.util.ShowGroupUnderConditionWrapper
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
+import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -127,34 +128,31 @@ class SceneViewTopPanel(
   /** [AnAction] that displays the actions of the given [ActionGroup] in a popup. */
   @VisibleForTesting
   class ShowActionGroupInPopupAction(val actionGroup: DefaultActionGroup) :
-    AnAction("Show Toolbar Actions", null, StudioIcons.Common.OVERFLOW) {
-    override fun actionPerformed(e: AnActionEvent) {
-      val popup =
-        JBPopupFactory.getInstance()
-          .createActionGroupPopup(
-            /* title = */ null,
-            /* actionGroup = */ actionGroup,
-            /* dataContext = */ e.dataContext,
-            /* selectionAidMethod = */ JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
-            /* showDisabledActions = */ true,
-          )
-      e.inputEvent?.component?.let { component ->
-        val location = component.locationOnScreen
-        location.translate(0, component.height)
-        popup.showInScreenCoordinates(component, location)
-        return@actionPerformed
-      }
-      popup.showInBestPositionFor(e.dataContext)
+    ToggleAction("Show Toolbar Actions", null, StudioIcons.Common.OVERFLOW) {
+
+    private fun createPopup(e: AnActionEvent): JBPopup =
+      JBPopupFactory.getInstance()
+        .createActionGroupPopup(
+          /* title = */ null,
+          /* actionGroup = */ actionGroup,
+          /* dataContext = */ e.dataContext,
+          /* aid = */ JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
+          /* showDisabledActions = */ true,
+          /* disposeCallback = */ { Toggleable.setSelected(e.presentation, false) },
+          /* maxRowCount = */ -1,
+          /* preselectCondition = */ null,
+          /* actionPlace = */ null,
+        )
+
+    override fun isSelected(e: AnActionEvent): Boolean {
+      return Toggleable.isSelected(e.presentation)
     }
 
-    override fun update(e: AnActionEvent) {
-      super.update(e)
-      // Check if the underlying action group is visible, and hide the action if it is.
-      (actionGroup.childActionsOrStubs.filterIsInstance<ShowGroupUnderConditionWrapper>())
-        .singleOrNull()
-        ?.let { e.presentation.isVisible = it.isVisible(e.dataContext) }
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      if (!state) return
+      val component = e.inputEvent?.component as? JComponent ?: return
+      val popup = createPopup(e)
+      popup.showUnderneathOf(component)
     }
-
-    override fun getActionUpdateThread() = ActionUpdateThread.BGT
   }
 }

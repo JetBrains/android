@@ -19,6 +19,10 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.lang.buildfile.language.semantics.RuleDefinition;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
+import com.google.idea.blaze.base.qsync.ProjectLoader;
+import com.google.idea.blaze.base.qsync.ProjectLoaderImpl;
+import com.intellij.openapi.project.Project;
+import java.util.Optional;
 import java.util.function.Function;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,6 +57,16 @@ public abstract class FakeBuildSystemProvider implements BuildSystemProvider {
   @Override
   public ImmutableList<String> buildArtifactDirectories(WorkspaceRoot root) {
     return getBuildArtifactDirectoriesFunction().apply(root);
+  }
+
+  @Override
+  public ProjectLoader createProjectLoader(Project project) {
+    return new ProjectLoaderImpl(project);
+  }
+
+  @Override
+  public Optional<String> getQuerySyncDocumentationUrl() {
+    return Optional.empty();
   }
 
   abstract Function<RuleDefinition, String> getRuleDocumentationUrlFunction();

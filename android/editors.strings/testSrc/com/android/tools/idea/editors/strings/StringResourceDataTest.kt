@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.projectmodel.DynamicResourceValue
 import com.android.resources.ResourceType
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.editors.strings.StringResourceData.Companion.create
 import com.android.tools.idea.editors.strings.StringResourceData.Companion.summarizeLocales
@@ -333,6 +333,31 @@ class StringResourceDataTest {
     val french3 = getNthXmlTag(file2, 2)
     assertThat(french3.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key3")
     assertThat(french3.value.text).isEqualTo("Key 3 fr")
+  }
+
+  @Test
+  fun keyChangeKeepsIterationOrder() {
+    assertThat(data.resources.map { it.key.name }).containsExactly(
+      "key1", "key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10", "dynamic_key1"
+    ).inOrder()
+    val key2 = data.resources.map { it.key }.single { it.name == "key2" }
+    val value2 = data.getStringResource(key2)
+    assertThat(value2.defaultValueAsString).isEqualTo("Key 2 default")
+    val expectedTranslations =
+      mapOf("en" to "Key 2 en", "en-GB" to "Key 2 en-rGB", "en-IN" to "Key 2 en-rIN", "fr" to "Key 2 fr", "hi" to "Key 2 hi")
+    assertThat(value2.translatedLocales.associate { Pair(it.toLocaleId(), value2.getTranslationAsString(it)) }).isEqualTo(expectedTranslations)
+
+    // Change the name of a key:
+    val future = data.setKeyName(key2, "new_key2")
+    waitForCondition(2, TimeUnit.SECONDS) { future.isDone }
+
+    assertThat(data.keys.map { it.name }).containsExactly(
+      "key1", "new_key2", "key3", "key5", "key6", "key7", "key8", "key4", "key9", "key10", "dynamic_key1"
+    ).inOrder()
+    val newKey2 = data.resources.map { it.key }.single { it.name == "new_key2" }
+    val newValue2 = data.getStringResource(newKey2)
+    assertThat(newValue2.defaultValueAsString).isEqualTo("Key 2 default")
+    assertThat(newValue2.translatedLocales.associate { Pair(it.toLocaleId(), value2.getTranslationAsString(it)) }).isEqualTo(expectedTranslations)
   }
 
   private fun putTranslation(resource: StringResource, locale: Locale, value: String): Boolean {

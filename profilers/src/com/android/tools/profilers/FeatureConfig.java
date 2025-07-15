@@ -27,11 +27,11 @@ public interface FeatureConfig {
   boolean isJankDetectionUiEnabled();
   boolean isMemoryCSVExportEnabled();
   boolean isPerformanceMonitoringEnabled();
-  boolean isProfileableBuildsEnabled();
   boolean isTestingModeEnabled();
   boolean isTaskBasedUxEnabled();
   boolean isTraceboxEnabled();
   boolean isLeakCanaryEnabled();
+  boolean isTaskTitleV2Enabled();
 
   PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode();
   // Add new features alphabetically instead of at the end of the list

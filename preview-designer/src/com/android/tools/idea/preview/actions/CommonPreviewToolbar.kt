@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.preview.actions
 
+import com.android.flags.ifEnabled
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.PreviewViewSingleWordFilter
+import com.android.tools.idea.preview.pagination.actions.PaginationActionGroup
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 
@@ -24,18 +28,29 @@ class CommonPreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGroups(surf
 
   override fun getNorthGroup(): ActionGroup {
     return DefaultActionGroup(
-      StopInteractivePreviewAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
-      StopAnimationInspectorAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
-      // TODO(b/292057010) Enable group filtering for Gallery mode.
-      GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) })
-        .visibleOnlyInDefaultPreview(),
-      CommonViewControlAction().visibleOnlyInStaticPreview(),
+      listOfNotNull(
+        StopInteractivePreviewAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
+        StopAnimationInspectorAction(isDisabled = { isPreviewRefreshing(it.dataContext) }),
+        // TODO(b/292057010) Enable group filtering for Gallery mode.
+        GroupSwitchAction(isEnabled = { !isPreviewRefreshing(it.dataContext) })
+          .visibleOnlyInDefaultPreview(),
+        CommonViewControlAction().visibleOnlyInStaticPreview(),
+        StudioFlags.PREVIEW_FILTER.ifEnabled {
+          PreviewFilterShowHistoryAction().visibleOnlyInStaticPreview()
+        },
+        StudioFlags.PREVIEW_FILTER.ifEnabled {
+          PreviewFilterTextAction(PreviewViewSingleWordFilter()).visibleOnlyInStaticPreview()
+        },
+      )
     )
   }
 
   override fun getNorthEastGroup(): ActionGroup =
     DefaultActionGroup(
-      listOf(
+      listOfNotNull(
+        StudioFlags.PREVIEW_PAGINATION.ifEnabled {
+          PaginationActionGroup().visibleOnlyInDefaultPreview()
+        },
         CommonIssueNotificationAction(),
         ForceCompileAndRefreshActionForNotification.getInstance(),
       )

@@ -181,13 +181,14 @@ public class AttributesTransaction implements NlAttributesHolder {
       if (pendingAttribute != null) {
         return pendingAttribute.value;
       }
-
-      // There are no pending modifications so read directly from the component
-      return myComponent.getAttribute(namespace, attribute);
     }
     finally {
       myLock.readLock().unlock();
     }
+
+    // There are no pending modifications so read directly from the component.
+    // This needs to be outside the lock since it might trigger a read action.
+    return myComponent.getAttribute(namespace, attribute);
   }
 
   @NotNull

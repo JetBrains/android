@@ -17,7 +17,7 @@ jvm_library(
   name = "projectSystem-gradle",
   module_name = "intellij.android.projectSystem.gradle",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
   kotlinc_opts = ":custom",
   deps = [
     "@lib//:studio-platform-provided",
@@ -87,6 +87,7 @@ jvm_library(
     "//plugins/maven/maven-server-indexer:server-indexer",
     "//platform/analysis-api:analysis",
     "//platform/analysis-impl",
+    "//platform/backend/workspace",
     "//platform/collaboration-tools",
     "//platform/util/concurrency",
     "//platform/core-api:core",
@@ -327,6 +328,8 @@ jvm_library(
     "//android/gradle-declarative-lang-sync",
     "//android/gradle-declarative-lang-flags",
     "//android/testartifacts",
+    "//platform/eel",
+    "//platform/eel-provider",
   ],
   runtime_deps = [
     ":projectSystem-gradle-tests_test_resources",

@@ -20,8 +20,6 @@ import com.android.backup.BackupService
 import com.android.tools.idea.backup.BackupManager.Companion.NOTIFICATION_GROUP
 import com.android.tools.idea.backup.PostBackupDialog.Mode.EXISTING_CONFIG
 import com.android.tools.idea.backup.PostBackupDialog.Mode.NEW_CONFIG
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.intellij.execution.RunManager
@@ -71,14 +69,18 @@ internal class PostBackupDialog(private val project: Project, private val backup
   override fun createCenterPanel(): JComponent {
     return panel {
       buttonsGroup {
-          row {
-            radioButton("Add to existing run configuration", EXISTING_CONFIG)
-            val settings = getRunConfigSettings()
-            if (settings.isNotEmpty()) {
-              selectedSetting = settings.first()
-            }
-            comboBox(settings, RunConfigSettingRenderer()).bindItem(::selectedSetting)
+          val settings = getRunConfigSettings()
+          if (settings.isEmpty()) {
+            mode = NEW_CONFIG
           }
+          row {
+              radioButton("Add to existing run configuration", EXISTING_CONFIG)
+              if (settings.isNotEmpty()) {
+                selectedSetting = settings.first()
+              }
+              comboBox(settings, RunConfigSettingRenderer()).bindItem(::selectedSetting)
+            }
+            .enabled(settings.isNotEmpty())
           row { radioButton("Add to a new run configuration", NEW_CONFIG) }
           row { checkBox("Open run configuration when done").bindSelected(::openRunConfigWhenDone) }
           row { checkBox("Set as current run configuration").bindSelected(::setAsCurrentRunConfig) }
@@ -127,7 +129,7 @@ internal class PostBackupDialog(private val project: Project, private val backup
       runManager.createConfiguration("Restore", AndroidRunConfigurationType::class.java)
     runManager.setUniqueNameIfNeeded(settings.configuration)
     val applicationId = BackupService.getMetadata(backupPath).applicationId
-    val module = findModule(applicationId)
+    val module = project.findHolderModule(applicationId)
     if (module != null) {
       val config = settings.configuration as AndroidRunConfiguration
       config.setModule(module)
@@ -161,7 +163,8 @@ internal class PostBackupDialog(private val project: Project, private val backup
 
   private fun RunnerAndConfigurationSettings.isApplicable(applicationId: String): Boolean {
     val configuration = configuration as? AndroidRunConfiguration ?: return false
-    return configuration.applicationIdProvider?.packageName == applicationId
+    return !configuration.isComposePreview() &&
+      configuration.applicationIdProvider?.packageName == applicationId
   }
 
   private class RunConfigSettingRenderer : ListCellRenderer<RunnerAndConfigurationSettings?> {
@@ -179,12 +182,8 @@ internal class PostBackupDialog(private val project: Project, private val backup
       return component
     }
   }
-
-  private fun findModule(applicationId: String) =
-    project
-      .getProjectSystem()
-      .findModulesWithApplicationId(applicationId)
-      .firstOrNull()
-      ?.getModuleSystem()
-      ?.getHolderModule()
 }
+
+// See `ComposePreviewRunConfiguration`
+private fun AndroidRunConfiguration.isComposePreview() =
+  isLaunchingActivity("androidx.compose.ui.tooling.PreviewActivity")

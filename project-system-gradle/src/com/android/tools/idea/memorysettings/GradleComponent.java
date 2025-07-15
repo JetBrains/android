@@ -18,6 +18,8 @@ package com.android.tools.idea.memorysettings;
 import static com.android.tools.idea.memorysettings.MemorySettingsConfigurable.MyComponent.setXmxBox;
 import static com.android.tools.idea.memorysettings.MemorySettingsConfigurable.MyComponent.setXmxBoxWithOnlyCurrentValue;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.HyperlinkAdapter;
@@ -148,22 +150,6 @@ public class GradleComponent extends BuildSystemComponent {
               });
 
     myDaemonInfoLabel.setText(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.panel.daemon.info")));
-    myShowDaemonsLabel.setHyperlinkText(AndroidBundle.message("memory.settings.panel.show.daemons.info"));
-    myShowDaemonsLabel.addHyperlinkListener(
-      new HyperlinkAdapter() {
-        DaemonsUi myUi;
-
-        @Override
-        protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
-          myUi = new DaemonsUi(myProject) {
-            @Override
-            public void dispose() {
-              myUi = null;
-            }
-          };
-          myUi.show();
-        }
-      });
   }
 
   private boolean isGradleDaemonXmxModified() {
@@ -234,6 +220,8 @@ public class GradleComponent extends BuildSystemComponent {
     myPanel.add(spacer2, new GridConstraints(6, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                              GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
     myShowDaemonsLabel = new HyperlinkLabel();
+    myShowDaemonsLabel.setHyperlinkText(AndroidBundle.message("memory.settings.panel.show.daemons.info"));
+    myShowDaemonsLabel.addHyperlinkListener(createDisplayGradleDaemonsHyperlink());
     myPanel.add(myShowDaemonsLabel, new GridConstraints(2, 0, 1, 3, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
@@ -278,5 +266,22 @@ public class GradleComponent extends BuildSystemComponent {
                             ? new Font(font.getFamily(), font.getStyle(), font.getSize())
                             : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
     return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
+  }
+
+  private HyperlinkAdapter createDisplayGradleDaemonsHyperlink() {
+    return new HyperlinkAdapter() {
+      DaemonsUi myUi;
+
+      @Override
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
+        myUi = new DaemonsUi(myProject) {
+          @Override
+          public void dispose() {
+            myUi = null;
+          }
+        };
+        ApplicationManager.getApplication().invokeLater(() -> myUi.show(), ModalityState.current());
+      }
+    };
   }
 }

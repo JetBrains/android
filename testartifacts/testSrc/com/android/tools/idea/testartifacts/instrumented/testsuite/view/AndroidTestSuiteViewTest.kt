@@ -66,6 +66,7 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.time.Duration
@@ -656,6 +657,32 @@ class AndroidTestSuiteViewTest {
     assertThat(historySavedLatch.await(30, TimeUnit.SECONDS)).isTrue()
   }
 
+  @Test
+  fun testHistoryNotSavedIfExportDisabled() {
+    val testHistoryConfigurationMock = Mockito.mock(TestHistoryConfiguration::class.java)
+    projectRule.project.replaceService(TestHistoryConfiguration::class.java, testHistoryConfigurationMock, disposableRule.disposable)
+
+    val runConfig = mock<RunConfiguration>().apply {
+      whenever(name).thenReturn("mockRunConfig")
+      whenever(type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+    }
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, "run", runConfig, canExportTestResults = false)
+    val device1 = device("deviceId1", "deviceName1")
+
+    view.onTestSuiteScheduled(device1)
+
+    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 2)
+    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.FAILED)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId2", "method2", "class2", "package2"), AndroidTestCaseResult.FAILED)
+
+    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    verify(testHistoryConfigurationMock, never()).registerHistoryItem(any(), eq("mockRunConfig"), any())
+  }
+
   private fun getTestHistory(): List<ImportTestsFromHistoryAction> {
     val mockEvent = mock<AnActionEvent>()
     whenever(mockEvent.project).thenReturn(projectRule.project)
@@ -700,6 +727,41 @@ class AndroidTestSuiteViewTest {
       "Import Tests from File…",
       "Export Test Results…"
     ).inOrder()
+  }
+
+  @Test
+  fun importExportActionButtonsAreNotShownForNonAndroidTestRunConfiguration() {
+    val nonAndroidTestRunConfiguration = mock<RunConfiguration>()
+    val view =
+      AndroidTestSuiteView(
+        disposableRule.disposable,
+        projectRule.project,
+        null,
+        runConfiguration = nonAndroidTestRunConfiguration,
+      )
+
+    for (toolbar in UIUtil.uiTraverser(view.component).filter(ActionToolbar::class.java)) {
+      PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
+    }
+
+    val actionButtons =
+      UIUtil.uiTraverser(view.component)
+        .filter(ActionButton::class.java)
+        .filter(ActionButton::isFocusable)
+        .map { it.action.templateText }
+        .filterNotNull()
+        .toList()
+
+    assertThat(actionButtons)
+      .containsExactly(
+        "Show passed tests",
+        "Show skipped tests",
+        "Expand All",
+        "Collapse All",
+        "Previous Occurrence",
+        "Next Occurrence",
+      )
+      .inOrder()
   }
 
   // Regression tests for b/172088812 where the apply-code-changes action causes
@@ -769,6 +831,25 @@ class AndroidTestSuiteViewTest {
   @Test
   fun exportTestResultsActionIsDisabledWhenTestSuiteIsCancelled() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
+    val device1 = device("deviceId1", "deviceName1")
+
+    view.onTestSuiteScheduled(device1)
+
+    val testsuiteOnDevice1 = AndroidTestSuite("testsuiteId", "testsuiteName", testCaseCount = 1)
+    view.onTestSuiteStarted(device1, testsuiteOnDevice1)
+    runTestCase(view, device1, testsuiteOnDevice1,
+                AndroidTestCase("testId1", "method1", "class1", "package1"), AndroidTestCaseResult.CANCELLED)
+    testsuiteOnDevice1.result = AndroidTestSuiteResult.CANCELLED
+    view.onTestSuiteFinished(device1, testsuiteOnDevice1)
+
+    assertThat(view.myExportTestResultsAction.devices).isNull()
+    assertThat(view.myExportTestResultsAction.rootResultsNode).isNull()
+    assertThat(view.myExportTestResultsAction.executionDuration).isNull()
+  }
+
+  @Test
+  fun exportTestResultsActionIsDisabledWhenCanExportTestResultsParamIsFalse() {
+    val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, canExportTestResults = false)
     val device1 = device("deviceId1", "deviceName1")
 
     view.onTestSuiteScheduled(device1)

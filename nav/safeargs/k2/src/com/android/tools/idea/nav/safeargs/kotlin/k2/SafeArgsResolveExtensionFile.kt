@@ -44,15 +44,11 @@ abstract class SafeArgsResolveExtensionFile(val classId: ClassId) : KaResolveExt
 
   override fun getTopLevelClassifierNames(): Set<Name> = setOf(classId.shortClassName)
 
-  protected open fun getImports(): Set<String> = setOf()
-
   private val fileText: String by lazy {
     buildString {
       appendLine("// This file is generated on-the-fly by SafeArgs.")
       appendLine()
-      appendLine("package ${getFilePackageName()}")
-      appendLine()
-      getImports().sorted().forEach { appendLine("import ${it}") }
+      appendLine("package ${getFilePackageName().toEscapedString()}")
       appendLine()
       buildClassBody()
     }

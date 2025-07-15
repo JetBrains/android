@@ -22,12 +22,11 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.disableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.enableLiveEdit
 import com.android.tools.idea.run.deployment.liveedit.analysis.initialCache
 import com.android.tools.idea.run.deployment.liveedit.analysis.modifyKtFile
+import com.android.tools.idea.run.deployment.liveedit.analysis.postDeploymentStateCompile
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.application.ReadAction
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.After
 import org.junit.Assert
-import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -177,11 +176,7 @@ class BasicCompileTest {
         return test.go()
       }
     """)
-    val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileByteArray(file)
-    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
-    val state = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
-    val output = compile(listOf(LiveEditCompilerInput(file, state)), compiler)
+    val output = projectRule.postDeploymentStateCompile(file)
     Assert.assertEquals(1, output.supportClassesMap.size)
     // Can't test invocation of the method since the functional interface "A" is not loaded.
   }
@@ -250,11 +245,7 @@ class BasicCompileTest {
   fun crossFileReference() {
     projectRule.createKtFile("A.kt", "fun foo() = \"\"")
     val fileCallA = projectRule.createKtFile("CallA.kt", "fun callA() = foo()")
-    val cache = MutableIrClassCache()
-    val apk = projectRule.directApiCompileByteArray(fileCallA)
-    val compiler = LiveEditCompiler(projectRule.project, cache).withClasses(apk)
-    val state = getPsiValidationState(fileCallA)
-    compile(listOf(LiveEditCompilerInput(fileCallA, state)), compiler)
+    projectRule.postDeploymentStateCompile(fileCallA)
   }
 
   @Test
@@ -421,6 +412,21 @@ class BasicCompileTest {
       assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_CLINIT, e.error)
       assertContains(e.details, "static initializer")
     }
+  }
+
+  @Test
+  fun kotlinBridge() {
+    val file1 = projectRule.createKtFile("Parent.kt", "interface Parent<T> { fun stuff(input: T) : T }")
+    val file2 = projectRule.createKtFile("Child.kt", "class Child : Parent<String> { override fun stuff(s: String) = s }")
+    val cache = projectRule.initialCache(listOf(file2))
+
+    // Removing the generic makes the compiler no longer need to generate a bridge.
+    projectRule.fixture.configureByText("Parent.kt", "interface Parent<T> { fun stuff(input: String) : String }")
+
+    // Only compile the child class since that's where the bridge is going to disappear when compared to the cache.
+    compile(file2, cache)
+
+    // Note that at the moment when this test was written, compiler generates the method with both ACC_BRIDGE and ACC_SYNTHETIC.
   }
 
   @Test

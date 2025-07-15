@@ -43,6 +43,7 @@ jvm_library(
     "//xml/xml-analysis-api:analysis",
     "@lib//:kotlinc-kotlin-compiler-common",
     "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    "//android/project-system",
   ]
 )
 

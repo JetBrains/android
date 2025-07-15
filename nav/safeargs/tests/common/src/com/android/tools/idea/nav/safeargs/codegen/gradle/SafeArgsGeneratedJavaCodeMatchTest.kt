@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.nav.safeargs.codegen.gradle
 
-import com.android.test.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Expect

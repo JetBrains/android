@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.tools.idea.gradle.project.build.output.GradleBuildFailureParser.FailureDetailsHandler
 import com.android.tools.idea.gradle.project.sync.idea.issues.ErrorMessageAwareBuildIssue
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
+import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
@@ -31,18 +33,19 @@ import com.intellij.pom.Navigatable
 import java.io.File
 import java.util.function.Consumer
 
-class DeclarativeErrorParser : BuildOutputParser {
+class DeclarativeErrorParser : FailureDetailsHandler {
   private val FAILED_BUILD_FILE_PATTERN: Regex = "> Failed to interpret the declarative DSL file '([^']+.gradle.dcl)':".toRegex()
   private val SUBJECT_PROBLEM_LINE_PATTERN: Regex = "[\\s]{4}[^\\s].*".toRegex()
   private val PROBLEM_LINE_PATTERN: Regex = "[\\s]{6}([\\d]+):([\\d]+): .*".toRegex()
 
-  override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
-    if (!line.startsWith(BuildOutputParserUtils.BUILD_FAILED_WITH_EXCEPTION_LINE)) return false
-
-    if (!reader.readLine().isNullOrBlank()) return false
-
-    if (reader.readLine() != "* What went wrong:") return false
-    if (reader.readLine()?.startsWith(BUILD_ISSUE_START) == true) {
+  override fun consumeFailureMessage(
+    failure: GradleBuildFailureParser.ParsedFailureDetails,
+    location: FilePosition?,
+    parentEventId: Any,
+    messageConsumer: Consumer<in BuildEvent>
+  ): Boolean {
+    if (failure.whatWentWrongSectionLines.firstOrNull()?.startsWith(BUILD_ISSUE_START) == true) {
+      val reader = LinesBuildOutputInstantReader(failure.whatWentWrongSectionLines.drop(1), parentEventId)
       return readFileIssues(reader, messageConsumer)
     }
     return false

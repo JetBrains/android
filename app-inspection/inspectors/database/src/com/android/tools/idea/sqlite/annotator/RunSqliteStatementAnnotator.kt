@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.annotator
 
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
+import com.android.tools.idea.lang.androidSql.room.RoomDependencyChecker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle.message
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
@@ -23,11 +24,11 @@ import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.hint.HintUtil
-import com.intellij.java.library.JavaLibraryUtil
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.actionSystem.ActionUiKind
 import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.ui.popup.Balloon
@@ -39,9 +40,6 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
 import javax.swing.JLabel
-
-private const val ROOM_ENTITY_ANDROIDX: String = "androidx.room.Entity"
-private const val ROOM_ENTITY_ARCH: String = "android.arch.persistence.room.Entity"
 
 /**
  * Shows an icon in the gutter when a SQLite statement is recognized. e.g. Room @Query annotations.
@@ -60,16 +58,11 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
     val first = elements.firstOrNull() ?: return
     val module = ModuleUtilCore.findModuleForPsiElement(first) ?: return
 
-    if (
-      !JavaLibraryUtil.hasLibraryClass(module, ROOM_ENTITY_ANDROIDX) &&
-        !JavaLibraryUtil.hasLibraryClass(module, ROOM_ENTITY_ARCH)
-    ) {
-      return
-    }
-
-    val injectedLanguageManager = InjectedLanguageManager.getInstance(first.project)
-    for (element in elements) {
-      collectRunMarkers(injectedLanguageManager, element, result)
+    if (module.project.service<RoomDependencyChecker>().isRoomPresent()) {
+      val injectedLanguageManager = InjectedLanguageManager.getInstance(first.project)
+      for (element in elements) {
+        collectRunMarkers(injectedLanguageManager, element, result)
+      }
     }
   }
 

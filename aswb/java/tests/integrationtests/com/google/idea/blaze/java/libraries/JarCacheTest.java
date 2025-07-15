@@ -107,6 +107,7 @@ public class JarCacheTest extends BlazeTestCase {
               "",
               projectDataDirectory.getAbsolutePath(),
               "",
+              "",
               BuildSystemName.Blaze,
               ProjectType.ASPECT_SYNC);
       blazeImportSettingsManager.setImportSettings(dummyImportSettings);

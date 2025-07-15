@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
+import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkValidationManager
 import com.android.tools.idea.gradle.util.AndroidStudioPreferences
 import com.android.tools.idea.project.AndroidNotification
@@ -25,11 +26,12 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 /**
@@ -39,18 +41,29 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings
  * models to be present should not be called here directly but instead by the appropriate listeners or callbacks.
  */
 class AndroidStudioProjectActivity : ProjectActivity {
-  override suspend fun execute(project: Project) {
-    // Disable all settings sections that we don't want to be present in Android Studio.
-    // See AndroidStudioPreferences for a full list.
-    AndroidStudioPreferences.cleanUpPreferences(project)
 
-    // Custom notifications for Android Studio, un-wanted or un-needed when running as the Android IntelliJ plugin
-    notifyOnLegacyAndroidProject(project)
-    notifyOnInvalidGradleJDKEnv(project)
+  @Service(Service.Level.PROJECT)
+  class StartupService(private val project: Project) : AndroidGradleProjectStartupService<Unit>() {
 
-    if (StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION.get()) {
-      checkForInvalidGradleJvmConfigurationAndAttemptToRecover(project)
+    suspend fun performStartupActivity() {
+      runInitialization {
+        // Disable all settings sections that we don't want to be present in Android Studio.
+        // See AndroidStudioPreferences for a full list.
+        AndroidStudioPreferences.cleanUpPreferences(project)
+
+        // Custom notifications for Android Studio, un-wanted or un-needed when running as the Android IntelliJ plugin
+        notifyOnLegacyAndroidProject(project)
+        notifyOnInvalidGradleJDKEnv(project)
+
+        if (StudioFlags.RESTORE_INVALID_GRADLE_JDK_CONFIGURATION.get()) {
+          checkForInvalidGradleJvmConfigurationAndAttemptToRecover(project)
+        }
+      }
     }
+  }
+
+  override suspend fun execute(project: Project) {
+    project.service<StartupService>().performStartupActivity()
   }
 }
 
@@ -80,11 +93,12 @@ private fun notifyOnInvalidGradleJDKEnv(project: Project) {
 }
 
 private suspend fun checkForInvalidGradleJvmConfigurationAndAttemptToRecover(project: Project) {
+  // Link Gradle project based at the current Project's base path project since opening project with .idea directory
+  // but without gradle.xml file results on project not being linked
+  GradleSyncExecutor.attemptToLinkGradleProject(project)
+
   GradleSettings.getInstance(project).linkedProjectsSettings
-    // Discard projects with defined Daemon JVM criteria since Gradle is responsible to locate matching toolchain
-    .filter { !GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(it) }
-    .mapNotNull { it.externalProjectPath }
-    .toSet()
+    .distinctBy { it.externalProjectPath }
     .forEach {
       GradleJdkValidationManager.getInstance(project).validateProjectGradleJvmPath(project, it)?.let { gradleJdkException ->
         withContext(Dispatchers.EDT) {

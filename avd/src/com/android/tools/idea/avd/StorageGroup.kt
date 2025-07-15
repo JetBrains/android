@@ -61,12 +61,7 @@ import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Composable
-internal fun StorageGroup(
-  device: VirtualDevice,
-  state: StorageGroupState,
-  hasPlayStore: Boolean,
-  postMvpFeaturesEnabled: Boolean,
-) {
+internal fun StorageGroup(device: VirtualDevice, state: StorageGroupState) {
   Column(verticalArrangement = Arrangement.spacedBy(Padding.MEDIUM)) {
     GroupHeader("Storage")
 
@@ -89,11 +84,7 @@ internal fun StorageGroup(
       )
     }
 
-    if (postMvpFeaturesEnabled) {
-      if (device.formFactor != FormFactors.WEAR) {
-        ExpandedStorage(device, state)
-      }
-    } else {
+    if (device.formFactor != FormFactors.WEAR) {
       ExpandedStorage(device, state)
     }
   }
@@ -265,7 +256,7 @@ private fun chooseFile(parent: Component, project: Project?): Path? {
         /* chooseJarContents= */ false,
         /* chooseMultiple= */ false,
       )
-      .withExtensionFilter(".img")
+      .withExtensionFilter("img")
 
   val virtualFile = FileChooser.chooseFile(descriptor, parent, project, null) ?: return null
 

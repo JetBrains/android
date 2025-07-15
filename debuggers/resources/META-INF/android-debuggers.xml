@@ -21,6 +21,8 @@
   <extensions defaultExtensionNs="com.intellij">
     <!-- Disable class preloading (b/403624089). -->
     <registryKey overrides="true" key="debugger.preload.types.hierarchy" defaultValue="false" description="Request superclass and interfaces for each loaded class in advance to speed up further operations"/>
+    <!-- Disable emulated method breakpoints (b/416446692). -->
+    <registryKey overrides="true" key="debugger.emulate.method.breakpoints" defaultValue="false" description="Emulate method breakpoints with line breakpoints by default"/>
 
     <xdebugger.configurableProvider implementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerConfigurableProvider" />
     <debugger.positionManagerFactory implementation="com.android.tools.idea.debug.AndroidPositionManagerFactory"/>
@@ -43,10 +45,7 @@
         serviceImplementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerAnalyticsTrackerImpl" />
     <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
                     serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
+    <postStartupActivity implementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerProjectActivity"/>
   </extensions>
-
-  <projectListeners>
-    <listener class="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerProjectListener" topic="com.intellij.openapi.project.ProjectManagerListener"/>
-  </projectListeners>
 
 </idea-plugin>

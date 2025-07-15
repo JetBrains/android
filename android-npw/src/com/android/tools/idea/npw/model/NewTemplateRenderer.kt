@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.model
 
+import com.android.sdklib.AndroidMajorVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
@@ -35,6 +36,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.TemplateType
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateModule.BytecodeLevel
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateModule.ModuleType
+import com.google.wireless.android.sdk.stats.ApiVersion
 import com.google.wireless.android.sdk.stats.KotlinSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -254,6 +256,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
     "Gemini API Starter" -> TemplateRenderer.EXPERIMENTAL_ACTIVITY
     "Basic Headset Activity" -> TemplateRenderer.EXPERIMENTAL_ACTIVITY_2
     "Navigation UI Activity" -> TemplateRenderer.COMPOSE_NAVIGATION_UI_ACTIVITY
+    "Journey File" -> TemplateRenderer.JOURNEY_XML_FILE
     else -> TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
   }
 
@@ -327,6 +330,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.EXPERIMENTAL_ACTIVITY -> TemplateType.EXPERIMENTAL_ACTIVITY
     TemplateRenderer.EXPERIMENTAL_ACTIVITY_2 -> TemplateType.EXPERIMENTAL_ACTIVITY_2
     TemplateRenderer.COMPOSE_NAVIGATION_UI_ACTIVITY -> TemplateType.COMPOSE_NAVIGATION_UI_ACTIVITY
+    TemplateRenderer.JOURNEY_XML_FILE -> TemplateType.JOURNEY_XML_FILE
     TemplateRenderer.BLANK_ACTIVITY,
     TemplateRenderer.ANDROID_MODULE,
     TemplateRenderer.ANDROID_PROJECT,
@@ -349,8 +353,8 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.ML_MODEL_BINDING_FEATURE_OFF_NOTIFICATION,
     TemplateRenderer.ANDROID_NATIVE_MODULE,
     TemplateRenderer.BASELINE_PROFILES_MODULE,
-    TemplateRenderer.KOTLIN_MULTIPLATFORM_LIBRARY_MODULE ->
-      throw RuntimeException("Invalid Template Title")
+    TemplateRenderer.KOTLIN_MULTIPLATFORM_LIBRARY_MODULE,
+    TemplateRenderer.JOURNEY_XML_FILE -> throw RuntimeException("Invalid Template Title")
   }
 }
 
@@ -406,6 +410,13 @@ fun logRendering(
   }
 }
 
+private fun AndroidMajorVersion.toApiVersion(): ApiVersion {
+  val builder = ApiVersion.newBuilder()
+  builder.apiLevel = apiLevel.toLong()
+  codename?.let { builder.codename = it }
+  return builder.build()
+}
+
 fun logRendering(projectData: ProjectTemplateData, project: Project, metrics: TemplateMetrics) {
   val templateComponentBuilder =
     TemplatesUsage.TemplateComponent.newBuilder().apply {
@@ -416,23 +427,11 @@ fun logRendering(projectData: ProjectTemplateData, project: Project, metrics: Te
   val templateModuleBuilder =
     TemplatesUsage.TemplateModule.newBuilder().apply {
       moduleType = metrics.moduleType
-      minSdk = metrics.minSdk
-      if (metrics.minSdk != 0 || metrics.minSdkCodename.isNotEmpty()) {
-        minSdkVersionBuilder.apply {
-          apiLevel = metrics.minSdk.toLong()
-          if (metrics.minSdkCodename != "${metrics.minSdk}") {
-            codename = metrics.minSdkCodename
-          }
-        }
+      metrics.minSdk?.let {
+        minSdk = it.apiLevel
+        minSdkVersion = it.toApiVersion()
       }
-      if (metrics.targetSdk != 0 || metrics.targetSdkCodename.isNotEmpty()) {
-        targetSdkVersionBuilder.apply {
-          apiLevel = metrics.targetSdk.toLong()
-          if (metrics.targetSdkCodename != "${metrics.targetSdk}") {
-            codename = metrics.targetSdkCodename
-          }
-        }
-      }
+      metrics.targetSdk?.let { targetSdkVersion = it.toApiVersion() }
       if (metrics.bytecodeLevel != null) {
         bytecodeLevel =
           when (metrics.bytecodeLevel) {

@@ -64,8 +64,7 @@ public class AndroidSqlWithClauseTableImpl extends ASTWrapperPsiElement implemen
   }
 
   @Override
-  @Nullable
-  public AndroidSqlTable getTableDefinition() {
+  public @Nullable AndroidSqlTable getTableDefinition() {
     return PsiImplUtil.getTableDefinition(this);
   }
 

@@ -15,7 +15,7 @@
  */
 package com.android.testutils.junit4;
 
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import org.junit.AssumptionViolatedException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;

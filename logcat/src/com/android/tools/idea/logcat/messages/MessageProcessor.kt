@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.filters.LogcatFilter
@@ -99,7 +99,7 @@ constructor(
     val exceptionHandler = CoroutineExceptionHandler { _, e ->
       LOGGER.error("Error processing logcat message", e)
     }
-    AndroidCoroutineScope(logcatPresenter, workerThread).launch(exceptionHandler) {
+    logcatPresenter.createCoroutineScope(workerThread).launch(exceptionHandler) {
       // TODO(b/200322275): Manage the life cycle of textAccumulator in a more GC friendly way.
       var textAccumulator = TextAccumulator()
       var totalMessages = 0 // Number of messages in current batch

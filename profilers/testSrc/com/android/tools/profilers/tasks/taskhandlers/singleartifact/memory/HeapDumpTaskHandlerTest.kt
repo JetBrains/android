@@ -35,7 +35,7 @@ import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.HeapDumpTaskArgs
 import com.google.common.truth.Truth.assertThat
@@ -235,8 +235,8 @@ class HeapDumpTaskHandlerTest {
 
     val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
     assertNotNull(myHeapDumpTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess))
-    assertEquals(myHeapDumpTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess)!!.starTaskSelectionErrorCode,
-                 StarTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
+    assertEquals(myHeapDumpTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess)!!.startTaskSelectionErrorCode,
+                 StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
 
 
     val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)

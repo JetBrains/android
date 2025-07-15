@@ -16,6 +16,7 @@
 package com.android.tools.idea.startup;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.checks.GradleDetector;
@@ -32,8 +33,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ConfigImportHelper;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
+import com.intellij.openapi.util.registry.Registry;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
+import org.jetbrains.plugins.gradle.service.syncContributor.bridge.GradleBridgeProjectDataService;
 import org.jetbrains.plugins.gradle.service.execution.GradleTaskExecutionMeasuringExtension;
 import org.jetbrains.plugins.gradle.service.project.GradleExecutionHelperExtension;
 
@@ -57,6 +62,20 @@ public class GradleSpecificInitializer implements AppLifecycleListener {
     GradleExecutionHelperExtension.EP_NAME.getPoint().unregisterExtension(GradleTaskExecutionMeasuringExtension.class);
 
     useIdeGooglePlaySdkIndexInGradleDetector();
+    initializePhasedSync();
+  }
+
+
+  @VisibleForTesting
+  public static void initializePhasedSync() {
+    if (!StudioFlags.PHASED_SYNC_ENABLED.get()) {
+      return;
+    }
+
+    Registry.get("gradle.phased.sync.enabled").setValue(true);
+    if (StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()) {
+      ProjectDataService.EP_NAME.getPoint().unregisterExtension(GradleBridgeProjectDataService.class);
+    }
   }
 
 

@@ -18,7 +18,7 @@ package com.android.tools.idea.run.editor;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.psi.PsiFile;

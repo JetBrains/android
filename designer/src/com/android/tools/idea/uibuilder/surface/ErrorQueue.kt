@@ -33,13 +33,11 @@ import com.android.tools.rendering.RenderResult
 import com.android.utils.associateWithNotNull
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
-import java.util.concurrent.Callable
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -149,12 +147,7 @@ class ErrorQueue(private val parentDisposable: Disposable, private val project: 
         newRenderIssueProviders =
           renderResults
             .map {
-              val errorModel =
-                ReadAction.nonBlocking(
-                    Callable { RenderErrorModelFactory.createErrorModel(surface, it.value) }
-                  )
-                  .expireWith(parentDisposable)
-                  .executeSynchronously()
+              val errorModel = RenderErrorModelFactory.createErrorModel(surface, it.value)
               RenderIssueProvider(it.key.model, errorModel)
             }
             .toImmutableList()

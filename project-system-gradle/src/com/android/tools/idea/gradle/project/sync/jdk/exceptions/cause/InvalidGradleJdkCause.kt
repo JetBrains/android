@@ -38,6 +38,9 @@ sealed class InvalidGradleJdkCause(
   val reason: InvalidJdkReason
 ) {
 
+  object InvalidProjectJdk: InvalidGradleJdkCause(
+    AndroidBundle.message("project.sync.exception.gradle.project.jdk.invalid"), InvalidJdkReason.INVALID_JDK_PROJECT_JDK_UNDEFINED
+  )
   object UndefinedGradleLocalJavaHome: InvalidGradleJdkCause(
     AndroidBundle.message("project.sync.exception.gradle.local.java.home.undefined"), UNDEFINED_GRADLE_LOCAL_JAVA_HOME
   )

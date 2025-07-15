@@ -188,7 +188,7 @@ public final class BuildPhaseSyncTask {
     buildStats.setTargets(targets);
     notifyBuildStarted(context, syncParams.addProjectViewTargets(), ImmutableList.copyOf(targets));
 
-    BuildInvoker defaultInvoker = buildSystem.getDefaultInvoker(project);
+    BuildInvoker defaultInvoker = buildSystem.getBuildInvoker(project);
 
     ShardedTargetsResult shardedTargetsResult =
         BlazeBuildTargetSharder.expandAndShardTargets(

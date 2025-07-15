@@ -57,5 +57,21 @@
     <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework.junit5" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.ui" />
+    <orderEntry type="module-library" exported="" scope="TEST">
+      <library name="ibm.db2.jcc" type="repository">
+        <properties include-transitive-deps="false" maven-id="com.ibm.db2:jcc:11.5.7.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/com/ibm/db2/jcc/11.5.7.0/jcc-11.5.7.0.jar">
+              <sha256sum>1dbc8dc93441890f242be66983f1d1363fe6a80f8d1f0b7ca0e1063f42054bb0</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/ibm/db2/jcc/11.5.7.0/jcc-11.5.7.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

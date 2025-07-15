@@ -30,7 +30,8 @@ internal class FakeAndroidApplicationInfoProvider(
   private val packageId: String = "com.app",
   private val versionName: String = "version",
   private val versionCode: Long = 1L,
+  private val extractNativeLibs: Boolean = false
 ) : AndroidApplicationInfoProvider {
   override fun getApplicationInfo(apkParser: ApkParser, entry: ArchiveEntry): ListenableFuture<AndroidApplicationInfo> =
-    Futures.immediateFuture(AndroidApplicationInfo(packageId, versionName, versionCode))
+    Futures.immediateFuture(AndroidApplicationInfo(packageId, versionName, versionCode, extractNativeLibs))
 }

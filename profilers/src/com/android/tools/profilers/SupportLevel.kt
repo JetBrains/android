@@ -37,7 +37,8 @@ enum class SupportLevel(private val enablesMonitor: (Class<out StudioProfiler>) 
               except(MEMORY_HEAP_DUMP,
                      MEMORY_JVM_RECORDING,
                      MEMORY_GC,
-                     EVENT_MONITOR)),
+                     EVENT_MONITOR,
+                     MEMORY_LEAK_WITH_LEAKCANARY)),
   DEBUGGABLE(all(), all(), all());
 
   fun isMonitorSupported(profiler: StudioProfiler) = enablesMonitor(profiler::class.java)
@@ -56,6 +57,7 @@ enum class SupportLevel(private val enablesMonitor: (Class<out StudioProfiler>) 
     MEMORY_JVM_RECORDING("Java / Kotlin allocation recording"),
     MEMORY_GC("Forcing garbage collection"),
     EVENT_MONITOR("Event monitor"),
+    MEMORY_LEAK_WITH_LEAKCANARY("Find leaks with LeakCanary"),
   }
 
   companion object {

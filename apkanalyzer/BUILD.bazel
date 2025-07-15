@@ -15,6 +15,7 @@ jvm_library(
   deps = [
     "@lib//:studio-platform-provided",
     "@lib//:guava",
+    "@lib//:gson",
     "@lib//:aapt-proto",
     "@lib//:google-dexlib2",
     "@lib//:jetbrains-annotations",

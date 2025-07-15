@@ -120,10 +120,11 @@ public class LoggedRemoteOutputsCacheDirectoryTest {
 
   private BlazeImportSettings createSettings(BuildSystemName buildSystemName) {
     return new BlazeImportSettings(
-        /* workspaceRoot= */ "",
-        /* projectName= */ "",
-        /* projectDataDirectory= */ temporaryFolder.getRoot().toString(),
-        /* projectViewFile= */ "",
+        "",
+        "",
+        temporaryFolder.getRoot().toString(),
+        "",
+        "",
         buildSystemName,
         ProjectType.ASPECT_SYNC);
   }

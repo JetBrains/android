@@ -30,11 +30,11 @@ private val LOG: Logger by lazy { Logger.getInstance(AndroidRunConfigurationsMan
 
 class AndroidRunConfigurationsManager(private val project: Project) {
 
-  private val operationsStates= mutableListOf<Job>()
+  private val operationsStates = mutableListOf<Job>()
 
-  fun createProjectRunConfigurations() {
+  fun createProjectRunConfigurations(): Job {
     LOG.debug { "AndroidRunConfigurationsManager.createProjectRunConfigurations" }
-    project.coroutineScope.launch {
+    return project.coroutineScope.launch {
       withBackgroundProgress(project, "Setting up run configurations...") {
         AndroidRunConfigurations.instance.createRunConfigurations(project)
       }

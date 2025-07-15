@@ -94,7 +94,7 @@ public abstract class BaseTarget implements Target {
    */
   @Override
   public void addHit(@NotNull SceneContext transform,
-                     @NotNull ScenePicker picker,
+                     @NotNull ScenePicker.Writer picker,
                      @JdkConstants.InputEventMask int modifiersEx) {
     if (isHittable()) {
       picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),

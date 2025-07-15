@@ -20,13 +20,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.google.gct.login2.PreferredUser
 import com.google.gct.login2.ui.onboarding.compose.GoogleSignInWizard.SignInState
 import com.google.gct.login2.ui.onboarding.compose.InnerWizardContentPage
 import com.google.gct.wizard.WizardPage
@@ -59,16 +59,29 @@ internal fun WizardState.EnableOrSkipComposableContent() {
   val configurationState = getOrCreateState { SyncConfigurationState() }
   val signInState = getOrCreateState { SignInState() }
 
-  InnerWizardContentPage(syncConfigurationPageTitle) {
+  // Fetching and caching data as soon as the user makes a selection is more time-efficient than
+  // waiting to fetch only when "Next" is clicked (if the data isn't already cached).
+  LaunchedEffect(configurationState.configurationOption) {
+    if (configurationState.configurationOption != SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT) {
+      return@LaunchedEffect
+    }
+
+    with(configurationState) {
+      val userEmail = checkNotNull(getOnboardingUser().email)
+      getCloudStatus(userEmail, allowFetchIfCacheMiss = true)
+    }
+  }
+
+  InnerWizardContentPage(header = { SyncConfigurationPageTitle() }) {
     Column(Modifier.padding(vertical = 16.dp, horizontal = 32.dp)) {
       Text(
-        "Switch Backup & Sync to ${PreferredUser.ActiveUser.email}?",
+        "Switch Backup & Sync to ${signInState.signedInUser.email}?",
         fontWeight = FontWeight.Bold,
       )
       Spacer(modifier = Modifier.height(8.dp))
       Text(
-        "There is another account that is currently syncing settings on this installation of Android Studio." +
-          " Android Studio can only sync settings with one signed in account at a time."
+        "${configurationState.activeSyncUser} is currently being used with Backup and Sync," +
+          " and Android Studio can sync settings to only one account at a time."
       )
 
       Spacer(modifier = Modifier.height(8.dp))
@@ -78,20 +91,13 @@ internal fun WizardState.EnableOrSkipComposableContent() {
           annotatedText =
             AnnotatedString.Builder()
               .apply {
-                append("Sync my settings to this account")
+                append("Sync settings to")
                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                  append(" (${signInState.signedInUser.email})")
+                  append(" ${signInState.signedInUser.email}")
                 }
-                append(" and stop syncing settings to the previously signed-in account")
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                  append(" (${configurationState.activeSyncUser})")
-                }
-                append(" .")
+                append(" instead.")
               }
               .toAnnotatedString(),
-          comment =
-            "Android Studio will start to sync your settings to this account." +
-              " The previously signed in account that has Settings Sync enabled will have the sync disabled.",
           selected =
             configurationState.configurationOption == SyncConfigurationOption.CONFIGURE_NEW_ACCOUNT,
           onSelect = {
@@ -104,10 +110,14 @@ internal fun WizardState.EnableOrSkipComposableContent() {
         RadioButtonWithComment(
           annotatedText =
             AnnotatedString.Builder()
-              .apply { append("Do not enable Backup & Sync for this account.") }
+              .apply {
+                append("Continue to sync my settings to")
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                  append(" ${configurationState.activeSyncUser}")
+                }
+                append(".")
+              }
               .toAnnotatedString(),
-          comment =
-            "Android Studio will not sync your settings to this account and leave the current state unchanged.",
           selected =
             configurationState.configurationOption == SyncConfigurationOption.USE_EXISTING_SETTINGS,
           onSelect = {

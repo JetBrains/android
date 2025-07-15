@@ -54,6 +54,7 @@ message ExecuteActionRequest {
   enum DataContextSource {
     DEFAULT = 0;
     SELECTED_TEXT_EDITOR = 1;
+    ACTIVE_TOOL_WINDOW = 2;
   }
 
   string action_id = 1;

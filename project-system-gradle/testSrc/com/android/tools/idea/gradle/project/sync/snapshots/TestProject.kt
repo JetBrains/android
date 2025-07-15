@@ -198,6 +198,11 @@ enum class TestProject(
         truncateForV2(projectRoot.resolve("settings.gradle"))
       }
     }),
+  COMPOSITE_BUILD_WITH_DEPENDENCY_SUBS(
+    TestProjectToSnapshotPaths.COMPOSITE_BUILD_WITH_DEPENDENCY_SUBS,
+    testName="compositeBuildWithDependencySubstitution",
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 },
+  ),
   NON_STANDARD_SOURCE_SETS(
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 },
@@ -325,9 +330,9 @@ enum class TestProject(
     patch = { projectRoot ->
       patchMppProject(projectRoot, convertAppToKmp = true)
       projectRoot.resolve("app").resolve("build.gradle").replaceInContent(
-        "android()",
+        "androidTarget()",
         """
-          android()
+          androidTarget()
             sourceSets {
               androidTest
               androidAndroidTest {
@@ -341,6 +346,7 @@ enum class TestProject(
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
   MULTI_FLAVOR_SWITCH_VARIANT(
     TestProjectToSnapshotPaths.MULTI_FLAVOR,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
     testName = "switchVariant",
     switchVariant = TemplateBasedTestProject.VariantSelection(":app", "firstXyzSecondXyzRelease")
   ),

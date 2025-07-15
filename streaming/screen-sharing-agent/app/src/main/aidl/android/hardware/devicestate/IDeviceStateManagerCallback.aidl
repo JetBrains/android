@@ -18,7 +18,7 @@
 
 package android.hardware.devicestate;
 
-parcelable DeviceStateInfo;
+import android.hardware.devicestate.DeviceStateInfo;
 
 /** @hide */
 interface IDeviceStateManagerCallback {

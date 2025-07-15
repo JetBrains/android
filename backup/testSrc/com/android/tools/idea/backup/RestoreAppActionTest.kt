@@ -27,13 +27,16 @@ import com.android.tools.idea.backup.testing.waitForRestoreInvocations
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.ProjectServiceRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.TestActionEvent
 import java.nio.file.Path
@@ -43,6 +46,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
+@RunsInEdt
 @RunWith(JUnit4::class)
 class RestoreAppActionTest {
 
@@ -60,8 +64,10 @@ class RestoreAppActionTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       FlagRule(StudioFlags.BACKUP_ENABLED, true),
       ProjectServiceRule(projectRule, BackupManager::class.java, fakeBackupManager),
+      EdtRule(),
       temporaryFolder,
     )
 

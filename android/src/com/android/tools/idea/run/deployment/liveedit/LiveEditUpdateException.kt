@@ -37,6 +37,8 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     KOTLIN_EAP("Compilation Error", "%", true, Status.KOTLIN_EAP),
     NON_COMPOSE("Non-Compose Module", "%", false, Status.NON_KOTLIN), // TODO: ADD REAL METRICS. (Currently treated as internal error)
     NON_KOTLIN("Non-Kotlin file not supported", "%", false, Status.NON_KOTLIN),
+    NON_KOTLIN_IS_JAVA("Java file not supported", "%", false, Status.NON_KOTLIN), // TODO: Add new metrics.
+    NON_KOTLIN_IS_XML("XML file not supported", "%", false, Status.NON_KOTLIN), // TODO: Add new metrics.
     NON_PRIVATE_INLINE_FUNCTION("Modified function is a non-private inline function", "%", true, Status.NON_PRIVATE_INLINE_FUNCTION),
     UNABLE_TO_INLINE("Unable to inline function", "%", true, Status.UNABLE_TO_INLINE),
     UNSUPPORTED_BUILD_SRC_CHANGE("buildSrc/ sources not supported", "%", false, Status.UNSUPPORTED_BUILD_SRC_CHANGE),
@@ -65,8 +67,8 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
     VIRTUAL_FILE_NOT_EXIST("Modifying virtual file that does not exist", "%", false, Status.VIRTUAL_FILE_NOT_EXIST),
     BAD_MIN_API("Live Edit min-api detection failure", "%", false, Status.BAD_MIN_API),
 
-    MODULE_IS_DISPOSED("Module Disposed", "%", false, Status.UNKNOWN), // TODO: Add new metrics.
-    FILE_NOT_VALID("Invalid File", "%", true, Status.UNKNOWN), // TODO: Add new metrics.
+    MODULE_IS_DISPOSED("Module Disposed", "%", false, Status.MODULE_DISPOSED), // TODO: Add new metrics.
+    FILE_NOT_VALID("Invalid File", "%", true, Status.INVALID_FILE), // TODO: Add new metrics.
 
     INTERNAL_ERROR_NO_COMPILER_OUTPUT("Internal Error", "%", false, Status.INTERNAL_ERROR_NO_COMPILER_OUTPUT),
     INTERNAL_ERROR_FILE_OUTSIDE_MODULE("Internal Error", "%", false, Status.INTERNAL_ERROR_FILE_OUTSIDE_MODULE),
@@ -108,6 +110,10 @@ class LiveEditUpdateException private constructor(val error: Error, val details:
                                                                " and will only work with the bundled Kotlin Plugin", null, null)
 
     fun nonKotlin(file: PsiFile) = LiveEditUpdateException(Error.NON_KOTLIN, "Modification to ${file.name} not supported", sourceFilename = null, cause = null)
+
+    fun nonKotlinIsJava(file: PsiFile) = LiveEditUpdateException(Error.NON_KOTLIN_IS_JAVA, "Modification to ${file.name} not supported", sourceFilename = null, cause = null)
+
+    fun nonKotlinIsXml(file: PsiFile) = LiveEditUpdateException(Error.NON_KOTLIN_IS_XML, "Modification to ${file.name} not supported", sourceFilename = null, cause = null)
 
     fun unsupportedSourceModificationAddedMethod(location: String, msg: String) =
       LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_METHOD_ADDED, msg, location, null)

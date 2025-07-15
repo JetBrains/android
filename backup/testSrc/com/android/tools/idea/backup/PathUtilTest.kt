@@ -16,6 +16,9 @@
 package com.android.tools.idea.backup
 
 import com.android.testutils.AssumeUtil
+import com.android.tools.idea.testing.WaitForIndexRule
+import com.android.tools.idea.util.absoluteInProject
+import com.android.tools.idea.util.relativeToProject
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -35,7 +38,7 @@ class PathUtilTest {
   private val projectRule = ProjectRule()
   private val temporaryFolder = TemporaryFolder()
 
-  @get:Rule val rule = RuleChain(projectRule, temporaryFolder)
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), temporaryFolder)
 
   private val projectDir by lazy {
     temporaryFolder.newFolder("home/user/projects/project").toPath()

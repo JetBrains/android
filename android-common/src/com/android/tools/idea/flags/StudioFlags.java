@@ -39,7 +39,6 @@ import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.MendelOverrides;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.Cancellation;
 import java.io.File;
@@ -61,13 +60,12 @@ public final class StudioFlags {
 
   @NotNull
   private static Flags createFlags() {
-    Application app = ApplicationManager.getApplication();
     FlagOverrides userOverrides;
-    if (app != null && !app.isUnitTestMode()) {
-      userOverrides = new LazyStudioFlagSettings();
+    if (isUnitTestMode()) {
+      userOverrides = new DefaultFlagOverrides();
     }
     else {
-      userOverrides = new DefaultFlagOverrides();
+      userOverrides = new LazyStudioFlagSettings();
     }
     return new Flags(userOverrides, new PropertyOverrides(), new MendelOverrides(), new ServerFlagOverrides());
   }
@@ -184,7 +182,7 @@ public final class StudioFlags {
     NPW, "xr.template",
     "Enable XR template",
     "Allows the XR template to be used.",
-    enabledUpTo(CANARY));
+    true);
 
   public static final Flag<Boolean> NPW_ENABLE_NAVIGATION_UI_TEMPLATE = new BooleanFlag(
     NPW, "navigationui.template",
@@ -257,11 +255,6 @@ public final class StudioFlags {
     "When enabled, profiler will track and display events defined through developer APIs",
     false);
 
-  public static final Flag<Boolean> PROFILEABLE_BUILDS = new BooleanFlag(
-    PROFILER, "profileable.builds", "Support building profileable apps",
-    "Allow users to build apps as profileable with a supported Gradle plugin version (>7.3.0)",
-    true);
-
   public static final Flag<PowerProfilerDisplayMode> PROFILER_SYSTEM_TRACE_POWER_PROFILER_DISPLAY_MODE = new EnumFlag<>(
     PROFILER, "power.tracks", "Set display mode of power rails and battery counters in system trace UI",
     "Allows users to customize whether the power rail and battery counter tracks are shown in the system trace UI, " +
@@ -292,6 +285,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_TASK_BASED_UX = new BooleanFlag(PROFILER, "task.based.ux", "Task-based UX",
                                                                              "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)",
                                                                              true);
+
+  public static final Flag<Boolean> PROFILER_TASK_TITLE_V2 = new BooleanFlag(PROFILER, "task.title.v2", "Task Title V2",
+                                                                             "Enables more distinguishable descriptions for profiler tasks",
+                                                                             enabledUpTo(CANARY));
 
   public static final Flag<Boolean> PROFILER_LEAKCANARY = new BooleanFlag(PROFILER, "leakcanary", "LeakCanary",
                                                                           "Enables the integration of leakCanary and display of leaks",
@@ -368,6 +365,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> USE_BYTECODE_R_CLASS_PARSING = new BooleanFlag(
     NELE, "use.bytecode.r.class.loading", "Uses bytecode R class parsing instead of reflection",
     "When enabled, the parsing of R classes will use bytecode parsing instead of reflection.",
+    true);
+
+  public static final Flag<Boolean> LAYOUTLIB_NATIVE_MEMORY_CLEAN = new BooleanFlag(
+    NELE, "layoutlib.native.memory.clean", "Enable cleaning of Layoutlib native memory.",
+    "When it is detected that Layoutlib uses too much native memory, attempts are made to clear it.",
     true);
   //endregion
 
@@ -568,7 +570,7 @@ public final class StudioFlags {
     "Use adblib version of `AndroidDebugBridgeDelegate`",
     "Use adblib version of `AndroidDebugBridgeDelegate` in `AndroidDebugBridge` class. " +
     "Note: Changing the value of this flag requires restarting Android Studio.",
-    false);
+    enabledUpTo(DEV));
 
   public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE_USAGE_TRACKER = new BooleanFlag(
     RUNDEBUG,
@@ -756,7 +758,7 @@ public final class StudioFlags {
     "protobuf.enable",
     "Enable Logcat Protobuf format",
     "Enable Logcat Protobuf format",
-    false
+    true
   );
 
   public static final Flag<Long> LOGCAT_FILE_RELOAD_DELAY_MS = new LongFlag(
@@ -772,7 +774,7 @@ public final class StudioFlags {
     "deobfuscate",
     "Enable stack trace deobfuscation using R8 Retrace",
     "Enable stack trace deobfuscation using R8 Retrace",
-    false
+    true
   );
   //endregion
 
@@ -912,7 +914,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> RESTORE_INVALID_GRADLE_JDK_CONFIGURATION = new BooleanFlag(
     GRADLE_IDE, "restore.invalid.gradle.jdk.configuration", "Restore invalid Gradle JDK configuration",
-    "Restore project from invalid Gradle JDK configuration during opening.", true);
+    "Restore project from invalid Gradle JDK configuration during opening.", !isUnitTestMode());
 
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = new BooleanFlag(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
@@ -1027,7 +1029,39 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> MULTIPLE_DEVICE_SPECS_ENABLED = new BooleanFlag(
+    GRADLE_IDE,
+    "enable.multiple.device.specs",
+    "Multiple Device Specs",
+    "Allows Studio to pass multiple device spec files separately to AGP along with target device spec.",
+    false
+  );
+
   //endregion
+  //region Gradle Phased Sync
+  private static final FlagGroup PHASED_SYNC = new FlagGroup(FLAGS, "phased.sync", "Gradle Phased Sync");
+
+  public static final Flag<Boolean> PHASED_SYNC_ENABLED = new BooleanFlag(
+    PHASED_SYNC,
+    "enabled",
+    "Enables phased sync",
+    "Enables the new sync mode where the models are streamed back to IDE as they become available in phases. These APIs also" +
+    " allow direct interaction with the workspace model via new APIs",
+    enabledUpTo(CANARY)
+  );
+
+  public static final Flag<Boolean> PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED = new BooleanFlag(
+    PHASED_SYNC,
+    "disable.bridge.data.service",
+    "Disables bridge data service for phased sync",
+    "Entities set up by phased sync are not completely trusted by the IntelliJ platform and is later being replaced by what's " +
+    "populated by the data services. To enable this a 'bridge data service' is used to completely remove entities set up by phased sync. " +
+    "However we've done extensive feasibility work to make sure we don't actually need this replacement behaviour, meaning we can disable " +
+    "this behaviour completely. This flag is a fail-safe to make sure we can switch this behaviour back to platform's default, if needed.",
+    enabledUpTo(CANARY)
+  );
+  //endregion
+
   //region Apk Project System
   private static final FlagGroup APK_IDE = new FlagGroup(FLAGS, "apk.ide", "APK Project System");
 
@@ -1085,12 +1119,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.recomposition.parent.counts", "Enable or disable recomposition parent counts",
     "When this flag is enabled, the max recomposition count among the children of a node is displayed in a separate column.",
-    enabledUpTo(CANARY));
+    true);
 
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_XR_INSPECTION = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.xr.inspection", "Enable or disable support for XR inspection",
     "When this flag is enabled, xr inspection is enabled.",
-    enabledUpTo(CANARY));
+    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ON_DEVICE_RENDERING = new BooleanFlag(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.on.device.rendering", "Always use on-device rendering",
@@ -1134,18 +1168,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "trace.discovery", "Enable Tracing of Emulator Discovery",
     "Enables tracing of Emulator discovery",
     false);
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS = new BooleanFlag(
-    EMBEDDED_EMULATOR, "ui.settings.debug.layout", "Show Debug Layout in UI settings",
-    "Enables Debug Layout in Device UI Shortcuts to display layout bounds",
-    true);
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS = new BooleanFlag(
-    EMBEDDED_EMULATOR, "ui.settings.gesture.navigation", "Show Gesture Navigation in Device UI Shortcuts",
-    "Enables Gesture Navigation setting in Device UI Shortcuts",
-    true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_ALLOW_XR_AVD = new BooleanFlag(
     EMBEDDED_EMULATOR, "allow.xr", "Allow XR AVD to run embedded",
     "Enables running an XR AVD in the Running Devices tool window",
-    enabledUpTo(DEV));
+    enabledUpTo(CANARY));
   public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_HAND_TRACKING = new BooleanFlag(
     EMBEDDED_EMULATOR, "xr.hand.tracking", "Enable hand tracking input mode for XR AVDs",
     "Enables hand tracking input mode for XR AVDs",
@@ -1200,6 +1226,10 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "use.uinput", "Use uinput module (https://kernel.org/doc/html/v4.12/input/uinput.html)",
     "Use uinput module ((https://kernel.org/doc/html/v4.12/input/uinput.html) for injecting input events",
     false);
+  public static final Flag<Boolean> DEVICE_MIRRORING_UNICODE_TYPING = new BooleanFlag(
+    DEVICE_MIRRORING, "unicode.typing", "Enable Unicode Typing",
+    "Enable typing of arbitrary Unicode characters",
+    false);
   //endregion
 
   //region Screenshot and Screen Recording
@@ -1207,11 +1237,15 @@ public final class StudioFlags {
   public static final Flag<Boolean> SCREENSHOT_STREAMLINED_SAVING = new BooleanFlag(
     SCREENSHOT, "streamlined.saving", "Save Screenshots and Screen Recordings without Asking User",
     "Save screenshots and screen recordings without asking user",
-    enabledUpTo(CANARY));
+    true);
   public static final Flag<Boolean> SCREENSHOT_RESIZING = new BooleanFlag(
     SCREENSHOT, "resizing", "Allow Screenshots to Be Resized",
     "Allow screenshots to be resized",
-    enabledUpTo(CANARY));
+    true);
+  public static final Flag<Boolean> MULTI_DISPLAY_SCREENSHOTS = new BooleanFlag(
+    SCREENSHOT, "multi.display", "Take Screenshots of All Displays",
+    "Take screenshots of all device displays",
+    false);
   //endregion
 
   // region Device Definition Download Service
@@ -1309,6 +1343,12 @@ public final class StudioFlags {
     "If enabled, calls a OnePlatform HTTP API instead of the developers.android.com web server for documentation.",
     enabledUpTo(CANARY));
 
+  public static final Flag<Boolean> RESTRICT_TO_COMPLETION_WEIGHER = new BooleanFlag(
+    EDITOR, "restrict.to.completion.weigher",
+    "Enable use of the weigher that demotes elements annotated with @RestrictTo.",
+    "If enabled, the APIs that are annotated with @RestrictTo will have lower priority in the completion list.",
+    enabledUpTo(CANARY));
+
   //endregion
 
   //region Unified App Bundle
@@ -1335,7 +1375,7 @@ public final class StudioFlags {
     TESTING, "additional.testing.gradle.options", "Show additional Gradle Options in Gradle RunConfiguration editor",
     "If enabled, Gradle RunConfiguration shows an additional Android Studio specific options to customize Gradle task execution," +
     "  such as showing test results in the test matrix, or use the device selector view to choose the target device.",
-    enabledUpTo(DEV)
+    enabledUpTo(CANARY)
   );
 
   public static final Flag<Boolean> ENABLE_SCREENSHOT_TESTING = new BooleanFlag(
@@ -1428,6 +1468,19 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> PREVIEW_FILTER = new BooleanFlag(
+    PREVIEW_COMMON, "filter",
+    "Support filtering the previews",
+    "If enabled, the user can find the filter actions to filter the visible previews",
+    false
+  );
+
+  public static final Flag<Boolean> PREVIEW_PAGINATION = new BooleanFlag(
+    PREVIEW_COMMON, "pagination",
+    "Support paginating the previews",
+    "If enabled, the previews shown in a file will be paginated",
+    false
+  );
   //endregion
 
   //region Compose
@@ -1498,6 +1551,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> LIVE_EDIT_COMPACT_STATUS_BUTTON = new BooleanFlag(
+    COMPOSE, "deploy.live.edit.compact.status.button",
+    "LiveEdit: Use a Single Button to Display Live Edit Status in the Toolbar of the Running Devices Window",
+    "If enabled, no status text will be displayed in the toolbar of the Running Devices window",
+    enabledUpTo(CANARY)
+  );
+
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = new BooleanFlag(
     COMPOSE, "preview.debug.bounds",
     "Enable the debug bounds switch controls",
@@ -1509,14 +1569,7 @@ public final class StudioFlags {
     COMPOSE, "preview.resizing",
     "Enable resizing for Compose Preview",
     "If enabled, the user can resize the Compose Preview",
-    enabledUpTo(DEV)
-  );
-
-  public static final Flag<Boolean> COMPOSE_VIEW_FILTER = new BooleanFlag(
-    COMPOSE, "view.filter",
-    "Support filter the previews in Compose",
-    "If enabled, the user can find the filter actions to filter the visible previews in compose preview",
-    false
+    enabledUpTo(CANARY)
   );
 
   public static final Flag<Integer> COMPOSE_INTERACTIVE_FPS_LIMIT = new IntFlag(
@@ -1526,31 +1579,9 @@ public final class StudioFlags {
     30
   );
 
-  public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG = new BooleanFlag(
-    COMPOSE, "preview.animation.coordination.drag",
-    "Enable animation dragging in timeline for Animation Inspector",
-    "If enabled, animation dragging will be available in Animation Inspector timeline.",
-    false
-  );
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_GROUP_LAYOUT = new BooleanFlag(
-    COMPOSE, "preview.group.layout", "Enable organization of Compose Preview in groups",
-    "If enabled, multiple previews associated with composable will be grouped. Please invalidates file caches after " +
-    "enabling or disabling (File -> Invalidate Caches...)", true);
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_UI_CHECK_GROUP_LAYOUT = new BooleanFlag(
-    COMPOSE, "preview.uicheck.group.layout", "Enable organization of Compose Preview in UI Check",
-    "If enabled, multiple previews associated with composable will be grouped in UI Check. Please invalidates file caches after " +
-    "enabling or disabling (File -> Invalidate Caches...)", true);
-
   public static final Flag<Boolean> COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE = new BooleanFlag(
     COMPOSE, "project.uses.compose.override", "Forces the Compose project detection",
     "If enabled, the project will be treated as a Compose project, showing Previews if available and enhancing the Compose editing",
-    false);
-
-  public static final Flag<Boolean> COMPOSE_FAST_PREVIEW_AUTO_DISABLE = new BooleanFlag(
-    COMPOSE, "fast.preview.auto.disable", "If enabled, Fast Preview can auto-disable",
-    "If enabled, if fast preview finds a compiler problem, it will be auto disable until the user re-enables it",
     false);
 
   public static final Flag<Boolean> COMPOSE_ALLOCATION_LIMITER = new BooleanFlag(
@@ -1566,7 +1597,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_GENERATE_SAMPLE_DATA = new BooleanFlag(
     COMPOSE, "generate.sample.data", "Enable sample data generation for Compose",
     "Enable a Gemini context-menu action that generates sample data for a given Composable function",
-    enabledUpTo(DEV));
+    false);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_PREVIEW = new BooleanFlag(
     COMPOSE, "preview.generate.preview.action", "Enable editor action for generating Compose Previews",
@@ -1588,15 +1619,15 @@ public final class StudioFlags {
     "Enable an AI-powered quick fix action for UI Check issues.",
     enabledUpTo(DEV));
 
-  public static final Flag<Boolean> COMPOSE_SEND_PREVIEW_TO_STUDIO_BOT = new BooleanFlag(
-    COMPOSE, "send.preview.to.studio.bot", "Enable action to send Compose Previews to Studio Bot",
-    "Enables a context-menu action to send Compose Previews to Studio Bot as context.",
-    enabledUpTo(DEV));
+  public static final Flag<Boolean> COMPOSE_PREVIEW_TRANSFORM_UI_WITH_AI = new BooleanFlag(
+    COMPOSE, "transform.ui.with.ai", "Enable action to transform UI with Gemini",
+    "Enables a context-menu action to transform UI with Gemini.",
+    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_CODE_TO_PREVIEW_NAVIGATION = new BooleanFlag(
     COMPOSE, "preview.code.to.preview.navigation", "Enable the highlighting of preview components when clicking on code",
     "If a user moves their caret to a element present in a preview, we highlight those elements",
-    enabledUpTo(DEV));
+    true);
   //endregion
 
   // region Wear surfaces
@@ -1648,6 +1679,12 @@ public final class StudioFlags {
     WEAR_DECLARATIVE_WATCH_FACE, "xml.editor.support.enabled", "Enable XML editor support for Declarative Watch Faces",
     "If enabled, the editor will support Watch Face Format in XML files",
     enabledUpTo(CANARY)
+  );
+
+  public static final Flag<Boolean> WATCH_FACE_STUDIO_FILE_IMPORT = new BooleanFlag(
+    WEAR_DECLARATIVE_WATCH_FACE, "wfs.import.enabled", "Enable support for importing Watch Face Studio files (.wfs)",
+    "If enabled, it will be possible to import Watch Face Studio files.",
+    enabledUpTo(DEV)
   );
   // endregion
 
@@ -1729,21 +1766,6 @@ public final class StudioFlags {
   //region Device Manager
   private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
 
-  public static final Flag<Boolean> RESIZABLE_EXPERIMENTAL_TWEAKS_ENABLED = new BooleanFlag(
-    DEVICE_MANAGER,
-    "resizable.experimental.tweaks.enabled",
-    "Enable the UI tweaks for the Resizable (Experimental) device definition",
-    "Enable the UI tweaks for the Resizable (Experimental) device definition",
-    enabledUpTo(CANARY));
-
-  public static final Flag<Boolean> DEVICE_CATALOG_ENABLED = new BooleanFlag(
-    DEVICE_MANAGER,
-    "device.catalog.enabled",
-    "Enable the Device Catalog for virtual device creation",
-    "Enable new UI for creating AVDs",
-    true
-  );
-
   public static final Flag<Boolean> POST_MVP_VIRTUAL_DEVICE_DIALOG_FEATURES_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "post.mvp.virtual.device.dialog.features.enabled",
@@ -1756,7 +1778,7 @@ public final class StudioFlags {
     "xr.device.support.enabled",
     "XR Device Support Enabled",
     "Enable the support of XR device in the device manager",
-    enabledUpTo(CANARY));
+    true);
   // endregion
 
   //region DDMLIB
@@ -1772,6 +1794,26 @@ public final class StudioFlags {
     false
   );
   // endregion DDMLIB
+
+  // region Play Policy Insights
+  private static final FlagGroup PLAY_POLICY_INSIGHTS = new FlagGroup(FLAGS, "playpolicyinsights", "Play Policy Insights");
+
+  public static final Flag<Boolean> ENABLE_PLAY_POLICY_INSIGHTS =
+    new BooleanFlag(
+      PLAY_POLICY_INSIGHTS,
+      "play.policy.insights",
+      "Play Policy Insights",
+      "Enable Play Policy Insights",
+      enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> PLAY_POLICY_INSIGHTS_AUTO_UPDATE =
+    new BooleanFlag(
+      PLAY_POLICY_INSIGHTS,
+      "play.policy.insights.auto.update",
+      "Play Policy Insights Auto Update",
+      "Update Play Policy lint rule library to the latest",
+      enabledUpTo(CANARY));
+  // endregion Play Policy Insights
 
   // region Firebase Test Lab
   private static final FlagGroup FIREBASE_TEST_LAB = new FlagGroup(FLAGS, "firebasetestlab", "Firebase Test Lab");
@@ -1867,6 +1909,14 @@ public final class StudioFlags {
       "Ask Gemini for the context files it needs to generate an insight.",
       enabledUpTo(CANARY)
     );
+
+  public static final Flag<Boolean> SUGGEST_A_FIX = new BooleanFlag(
+    APP_INSIGHTS,
+    "suggest.a.fix",
+    "Enables suggest a fix button in insights panel",
+    "Allows AQI to provide suggested fix based on the generated insight.",
+    enabledUpTo(CANARY)
+  );
 
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     new StringFlag(
@@ -2039,20 +2089,20 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "inline.code.completion.shortcut.hint.enabled",
                     "Enable the inline completion shortcut key hint.",
                     "When enabled, a custom inlay displaying 'TAB to complete' or similar text will be shown alongside inline completions.",
-                    enabledUpTo(CANARY));
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_DEFERRED_MULTILINE_SUGGESTIONS_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.deferred.multiline.suggestions.enabled",
                     "Enable deferred multiline suggestions.",
                     "When enabled, any part of a multi-line suggestion hidden behind the autosuggest popup will be removed, and " +
                     "offered later to the user if they accept the first line of the completion.",
-                    enabledUpTo(CANARY));
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_SYNTAX_HIGHLIGHTING_ENABLED =
     new BooleanFlag(STUDIOBOT, "inline.code.completion.syntax.highlighting.enabled",
                     "Enable syntax highlighting for inline suggestions.",
                     "When inline completions will use lexical syntax highlighting colors.",
-                    enabledUpTo(CANARY));
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> STUDIOBOT_COMPILER_ERROR_CONTEXT_ENABLED =
     new BooleanFlag(STUDIOBOT, "compiler.error.context.enabled",
@@ -2102,6 +2152,12 @@ public final class StudioFlags {
                     "When enabled, returns all files modified by models.",
                     enabledUpTo(DEV));
 
+  public static final Flag<Boolean> STUDIOBOT_TRANSFORM_SESSION_DIFF_EDITOR_VIEWER_ENABLED =
+    new BooleanFlag(STUDIOBOT, "editor.ai.transform.session.diff.editor.viewer.enabled",
+                    "Enable the new DiffEditorViewer UI that can show multiple-file diffs.",
+                    "When enabled, uses the new DiffEditorViewer UI.",
+                    enabledUpTo(CANARY));
+
   public static final Flag<Boolean> STUDIOBOT_ALLOW_TRANSFORMS_WITH_CITATIONS =
     new BooleanFlag(STUDIOBOT, "editor.ai.transform.allow.transforms.with.citations",
                     "Show transform results that have citations.",
@@ -2119,12 +2175,6 @@ public final class StudioFlags {
                     "Use the Compose for Desktop/Jewel-based UI for the Chat toolwindow.",
                     "When enabled, the Chat toolwindow will use the Jewel-based UI, implemented in Compose for Desktop.",
                     true);
-
-  public static final Flag<Boolean> STUDIOBOT_USE_AIDA_SIMPLIFIED_ONBOARDING =
-    new BooleanFlag(STUDIOBOT, "chat.use.aida.simplified.onboarding",
-                    "Use the simplified AIDA onboarding flow.",
-                    "When enabled, the AIDA model onboarding will use the new simplified flow. Only applied if the Compose Chat toolwindow is enabled.",
-                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_CONTEXT_ATTACHMENT_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.enable.context.attachment",
@@ -2159,14 +2209,14 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> STUDIOBOT_CURRENT_FILE_CONTEXT =
     new BooleanFlag(STUDIOBOT, "current.file.context",
-                    "Use the current file as context",
-                    "Attach the current file's path, contents, and selection with chat queries.",
-                    enabledUpTo(CANARY));
+                    "Enable the Current File macro in the context drawer",
+                    "This macro attaches the current file's path, contents, and selection with chat queries.",
+                    enabledUpTo(STABLE));
 
   public static final Flag<Boolean> STUDIOBOT_RECENT_FILES_CONTEXT =
     new BooleanFlag(STUDIOBOT, "open.files.context",
-                    "Use the most recently opened files as context",
-                    "Attach the most recently opened files' (but not including the currently open one's) paths and contents with chat queries.",
+                    "Enable the Recent Files macro in the context drawer",
+                    "This macro attaches the most recently opened files' (but not including the currently open one's) paths and contents with chat queries.",
                     enabledUpTo(CANARY));
 
   public static final Flag<Boolean> STUDIOBOT_ASK_GEMINI_INCLUDE_BUILD_FILES_IN_CONTEXT =
@@ -2181,17 +2231,47 @@ public final class StudioFlags {
                     "When enabled, add prompt library settings screen.",
                     true);
 
+  public static final Flag<Boolean> STUDIOBOT_PROMPT_LIBRARY_RULES_ENABLED =
+    new BooleanFlag(STUDIOBOT, "prompt.library.rules",
+                    "Enable Rules Prompt Library",
+                    "When enabled, add Rules section to prompt library settings screen.",
+                    enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> STUDIOBOT_PROMPT_LIBRARY_CHAT_LOOKUP_ENABLED =
+    new BooleanFlag(STUDIOBOT, "prompt.library.chat.lookup",
+                    "Show Saved Prompts in chat lookup",
+                    "When enabled, add Rules section to lookup popup.",
+                    enabledUpTo(CANARY));
+
   public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
-                    "Enable Scroll to Bottom button",
-                    "When enabled, the chat will show a Scroll to Bottom button as needed.",
+                    "Enable AutoScroll Button",
+                    "When enabled, the chat will show a button on the timeline to toggle auto-scrolling.",
                     enabledUpTo(DEV));
+
+  public static final Flag<Boolean> STUDIOBOT_RESPONSE_CANCELLATION_ENABLED =
+    new BooleanFlag(STUDIOBOT, "chat.response.cancellation.enabled",
+                    "Enable cancellation in Chat Timeline",
+                    "When enabled, the chat will show a banner that will allow cancelling ongoing responses.",
+                    enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> STUDIOBOT_SHOW_MODEL_NAME_IN_QUERY_BOX =
+    new BooleanFlag(STUDIOBOT, "chat.show.model.name",
+                    "Show model name in query box",
+                    "Shows the model name in the query box, with an animation when a query is submitted.",
+                    false);
 
   public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
     new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
                     "Use ML model to suggest commit messages",
                     "Enables the \"Suggest Commit Message\" button in the Commit tool window",
                     true);
+
+  public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION_OVERRIDE =
+    new BooleanFlag(STUDIOBOT, "commit.message.suggestion.override",
+                    "Allow users to override prompt for suggesting commit messages",
+                    "Enables the \"Commit Message Generation\" in Prompt Library setting",
+                    enabledUpTo(CANARY));
 
   public static final Flag<Boolean> README_GENERATION =
     new BooleanFlag(STUDIOBOT, "readme.generation",
@@ -2283,7 +2363,44 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "support.gias.enterprise",
                     "Enable support for GCA Enterprise tier",
                     "Enable support for GCA Enterprise tier",
+                    true);
+
+  public static Flag<Boolean> STUDIOBOT_SHIMMER_PLACEHOLDER =
+    new BooleanFlag(STUDIOBOT, "show.shimmer.placeholder",
+                    "Enable shimmering placeholder in chat timeline.",
+                    "When enabled, the compose chat timeline will show a shimmering placeholder while awaiting initial response content.",
                     enabledUpTo(CANARY));
+
+  public static Flag<Boolean> GEMINI_BRING_YOUR_OWN_KEY_ENABLED =
+    new BooleanFlag(STUDIOBOT, "bring.your.own.key",
+                    "Enable providing a public Gemini API key to override the default model.",
+                    "When enabled, a setting and various UI is made visible to provide a Gemini API key, and when provided and" +
+                    "enabled it replaces the default model with the public Gemini model.",
+                    enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> STUDIOBOT_INCLUDE_GRADLE_PROJECT_STRUCTURE_TOOLS_BY_DEFAULT =
+    new BooleanFlag(STUDIOBOT, "include.gradle.project.structure.tools.by.default",
+                    "Enable using Gradle project structure Agent tools by default",
+                    "When enabled, a set of tools allowing the agent to query for the Gradle project structure will be included by default.",
+                    enabledUpTo(DEV));
+
+  public static final Flag<Boolean> GEMINI_AGENT_MODE =
+    new BooleanFlag(STUDIOBOT, "agent.mode",
+                    "Enable agent mode.",
+                    "When enabled, the agent mode will be enabled in the Gemini toolwindow.", enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> GEMINI_VERSION_UPGRADE_AGENT =
+    new BooleanFlag(STUDIOBOT, "version.upgrade.agent",
+                    "Enable Gemini Version Upgrade Agent.",
+                    "Enables the agent that helps with upgrading dependencies to newer versions.", enabledUpTo(DEV));
+
+  public enum CodeIndexingMode {NONE, BM25}
+
+  public static final EnumFlag<CodeIndexingMode> GEMINI_INDEX_CODEBASE =
+    new EnumFlag<>(STUDIOBOT, "codebase.indexing.mode",
+                   "Codebase Indexing Mode",
+                   "Index the codebase to allow searching using natural language",
+                   CodeIndexingMode.NONE);
 
   public enum DasherSupportMode {
     /**
@@ -2307,6 +2424,18 @@ public final class StudioFlags {
                    "Enable support for GCA Dasher accounts",
                    "Enable support for GCA Dasher accounts",
                    DasherSupportMode.AUTO);
+
+  public static final Flag<Boolean> GEMINI_SHOW_SIGN_IN_DIALOG =
+    new BooleanFlag(STUDIOBOT, "gemini.show.sign.in.dialog",
+                    "Enable sign in dialog for Gemini",
+                    "Enable Gemini actions to display a dialog prompting the user to sign in",
+                    enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> GEMINI_VERIFY_USER_TIER_IN_ALL_AIDA_RPCS =
+    new BooleanFlag(STUDIOBOT, "verify.user.tier.in.aida.rpcs",
+                    "Verify user tier in all API requests to the AIDA endpoint",
+                    "Verify user tier in all API requests to the AIDA endpoint",
+                    true);
 
   // endregion STUDIO_BOT
 
@@ -2341,18 +2470,17 @@ public final class StudioFlags {
     new FlagGroup(FLAGS, "google.login", "Google Login");
   public static final Flag<Boolean> ENABLE_COMBINED_LOGIN_COMPOSE_UI =
     new BooleanFlag(GOOGLE_LOGIN, "combined.login.use.compose.flow", "Enable combined login using Compose",
-                    "When enabled, a combined sign-in flow using Compose will show when logging in for a new user.", false);
+                    "When enabled, a combined sign-in flow using Compose will show when logging in for a new user.", enabledUpTo(CANARY));
+  public static final Flag<Boolean> USE_1P_LOGIN_UI =
+    new BooleanFlag(GOOGLE_LOGIN, "use.1p.login.ui", "Use 1P login UI",
+                    "Use 1P login UI to show the OAuth scopes that will be requested", false);
+  public static final Flag<String> CHIME_ENDPOINT =
+    new StringFlag(GOOGLE_LOGIN, "chime.endpoint", "Chime Endpoint",
+                   "Endpoint to use for Chime API", "notifications-pa.googleapis.com");
+  public static final Flag<Boolean> SHOW_MARKETING_DIALOG =
+    new BooleanFlag(GOOGLE_LOGIN, "show.marketing.dialog", "Show marketing dialog",
+                    "Show marketing dialog after user logs in", true);
   // endregion Google Login
-
-  // region Cloud Integration
-  private static final FlagGroup CLOUD_INTEGRATION =
-    new FlagGroup(FLAGS, "cloud", "Cloud Integration");
-  // TODO(b/341816638): delete in L
-  public static final Flag<Boolean> SHOW_CLOUD_DEPRECATION_MESSAGES =
-    new BooleanFlag(CLOUD_INTEGRATION, "enabled", "Show bundled cloud plugin deprecation messages",
-                    "When enabled, deprecation messages will show when using functionality from the bundled cloud plugin.", true);
-
-  // endregion Cloud Integration
 
   // region Backup
   private static final FlagGroup BACKUP = new FlagGroup(FLAGS, "backup", "Backup");
@@ -2362,7 +2490,7 @@ public final class StudioFlags {
       "enable",
       "Enable Backup/Restore feature",
       "Enable Backup/Restore feature",
-      enabledUpTo(CANARY));
+      true);
 
   public static final Flag<Integer> BACKUP_GMSCORE_MIN_VERSION =
     new IntFlag(
@@ -2379,14 +2507,6 @@ public final class StudioFlags {
       "Display Backup action in Running Devices",
       "Display Backup action in Running Devices",
       true);
-
-  public static final Flag<Boolean> BACKUP_ALLOW_NON_PROJECT_APPS =
-    new BooleanFlag(
-      BACKUP,
-      "allow.non.project.apps",
-      "Allow Backup/Restore on Non Project Apps",
-      "Allow invocation of Backup & Restore actions on apps that are not part of the project. Unexpected results may occur.",
-      false);
   // endregion Backup
 
   // region GOOGLE_PLAY_SDK_INDEX
@@ -2413,18 +2533,44 @@ public final class StudioFlags {
     "Show issues related to deprecated libraries from SDK Index in Lint and PSD",
     true
   );
-  // endregion GOOGLE_PLAY_SDK_INDEX
+  // endregion GOOGLE_PLAY_SDK_INDEXx
 
   // region JOURNEYS_WITH_GEMINI
   private static final FlagGroup JOURNEYS_WITH_GEMINI = new FlagGroup(FLAGS, "journeys.with.gemini", "Journeys with Gemini");
-  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_EDITOR = new BooleanFlag(
-    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.editor", "Enable Journeys with Gemini Editor",
-    "Use Journeys with Gemini Editor when editing journey files (.journey.xml extensions)",
-    enabledUpTo(DEV)
-  );
   public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_EXECUTION = new BooleanFlag(
     JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.execution", "Enable Journeys with Gemini execution",
-    "Enable triggering Journeys with Gemini run configurations",
+    "Enable Journeys with Gemini related functionality to allow users to create, edit and execute Journeys.",
+    enabledUpTo(CANARY)
+  );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.auto.gradle.configuration",
+    "Enable automatic Gradle configuration for Journeys with Gemini",
+    "Applies the Gradle configuration needed to run Journeys automatically when a Journeys run configuration is triggered",
+    enabledUpTo(CANARY)
+  );
+  public static final Flag<String> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION_DEP = new StringFlag(
+    JOURNEYS_WITH_GEMINI, "dependency.journeys.with.gemini.auto.gradle.configuration",
+    "Journey plugin dependency name used by automatic Gradle configuration",
+    "The ID of the Journey AGP plugin to use in the init-script injected when JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION " +
+    "is enabled, Use the `-dev` suffix to use a locally built plugin.",
+    "com.android.tools.journeys:journeys-gradle-plugin:0.0.1-alpha03"
+  );
+  public static final Flag<String> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION_EXTRA_REPOSITORY_URL = new StringFlag(
+    JOURNEYS_WITH_GEMINI, "extra.repository.url.for.journeys.with.gemini.auto.gradle.configuration",
+    "URL of extra repository used by automatic Gradle configuration (e.g. staging repo)",
+    "URL of extra repository used by automatic Gradle configuration (e.g. staging repo)",
+    ""
+  );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_AUTO_GRADLE_CONFIGURATION_INIT_SCRIPT_V2 = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.auto.gradle.configuration.init.script.v2",
+    "Use a V2 version of Journeys init script which is used in the Gradle run configuration for Journeys with Gemini",
+    "Applies Journeys Gradle plugin to your Gradle project by the new version of Journeys Gradle init script." +
+    " This version includes a fix for ClassNotFound exception when AppPlugin is not applied in your root Gradle project (b/418228060).",
+    enabledUpTo(CANARY)
+  );
+  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_RECORDING = new BooleanFlag(
+    JOURNEYS_WITH_GEMINI, "enable.journeys.with.gemini.recording", "Enable Journeys with Gemini recording",
+    "Enable recording of Journeys with Gemini",
     enabledUpTo(DEV)
   );
   // endregion JOURNEYS_WITH_GEMINI
@@ -2441,21 +2587,21 @@ public final class StudioFlags {
     "first.run.migrated.wizard.enabled",
     "Migrated First Run Wizard Enabled",
     "Show the migrated version of the welcome wizard when Studio first starts",
-    enabledUpTo(CANARY)
+    enabledUpTo(STABLE)
   );
   public static final Flag<Boolean> SDK_SETUP_MIGRATED_WIZARD_ENABLED = new BooleanFlag(
     WIZARD_MIGRATION,
     "sdk.setup.migrated.wizard.enabled",
     "Migrated SDK Setup Wizard Enabled",
     "Show the migrated version of the SDK setup wizard",
-    enabledUpTo(CANARY)
+    enabledUpTo(STABLE)
   );
   public static final Flag<Boolean> AEHD_CONFIGURATION_MIGRATED_WIZARD_ENABLED = new BooleanFlag(
     WIZARD_MIGRATION,
     "aehd.configuration.migrated.wizard.enabled",
     "Migrated AEHD Configuration Wizard Enabled",
     "Show the migrated version fo the AEHD configuration wizard",
-    enabledUpTo(CANARY)
+    enabledUpTo(STABLE)
   );
   // endregion WIZARD_MIGRATION
 
@@ -2479,8 +2625,71 @@ public final class StudioFlags {
       "enable",
       "Enable Settings Sync feature",
       "Enable Settings Sync feature",
-      false);
+      enabledUpTo(CANARY));
   // endregion Settings sync
 
+  // region PROJECT_TOOL_WINDOW
+  private static final FlagGroup PROJECT_TOOL_WINDOW = new FlagGroup(FLAGS, "project.tool.window", "Project Toolwindow");
+  public static final Flag<Boolean> SHOW_DEFAULT_PROJECT_VIEW_SETTINGS =
+    new BooleanFlag(
+      PROJECT_TOOL_WINDOW,
+      "default.project.view",
+      "Show UI for default project view in settings",
+      "Show UI for default project view in settings",
+      enabledUpTo(CANARY));
+  public static final Flag<Boolean> SHOW_BUILD_FILES_IN_MODULE_SETTINGS =
+    new BooleanFlag(
+      PROJECT_TOOL_WINDOW,
+      "gradle.files.in.module",
+      "Show UI for having build files per module",
+      "When enabled, the settings menu will show a checkbox to change the behavior of the Android view to display gradle files under each module",
+      enabledUpTo(CANARY));
+  // endregion PROJECT_TOOL_WINDOW
+
+  // region Wifi 2.0
+  private static final FlagGroup WIFI_V2 = new FlagGroup(FLAGS, "wifiv2", "Wifi V2");
+  public static final Flag<Boolean> WIFI_V2_ENABLED =
+    new BooleanFlag(
+      WIFI_V2,
+      "enable",
+      "Enable Wifi 2.0",
+      "Enable Wifi 2.0 feature",
+      false);
+  // endregion Wifi 2.0
+
+  // region Benchmark Survey
+  private static final FlagGroup BENCHMARK_SURVEY = new FlagGroup(FLAGS, "benchmark.survey", "Benchmark Survey");
+  public static final Flag<Boolean> BENCHMARK_SURVEY_ENABLED =
+    new BooleanFlag(
+      BENCHMARK_SURVEY,
+      "enable",
+      "Enable Benchmark Survey",
+      "Enable the benchmark survey when requesting user satisfaction",
+      false);
+  // endregion Wifi 2.0
+
+  // region deprecation policy
+  private static final FlagGroup DEPRECATION_POLICY = new FlagGroup(FLAGS, "deprecationpolicy", "Deprecation Policy");
+  public static final Flag<Boolean> USE_POLICY_WITH_DEPRECATE =
+    new BooleanFlag(
+      DEPRECATION_POLICY,
+      "use.policy.with.deprecate",
+      "Use N2 deprecation policy",
+      "Use N2 deprecation policy that supports DEPRECATED state",
+      enabledUpTo(CANARY));
+  public static final Flag<String> DEFAULT_MORE_INFO_URL =
+    new StringFlag(
+      DEPRECATION_POLICY,
+      "default.more.info.url",
+      "Defaul More Info URL",
+      "Redirect to this URL if moreInfoUrl is not provided",
+      "https://developer.android.com/studio/releases#service-compat"
+    );
+  // endregion deprecation policy
+
   private StudioFlags() { }
+
+  private static Boolean isUnitTestMode() {
+    return ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode();
+  }
 }

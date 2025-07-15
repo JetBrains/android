@@ -16,10 +16,12 @@
 package com.google.idea.blaze.android.projectsystem;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.google.common.collect.ImmutableList;
 import com.google.idea.blaze.base.model.primitives.Label;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import java.lang.Deprecated;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,7 +43,18 @@ public interface MavenArtifactLocator {
    *
    * @param coordinate GradleCoordinate for the artifact.
    */
+  @Deprecated
   Label labelFor(GradleCoordinate coordinate);
+
+  /**
+   * Returns a label for the artifact if it can be
+   * located in the current workspace.
+   *
+   * @param coordinate GradleCoordinate for the artifact.
+   */
+  default Label labelFor(WellKnownMavenArtifactId id) {
+      return labelFor(id.getCoordinate("+"));
+  }
 
   /** Returns the {@link BuildSystemName} this {@link MavenArtifactLocator} supports. */
   BuildSystemName buildSystem();

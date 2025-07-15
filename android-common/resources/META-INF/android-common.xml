@@ -14,9 +14,14 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <depends optional="true" config-file="android-common-androidstudio.xml">com.intellij.modules.androidstudio</depends>
+
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.googleapis.googleApiKeyProvider"
                     interface="com.android.tools.idea.googleapis.GoogleApiKeyProvider"
+                    dynamic="true"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.login.googleLoginCredentialProvider"
+                    interface="com.android.tools.idea.login.GoogleLoginCredentialProvider"
                     dynamic="true"/>
   </extensionPoints>
   <extensions defaultExtensionNs="com.intellij">

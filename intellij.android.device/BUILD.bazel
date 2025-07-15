@@ -21,7 +21,6 @@ jvm_library(
     "@lib//:kotlinx-collections-immutable",
     "//android/adt-ui-compose",
     "//android/android-common:common",
-    "//android/android:core",
     "//android/wizard",
     "//android/wizard-model",
     "//platform/core-api:core",
@@ -33,7 +32,6 @@ jvm_library(
     "//platform/util:util-ui",
     "//android/artwork",
     "//android/artwork-compose",
-    "//android/android-adb:adb",
   ],
   plugins = ["@lib//:compose-plugin"]
 )

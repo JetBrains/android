@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.vitals.ui
 
+import com.android.flags.junit.FlagRule
+import com.android.testutils.delayUntilCondition
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
@@ -22,7 +25,8 @@ import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.StubAppInsightsProjectLevelController
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
-import com.android.tools.idea.insights.ui.ServiceDeprecatedPanel
+import com.android.tools.idea.insights.ui.ServiceDeprecatedBanner
+import com.android.tools.idea.insights.ui.ServiceUnsupportedPanel
 import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
@@ -47,11 +51,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 
 class VitalsTabProviderTest {
 
   @get:Rule val projectRule = ProjectRule()
+  @get:Rule val flagRule = FlagRule(StudioFlags.USE_1P_LOGIN_UI, false)
 
   private lateinit var modelStateFlow: MutableStateFlow<AppInsightsModel>
   private lateinit var manager: AppInsightsConfigurationManager
@@ -120,7 +124,13 @@ class VitalsTabProviderTest {
           modelStateFlow.value = AppInsightsModel.Unauthenticated
         }
         2 -> {
-          assertThat(component.toString()).contains("loggedOutErrorStateComponent")
+          val expect =
+            if (StudioFlags.USE_1P_LOGIN_UI.get()) {
+              "loggedOut1pPanel"
+            } else {
+              "loggedOutErrorStateComponent"
+            }
+          assertThat(component.toString()).contains(expect)
           modelStateFlow.value = AppInsightsModel.InitializationFailed
         }
         3 -> {
@@ -161,7 +171,7 @@ class VitalsTabProviderTest {
   }
 
   @Test
-  fun `show service deprecated panel when service is deprecated`() = runTest {
+  fun `show service unsupported panel when service is unsupported`() = runTest {
     deprecation =
       DevServicesDeprecationData(
         "header",
@@ -172,7 +182,38 @@ class VitalsTabProviderTest {
       )
     val flow = populateTabAndGetComponentsFlow()
     flow.take(1).collect { component ->
-      assertThat(component).isInstanceOf(ServiceDeprecatedPanel::class.java)
+      assertThat(component).isInstanceOf(ServiceUnsupportedPanel::class.java)
+    }
+  }
+
+  @Test
+  fun `show deprecated banner when service is unsupported`() = runTest {
+    deprecation =
+      DevServicesDeprecationData(
+        "header",
+        "desc",
+        "url",
+        true,
+        DevServicesDeprecationStatus.DEPRECATED,
+      )
+    val flow = populateTabAndGetComponentsFlow()
+    flow.take(3).collectIndexed { idx, comp ->
+      when (idx) {
+        0,
+        1 -> assertThat(comp).isInstanceOf(ServiceDeprecatedBanner::class.java)
+        2 -> assertThat(comp.toString()).contains("placeholderContent")
+      }
+    }
+  }
+
+  @Test
+  fun `test 1p login screen`() = runTest {
+    StudioFlags.USE_1P_LOGIN_UI.override(true)
+    tabProvider.populateTab(projectRule.project, tabPanel, flow { true })
+    modelStateFlow.value = AppInsightsModel.Unauthenticated
+
+    delayUntilCondition(200) {
+      tabPanel.components.firstOrNull().toString().contains("loggedOut1pPanel")
     }
   }
 }

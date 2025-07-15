@@ -18,13 +18,13 @@ package com.android.tools.idea.streaming.device
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceProperties
-import com.android.test.testutils.TestUtils.getBinPath
-import com.android.test.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.TestUtils.getBinPath
+import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.asdriver.tests.Adb
+import com.android.tools.testlib.Adb
 import com.android.tools.asdriver.tests.AndroidSystem
-import com.android.tools.asdriver.tests.Emulator
+import com.android.tools.testlib.Emulator
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.testing.flags.overrideForTest
@@ -406,7 +406,7 @@ class ScreenSharingAgentTest {
     private val emptyDeviceConfiguration =
       DeviceConfiguration(DeviceProperties.buildForTest {
         icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-        androidVersion = AndroidVersion(30)
+        androidVersion = AndroidVersion(30, 0)
         manufacturer = "Google"
         model = "Pixel 5"
         isRemote = false

@@ -36,11 +36,6 @@ import org.junit.rules.TemporaryFolder
  * * What went wrong:
  * ...
  * ```
- *
- * We currently have several parsers that try to parse this, so we need to make sure they work together in different cases.
- * - [com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParser]
- * - [ConfigurationCacheErrorParser]
- * - [org.jetbrains.plugins.gradle.execution.build.output.GradleBuildScriptErrorParser]
  */
 class GradleFailureOutputParserTest : BuildOutputParserTest() {
 
@@ -50,11 +45,12 @@ class GradleFailureOutputParserTest : BuildOutputParserTest() {
   @Test
   fun configurationCacheErrorParsed() {
     val basePath = temporaryFolder.newFolder()
+    val buildGradle = temporaryFolder.newFile("build.gradle")
     val buildOutput = """
 FAILURE: Build failed with an exception.
 
 * Where:
-Build file '$basePath/app/build.gradle' line: 6
+Build file '$buildGradle' line: 6
 
 * What went wrong:
 Configuration cache problems found in this build.
@@ -200,6 +196,33 @@ Run with --stacktrace option to get the stack trace. Run with --info or --debug 
           $path:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.
           """.trimIndent()
         ),
+        //TODO (b/372180686): extra `Android resource linking failed` message is currently generated from final failure message
+        ExpectedEvent(
+          message = "Android resource linking failed",
+          isFileMessageEvent = false,
+          isBuildIssueEvent = false,
+          isDuplicateMessageAware = true,
+          group = "Other Messages",
+          kind= MessageEvent.Kind.ERROR,
+          parentId = ":app:processDebugResources",
+          description = """
+          Execution failed for task ':app:processDebugResources'.
+          > A failure occurred while executing com.android.build.gradle.internal.tasks.Workers.ActionFacade
+             > Android resource linking failed
+               $path:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.
+
+               $path:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.
+
+               $path:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.
+
+               $path:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.
+
+          * Try:
+          Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
+
+          * Get more help at https://help.gradle.org
+          """.trimIndent()
+        ),
       )
     )
   }
@@ -220,5 +243,60 @@ Run with --stacktrace option to get the stack trace. Run with --info or --debug 
       parentId = "testId",
       description = getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml")
     )))
+  }
+
+  @Test
+  fun scriptLocationParsed() = testBuildFileType("Script")
+  @Test
+  fun initScriptLocationParsed() = testBuildFileType("Initialization script")
+  @Test
+  fun buildFileLocationParsed() = testBuildFileType("Build file")
+  @Test
+  fun settingsFileLocationParsed() = testBuildFileType("Settings file")
+
+  private fun testBuildFileType(type: String) {
+    val scriptGradle = temporaryFolder.newFile("script.gradle")
+    val buildOutput = """
+FAILURE: Build failed with an exception.
+
+* Where:
+$type '$scriptGradle' line: 5
+
+* What went wrong:
+Execution failed for task ':app:failingTask1'.
+> java.lang.Exception: Failing failingTask1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+""".trimIndent()
+    parseOutput(
+      parentEventId = "testId",
+      gradleOutput = buildOutput,
+      expectedEvents = listOf(ExpectedEvent(
+        message = "java.lang.Exception: Failing failingTask1",
+        isFileMessageEvent = true,
+        isBuildIssueEvent = false,
+        isDuplicateMessageAware = true,
+        group = "Other Messages",
+        kind= MessageEvent.Kind.ERROR,
+        parentId = ":app:failingTask1",
+        filePosition = "$scriptGradle:5:1-5:1",
+        description = """
+          $type '$scriptGradle' line: 5
+          
+          Execution failed for task ':app:failingTask1'.
+          > java.lang.Exception: Failing failingTask1
+          
+          * Try:
+          > Run with --stacktrace option to get the stack trace.
+          > Run with --debug option to get more log output.
+          > Run with --scan to get full insights.
+          > Get more help at https://help.gradle.org.
+        """.trimIndent()
+      ))
+    )
   }
 }

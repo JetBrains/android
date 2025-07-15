@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.android.SdkConstants
 import com.android.ide.common.gradle.Component
+import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.repository.FakeGoogleMavenRepositoryV2Host
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GoogleMavenRepositoryV2
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.AssumeUtil
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.impl.IdeDeclaredDependenciesImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.projectsystem.gradle.GradleDependencyCompatibilityAnalyzer
@@ -45,6 +46,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
@@ -56,18 +58,22 @@ private const val TIMEOUT = 10L // seconds
 @RunWith(JUnit4::class)
 class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
 
+  private val testDataDir: Path =
+    Paths.get(
+      AndroidTestBase.getTestDataPath()).resolve("../../project-system-gradle/testData/repoIndex").normalize()
+
   /**
    * This test is using a fake Maven Repository where we control the available artifacts and versions.
    */
   private val mavenRepository = object : GoogleMavenRepository(
-    cacheDir = Paths.get(AndroidTestBase.getTestDataPath()).resolve("../../project-system-gradle/testData/repoIndex").normalize(),
+    cacheDir = testDataDir,
     cacheExpiryHours = Int.MAX_VALUE,
     useNetwork = false
   ) {
     override fun readUrlData(url: String, timeout: Int, lastModified: Long) = throw AssertionFailedError("shouldn't try to read!")
     override fun error(throwable: Throwable, message: String?) {}
   }
-  private val googleMavenRepositoryV2 = GoogleMavenRepositoryV2.create()
+  private val googleMavenRepositoryV2 = GoogleMavenRepositoryV2.create(FakeGoogleMavenRepositoryV2Host())
 
   private val repoUrlManager = RepositoryUrlManager(
     googleMavenRepository = mavenRepository,
@@ -88,35 +94,35 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
   fun testGetAvailableDependency_fallbackToPreview() {
     setupProject()
     // In the test repo ANDROIDX_NAVIGATION_RUNTIME only has a preview version 0.0.1-alpha1
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_RUNTIME.getCoordinate("+"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_RUNTIME.getDependency("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_RUNTIME.getCoordinate("0.0.1-alpha1"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_RUNTIME.getComponent("0.0.1-alpha1"))
   }
 
   @Test
   fun testGetAvailableDependency_returnsLatestStable() {
     setupProject()
     // In the test repo CONSTRAINT_LAYOUT has a stable version of 1.0.2 and a beta version of 1.1.0-beta3
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getDependency("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("1.0.2"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getComponent("1.0.2"))
   }
 
   @Test
   fun testGetAvailableDependency_returnsNullWhenNoneMatches() {
     setupProject()
     // The test repo does not have any version of PLAY_SERVICES_ADS.
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GoogleMavenArtifactId.PLAY_SERVICES_ADS.getCoordinate("+"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.PLAY_SERVICES_ADS.getDependency("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEqualTo("The dependency was not found: com.google.android.gms:play-services-ads:+")
-    assertThat(missing).containsExactly(GoogleMavenArtifactId.PLAY_SERVICES_ADS.getCoordinate("+"))
+    assertThat(missing).containsExactly(GoogleMavenArtifactId.PLAY_SERVICES_ADS.getDependency("+"))
     assertThat(found).isEmpty()
   }
 
@@ -128,12 +134,12 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       additionalLibrary1ResolvedDependencies = listOf(ideAndroidLibrary("com.android.support:appcompat-v7:23.1.1"))
     )
     // Check that the version is picked up from one of the sub modules
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getCoordinate("+"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getDependency("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getCoordinate("23.1.1"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getComponent("23.1.1"))
   }
 
   @Test
@@ -144,12 +150,12 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       additionalLibrary1DeclaredDependencies = listOf("com.android.support:appcompat-v7:+")
     )
 
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getCoordinate("+"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getDependency("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getCoordinate("22.2.1"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_RECYCLERVIEW_V7.getComponent("22.2.1"))
   }
 
   @Test
@@ -163,8 +169,8 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       additionalAppDeclaredDependencies = listOf("androidx.appcompat:appcompat:2.0.0", "androidx.appcompat:appcompat:1.2.0")
     )
 
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate("androidx.fragment", "fragment", "+"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getDependency("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEqualTo("""
       Inconsistencies in the existing project dependencies found.
@@ -174,7 +180,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       -   androidx.appcompat:appcompat:2.0.0
     """.trimIndent())
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GradleCoordinate("androidx.fragment", "fragment", "2.0.0"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getComponent("2.0.0"))
   }
 
   @Test
@@ -187,8 +193,8 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       ),
       additionalLibrary1DeclaredDependencies = listOf("androidx.appcompat:appcompat:2.0.0", "androidx.core:core:1.0.0")
     )
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate("androidx.fragment", "fragment", "+"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getDependency("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEqualTo("""
       Inconsistencies in the existing project dependencies found.
@@ -203,7 +209,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       -   androidx.core:core:2.0.0
     """.trimIndent())
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GradleCoordinate("androidx.fragment", "fragment", "2.0.0"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getComponent("2.0.0"))
   }
 
   @Test
@@ -215,8 +221,8 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       additionalAppDeclaredDependencies = listOf("com.google.android.material:material:1.3.0")
     )
 
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate("com.acme.pie", "pie", "+"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(Dependency.parse("com.acme.pie:pie:+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEqualTo("""
       Version incompatibility between:
@@ -230,7 +236,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       -   androidx.core:core:1.0.0
     """.trimIndent())
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GradleCoordinate("com.acme.pie", "pie", "1.0.0-alpha1"))
+    assertThat(found).containsExactly(Component.parse("com.acme.pie:pie:1.0.0-alpha1"))
   }
 
   @Test
@@ -241,8 +247,8 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       additionalLibrary1DeclaredDependencies = listOf("com.google.android.material:material:1.3.0")
     )
 
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate("com.acme.pie", "pie", "+"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(Dependency.parse("com.acme.pie:pie:+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEqualTo("""
       Version incompatibility between:
@@ -256,7 +262,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       -   androidx.core:core:1.0.0
     """.trimIndent())
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GradleCoordinate("com.acme.pie", "pie", "1.0.0-alpha1"))
+    assertThat(found).containsExactly(Component.parse("com.acme.pie:pie:1.0.0-alpha1"))
   }
 
   @Test
@@ -265,11 +271,11 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       additionalLibrary1DeclaredDependencies = listOf("androidx.appcompat:appcompat:2.0.0")
     )
 
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate("com.acme.pie", "pie", "+"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(Dependency.parse("com.acme.pie:pie:+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
-    assertThat(found).containsExactly(GradleCoordinate.parseCoordinateString("com.acme.pie:pie:1.0.0-alpha1"))
+    assertThat(found).containsExactly(Component.parse("com.acme.pie:pie:1.0.0-alpha1"))
     assertThat(missing).isEmpty()
   }
 
@@ -283,11 +289,11 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       additionalLibrary1DeclaredDependencies = listOf("androidx.appcompat:appcompat:1.0.0")
     )
 
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate("androidx.fragment", "fragment", "+"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getDependency("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
-    assertThat(found).containsExactly(GradleCoordinate.parseCoordinateString("androidx.fragment:fragment:1.2.0"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.ANDROIDX_FRAGMENT.getComponent("1.2.0"))
     assertThat(missing).isEmpty()
   }
 
@@ -303,12 +309,11 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       )
     )
 
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate("com.google.android.material", "material", "+"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.MATERIAL.getDependency("+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
-    assertThat(found).containsExactly(
-      GradleCoordinate.parseCoordinateString("com.google.android.material:material:1.3.0"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.MATERIAL.getComponent("1.3.0"))
     assertThat(missing).isEmpty()
   }
 
@@ -317,22 +322,22 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     // We are adding 2 kotlin dependencies which depend on different kotlin stdlib
     // versions: 1.2.50 and 1.3.0. Make sure the dependencies can be added without errors.
     setupProject()
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate("androidx.core", "core-ktx", "1.0.0"),
-             GradleCoordinate("androidx.navigation", "navigation-runtime-ktx", "2.0.0"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.ANDROIDX_CORE_KTX.getDependency("1.0.0"),
+             GoogleMavenArtifactId.ANDROIDX_NAVIGATION_RUNTIME_KTX.getDependency("2.0.0"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
     assertThat(found).containsExactly(
-      GradleCoordinate.parseCoordinateString("androidx.core:core-ktx:1.0.0"),
-      GradleCoordinate.parseCoordinateString("androidx.navigation:navigation-runtime-ktx:2.0.0"))
+      GoogleMavenArtifactId.ANDROIDX_CORE_KTX.getComponent("1.0.0"),
+      GoogleMavenArtifactId.ANDROIDX_NAVIGATION_RUNTIME_KTX.getComponent("2.0.0"))
     assertThat(missing).isEmpty()
   }
 
   @Test
   fun testGetAvailableDependencyWithRequiredVersionMatching() {
     setupProject()
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "+")))
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getDependency("+")))
       .get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
@@ -340,82 +345,112 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
     assertThat(found).hasSize(1)
 
     val foundDependency = found.first()
-    assertThat(foundDependency.artifactId).isEqualTo(SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID)
-    assertThat(foundDependency.groupId).isEqualTo(SdkConstants.SUPPORT_LIB_GROUP_ID)
-    assertThat(foundDependency.lowerBoundVersion.major).isEqualTo(23)
-    assertThat(foundDependency.lowerBoundVersion.minor).isEqualTo(1)
-    assertThat(foundDependency.lowerBoundVersion.micro).isEqualTo(1)
+    assertThat(foundDependency).isEqualTo(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getComponent("23.1.1"))
   }
 
   @Test
   fun testGetAvailableDependencyWhenUnavailable() {
     setupProject()
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate("nonexistent", "dependency123", "+"))).get(TIMEOUT, TimeUnit.SECONDS)
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(Dependency.parse("nonexistent:dependency123:+"))).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEqualTo("The dependency was not found: nonexistent:dependency123:+")
-    assertThat(missing).containsExactly(GradleCoordinate("nonexistent", "dependency123", "+"))
+    assertThat(missing).containsExactly(Dependency.parse("nonexistent:dependency123:+"))
+    assertThat(found).isEmpty()
+  }
+
+  @Test
+  fun testGetAvailableDependenciesWhenUnavailable() {
+    setupProject()
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(Dependency.parse("nonexistent:dependency123:+"),
+             Dependency.parse("nonexistent:dependency456:+"))
+    ).get(TIMEOUT, TimeUnit.SECONDS)
+
+    assertThat(warning).isEqualTo(
+      """
+       The dependencies were not found:
+          nonexistent:dependency123:+
+          nonexistent:dependency456:+
+      """.trimIndent()
+    )
+    assertThat(missing).containsExactly(
+      Dependency.parse("nonexistent:dependency123:+"),
+      Dependency.parse("nonexistent:dependency456:+")
+    )
     assertThat(found).isEmpty()
   }
 
   @Test
   fun testWithExplicitVersion() {
     setupProject()
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "23.1.0"))
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getDependency("23.1.0"))
     ).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "23.1.0"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getComponent("23.1.0"))
   }
 
   @Test
   fun testWithExplicitPreviewVersion() {
     setupProject()
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate(SdkConstants.CONSTRAINT_LAYOUT_LIB_GROUP_ID, SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT_ID, "1.1.0-beta3"))
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getDependency("1.1.0-beta3"))
     ).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GradleCoordinate("com.android.support.constraint", "constraint-layout", "1.1.0-beta3"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getComponent("1.1.0-beta3"))
   }
 
   @Test
   fun testWithExplicitNonExistingVersion() {
     setupProject()
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "22.17.3"))
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getDependency("[22.17.3,22.17.4)!!"))
     ).get(TIMEOUT, TimeUnit.SECONDS)
 
-    assertThat(warning).isEqualTo("The dependency was not found: com.android.support:appcompat-v7:[22.17.3,22.17.4)")
-    assertThat(missing).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "22.17.3"))
+    assertThat(warning).isEqualTo("The dependency was not found: com.android.support:appcompat-v7:[22.17.3,22.17.4)!!")
+    assertThat(missing).containsExactly(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getDependency("[22.17.3,22.17.4)!!"))
+    assertThat(found).isEmpty()
+  }
+
+  @Test
+  fun testComponentWithExplicitNonExistingVersion() {
+    setupProject()
+    val (found, missing, warning) = analyzer.analyzeComponentCompatibility(
+      listOf(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getComponent("22.17.3"))
+    ).get(TIMEOUT, TimeUnit.SECONDS)
+
+    assertThat(warning).isEqualTo("The dependency was not found: com.android.support:appcompat-v7:22.17.3")
+    assertThat(missing).containsExactly(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getDependency("[22.17.3,22.17.4)!!"))
     assertThat(found).isEmpty()
   }
 
   @Test
   fun testWithMajorVersion() {
     setupProject()
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "23.+"))
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getDependency("23.+"))
     ).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "23.1.1"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getComponent("23.1.1"))
   }
 
   @Test
   fun testWithMajorMinorVersion() {
     setupProject()
-    val (found, missing, warning) = analyzer.analyzeCoordinateCompatibility(
-      listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "22.2.+"))
+    val (found, missing, warning) = analyzer.analyzeDependencyCompatibility(
+      listOf(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getDependency("22.2.+"))
     ).get(TIMEOUT, TimeUnit.SECONDS)
 
     assertThat(warning).isEmpty()
     assertThat(missing).isEmpty()
-    assertThat(found).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "22.2.1"))
+    assertThat(found).containsExactly(GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7.getComponent("22.2.1"))
   }
 
   private fun setupProject(
@@ -449,7 +484,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       allprojects {
           repositories {
               maven {
-                  url 'file://${mavenRepository.cacheDir}'
+                  url 'file://${testDataDir}'
               }
           }
       }
@@ -482,6 +517,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
             if (appDependOnLibrary) listOf(AndroidModuleDependency(":library1", "debug"))
             else emptyList()
           },
+          declaredDependencies = { IdeDeclaredDependenciesImpl(additionalAppDeclaredDependencies) },
           androidLibraryDependencyList = { additionalAppResolvedDependencies }
         )
       ),
@@ -490,6 +526,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
         "debug",
         AndroidProjectBuilder(
           projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
+          declaredDependencies = { IdeDeclaredDependenciesImpl(additionalLibrary1DeclaredDependencies) },
           androidLibraryDependencyList = { additionalLibrary1ResolvedDependencies }
         )
       )
@@ -523,9 +560,8 @@ private fun ideAndroidLibrary(artifactAddress: String) =
       _renderscriptFolder = "renderscriptFolder",
       _proguardRules = "proguardRules",
       _lintJar = "lint.jar",
-      _srcJar = "src.jar",
+      _srcJars = listOf("src.jar", "sample.jar"),
       _docJar = "doc.jar",
-      _samplesJar = "sample.jar",
       _externalAnnotations = "externalAnnotations",
       _publicResources = "publicResources",
       _artifact = "artifactFile",

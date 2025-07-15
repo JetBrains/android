@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project
 import com.android.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
@@ -72,6 +73,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ExternalStorageConfigurationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
+import com.intellij.openapi.roots.ExternalProjectSystemRegistry
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleSourceOrderEntry
@@ -322,6 +324,17 @@ private fun attachCachedModelsOrTriggerSyncBody(project: Project, gradleProjectI
         }
       }
       .toMutableSet()
+
+  // With phased sync, facet entities are stored in the workspace model instead of using JPS (i.e. XML) serialization.
+  // When deserializing the entities in the new workspace model, the external source is lost, but we know at this point these are
+  // facets tied to Gradle modules, so we can explicitly mark them here. We don't need to do anything similar for modules, as that
+  // information isn't lost for modules.
+  if (StudioFlags.PHASED_SYNC_ENABLED.get() && StudioFlags.PHASED_SYNC_BRIDGE_DATA_SERVICE_DISABLED.get()) {
+    facets.forEach {
+      it.externalSource = ExternalProjectSystemRegistry.getInstance().getSourceById(GradleConstants.SYSTEM_ID.getId())
+    }
+  }
+
 
   existingGradleModules.asSequence().flatMap { module ->
     ModuleRootManager.getInstance(module)

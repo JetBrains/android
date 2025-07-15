@@ -24,6 +24,8 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
+import com.intellij.testFramework.IndexingTestUtil
+import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -38,6 +40,12 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
 
   @get:Rule
   val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
+
+  @After
+  fun tearDown() {
+    // If the indexer is busy, it can retain the Project causing a failure in checkForLeaks.
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
+  }
 
   @Test
   fun addNewMicrobenchmarkModule() {

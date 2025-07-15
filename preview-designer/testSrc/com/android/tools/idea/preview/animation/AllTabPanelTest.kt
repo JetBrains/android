@@ -32,6 +32,7 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.scale.JBUIScale
+import com.intellij.ui.util.minimumWidth
 import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -306,9 +307,18 @@ class AllTabPanelTest {
     JBUIScale.setUserScaleFactorForTest(originalFactor)
   }
 
-  private fun JPanel.getNumberOfCards() =
-    ((this.components[0] as JBScrollPane).viewport.components[0] as JBSplitter)
-      .firstComponent
-      .components
-      .count()
+  @Test
+  fun `verify first panel minimum width size`() {
+    assertEquals(185, panel.scrollableCardsPanel.minimumWidth)
+  }
+
+  /** First panel inside splitter of [AllTabPanel]. */
+  private val AllTabPanel.scrollableCardsPanel
+    get() =
+      ((this.components[0] as JBScrollPane).viewport.components[0] as JBSplitter).firstComponent
+        as JBScrollPane
+
+  /** Returns the amount of cards in the [scrollableCardsPanel]. */
+  private fun AllTabPanel.getNumberOfCards() =
+    (scrollableCardsPanel.viewport.components[0] as JPanel).componentCount
 }

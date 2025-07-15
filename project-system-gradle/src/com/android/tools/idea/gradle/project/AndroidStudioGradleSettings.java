@@ -36,7 +36,6 @@ public class AndroidStudioGradleSettings extends GradleSettings {
 
   static void configureForAndroidStudio(@NotNull GradleProjectSettings projectSettings) {
     projectSettings.setResolveModulePerSourceSet(true);
-    projectSettings.setResolveExternalAnnotations(false);
     projectSettings.setTestRunner(TestRunner.CHOOSE_PER_TEST);
     projectSettings.setUseQualifiedModuleNames(true);
   }

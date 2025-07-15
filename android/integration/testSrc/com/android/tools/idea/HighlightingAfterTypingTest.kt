@@ -21,6 +21,7 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.platform.performance.testing.PlatformPerformanceBenchmark
+import com.intellij.openapi.util.SystemInfo
 import org.junit.Rule
 import org.junit.Test
 
@@ -71,7 +72,7 @@ class HighlightingAfterTypingTest {
       benchmark.log("highlighting_AddEditTaskViewModel", it)
     }
     system.installation.telemetry.get("firstCodeAnalysis").reduce { _, e -> e }.get().let {
-      benchmark.log("firstCodeAnalysis", it)
+      benchmark.log("firstCodeAnalysis", it, if (SystemInfo.isWindows) 75 else 2)
     }
   }
 }

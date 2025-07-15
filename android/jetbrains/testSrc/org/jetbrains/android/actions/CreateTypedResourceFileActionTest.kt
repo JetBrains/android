@@ -78,11 +78,9 @@ class CreateTypedResourceFileActionTest {
 
 
     module
-      .getModuleSystem()
-      .getRegisteringModuleSystem()?.let { s ->
-        val id = s.getRegisteredDependencyId(GoogleMavenArtifactId.ANDROIDX_PREFERENCE) ?: return@let
-        s.registerDependency(id, DependencyType.IMPLEMENTATION)
-      }
+        .getModuleSystem()
+        .getRegisteringModuleSystem()
+        ?.registerDependency(GoogleMavenArtifactId.ANDROIDX_PREFERENCE, DependencyType.IMPLEMENTATION)
     // Now with the dependency, the handler should return "androidx.preference.PreferenceScreen"
     assertThat(getDefaultRootTagByResourceType(module, ResourceFolderType.XML))
       .isEqualTo("androidx.preference.PreferenceScreen")

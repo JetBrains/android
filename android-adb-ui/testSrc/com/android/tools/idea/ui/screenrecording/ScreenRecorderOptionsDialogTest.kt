@@ -30,6 +30,8 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JButton
@@ -50,15 +52,25 @@ class ScreenRecorderOptionsDialogTest {
     get() = projectRule.project
   private val testRootDisposable
     get() = projectRule.disposable
+  private val settings by lazy { DeviceScreenRecordingSettings.getInstance() }
+
+  @Before
+  fun setUp() {
+    settings.loadState(DeviceScreenRecordingSettings())
+  }
+
+  @After
+  fun tearDown() {
+    settings.loadState(DeviceScreenRecordingSettings()) // Reset settings.
+  }
 
   @Test
   fun testVirtualDevice() {
-    val options = ScreenRecorderPersistentOptions()
-    assertThat(options.bitRateMbps).isEqualTo(4)
-    assertThat(options.resolutionPercent).isEqualTo(100)
-    assertThat(options.showTaps).isEqualTo(false)
-    assertThat(options.useEmulatorRecording).isEqualTo(true)
-    val dialog = ScreenRecorderOptionsDialog(options, project, true, 33)
+    assertThat(settings.bitRateMbps).isEqualTo(4)
+    assertThat(settings.scale).isEqualTo(1.0)
+    assertThat(settings.showTaps).isEqualTo(false)
+    assertThat(settings.useEmulatorRecordingWhenAvailable).isEqualTo(true)
+    val dialog = ScreenRecorderOptionsDialog(project, true, 33)
     createModalDialogAndInteractWithIt(dialog::show) { dlg ->
       val ui = FakeUi(dlg.rootPane)
       val recordingLengthField = ui.getComponent<JEditorPane>()
@@ -78,19 +90,18 @@ class ScreenRecorderOptionsDialogTest {
       assertThat(extractTextFromHtml(recordingLengthField.text)).isEqualTo("The length of the recording can be up to 3 minutes.")
       dlg.clickDefaultButton()
     }
-    assertThat(options.bitRateMbps).isEqualTo(8)
-    assertThat(options.resolutionPercent).isEqualTo(50)
-    assertThat(options.showTaps).isEqualTo(true)
-    assertThat(options.useEmulatorRecording).isEqualTo(false)
+    assertThat(settings.bitRateMbps).isEqualTo(8)
+    assertThat(settings.scale).isEqualTo(0.5)
+    assertThat(settings.showTaps).isEqualTo(true)
+    assertThat(settings.useEmulatorRecordingWhenAvailable).isEqualTo(false)
   }
 
   @Test
   fun testPhysicalDevice() {
-    val options = ScreenRecorderPersistentOptions()
-    assertThat(options.bitRateMbps).isEqualTo(4)
-    assertThat(options.resolutionPercent).isEqualTo(100)
-    assertThat(options.showTaps).isEqualTo(false)
-    val dialog = ScreenRecorderOptionsDialog(options, project, false, 34)
+    assertThat(settings.bitRateMbps).isEqualTo(4)
+    assertThat(settings.scale).isEqualTo(1.0)
+    assertThat(settings.showTaps).isEqualTo(false)
+    val dialog = ScreenRecorderOptionsDialog(project, false, 34)
     createModalDialogAndInteractWithIt(dialog::show) { dlg ->
       val ui = FakeUi(dlg.rootPane)
       val recordingLengthField = ui.getComponent<JEditorPane>()
@@ -107,19 +118,18 @@ class ScreenRecorderOptionsDialogTest {
       showTapsField.isSelected = true
       dlg.clickDefaultButton()
     }
-    assertThat(options.bitRateMbps).isEqualTo(2)
-    assertThat(options.resolutionPercent).isEqualTo(25)
-    assertThat(options.showTaps).isEqualTo(true)
+    assertThat(settings.bitRateMbps).isEqualTo(2)
+    assertThat(settings.scale).isEqualTo(0.25)
+    assertThat(settings.showTaps).isEqualTo(true)
   }
 
   @Test
   fun testPhysicalDeviceWithStreamlinedSave() {
     StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(true, testRootDisposable)
-    val options = ScreenRecorderPersistentOptions()
-    assertThat(options.bitRateMbps).isEqualTo(4)
-    assertThat(options.resolutionPercent).isEqualTo(100)
-    assertThat(options.showTaps).isEqualTo(false)
-    val dialog = ScreenRecorderOptionsDialog(options, project, false, 34)
+    assertThat(settings.bitRateMbps).isEqualTo(4)
+    assertThat(settings.scale).isEqualTo(1.0)
+    assertThat(settings.showTaps).isEqualTo(false)
+    val dialog = ScreenRecorderOptionsDialog(project, false, 34)
     createModalDialogAndInteractWithIt(dialog::show) { dlg ->
       val ui = FakeUi(dlg.rootPane)
       val recordingLengthField = ui.getComponent<JEditorPane>()
@@ -137,13 +147,13 @@ class ScreenRecorderOptionsDialogTest {
       resolutionPercentField.selectedItem = 25
       showTapsField.isSelected = true
       createModalDialogAndInteractWithIt({ ui.clickOn(configureSaveButton) }) { dlg2 ->
-        assertThat(dlg2.title).isEqualTo("Configure Saving")
+        assertThat(dlg2.title).isEqualTo("Settings")
         dlg2.clickDefaultButton()
       }
       dlg.clickDefaultButton()
     }
-    assertThat(options.bitRateMbps).isEqualTo(2)
-    assertThat(options.resolutionPercent).isEqualTo(25)
-    assertThat(options.showTaps).isEqualTo(true)
+    assertThat(settings.bitRateMbps).isEqualTo(2)
+    assertThat(settings.scale).isEqualTo(0.25)
+    assertThat(settings.showTaps).isEqualTo(true)
   }
 }

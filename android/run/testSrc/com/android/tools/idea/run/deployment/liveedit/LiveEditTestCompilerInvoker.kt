@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
@@ -23,7 +24,9 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
-internal fun compile(file: PsiFile, irClassCache: MutableIrClassCache = MutableIrClassCache()): LiveEditCompilerOutput {
+internal fun compile(
+  file: PsiFile,
+  irClassCache: MutableIrClassCache = MutableIrClassCache()): LiveEditCompilerOutput {
   val ktFile = file as KtFile
   val psiState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(ktFile) }
   return compile(listOf(LiveEditCompilerInput(ktFile, psiState)), irClassCache)
@@ -32,7 +35,9 @@ internal fun compile(file: PsiFile, irClassCache: MutableIrClassCache = MutableI
 internal fun compile(inputs: List<LiveEditCompilerInput>, irClassCache: IrClassCache = MutableIrClassCache()): LiveEditCompilerOutput {
   val project = inputs.first().file.project
   val compiler =
-    LiveEditCompiler(project, irClassCache).also { it.setApplicationLiveEditServicesForTests(ApplicationLiveEditServices.LegacyForTests(project)) }
+    LiveEditCompiler(project, irClassCache).also {
+      it.resetState(ApplicationLiveEditServices.LegacyForTests(project))
+    }
   return compile(inputs, compiler)
 }
 
@@ -41,13 +46,13 @@ internal fun compile(input: KtFile, compiler: LiveEditCompiler): LiveEditCompile
   return compile(listOf(LiveEditCompilerInput(input, psiState)), compiler)
 }
 
-internal fun compile(inputs: List<LiveEditCompilerInput>, compiler: LiveEditCompiler): LiveEditCompilerOutput {
+internal fun compile(inputs: List<LiveEditCompilerInput>, compiler: LiveEditCompiler, apiVersions: Set<MinApiLevel> = emptySet()): LiveEditCompilerOutput {
   // The real Live Edit / Fast Preview has a retry system should the compilation got cancelled.
   // We are going to use a simplified version of that here and continue to try until
   // compilation succeeds.
   var output: LiveEditCompilerOutput? = null
   while (output == null) {
-    output = compiler.compile(inputs).get().compilerOutput
+    output = compiler.compile(inputs, apiVersions = apiVersions).get().compilerOutput
   }
   return output
 }

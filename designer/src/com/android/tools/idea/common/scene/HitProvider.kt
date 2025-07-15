@@ -19,7 +19,7 @@ import com.android.sdklib.AndroidDpCoordinate
 import java.awt.Rectangle
 
 interface HitProvider {
-  fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker)
+  fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker.Writer)
 
   fun intersects(
     component: SceneComponent,

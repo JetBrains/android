@@ -39,6 +39,7 @@ import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KaDeclaratio
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.renderers.callables.KaValueParameterSymbolRenderer
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaConstructorSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolOrigin
@@ -46,6 +47,7 @@ import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
 import org.jetbrains.kotlin.idea.references.KtReference
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Rule
 import org.junit.rules.RuleChain
@@ -122,6 +124,17 @@ abstract class AbstractSafeArgsResolveExtensionTest {
 
   protected fun KaSession.getPrimaryConstructorSymbol(symbol: KaClassSymbol): KaConstructorSymbol =
     symbol.declaredMemberScope.constructors.single { it.isPrimary }
+
+  @OptIn(KaExperimentalApi::class)
+  protected fun KaSession.getValueParameterNamesAndTypes(
+    symbol: KaFunctionSymbol,
+    renderer: KaDeclarationRenderer = RENDERER,
+  ): Map<String, String> =
+    symbol.valueParameters.associate {
+      val paramName = it.name.asString()
+      val typeName = it.returnType.render(renderer.typeRenderer, position = Variance.INVARIANT)
+      paramName to typeName
+    }
 
   @OptIn(KaExperimentalApi::class)
   protected fun KaSession.getResolveExtensionPsiNavigationTargets(

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.mlkit;
 
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 
 /**
  * Constants for ml model binding test data locations.

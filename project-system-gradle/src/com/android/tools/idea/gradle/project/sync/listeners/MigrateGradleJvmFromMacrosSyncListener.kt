@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.listeners
 
+import com.android.tools.idea.gradle.extensions.isProjectUsingDaemonJvmCriteria
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.intellij.openapi.application.WriteAction
@@ -23,6 +24,7 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUt
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmHelper
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
@@ -31,10 +33,15 @@ private val LOG = Logger.getInstance(MigrateGradleJvmFromMacrosSyncListener::cla
 /**
  * This [GradleSyncListenerWithRoot] is responsible for migrating Gradle projects away from non-desired supported
  * macros defined on [ExternalSystemJdkUtil] using platform convention: vendor + version i.e. jbr-17.
+ *
+ * NOTE: Projects using [Gradle Daemon JVM criteria](https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_criteria)
+ * will skip this given that defined criteria will take precedence over the Gradle JDK configuration.
  */
 class MigrateGradleJvmFromMacrosSyncListener : GradleSyncListenerWithRoot {
 
   override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
+    if (GradleDaemonJvmHelper.isProjectUsingDaemonJvmCriteria(project, rootProjectPath)) return
+
     val projectRootSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(rootProjectPath)
     when (projectRootSettings?.gradleJvm) {
       ExternalSystemJdkUtil.USE_PROJECT_JDK, null ->

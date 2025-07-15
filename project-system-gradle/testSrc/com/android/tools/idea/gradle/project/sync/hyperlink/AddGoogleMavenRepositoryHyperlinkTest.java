@@ -31,7 +31,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
-
 import java.io.IOException;
 import java.util.List;
 import org.gradle.util.GradleVersion;
@@ -50,7 +49,7 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
   // Check that quickfix adds google maven correctly when no build file is passed
   public void testExecuteNullBuildFile() throws Exception {
     // Prepare project and mock version
-    prepareProjectForImport(SIMPLE_APPLICATION);
+    prepareProjectForImportNoSync(SIMPLE_APPLICATION);
     Project project = getProject();
 
     // Make sure no repositories are listed
@@ -88,7 +87,7 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
   private void verifyExecute(@NotNull String version) throws IOException {
     assumeTrue(version.equals("4.0"));
     // Prepare project and mock version
-    prepareProjectForImport(SIMPLE_APPLICATION);
+    prepareProjectForImportNoSync(SIMPLE_APPLICATION);
     Project project = getProject();
     GradleVersions spyVersions = spy(GradleVersions.getInstance());
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleVersions.class, spyVersions, getTestRootDisposable());

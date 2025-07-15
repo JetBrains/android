@@ -20,6 +20,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
+import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceView
@@ -36,6 +37,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.components.service
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.RuleChain
@@ -100,6 +102,7 @@ class StreamingHardwareInputActionTest {
   fun testRememberStateDevice() {
     val action = StreamingHardwareInputAction()
     val view = createDeviceView(agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280)))
+    assertThat(action.isSelected(createTestEvent(view, project))).isFalse()
 
     executeStreamingAction(action, view, project)
 
@@ -111,11 +114,26 @@ class StreamingHardwareInputActionTest {
     val action = StreamingHardwareInputAction()
     val view1 = emulatorViewRule.newEmulatorView(FakeEmulator::createPhoneAvd)
     val view2 = emulatorViewRule.newEmulatorView(FakeEmulator::createFoldableAvd)
+    assertThat(action.isSelected(createTestEvent(view1, project))).isFalse()
+    assertThat(action.isSelected(createTestEvent(view2, project))).isFalse()
 
     executeStreamingAction(action, view1, project)
 
     assertThat(action.isSelected(createTestEvent(view1, project))).isTrue()
     assertThat(action.isSelected(createTestEvent(view2, project))).isFalse()
+  }
+
+  @Test
+  fun testHardwareInputStateStorage() {
+    val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
+    val deviceId = DeviceId.ofPhysicalDevice("123456")
+    assertThat(hardwareInputStateStorage.isHardwareInputEnabled(deviceId)).isFalse()
+    hardwareInputStateStorage.setHardwareInputEnabled(deviceId, true)
+    assertThat(hardwareInputStateStorage.isHardwareInputEnabled(deviceId)).isTrue()
+    hardwareInputStateStorage.setHardwareInputEnabled(deviceId, true)
+    assertThat(hardwareInputStateStorage.isHardwareInputEnabled(deviceId)).isTrue()
+    hardwareInputStateStorage.setHardwareInputEnabled(deviceId, false)
+    assertThat(hardwareInputStateStorage.isHardwareInputEnabled(deviceId)).isFalse()
   }
 
   @Test
@@ -126,7 +144,7 @@ class StreamingHardwareInputActionTest {
     val popup = showPopup(presentation)
     val labels = popup.content.findAllDescendants<JLabel>().toList()
     assertThat(labels.map { extractText(it.text)})
-        .containsExactly("Hardware Input Ctrl+W", "Enable transparent forwarding of keyboard and mouse events to the device")
+        .containsExactly("Hardware Input", "Enable transparent forwarding of keyboard and mouse events to the device")
   }
 
   private fun createDeviceView(device: FakeDevice): DeviceView {

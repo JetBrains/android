@@ -216,7 +216,8 @@ class AppInsightsTrackerImpl(
             this.isCached = insight.isCached
             this.source = insight.insightSource.toProto()
             this.codeContextDetails =
-              insight.codeContextData.codeContextTrackingInfo
+              insight.codeContextData
+                .getTrackingInfo()
                 .toCodeContextDetailsProto()
                 .apply { this.contextLimit = contextLimit.toLong() }
                 .build()
@@ -227,9 +228,11 @@ class AppInsightsTrackerImpl(
 
   override fun logServiceDeprecated(
     panel: AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel,
+    deliveryType: DevServiceDeprecationInfo.DeliveryType,
     userNotified: Boolean?,
     userClickedMoreInfo: Boolean?,
     userClickedUpdate: Boolean?,
+    userClickedDismiss: Boolean?,
   ) {
     log("") {
       type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.SERVICE_DEPRECATION
@@ -241,10 +244,11 @@ class AppInsightsTrackerImpl(
               DevServiceDeprecationInfo.newBuilder()
                 .apply {
                   deprecationStatus = DevServiceDeprecationInfo.DeprecationStatus.UNSUPPORTED
-                  deliveryType = DevServiceDeprecationInfo.DeliveryType.PANEL
+                  this.deliveryType = deliveryType
                   userNotified?.let { this.userNotified = it }
                   userClickedMoreInfo?.let { moreInfoClicked = it }
                   userClickedUpdate?.let { updateClicked = it }
+                  userClickedDismiss?.let { deliveryDismissed = it }
                 }
                 .build()
           }

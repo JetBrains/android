@@ -334,6 +334,11 @@ final public class RenderService implements Disposable {
      */
     private boolean useCustomInflater = true;
     private RenderTask.TestEventListener myTestEventListener = RenderTask.NOP_TEST_EVENT_LISTENER;
+    /**
+     * Value to be set to Settings.Global.ANIMATOR_DURATION_SCALE.
+     * This value is a multiplier of the animations's speed.
+     */
+    private float animationDurationScale = 1f;
 
     private RenderTaskBuilder(@NotNull RenderModelModule module,
                               @NotNull Configuration configuration,
@@ -452,6 +457,14 @@ final public class RenderService implements Disposable {
     @NotNull
     public RenderTaskBuilder disableToolsVisibilityAndPosition() {
       this.showWithToolsVisibilityAndPosition = false;
+      return this;
+    }
+
+    /**
+     * Disables animations by setting the animation duration scale to 0.
+     */
+    public RenderTaskBuilder disableAnimation() {
+      this.animationDurationScale = 0f;
       return this;
     }
 
@@ -618,7 +631,7 @@ final public class RenderService implements Disposable {
                            myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, immediateClassesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, myTestEventListener);
+                           classesToPreload, immediateClassesToPreload, reportOutOfDateUserClasses, myTopic, useCustomInflater, myTestEventListener, animationDurationScale);
           if (myXmlFile != null) {
             task.setXmlFile(myXmlFile);
           }

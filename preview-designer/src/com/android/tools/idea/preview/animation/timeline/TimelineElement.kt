@@ -37,21 +37,12 @@ interface PositionProxy {
   fun minimumValue(): Int
 }
 
-/** Status of [TimelineElement] in timeline. */
-enum class TimelineElementStatus {
-  Inactive,
-  Hovered,
-  Dragged,
-}
-
 /** Group of [TimelineElement] for timeline. Group elements are moved and frozen together. */
 open class ParentTimelineElement(
-  valueOffset: Int,
   frozenState: SupportedAnimationManager.FrozenState,
   private val children: List<TimelineElement>,
 ) :
   TimelineElement(
-    offsetPx = valueOffset,
     frozenState,
     minX = children.minOfOrNull { it.minX } ?: 0,
     maxX = children.maxOfOrNull { it.maxX } ?: 0,
@@ -68,17 +59,10 @@ open class ParentTimelineElement(
   override fun getTooltip(point: Point): TooltipInfo? {
     return children.firstNotNullOfOrNull { it.getTooltip(point) }
   }
-
-  override var status: TimelineElementStatus = TimelineElementStatus.Inactive
-    set(value) {
-      field = value
-      children.forEach { it.status = value }
-    }
 }
 
 /** Drawable element for timeline. Each element could be moved and frozen. */
 abstract class TimelineElement(
-  val offsetPx: Int,
   val frozenState: SupportedAnimationManager.FrozenState,
   val minX: Int,
   val maxX: Int,
@@ -90,39 +74,13 @@ abstract class TimelineElement(
 
   open fun getTooltip(point: Point): TooltipInfo? = null
 
-  open var status: TimelineElementStatus = TimelineElementStatus.Inactive
-
   abstract fun contains(x: Int, y: Int): Boolean
 
   abstract fun paint(g: Graphics2D)
-
-  fun setNewOffset(deltaPx: Int) {
-    newOffsetCallback(deltaPx)
-  }
 
   fun contains(point: Point): Boolean {
     return contains(point.x, point.y)
   }
 
   override fun dispose() {}
-
-  private var newOffsetCallback: (Int) -> Unit = {}
-
-  /**
-   * Sets the callback invoked when this [TimelineElement] is moved(dragged on timeline) and have a
-   * new offset. The callback receives a new offset in pixels (`offsetPx`).
-   *
-   * @param newOffsetCallback The function to call on element finished dragging.
-   */
-  fun setNewOffsetCallback(newOffsetCallback: (Int) -> Unit) {
-    this.newOffsetCallback = newOffsetCallback
-  }
 }
-
-fun getOffsetForValue(valueOffset: Int, positionProxy: PositionProxy) =
-  if (valueOffset > 0)
-    positionProxy.xPositionForValue(positionProxy.minimumValue() + valueOffset) -
-      positionProxy.minimumXPosition()
-  else
-    -positionProxy.xPositionForValue(positionProxy.minimumValue() - valueOffset) +
-      positionProxy.minimumXPosition()

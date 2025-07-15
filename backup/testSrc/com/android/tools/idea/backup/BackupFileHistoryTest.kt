@@ -16,10 +16,12 @@
 package com.android.tools.idea.backup
 
 import com.android.tools.idea.testing.WaitForIndexRule
+import com.android.tools.idea.util.relativeToProject
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TemporaryDirectory
+import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.pathString
@@ -53,7 +55,8 @@ class BackupFileHistoryTest {
         .map { it.path }
     backupFileHistory.setFileHistory(files)
 
-    assertThat(backupFileHistory.getFileHistory()).containsExactlyElementsIn(files)
+    assertThat(backupFileHistory.getFileHistory())
+      .containsExactlyElementsIn(files.map { it.relativeToProject() })
   }
 
   @Test
@@ -68,7 +71,8 @@ class BackupFileHistoryTest {
         .map { it.path }
     backupFileHistory.setFileHistory(files + "non-existing-file.txt")
 
-    assertThat(backupFileHistory.getFileHistory()).containsExactlyElementsIn(files)
+    assertThat(backupFileHistory.getFileHistory())
+      .containsExactlyElementsIn(files.map { it.relativeToProject() })
   }
 
   @Test
@@ -78,7 +82,7 @@ class BackupFileHistoryTest {
     val dir = temporaryFolder.newFolder("dir").path
     backupFileHistory.setFileHistory(listOf(file, dir))
 
-    assertThat(backupFileHistory.getFileHistory()).containsExactly(file)
+    assertThat(backupFileHistory.getFileHistory()).containsExactly(file.relativeToProject())
   }
 
   @Test
@@ -94,7 +98,7 @@ class BackupFileHistoryTest {
     val relativeToProject = files.map { Path.of(it).relativeToProject(project).pathString }
     backupFileHistory.setFileHistory(relativeToProject + "non-existing-file.txt")
 
-    assertThat(backupFileHistory.getFileHistory()).containsExactlyElementsIn(files)
+    assertThat(backupFileHistory.getFileHistory()).containsExactlyElementsIn(relativeToProject)
   }
 
   @Test
@@ -106,7 +110,8 @@ class BackupFileHistoryTest {
     backupFileHistory.setFileHistory(listOf(file1.path, file2.path, file3.path))
     file2.delete()
 
-    assertThat(backupFileHistory.getFileHistory()).containsExactly(file1.path, file3.path)
+    assertThat(backupFileHistory.getFileHistory())
+      .containsExactly(file1.relativeToProject(), file3.relativeToProject())
   }
 
   @Test
@@ -122,7 +127,7 @@ class BackupFileHistoryTest {
     file2.deleteExisting()
 
     assertThat(backupFileHistory.getFileHistory())
-      .containsExactly(file1.pathString, file3.pathString)
+      .containsExactly(file1.relativeToProject(), file3.relativeToProject())
   }
 
   @Test
@@ -139,7 +144,8 @@ class BackupFileHistoryTest {
     temporaryFolder.newFile("2.txt")
 
     // File2 should not show up in history
-    assertThat(backupFileHistory.getFileHistory()).containsExactly(file1.path, file3.path)
+    assertThat(backupFileHistory.getFileHistory())
+      .containsExactly(file1.relativeToProject(), file3.relativeToProject())
   }
 
   @Test
@@ -156,6 +162,12 @@ class BackupFileHistoryTest {
     val file1 = temporaryFolder.newFile("1.txt")
     backupFileHistory.setFileHistory(listOf(file1.path, file1.path))
 
-    assertThat(backupFileHistory.getFileHistory()).containsExactly(file1.path)
+    assertThat(backupFileHistory.getFileHistory()).containsExactly(file1.relativeToProject())
   }
+
+  private fun Path.relativeToProject() = relativeToProject(project).pathString
+
+  private fun File.relativeToProject() = toPath().relativeToProject()
+
+  private fun String.relativeToProject() = Path.of(this).relativeToProject()
 }

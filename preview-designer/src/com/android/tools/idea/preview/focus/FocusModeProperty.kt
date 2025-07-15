@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.preview.focus
 
-import com.android.tools.idea.common.editor.ActionsToolbar
-import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import java.awt.BorderLayout
 import javax.swing.JPanel
@@ -55,8 +53,6 @@ class FocusModeProperty(private val content: JPanel, private val mainSurface: Nl
     if (value == null) {
       content.add(mainSurface, BorderLayout.CENTER)
     } else {
-      value.component.border = ActionsToolbar.BORDER
-      value.component.background = Colors.DEFAULT_BACKGROUND_COLOR
       add(value.component, BorderLayout.NORTH)
       add(mainSurface, BorderLayout.CENTER)
       content.add(this)

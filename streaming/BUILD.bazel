@@ -182,6 +182,7 @@ jvm_library(
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
     "//android/project-system",
+    "//android/android-adb:adb-tests_test_lib",
   ],
   runtime_deps = [
     "@lib//:android-streaming-test_util-ffmpeg-linux-x64",
@@ -235,6 +236,7 @@ jvm_library(
     "@lib//:protobuf",
     "@lib//:truth",
     "//android/android-adb:adb",
+    "//android/android-adb:adb-tests_test_lib",
     "//android/android-adb:adb-testUtil_test_lib",
     "//android/android-adb-ui:adb-ui",
     "//android/adt-testutils:adt-testutils_test_lib",

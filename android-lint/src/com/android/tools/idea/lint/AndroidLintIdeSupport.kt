@@ -193,6 +193,22 @@ open class AndroidLintIdeSupport : LintIdeSupport() {
     }
   }
 
+  data class AndroidAgpUpgradeInfo(
+    override val project: Project,
+    val agpVersion: AgpVersion?, // for display, not logic
+  ) : AgpUpgradeInfo
+
+  override fun computeAgpUpgradeInfo(project: Project): AgpUpgradeInfo? {
+    if (shouldRecommendUpdateAgp(project)) {
+      return AndroidAgpUpgradeInfo(project, recommendedAgpVersion(project))
+    }
+    return null
+  }
+
+  override fun upgradeAgp(info: AgpUpgradeInfo) {
+    updateAgp(info.project)
+  }
+
   override fun recommendedAgpVersion(project: Project): AgpVersion? {
     val current = project.findPluginInfo()?.pluginVersion ?: return null
     val latestKnown = AgpVersions.latestKnown
@@ -205,11 +221,10 @@ open class AndroidLintIdeSupport : LintIdeSupport() {
     }
   }
 
-  override fun shouldRecommendUpdateAgpToLatest(project: Project) =
+  override fun shouldRecommendUpdateAgp(project: Project) =
     project.getService(AssistantInvoker::class.java).shouldRecommendPluginUpgradeToLatest(project)
 
-  override fun updateAgpToLatest(project: Project, agpVersion: AgpVersion?) {
-    // TODO: AGP Upgrade Assistant needs to be updated to support updating to a specific version
+  override fun updateAgp(project: Project) {
     project.getService(AssistantInvoker::class.java).performRecommendedPluginUpgrade(project)
   }
 

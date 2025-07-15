@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.testing
 
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdkPathStore
@@ -43,7 +43,8 @@ import java.io.File
 import java.nio.file.Path
 
 internal class TestProjectFixtureRuleImpl(
-  private val testProject: TestProjectDefinition
+  private val testProject: TestProjectDefinition,
+  private val syncReady: Boolean
 ) : FixtureRule<JavaCodeInsightTestFixture> {
   private val tempDirFixture = AndroidProjectRuleTempDirectoryFixture("p")
   private val projectBuilder = IdeaTestFixtureFactory.getFixtureFactory()
@@ -85,6 +86,7 @@ internal class TestProjectFixtureRuleImpl(
                   AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
                   null,
                   sdk = it,
+                  syncReady
                 )
                 preparedProject.open {
                   projectContext_ = this
@@ -121,7 +123,7 @@ private fun setupJdk(path: Path, testRootDisposable: Disposable): Sdk? {
 }
 
 private inline fun AggregateAndThrowIfAnyContext.withSdksHandled(testRootDisposable: Disposable, body: (Sdk?) -> Unit) {
-  val jdkPath = TestUtils.getEmbeddedJdk17Path()
+  val jdkPath = TestUtils.getJava17Jdk()
   val sdk = WriteAction.computeAndWait<Sdk, Throwable> {
     // drop any discovered SDKs to not leak them
     cleanJdkTable()

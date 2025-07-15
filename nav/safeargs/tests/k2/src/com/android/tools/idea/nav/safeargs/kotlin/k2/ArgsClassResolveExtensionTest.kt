@@ -17,6 +17,7 @@ package com.android.tools.idea.nav.safeargs.kotlin.k2
 
 import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
+import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
@@ -38,7 +39,6 @@ import org.jetbrains.kotlin.analysis.api.types.KaErrorType
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.types.Variance
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -317,12 +317,7 @@ class ArgsClassResolveExtensionTest(
       assertThat(symbol.classId?.asFqNameString()).isEqualTo("test.safeargs.Fragment1Args")
       assertThat(symbol.psi<KtElement>().isFromResolveExtension).isTrue()
 
-      val paramsToTypeNames =
-        getPrimaryConstructorSymbol(symbol).valueParameters.associate {
-          val paramName = it.name.asString()
-          val typeName = it.returnType.render(position = Variance.INVARIANT)
-          paramName to typeName
-        }
+      val paramsToTypeNames = getValueParameterNamesAndTypes(getPrimaryConstructorSymbol(symbol))
 
       assertThat(paramsToTypeNames)
         .containsExactlyEntriesIn(
@@ -403,12 +398,7 @@ class ArgsClassResolveExtensionTest(
       assertThat(symbol.classId?.asFqNameString()).isEqualTo("test.safeargs.Fragment1Args")
       assertThat(symbol.psi<KtElement>().isFromResolveExtension).isTrue()
 
-      val paramsToTypeNames =
-        getPrimaryConstructorSymbol(symbol).valueParameters.associate {
-          val paramName = it.name.asString()
-          val typeName = it.returnType.render(RENDERER.typeRenderer, position = Variance.INVARIANT)
-          paramName to typeName
-        }
+      val paramsToTypeNames = getValueParameterNamesAndTypes(getPrimaryConstructorSymbol(symbol))
 
       assertThat(paramsToTypeNames)
         .containsExactlyEntriesIn(
@@ -464,6 +454,62 @@ class ArgsClassResolveExtensionTest(
       assertThat(symbol.render(RENDERER))
         .isEqualTo(
           "data class Fragment1Args(nullable: kotlin.String?, implicitNullable: kotlin.String? = ...) : androidx.navigation.NavArgs"
+        )
+    }
+  }
+
+  @Test
+  @SafeArgsRule.PackageName("in.test.package")
+  fun handlesEscaping() {
+    addNavXml(
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          android:id="@+id/main"
+          app:startDestination="@id/fragment1">
+        <fragment
+            android:id="@+id/fragment1"
+            android:name="in.test.package.Fragment1"
+            android:label="Fragment1">
+          <argument
+            android:name="object"
+            app:argType="string"/>
+          <argument
+            android:name="enum"
+            app:argType=".ArgEnum"/>
+          <argument
+            android:name="enumArray"
+            app:argType=".ArgEnum[]"/>
+          <argument
+            android:name="defaultValueWithNewline"
+            app:argType="string"
+            android:defaultValue="foo&#xA;`If you can see this, escaping has failed`: Nothing?,"/>
+        </fragment>
+      </navigation>
+      """
+        .trimIndent()
+    )
+
+    analyzeFileContent(
+      """
+        package `in`.test.`package`
+
+        val x: ${caret}Fragment1Args = TODO()
+      """
+        .trimIndent()
+    ) { symbol: KaNamedClassSymbol ->
+      assertThat(symbol.classId?.asFqNameString()).isEqualTo("in.test.package.Fragment1Args")
+      val parametersByName = getValueParameterNamesAndTypes(getPrimaryConstructorSymbol(symbol))
+
+      assertThat(parametersByName)
+        .containsExactlyEntriesIn(
+          mapOf(
+            "object" to "kotlin.String",
+            "enum" to "`in`.test.`package`.ArgEnum",
+            "enumArray" to "kotlin.Array<`in`.test.`package`.ArgEnum>",
+            "defaultValueWithNewline" to "kotlin.String",
+          )
         )
     }
   }

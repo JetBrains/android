@@ -38,6 +38,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ApplicationInfo;
@@ -62,6 +63,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.platform.backend.observation.Observation;
 import com.intellij.psi.PsiDocumentManager;
@@ -313,6 +315,15 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
           return null;
         }
         return DataManager.getInstance().getDataContext(selectedTextEditor.getComponent());
+      }
+      case ACTIVE_TOOL_WINDOW -> {
+        ToolWindowManager manager = ToolWindowManager.getInstance(projectForContext);
+        ToolWindow[] toolWindow = { manager.getToolWindow(manager.getActiveToolWindowId()) };
+
+        return SimpleDataContext.builder()
+          .add(CommonDataKeys.PROJECT, projectForContext)
+          .add(PlatformDataKeys.LAST_ACTIVE_TOOL_WINDOWS, toolWindow)
+          .build();
       }
       case DEFAULT -> {
         // Attempting to create a DataContext via DataManager.getInstance.getDataContext(Component c)

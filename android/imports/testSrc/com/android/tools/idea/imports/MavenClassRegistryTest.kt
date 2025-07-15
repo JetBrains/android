@@ -17,8 +17,11 @@ package com.android.tools.idea.imports
 
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
-import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
+import com.android.tools.idea.imports.MavenClassRegistry.LibraryImportData
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ExtensionTestUtil
 import java.io.InputStream
 import java.nio.charset.StandardCharsets.UTF_8
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -28,10 +31,17 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.utils.mapToSetOrEmpty
 import org.junit.Assert.assertThrows
+import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 /** Tests for [MavenClassRegistry]. */
 class MavenClassRegistryTest {
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  private val module by lazy { projectRule.module }
+
   private var repositoryIndexContents = ""
 
   private fun getIndexByteStream(): InputStream = repositoryIndexContents.byteInputStream(UTF_8)
@@ -42,6 +52,7 @@ class MavenClassRegistryTest {
 
   @Test
   fun parseJsonFile() {
+    // language=json
     repositoryIndexContents =
       """
         {
@@ -141,6 +152,22 @@ class MavenClassRegistryTest {
         )
       )
 
+    assertThat(mavenClassRegistry.findImportDataByClassName("Fake"))
+      .containsExactly(
+        LibraryImportData(
+          artifact = "androidx.activity:activity",
+          importedItemFqName = "androidx.activity.Fake",
+          importedItemPackageName = "androidx.activity",
+          version = "1.1.0",
+        ),
+        LibraryImportData(
+          artifact = "androidx.annotation:annotation",
+          importedItemFqName = "androidx.annotation.Fake",
+          importedItemPackageName = "androidx.annotation",
+          version = "1.1.0",
+        ),
+      )
+
     assertThat(mavenClassRegistry.lookup.topLevelFunctionsMap)
       .containsExactlyEntriesIn(
         mapOf(
@@ -189,6 +216,26 @@ class MavenClassRegistryTest {
         )
       )
 
+    assertThat(
+        mavenClassRegistry.findImportDataByFunctionSpecifier(
+          FunctionSpecifier("FakeFunction", null)
+        )
+      )
+      .containsExactly(
+        LibraryImportData(
+          artifact = "androidx.activity:activity",
+          importedItemFqName = "androidx.activity.FakeFunction",
+          importedItemPackageName = "androidx.activity",
+          version = "1.1.0",
+        ),
+        LibraryImportData(
+          artifact = "androidx.annotation:annotation",
+          importedItemFqName = "androidx.annotation.FakeFunction",
+          importedItemPackageName = "androidx.annotation",
+          version = "1.1.0",
+        ),
+      )
+
     assertThat(mavenClassRegistry.lookup.ktxMap)
       .containsExactlyEntriesIn(
         mapOf("androidx.activity:activity" to "androidx.activity:activity-ktx")
@@ -198,6 +245,7 @@ class MavenClassRegistryTest {
   @Test
   fun parseMalformedJsonFile_noIndexKeyDeclared() {
     repositoryIndexContents =
+      // language=json
       """
         {
           "Indices": [
@@ -215,6 +263,7 @@ class MavenClassRegistryTest {
   @Test
   fun parseMalformedJsonFile_noGroupIdDeclared() {
     repositoryIndexContents =
+      // language=json
       """
         {
           "Index": [
@@ -241,6 +290,7 @@ class MavenClassRegistryTest {
   @Test
   fun parseMalformedJsonFile_noArtifactIdDeclared() {
     repositoryIndexContents =
+      // language=json
       """
         {
           "Index": [
@@ -267,6 +317,7 @@ class MavenClassRegistryTest {
   @Test
   fun parseMalformedJsonFile_noVersionDeclared() {
     repositoryIndexContents =
+      // language=json
       """
         {
           "Index": [
@@ -295,6 +346,7 @@ class MavenClassRegistryTest {
   @Test
   fun parseMalformedJsonFile_noFqcnsDeclared() {
     repositoryIndexContents =
+      // language=json
       """
         {
           "Index": [
@@ -320,6 +372,7 @@ class MavenClassRegistryTest {
   @Test
   fun parseMalformedJsonFile_noKtxTargetsDeclared() {
     repositoryIndexContents =
+      // language=json
       """
         {
           "Index": [
@@ -346,6 +399,7 @@ class MavenClassRegistryTest {
   @Test
   fun parseJsonFile_topLevelFunctionsPropertyIsOptional() {
     repositoryIndexContents =
+      // language=json
       """
         {
           "Index": [
@@ -425,6 +479,7 @@ class MavenClassRegistryTest {
   @Test
   fun parseJsonFile_skipUnknownKey() {
     repositoryIndexContents =
+      // language=json
       """
         {
           "UnKnown1": [],
@@ -631,5 +686,446 @@ class MavenClassRegistryTest {
     assertThrows(IllegalArgumentException::class.java) {
       KotlinTopLevelFunction.fromJvmQualifiedName("foo", "com.example.Receiver")
     }
+  }
+
+  @Test
+  fun isPackageIndexed() {
+    repositoryIndexContents =
+      // language=json
+      """
+        {
+          "Index": [
+            {
+              "groupId": "group1",
+              "artifactId": "artifact1",
+              "version": "1",
+              "ktxTargets": [],
+              "fqcns": [
+                "com.example.class1"
+              ]
+            },
+            {
+              "groupId": "group2",
+              "artifactId": "artifact2",
+              "version": "1",
+              "ktxTargets": [],
+              "fqcns": [
+                "com.example2.class1"
+              ],
+              "ktlfns": [
+                {
+                  "xfqn": "com.example2.toplevel.FacadeFileKt.someExtensionFunction",
+                  "rcvr": "amazingReceiver"
+                }
+              ]
+            },
+            {
+              "groupId": "group3",
+              "artifactId": "artifact3",
+              "version": "1",
+              "ktxTargets": [],
+              "fqcns": [],
+              "ktlfns": [
+                {
+                  "xfqn": "foo.bar.baz.FacadeFileKt.someExtensionFunction",
+                  "rcvr": "amazingReceiver"
+                }
+              ]
+            }
+          ]
+        }
+      """
+        .trimIndent()
+
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
+
+    assertThat(mavenClassRegistry.isPackageIndexed("com.example")).isTrue()
+    assertThat(mavenClassRegistry.isPackageIndexed("com.example2")).isTrue()
+    assertThat(mavenClassRegistry.isPackageIndexed("com.example2.toplevel")).isTrue()
+    assertThat(mavenClassRegistry.isPackageIndexed("foo.bar.baz")).isTrue()
+    assertThat(mavenClassRegistry.isPackageIndexed("other")).isFalse()
+  }
+
+  @Test
+  fun kmpArtifactMap() {
+    repositoryIndexContents =
+      // language=json
+      """
+        {
+          "Index": [
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity",
+              "version": "1.1.0",
+              "ktxTargets": [],
+              "fqcns": [],
+              "ktlfns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-android",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-desktop",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-jvmstubs",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-linuxx64stubs",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-unknownsuffix",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.artifact.without.base",
+              "artifactId": "foo-desktop",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.different.version",
+              "artifactId": "foo",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.different.version",
+              "artifactId": "foo-desktop",
+              "version": "1.2.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": []
+            }
+          ]
+        }
+      """
+        .trimIndent()
+
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
+
+    assertThat(mavenClassRegistry.lookup.kmpArtifactMap)
+      .containsExactlyEntriesIn(
+        mapOf(
+          "androidx.activity:activity-android" to "androidx.activity:activity",
+          "androidx.activity:activity-desktop" to "androidx.activity:activity",
+          "androidx.activity:activity-jvmstubs" to "androidx.activity:activity",
+          "androidx.activity:activity-linuxx64stubs" to "androidx.activity:activity",
+          "androidx.different.version:foo-desktop" to null,
+        )
+      )
+  }
+
+  @Test
+  fun findLibraryData() {
+    val mockAndroidMavenImportToken: AndroidMavenImportToken<AndroidProjectSystem> = mock {
+      on { isApplicable(any()) } doReturn true
+      on { shouldMapKmpArtifacts(any()) } doReturn true
+    }
+    ExtensionTestUtil.maskExtensions(
+      AndroidMavenImportToken.EP_NAME,
+      listOf(mockAndroidMavenImportToken),
+      projectRule.testRootDisposable,
+    )
+
+    repositoryIndexContents =
+      // language=json
+      """
+        {
+          "Index": [
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity",
+              "version": "1.1.0",
+              "ktxTargets": [],
+              "fqcns": [
+                "androidx.activity.ClassInBase",
+                "androidx.activity.ClassInBothPlatforms",
+                "androidx.activity.ClassInTwoGroups"
+              ],
+              "ktlfns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-android",
+              "version": "1.1.0",
+              "ktxTargets": [],
+              "fqcns": [
+                "androidx.activity.ClassInAndroid",
+                "androidx.activity.ClassInBothPlatforms"
+              ],
+              "ktlfns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-desktop",
+              "version": "0.9.0",
+              "ktxTargets": [],
+              "fqcns": [
+                "androidx.activity.ClassInDesktopWithDifferentVersion"
+              ],
+              "ktlfns": []
+            },
+            {
+              "groupId": "androidx.foo",
+              "artifactId": "foo",
+              "version": "1.1.0",
+              "ktxTargets": [],
+              "fqcns": [
+                "androidx.foo.ClassInTwoGroups"
+              ],
+              "ktlfns": []
+            }
+          ]
+        }
+      """
+        .trimIndent()
+
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
+
+    val classInBase = mavenClassRegistry.findLibraryData("ClassInBase", null, true, null, module)
+    assertThat(classInBase)
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity",
+          "androidx.activity.ClassInBase",
+          "androidx.activity",
+          "1.1.0",
+        )
+      )
+
+    val classInAndroid =
+      mavenClassRegistry.findLibraryData("ClassInAndroid", null, true, null, module)
+    assertThat(classInAndroid)
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity",
+          "androidx.activity.ClassInAndroid",
+          "androidx.activity",
+          "1.1.0",
+        )
+      )
+
+    val classInBothPlatforms =
+      mavenClassRegistry.findLibraryData("ClassInBothPlatforms", null, true, null, module)
+    assertThat(classInBothPlatforms)
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity",
+          "androidx.activity.ClassInBothPlatforms",
+          "androidx.activity",
+          "1.1.0",
+        )
+      )
+
+    val classInTwoGroups =
+      mavenClassRegistry.findLibraryData("ClassInTwoGroups", null, true, null, module)
+    assertThat(classInTwoGroups)
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity",
+          "androidx.activity.ClassInTwoGroups",
+          "androidx.activity",
+          "1.1.0",
+        ),
+        LibraryImportData(
+          "androidx.foo:foo",
+          "androidx.foo.ClassInTwoGroups",
+          "androidx.foo",
+          "1.1.0",
+        ),
+      )
+
+    assertThat(
+        mavenClassRegistry.findLibraryData(
+          "ClassInDesktopWithDifferentVersion",
+          null,
+          true,
+          null,
+          module,
+        )
+      )
+      .isEmpty()
+  }
+
+  @Test
+  fun findLibraryDataWithoutKmpMapping() {
+    val mockAndroidMavenImportToken: AndroidMavenImportToken<AndroidProjectSystem> = mock {
+      on { isApplicable(any()) } doReturn true
+      on { shouldMapKmpArtifacts(any()) } doReturn false
+    }
+    ExtensionTestUtil.maskExtensions(
+      AndroidMavenImportToken.EP_NAME,
+      listOf(mockAndroidMavenImportToken),
+      projectRule.testRootDisposable,
+    )
+
+    repositoryIndexContents =
+      // language=json
+      """
+        {
+          "Index": [
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity",
+              "version": "1.1.0",
+              "ktxTargets": [],
+              "fqcns": [
+                "androidx.activity.ClassInBase",
+                "androidx.activity.ClassInBothPlatforms",
+                "androidx.activity.ClassInTwoGroups"
+              ],
+              "ktlfns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-android",
+              "version": "1.1.0",
+              "ktxTargets": [],
+              "fqcns": [
+                "androidx.activity.ClassInAndroid",
+                "androidx.activity.ClassInBothPlatforms"
+              ],
+              "ktlfns": []
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-desktop",
+              "version": "0.9.0",
+              "ktxTargets": [],
+              "fqcns": [
+                "androidx.activity.ClassInDesktopWithDifferentVersion"
+              ],
+              "ktlfns": []
+            },
+            {
+              "groupId": "androidx.foo",
+              "artifactId": "foo",
+              "version": "1.1.0",
+              "ktxTargets": [],
+              "fqcns": [
+                "androidx.foo.ClassInTwoGroups"
+              ],
+              "ktlfns": []
+            }
+          ]
+        }
+      """
+        .trimIndent()
+
+    val mavenClassRegistry = MavenClassRegistry.createFrom(::getIndexByteStream)
+
+    val classInBase = mavenClassRegistry.findLibraryData("ClassInBase", null, true, null, module)
+    assertThat(classInBase)
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity",
+          "androidx.activity.ClassInBase",
+          "androidx.activity",
+          "1.1.0",
+        )
+      )
+
+    val classInAndroid =
+      mavenClassRegistry.findLibraryData("ClassInAndroid", null, true, null, module)
+    assertThat(classInAndroid)
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity-android",
+          "androidx.activity.ClassInAndroid",
+          "androidx.activity",
+          "1.1.0",
+        )
+      )
+
+    val classInBothPlatforms =
+      mavenClassRegistry.findLibraryData("ClassInBothPlatforms", null, true, null, module)
+    assertThat(classInBothPlatforms)
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity",
+          "androidx.activity.ClassInBothPlatforms",
+          "androidx.activity",
+          "1.1.0",
+        ),
+        LibraryImportData(
+          "androidx.activity:activity-android",
+          "androidx.activity.ClassInBothPlatforms",
+          "androidx.activity",
+          "1.1.0",
+        ),
+      )
+
+    val classInTwoGroups =
+      mavenClassRegistry.findLibraryData("ClassInTwoGroups", null, true, null, module)
+    assertThat(classInTwoGroups)
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity",
+          "androidx.activity.ClassInTwoGroups",
+          "androidx.activity",
+          "1.1.0",
+        ),
+        LibraryImportData(
+          "androidx.foo:foo",
+          "androidx.foo.ClassInTwoGroups",
+          "androidx.foo",
+          "1.1.0",
+        ),
+      )
+
+    assertThat(
+        mavenClassRegistry.findLibraryData(
+          "ClassInDesktopWithDifferentVersion",
+          null,
+          true,
+          null,
+          module,
+        )
+      )
+      .containsExactly(
+        LibraryImportData(
+          "androidx.activity:activity-desktop",
+          "androidx.activity.ClassInDesktopWithDifferentVersion",
+          "androidx.activity",
+          "0.9.0",
+        )
+      )
   }
 }

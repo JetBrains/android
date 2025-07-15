@@ -19,6 +19,8 @@ import com.android.backup.BackupType.CLOUD
 import com.android.backup.testing.BackupFileHelper
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
+import com.android.tools.idea.testing.WaitForIndexRule
+import com.android.tools.idea.util.relativeToProject
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -40,7 +42,7 @@ class RestoreRunConfigSectionTest {
   private val temporaryFolder =
     TemporaryFolder(TemporaryDirectory.generateTemporaryPath("").parent.toFile())
 
-  @get:Rule val rule = RuleChain(projectRule, temporaryFolder)
+  @get:Rule val rule = RuleChain(projectRule, WaitForIndexRule(projectRule), temporaryFolder)
 
   private val backupFileHelper = BackupFileHelper(temporaryFolder)
 

@@ -51,7 +51,8 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
   // Cache of fully-qualified class name to inlineable bytecode on disk or in memory
   var inlineCandidateCache = SourceInlineCandidateCache()
 
-  private var desugarer = LiveEditDesugar()
+  // Each Deployment would invoke resetState() to ensure we have a non-null desugarer.
+  private var desugarer : LiveEditDesugar? = null
   private val outputBuilderWithAnalysis = LiveEditOutputBuilder()
   private val logger = LiveEditLogger("LE Compiler")
 
@@ -108,7 +109,7 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
 
           // Desugaring pass
           val request = LiveEditDesugarRequest(outputs, apiVersions)
-          desugaredOutputs = desugarer.desugar(request)
+          desugaredOutputs = desugarer!!.desugar(request)
           logger.dumpDesugarOutputs(desugaredOutputs!!.classes)
 
         } catch (e: ProcessCanceledException) {
@@ -164,9 +165,9 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
     this.applicationLiveEditServices = applicationLiveEditServices
     try {
       // Desugarer caches jar indexes and entries. It MUST be closed and recreated.
-      desugarer.close()
+      desugarer?.close()
     } finally {
-      desugarer = LiveEditDesugar()
+      desugarer = LiveEditDesugar(applicationLiveEditServices)
     }
   }
 }

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea;
 
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
-import com.android.tools.asdriver.tests.TestFileSystem;
+import com.android.tools.testlib.TestFileSystem;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.system.CpuArch;
 import java.io.IOException;

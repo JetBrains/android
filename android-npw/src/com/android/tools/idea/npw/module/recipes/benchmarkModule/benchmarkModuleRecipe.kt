@@ -50,9 +50,9 @@ fun RecipeExecutor.generateBenchmarkModule(
   val bg =
     buildGradle(
       packageName = packageName,
-      buildApiString = buildApi.apiString,
-      minApi = minApi.apiString,
-      targetApiString = targetApi.apiString,
+      buildApi = buildApi,
+      minApi = minApi,
+      targetApi = targetApi,
       language = language,
       agpVersion = projectData.agpVersion,
       useGradleKts = useGradleKts,
@@ -92,6 +92,6 @@ fun RecipeExecutor.generateBenchmarkModule(
     )
   }
 
-  addKotlinIfNeeded(projectData, targetApi = targetApi.api, noKtx = true)
+  addKotlinIfNeeded(projectData, targetApi = targetApi.apiLevel, noKtx = true)
   setJavaKotlinCompileOptions(language == Language.Kotlin)
 }

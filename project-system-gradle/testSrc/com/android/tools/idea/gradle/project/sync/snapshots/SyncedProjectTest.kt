@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.GradleProjectSystemIntegrationTest
 import com.android.tools.idea.gradle.project.sync.HighlightProjectTestDef
+import com.android.tools.idea.gradle.project.sync.runsIndexingWithGradlePhasedSync.PhasedSyncSnapshotConsistencyTestDef
 import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTestDef
 import com.android.tools.idea.navigator.SourceProvidersTestDef
 import com.android.tools.idea.projectsystem.gradle.GradleModuleHierarchyProviderTest
@@ -64,6 +65,7 @@ abstract class SyncedProjectTest(
       HighlightProjectTestDef.tests +
       GradleTaskManagerTest.tests +
       GradleAndroidTestsTaskManagerTest.tests +
+      PhasedSyncSnapshotConsistencyTestDef.tests +
       selfChecks()
       ).groupBy { it.testProject }
   }
@@ -133,6 +135,9 @@ abstract class SyncedProjectTest(
 
   @Test
   fun testCompositeBuild() = testProject(TestProject.COMPOSITE_BUILD)
+
+  @Test
+  fun testCompositeBuildWithDependencySubs() = testProject(TestProject.COMPOSITE_BUILD_WITH_DEPENDENCY_SUBS)
 
   @Test
   fun testNonStandardSourceSets() = testProject(TestProject.NON_STANDARD_SOURCE_SETS)

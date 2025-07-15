@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
@@ -25,6 +26,9 @@ import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.actions.StreamingHardwareInputAction
+import com.android.tools.idea.streaming.xr.AbstractXrInputController
+import com.android.tools.idea.streaming.xr.TRANSLATION_STEP_SIZE
+import com.android.tools.idea.ui.DISPLAY_ID_KEY
 import com.intellij.ide.DataManager
 import com.intellij.ide.KeyboardAwareFocusOwner
 import com.intellij.openapi.Disposable
@@ -32,6 +36,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.UiDataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
@@ -131,10 +136,14 @@ abstract class AbstractDisplayView(
   protected abstract val hardwareInput: HardwareInput
   private val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
 
+  internal abstract val xrInputController: AbstractXrInputController?
+
   /** Controls whether right clicks are sent to the device when the hardware input is disabled. */
   var rightClicksAreSentToDevice: Boolean = false
 
   protected val contextMenuHandler: PopupHandler? = createContextMenuHandler(contextMenuActionGroupId)
+
+  protected val deviceInputListenerManager = project.service<DeviceInputListenerManager>()
 
   protected open val project: Project?
     get() = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this))
@@ -219,14 +228,14 @@ abstract class AbstractDisplayView(
     fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
   }
 
-  internal fun showLongRunningOperationIndicator(text: String) {
+  fun showLongRunningOperationIndicator(text: String) {
     findLoadingPanel()?.apply {
       setLoadingText(text)
       startLoading()
     }
   }
 
-  internal fun hideLongRunningOperationIndicator() {
+  fun hideLongRunningOperationIndicator() {
     findLoadingPanel()?.stopLoading()
   }
 
@@ -315,7 +324,7 @@ abstract class AbstractDisplayView(
   }
 
   protected fun isHardwareInputEnabled(): Boolean =
-      hardwareInputStateStorage.isHardwareInputEnabled(deviceId)
+      hardwareInputStateStorage.isHardwareInputEnabled(deviceId) && xrInputController?.isMouseUsedForNavigation() != true
 
   final override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
     if (!isHardwareInputEnabled()) {
@@ -360,6 +369,12 @@ abstract class AbstractDisplayView(
     return g
   }
 
+  override fun uiDataSnapshot(sink: DataSink) {
+    sink[DISPLAY_ID_KEY] = displayId
+    sink[DISPLAY_VIEW_KEY] = this
+    sink[ZOOMABLE_KEY] = this
+  }
+
   protected fun MouseWheelEvent.getNormalizedScrollAmount(): Double =
       getNormalizedScrollAmount(scale)
 
@@ -367,6 +382,32 @@ abstract class AbstractDisplayView(
     return when {
       StudioFlags.RUNNING_DEVICES_CONTEXT_MENU.get() -> ContextMenuHandler(this, contextMenuActionGroupId, javaClass.simpleName)
       else -> null
+    }
+  }
+
+  override fun canZoomIn(): Boolean =
+      deviceType == DeviceType.XR || super.canZoomIn()
+
+  override fun canZoomOut(): Boolean =
+      deviceType == DeviceType.XR || super.canZoomOut()
+
+  override fun canZoomToActual(): Boolean =
+      deviceType != DeviceType.XR && super.canZoomToActual()
+
+  override fun canZoomToFit(): Boolean =
+      deviceType != DeviceType.XR && super.canZoomToFit()
+
+  override fun zoom(type: ZoomType): Boolean {
+    when (deviceType) {
+      DeviceType.XR -> {
+        when (type) {
+          ZoomType.IN -> xrInputController?.sendTranslation(0F, 0F, -TRANSLATION_STEP_SIZE) // Move forward.
+          ZoomType.OUT -> xrInputController?.sendTranslation(0F, 0F, TRANSLATION_STEP_SIZE) // Move backward.
+          else -> {}
+        }
+        return true
+      }
+      else -> return super.zoom(type)
     }
   }
 

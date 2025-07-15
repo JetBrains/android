@@ -20,8 +20,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
@@ -32,27 +30,17 @@ import java.awt.Container
 import java.awt.Dimension
 import javax.swing.JPanel
 import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
-@RunWith(Parameterized::class)
-class BottomPanelTest(private val enableCoordinationDrag: Boolean) {
+class BottomPanelTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var surface: DesignSurface<*>
-
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "Coordination drag is enabled: {0}")
-    fun parameters() = listOf(arrayOf<Any>(true), arrayOf<Any>(false))
-  }
 
   @Before
   fun setUp() {
@@ -68,52 +56,9 @@ class BottomPanelTest(private val enableCoordinationDrag: Boolean) {
     surface =
       NlSurfaceBuilder.builder(projectRule.project, projectRule.fixture.testRootDisposable).build()
     surface.addModelWithoutRender(model)
-    StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.override(enableCoordinationDrag)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.clearOverride()
   }
 
   private val minimumSize = Dimension(10, 10)
-
-  @Test
-  fun `reset button is visible and clickable`(): Unit =
-    runBlocking(uiThread) {
-      if (!enableCoordinationDrag) return@runBlocking
-      val panel = createBottomPanel()
-      val ui =
-        FakeUi(panel.parent).apply {
-          updateToolbars()
-          layout()
-        }
-      (panel.components[0] as Container).components[2].also {
-        // Reset button.
-        assertTrue(it.isVisible)
-        assertTrue(it.isEnabled)
-        TestUtils.assertBigger(minimumSize, it.size)
-        // After clicking button callback is called.
-        var resetCalls = 0
-        panel.addResetListener { resetCalls++ }
-        ui.clickOn(it)
-        ui.updateToolbars()
-        assertEquals(1, resetCalls)
-      }
-    }
-
-  @Test
-  fun `no reset button if coordination drag is not available`(): Unit =
-    runBlocking(uiThread) {
-      if (enableCoordinationDrag) return@runBlocking
-      val panel = createBottomPanel()
-      val ui =
-        FakeUi(panel.parent).apply {
-          updateToolbars()
-          layout()
-        }
-      assertEquals(1, (panel.components[0] as Container).components.size)
-    }
 
   @Test
   fun `label is visible`(): Unit =
@@ -158,7 +103,7 @@ class BottomPanelTest(private val enableCoordinationDrag: Boolean) {
 
   /** Create [BottomPanel] with 300x500 size. */
   private fun createBottomPanel(): BottomPanel {
-    val panel = BottomPanel(surface, NoopAnimationTracker)
+    val panel = BottomPanel(surface)
     JPanel(BorderLayout()).apply {
       setSize(300, 500)
       add(panel, BorderLayout.SOUTH)

@@ -127,7 +127,7 @@ class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val progressIndicator = StudioLoggerProgressIndicator(javaClass)
     val sdkManager = sdkHandler.getRepoManager(progressIndicator)
-    val progressRunner = StudioProgressRunner(false, false, "Loading Remote SDK", project)
+    val progressRunner = StudioProgressRunner(false, "Loading Remote SDK", project)
 
     val onComplete = RepoManager.RepoLoadedListener { packages: RepositoryPackages ->
       invokeLater(ModalityState.any()) {
@@ -172,10 +172,9 @@ class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix {
         future.complete(null)
       }
     }
-    sdkManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null,
-                    ImmutableList.of(onComplete),
-                    ImmutableList.of(onError), progressRunner,
-                    StudioDownloader(), StudioSettingsController.getInstance())
+    sdkManager.load(cacheExpirationMs = RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+                    onSuccess = onComplete, onError = onError, runner = progressRunner,
+                    downloader = StudioDownloader(), settings = StudioSettingsController.getInstance())
 
     return future
   }

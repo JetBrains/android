@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.runningdevices.ui.rendering
 
 import com.android.testutils.ImageDiffUtil
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeMouse
@@ -40,6 +40,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -567,6 +568,18 @@ class StudioRendererPanelTest {
 
     assertThat(renderModel.model.selection).isNull()
     assertThat(renderModel.model.hoveredNode).isNull()
+  }
+
+  @Test
+  @RunsInEdt
+  fun testSelectionListenerRemovedOnDispose() {
+    val layoutInspectorRenderer = createRenderer()
+
+    assertThat(renderModel.model.selectionListeners.size()).isEqualTo(1)
+
+    Disposer.dispose(layoutInspectorRenderer)
+
+    assertThat(renderModel.model.selectionListeners.size()).isEqualTo(0)
   }
 
   private fun paint(

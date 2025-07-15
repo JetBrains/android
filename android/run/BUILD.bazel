@@ -37,6 +37,7 @@ jvm_library(
     "@lib//:kotlinc-kotlin-compiler-common",
     "@lib//:kotlinc-kotlin-compiler-fe10",
     "//android/android-adb:adb",
+    "//android/android-adb:adb-tests_test_lib",
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
     "//android/artwork",

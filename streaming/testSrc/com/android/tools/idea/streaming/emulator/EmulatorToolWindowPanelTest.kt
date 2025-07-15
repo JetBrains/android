@@ -20,12 +20,13 @@ import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.ThemingStyle
 import com.android.mockito.kotlin.whenever
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.swing.DataManagerRule
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessRootPaneContainer
@@ -36,7 +37,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.actions.FloatingXrToolbarState
-import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
 import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.core.FloatingToolbarContainer
 import com.android.tools.idea.streaming.core.SplitPanel
@@ -62,8 +62,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.configurationStore.deserialize
 import com.intellij.configurationStore.serialize
 import com.intellij.ide.DataManager
-import com.intellij.ide.impl.HeadlessDataManager
-import com.intellij.ide.ui.IdeUiService
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfoImpl
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -81,7 +79,6 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.TestDataProvider
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.LayeredIcon
@@ -146,8 +143,8 @@ class EmulatorToolWindowPanelTest {
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
   @get:Rule
-  val ruleChain: RuleChain =
-      RuleChain(projectRule, emulatorRule, ClipboardSynchronizationDisablementRule(), PortableUiFontRule(), EdtRule())
+  val ruleChain = RuleChain(projectRule, DataManagerRule(projectRule), emulatorRule, ClipboardSynchronizationDisablementRule(),
+                            PortableUiFontRule(), EdtRule())
 
   private var nullableEmulator: FakeEmulator? = null
 
@@ -165,8 +162,6 @@ class EmulatorToolWindowPanelTest {
     StudioFlags.EMBEDDED_EMULATOR_ALLOW_XR_AVD.overrideForTest(true, testRootDisposable)
     StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.overrideForTest(true, testRootDisposable)
     StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.overrideForTest(true, testRootDisposable)
-    HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable) // Necessary to properly update toolbar button states.
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     val mockScreenRecordingCache = mock<ScreenRecordingSupportedCache>()
     whenever(mockScreenRecordingCache.isScreenRecordingSupported(any())).thenReturn(true)
     projectRule.project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingCache, testRootDisposable)
@@ -191,15 +186,29 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 515")
     assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.03, maxPercentDifferentWindows = 0.3)
 
-    // Check EmulatorPowerButtonAction.
-    var button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Power" }
-    fakeUi.mousePressOn(button)
-    val streamInputCall = emulator.getNextGrpcCall(2.seconds)
-    assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
-    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"Power\" }")
-    fakeUi.mouseRelease()
-    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"Power\" }")
+    // Check push button actions.
+    val pushButtonCases = listOf(
+      Pair("Power", "Power"),
+      Pair("Volume Up", "AudioVolumeUp"),
+      Pair("Volume Down", "AudioVolumeDown"),
+      Pair("Back", "GoBack"),
+      Pair("Home", "GoHome"),
+      Pair("Overview", "AppSwitch"),
+    )
+    var streamInputCall: GrpcCallRecord? = null
+    for (case in pushButtonCases) {
+      val button = fakeUi.getComponent<ActionButton> { it.action.templateText == case.first }
+      fakeUi.mousePressOn(button)
+      if (streamInputCall == null) {
+        streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
+        assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+      }
+      assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"${case.second}\" }")
+      fakeUi.mouseRelease()
+      assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"${case.second}\" }")
+    }
 
+    streamInputCall as GrpcCallRecord
     // Check EmulatorPowerButtonAction invoked by a keyboard shortcut.
     var action = ActionManager.getInstance().getAction("android.device.power.button")
     var keyEvent = KeyEvent(panel, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_P, KeyEvent.CHAR_UNDEFINED)
@@ -214,20 +223,6 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"VolumeUp\" }")
     assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keypress key: \"Power\" }")
     assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"VolumeUp\" }")
-
-    // Check EmulatorVolumeUpButtonAction.
-    button = fakeUi.getComponent { it.action.templateText == "Volume Up" }
-    fakeUi.mousePressOn(button)
-    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"AudioVolumeUp\" }")
-    fakeUi.mouseRelease()
-    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"AudioVolumeUp\" }")
-
-    // Check EmulatorVolumeDownButtonAction.
-    button = fakeUi.getComponent { it.action.templateText == "Volume Down" }
-    fakeUi.mousePressOn(button)
-    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"AudioVolumeDown\" }")
-    fakeUi.mouseRelease()
-    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"AudioVolumeDown\" }")
 
     // Check that the Fold/Unfold action is hidden because the device is not foldable.
     assertThat(updateAndGetActionPresentation("android.device.postures", emulatorView, project).isVisible).isFalse()
@@ -406,24 +401,29 @@ class EmulatorToolWindowPanelTest {
     waitForCondition(2.seconds) { xrInputController.passthroughCoefficient != UNKNOWN_PASSTHROUGH_COEFFICIENT }
     assertAppearance("XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
-    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HAND)
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.INTERACTION)
     val modes = mapOf(
+      "Interact with Apps" to XrInputMode.INTERACTION,
       "Hand Tracking" to XrInputMode.HAND,
       "Eye Tracking" to XrInputMode.EYE,
-      "Hardware Input" to XrInputMode.HARDWARE,
       "View Direction" to XrInputMode.VIEW_DIRECTION,
       "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
       "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
     )
-    val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
     for ((actionName, mode) in modes) {
       fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == actionName })
       assertThat(xrInputController.inputMode).isEqualTo(mode)
-      assertThat(hardwareInputStateStorage.isHardwareInputEnabled(emulatorView.deviceId)).isEqualTo(mode == XrInputMode.HARDWARE)
     }
 
-    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Reset View" })
+    val button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Home" }
+    fakeUi.mousePressOn(button)
     val streamInputCall = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { key: \"AllApps\" }")
+    fakeUi.mouseRelease()
+    assertThat(shortDebugString(streamInputCall.request)).isEqualTo("key_event { eventType: keyup key: \"AllApps\" }")
+
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Reset View" })
     assertThat(streamInputCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
     assertThat(shortDebugString(streamInputCall.request)).isEqualTo("xr_command { }")
 
@@ -470,7 +470,7 @@ class EmulatorToolWindowPanelTest {
     val testCases = mapOf(
       XrInputMode.HAND to "xr_hand_event",
       XrInputMode.EYE to "xr_eye_event",
-      XrInputMode.HARDWARE to "mouse_event",
+      XrInputMode.INTERACTION to "mouse_event",
     )
     var streamInputCall: GrpcCallRecord? = null
     for ((inputMode, expectedEvent) in testCases) {
@@ -563,8 +563,8 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { x: -1.0 y: -1.0 }")
 
     expandFloatingToolbar()
-    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Hardware Input" })
-    // Switching to Hardware Input resets state of the navigation keys.
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Interact with Apps" })
+    // Switching to Interact with Apps resets state of the navigation keys.
     assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_velocity_event { }")
     fakeUi.keyboard.release(VK_A)
     fakeUi.keyboard.release(VK_Q)
@@ -1114,7 +1114,7 @@ class EmulatorToolWindowPanelTest {
 
   private fun FakeUi.mousePressOn(component: Component) {
     val location: Point = getPosition(component)
-    mouse.press(location.x, location.y)
+    mouse.press(location.x + component.width / 2, location.y + component.height / 2)
     // Allow events to propagate.
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }

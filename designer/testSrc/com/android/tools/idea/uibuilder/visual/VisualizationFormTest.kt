@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
@@ -96,5 +97,36 @@ class VisualizationFormTest {
     } finally {
       FileEditorManager.getInstance(rule.project).closeFile(file.virtualFile)
     }
+  }
+
+  @RunsInEdt
+  @Test
+  fun testZoomToFitOnConfigurationChanged() {
+    val form =
+      VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
+
+    val file = rule.fixture.addFileToProject("res/layout/test.xml", "")
+    rule.fixture.openFileInEditor(file.virtualFile)
+
+    form.onSelectedConfigurationSetChanged(ConfigurationSet.LargeFont)
+
+    // Ensure zoom-to-fit is applied on the first selected configuration set.
+    assertFalse(form.getDesignSurfaceForTestOnly().zoomController.canZoomToFit())
+
+    // Change zoom and ensure is not zoom-to-fit anymore.
+    repeat(3) { form.getDesignSurfaceForTestOnly().zoomController.zoom(ZoomType.IN) }
+    assertTrue(form.getDesignSurfaceForTestOnly().zoomController.canZoomToFit())
+
+    form.onSelectedConfigurationSetChanged(ConfigurationSet.ColorBlindMode)
+
+    // We assume design surface has been notified its creation and resize
+    form.getDesignSurfaceForTestOnly().notifyLayoutCreatedForTest()
+    form.getDesignSurfaceForTestOnly().notifyComponentResizedForTest()
+
+    // The visualization form is refreshed
+    form.refreshForTestOnly()
+
+    // Ensure zoom-to-fit is applied on configuration change.
+    assertFalse(form.getDesignSurfaceForTestOnly().zoomController.canZoomToFit())
   }
 }

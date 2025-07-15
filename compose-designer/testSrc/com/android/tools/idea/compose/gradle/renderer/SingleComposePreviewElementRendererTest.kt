@@ -217,7 +217,7 @@ class SingleComposePreviewElementRendererTest {
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.MainActivityKt.DefaultPreview",
             configuration =
-              PreviewConfiguration.cleanAndGet(null, null, null, null, "en-rUS", null, null, null),
+              PreviewConfiguration.cleanAndGet(null, null, null, "en-rUS", null, null, null),
           ),
         )
         .get()!!

@@ -21,14 +21,14 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.getStartTaskErrorMessage
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.getStartTaskErrorNotificationText
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import icons.StudioIconsCompose
 
 @Composable
 fun StartTaskError(error: StartTaskSelectionError) {
-  val errorCode = error.starTaskSelectionErrorCode
+  val errorCode = error.startTaskSelectionErrorCode
   var subText = error.actionableInfo
-  if (errorCode == StarTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS) {
+  if (errorCode == StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS) {
     subText = DEBUGGABLE_REBUILD_INSTRUCTION_TOOLTIP
   }
 

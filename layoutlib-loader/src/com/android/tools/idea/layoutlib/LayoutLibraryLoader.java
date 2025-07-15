@@ -172,5 +172,7 @@ public class LayoutLibraryLoader {
 
     @Nullable
     Class<?> getFrameworkRClass();
+
+    long getNativeMemoryUsage();
   }
 }

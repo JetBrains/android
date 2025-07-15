@@ -27,9 +27,9 @@ interface PairingCodePairingView {
 
   fun showWaitingForDeviceProgress(pairingResult: PairingResult)
 
-  fun showPairingSuccess(service: MdnsService, device: AdbOnlineDevice)
+  fun showPairingSuccess(service: PairingMdnsService, device: AdbOnlineDevice)
 
-  fun showPairingError(service: MdnsService, error: Throwable)
+  fun showPairingError(service: PairingMdnsService, error: Throwable)
 
   fun addListener(listener: Listener)
 

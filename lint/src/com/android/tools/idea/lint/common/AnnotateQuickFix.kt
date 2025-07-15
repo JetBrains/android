@@ -26,6 +26,7 @@ import com.intellij.modcommand.ModCommand
 import com.intellij.modcommand.ModCommandAction
 import com.intellij.modcommand.Presentation
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnonymousClass
 import com.intellij.psi.PsiClassInitializer
@@ -33,6 +34,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.SyntheticElement
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.util.findAnnotation
@@ -56,6 +58,7 @@ class AnnotateQuickFix(
   private val annotationSource: String,
   private val replace: Boolean,
   range: Location?,
+  private val selectPattern: String? = null,
 ) : ModCommandAction {
   private val rangePointer = LintIdeFixPerformer.getRangePointer(project, range)
 
@@ -65,6 +68,7 @@ class AnnotateQuickFix(
 
   override fun getPresentation(context: ActionContext): Presentation? {
     return if (findPsiTarget(context) != null) {
+      @Suppress("UsePropertyAccessSyntax") // property syntax would access private nullable field
       Presentation.of(displayName ?: getFamilyName())
     } else {
       null
@@ -74,7 +78,24 @@ class AnnotateQuickFix(
   override fun perform(context: ActionContext): ModCommand {
     val element = findPsiTarget(context) ?: return ModCommand.nop()
 
-    @Suppress("UnstableApiUsage") return ModCommand.psiUpdate(element) { e, _ -> applyFixFun(e) }
+    return ModCommand.psiUpdate(element) { e, updater ->
+      val element = applyFixFun(e)
+
+      // Select text in the inserted or updated annotation
+      if (element != null && selectPattern != null) {
+        val text = element.text
+        val result = Regex(selectPattern).find(text) ?: return@psiUpdate
+        val groups = result.groups
+        val group = if (groups.size > 1) groups[1] else groups[0]
+        if (group != null) {
+          val startIndex = group.range.first
+          val begin = element.textOffset + startIndex
+          val range = TextRange(begin, begin + group.value.length)
+          updater.select(range)
+          return@psiUpdate
+        }
+      }
+    }
   }
 
   fun findPsiTarget(context: ActionContext): PsiElement? {
@@ -86,7 +107,7 @@ class AnnotateQuickFix(
         !(rangeFile.containingFile != context.file &&
           context.file.originalFile == rangeFile.containingFile)
     ) {
-      val range = rangePointer?.range
+      val range = rangePointer.range
       val newStartElement = rangeFile.findElementAt(range!!.startOffset)
       if (newStartElement != null) {
         element = newStartElement
@@ -99,25 +120,36 @@ class AnnotateQuickFix(
     }
   }
 
-  fun applyFixFun(element: PsiElement) {
+  fun applyFixFun(element: PsiElement): PsiElement? {
     when (element.language) {
       JavaLanguage.INSTANCE -> {
         val owner = element as PsiModifierListOwner
         val project = element.project
         val factory = JavaPsiFacade.getInstance(project).elementFactory
         val newAnnotation = factory.createAnnotationFromText(annotationSource, element)
-        val annotationName = newAnnotation.qualifiedName ?: return
+        val annotationName = newAnnotation.qualifiedName ?: return null
         val annotation = AnnotationUtil.findAnnotation(owner, annotationName)
         if (annotation != null && annotation !is SyntheticElement && replace) {
-          annotation.replace(newAnnotation)
+          return annotation.replace(newAnnotation)
         } else {
+          if (annotation != null && !replace) {
+            // AddAnnotationFix will *not* add repeated annotations, so
+            // we'll need to do this more manually
+            return annotation.parent.addBefore(newAnnotation, annotation)
+          }
           val attributes = newAnnotation.parameterList.attributes
           AddAnnotationFix(annotationName, element, attributes)
             .invoke(project, null, element.containingFile)
+          return element.annotations.find { a ->
+            a.qualifiedName == annotationName &&
+              // The annotation fix sometimes applies changes to the attributes
+              // (such as importing class constants) so we only compare by attribute names
+              a.parameterList.attributes.map { it.name } == attributes.map { it.name }
+          }
         }
       }
       KotlinLanguage.INSTANCE -> {
-        if (element !is KtModifierListOwner) return
+        if (element !is KtModifierListOwner) return null
         val psiFactory = KtPsiFactory(element.project, markGenerated = true)
         val annotationEntry = psiFactory.createAnnotationEntry(annotationSource)
         val fqName = annotationSource.removePrefix("@").substringAfter(':').substringBefore('(')
@@ -129,9 +161,11 @@ class AnnotateQuickFix(
           } else {
             element.addAnnotationEntry(annotationEntry)
           }
-        ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
+        val shortened = ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
+        return shortened?.parentOfType<KtAnnotationEntry>(true)
       }
     }
+    return null
   }
 }
 

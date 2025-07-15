@@ -44,14 +44,14 @@ class RadioButtonWithCommentTest {
       Column {
         RadioButtonWithComment(
           annotatedText = buildAnnotatedString { append("${Selection.A}") },
-          comment = "comment for ${Selection.A}",
+          annotatedComment = buildAnnotatedString { append("comment for ${Selection.A}") },
           selected = selection == Selection.A,
           onSelect = { selection = Selection.A },
         )
 
         RadioButtonWithComment(
           annotatedText = buildAnnotatedString { append("${Selection.B}") },
-          comment = "comment for ${Selection.B}",
+          annotatedComment = buildAnnotatedString { append("comment for ${Selection.B}") },
           selected = selection == Selection.B,
           onSelect = { selection = Selection.B },
         )

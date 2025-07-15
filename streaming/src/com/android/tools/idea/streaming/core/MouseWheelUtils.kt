@@ -34,11 +34,15 @@ internal fun MouseWheelEvent.getNormalizedScrollAmount(touchscreenScalingFactor:
   }
 }
 
-/** Returns [MouseWheelEvent.wheelRotation] if not zero, otherwise [MouseWheelEvent.preciseWheelRotation]. */
+/**
+ * Returns a value between [MouseWheelEvent.preciseWheelRotation] and [MouseWheelEvent.wheelRotation]
+ * interpolated using [PRECISE_WHEEL_ROTATION_WEIGHT].
+ */
 private val MouseWheelEvent.adjustedWheelRotation: Double
-  get() = if (wheelRotation != 0) wheelRotation.toDouble() else preciseWheelRotation
+  get() = preciseWheelRotation * PRECISE_WHEEL_ROTATION_WEIGHT + wheelRotation * (1.0 - PRECISE_WHEEL_ROTATION_WEIGHT)
 
 /** This is how much we want to adjust the mouse scroll for Android. This number was chosen empirically. */
 @VisibleForTesting
 internal const val ANDROID_SCROLL_ADJUSTMENT_FACTOR = 0.25f
-private const val TOUCH_SCREEN_ADJUSTMENT_FACTOR = 0.02f
+private const val TOUCH_SCREEN_ADJUSTMENT_FACTOR = 0.02
+private const val PRECISE_WHEEL_ROTATION_WEIGHT = 0.02

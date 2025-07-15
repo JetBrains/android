@@ -16,14 +16,8 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
-import com.android.tools.idea.run.deployment.liveedit.tokens.FakeBuildSystemLiveEditServices
 
 fun LiveEditCompiler.withClasses(classes: Map<String, ByteArray>): LiveEditCompiler {
-  this.setApplicationLiveEditServicesForTests(ApplicationLiveEditServices.ApplicationLiveEditServicesForTests(classes))
-  return this
-}
-
-fun FakeBuildSystemLiveEditServices.withClasses(classes: Map<String, ByteArray>): FakeBuildSystemLiveEditServices {
-  this.testApplicationLiveEditServices = ApplicationLiveEditServices.ApplicationLiveEditServicesForTests(classes)
+  this.resetState(ApplicationLiveEditServices.ApplicationLiveEditServicesForTests(classes))
   return this
 }

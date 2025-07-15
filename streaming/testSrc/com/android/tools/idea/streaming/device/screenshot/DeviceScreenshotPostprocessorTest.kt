@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.streaming.device.screenshot
 
+import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.ImageDiffUtil
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.webp.WebpMetadata
@@ -45,7 +46,7 @@ class DeviceScreenshotPostprocessorTest {
 
   @Test
   fun testSkinFrame() {
-    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.HANDHELD, "")
+    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, "")
     val skinFolder = DeviceArtDescriptor.getBundledDescriptorsFolder()!!.toPath().resolve("pixel_6")
     val framedImage = postprocessor.decorate(screenshotImage, DeviceFramingOption("Pixel 6", skinFolder), null)
     assertImageSimilar("SkinFrame", framedImage)
@@ -53,7 +54,7 @@ class DeviceScreenshotPostprocessorTest {
 
   @Test
   fun testDeviceArtFrame() {
-    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.HANDHELD, "")
+    val screenshotImage = ScreenshotImage(createImage(1080, 2400, Color.WHITE), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, "")
     val artDescriptor = DeviceArtDescriptor.getDescriptors(null).find { it.id == "phone" }!!
     val framedImage = postprocessor.decorate(screenshotImage, DeviceFramingOption(artDescriptor), null)
     assertImageSimilar("DeviceArtFrame", framedImage)
@@ -61,7 +62,8 @@ class DeviceScreenshotPostprocessorTest {
 
   @Test
   fun testCircularClip() {
-    val screenshotImage = ScreenshotImage(createImage(400, 400, Color.CYAN), 0, DeviceType.WEAR, "DisplayDeviceInfo{..., FLAG_ROUND}")
+    val screenshotImage = ScreenshotImage(createImage(400, 400, Color.CYAN), 0, DeviceType.WEAR, "Watch", PRIMARY_DISPLAY_ID,
+                                          "DisplayDeviceInfo{..., FLAG_ROUND}")
     val framedImage = postprocessor.decorate(screenshotImage, null, null)
     assertImageSimilar("CircularClip", framedImage)
   }

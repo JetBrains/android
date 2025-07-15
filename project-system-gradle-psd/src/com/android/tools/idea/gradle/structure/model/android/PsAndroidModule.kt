@@ -73,6 +73,7 @@ class PsAndroidModule(
   var compileSdkVersion by AndroidModuleDescriptors.compileSdkVersion
   var sourceCompatibility by AndroidModuleDescriptors.sourceCompatibility
   var targetCompatibility by AndroidModuleDescriptors.targetCompatibility
+  var kotlinJvmTarget by AndroidModuleDescriptors.kotlinJvmTarget
   var viewBindingEnabled by AndroidModuleDescriptors.viewBindingEnabled
   var includeDependenciesInfoInApk by AndroidModuleDescriptors.includeDependenciesInfoInApk
 

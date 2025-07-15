@@ -138,10 +138,10 @@ class DeclarativeAnnotator : Annotator {
         is FoundBlock ->
           ElementTypeWithAugmentation(ElementType.BLOCK, listOf())
 
-        is FoundObjectProperty -> ElementTypeWithAugmentation(ElementType.OBJECT_VALUE, listOf())
+        is FoundObjectProperty -> ElementTypeWithAugmentation(ElementType.PROPERTY, listOf())
         is FoundSimpleProperty -> ElementTypeWithAugmentation(getSimpleType(type), listOf())
         is FoundEnum -> ElementTypeWithAugmentation(ElementType.ENUM, listOf())
-        is FoundParametrizedType -> ElementTypeWithAugmentation(ElementType.OBJECT_VALUE, augmented)
+        is FoundParametrizedType -> ElementTypeWithAugmentation(ElementType.PROPERTY, augmented)
       }
     }
   }

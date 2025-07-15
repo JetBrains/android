@@ -18,6 +18,7 @@ package com.android.tools.idea.adb.wireless
 import com.android.adblib.ServerStatus
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.TimeoutRemainder
+import com.android.test.testutils.EnsureAndroidProjectRule
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
@@ -70,6 +71,8 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
   @get:Rule val usageTrackerRule = UsageTrackerRule()
 
+  @get:Rule val ensureAndroidProjectRule = EnsureAndroidProjectRule()
+
   private val randomProvider by lazy { MockRandomProvider() }
 
   private val adbService = mockOrActual<AdbServiceWrapper> { AdbServiceWrapperAdbLibImpl(project) }
@@ -120,9 +123,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
       devicePairingService,
       notificationService,
       view,
-    ) {
-      createPairingCodePairingController(it)
-    }
+      { createPairingCodePairingController(it) },
+      mdnsServiceUnderPairing = null,
+    )
   }
 
   private val testTimeUnit = TimeUnit.SECONDS
@@ -139,9 +142,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
   @Suppress("SameParameterValue")
   private fun createPairingCodePairingController(
-    mdnsService: MdnsService
+    pairingMdnsService: PairingMdnsService
   ): PairingCodePairingController {
-    val model = PairingCodePairingModel(mdnsService)
+    val model = PairingCodePairingModel(pairingMdnsService)
     val view =
       MockPairingCodePairingView(project, notificationService, model).also {
         lastPairingCodeView = it

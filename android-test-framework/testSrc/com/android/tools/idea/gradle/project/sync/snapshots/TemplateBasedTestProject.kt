@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
@@ -146,6 +146,7 @@ interface TemplateBasedTestProject : TestProjectDefinition {
     agpVersion: AgpVersionSoftwareEnvironment,
     ndkVersion: String?,
     sdk: Sdk?,
+    syncReady: Boolean
   ): PreparedTestProject {
     val resolvedAgpVersion = agpVersion.resolve(sdk)
     val root = integrationTestEnvironment.prepareGradleProject(
@@ -153,7 +154,8 @@ interface TemplateBasedTestProject : TestProjectDefinition {
       resolvedAgpVersion,
       getAdditionalRepos(),
       name,
-      ndkVersion = ndkVersion
+      ndkVersion = ndkVersion,
+      syncReady
     )
     if (autoMigratePackageAttribute && agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80) {
       migratePackageAttribute(root)
@@ -340,12 +342,14 @@ fun testProjectTemplateFromAbsolutePath(path: String): TemplateBasedTestProject 
   }
 }
 
-fun testProjectTemplateFromPath(path: String, testDataPath: String): TemplateBasedTestProject {
+fun testProjectTemplateFromPath(path: String, testDataPath: String, autoMigratePackageAttribute: Boolean = true): TemplateBasedTestProject {
   return object: TemplateBasedTestProject{
     override val name: String
       get() = File(path).name
     override val template: String
       get() = path
+    override val autoMigratePackageAttribute: Boolean
+      get() = autoMigratePackageAttribute
 
     override fun getTestDataDirectoryWorkspaceRelativePath(): String = testDataPath
 

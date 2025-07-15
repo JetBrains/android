@@ -200,26 +200,6 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = AndroidCoreTestProject.INSTANT_APP,
-        executeMakeBeforeRun = false,
-      ),
-      IGNORE = { if (agpVersion != AGP_35) error("instant apps are not supported by this version of AGP. ") },
-      expectPackageName = "com.example.instantapp",
-      expectTestPackageName = "(null)", // The instant-app wrapper project does not have tests.
-      expectSyncIssueContent = listOf(
-        "The com.android.feature plugin is deprecated and will be removed by the end of 2019. " +
-        "Please switch to using dynamic-features or libraries. " +
-        "For more information on converting your application to using Android App Bundles, please visit " +
-        "https://developer.android.com/topic/google-play-instant/feature-module-migration",
-        "The com.android.instantapp plugin is deprecated and will be removed by the end of 2019. " +
-        "Please switch to using the Android App Bundle to build your instant app. " +
-        "For more information on migrating to Android App Bundles, please visit " +
-        "https://developer.android.com/topic/google-play-instant/feature-module-migration",
-      ),
-    ),
-    def(
-      stackMarker = { it() },
-      TestScenario(
         testProject = TestProject.TEST_ONLY_MODULE,
         target = TestTargetRunConfiguration("com.example.android.benchmark.ExampleTest"),
         executeMakeBeforeRun = false,

@@ -49,7 +49,8 @@ public final class GradleAndroidTestsExecutionConsoleOutputProcessor {
     try {
       var adaptor = executionConsole.getUserData(ADAPTOR_KEY);
       if (adaptor == null) {
-        adaptor = executionConsole.putUserDataIfAbsent(ADAPTOR_KEY, new AndroidTestSuiteViewAdaptor());
+        adaptor =
+          executionConsole.putUserDataIfAbsent(ADAPTOR_KEY, new AndroidTestSuiteViewAdaptor(executionConsole.getRunConfiguration()));
       }
       var xml = new TestEventXPPXmlView(eventMessage);
       adaptor.processEvent(xml, executionConsole);

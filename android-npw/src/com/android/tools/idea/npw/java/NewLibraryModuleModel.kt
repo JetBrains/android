@@ -51,7 +51,6 @@ class NewLibraryModuleModel(
   override val androidSdkInfo =
     OptionalValueProperty(
       AndroidVersionsInfo()
-        .apply { loadLocalVersions() }
         .getKnownTargetVersions(FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API)
         .first() // we don't care which one do we use, we just have to pass something, it is not
       // going to be used

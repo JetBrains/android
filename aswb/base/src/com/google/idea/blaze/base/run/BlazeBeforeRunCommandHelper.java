@@ -143,7 +143,7 @@ public final class BlazeBeforeRunCommandHelper {
                 BuildSystem.BuildInvoker invoker =
                     Blaze.getBuildSystemProvider(project)
                         .getBuildSystem()
-                        .getDefaultInvoker(project);
+                        .getBuildInvoker(project);
                 try {
                   return invoker.invoke(command, context);
                 } catch (BuildException e) {

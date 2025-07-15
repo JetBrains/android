@@ -22,14 +22,17 @@ intellij_plugin(
     directory = "asdriver.plugin",
     libs = [
         "wrapper_class_file",
-        "//tools/adt/idea/bleak:intellij.android.bleak",
-        "//tools/adt/idea/bleak-config:intellij.android.bleak-config",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
-        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
     ],
-    modules = {"asdriver-plugin.jar": [":as-driver.plugin"]},
+    modules = {
+        "asdriver-plugin.jar": [
+            "//tools/adt/idea/bleak-config:intellij.android.bleak-config",
+            "//tools/adt/idea/bleak:intellij.android.bleak",
+            ":as-driver.plugin",
+        ],
+    },
     platforms = [
         "studio-sdk",
     ],
@@ -76,9 +79,11 @@ iml_module(
         "//tools/base/perf-logger:studio.perf-logger",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/as-driver:librunfiles",
+        "//tools/base/testlib:studio.android.sdktools.testlib",
     ],
     test_srcs = ["utils/testSrc"],
     visibility = ["//visibility:public"],
+    exports = ["//tools/base/testlib:studio.android.sdktools.testlib"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/tools/common/m2:junit-4.12",
@@ -104,6 +109,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:junit4",
         "//tools/adt/idea/as-driver:as-driver.utils",
         "@intellij//:intellij-sdk",
+        "//tools/base/testlib:studio.android.sdktools.testlib",
     ],
     test_srcs = ["integration/testSrc"],
     visibility = ["//visibility:public"],
@@ -137,7 +143,6 @@ iml_module(
         "//tools/adt/idea/bleak:intellij.android.bleak",
         "//tools/adt/idea/bleak-config:intellij.android.bleak-config",
         "@intellij//:com.jetbrains.performancePlugin",
-        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
     ],
 )
 

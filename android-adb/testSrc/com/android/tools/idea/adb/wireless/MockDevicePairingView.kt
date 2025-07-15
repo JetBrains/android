@@ -24,7 +24,8 @@ class MockDevicePairingView(
   override val model: WiFiPairingModel,
 ) : WiFiPairingView {
   val hyperlinkListener = MockWiFiPairingHyperlinkListener()
-  private val viewImpl = WiFiPairingViewImpl(project, notificationService, model, hyperlinkListener)
+  private val viewImpl =
+    WiFiPairingViewImpl(project, notificationService, model, hyperlinkListener, null)
   val showDialogTracker = FutureValuesTracker<Unit>()
   val startMdnsCheckTracker = FutureValuesTracker<Unit>()
   val showMdnsCheckSuccessTracker = FutureValuesTracker<Unit>()
@@ -33,11 +34,12 @@ class MockDevicePairingView(
   val showMacWontWorkAdbErrorTracker = FutureValuesTracker<Unit>()
   val showMdnsCheckErrorTracker = FutureValuesTracker<Unit>()
   val showQrCodePairingStartedTracker = FutureValuesTracker<Unit>()
-  val showQrCodePairingInProgressTracker = FutureValuesTracker<MdnsService>()
+  val showQrCodePairingInProgressTracker = FutureValuesTracker<PairingMdnsService>()
   val showQrCodePairingWaitForDeviceTracker = FutureValuesTracker<PairingResult>()
-  val showQrCodePairingSuccessTracker = FutureValuesTracker<Pair<MdnsService, AdbOnlineDevice>>()
-  val showQrCodePairingErrorTracker = FutureValuesTracker<Pair<MdnsService, Throwable>>()
-  val showMdnsDisabledOnAdbServer = FutureValuesTracker<MdnsService>()
+  val showQrCodePairingSuccessTracker =
+    FutureValuesTracker<Pair<PairingMdnsService, AdbOnlineDevice>>()
+  val showQrCodePairingErrorTracker = FutureValuesTracker<Pair<PairingMdnsService, Throwable>>()
+  val showMdnsDisabledOnAdbServer = FutureValuesTracker<PairingMdnsService>()
 
   override fun showDialog() {
     showDialogTracker.produce(Unit)
@@ -74,9 +76,9 @@ class MockDevicePairingView(
     viewImpl.showQrCodePairingStarted()
   }
 
-  override fun showQrCodePairingInProgress(mdnsService: MdnsService) {
-    showQrCodePairingInProgressTracker.produce(mdnsService)
-    viewImpl.showQrCodePairingInProgress(mdnsService)
+  override fun showQrCodePairingInProgress(pairingMdnsService: PairingMdnsService) {
+    showQrCodePairingInProgressTracker.produce(pairingMdnsService)
+    viewImpl.showQrCodePairingInProgress(pairingMdnsService)
   }
 
   override fun showQrCodePairingWaitForDevice(pairingResult: PairingResult) {
@@ -84,14 +86,17 @@ class MockDevicePairingView(
     viewImpl.showQrCodePairingWaitForDevice(pairingResult)
   }
 
-  override fun showQrCodePairingSuccess(mdnsService: MdnsService, device: AdbOnlineDevice) {
-    showQrCodePairingSuccessTracker.produce(Pair(mdnsService, device))
-    viewImpl.showQrCodePairingSuccess(mdnsService, device)
+  override fun showQrCodePairingSuccess(
+    pairingMdnsService: PairingMdnsService,
+    device: AdbOnlineDevice,
+  ) {
+    showQrCodePairingSuccessTracker.produce(Pair(pairingMdnsService, device))
+    viewImpl.showQrCodePairingSuccess(pairingMdnsService, device)
   }
 
-  override fun showQrCodePairingError(mdnsService: MdnsService, error: Throwable) {
-    showQrCodePairingErrorTracker.produce(Pair(mdnsService, error))
-    viewImpl.showQrCodePairingError(mdnsService, error)
+  override fun showQrCodePairingError(pairingMdnsService: PairingMdnsService, error: Throwable) {
+    showQrCodePairingErrorTracker.produce(Pair(pairingMdnsService, error))
+    viewImpl.showQrCodePairingError(pairingMdnsService, error)
   }
 
   override fun showMacMdnsEnvironmentIsBroken() {

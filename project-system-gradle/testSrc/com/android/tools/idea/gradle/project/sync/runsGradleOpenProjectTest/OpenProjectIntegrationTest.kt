@@ -48,6 +48,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.doNotEnableExternalStorageByDefaultInTests
 import com.intellij.openapi.project.getExternalConfigurationDir
+import com.intellij.openapi.project.projectsDataDir
 import com.intellij.openapi.roots.ModuleRootManagerEx
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -55,7 +56,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testFramework.utils.io.deleteRecursively
-import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.junit.After
@@ -140,12 +140,15 @@ class OpenProjectIntegrationTest {
   @Test
   fun testReimportProject() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
-    val before = preparedProject.open { project -> project.saveAndDump() }
+    val before = preparedProject.open { project ->
+      project.saveAndDump()
+    }
     FileUtil.delete(File(preparedProject.root, ".idea"))
+    projectsDataDir.deleteRecursively()
+
     val after = preparedProject.open { project ->
       // Synced again.
-      Truth.assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult())
-        .isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      verifySyncSuccessful(project, projectRule.testRootDisposable)
       project.saveAndDump()
     }
     Truth.assertThat(after).isEqualTo(before)
@@ -334,7 +337,7 @@ class OpenProjectIntegrationTest {
       val firstSync = project.saveAndDump()
       project.requestSyncAndWait()
       val secondSync = project.saveAndDump()
-      Truth.assertThat(firstSync).isEqualTo(secondSync)
+      Truth.assertThat(secondSync).isEqualTo(firstSync)
     }
   }
 
@@ -363,9 +366,6 @@ class OpenProjectIntegrationTest {
   /** Regression tests for b/300512355. */
   @Test
   fun testReOpenWithCachesButNoModules() {
-    // Caching is disabled by default in unit tests, enable it for this test case
-    WorkspaceModelCacheImpl.forceEnableCaching(projectRule.testRootDisposable)
-
     val preparedProject = projectRule.prepareTestProject(TestProject.PSD_SAMPLE_GROOVY)
     val (before: String, externalConfigurationDir: Path) = preparedProject.open { project ->
       Pair(project.saveAndDump(), project.getExternalConfigurationDir())

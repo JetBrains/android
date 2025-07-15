@@ -211,7 +211,7 @@ private fun verifyIncompatibleAgpVersionsAreNotUsedOrFailSync(modules: List<Basi
  */
 private val MINIMUM_AGP_FOR_VERSIONS_MAP = AgpVersion.parse("7.3.0")
 
-private fun Versions.convert(): ModelVersions {
+fun Versions.convert(): ModelVersions {
   val agpVersion = AgpVersion.parse(agp)
   // This is the only check that should be formulated this way, as ModelVersions hasn't been constructed yet
   val versions: Map<String, Versions.Version> = if (agpVersion >= MINIMUM_AGP_FOR_VERSIONS_MAP) versions else emptyMap()

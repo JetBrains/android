@@ -16,80 +16,93 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.DisplayConfiguration
-import com.android.emulator.control.Posture.PostureValue
+import com.android.emulator.control.Posture
 import com.android.testutils.ImageDiffUtil
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.swing.DataManagerRule
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
-import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.adtui.swing.optionsAsString
 import com.android.tools.adtui.swing.selectFirstMatch
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.emulator.EmulatorController
+import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.EmulatorView
-import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
+import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
+import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.EDT
 import kotlinx.coroutines.runBlocking
 import org.intellij.images.editor.ImageFileEditor
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.IOException
 import java.nio.file.Path
 import javax.imageio.ImageIO
 import javax.swing.JComboBox
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-/**
- * Tests for [EmulatorScreenshotAction].
- */
+/** Tests for [EmulatorScreenshotAction]. */
+@Suppress("OPT_IN_USAGE")
 @RunsInEdt
 class EmulatorScreenshotActionTest {
-  private val emulatorViewRule = EmulatorViewRule()
+
+  private val projectRule = ProjectRule()
+  private val emulatorRule = FakeEmulatorRule()
 
   @get:Rule
-  val ruleChain = RuleChain(emulatorViewRule, EdtRule(), HeadlessDialogRule())
-  @get:Rule
-  val portableUiFontRule = PortableUiFontRule()
+  val ruleChain = RuleChain(projectRule, DataManagerRule(projectRule), emulatorRule, ClipboardSynchronizationDisablementRule(),
+                            EdtRule(), HeadlessDialogRule())
 
-  private var nullableEmulator: FakeEmulator? = null
-  private var nullableEmulatorView: EmulatorView? = null
+  private lateinit var avdFolder: Path
+  private val emulator: FakeEmulator by lazy { emulatorRule.newEmulator(avdFolder) }
+  private val panel: EmulatorToolWindowPanel by lazy { createWindowPanel() }
+  // Fake window is necessary for the toolbars to be rendered.
+  private val fakeUi: FakeUi by lazy { FakeUi(panel, createFakeWindow = true, parentDisposable = testRootDisposable) }
+  private val project get() = projectRule.project
+  private val testRootDisposable get() = projectRule.disposable
 
-  private var emulator: FakeEmulator
-    get() = nullableEmulator ?: throw IllegalStateException()
-    set(value) { nullableEmulator = value }
+  @After
+  fun tearDown() {
+    do {
+      val dialog = findModelessDialog<ScreenshotViewer>()
+      dialog?.close(CLOSE_EXIT_CODE)
+    } while (dialog != null)
 
-  private var emulatorView: EmulatorView
-    get() = nullableEmulatorView ?: throw IllegalStateException()
-    set(value) { nullableEmulatorView = value }
-
-  private val project
-    get() = emulatorViewRule.project
-  private val testRootDisposable
-    get() = emulatorViewRule.disposable
+    waitUntilIndexesAreReady(project) // Closing a screenshot viewer triggers deletion of the backing file and indexing.
+  }
 
   @Test
   fun testAction() {
-    emulatorView = emulatorViewRule.newEmulatorView()
-    emulator = emulatorViewRule.getFakeEmulator(emulatorView)
+    avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot)
+    waitForDisplayViews(1)
 
-    emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
+    fakeUi.getComponent<ActionButton> { it.action.templateText == "Take Screenshot" }.let { fakeUi.clickOn(it) }
 
-    waitForCondition(2.seconds) { findScreenshotViewer() != null }
-    val screenshotViewer = findScreenshotViewer()!!
-    val rootPane = screenshotViewer.rootPane
-    val ui = FakeUi(rootPane)
+    val screenshotViewer = waitForScreenshotViewer()
+    val ui = FakeUi(screenshotViewer.rootPane)
     val clipComboBox = ui.getComponent<JComboBox<*>>()
 
     screenshotViewer.waitForUpdateAndGetImage()
@@ -102,15 +115,13 @@ class EmulatorScreenshotActionTest {
 
   @Test
   fun testActionFoldableOpen() {
-    emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
-    emulator = emulatorViewRule.getFakeEmulator(emulatorView)
+    avdFolder = FakeEmulator.createFoldableAvd(emulatorRule.avdRoot)
+    waitForDisplayViews(1)
 
-    emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
+    fakeUi.getComponent<ActionButton> { it.action.templateText == "Take Screenshot" }.let { fakeUi.clickOn(it) }
 
-    waitForCondition(2.seconds) { findScreenshotViewer() != null }
-    val screenshotViewer = findScreenshotViewer()!!
-    val rootPane = screenshotViewer.rootPane
-    val ui = FakeUi(rootPane)
+    val screenshotViewer = waitForScreenshotViewer()
+    val ui = FakeUi(screenshotViewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
     assertThat(clipComboBox.optionsAsString()).contains("Show Device Frame")
@@ -120,16 +131,15 @@ class EmulatorScreenshotActionTest {
 
   @Test
   fun testActionFoldableClosed() {
-    emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
-    emulator = emulatorViewRule.getFakeEmulator(emulatorView)
-    emulator.setPosture(PostureValue.POSTURE_CLOSED)
+    avdFolder = FakeEmulator.createFoldableAvd(emulatorRule.avdRoot)
+    emulator.setPosture(Posture.PostureValue.POSTURE_CLOSED)
+    waitForDisplayViews(1)
 
-    emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
+    fakeUi.getComponent<ActionButton> { it.action.templateText == "Take Screenshot" }.let { fakeUi.clickOn(it) }
 
-    waitForCondition(2.seconds) { findScreenshotViewer() != null }
-    val screenshotViewer = findScreenshotViewer()!!
-    val rootPane = screenshotViewer.rootPane
-    val ui = FakeUi(rootPane)
+
+    val screenshotViewer = waitForScreenshotViewer()
+    val ui = FakeUi(screenshotViewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
     assertThat(clipComboBox.optionsAsString()).contains("Show Device Frame")
@@ -139,15 +149,13 @@ class EmulatorScreenshotActionTest {
 
   @Test
   fun testWearEmulatorWithoutSkinHasPlayCompatibleOption() {
-    emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createWatchAvd(path, skinFolder = null) }
-    emulator = emulatorViewRule.getFakeEmulator(emulatorView)
+    avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, skinFolder = null)
+    waitForDisplayViews(1)
 
-    emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
+    fakeUi.getComponent<ActionButton> { it.action.templateText == "Take Screenshot" }.let { fakeUi.clickOn(it) }
 
-    waitForCondition(2.seconds) { findScreenshotViewer() != null }
-    val screenshotViewer = findScreenshotViewer()!!
-    val rootPane = screenshotViewer.rootPane
-    val ui = FakeUi(rootPane)
+    val screenshotViewer = waitForScreenshotViewer()
+    val ui = FakeUi(screenshotViewer.rootPane)
 
     // This AVD has no skin definition, so the combo box should not have a "Show Device Frame" option.
     // It should have a "Play compatible" option.
@@ -157,29 +165,82 @@ class EmulatorScreenshotActionTest {
   }
 
   @Test
-  fun testSecondaryDisplay() {
-    val primaryDisplayView = emulatorViewRule.newEmulatorView()
-    emulator = emulatorViewRule.getFakeEmulator(primaryDisplayView)
-
+  fun testMultipleDisplayScreenshotsDisabled() {
+    StudioFlags.MULTI_DISPLAY_SCREENSHOTS.overrideForTest(false, testRootDisposable)
+    avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot)
     val displayId = 1
-    val emulatorController = primaryDisplayView.emulator
+    runBlocking {
+      emulator.changeSecondaryDisplays(
+        listOf(DisplayConfiguration.newBuilder().setDisplay(displayId).setWidth(1080).setHeight(2340).build()))
+    }
+    waitForDisplayViews(2)
+
+    fakeUi.getComponent<ActionButton> { it.action.templateText == "Take Screenshot" }.let { fakeUi.clickOn(it) }
+
+    val screenshotViewerPrimary = waitForScreenshotViewer { !it.title.contains("Display") }
+    assertAppearance(screenshotViewerPrimary.waitForUpdateAndGetImage(false), "PrimaryDisplay")
+    assertThat(findScreenshotViewer{ it.title.contains("Display 1") }).isNull()
+  }
+
+  @Test
+  fun testMultipleDisplayScreenshotsEnabled() {
+    StudioFlags.MULTI_DISPLAY_SCREENSHOTS.overrideForTest(true, testRootDisposable)
+    avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot)
+    val displayId = 1
     runBlocking {
       emulator.changeSecondaryDisplays(
           listOf(DisplayConfiguration.newBuilder().setDisplay(displayId).setWidth(1080).setHeight(2340).build()))
     }
-    val emulatorView = EmulatorView(testRootDisposable, emulatorController, project, displayId, null, true)
+    waitForDisplayViews(2)
+
+    fakeUi.getComponent<ActionButton> { it.action.templateText == "Take Screenshot" }.let { fakeUi.clickOn(it) }
+
+    val screenshotViewerPrimary = waitForScreenshotViewer { !it.title.contains("Display") }
+    val screenshotViewerSecondary = waitForScreenshotViewer { it.title.contains("Display 1") }
+    assertAppearance(screenshotViewerPrimary.waitForUpdateAndGetImage(false), "PrimaryDisplay")
+    assertAppearance(screenshotViewerSecondary.waitForUpdateAndGetImage(false), "SecondaryDisplay")
+  }
+
+  // TODO(sprigogin): Add a test for the Take Screenshot action invoked from a context menu.
+
+  private fun createWindowPanel(): EmulatorToolWindowPanel {
+    emulator.start()
+    val catalog = RunningEmulatorCatalog.getInstance()
+    val emulators = runBlocking { catalog.updateNow().await() }
+    assertThat(emulators).hasSize(1)
+    val emulatorController = emulators.first()
+    val panel = EmulatorToolWindowPanel(testRootDisposable, project, emulatorController)
     waitForCondition(5.seconds) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-
-    emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
-
-    waitForCondition(2.seconds) { findScreenshotViewer() != null }
-    val screenshotViewer = findScreenshotViewer()!!
-    assertAppearance(screenshotViewer.waitForUpdateAndGetImage(false), "SecondaryDisplay")
+    panel.size = Dimension(400, 600)
+    panel.createContent(true)
+    return panel
   }
 
-  private fun findScreenshotViewer(): ScreenshotViewer? {
-    return findModelessDialog { it is ScreenshotViewer } as ScreenshotViewer?
+  private fun waitForDisplayViews(numViews: Int) {
+    waitForCondition(2.seconds) { fakeUi.findAllComponents<EmulatorView>().size >= numViews }
+    fakeUi.findAllComponents<EmulatorView>().forEach { it.waitForFrame(1U, 2.seconds) }
   }
+
+  private fun EmulatorView.waitForFrame(frame: UInt, timeout: Duration = 2.seconds) {
+    waitForCondition(timeout) { renderAndGetFrameNumber(this) >= frame }
+  }
+
+  private fun renderAndGetFrameNumber(emulatorView: EmulatorView): UInt {
+    fakeUi.render() // The frame number may get updated as a result of rendering.
+    return emulatorView.frameNumber
+  }
+
+  private fun waitForScreenshotViewer(filter: (ScreenshotViewer) -> Boolean = { true }): ScreenshotViewer {
+    var screenshotViewer: ScreenshotViewer? = null
+    waitForCondition(2.seconds) {
+      screenshotViewer = findScreenshotViewer(filter)
+      screenshotViewer != null
+    }
+    return screenshotViewer!!
+  }
+
+  private fun findScreenshotViewer(filter: (ScreenshotViewer) -> Boolean = { true }): ScreenshotViewer? =
+      findModelessDialog<ScreenshotViewer> { filter(it) }
 
   private fun assertAppearance(image: BufferedImage, goldenImageName: String) {
     val scaledDownImage = ImageUtils.scale(image, 0.1)
@@ -187,9 +248,8 @@ class EmulatorScreenshotActionTest {
   }
 
   @Suppress("SameParameterValue")
-  private fun getGoldenFile(name: String): Path {
-    return TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
-  }
+  private fun getGoldenFile(name: String): Path =
+      TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
 }
 
 private fun ScreenshotViewer.waitForUpdateAndGetImage(expectTransparentCorner: Boolean = true): BufferedImage {
@@ -231,7 +291,7 @@ private fun VirtualFile.readImage(): BufferedImage? {
   return try {
     ImageIO.read(inputStream)
   }
-  catch (e: IOException) {
+  catch (_: IOException) {
     null
   }
 }

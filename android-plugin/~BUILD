@@ -63,6 +63,7 @@ iml_module(
         "//tools/adt/idea/wear-whs:intellij.android.wear-whs",
         "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
         "//tools/adt/idea/app-quality-insights/ide:intellij.android.app-quality-insights.ide",
+        "//tools/adt/idea/app-quality-insights/play-policy/ide:intellij.android.app-quality-insights.play-policy.ide",
         "//tools/adt/idea/app-quality-insights/play-vitals/ide:intellij.android.app-quality-insights.play-vitals.ide",
         "//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",

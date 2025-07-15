@@ -67,6 +67,7 @@ jvm_library(
     "//android/wear-pairing",
     "//android/wear-whs",
     "//android/device-manager-v2",
+    "//android/android-plugin/descriptor",
     "//android/android-kotlin/idea-android:android-kotlin-idea",
     "//android/lint:lint-common",
     "//android/profilers-android/gradle",

@@ -98,7 +98,7 @@ class GradleDependencyCompatibilityAnalyzer(
     coordinatesToAdd.associateBy { it.dependency() }.let { dependenciesToCoordinates ->
       val dependenciesToAdd = dependenciesToCoordinates.keys.toList()
       findVersions(dependenciesToAdd).transform(MoreExecutors.directExecutor()) { results ->
-        analyzeCompatibility(dependenciesToAdd, results).run {
+        analyzeCompatibility(dependenciesToCoordinates.map { it.key to it.value.toString() }, results).run {
           val found = first.map { component -> GradleCoordinate(component.group, component.name, component.version.toString()) }
           val missing = second.mapNotNull { dependency -> dependenciesToCoordinates[dependency] }
           val message = third
@@ -107,11 +107,26 @@ class GradleDependencyCompatibilityAnalyzer(
       }
     }
 
+  fun analyzeComponentCompatibility(
+    components: List<Component>
+  ): ListenableFuture<Triple<List<Component>, List<Dependency>, String>> {
+    val dependenciesToStrings = components.map { component ->
+      val stability = component.stability
+      val upperBound = stability.expiration(component.version)
+      val range = VersionRange(Range.closedOpen(component.version, upperBound))
+      val dependency = Dependency(component.group, component.name, RichVersion.strictly(range))
+      dependency to component.toString()
+    }
+    return findVersions(dependenciesToStrings.map { it.first }).transform(MoreExecutors.directExecutor()) { results ->
+      analyzeCompatibility(dependenciesToStrings, results)
+    }
+  }
+
   fun analyzeDependencyCompatibility(
     dependencies: List<Dependency>
   ): ListenableFuture<Triple<List<Component>, List<Dependency>, String>> {
     return findVersions(dependencies).transform(MoreExecutors.directExecutor()) { results ->
-      analyzeCompatibility(dependencies, results)
+      analyzeCompatibility(dependencies.map { it to it.toString() }, results)
     }
   }
 
@@ -148,10 +163,10 @@ class GradleDependencyCompatibilityAnalyzer(
   }
 
   private fun analyzeCompatibility(
-    dependenciesToAdd: List<Dependency>,
+    dependenciesToAdd: List<Pair<Dependency,String>>,
     searchResults: List<SearchResult>
   ): Triple<List<Component>, List<Dependency>, String> {
-    val dependencies = dependenciesToAdd.mapNotNull { it.externalModule()?.let { m -> m to it } }.associateBy( { it.first }, { it.second })
+    val dependencies = dependenciesToAdd.mapNotNull { it.first.externalModule()?.let { m -> m to it } }.associateBy( { it.first }, { it.second })
     val versionsMap = searchResults.filter { it.artifactFound() }.associate { it.toExternalModuleVersionPair(dependencies) }
     if (!versionsMap.keys.containsAll(dependencies.keys) || versionsMap.values.any { it.isEmpty() }) {
       // The new dependencies were not found, just return.
@@ -194,18 +209,18 @@ class GradleDependencyCompatibilityAnalyzer(
   }
 
   private fun createMissingDependenciesResponse(
-    dependencies: Map<ExternalModule, Dependency>,
+    dependencies: Map<ExternalModule, Pair<Dependency, String>>,
     resultMap: Map<ExternalModule, List<Version>>
   ): Triple<List<Component>, List<Dependency>, String> {
-    val found = dependencies.values.filter { resultMap[it.externalModule()]?.isNotEmpty() ?: false }
-      .mapNotNull { it.externalModule()?.let let@{ m -> m.toComponent(resultMap[m]?.firstOrNull() ?: return@let null) } }
-    val missing = dependencies.values.filter { resultMap[it.externalModule()]?.isEmpty() ?: true }
+    val found = dependencies.values.filter { resultMap[it.first.externalModule()]?.isNotEmpty() ?: false }
+      .mapNotNull { it.first.externalModule()?.let let@{ m -> m.toComponent(resultMap[m]?.firstOrNull() ?: return@let null) } }
+    val missing = dependencies.values.filter { resultMap[it.first.externalModule()]?.isEmpty() ?: true }
     assert(missing.isNotEmpty())
     val message = when (missing.size) {
-      1 -> "The dependency was not found: ${missing.first()}"
-      else -> "The dependencies were not found:\n   ${missing.joinToString("\n   ")}"
+      1 -> "The dependency was not found: ${missing.first().second }"
+      else -> "The dependencies were not found:\n   ${missing.joinToString("\n   ") { it.second }}"
     }
-    return Triple(found, missing, message)
+    return Triple(found, missing.map { it.first }, message)
   }
 
   /**
@@ -326,11 +341,11 @@ class GradleDependencyCompatibilityAnalyzer(
     artifacts.firstOrNull { it.unsortedVersions.isNotEmpty() } != null
 
   private fun SearchResult.toExternalModuleVersionPair(
-    requestedDependencies: Map<ExternalModule, Dependency>
+    requestedDependencies: Map<ExternalModule, Pair<Dependency, String>>
   ): Pair<ExternalModule, List<Version>> {
     val id = artifacts.first().let { ExternalModule(it.groupId, it.name) }
-    val versionFilter = requestedDependencies[id]?.version?.let { versionFilter(it) } ?: { true }
-    val versionComparator = requestedDependencies[id]?.version?.let { versionComparator(it) } ?: stableFirstComparator
+    val versionFilter = requestedDependencies[id]?.first?.version?.let { versionFilter(it) } ?: { true }
+    val versionComparator = requestedDependencies[id]?.first?.version?.let { versionComparator(it) } ?: stableFirstComparator
     return Pair(id, selectAndSort(artifacts, versionFilter, versionComparator))
   }
 

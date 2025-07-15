@@ -24,12 +24,13 @@ import com.android.SdkConstants;
 import com.android.annotations.concurrency.AnyThread;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.annotations.InputEventMask;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -42,19 +43,18 @@ import com.android.tools.idea.common.scene.target.LassoTarget;
 import com.android.tools.idea.common.scene.target.MultiComponentTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
-import com.android.tools.idea.rendering.parsers.PsiXmlFile;
-import com.android.tools.rendering.RenderService;
-import com.android.tools.rendering.RenderTask;
 import com.android.tools.idea.rendering.StudioRenderService;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.RenderTask;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -104,6 +104,7 @@ public class Scene implements SelectionListener, Disposable {
   private final SceneManager mySceneManager;
   private static final boolean DEBUG = false;
   private final HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
+  @Nullable
   private SceneComponent myRoot;
   private boolean myIsAnimated = true; // animate layout changes
 
@@ -272,10 +273,11 @@ public class Scene implements SelectionListener, Disposable {
    */
   @Nullable
   public SceneComponent getSceneComponent(@NotNull String componentId) {
-    if (myRoot == null) {
+    SceneComponent root = myRoot;
+    if (root == null) {
       return null;
     }
-    return myRoot.getSceneComponent(componentId);
+    return root.getSceneComponent(componentId);
   }
 
   public List<NlComponent> getSelection() {
@@ -358,15 +360,16 @@ public class Scene implements SelectionListener, Disposable {
 
   @Override
   public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-    if (myRoot != null) {
-      markSelection(myRoot, model);
+    SceneComponent root = myRoot;
+    if (root != null) {
+      markSelection(root, model);
     }
   }
 
   /**
    * Given a {@link SelectionModel}, marks the corresponding SceneComponent as selected.
    */
-  private static void markSelection(SceneComponent component, SelectionModel model) {
+  private static void markSelection(@NotNull SceneComponent component, SelectionModel model) {
     component.setSelected(model.isSelected(component.getNlComponent()));
     component.setHighlighted(model.isHighlighted(component.getNlComponent()));
 
@@ -417,16 +420,10 @@ public class Scene implements SelectionListener, Disposable {
    */
   @AnyThread
   void buildDisplayList(@NotNull DisplayList displayList, long time, SceneContext sceneContext) {
-    if (myRoot != null) {
-      // clear the objects and release
-      sceneContext.getScenePicker().foreachObject(o -> {
-        if (o instanceof SecondarySelector) {
-          ((SecondarySelector)o).release();
-        }
-      });
-
-      sceneContext.getScenePicker().reset();
-      myRoot.buildDisplayList(time, displayList, sceneContext);
+    SceneComponent root = myRoot;
+    if (root != null) {
+      root.buildDisplayList(time, displayList, sceneContext);
+      sceneContext.swapPickerBuffer();
       if (DEBUG) {
         System.out.println("========= DISPLAY LIST ======== \n" + displayList.serialize());
       }
@@ -448,8 +445,9 @@ public class Scene implements SelectionListener, Disposable {
   @AnyThread
   public boolean layout(long time, SceneContext sceneContext) {
     boolean needsToRebuildDisplayList = false;
-    if (myRoot != null) {
-      needsToRebuildDisplayList = myRoot.layout(sceneContext, time);
+    SceneComponent root = myRoot;
+    if (root != null) {
+      needsToRebuildDisplayList = root.layout(sceneContext, time);
       if (needsToRebuildDisplayList) {
         needsRebuildList();
       }
@@ -508,9 +506,10 @@ public class Scene implements SelectionListener, Disposable {
       myLastHoverConstraintComponent = null;
       needsRebuildList();
     }
-    if (myRoot != null) {
-      myHoverListener.find(transform, myRoot, x, y, modifiersEx);
-      mySnapListener.find(transform, myRoot, x, y, modifiersEx);
+    SceneComponent root = myRoot;
+    if (root != null) {
+      myHoverListener.find(transform, root, x, y, modifiersEx);
+      mySnapListener.find(transform, root, x, y, modifiersEx);
     }
     repaint();
     Target closestTarget = myHoverListener.getClosestTarget(modifiersEx);
@@ -815,7 +814,8 @@ public class Scene implements SelectionListener, Disposable {
     myLastMouseX = x;
     myLastMouseY = y;
     myFilterType = FilterType.NONE;
-    if (myRoot == null) {
+    SceneComponent root = myRoot;
+    if (root == null) {
       return;
     }
 
@@ -827,7 +827,7 @@ public class Scene implements SelectionListener, Disposable {
       return true;
     });
     SecondarySelector secondarySelector = getSecondarySelector(transform, x, y);
-    myHitListener.find(transform, myRoot, x, y, modifiersEx);
+    myHitListener.find(transform, root, x, y, modifiersEx);
     myHitTarget = myHitListener.getClosestTarget(modifiersEx);
     myHitComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
@@ -867,6 +867,8 @@ public class Scene implements SelectionListener, Disposable {
     if (myLastMouseX == x && myLastMouseY == y) {
       return;
     }
+    SceneComponent root = myRoot;
+    if (root == null) return;
     myLastMouseX = x;
     myLastMouseY = y;
     if (myHitTarget != null) {
@@ -891,7 +893,7 @@ public class Scene implements SelectionListener, Disposable {
       }
 
       myHitListener.setTargetFilter(target -> myHitTarget != target);
-      myHitListener.find(transform, myRoot, x, y, modifiersEx);
+      myHitListener.find(transform, root, x, y, modifiersEx);
       SceneComponent targetComponent = myHitTarget.getComponent();
       if (lassoTarget == null // No need to select LassoTarget's component.
           && targetComponent != null
@@ -967,7 +969,10 @@ public class Scene implements SelectionListener, Disposable {
 
     SceneComponent closestComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
-      myHitListener.find(transform, myRoot, x, y, modifiersEx);
+      SceneComponent root = myRoot;
+      if (root != null) {
+        myHitListener.find(transform, root, x, y, modifiersEx);
+      }
       myHitTarget.mouseRelease(x, y, myHitListener.getHitTargets());
       myHitTarget.getComponent().setDragging(false);
       if (myHitTarget instanceof MultiComponentTarget) {
@@ -1125,10 +1130,9 @@ public class Scene implements SelectionListener, Disposable {
 
   @Nullable
   public SceneComponent findComponent(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    if (myRoot == null) {
-      return null;
-    }
-    myFindListener.find(transform, myRoot, x, y, 0);
+    SceneComponent root = myRoot;
+    if (root == null) return null;
+    myFindListener.find(transform, root, x, y, 0);
     return myFindListener.getClosestComponent();
   }
 
@@ -1137,10 +1141,11 @@ public class Scene implements SelectionListener, Disposable {
                            @AndroidDpCoordinate int x,
                            @AndroidDpCoordinate int y,
                            @InputEventMask int modifiersEx) {
-    if (myRoot == null) {
+    SceneComponent root = myRoot;
+    if (root == null) {
       return null;
     }
-    myFindListener.find(transform, myRoot, x, y, modifiersEx);
+    myFindListener.find(transform, root, x, y, modifiersEx);
     return myFindListener.getClosestTarget(modifiersEx);
   }
 
@@ -1225,7 +1230,10 @@ public class Scene implements SelectionListener, Disposable {
    */
   public List<Placeholder> getPlaceholders(@Nullable SceneComponent requester, @NotNull List<SceneComponent> draggedComponents) {
     ImmutableList.Builder<Placeholder> builder = new ImmutableList.Builder<>();
-    doGetPlaceholders(builder, myRoot, requester, draggedComponents);
+    SceneComponent root = myRoot;
+    if (root != null) {
+      doGetPlaceholders(builder, root, requester, draggedComponents);
+    }
     return builder.build();
   }
 

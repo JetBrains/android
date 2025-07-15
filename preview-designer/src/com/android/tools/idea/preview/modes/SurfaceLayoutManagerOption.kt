@@ -17,13 +17,11 @@ package com.android.tools.idea.preview.modes
 
 import com.android.tools.idea.common.layout.SceneViewAlignment
 import com.android.tools.idea.common.layout.SurfaceLayoutOption
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.idea.uibuilder.layout.option.FocusLayoutManager
 import com.android.tools.idea.uibuilder.layout.option.GridLayoutManager
 import com.android.tools.idea.uibuilder.layout.positionable.GROUP_BY_BASE_COMPONENT
-import com.android.tools.idea.uibuilder.layout.positionable.NO_GROUP_TRANSFORM
 
 /** [PreviewMode.Focus] layout option which shows once centered element. */
 val FOCUS_MODE_LAYOUT_OPTION =
@@ -54,33 +52,21 @@ val GRID_NO_GROUP_LAYOUT_OPTION =
 val GRID_LAYOUT_OPTION =
   SurfaceLayoutOption(
     displayName = message("grid.layout.title"),
-    createLayoutManager = {
-      GridLayoutManager(
-        transform =
-          if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get()) GROUP_BY_BASE_COMPONENT
-          else NO_GROUP_TRANSFORM
-      )
-    },
+    createLayoutManager = { GridLayoutManager(transform = GROUP_BY_BASE_COMPONENT) },
     organizationEnabled = true,
     sceneViewAlignment = SceneViewAlignment.LEFT,
     layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
   )
 
 /**
- * If organization is enabled - previews are grouped by UI Check type - for example "Screen sizes",
- * "Font scales". See [UiCheckModeFilter] for different types of checks.
+ * Previews are grouped by UI Check type - for example "Screen sizes", "Font scales". See
+ * [UiCheckModeFilter] for different types of checks.
  */
 val UI_CHECK_LAYOUT_OPTION =
   SurfaceLayoutOption(
     displayName = message("grid.layout.title"),
-    createLayoutManager = {
-      GridLayoutManager(
-        transform =
-          if (StudioFlags.COMPOSE_PREVIEW_UI_CHECK_GROUP_LAYOUT.get()) GROUP_BY_BASE_COMPONENT
-          else NO_GROUP_TRANSFORM
-      )
-    },
-    organizationEnabled = StudioFlags.COMPOSE_PREVIEW_UI_CHECK_GROUP_LAYOUT.get(),
+    createLayoutManager = { GridLayoutManager(transform = GROUP_BY_BASE_COMPONENT) },
+    organizationEnabled = true,
     sceneViewAlignment = SceneViewAlignment.LEFT,
     layoutType = SurfaceLayoutOption.LayoutType.OrganizationGrid,
     shouldStoreScale = false,

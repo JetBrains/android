@@ -30,5 +30,6 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <settingsSync.communicatorProvider implementation="com.android.tools.idea.settingssync.GoogleCommunicatorProvider"/>
+    <backgroundPostStartupActivity implementation="com.android.tools.idea.settingssync.SyncEventsMetrics$Initializer"/>
   </extensions>
 </idea-plugin>

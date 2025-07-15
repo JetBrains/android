@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.android.test.testutils.TestUtils.getWorkspaceRoot
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.lint.checks.CommentDetector
 import com.android.tools.lint.client.api.LintClient

@@ -275,9 +275,7 @@ class FastPreviewManagerGradleTest {
           LiveEditCompiler(projectRule.project, irCache)
             .also {
               // Normally initialized from a run configuration triggering deployment.
-              it.setApplicationLiveEditServicesForTests(
-                ApplicationLiveEditServices.LegacyForTests(projectRule.project)
-              )
+              it.resetState(ApplicationLiveEditServices.LegacyForTests(projectRule.project))
             }
             .compile(listOf(LiveEditCompilerInput(psiMainFile, PsiState(psiMainFile))))
           deviceCompilations.incrementAndGet()

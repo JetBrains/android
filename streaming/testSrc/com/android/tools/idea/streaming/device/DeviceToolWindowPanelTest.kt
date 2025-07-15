@@ -17,7 +17,7 @@ package com.android.tools.idea.streaming.device
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
@@ -306,22 +306,42 @@ class DeviceToolWindowPanelTest {
     // Check XR-specific actions.
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Reset View" }).isNotNull()
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Toggle Passthrough" }).isNotNull()
+
     val xrInputController = DeviceXrInputController.getInstance(project, panel.deviceClient)
     assertAppearance("XrToolbarActions1", maxPercentDifferentMac = 0.04, maxPercentDifferentWindows = 0.15)
 
-    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.HARDWARE)
+    assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.INTERACTION)
     val modes = mapOf(
-      "Hardware Input" to XrInputMode.HARDWARE,
+      "Interact with Apps" to XrInputMode.INTERACTION,
       "View Direction" to XrInputMode.VIEW_DIRECTION,
       "Move Right/Left and Up/Down" to XrInputMode.LOCATION_IN_SPACE_XY,
       "Move Forward/Backward" to XrInputMode.LOCATION_IN_SPACE_Z,
     )
-    val hardwareInputStateStorage = project.service<HardwareInputStateStorage>()
     for ((actionName, mode) in modes) {
       fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == actionName })
       assertThat(xrInputController.inputMode).isEqualTo(mode)
-      assertThat(hardwareInputStateStorage.isHardwareInputEnabled(displayView.deviceId)).isEqualTo(mode == XrInputMode.HARDWARE)
     }
+
+    val button = fakeUi.getComponent<ActionButton> { it.action.templateText == "Home" }
+    fakeUi.mousePressOn(button)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_ALL_APPS, 0))
+    fakeUi.mouseRelease()
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_ALL_APPS, 0))
+
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Reset View" })
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrRecenterMessage())
+
+    waitForCondition(2.seconds) { xrInputController.passthroughCoefficient >= 0 }
+    assertThat(xrInputController.passthroughCoefficient).isEqualTo(0f)
+    val togglePassthroughButton = fakeUi.getComponent<ActionButton> { it.action.templateText == "Toggle Passthrough" }
+    assertThat(togglePassthroughButton.isEnabled).isTrue()
+    assertThat(togglePassthroughButton.isSelected).isFalse()
+    fakeUi.mouseClickOn(togglePassthroughButton)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrSetPassthroughCoefficientMessage(1F))
+    waitForCondition(2.seconds) { xrInputController.passthroughCoefficient != 0f }
+    assertThat(xrInputController.passthroughCoefficient).isEqualTo(1f)
+    fakeUi.updateToolbarsIfNecessary()
+    assertThat(togglePassthroughButton.isSelected).isTrue()
 
     val toggleAction = ToggleFloatingXrToolbarAction()
     toggleAction.actionPerformed(createTestEvent(displayView, project, ActionPlaces.TOOLWINDOW_POPUP))
@@ -402,8 +422,8 @@ class DeviceToolWindowPanelTest {
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(-1f, -1f, 0f))
 
     expandFloatingToolbar()
-    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Hardware Input" })
-    // Switching to Hardware Input resets state of the navigation keys.
+    fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Interact with Apps" })
+    // Switching to Interact with Apps resets state of the navigation keys.
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(XrVelocityMessage(0f, 0f, 0f))
     fakeUi.keyboard.release(VK_A)
     fakeUi.keyboard.release(VK_Q)
@@ -425,17 +445,16 @@ class DeviceToolWindowPanelTest {
 
     val xrInputController = DeviceXrInputController.getInstance(project, displayView.deviceClient)
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.VIEW_DIRECTION)
-    assertThat(project.service<HardwareInputStateStorage>().isHardwareInputEnabled(displayView.deviceId)).isFalse()
 
-    fakeUi.mouse.press(50, 50)
-    fakeUi.mouse.dragTo(200, 50)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = 0.0, y = -0.019084575)")
+    fakeUi.mouse.press(50, 70)
+    fakeUi.mouse.dragTo(200, 70)
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = 0.0, y = -0.017356513)")
     fakeUi.mouse.dragTo(200, 200)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = -0.019084575, y = 0.0)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = -0.0150423115, y = 0.0)")
     fakeUi.mouse.dragTo(200, 10) // Exit the DeviceView component.
-    fakeUi.mouse.dragTo(100, 35) // Enter the DeviceView component in a different location.
+    fakeUi.mouse.dragTo(100, 70) // Enter the DeviceView component in a different location.
     fakeUi.mouse.dragTo(150, 200)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = -0.020993032, y = -0.0063615246)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrRotationMessage(x = -0.0150423115, y = -0.0057855044)")
   }
 
   @Test
@@ -454,18 +473,17 @@ class DeviceToolWindowPanelTest {
 
     val xrInputController = DeviceXrInputController.getInstance(project, displayView.deviceClient)
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.LOCATION_IN_SPACE_XY)
-    assertThat(project.service<HardwareInputStateStorage>().isHardwareInputEnabled(displayView.deviceId)).isFalse()
 
-    fakeUi.mouse.press(50, 50)
-    fakeUi.mouse.dragTo(200, 50)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = -0.024299234, y = 0.0, z = 0.0)")
+    fakeUi.mouse.press(50, 70)
+    fakeUi.mouse.dragTo(200, 70)
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = -0.022099, y = 0.0, z = 0.0)")
     fakeUi.mouse.dragTo(200, 200)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.024299234, z = 0.0)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.019152466, z = 0.0)")
     fakeUi.mouse.dragTo(200, 10) // Exit the DeviceView component.
-    fakeUi.mouse.dragTo(100, 35) // Enter the DeviceView component in a different location.
+    fakeUi.mouse.dragTo(100, 70) // Enter the DeviceView component in a different location.
     fakeUi.mouse.dragTo(150, 200)
     assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo(
-        "XrTranslationMessage(x = -0.008099744, y = 0.026729157, z = 0.0)")
+        "XrTranslationMessage(x = -0.007366333, y = 0.019152466, z = 0.0)")
     fakeUi.mouse.release()
 
     // Moving forward and backward by rotating the mouse wheel.
@@ -479,9 +497,9 @@ class DeviceToolWindowPanelTest {
     assertThat(xrInputController.inputMode).isEqualTo(XrInputMode.LOCATION_IN_SPACE_Z)
     assertThat(project.service<HardwareInputStateStorage>().isHardwareInputEnabled(displayView.deviceId)).isFalse()
 
-    fakeUi.mouse.press(50, 50)
+    fakeUi.mouse.press(50, 70)
     fakeUi.mouse.dragTo(100, 200)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = 0.024299234)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = 0.019152466)")
     fakeUi.mouse.release()
   }
 
@@ -762,7 +780,7 @@ class DeviceToolWindowPanelTest {
       else -> maxPercentDifferentLinux
     }
     // First rendering may be low quality.
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), max(maxPercentDifferent, 0.6),
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), max(maxPercentDifferent, 0.7),
                                      ignoreMissingGoldenFile = true)
     // Second rendering is guaranteed to be high quality.
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), fakeUi.render(), maxPercentDifferent)

@@ -18,11 +18,9 @@ package com.android.tools.idea.streaming.emulator
 import com.android.adblib.DeviceSelector
 import com.android.adblib.ShellCommandOutputElement
 import com.android.adblib.shellAsLines
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity
 import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.stats.AnonymizerUtil
@@ -98,14 +96,18 @@ internal const val FACTORY_RESET_COMMAND_FOR_WEAR =
   "cmd locale set-app-locales %s --locales; " +
   "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
   "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
-  "settings put system font_scale 1; " // Parameters: applicationId
+  "settings put system font_scale 1; " +
+  "setprop debug.layout false; " +
+  "service call activity $SYSPROPS_TRANSACTION; "  // Parameters: applicationId
 
 internal const val FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO =
   "cmd uimode night no; " +
   "cmd locale set-app-locales %s --locales; " +
   "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
   "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
-  "settings put system font_scale 1; " // Parameters: applicationId
+  "settings put system font_scale 1; " +
+  "setprop debug.layout false; " +
+  "service call activity $SYSPROPS_TRANSACTION; " // Parameters: applicationId
 
 internal const val FACTORY_RESET_COMMAND =
   "cmd uimode night no; " +
@@ -113,21 +115,17 @@ internal const val FACTORY_RESET_COMMAND =
   "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
   "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
   "settings put system font_scale 1; " +
-  "wm density %d; " // Parameters: applicationId, density
-
-internal const val FACTORY_RESET_DEBUG_LAYOUT =
-    "setprop debug.layout false; " +
-    "service call activity $SYSPROPS_TRANSACTION; "
-
-internal const val FACTORY_RESET_GESTURE_NAVIGATION =
+  "wm density %d; " +
+  "setprop debug.layout false; " +
+  "service call activity $SYSPROPS_TRANSACTION; " +
   "cmd overlay enable $GESTURES_OVERLAY; " +
-  "cmd overlay disable $THREE_BUTTON_OVERLAY; "
+  "cmd overlay disable $THREE_BUTTON_OVERLAY; " // Parameters: applicationId, density
 
 private fun EmulatorConfiguration.toDeviceInfo(serialNumber: String): DeviceInfo {
   return DeviceInfo.newBuilder()
     .setDeviceType(DeviceInfo.DeviceType.LOCAL_EMULATOR)
     .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(serialNumber))
-    .setBuildApiLevelFull(AndroidVersion(api, null).apiStringWithExtension)
+    .setBuildApiLevelFull(androidVersion.apiStringWithExtension)
     .build()
 }
 
@@ -383,34 +381,24 @@ internal class EmulatorUiSettingsController(
         DeviceType.AUTOMOTIVE -> FACTORY_RESET_COMMAND_FOR_TV_AND_AUTO.format(readApplicationId)
         else -> FACTORY_RESET_COMMAND.format(readApplicationId, readPhysicalDensity)
       }
-      if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
-        command += FACTORY_RESET_DEBUG_LAYOUT
-      }
-      if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) {
-        command += FACTORY_RESET_GESTURE_NAVIGATION
-      }
       executeShellCommand(command)
       populateModel()
     }
   }
 
   private fun updateResetButton() {
-    var isDefault = lastLocaleTag.isEmpty() && !lastTalkBack && lastFontScale == FontScale.NORMAL.percent
+    var isDefault = lastLocaleTag.isEmpty() && !lastTalkBack && lastFontScale == FontScale.NORMAL.percent &&
+                    !lastDebugLayout
     val extraChecks = when (deviceType) {
       DeviceType.WEAR -> true
       DeviceType.TV,
       DeviceType.AUTOMOTIVE -> !lastDarkMode
       else -> !lastDarkMode &&
               !lastSelectToSpeak &&
-              lastDensity == readPhysicalDensity
+              lastDensity == readPhysicalDensity &&
+              lastGestureNavigation
     }
     isDefault = isDefault && extraChecks
-    if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
-      isDefault = isDefault && !lastDebugLayout
-    }
-    if (StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS.get()) {
-      isDefault = isDefault && lastGestureNavigation
-    }
     model.differentFromDefault.setFromController(!isDefault)
   }
 

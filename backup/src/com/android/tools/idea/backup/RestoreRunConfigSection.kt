@@ -22,6 +22,7 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.RunConfigSection
 import com.android.tools.idea.run.ValidationError
+import com.android.tools.idea.util.absoluteInProject
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.observable.properties.ObservableMutableProperty
@@ -103,7 +104,7 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
       if (packageName != null && fileApplicationId != packageName) {
         return listOf(ValidationError.warning(message("backup.file.mismatch", fileApplicationId)))
       }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
       return listOf(ValidationError.warning(message("backup.file.invalid")))
     }
 

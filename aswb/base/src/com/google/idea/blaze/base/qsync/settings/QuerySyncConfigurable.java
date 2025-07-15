@@ -16,7 +16,7 @@
 package com.google.idea.blaze.base.qsync.settings;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.idea.blaze.base.qsync.QuerySync;
+import com.google.idea.blaze.base.project.BaseQuerySyncConversionUtility;
 import com.intellij.openapi.options.BoundSearchableConfigurable;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.ui.DialogPanel;
@@ -24,12 +24,10 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.dsl.builder.BuilderKt;
 import com.intellij.ui.dsl.builder.ButtonKt;
 import com.intellij.ui.dsl.builder.Cell;
-import com.intellij.ui.dsl.builder.HyperlinkEventAction;
 import com.intellij.ui.dsl.builder.MutableProperty;
 import com.intellij.ui.dsl.builder.Panel;
 import com.intellij.ui.dsl.builder.Row;
 import com.intellij.ui.dsl.builder.RowsRange;
-import com.intellij.ui.dsl.builder.UtilsKt;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.swing.AbstractButton;
@@ -60,6 +58,8 @@ class QuerySyncConfigurable extends BoundSearchableConfigurable implements Confi
                       /* componentGet= */ AbstractButton::isSelected,
                       /* componentSet= */ (jbCheckBox, selected) -> {
                         jbCheckBox.setSelected(selected);
+                        jbCheckBox.setEnabled(
+                          !BaseQuerySyncConversionUtility.AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled());
                         return Unit.INSTANCE;
                       },
                       /* prop= */ new MutableProperty<Boolean>() {
@@ -93,6 +93,8 @@ class QuerySyncConfigurable extends BoundSearchableConfigurable implements Confi
                                 /* componentGet= */ AbstractButton::isSelected,
                                 /* componentSet= */ (jbCheckBox, selected) -> {
                                   jbCheckBox.setSelected(selected);
+                                  // Disable the checkbox if the Query-Sync auto conversion experiment is enabled
+                                  jbCheckBox.setEnabled(!BaseQuerySyncConversionUtility.AUTO_CONVERT_LEGACY_SYNC_TO_QUERY_SYNC_EXPERIMENT.isEnabled());
                                   return Unit.INSTANCE;
                                 },
                                 /* prop= */ new MutableProperty<Boolean>() {

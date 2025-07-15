@@ -15,104 +15,114 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
+import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.experiments.InsightFeedback
-import com.android.tools.idea.insights.filterReady
-import com.android.tools.idea.insights.mapReadyOrDefault
-import com.android.tools.idea.insights.ui.MINIMUM_ACTION_BUTTON_SIZE
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.ex.CustomComponentAction
-import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
+import com.android.tools.idea.insights.ai.transform.CodeTransformation
+import com.android.tools.idea.insights.ai.transform.CodeTransformationDeterminerImpl
+import com.android.tools.idea.insights.ai.transform.CodeTransformationImpl
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.SideBorder
-import com.intellij.util.ui.JButtonAction
-import icons.StudioIcons
-import javax.swing.BoxLayout
+import com.intellij.ui.components.panels.HorizontalLayout
+import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
 import javax.swing.JButton
-import javax.swing.JComponent
 import javax.swing.JPanel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-private const val LEFT_TOOL_BAR = "InsightBottomPanelLeftToolBar"
-private const val RIGHT_TOOL_BAR = "InsightBottomPanelRightToolBar"
+private const val SUGGEST_A_FIX = "Suggest a fix"
+private const val SUGGEST_A_FIX_DISABLED = "No suggested fix available."
 
 class InsightBottomPanel(
-  private val controller: AppInsightsProjectLevelController,
-  scope: CoroutineScope,
-  currentInsightFlow: Flow<LoadingState<AiInsight?>>,
-) : JPanel() {
+  controller: AppInsightsProjectLevelController,
+  currentInsightFlow: StateFlow<LoadingState<AiInsight?>>,
+  private val parentDisposable: Disposable,
+  private val insightFixTransformationDeterminer: CodeTransformationDeterminerImpl =
+    CodeTransformationDeterminerImpl(
+      controller.project,
+      CodeContextResolverImpl(controller.project),
+    ),
+) : JPanel(BorderLayout()) {
 
-  private val actionManager: ActionManager
-    get() = ActionManager.getInstance()
+  private val scope = parentDisposable.createCoroutineScope()
 
-  private val feedbackPanel =
-    InsightFeedbackPanel(
-      currentInsightFlow
-        .mapReadyOrDefault(InsightFeedback.NONE) { insight ->
-          insight?.feedback ?: InsightFeedback.NONE
-        }
-        .stateIn(scope, SharingStarted.Eagerly, InsightFeedback.NONE)
-    ) {
-      controller.submitInsightFeedback(it)
+  private val fixInsightButton =
+    JButton(SUGGEST_A_FIX).apply {
+      name = "suggest_a_fix_button"
+      isEnabled = false
+      isVisible = StudioFlags.SUGGEST_A_FIX.get()
+      isOpaque = false
     }
 
-  private val copyAction = actionManager.getAction(IdeActions.ACTION_COPY)
-
-  private val askGeminiAction: AnAction =
-    object : JButtonAction("Ask Gemini", null, StudioIcons.StudioBot.ASK), CustomComponentAction {
-      override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-      override fun update(e: AnActionEvent) {
-        // TODO: Show the action when ask Gemini is supported
-        e.presentation.isEnabledAndVisible = false
-      }
-
-      override fun actionPerformed(e: AnActionEvent) {
-        // TODO: Pass chat context to Gemini plugin
-      }
-
-      override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
-        when (place) {
-          LEFT_TOOL_BAR ->
-            JButton().apply {
-              text = presentation.text
-              icon = presentation.icon
-              isFocusable = false
-              addActionListener { performAction(this, place, presentation) }
-            }
-          RIGHT_TOOL_BAR -> ActionButton(this, presentation, place, MINIMUM_ACTION_BUTTON_SIZE)
-          else -> throw IllegalArgumentException("Ask Gemini cannot be placed in this location")
-        }
-    }
+  private var currentTransformation: CodeTransformation? = null
 
   init {
-    layout = BoxLayout(this, BoxLayout.X_AXIS)
-    val rightGroup = DefaultActionGroup(copyAction, askGeminiAction)
-    val rightToolbar = actionManager.createActionToolbar(RIGHT_TOOL_BAR, rightGroup, true)
-    rightToolbar.targetComponent = this
-    add(feedbackPanel)
-    add(rightToolbar.component)
+    if (StudioFlags.SUGGEST_A_FIX.get()) {
+      fixInsightButton.addActionListener { scope.launch { currentTransformation?.apply() } }
+      currentInsightFlow
+        .onEach { insightState ->
+          when (insightState) {
+            is LoadingState.Ready -> {
+              val insightText = insightState.value?.rawInsight
+              proposeFix(insightText)
+            }
+            else -> {
+              proposeFix(null)
+            }
+          }
+        }
+        .flowOn(Dispatchers.EDT)
+        .launchIn(scope)
+    }
+
+    val leftPanel = JPanel(HorizontalLayout(JBUI.scale(5)))
+    leftPanel.add(fixInsightButton)
+    add(leftPanel, BorderLayout.CENTER)
+
+    add(
+      InsightToolbarPanel(currentInsightFlow, parentDisposable, controller::submitInsightFeedback),
+      BorderLayout.EAST,
+    )
 
     border = SideBorder(JBColor.border(), SideBorder.TOP)
+  }
 
-    currentInsightFlow
-      .distinctUntilChanged()
-      .filterReady()
-      .onEach { feedbackPanel.resetFeedback() }
-      .launchIn(scope)
+  private suspend fun proposeFix(text: String?) {
+    abandonCurrentTransformation()
+    if (text != null) {
+      currentTransformation =
+        insightFixTransformationDeterminer.getApplicableTransformation(text).also {
+          Disposer.register(parentDisposable, it)
+        }
+    }
+    setFixButtonState(currentTransformation)
+  }
+
+  private fun setFixButtonState(transformation: CodeTransformation?) {
+    if (transformation is CodeTransformationImpl) {
+      fixInsightButton.isEnabled = true
+      fixInsightButton.text = SUGGEST_A_FIX
+      fixInsightButton.isBorderPainted = true
+    } else {
+      fixInsightButton.isEnabled = false
+      fixInsightButton.text = SUGGEST_A_FIX_DISABLED
+      fixInsightButton.isBorderPainted = false
+    }
+  }
+
+  private fun abandonCurrentTransformation() {
+    currentTransformation?.let { Disposer.dispose(it) }
+    currentTransformation = null
   }
 }

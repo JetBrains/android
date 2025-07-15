@@ -46,8 +46,7 @@ public class AndroidSqlColumnNameImpl extends AbstractAndroidSqlNameElement impl
   }
 
   @Override
-  @NotNull
-  public AndroidSqlColumnPsiReference getReference() {
+  public @NotNull AndroidSqlColumnPsiReference getReference() {
     return PsiImplUtil.getReference(this);
   }
 

@@ -106,7 +106,7 @@ public class SdkOrPreviewTransform extends PropertyTransform {
                  ? ExternalNameInfo.ExternalNameSyntax.METHOD
                  : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
       }
-      else if (value instanceof String && ((String) value).startsWith("android-")) {
+      else if (value instanceof String && isPreviewHash((String) value)) {
         operatorName = previewSetter;
         syntax = Objects.equals("gradle", holder.getDslFile().getFile().getExtension())
                  ? ExternalNameInfo.ExternalNameSyntax.METHOD
@@ -131,6 +131,11 @@ public class SdkOrPreviewTransform extends PropertyTransform {
     expression.setModelEffect(new ModelEffectDescription(propertyDescription, ModelSemanticsDescription.CREATE_WITH_VALUE));
     expression.setExternalSyntax(syntax);
     return expression;
+  }
+
+  private boolean isPreviewHash(String value) {
+    // TODO(b/411099168): Replace this somewhat brittle test with something more typed?
+    return value.startsWith("android-") && Character.isAlphabetic(value.charAt(value.length() - 1));
   }
 
   @Override

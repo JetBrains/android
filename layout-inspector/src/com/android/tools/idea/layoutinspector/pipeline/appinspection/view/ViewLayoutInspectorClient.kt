@@ -239,6 +239,9 @@ class ViewLayoutInspectorClient(
 
   private fun handleFoldEvent(foldEvent: LayoutInspectorViewProtocol.FoldEvent) {
     model.foldInfo = foldEvent.convert()
+    if (model.foldInfo != null) {
+      stats.foldInfoReceived()
+    }
   }
 
   private fun handleProgressEvent(progressEvent: LayoutInspectorViewProtocol.ProgressEvent) =
@@ -373,7 +376,7 @@ class ViewLayoutInspectorClient(
     val snapshotMetadata =
       SnapshotMetadata(
         snapshotVersion = APP_INSPECTION_SNAPSHOT_VERSION,
-        apiLevel = processDescriptor.device.apiLevel,
+        apiLevel = processDescriptor.device.apiLevel.majorVersion,
         processName = processDescriptor.name,
         liveDuringCapture = isFetchingContinuously,
         source = Metadata.Source.STUDIO,

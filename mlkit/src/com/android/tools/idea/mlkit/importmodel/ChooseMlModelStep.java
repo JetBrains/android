@@ -18,7 +18,7 @@ package com.android.tools.idea.mlkit.importmodel;
 import static com.android.tools.idea.wizard.ui.WizardUtils.WIZARD_BORDER.LARGE;
 
 import com.android.SdkConstants;
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -158,8 +158,8 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
                            "}\n\n");
     }
 
-    for (GradleCoordinate dep : MlUtils.getMissingRequiredDependencies(module)) {
-      stringBuilder.append(dep).append("\n");
+    for (WellKnownMavenArtifactId id : MlUtils.getMissingRequiredDependencies(module)) {
+      stringBuilder.append(id).append("\n");
     }
 
     return stringBuilder.toString();
@@ -168,8 +168,8 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   @NotNull
   private String getGpuInformationText() {
     StringBuilder stringBuilder = new StringBuilder();
-    for (GradleCoordinate dep : MlUtils.getMissingTfliteGpuDependencies(getModel().getModule())) {
-      stringBuilder.append(dep).append("\n");
+    for (WellKnownMavenArtifactId id : MlUtils.getMissingTfliteGpuDependencies(getModel().getModule())) {
+      stringBuilder.append(id).append("\n");
     }
 
     return stringBuilder.toString();

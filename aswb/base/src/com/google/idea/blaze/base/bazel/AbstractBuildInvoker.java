@@ -37,7 +37,6 @@ import javax.annotation.Nullable;
  * Base class for implementations of {@link BuildInvoker} that provides getters and deals with
  * running `blaze info`.
  */
-// TODO(b/374906681): Replace @link{AbstractBuildInvoker} and its usages by this class
 public abstract class AbstractBuildInvoker implements BuildInvoker {
   protected final Project project;
   private final String binaryPath;
@@ -64,6 +63,7 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
     return blazeInfo;
   }
 
+  public abstract boolean isAvailable();
   private BlazeInfo getBlazeInfoResult(BlazeContext blazeContext) throws SyncFailedException {
     ListenableFuture<BlazeInfo> future = runBlazeInfo(blazeContext);
     FutureUtil.FutureResult<BlazeInfo> result =

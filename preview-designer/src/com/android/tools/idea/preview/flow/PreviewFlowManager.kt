@@ -30,18 +30,26 @@ import kotlinx.coroutines.flow.StateFlow
  * @see [FlowableCollection]
  */
 interface PreviewFlowManager<T : PreviewElement<*>> : PreviewGroupManager {
+
   /** Flow containing all the available [T]s for this manager. */
   val allPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 
   /**
-   * Flow containing the filtered [T]s from [allPreviewElementsFlow]. These filtered [T]s are
-   * sorted.
+   * Paginator responsible for paginating the filtered [T]s from [allPreviewElementsFlow] into
+   * different pages.
    */
-  val filteredPreviewElementsFlow: StateFlow<FlowableCollection<T>>
+  val previewFlowPaginator: PreviewFlowPaginator<T>
+
+  /**
+   * Flow containing the corresponding page from the [previewFlowPaginator] that is expected to be
+   * rendered. The content of this flow should differ from [renderedPreviewElementsFlow] iff there
+   * is a pending refresh to be done. These filtered [T]s are already sorted.
+   */
+  val toRenderPreviewElementsFlow: StateFlow<FlowableCollection<T>>
 
   /**
    * Flow containing all the [T]s that have completed rendering. These are all the
-   * [filteredPreviewElementsFlow] that have rendered.
+   * [toRenderPreviewElementsFlow] that have rendered.
    *
    * This flow must be updated by calling [updateRenderedPreviews].
    */
@@ -49,7 +57,7 @@ interface PreviewFlowManager<T : PreviewElement<*>> : PreviewGroupManager {
 
   /**
    * Selects a single [T] preview element. If the value is non-null, then
-   * [filteredPreviewElementsFlow] will be a flow of a singleton containing that preview element. If
+   * [toRenderPreviewElementsFlow] will be a flow of a singleton containing that preview element. If
    * the value is null, then the single filter is removed.
    */
   fun setSingleFilter(previewElement: T?)

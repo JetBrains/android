@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.backup
 
-import com.android.adblib.DeviceSelector
 import com.android.annotations.concurrency.UiThread
 import com.android.backup.BackupException
 import com.android.backup.BackupMetadata
@@ -27,13 +26,15 @@ import com.android.backup.BackupResult.Success
 import com.android.backup.BackupResult.WithoutAppData
 import com.android.backup.BackupService
 import com.android.backup.BackupType
+import com.android.backup.ErrorCode.APP_NOT_DEBUGGABLE
 import com.android.backup.ErrorCode.APP_NOT_INSTALLED
 import com.android.backup.ErrorCode.BACKUP_NOT_ACTIVATED
 import com.android.backup.ErrorCode.BACKUP_NOT_ENABLED
 import com.android.backup.ErrorCode.BACKUP_NOT_SUPPORTED
+import com.android.backup.ErrorCode.BMGR_ERROR_BACKUP
+import com.android.backup.ErrorCode.BMGR_ERROR_RESTORE
 import com.android.backup.ErrorCode.GMSCORE_IS_TOO_OLD
 import com.android.backup.ErrorCode.PLAY_STORE_NOT_INSTALLED
-import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.validation.ErrorDetailDialog
 import com.android.tools.environment.Logger
 import com.android.tools.idea.adblib.AdbLibService
@@ -42,7 +43,6 @@ import com.android.tools.idea.backup.BackupFileType.FILE_CHOOSER_DESCRIPTOR
 import com.android.tools.idea.backup.BackupManager.Companion.NOTIFICATION_GROUP
 import com.android.tools.idea.backup.BackupManager.Source
 import com.android.tools.idea.backup.DialogFactory.DialogButton
-import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.ExecutionManager
@@ -54,7 +54,6 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.EDT
-import com.intellij.openapi.components.service
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
@@ -62,12 +61,12 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.ide.progress.ModalTaskOwner
 import com.intellij.platform.ide.progress.TaskCancellation.Companion.cancellable
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
-import com.intellij.platform.util.progress.SequentialProgressReporter
 import com.intellij.platform.util.progress.reportSequentialProgress
 import java.nio.file.Path
 import kotlin.io.path.pathString
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
@@ -80,6 +79,7 @@ internal class BackupManagerImpl
 internal constructor(
   private val project: Project,
   private val backupService: BackupService,
+  private val deviceChecker: DeviceChecker,
   private val dialogFactory: DialogFactory,
   private val virtualFileManager: VirtualFileManager = VirtualFileManager.getInstance(),
 ) : BackupManager {
@@ -93,22 +93,74 @@ internal constructor(
       logger,
       StudioFlags.BACKUP_GMSCORE_MIN_VERSION.get(),
     ),
+    DeviceCheckerImpl(project),
     DialogFactoryImpl(),
   )
 
-  override suspend fun showBackupDialog(
+  @UiThread
+  override fun showBackupDialog(
     serialNumber: String,
-    applicationId: String,
+    applicationId: String?,
     source: Source,
     notify: Boolean,
   ) {
-    val isBackupEnabled =
-      withContext(Dispatchers.Default) {
-        backupService.isBackupEnabled(serialNumber, applicationId)
+    val dialogData =
+      runWithModalProgressBlocking(
+        ModalTaskOwner.project(project),
+        "Collecting Data",
+        cancellable(),
+      ) {
+        reportSequentialProgress { reporter ->
+          var steps = if (applicationId == null) 4 else 3
+          var step = 0
+          withContext(Default) {
+            reporter.onStep(Step(++step, steps, "Checking device..."))
+            if (!isDeviceSupported(serialNumber)) {
+              project.showDialog(message("error.device.not.supported"))
+              return@withContext null
+            }
+
+            val appId =
+              when (applicationId) {
+                null -> {
+                  reporter.onStep(Step(++step, steps, "Detecting foreground app..."))
+                  backupService.getForegroundApplicationId(serialNumber)
+                }
+                else -> applicationId
+              }
+
+            reporter.onStep(Step(++step, steps, "Detecting debuggable apps..."))
+            val debuggableApps = backupService.getDebuggableApps(serialNumber)
+            if (!debuggableApps.contains(appId)) {
+              project.showDialog(message("error.application.not.debuggable", appId))
+              return@withContext null
+            }
+            steps += debuggableApps.size - 1
+            val appIdToBackupEnabledMap =
+              withContext(Default) {
+                debuggableApps.withIndex().associate {
+                  reporter.onStep(Step(++step, steps, "Checking ${it.value}"))
+                  it.value to backupService.isBackupEnabled(serialNumber, it.value)
+                }
+              }
+
+            return@withContext DialogData(appId, appIdToBackupEnabledMap)
+          }
+        }
       }
-    withContext(Dispatchers.EDT) {
-      showBackupDialog(serialNumber, applicationId, source, notify, isBackupEnabled)
+    if (dialogData != null) {
+      showBackupDialog(
+        serialNumber,
+        dialogData.applicationId,
+        source,
+        notify,
+        dialogData.appIdToBackupEnabledMap,
+      )
     }
+  }
+
+  override suspend fun getDebuggableApps(serialNumber: String): List<String> {
+    return backupService.getDebuggableApps(serialNumber)
   }
 
   @VisibleForTesting
@@ -118,9 +170,9 @@ internal constructor(
     applicationId: String,
     source: Source,
     notify: Boolean,
-    isBackupEnabled: Boolean,
+    appIdToBackupEnabledMap: Map<String, Boolean>,
   ) {
-    val dialog = BackupDialog(project, applicationId, isBackupEnabled)
+    val dialog = BackupDialog(project, applicationId, appIdToBackupEnabledMap)
     val ok = dialog.showAndGet()
     if (ok) {
       doBackup(serialNumber, dialog.applicationId, dialog.type, dialog.backupPath, source, notify)
@@ -163,7 +215,7 @@ internal constructor(
     val result = backupService.restore(serialNumber, path, listener)
     val operation = message("restore")
     if (notify) {
-      result.notify(operation, serialNumber = serialNumber)
+      result.notifyRestore(operation, serialNumber)
     }
     if (result is Error) {
       logger.warn(message("notification.error", operation), result.throwable)
@@ -201,21 +253,8 @@ internal constructor(
     return backupService.isInstalled(serialNumber, applicationId)
   }
 
-  override suspend fun isDeviceSupported(serialNumber: String): Boolean {
-    val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
-    val deviceHandle =
-      deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))
-        ?: return false
-    val deviceType = deviceHandle.state.properties.deviceType
-    return deviceType == DeviceType.HANDHELD
-  }
-
-  override fun isAppSupported(applicationId: String): Boolean {
-    return when {
-      StudioFlags.BACKUP_ALLOW_NON_PROJECT_APPS.get() -> true
-      else -> project.service<ProjectAppsProvider>().getApplicationIds().contains(applicationId)
-    }
-  }
+  override suspend fun isDeviceSupported(serialNumber: String) =
+    deviceChecker.isDeviceSupported(serialNumber)
 
   @UiThread
   @VisibleForTesting
@@ -241,7 +280,7 @@ internal constructor(
         val result = backupService.backup(serialNumber, applicationId, type, backupFile, listener)
         val operation = message("backup")
         if (notify) {
-          result.notify(operation, backupFile, serialNumber)
+          result.notifyBackup(operation, backupFile, serialNumber, applicationId)
         }
         when (result) {
           is Success -> virtualFileManager.refreshAndFindFileByNioPath(backupFile)
@@ -254,36 +293,56 @@ internal constructor(
     }
   }
 
-  private suspend fun BackupResult.notify(
+  private suspend fun BackupResult.notifyBackup(
     operation: String,
-    backupFile: Path? = null,
+    backupFile: Path,
     serialNumber: String,
+    applicationId: String,
   ) {
     when (this) {
-      is Success -> notifySuccess(message("notification.success", operation), backupFile)
-      is WithoutAppData -> notifySuccessWithoutAppData(backupFile)
+      is Success ->
+        notifyBackupSuccess(message("notification.success", operation), backupFile, applicationId)
+      is WithoutAppData -> notifyBackupSuccessWithoutAppData(backupFile, applicationId)
       is Error -> notifyError(message("notification.error", operation), throwable, serialNumber)
     }
   }
 
-  private fun notifySuccess(message: String, backupFile: Path?) {
-    val notification = Notification(NOTIFICATION_GROUP, message, INFORMATION)
-    if (backupFile != null) {
-      notification.addAction(ShowPostBackupDialogAction(project, backupFile))
+  private suspend fun BackupResult.notifyRestore(operation: String, serialNumber: String) {
+    when (this) {
+      is Success -> notifyRestoreSuccess(message("notification.success", operation))
+      is Error -> notifyError(message("notification.error", operation), throwable, serialNumber)
+      is WithoutAppData ->
+        throw IllegalArgumentException("Restore should not result in WithoutAppData")
     }
-    Notifications.Bus.notify(notification, project)
   }
 
-  private fun notifySuccessWithoutAppData(backupFile: Path?) {
-    val notification =
-      Notification(
-        NOTIFICATION_GROUP,
-        message("notification.success", message("backup")),
-        message("notification.without.app.data"),
-        INFORMATION,
-      )
-    notification.addAction(ShowPostBackupDialogAction(project, backupFile!!))
-    notification.addAction(BackupDisabledLearnMoreAction())
+  private fun notifyBackupSuccess(message: String, backupFile: Path, applicationId: String) {
+    notify(message) {
+      if (isAppInProject(applicationId)) {
+        addAction(ShowPostBackupDialogAction(project, backupFile))
+      }
+    }
+  }
+
+  private fun notifyBackupSuccessWithoutAppData(backupFile: Path, applicationId: String) {
+    notify(
+      message("notification.without.app.data"),
+      message("notification.success", message("backup")),
+    ) {
+      if (isAppInProject(applicationId)) {
+        addAction(ShowPostBackupDialogAction(project, backupFile))
+      }
+      addAction(BackupDisabledLearnMoreAction())
+    }
+  }
+
+  private fun notifyRestoreSuccess(message: String) {
+    notify(message)
+  }
+
+  private fun notify(content: String, title: String = "", block: Notification.() -> Unit = {}) {
+    val notification = Notification(NOTIFICATION_GROUP, title, content, INFORMATION)
+    notification.block()
     Notifications.Bus.notify(notification, project)
   }
 
@@ -333,7 +392,10 @@ internal constructor(
       BACKUP_NOT_SUPPORTED -> false
       BACKUP_NOT_ACTIVATED -> false
       APP_NOT_INSTALLED -> false
+      APP_NOT_DEBUGGABLE -> false
       BACKUP_NOT_ENABLED -> false
+      BMGR_ERROR_BACKUP -> false
+      BMGR_ERROR_RESTORE -> false
       else -> true
     }
   }
@@ -355,6 +417,9 @@ internal constructor(
     }
   }
 
+  private fun isAppInProject(applicationId: String) =
+    project.getService(ProjectAppsProvider::class.java).getApplicationIds().contains(applicationId)
+
   companion object {
     fun openBackupDisabledLearnMoreLink() {
       BrowserUtil.browse("https://developer.android.com/identity/sign-in/restore-credentials")
@@ -366,10 +431,15 @@ internal constructor(
       openBackupDisabledLearnMoreLink()
     }
   }
-}
 
-private fun SequentialProgressReporter.onStep(step: Step) {
-  nextStep(step.step * 100 / step.totalSteps, step.text)
+  private fun Project.showDialog(message: String) {
+    dialogFactory.showDialog(this@showDialog, message("backup.app.action.error.title"), message)
+  }
+
+  private class DialogData(
+    val applicationId: String,
+    val appIdToBackupEnabledMap: Map<String, Boolean>,
+  )
 }
 
 private val ProcessHandler.applicationId: String?

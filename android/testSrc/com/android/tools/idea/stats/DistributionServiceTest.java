@@ -17,7 +17,7 @@ package com.android.tools.idea.stats;
 
 import static org.junit.Assert.assertEquals;
 
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.Pair;

@@ -18,11 +18,15 @@ package com.android.tools.idea.streaming.core
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
+import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.android.tools.idea.streaming.emulator.EmulatorView
+import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
+import com.android.tools.idea.ui.DisplayInfoProvider
 import com.intellij.codeInsight.hint.HintUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.Disposable
@@ -43,8 +47,10 @@ import com.intellij.ui.SideBorder
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.PositionTracker
 import com.intellij.util.ui.components.BorderLayoutPanel
+import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Point
 import java.awt.event.ComponentEvent
@@ -60,10 +66,10 @@ private const val IS_TOOLBAR_HORIZONTAL = true
 /**
  * Provides view of one Android device in the Running Devices tool window.
  */
-abstract class StreamingDevicePanel(
+abstract class StreamingDevicePanel<T : AbstractDisplayPanel<*>>(
   val id: DeviceId,
   mainToolbarId: String,
-  secondaryToolbarId: String,
+  secondaryToolbarId: String = STREAMING_SECONDARY_TOOLBAR_ID,
 ) : BorderLayoutPanel(), UiDataProvider, Disposable {
 
   /** Plain text name of the device. */
@@ -82,6 +88,25 @@ abstract class StreamingDevicePanel(
   protected val mainToolbar: ActionToolbar
   protected val secondaryToolbar: ActionToolbar
   protected val centerPanel = BorderLayoutPanel()
+  protected val displayPanels = Int2ObjectRBTreeMap<T>()
+
+  private val displayInfoProvider = object : DisplayInfoProvider {
+
+    override fun getIdsOfAllDisplays(): IntArray =
+        displayPanels.keys.toIntArray()
+
+    override fun getDisplaySize(displayId: Int): Dimension =
+        displayPanels[displayId]?.displayView?.deviceDisplaySize ?: throw IllegalArgumentException()
+
+    override fun getDisplayOrientation(displayId: Int): Int =
+        displayPanels[displayId]?.displayView?.displayOrientationQuadrants ?: throw IllegalArgumentException()
+
+    override fun getScreenshotRotation(displayId: Int): Int =
+        displayPanels[displayId]?.displayView?.displayOrientationCorrectionQuadrants ?: throw IllegalArgumentException()
+
+    override fun getSkin(displayId: Int): SkinDefinition? =
+        (displayPanels[displayId]?.displayView as? EmulatorView)?.getSkin()
+  }
 
   init {
     background = primaryPanelBackground
@@ -131,6 +156,7 @@ abstract class StreamingDevicePanel(
     sink[SERIAL_NUMBER_KEY] = id.serialNumber
     sink[STREAMING_CONTENT_PANEL_KEY] = centerPanel
     sink[DEVICE_ID_KEY] = id
+    sink[DISPLAY_INFO_PROVIDER_KEY] = displayInfoProvider
   }
 
   override fun dispose() {

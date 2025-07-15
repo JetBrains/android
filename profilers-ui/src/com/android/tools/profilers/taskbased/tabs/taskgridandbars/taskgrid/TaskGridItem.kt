@@ -59,13 +59,13 @@ import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.focusOutline
 
 @Composable
-fun TaskGridItem(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit) {
-  TaskIconAndDescriptionWrapper(task = task, isSelectedTask = isSelectedTask, onTaskSelection = onTaskSelection)
+fun TaskGridItem(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit, isTaskTitleV2Enabled: Boolean) {
+  TaskIconAndDescriptionWrapper(task = task, isSelectedTask = isSelectedTask, onTaskSelection = onTaskSelection, isTaskTitleV2Enabled = isTaskTitleV2Enabled)
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit) {
+fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolean, onTaskSelection: (task: ProfilerTaskType) -> Unit, isTaskTitleV2Enabled: Boolean) {
 
   var isHovered by remember { mutableStateOf(false) }
   val interactionSource = remember { MutableInteractionSource() }
@@ -109,15 +109,15 @@ fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolea
         .onHover { isHovered = it }
         .testTag("TaskGridItem")
     ) {
-      TaskIconAndDescription(task = task, this)
+      TaskIconAndDescription(task = task, this, isTaskTitleV2Enabled = isTaskTitleV2Enabled)
     }
   }
 }
 
 @Composable
-fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
-  val taskTitle = TaskBasedUxStrings.getTaskTitle(task)
-  val taskSubtitle = TaskBasedUxStrings.getTaskSubtitle(task)
+fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope, isTaskTitleV2Enabled: Boolean) {
+  val taskTitle = TaskBasedUxStrings.getTaskTitle(task, isTaskTitleV2Enabled)
+  val taskSubtitle = TaskBasedUxStrings.getTaskSubtitle(task, isTaskTitleV2Enabled)
 
   with(boxScope) {
     Column(
@@ -127,7 +127,6 @@ fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
         TaskIconUtils.getLargeTaskIconKey(task),
         contentDescription = task.description,
         modifier = Modifier.align(Alignment.CenterHorizontally),
-        iconClass = StudioIconsCompose::class.java
       )
       Spacer(modifier = Modifier.height(10.dp))
       Text(

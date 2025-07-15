@@ -23,6 +23,7 @@ import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.pr
 import static com.android.tools.idea.run.deployment.liveedit.PsiValidatorKt.getPsiValidationState;
 
 import com.android.annotations.Trace;
+import com.android.tools.idea.util.LocalInstallerPathManager;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.ddmlib.IDevice;
@@ -47,14 +48,12 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass;
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices;
 import com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemLiveEditServices;
-import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LiveEditEvent;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.ide.ActivityTracker;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -69,8 +68,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.concurrency.annotations.RequiresReadLock;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -504,9 +501,9 @@ public class LiveEditProjectMonitor implements Disposable {
 
     updateEditableStatus(LiveEditStatus.InProgress.INSTANCE);
 
-    while (!processChanges(project, bufferedFiles,
-                           LiveEditService.isLeTriggerOnSave() ? LiveEditEvent.Mode.ON_SAVE : LiveEditEvent.Mode.MANUAL)) {
-      LOGGER.info("ProcessChanges was interrupted");
+    while(!processChanges(project, bufferedFiles,
+                          LiveEditService.isLeTriggerOnSave() ? LiveEditEvent.Mode.ON_SAVE : LiveEditEvent.Mode.MANUAL)) {
+        LOGGER.info("ProcessChanges was interrupted");
     }
     bufferedFiles.clear();
   }
@@ -754,9 +751,9 @@ public class LiveEditProjectMonitor implements Disposable {
   @VisibleForTesting
   void updateEditableStatus(@NotNull LiveEditStatus newStatus) {
     liveEditDevices.update((device, prevStatus) -> (
-                                                     prevStatus.unrecoverable() ||
-                                                     prevStatus == LiveEditStatus.Disabled.INSTANCE ||
-                                                     prevStatus == LiveEditStatus.NoMultiDeploy.INSTANCE) ? prevStatus : newStatus);
+      prevStatus.unrecoverable() ||
+      prevStatus == LiveEditStatus.Disabled.INSTANCE ||
+      prevStatus == LiveEditStatus.NoMultiDeploy.INSTANCE) ? prevStatus : newStatus);
   }
 
   private void handleDeviceStatusChange(Map<IDevice, LiveEditStatus> map) {
@@ -780,7 +777,7 @@ public class LiveEditProjectMonitor implements Disposable {
   }
 
   private LiveUpdateDeployer.UpdateLiveEditResult pushUpdatesToDevice(
-    String applicationId, IDevice device, LiveEditDesugarResponse update) {
+      String applicationId, IDevice device, LiveEditDesugarResponse update) {
     LiveUpdateDeployer deployer = new LiveUpdateDeployer(LOGGER);
     Installer installer = newInstaller(device);
     AdbClient adb = new AdbClient(device, LOGGER);
@@ -830,17 +827,5 @@ public class LiveEditProjectMonitor implements Disposable {
 
   public static boolean supportLiveEdits(IDevice device) {
     return device.getVersion().isAtLeast(AndroidVersion.VersionCodes.R);
-  }
-
-  // TODO: Unify this part.
-  private static String getLocalInstaller() {
-    Path path;
-    if (StudioPathManager.isRunningFromSources()) {
-      // Development mode
-      path = StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer");
-    } else {
-      path = Paths.get(PathManager.getHomePath(), "plugins/android/resources/installer");
-    }
-    return path.toString();
   }
 }

@@ -34,6 +34,7 @@ import com.intellij.ui.dsl.builder.HyperlinkEventAction
 import com.intellij.ui.dsl.builder.MAX_LINE_LENGTH_WORD_WRAP
 import com.intellij.ui.dsl.builder.components.DslLabel
 import com.intellij.ui.dsl.builder.components.DslLabelType
+import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints
@@ -224,6 +225,7 @@ fun createCenterTextPanel(lines: List<String>): JPanel {
       gridx = 0
       gridy = 0
       weightx = 1.0
+      insets = JBInsets.create(0, 5)
     }
 
   panel.add(text, constraints)

@@ -49,6 +49,7 @@ class JSingleDigitTextField : JBTextField(), KeyboardAwareFocusOwner {
     // Set document filter so that we can ensure only single digit contents
     (document as AbstractDocument).documentFilter = OneDigitOnlyDocumentFilter(this)
 
+    // Add custom traversal keys to quickly move to the next or previous control
     setFocusTraversalKeys(
       KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
       hashSetOf(

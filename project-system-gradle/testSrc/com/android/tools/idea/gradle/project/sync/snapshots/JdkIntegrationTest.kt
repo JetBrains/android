@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.AndroidStudioProjectActivity
+import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.assertions.AssertInMemoryConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnDiskConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnFailure
@@ -31,10 +35,15 @@ import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
-import com.intellij.openapi.util.RecursionManager
+import com.intellij.testFramework.PlatformTestUtil
+import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.launch
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
 class JdkIntegrationTest(
@@ -48,10 +57,6 @@ class JdkIntegrationTest(
     environment: TestEnvironment = TestEnvironment(),
     body: ProjectRunnable.() -> Unit
   ) {
-    if (project is JdkTestProject.SimpleApplicationMultipleRoots) {
-      // TODO (b/359232184) Multiple root projects cause CachingPreventedException
-      RecursionManager.disableMissedCacheAssertions(projectRule.testRootDisposable)
-    }
     val preparedProject = projectRule.prepareTestProject(
       agpVersion = project.agpVersion,
       name = project.name,
@@ -90,16 +95,21 @@ class JdkIntegrationTest(
       JdkTableUtils.populateJdkTableWith(jdkTable, tempDir)
       EnvironmentUtils.overrideEnvironmentVariables(environmentVariables, disposable)
     }
+    CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
+      CapturePlatformModelsProjectResolverExtension.TestGradleModels(),
+      disposable
+    )
   }
 
   private fun cleanTestEnvironment() {
     StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME.clearOverride()
     JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
+    CapturePlatformModelsProjectResolverExtension.reset()
   }
 
   data class TestEnvironment(
     val userHomeGradlePropertiesJdkPath: String? = null,
-    val environmentVariables: Map<String, String?> = mapOf(),
+    val environmentVariables: Map<String, String> = mapOf(),
     val jdkTable: List<JdkTableUtils.Jdk> = emptyList(),
     val studioFlags: StudioFeatureFlags = StudioFeatureFlags()
   )
@@ -153,10 +163,23 @@ class JdkIntegrationTest(
       assertOnDiskConfig(AssertOnDiskConfig(project, expect))
     }
 
+    fun syncAssertingUndefinedGradleJdK() {
+      sync(
+        assertInMemoryConfig = {
+          // The #USE_PROJECT_JDK macro represents the default when gradleJvm isn't defined
+          assertGradleJdk(ExternalSystemJdkUtil.USE_PROJECT_JDK)
+        },
+        assertOnDiskConfig = {
+          // The #USE_PROJECT_JDK macro isn't stored in the .idea/gradle.xml being this the default
+          assertGradleJdk(null)
+        }
+      )
+    }
+
     fun syncWithAssertion(
-      expectedGradleJdkName: String,
-      expectedProjectJdkName: String,
-      expectedProjectJdkPath: String,
+      expectedGradleJdkName: String? = null,
+      expectedProjectJdkName: String? = null,
+      expectedProjectJdkPath: String? = null,
       expectedGradleLocalJavaHome: String? = null,
       expectedException: KClass<out Exception>? = null,
     ) {
@@ -176,20 +199,26 @@ class JdkIntegrationTest(
 
     fun syncWithAssertion(
       expectedGradleRoots: Map<String, ExpectedGradleRoot>,
-      expectedProjectJdkName: String,
-      expectedProjectJdkPath: String,
+      expectedProjectJdkName: String?,
+      expectedProjectJdkPath: String?,
       expectedException: KClass<out Exception>? = null,
     ) {
       sync(
         assertInMemoryConfig = {
           assertGradleRoots(expectedGradleRoots)
-          assertProjectJdk(expectedProjectJdkName)
-          assertProjectJdkTablePath(expectedProjectJdkPath)
-          assertProjectJdkTableEntryIsValid(expectedProjectJdkName)
+          expectedProjectJdkName?.let {
+            assertProjectJdkTableEntryIsValid(it)
+            assertProjectJdk(it)
+          }
+          expectedProjectJdkPath?.let {
+            assertProjectJdkTablePath(it)
+          }
         },
         assertOnDiskConfig = {
           assertGradleRoots(expectedGradleRoots)
-          assertProjectJdk(expectedProjectJdkName)
+          expectedProjectJdkName?.let {
+            assertProjectJdk(it)
+          }
         },
         assertOnFailure = { syncException ->
           expectedException?.let {
@@ -199,6 +228,35 @@ class JdkIntegrationTest(
           }
         }
       )
+    }
+
+    fun skipSyncWithAssertion(
+      expectedGradleJdkName: String,
+      expectedGradleJdkPath: String
+    ) {
+      val project = preparedProject.open(
+        updateOptions = {
+          it.copy(
+            overrideProjectGradleJdkPath = null,
+            onProjectCreated = {
+              GradleProjectInfo.getInstance(this).isSkipStartupActivity = true
+            },
+            verifyOpened = {}
+          )
+        }) { project ->
+        val awaitGradleStartupActivity = project.coroutineScope.launch {
+          project.service<AndroidStudioProjectActivity.StartupService>().awaitInitialization()
+        }
+        PlatformTestUtil.waitForFuture(awaitGradleStartupActivity.asCompletableFuture(), TimeUnit.MINUTES.toMillis(1))
+
+        AssertInMemoryConfig(project, expect).run {
+          assertGradleJdk(expectedGradleJdkName, expectedGradleJdkPath)
+        }
+        project
+      }
+      AssertOnDiskConfig(project, expect).run {
+        assertGradleJdk(expectedGradleJdkName)
+      }
     }
   }
 }

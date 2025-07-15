@@ -37,7 +37,6 @@ import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.containsFile
 import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENCIES
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.isContainedBy
 import com.android.tools.idea.projectsystem.sourceProviders
@@ -95,21 +94,12 @@ class GradleModuleSystemIntegrationTest {
 
       // Verify that getRegisteredDependency gets a existing dependency correctly.
       val appCompat = GoogleMavenArtifactId.SUPPORT_APPCOMPAT_V7
+      assertThat(moduleSystem.hasRegisteredDependency(appCompat)).isTrue()
+      assertThat(moduleSystem.hasRegisteredDependency(appCompat.getModule())).isTrue()
       val foundDependency = moduleSystem.getRegisteredDependency(appCompat)
       assertThat(foundDependency).isNotNull()
       assertThat(foundDependency?.dependency?.module).isEqualTo(appCompat.getModule())
-
-      // TODO: b/129297171
-      @Suppress("ConstantConditionIf")
-      if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
-        // When we were checking the parsed gradle file we were able to detect a specified "+" in the version.
-        assertThat(foundDependency?.dependency?.version).isEqualTo(RichVersion.parse("+"))
-      } else {
-        // Now that we are using the resolved gradle version we are no longer able to detect a "+" in the version.
-        assertThat(foundDependency?.dependency?.version?.explicitSingletonVersion?.major).isEqualTo(28)
-        assertThat(foundDependency?.dependency?.version?.explicitSingletonVersion?.minor).isLessThan(Integer.MAX_VALUE)
-        assertThat(foundDependency?.dependency?.version?.explicitSingletonVersion?.micro).isLessThan(Integer.MAX_VALUE)
-      }
+      assertThat(foundDependency?.dependency?.version).isEqualTo(RichVersion.parse("+"))
     }
   }
 

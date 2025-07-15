@@ -2,7 +2,6 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.DeviceImpl
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.testutils.MockitoCleanerRule
 import com.android.tools.analytics.UsageTrackerRule
@@ -11,7 +10,7 @@ import com.android.tools.idea.execution.common.assertTaskPresentedInStats
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
-import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
+import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleTestProjects
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.DefaultStudioProgramRunner
@@ -40,6 +39,7 @@ import org.junit.After
 import org.junit.Assume
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
@@ -53,17 +53,19 @@ private const val ORCHESTRATOR_APP_ID = "android.support.test.orchestrator"
 private const val ANDROIDX_ORCHESTRATOR_APP_ID = "androidx.test.orchestrator"
 
 class AndroidTestRunConfigurationExecutorTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION)
+  private val projectRule = AndroidProjectRule.testProject(LightGradleTestProjects.SIMPLE_APPLICATION)
+
+  private val fakeAdb = FakeAdbTestRule()
+
+  private val cleaner = MockitoCleanerRule()
+
+  private val usageTrackerRule = UsageTrackerRule()
 
   @get:Rule
-  val fakeAdb = FakeAdbTestRule()
-
-  @get:Rule
-  val cleaner = MockitoCleanerRule()
-
-  @get:Rule
-  val usageTrackerRule = UsageTrackerRule()
+  val chain = RuleChain.outerRule(cleaner)
+    .around(usageTrackerRule)
+    .around(projectRule)
+    .around(fakeAdb)
 
   @After
   fun after() {
@@ -171,7 +173,8 @@ class AndroidTestRunConfigurationExecutorTest {
 
   @Test
   fun runFailed() {
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    fakeAdb.connectAndWaitForDevice()
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
     val env = getExecutionEnvironment(listOf(device))
     val executor = AndroidTestRunConfigurationExecutor(

@@ -29,13 +29,6 @@ sealed interface TargetDisambiguationAnchors {
    */
   data class Targets(override val anchorTargets: Set<Label>) : TargetDisambiguationAnchors
 
-  /**
-   * An anchor requesting that the working set be considered when disambiguating targets to build for a file.
-   */
-  class WorkingSet(private val helper: BuildDependenciesHelper) : TargetDisambiguationAnchors {
-    override val anchorTargets: Set<Label> get() = helper.workingSetTargetsIfEnabled
-  }
-
   companion object {
     @JvmField val NONE: TargetDisambiguationAnchors = Targets(emptySet())
   }
@@ -44,7 +37,8 @@ sealed interface TargetDisambiguationAnchors {
 /** Utility for identifying ambiguities in targets to build for files  */
 data class TargetDisambiguator(
   val unambiguousTargets: Set<Label>,
-  val ambiguousTargetSets: Set<TargetsToBuild>
+  val ambiguousTargetSets: Set<TargetsToBuild>,
+  val undefinedTargetSets: Set<TargetsToBuild>,
 ) {
 
   companion object {
@@ -60,9 +54,11 @@ data class TargetDisambiguator(
       val allAnchors = anchors.anchorTargets + unambiguousTargets
       val disambiguated = ambiguousTargets
         .mapNotNull { it to (it.autoDisambiguate(allAnchors) ?: return@mapNotNull null) }
+      val undefinedTargetSets = groups.asSequence().filter { it.requiresQueryDataRefresh() }.toSet()
       return TargetDisambiguator(
         unambiguousTargets = unambiguousTargets + disambiguated.map { it.second }.flatMap { it.targets },
-        ambiguousTargetSets = ambiguousTargets - disambiguated.map { it.first }
+        ambiguousTargetSets = ambiguousTargets - disambiguated.map { it.first },
+        undefinedTargetSets = undefinedTargetSets,
       )
     }
   }

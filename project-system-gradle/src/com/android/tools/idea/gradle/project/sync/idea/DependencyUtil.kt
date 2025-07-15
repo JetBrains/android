@@ -174,6 +174,11 @@ private class AndroidDependenciesSetupContext(
       val moduleDependencyData = ModuleDependencyData(moduleDataNode.data, target)
       moduleDependencyData.scope = scope
       moduleDependencyData.isExported = false
+      // For Main modules depending on TestFixtures, we need to mark isProductionOnTestDependency true to include the testFixtures scope
+      // when resolving references on the IDE
+      if (target.moduleName == "testFixtures") {
+        moduleDependencyData.isProductionOnTestDependency = true
+      }
       processedModuleDependencies[targetModuleGradlePath] = moduleDependencyData
     }
   }

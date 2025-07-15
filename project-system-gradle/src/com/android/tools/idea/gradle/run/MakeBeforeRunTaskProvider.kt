@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.run
 
 import com.android.builder.model.PROPERTY_APK_SELECT_CONFIG
+import com.android.builder.model.PROPERTY_APK_SELECT_MULTIPLE_DEVICE_SPECS
 import com.android.builder.model.PROPERTY_BUILD_ABI
 import com.android.builder.model.PROPERTY_BUILD_API
 import com.android.builder.model.PROPERTY_BUILD_API_CODENAME
@@ -49,7 +50,6 @@ import com.android.tools.idea.projectsystem.gradle.RunConfigurationGradleContext
 import com.android.tools.idea.projectsystem.gradle.getGradleContext
 import com.android.tools.idea.projectsystem.gradle.getGradlePluginVersion
 import com.android.tools.idea.projectsystem.requiresAndroidModel
-import com.android.tools.idea.run.AndroidDeviceSpec
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.GradleApkProvider
 import com.android.tools.idea.run.PreferGradleMake
@@ -188,7 +188,8 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     return try {
       stats.beginBeforeRunTasks()
       doExecuteTask(context, configuration, env, task)
-    } finally {
+    }
+    finally {
       stats.endBeforeRunTasks()
     }
   }
@@ -247,7 +248,10 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     // the android run config context
     val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
     val targetDevices = deviceFutures?.devices ?: emptyList()
-    val targetDeviceSpec = createSpec(targetDevices) { title, message ->
+
+    val deviceSpecs = createDeviceSpecs(targetDevices)
+
+    val targetDeviceSpec = createTargetDeviceSpec(targetDevices) { title, message ->
       val notification = NotificationGroupManager
         .getInstance()
         .getNotificationGroup("Deploy")
@@ -260,7 +264,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
 
     // Some configurations (e.g. native attach) don't require a build while running the configuration
     if (configuration is RunProfileWithCompileBeforeLaunchOption &&
-      (configuration as RunProfileWithCompileBeforeLaunchOption).isExcludeCompileBeforeLaunchOption
+        (configuration as RunProfileWithCompileBeforeLaunchOption).isExcludeCompileBeforeLaunchOption
     ) {
       return true
     }
@@ -269,43 +273,46 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     //   Profile as profileable -> PROFILEABLE
     //   Profile as debuggable -> DEBUGGABLE
     //   Other (Run, Debug, legacy Profile) -> NOT_SET
-    val profilingMode = if (StudioFlags.PROFILEABLE_BUILDS.get()) {
-      AbstractProfilerExecutorGroup.getExecutorSetting(env.executor.id)?.profilingMode ?: ProfilingMode.NOT_SET
-    }
-    else {
-      ProfilingMode.NOT_SET
-    }
+    val profilingMode = AbstractProfilerExecutorGroup.getExecutorSetting(env.executor.id)?.profilingMode ?: ProfilingMode.NOT_SET
 
     // Compute modules to build
     val modules = getModules(context, configuration)
     val runConfigurationGradleContext = configuration.getGradleContext()
     val cmdLineArgs =
       try {
-        getCommonArguments(modules, runConfigurationGradleContext, targetDeviceSpec, profilingMode) + "--stacktrace"
-      } catch (e: Exception) {
+        getCommonArguments(modules, runConfigurationGradleContext, targetDeviceSpec, deviceSpecs, profilingMode) + "--stacktrace"
+      }
+      catch (e: Exception) {
         log.warn("Error generating command line arguments for Gradle task", e)
         return false
       }
-    val targetDeviceVersion = targetDeviceSpec?.commonVersion
+    val targetDeviceVersion = when (targetDeviceSpec) {
+      is ProcessedDeviceSpec.SingleDeviceSpec.NoDevices -> null
+      is ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec -> targetDeviceSpec.deviceSpec.commonVersion
+    }
     val buildResult = build(modules, runConfigurationGradleContext, targetDeviceVersion, task.goal, cmdLineArgs, env)
     if (configuration is UserDataHolderEx && buildResult != null) {
       val model = buildResult.invocationResult.models.firstOrNull()
       if (model is PostBuildProjectModels) {
         configuration.putUserData(GradleApkProvider.POST_BUILD_MODEL, PostBuildModel(model))
-      } else {
+      }
+      else {
         log.info("Couldn't get post build models.")
       }
     }
     log.info("Gradle invocation complete, build result = $buildResult")
 
     // If the model needs a sync, we need to sync "synchronously" before running.
-    val targetAbis: Set<String> = targetDeviceSpec?.abis?.toSet().orEmpty()
+    val targetAbis: Set<String> = when (targetDeviceSpec) {
+      is ProcessedDeviceSpec.SingleDeviceSpec.NoDevices -> emptySet()
+      is ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec -> targetDeviceSpec.deviceSpec.abis.toSet()
+    }
     val syncNeeded = isSyncNeeded(configuration.project, targetAbis)
     runSyncIfNeeded(configuration.project, syncNeeded, targetAbis)
     return !configuration.project.isDisposed &&
-      buildResult != null &&
-      buildResult.isBuildSuccessful &&
-      buildResult.invocationResult.invocations.isNotEmpty()
+           buildResult != null &&
+           buildResult.isBuildSuccessful &&
+           buildResult.invocationResult.invocations.isNotEmpty()
   }
 
   private fun getModules(context: DataContext, configuration: RunConfiguration): Array<Module> {
@@ -333,14 +340,15 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     fun getCommonArguments(
       modules: Array<Module>,
       configuration: RunConfigurationGradleContext?,
-      targetDeviceSpec: AndroidDeviceSpec?,
+      targetDeviceSpec: ProcessedDeviceSpec.SingleDeviceSpec,
+      deviceSpecs: ProcessedDeviceSpec.MultipleDeviceSpec,
       profilingMode: ProfilingMode
     ): List<String> {
       val cmdLineArgs = mutableListOf<String>()
       // Always build with stable IDs to avoid push-to-device overhead.
       cmdLineArgs.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_WITH_STABLE_IDS, true))
       if (configuration != null) {
-        cmdLineArgs.addAll(getDeviceSpecificArguments(modules, configuration, targetDeviceSpec))
+        cmdLineArgs.addAll(getDeviceSpecificArguments(modules, configuration, targetDeviceSpec, deviceSpecs))
         cmdLineArgs.addAll(getProfilingOptions(configuration, targetDeviceSpec, profilingMode))
       }
       return cmdLineArgs
@@ -350,20 +358,32 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     fun getDeviceSpecificArguments(
       modules: Array<Module>,
       configuration: RunConfigurationGradleContext,
-      deviceSpec: AndroidDeviceSpec?
+      targetDeviceSpec: ProcessedDeviceSpec.SingleDeviceSpec,
+      deviceSpecs: ProcessedDeviceSpec.MultipleDeviceSpec
     ): List<String> {
-      if (deviceSpec == null) {
+      if (targetDeviceSpec !is ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec) {
         return emptyList()
       }
+
       val properties = mutableListOf<String>()
-      val viaBundle = useSelectApksFromBundleBuilder(modules, configuration, deviceSpec.minVersion)
+      val viaBundle = useSelectApksFromBundleBuilder(modules, configuration, targetDeviceSpec.deviceSpec.minVersion)
       if (viaBundle) {
+        if (deviceSpecs.deviceSpecs.isEmpty()) {
+          return emptyList()
+        }
         // For the bundle tool, we create a temporary json file with the device spec and
         // pass the file path to the gradle task.
-        val collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, deviceSpec.minVersion)
+        val collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, targetDeviceSpec.deviceSpec.minVersion)
         val moduleAgpVersions = modules.mapNotNull { it.getGradlePluginVersion() }
-        val deviceSpecFile = deviceSpec.writeToJsonTempFile(collectListOfLanguages, moduleAgpVersions)
-        properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_APK_SELECT_CONFIG, deviceSpecFile.absolutePath))
+        val targetDeviceSpecFile = targetDeviceSpec.writeToJsonTempFile(collectListOfLanguages, moduleAgpVersions)
+        properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_APK_SELECT_CONFIG, targetDeviceSpecFile.absolutePath))
+        if (StudioFlags.MULTIPLE_DEVICE_SPECS_ENABLED.get()) {
+          val deviceSpecFiles = deviceSpecs.writeToMultipleJsonTempFiles(collectListOfLanguages, moduleAgpVersions)
+          val multipleDeviceSpecProperty =
+            AndroidGradleSettings.createProjectProperty(PROPERTY_APK_SELECT_MULTIPLE_DEVICE_SPECS,
+                                                        deviceSpecFiles.joinToString { it.invariantSeparatorsPath })
+          properties.add(multipleDeviceSpecProperty)
+        }
         if (configuration.deployAsInstant) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_EXTRACT_INSTANT_APK, true))
         }
@@ -373,9 +393,10 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
             properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_INJECTED_DYNAMIC_MODULES_LIST, featureList))
           }
         }
-      } else {
+      }
+      else {
         // For non bundle tool deploy tasks, we have one argument per device spec property
-        val version = deviceSpec.commonVersion
+        val version = targetDeviceSpec.deviceSpec.commonVersion
         val deviceApiOptimization = API_OPTIMIZATION_ENABLE.get() && GradleExperimentalSettings.getInstance().ENABLE_GRADLE_API_OPTIMIZATION
         if (version != null && deviceApiOptimization) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, version.apiLevel.toString()))
@@ -383,20 +404,22 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
             properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API_CODENAME, version.codename!!))
           }
         }
-        if (deviceSpec.abis.isNotEmpty()) {
-          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.abis)))
+        if (targetDeviceSpec.deviceSpec.abis.isNotEmpty()) {
+          properties.add(
+            AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(targetDeviceSpec.deviceSpec.abis)))
         }
         if (configuration.deployAsInstant) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_DEPLOY_AS_INSTANT_APP, true))
         }
-        if (INJECT_DEVICE_SERIAL_ENABLED.get() && deviceSpec.deviceSerials.isNotEmpty()) {
+        if (INJECT_DEVICE_SERIAL_ENABLED.get() && targetDeviceSpec.deviceSpec.deviceSerials.isNotEmpty() == true) {
           // This is an internal, opt-in flag to Sys-UI. See http://b/234033515 for more details.
-          val deviceSerials = deviceSpec.deviceSerials.joinToString(separator = ",")
+          val deviceSerials = targetDeviceSpec.deviceSpec.deviceSerials.joinToString(separator = ",")
           val injectedProperty = AndroidGradleSettings.createProjectProperty("internal.android.inject.device.serials", deviceSerials)
           properties.add(injectedProperty)
         }
         if (configuration.supportsPrivacySandbox) {
-          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_SUPPORTS_PRIVACY_SANDBOX, deviceSpec.supportsSdkRuntime))
+          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_SUPPORTS_PRIVACY_SANDBOX,
+                                                                     targetDeviceSpec.deviceSpec.supportsSdkRuntime))
         }
       }
       return properties
@@ -428,16 +451,19 @@ private fun getEnabledDynamicFeatureList(
 @Throws(IOException::class)
 private fun getProfilingOptions(
   configuration: RunConfigurationGradleContext,
-  targetDeviceSpec: AndroidDeviceSpec?,
+  targetDeviceSpec: ProcessedDeviceSpec.SingleDeviceSpec,
   profilingMode: ProfilingMode
 ): List<String> {
-  if (targetDeviceSpec?.minVersion == null) {
+  if (targetDeviceSpec !is ProcessedDeviceSpec.SingleDeviceSpec.TargetDeviceSpec) {
+    return emptyList()
+  }
+  if (targetDeviceSpec.deviceSpec.minVersion == null) {
     return emptyList()
   }
 
   // Find the minimum API version in case both a pre-O and post-O devices are selected.
   // TODO: if a post-O app happened to be transformed, the agent needs to account for that.
-  val minFeatureLevel = targetDeviceSpec.minVersion!!.featureLevel
+  val minFeatureLevel = targetDeviceSpec.deviceSpec.minVersion!!.featureLevel
   val arguments = mutableListOf<String>()
   if (configuration.isAdvancedProfilingEnabled && minFeatureLevel >= VersionCodes.LOLLIPOP && minFeatureLevel < VersionCodes.O) {
     val file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform()
@@ -451,7 +477,7 @@ private fun getProfilingOptions(
     arguments.add(AndroidGradleSettings.createJvmArg("android.profiler.properties", propertiesFile.absolutePath))
   }
   // Append PROFILING_MODE if set by profilers.
-  if (StudioFlags.PROFILEABLE_BUILDS.get() && profilingMode.shouldInjectProjectProperty) {
+  if (profilingMode.shouldInjectProjectProperty) {
     arguments.add(AndroidGradleSettings.createProjectProperty(AbstractProfilerExecutorGroup.PROFILING_MODE_PROPERTY_NAME,
                                                               profilingMode.value))
   }
@@ -497,7 +523,9 @@ private fun build(
     //       AndroidRunConfigurationBase.
     // Um, except that AndroidWearConfiguration now exists.
     useSelectApksFromBundleBuilder(modules, configuration, targetDeviceVersion) ->
-      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, expandModules = true).asMap(), BuildMode.APK_FROM_BUNDLE)
+      doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.APK_FROM_BUNDLE, expandModules = true).asMap(),
+              BuildMode.APK_FROM_BUNDLE)
+
     else ->
       doBuild(gradleTasksFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, expandModules = true).asMap(), BuildMode.ASSEMBLE)
   }
@@ -521,7 +549,7 @@ private fun useSelectApksFromBundleBuilder(
 private fun shouldCollectListOfLanguages(
   modules: Array<Module>,
   configuration: RunConfigurationGradleContext,
-  targetDeviceVersion: AndroidVersion?
+  targetDeviceVersion: AndroidVersion?,
 ): Boolean {
   // We should collect the list of languages only if *all* devices are verify the condition, otherwise we would
   // end up deploying language split APKs to devices that don't support them.
@@ -534,7 +562,8 @@ private fun shouldCollectListOfLanguages(
         targetDeviceVersion
       )) {
       false
-    } else {
+    }
+    else {
       // Only collect if all devices are L or later devices, because pre-L devices don't support split apks, meaning
       // they don't support install on demand, meaning all languages should be installed.
       targetDeviceVersion != null && targetDeviceVersion.featureLevel >= VersionCodes.LOLLIPOP

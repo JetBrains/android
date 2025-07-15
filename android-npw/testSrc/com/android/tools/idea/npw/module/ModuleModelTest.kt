@@ -48,7 +48,6 @@ class ModuleModelTest {
           }
         }
         .queue()
-      projectSyncInvoker.syncProject(projectRule.project)
     }
 
   @Test
@@ -60,6 +59,7 @@ class ModuleModelTest {
         }
       multiTemplateRenderer.requestRender(libraryModuleModel.renderer)
     }
+    projectSyncInvoker.syncProject(projectRule.project)
     projectRule.invokeTasks("compileDebugSources", ":lib:compileJava").apply {
       buildError?.printStackTrace()
       assertTrue(isBuildSuccessful)

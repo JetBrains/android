@@ -22,6 +22,9 @@ import com.android.tools.idea.editors.strings.model.StringResourceRepository
 import com.android.tools.idea.res.StringResourceWriter
 import com.android.tools.idea.res.getItemTag
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
@@ -38,19 +41,51 @@ class StringResourceData private constructor(
       runReadAction { StringResource(it, this) }
     }.toMutableMap()
 
-  fun setKeyName(key: StringResourceKey, name: String) {
-    if (key.name == name || keyToResourceMap.keys.any { it.name == name }) return
+  fun setKeyName(key: StringResourceKey, name: String): ListenableFuture<Boolean> {
+    if (key.name == name || keyToResourceMap.keys.any { it.name == name }) return Futures.immediateFuture(false)
 
-    val value = getStringResource(key).defaultValueAsResourceItem ?: return
+    val value = getStringResource(key).defaultValueAsResourceItem ?: return Futures.immediateFuture(false)
     val stringElement = checkNotNull(getItemTag(project, value))
     val nameAttribute = checkNotNull(stringElement.getAttribute(SdkConstants.ATTR_NAME))
     val nameAttributeValue = checkNotNull(nameAttribute.valueElement)
 
     RenameProcessor(project, nameAttributeValue, name, /* isSearchInComments = */ false, /* isSearchTextOccurrences = */ false).run()
 
-    keyToResourceMap.remove(key)
+    val futureItem = SettableFuture.create<Boolean>()
     val newKey = StringResourceKey(name, key.directory)
-    keyToResourceMap[newKey] = StringResource(newKey, this)
+    repository.invokeAfterPendingUpdatesFinish(newKey) {
+      replaceInMap(key, StringResource(newKey, this))
+      futureItem.set(true)
+    }
+    return futureItem
+  }
+
+  /**
+   * Replace [old] value with [new] in [keyToResourceMap] and prevent fly-away.
+   *
+   * This essentially does:
+   * - keyToResourceMap.remove(old)
+   * - keyToResourceMap[new.key] = new
+   *
+   * But start would insert the new key at the end of the iteration order.
+   * This function tried to maintain the order from before the change.
+   */
+  private fun replaceInMap(old: StringResourceKey, new: StringResource) {
+    val values = keyToResourceMap.values.toList()
+    var newAdded = false
+    keyToResourceMap.clear()
+    values.forEach { value ->
+      if (value.key == old) {
+        keyToResourceMap[new.key] = new
+        newAdded = true
+      }
+      else {
+        keyToResourceMap[value.key] = value
+      }
+    }
+    if (!newAdded) {
+      keyToResourceMap[new.key] = new
+    }
   }
 
   fun validateKey(key: StringResourceKey): String? {

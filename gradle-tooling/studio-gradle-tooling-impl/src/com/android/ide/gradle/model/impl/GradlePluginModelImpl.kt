@@ -24,13 +24,14 @@ import java.io.Serializable
  */
 data class GradlePluginModelImpl(
   private val hasSafeArgsJava: Boolean,
-  private val hasSafeArgsKotlin: Boolean
+  private val hasSafeArgsKotlin: Boolean,
+  private val hasKotlinMultiPlatform: Boolean
 ) : GradlePluginModel, Serializable {
   override fun hasSafeArgsJava(): Boolean = hasSafeArgsJava
-
   override fun hasSafeArgsKotlin(): Boolean = hasSafeArgsKotlin
+  override fun hasKotlinMultiPlatform(): Boolean = hasKotlinMultiPlatform
 
   companion object {
-    private const val serialVersionUID = 3L
+    private const val serialVersionUID = 4L
   }
 }

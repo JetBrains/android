@@ -26,34 +26,23 @@ import java.io.File
 import java.net.URL
 import org.jetbrains.android.facet.AndroidFacet
 
-private const val VECTOR_DRAWABLE_API_LEVEL = 21
-
 /**
  * Action to invoke the Vector Asset Studio. This will allow the user to generate icons using SVGs.
  */
-class NewVectorAssetAction :
-  AndroidAssetStudioAction("Vector Asset", "Open Vector Asset Studio to create an image asset") {
-  override fun createWizard(
-    facet: AndroidFacet,
-    template: NamedModuleTemplate,
-    resFolder: File,
-  ): ModelWizard? {
+class NewVectorAssetAction : AndroidAssetStudioAction("Vector Asset", "Open Vector Asset Studio to create an image asset") {
+
+  override fun createWizard(facet: AndroidFacet, template: NamedModuleTemplate, resFolder: File): ModelWizard {
     val wizardBuilder = ModelWizard.Builder()
-    wizardBuilder.addStep(
-      NewVectorAssetStep(GenerateIconsModel(facet, "vectorWizard", template, resFolder), facet)
-    )
+    wizardBuilder.addStep(NewVectorAssetStep(GenerateIconsModel(facet, "vectorWizard", template, resFolder), facet))
     return wizardBuilder.build()
   }
 
-  override fun getWizardMinimumSize(): Dimension {
-    return JBUI.size(700, 540)
-  }
+  override val wizardMinimumSize: Dimension
+    get() = JBUI.size(700, 540)
 
-  override fun getWizardPreferredSize(): Dimension {
-    return wizardMinimumSize
-  }
+  override val wizardPreferredSize: Dimension
+    get() = wizardMinimumSize
 
-  override fun getHelpUrl(): URL {
-    return toUrl("http://developer.android.com/tools/help/vector-asset-studio.html")
-  }
+  override val helpUrl: URL
+    get() = toUrl("http://developer.android.com/tools/help/vector-asset-studio.html")
 }

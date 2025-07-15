@@ -231,14 +231,10 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
     // TODO: The old version only loaded the list of version once, and kept everything on a static
     // field
     // Possible solutions: Move AndroidVersionsInfo/load to the class that instantiates this step?
-    androidVersionsInfo.loadLocalVersions()
     apiLevelCombo.init(
       formFactor,
       androidVersionsInfo.getKnownTargetVersions(formFactor, minSdkLevel),
-    ) // Pre-populate
-    androidVersionsInfo.loadRemoteTargetVersions(formFactor, minSdkLevel) { items ->
-      apiLevelCombo.init(formFactor, items)
-    }
+    )
   }
 
   override fun onProceeding() {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.android.tools.idea.ui.save.PostSaveAction
@@ -62,10 +61,10 @@ private const val ADVANCE_NOTICE_MILLIS = 100
 internal class ScreenRecorder(
   private val project: Project,
   private val recordingProvider: RecordingProvider,
-  private val options: ScreenRecorderPersistentOptions,
   deviceName: String,
 ) {
 
+  private val settings = DeviceScreenRecordingSettings.getInstance()
   private val dialogTitle = message("screenrecord.dialog.title", deviceName)
   private lateinit var recordingTimestamp: Instant
 
@@ -76,7 +75,7 @@ internal class ScreenRecorder(
     val recordingHandle = recordingProvider.startRecording()
     val dialog: ScreenRecorderDialog
 
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       dialog = ScreenRecorderDialog(dialogTitle, project, timeLimitSec * 1000 - ADVANCE_NOTICE_MILLIS, recordingProvider::stopRecording)
       Disposer.register(dialog.disposable) {
         if (dialog.exitCode == CANCEL_EXIT_CODE) {
@@ -124,9 +123,10 @@ internal class ScreenRecorder(
     val recordingFile = if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
       delay(200) // Wait for the video file to be finalized.
       val saveConfigResolver = project.service<SaveConfigurationResolver>()
+      val saveConfig = settings.saveConfig
       val expandedFilename =
-          saveConfigResolver.expandFilenamePattern(options.saveLocation, options.filenameTemplate, recordingProvider.fileExtension,
-                                                   recordingTimestamp, options.recordingCount + 1)
+          saveConfigResolver.expandFilenamePattern(saveConfig.saveLocation, saveConfig.filenameTemplate, recordingProvider.fileExtension,
+                                                   recordingTimestamp, settings.recordingCount + 1)
       Paths.get(expandedFilename)
     }
     else {
@@ -135,7 +135,7 @@ internal class ScreenRecorder(
 
     try {
       recordingProvider.pullRecording(recordingFile)
-      options.recordingCount++
+      settings.recordingCount++
     }
     catch (e: CancellationException) {
       throw e
@@ -167,7 +167,7 @@ internal class ScreenRecorder(
   private suspend fun getTargetFile(extension: String): Path? {
     val properties = PropertiesComponent.getInstance(project)
     val descriptor = FileSaverDescriptor(message("screenrecord.action.save.as"), "", extension)
-    return withContext(uiThread) {
+    return withContext(Dispatchers.EDT) {
       val saveFileDialog: FileSaverDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
       val lastPath = properties.getValue(SAVE_PATH_KEY)
       val baseDir = if (lastPath != null) LocalFileSystem.getInstance().findFileByPath(lastPath) else VfsUtil.getUserHomeDir()
@@ -187,7 +187,7 @@ internal class ScreenRecorder(
 
   private suspend fun handleSavedRecording(file: Path) {
     if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
-      when (options.postSaveAction) {
+      when (settings.saveConfig.postSaveAction) {
         PostSaveAction.NONE -> {}
         PostSaveAction.SHOW_IN_FOLDER -> RevealFileAction.openFile(file)
         PostSaveAction.OPEN -> openSavedFile(file)

@@ -101,7 +101,7 @@ private class InsightToolWindowContent(
 
   init {
     val comp =
-      if (projectController.aiInsightToolkit.insightDeprecationData.isDeprecated()) {
+      if (projectController.aiInsightToolkit.insightDeprecationData.isUnsupported()) {
         InsightDeprecatedPanel(
           AndroidCoroutineScope(parentDisposable),
           projectController.project,

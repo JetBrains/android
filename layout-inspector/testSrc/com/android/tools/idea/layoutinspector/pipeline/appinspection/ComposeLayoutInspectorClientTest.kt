@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.flags.junit.FlagRule
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
@@ -85,7 +86,7 @@ class ComposeLayoutInspectorClientTest {
           override val model = "model"
           override val serial = "emulator-1234"
           override val isEmulator = true
-          override val apiLevel = 30
+          override val apiLevel = AndroidApiLevel(30)
           override val version = "10.0.0"
           override val codename: String? = null
         }
@@ -102,10 +103,16 @@ class ComposeLayoutInspectorClientTest {
   private val devFlagRule = FlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR)
   private val devFolderFlagRule =
     FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER)
+  private val releaseFolderFlagRule =
+    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_RELEASE_FOLDER)
 
   @get:Rule
   val rule =
-    RuleChain.outerRule(projectRule).around(adbRule).around(devFlagRule).around(devFolderFlagRule)!!
+    RuleChain.outerRule(projectRule)
+      .around(adbRule)
+      .around(devFlagRule)
+      .around(devFolderFlagRule)
+      .around(releaseFolderFlagRule)!!
 
   @Before
   fun before() {
@@ -114,7 +121,7 @@ class ComposeLayoutInspectorClientTest {
       processDescriptor.device.manufacturer,
       processDescriptor.device.model,
       processDescriptor.device.version,
-      processDescriptor.device.apiLevel.toString(),
+      processDescriptor.device.apiLevel,
       "arm64-v8a",
       emptyMap(),
       DeviceState.HostConnectionType.LOCAL,

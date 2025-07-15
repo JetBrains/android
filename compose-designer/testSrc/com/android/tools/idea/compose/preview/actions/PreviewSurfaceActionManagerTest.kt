@@ -20,13 +20,12 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 // SavePreviewInNewSize()
-// RevertToOriginalSize()
 // EnableUiCheckAction(),
 // AnimationInspectorAction(),
 // EnableInteractiveAction(),
 // DeployToDeviceAction()
 // in wrappers
-private const val EXPECTED_NUMBER_OF_ACTIONS = 6
+private const val EXPECTED_NUMBER_OF_ACTIONS = 5
 
 // EnableUiCheckAction(),
 // EnableInteractiveAction(),

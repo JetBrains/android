@@ -18,7 +18,7 @@ package com.android.tools.profilers.taskbased.home
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.ProcessUtils.isProfileable
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskSupportUtils
@@ -136,17 +136,17 @@ object TaskSelectionVerificationUtils {
     assert(!canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, profilers))
     assert(areSelectionsValid(selectedTaskType, selectedDevice, selectedProcess))
     return if (!isSelectedProcessPreferred(selectedProcess, profilers)) {
-      StartTaskSelectionError(StarTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK)
+      StartTaskSelectionError(StartTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK)
     }
     else if (!profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)) {
-      StartTaskSelectionError(StarTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP)
+      StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP)
     }
     else if (!TaskSupportUtils.doesDeviceSupportProfilingTaskFromProcessStart(selectedTaskType, selectedDevice!!.featureLevel)) {
-      return StartTaskSelectionError(StarTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN,
+      return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN,
                                      getMinApiStartTaskErrorMessage(TaskSupportUtils.getProcessStartMinApi(selectedTaskType)))
     }
     else {
-      StartTaskSelectionError(StarTaskSelectionErrorCode.GENERAL_ERROR)
+      StartTaskSelectionError(StartTaskSelectionErrorCode.GENERAL_ERROR)
     }
   }
 
@@ -163,7 +163,7 @@ object TaskSelectionVerificationUtils {
     assert(!canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess, taskHandlers))
     assert(areSelectionsValid(selectedTaskType, selectedDevice, selectedProcess))
     if (!isDeviceSelectionOnline(selectedDevice!!)) {
-      return StartTaskSelectionError(StarTaskSelectionErrorCode.DEVICE_SELECTION_IS_OFFLINE)
+      return StartTaskSelectionError(StartTaskSelectionErrorCode.DEVICE_SELECTION_IS_OFFLINE)
     }
 
     val supportsDeviceAndProcess = taskHandlers[selectedTaskType]!!.checkSupportForDeviceAndProcess(selectedDevice.device, selectedProcess)
@@ -172,10 +172,10 @@ object TaskSelectionVerificationUtils {
     }
 
     if (selectedProcess.state == Common.Process.State.DEAD) {
-      return StartTaskSelectionError(StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_DEAD_PROCESS)
+      return StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_DEAD_PROCESS)
     }
 
-    return StartTaskSelectionError(StarTaskSelectionErrorCode.GENERAL_ERROR)
+    return StartTaskSelectionError(StartTaskSelectionErrorCode.GENERAL_ERROR)
   }
 
   /**
@@ -193,13 +193,13 @@ object TaskSelectionVerificationUtils {
     // The rest of the code can now assume there is some error.
     assert(!canStartTask(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint, profilers))
     return if (!isDeviceSelectionValid(selectedDevice)) {
-      StartTaskSelectionError(StarTaskSelectionErrorCode.INVALID_DEVICE)
+      StartTaskSelectionError(StartTaskSelectionErrorCode.INVALID_DEVICE)
     }
     else if (!isProcessSelectionValid(selectedProcess)) {
-      StartTaskSelectionError(StarTaskSelectionErrorCode.INVALID_PROCESS)
+      StartTaskSelectionError(StartTaskSelectionErrorCode.INVALID_PROCESS)
     }
     else if (!isTaskSelectionValid(selectedTaskType)) {
-      StartTaskSelectionError(StarTaskSelectionErrorCode.INVALID_TASK)
+      StartTaskSelectionError(StartTaskSelectionErrorCode.INVALID_TASK)
     }
     // Errors when attempting to perform a startup task.
     else if (profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START) {
@@ -210,25 +210,25 @@ object TaskSelectionVerificationUtils {
       getStartTaskFromNowStartError(selectedTaskType, selectedDevice, selectedProcess, profilers.taskHandlers)
     }
     else if (profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.UNSPECIFIED) {
-      StartTaskSelectionError(StarTaskSelectionErrorCode.NO_STARTING_POINT_SELECTED)
+      StartTaskSelectionError(StartTaskSelectionErrorCode.NO_STARTING_POINT_SELECTED)
     }
     else {
-      StartTaskSelectionError(StarTaskSelectionErrorCode.GENERAL_ERROR)
+      StartTaskSelectionError(StartTaskSelectionErrorCode.GENERAL_ERROR)
     }
   }
 
   fun getMinApiStartTaskErrorMessage(minApi: Int) = "Selected task requires API $minApi or higher"
 
-  val STARTUP_TASK_ERRORS = listOf(StarTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK,
-                                   StarTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP,
-                                   StarTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN)
+  val STARTUP_TASK_ERRORS = listOf(StartTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK,
+                                   StartTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP,
+                                   StartTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN)
 }
 
 data class StartTaskSelectionError(
-  val starTaskSelectionErrorCode: StarTaskSelectionErrorCode,
+  val startTaskSelectionErrorCode: StartTaskSelectionErrorCode,
   val actionableInfo: String? = null
 ) {
-  enum class StarTaskSelectionErrorCode {
+  enum class StartTaskSelectionErrorCode {
     INVALID_DEVICE,
     INVALID_PROCESS,
     INVALID_TASK,

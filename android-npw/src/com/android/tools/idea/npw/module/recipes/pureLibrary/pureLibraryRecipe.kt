@@ -51,7 +51,7 @@ fun RecipeExecutor.generatePureLibrary(
 
   if (language == Language.Kotlin) {
     setKotlinVersion(projectData.kotlinVersion)
-    addKotlinDependencies(androidX = false, targetApi = moduleData.apis.targetApi.api)
+    addKotlinDependencies(androidX = false, targetApi = moduleData.apis.targetApi.apiLevel)
     addPlugin(
       "org.jetbrains.kotlin.jvm",
       "org.jetbrains.kotlin:kotlin-gradle-plugin",

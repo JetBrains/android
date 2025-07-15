@@ -134,6 +134,7 @@ class LintIdeFixPerformer(client: LintClient) : LintFixPerformer(client) {
                   fix.annotation,
                   fix.replace,
                   fix.range,
+                  fix.selectPattern,
                 )
               )
             )

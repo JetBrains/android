@@ -17,8 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.devices.Device
@@ -35,6 +34,7 @@ import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceIn
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
@@ -47,6 +47,7 @@ import com.intellij.util.text.UniqueNameGenerator
 import java.nio.file.Path
 import kotlin.io.path.name
 import kotlin.io.path.pathString
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -78,7 +79,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
       ClearLogcatListener.TOPIC,
       ClearLogcatListener { serialNumber ->
         if (logcatPresenters.none { it.getConnectedDevice()?.serialNumber == serialNumber }) {
-          AndroidCoroutineScope(toolWindow.disposable).launch {
+          toolWindow.disposable.createCoroutineScope().launch {
             LogcatService.getInstance(project).clearLogcat(serialNumber)
           }
         }
@@ -96,12 +97,12 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   }
 
   private fun showLogcat(toolWindow: ToolWindowEx, deviceInfo: DeviceInfo, applicationId: String?) {
-    AndroidCoroutineScope(toolWindow.disposable).launch {
+    toolWindow.disposable.createCoroutineScope().launch {
       val name = if (applicationId == null) deviceInfo.id else "$applicationId (${deviceInfo.id})"
       val device =
         toolWindow.project.service<DeviceFinder>().findDevice(deviceInfo.serialNumber)
           ?: deviceInfo.toOfflineDevice()
-      withContext(uiThread) {
+      withContext(Dispatchers.EDT) {
         insideShowLogcatListener = true
         try {
           val content = toolWindow.findTab(name)
@@ -132,6 +133,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
         filter = filter,
         filterMatchCase = false,
         isSoftWrap = false,
+        proguardFile = null,
       )
     createNewTab(this, name, LogcatPanelConfig.toJson(config))
   }
@@ -148,6 +150,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
             filter = "",
             filterMatchCase = false,
             isSoftWrap = false,
+            proguardFile = null,
           )
 
         createNewTab(

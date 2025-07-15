@@ -35,19 +35,19 @@ import kotlin.math.hypot
 
 private val DEVICE_CACHES = ContainerUtil.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
 
-enum class DeviceGroup {
-  NEXUS,
-  NEXUS_XL,
-  NEXUS_TABLET,
-  WEAR,
-  DESKTOP,
-  TV,
-  AUTOMOTIVE,
-  GENERIC,
-  OTHER,
-  ADDITIONAL_DEVICE,
-  CANONICAL_DEVICE,
-  XR,
+enum class DeviceGroup(val displayName: String) {
+  NEXUS("Nexus/Pixel Phones"),
+  NEXUS_XL("Large Nexus/Pixel Phones"),
+  NEXUS_TABLET("Tablets"),
+  WEAR("Wear OS"),
+  DESKTOP("Desktop"),
+  TV("Android TV"),
+  AUTOMOTIVE("Android Auto"),
+  GENERIC("Generic Devices"),
+  OTHER("Other Devices"),
+  ADDITIONAL_DEVICE("More Devices"),
+  CANONICAL_DEVICE("Reference Devices"),
+  XR("XR Devices");
 }
 
 /**
@@ -74,7 +74,7 @@ fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Devi
 /**
  * Group the given devices by [DeviceGroup]:
  * - For canonical devices: [DeviceGroup.CANONICAL_DEVICE]
- * - For predefined devices in [AdditionalDeviceService]: [DeviceGroup.ADDITIONAL_DEVICE]
+ * - For predefined devices in [ReferenceDevice]: [DeviceGroup.ADDITIONAL_DEVICE]
  * - For Nexus/Pixel devices which diagonal Length < 5 inch: [DeviceGroup.NEXUS]
  * - Nexus/Pixel devices which diagonal Length < 6.5 inch: [DeviceGroup.NEXUS_XL]
  * - Other Nexus/Pixel devices: [DeviceGroup.NEXUS_TABLET]
@@ -173,7 +173,7 @@ enum class ReferenceDeviceType {
 }
 
 /**
- * Helper function to find the reference device. The device in [AdditionalDeviceService] is picked
+ * Helper function to find the reference device. The device in [ReferenceDevice] is picked
  */
 fun getReferenceDevice(config: Configuration, type: ReferenceDeviceType) = getReferenceDevice(getSuitableDevices (config), type)
 

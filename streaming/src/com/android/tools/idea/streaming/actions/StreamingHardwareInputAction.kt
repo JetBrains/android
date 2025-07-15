@@ -17,10 +17,10 @@ package com.android.tools.idea.streaming.actions
 
 import com.android.tools.idea.actions.enableRichTooltip
 import com.android.tools.idea.streaming.core.DeviceId
-import com.android.tools.idea.streaming.xr.XrInputMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
@@ -36,28 +36,29 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
   override fun isSelected(event: AnActionEvent): Boolean {
     val displayView = getDisplayView(event) ?: return false
-    return event.project?.service<HardwareInputStateStorage>()?.isHardwareInputEnabled(displayView.deviceId) ?: false
+    return getHardwareInputStateStorage(event)?.isHardwareInputEnabled(displayView.deviceId) == true
   }
 
   override fun setSelected(event: AnActionEvent, selected: Boolean) {
     val displayView = getDisplayView(event) ?: return
-    val xrInputController = getXrInputController(event)
-    // The action works as a toggle for non-XR devices and as a mode selector for XR ones.
-    if (selected || xrInputController == null) {
-      event.project?.service<HardwareInputStateStorage>()?.setHardwareInputEnabled(displayView.deviceId, selected)
-      displayView.hardwareInputStateChanged(event, selected)
-    }
-    if (selected) {
-      xrInputController?.inputMode = XrInputMode.HARDWARE
-    }
+    getHardwareInputStateStorage(event)?.setHardwareInputEnabled(displayView.deviceId, selected)
+    displayView.hardwareInputStateChanged(event, selected)
   }
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.enableRichTooltip(this)
+    val presentation = event.presentation
+    if (getXrInputController(event)?.isMouseUsedForNavigation() == true) {
+      presentation.isEnabled = false
+      Toggleable.setSelected(presentation, false)
+    }
+    presentation.enableRichTooltip(this)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+  private fun getHardwareInputStateStorage(event: AnActionEvent): HardwareInputStateStorage? =
+      event.project?.service<HardwareInputStateStorage>()
 
   companion object {
     const val ACTION_ID = "android.streaming.hardware.input"
@@ -69,13 +70,12 @@ internal class HardwareInputStateStorage {
 
   private val enabledDevices = createConcurrentList<String>()
 
-  fun isHardwareInputEnabled(deviceId: DeviceId): Boolean {
-    return enabledDevices.contains(deviceId.storageKey)
-  }
+  fun isHardwareInputEnabled(deviceId: DeviceId): Boolean =
+      enabledDevices.contains(deviceId.storageKey)
 
   fun setHardwareInputEnabled(deviceId: DeviceId, enabled: Boolean) {
     if (enabled) {
-      enabledDevices.add(deviceId.storageKey)
+      enabledDevices.addIfAbsent(deviceId.storageKey)
     } else {
       enabledDevices.remove(deviceId.storageKey)
     }

@@ -33,24 +33,28 @@ class WiFiPairingControllerImpl(
   private val pairingService: WiFiPairingService,
   private val notificationService: WiFiPairingNotificationService,
   private val view: WiFiPairingView,
-  private val pairingCodePairingControllerFactory: (MdnsService) -> PairingCodePairingController = {
-    createPairingCodePairingController(project, pairingService, notificationService, it)
-  },
+  private val pairingCodePairingControllerFactory:
+    (PairingMdnsService) -> PairingCodePairingController =
+    {
+      createPairingCodePairingController(project, pairingService, notificationService, it)
+    },
+  mdnsServiceUnderPairing: TrackingMdnsService?,
 ) : WiFiPairingController {
   companion object {
     fun createPairingCodePairingController(
       project: Project,
       pairingService: WiFiPairingService,
       notificationService: WiFiPairingNotificationService,
-      mdnsService: MdnsService,
+      pairingMdnsService: PairingMdnsService,
     ): PairingCodePairingController {
-      val model = PairingCodePairingModel(mdnsService)
+      val model = PairingCodePairingModel(pairingMdnsService)
       val view = PairingCodePairingViewImpl(project, notificationService, model)
       return PairingCodePairingController(project.coroutineScope, pairingService, view)
     }
   }
 
-  private val qrCodeScanningController = QrCodeScanningController(pairingService, view, this)
+  private val qrCodeScanningController =
+    QrCodeScanningController(pairingService, view, this, mdnsServiceUnderPairing)
 
   private val viewListener = MyViewListener(this)
 
@@ -105,8 +109,8 @@ class WiFiPairingControllerImpl(
       // Ignore
     }
 
-    override fun onPairingCodePairAction(mdnsService: MdnsService) {
-      pairingCodePairingControllerFactory.invoke(mdnsService).showDialog()
+    override fun onPairingCodePairAction(pairingMdnsService: PairingMdnsService) {
+      pairingCodePairingControllerFactory.invoke(pairingMdnsService).showDialog()
     }
 
     override fun onClose() {

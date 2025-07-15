@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.viewer.pagealign
 
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode
+import com.android.tools.idea.apk.viewer.ApkViewPanel.ApkTreeModel
 import com.intellij.icons.AllIcons
 import com.intellij.ui.ColoredTreeCellRenderer
 import javax.swing.JTree
@@ -31,8 +32,9 @@ class AlignmentCellRenderer : ColoredTreeCellRenderer() {
                                      hasFocus: Boolean) {
     setTextAlign(SwingConstants.LEFT)
     if (value is ArchiveTreeNode) {
+      val model = tree.model as ApkTreeModel
       val archiveEntry = value.data
-      val fieldValue = archiveEntry.getAlignmentFinding()
+      val fieldValue = archiveEntry.getAlignmentFinding(model.extractNativeLibs)
       append(fieldValue.text)
       if (fieldValue.hasWarning) icon = AllIcons.General.BalloonWarning
     }

@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
  */
 class SceneHitListener {
   @NotNull private SelectionModel mySelectionModel;
-  private ScenePicker myPicker = new ScenePicker();
+  private ScenePickerImpl myPicker = new ScenePickerImpl();
   double myClosestComponentDistance = Double.MAX_VALUE;
   double myClosestTargetDistance = Double.MAX_VALUE;
   ArrayList<SceneComponent> myHitComponents = new ArrayList<>();

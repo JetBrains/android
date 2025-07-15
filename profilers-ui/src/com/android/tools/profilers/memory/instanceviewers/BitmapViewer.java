@@ -27,9 +27,11 @@ import com.intellij.ui.components.JBScrollPane;
 import java.awt.BorderLayout;
 import java.awt.image.BufferedImage;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.util.ui.JBUI;
 
 public class BitmapViewer implements InstanceViewer {
   @NotNull
@@ -43,10 +45,32 @@ public class BitmapViewer implements InstanceViewer {
   public JComponent createComponent(@NotNull IdeProfilerComponents ideProfilerComponents,
                                     @NotNull CaptureObject captureObject,
                                     @NotNull InstanceObject instanceObject) {
-    AndroidBitmapDataProvider bitmapDataProvider = AndroidBitmapDataProvider.createDecoder(instanceObject);
-    if (bitmapDataProvider == null) {
+
+    InstanceObject bitmapInstance = AndroidBitmapDataProvider.getBitmapClassInstance(instanceObject);
+    // If instanceObject is not an instance of "android.graphics.Bitmap" or "android.graphics.drawable.BitmapDrawable"
+    if (bitmapInstance == null) {
       return null;
     }
+
+    AndroidBitmapDataProvider bitmapDataProvider = AndroidBitmapDataProvider.createDecoder(bitmapInstance);
+    if (bitmapDataProvider == null) {
+      if (bitmapInstance.getDepth() != Integer.MAX_VALUE) {
+        // The bitmap object is live (reachable from GC roots), but its image data is missing in this heap dump.
+        // This typically happens if the '-b' flag, which includes bitmap pixel data, wasn't used/supported in the heap dump command.
+        // This missing-data scenario is expected on API levels 26-28 where the '-b' flag isn't supported,
+        // and on API levels 29-34 if mainline updates haven't been applied.
+        return null;
+      }
+      JComponent viewer = new JLabel("This bitmap can't be previewed because its data isn't currently connected to any active part " +
+                                     "of the program. It will be automatically cleaned up by the garbage collector.");
+
+      JPanel panel = new JPanel(new BorderLayout());
+      panel.setBorder(JBUI.Borders.empty(8));
+      panel.setName("Bitmap Preview");
+      panel.add(viewer);
+      return new JBScrollPane(panel);
+    }
+
     BufferedImage image = BitmapDecoder.getBitmap(bitmapDataProvider);
     if (image == null) {
       return null;

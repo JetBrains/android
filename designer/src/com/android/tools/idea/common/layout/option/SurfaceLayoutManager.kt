@@ -28,6 +28,13 @@ import java.awt.Point
 interface SurfaceLayoutManager {
 
   /**
+   * false by default, override it to true if the [SurfaceLayoutManager] contains resizable
+   * [PositionableContent]s.
+   */
+  val containsResizableContent: Boolean
+    get() = false
+
+  /**
    * Get the total content size of the given [PositionableContent]s when available display size is
    * [availableWidth] x [availableHeight]. Not like [getPreferredSize], this considers the current
    * zoom level of the given [PositionableContent]s.

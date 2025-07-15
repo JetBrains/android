@@ -204,11 +204,18 @@ fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = Em
  */
 private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
   val disposableId = disposable.toString() // Don't capture the parent disposable inside the lambda.
-  Disposer.register(disposable) {
-    if (!job.isCancelled) {
-      job.cancel(CancellationException("$disposableId has been disposed."))
+  Disposer.register(disposable, object : Disposable {
+    override fun dispose() {
+      if (!job.isCancelled) {
+        job.cancel(CancellationException("$disposableId has been disposed."))
+      }
     }
-  }
+
+    override fun toString(): String {
+      return "CancelJobOnDispose(job=$job,parent=$disposableId)"
+    }
+  })
+
 }
 
 private val APPLICATION_SCOPE: Key<CoroutineScope> = Key.create(::APPLICATION_SCOPE.qualifiedName<AndroidCoroutinesAware>())
@@ -454,7 +461,15 @@ fun <T> disposableCallbackFlow(debugName: String,
 
   val disposable = parentDisposable?.let {
     // If there is a parent disposable, cancel the flow when it's disposed.
-    Disposer.register(it) { cancel("parentDisposable was disposed") }
+    Disposer.register(it, object : Disposable {
+      override fun dispose() {
+        cancel("parentDisposable was disposed")
+      }
+
+      override fun toString(): String {
+        return "DisposableCallbackFlow(name=$debugName)"
+      }
+    })
     Disposer.newDisposable(it, debugName)
   } ?: Disposer.newDisposable(debugName)
 

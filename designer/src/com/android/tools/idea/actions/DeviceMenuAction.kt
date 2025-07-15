@@ -29,7 +29,6 @@ import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.avd.showAddDeviceDialog
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.configurations.AdditionalDeviceService
 import com.android.tools.idea.configurations.CanonicalDeviceType
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
@@ -38,6 +37,7 @@ import com.android.tools.idea.configurations.DEVICE_CLASS_FOLDABLE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_PHONE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_TABLET_TOOLTIP
 import com.android.tools.idea.configurations.DeviceGroup
+import com.android.tools.idea.configurations.ReferenceDevice
 import com.android.tools.idea.configurations.ReferenceDeviceType
 import com.android.tools.idea.configurations.getCanonicalDevice
 import com.android.tools.idea.configurations.getReferenceDevice
@@ -378,7 +378,7 @@ class DeviceMenuAction(
     fun getSortedMajorDevices(config: Configuration): List<Device> {
       val groupedDevices = getSuitableDevicesForMenu(config)
       return listOf(
-          AdditionalDeviceService.getInstance().getWindowSizeDevices(),
+          ReferenceDevice.getWindowSizeDevices(),
           groupedDevices[DeviceGroup.NEXUS_XL],
           groupedDevices[DeviceGroup.NEXUS_TABLET],
           groupedDevices[DeviceGroup.DESKTOP],

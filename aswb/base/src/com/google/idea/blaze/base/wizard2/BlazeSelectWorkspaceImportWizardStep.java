@@ -15,8 +15,8 @@
  */
 package com.google.idea.blaze.base.wizard2;
 
+import com.google.idea.blaze.base.wizard2.BlazeNewProjectWizard.WizardContext;
 import com.google.idea.blaze.base.wizard2.ui.BlazeSelectWorkspaceControl;
-import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.options.ConfigurationException;
 import java.awt.BorderLayout;

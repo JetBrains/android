@@ -47,22 +47,14 @@ sealed interface IdeArtifactLibrary : IdeLibrary {
   val name: String
 
   /**
-   * Returns the location of the sources jar.
-   * This is only available from AGP version 8.1.0-alpha08.
+   * Returns the location of the sources jars(including samples source).
    */
-  val srcJar: File?
+  val srcJars: List<File>
 
   /**
    * Returns the location of the java doc jar.
-   * This is only available from AGP version 8.1.0-alpha08.
    */
   val docJar: File?
-
-  /**
-   * Returns the location of the samples jar.
-   * This is only available from AGP version 8.1.0-alpha08.
-   */
-  val samplesJar: File?
 }
 
 interface IdeAndroidLibrary : IdeArtifactLibrary {

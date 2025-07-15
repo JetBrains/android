@@ -24,16 +24,6 @@ import javax.annotation.Nullable;
 
 /** Interface for creating a project with additional configuration. */
 public interface ExtendableBazelProjectCreator {
-  /**
-   * Creates a project with additional configuration.
-   *
-   * @param builder the project builder
-   * @param name the name of the project
-   * @param path the path to the project
-   * @return the created project, can be null if the project cannot be created
-   */
-  public Optional<Project> createProject(ProjectBuilder builder, String name, String path);
-
   /** Returns true if the project can be created. */
   public boolean canCreateProject(@Nullable BuildSystemName buildSystemName);
 

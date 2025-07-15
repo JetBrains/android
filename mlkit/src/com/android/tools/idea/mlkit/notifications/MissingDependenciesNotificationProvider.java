@@ -18,7 +18,7 @@ package com.android.tools.idea.mlkit.notifications;
 import static com.android.tools.idea.mlkit.viewer.TfliteModelFileType.TFLITE_EXTENSION;
 
 import com.android.ide.common.gradle.Dependency;
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.mlkit.MlUtils;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
@@ -67,7 +67,7 @@ public class MissingDependenciesNotificationProvider implements EditorNotificati
       EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning);
       panel.setText("ML Model Binding dependencies not found.");
       panel.createActionLabel("Add Now", () -> {
-        List<GradleCoordinate> depsToAdd = MlUtils.getMissingRequiredDependencies(module);
+        List<WellKnownMavenArtifactId> depsToAdd = MlUtils.getMissingRequiredDependencies(module);
         String message = createAddDependencyMessage(depsToAdd);
         if (Messages.OK == Messages.showOkCancelDialog(project, message, "Add Ml Model Binding Dependencies", Messages.getErrorIcon())) {
           GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
@@ -83,7 +83,7 @@ public class MissingDependenciesNotificationProvider implements EditorNotificati
     };
   }
 
-  private static @NotNull String createAddDependencyMessage(@NotNull List<GradleCoordinate> coordinates) {
+  private static @NotNull String createAddDependencyMessage(@NotNull List<WellKnownMavenArtifactId> coordinates) {
     String libraryNames = StringUtil.join(coordinates, ", ");
     String these = StringUtil.pluralize("this", coordinates.size());
     String libraries = StringUtil.pluralize("library", coordinates.size());

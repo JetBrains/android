@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.model.UsedFeatureRawText
 import com.android.tools.idea.model.queryUsedFeaturesFromManifestIndex
-import com.android.tools.idea.project.coroutines.runReadActionInSmartModeWithIndexes
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
@@ -41,9 +40,9 @@ import com.google.wireless.android.sdk.stats.GradleModule
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManagerEx
 import com.intellij.openapi.roots.libraries.Library
@@ -224,7 +223,7 @@ class ProjectStructureUsageTrackerManager(private val project: Project) {
 
   private suspend fun isWatchHardwareRequired(facet: AndroidFacet): Boolean {
     try {
-      return project.runReadActionInSmartModeWithIndexes {
+      return smartReadAction(project) {
         val usedFeatures = facet.queryUsedFeaturesFromManifestIndex()
         (usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, null))
          || usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, "true")))

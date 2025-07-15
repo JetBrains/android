@@ -20,11 +20,16 @@ import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.DUMP
 
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.asdriver.tests.base.IdeInstallation;
 import com.android.tools.asdriver.tests.metric.IndexingMetrics;
 import com.android.tools.asdriver.tests.metric.StudioEvents;
 import com.android.tools.asdriver.tests.metric.Telemetry;
+import com.android.tools.testlib.AndroidSdk;
+import com.android.tools.testlib.Display;
+import com.android.tools.testlib.LogFile;
+import com.android.tools.testlib.TestFileSystem;
+import com.android.tools.testlib.TestLogger;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
@@ -210,6 +215,8 @@ public class AndroidStudioInstallation extends IdeInstallation<AndroidStudio> {
         writer.append(String.format("-Denable.bleak=true%n"));
         writer.append(String.format("-Dbleak.jvmti.enabled=true%n"));
         writer.append(String.format("-Didea.disposer.debug=on%n"));
+        // BLeak requires more memory since it's keeping track of various live objects
+        writer.append(String.format("-Xmx4G%n"));
       }
       catch (IOException ignored) {
         throw new IllegalStateException("BLeak JVMTI agent not found");

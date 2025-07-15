@@ -87,10 +87,10 @@ interface DatabaseInspectorProjectService {
   @UiThread fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement)
 
   /** Returns true if the Sqlite Inspector has an open database, false otherwise. */
-  @AnyThread fun hasOpenDatabase(): Boolean
+  @UiThread fun hasOpenDatabase(): Boolean
 
   /** Returns a list of the currently open databases. */
-  @AnyThread fun getOpenDatabases(): List<SqliteDatabaseId>
+  @UiThread fun getOpenDatabases(): List<SqliteDatabaseId>
 
   /**
    * Shows the error in the Database Inspector.

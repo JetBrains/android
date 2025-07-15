@@ -17,6 +17,8 @@ package com.android.tools.idea.insights.ai.codecontext
 
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.StacktraceGroup
+import com.intellij.openapi.vfs.VirtualFile
+import org.mockito.Mockito.mock
 
 open class FakeCodeContextResolver(var codeContext: List<CodeContext>) : CodeContextResolver {
   override suspend fun getSource(conn: Connection, stack: StacktraceGroup): CodeContextData {
@@ -27,5 +29,9 @@ open class FakeCodeContextResolver(var codeContext: List<CodeContext>) : CodeCon
 
   override suspend fun getSource(fileNames: List<String>): CodeContextData {
     return CodeContextData(codeContext)
+  }
+
+  override suspend fun getSourceVirtualFiles(filePath: String): List<VirtualFile> {
+    return listOf(mock<VirtualFile>())
   }
 }

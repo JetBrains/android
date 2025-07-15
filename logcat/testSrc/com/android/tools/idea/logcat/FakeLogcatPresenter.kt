@@ -67,7 +67,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     logcatRestartedCount++
   }
 
-  override fun isLogcatEmpty(): Boolean = lineBatches.isEmpty()
+  override fun isLogcatEmpty(): Boolean = messageBatches.isEmpty()
 
   override suspend fun processMessages(messages: List<LogcatMessage>) {
     messageBatches.add(messages)

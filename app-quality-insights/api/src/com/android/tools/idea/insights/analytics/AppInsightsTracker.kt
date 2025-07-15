@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.ai.AiInsight
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.CrashType
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.InsightSentiment.Sentiment
+import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
 
 interface AppInsightsTracker {
   fun logZeroState(event: AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails)
@@ -91,9 +92,11 @@ interface AppInsightsTracker {
 
   fun logServiceDeprecated(
     panel: AppQualityInsightsUsageEvent.ServiceDeprecationInfo.Panel,
+    deliveryType: DevServiceDeprecationInfo.DeliveryType,
     userNotified: Boolean? = null,
     userClickedMoreInfo: Boolean? = null,
     userClickedUpdate: Boolean? = null,
+    userClickedDismiss: Boolean? = null,
   )
 
   enum class ProductType {

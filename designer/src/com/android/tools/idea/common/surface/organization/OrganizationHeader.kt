@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
@@ -74,6 +75,8 @@ fun OrganizationHeader(group: OrganizationGroup) {
         modifier = Modifier.testTag("displayName"),
         color = AdtUiUtils.HEADER_COLOR.toComposeColor(),
         fontSize = TextUnit(UIUtil.getFontSize(UIUtil.FontSize.SMALL), TextUnitType.Sp),
+        overflow = TextOverflow.Ellipsis,
+        maxLines = 1,
         fontWeight = FontWeight.Bold,
       )
       Spacer(Modifier.width(toolbarSpacing))

@@ -30,7 +30,7 @@ class IdeChannelTest {
     assertEquals(IdeChannel.Channel.DEV, IdeChannel.getChannel(formatFullVersion(channel = "dEv")))
     assertEquals(IdeChannel.Channel.DEV, IdeChannel.getChannel(formatFullVersion()))
     // Unit tests return DEV
-    assertEquals(IdeChannel.Channel.DEV, IdeChannel.channel)
+    assertEquals(IdeChannel.Channel.STABLE, IdeChannel.channel)
     assertEquals(IdeChannel.Channel.CANARY, IdeChannel.getChannel(formatFullVersion(channel = "Canary")))
     assertEquals(IdeChannel.Channel.BETA, IdeChannel.getChannel(formatFullVersion(channel = "Beta")))
     assertEquals(IdeChannel.Channel.RC, IdeChannel.getChannel(formatFullVersion(channel = "RC")))

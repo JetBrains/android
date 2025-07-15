@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dcl.lang.ide
 
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.guessProjectDir

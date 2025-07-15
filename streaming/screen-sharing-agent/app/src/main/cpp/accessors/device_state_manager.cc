@@ -146,7 +146,7 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
     if (!statics_initialized_) {
       statics_initialized_ = true;
       device_state_manager_ =
-          ServiceManager::GetServiceAsInterface(jni, "device_state", "android/hardware/devicestate/IDeviceStateManager", true);
+          ServiceManager::GetServiceAsInterface(jni, "device_state", "android/hardware/devicestate/IDeviceStateManager", true, true);
       if (device_state_manager_.IsNull()) {
         return false;
       }

@@ -17,7 +17,7 @@ package com.android.tools.profilers.taskbased.common.constants.strings
 
 import com.android.tools.leakcanarylib.data.LeakingStatus
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
-import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StarTaskSelectionErrorCode
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 
 object TaskBasedUxStrings {
@@ -117,11 +117,11 @@ object TaskBasedUxStrings {
                                                            " will appear here"
   const val LEAKCANARY_GO_TO_DECLARATION = "Go to declaration"
 
-  fun getTaskTooltip(taskType: ProfilerTaskType) = when(taskType) {
+  fun getTaskTooltip(taskType: ProfilerTaskType) = when (taskType) {
     ProfilerTaskType.SYSTEM_TRACE -> "Captures a trace that can help you understand how your app interacts with system resources"
     ProfilerTaskType.HEAP_DUMP -> "Dumps the heap showing which objects in your app are using memory at the time of capture"
     ProfilerTaskType.CALLSTACK_SAMPLE -> "Uses sampling to capture the call stacks of an app's native and Java/Kotlin code"
-    ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS ->  "Records Java and Kotlin memory allocations"
+    ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> "Records Java and Kotlin memory allocations"
     ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Captures the call stacks during your app’s Java/Kotlin code execution"
     ProfilerTaskType.NATIVE_ALLOCATIONS -> "Captures native memory allocations"
     ProfilerTaskType.LIVE_VIEW -> "Displays and records a streaming timeline of CPU usage and memory footprint"
@@ -139,6 +139,7 @@ object TaskBasedUxStrings {
   const val PROFILEABLE_PREFERRED_WARNING_TOOLTIP = "The process currently selected is running in the 'debuggable' state. This will " +
                                                     "result in inconsistent readings. For more accurate data, restart the process as" +
                                                     " 'profileable'."
+
   // Rebuild instructions
   const val PROFILEABLE_REBUILD_INSTRUCTION_TOOLTIP = "You can restart the process as 'profileable' by clicking " +
                                                       "'${PROFILE_WITH_LOW_OVERHEAD_ACTION_NAME}' in the main toolbar's more " +
@@ -147,52 +148,73 @@ object TaskBasedUxStrings {
                                                      "'${PROFILE_WITH_COMPLETE_DATA_ACTION_NAME}' in the main toolbar's more " +
                                                      "actions menu. This will trigger a rebuild."
 
-  fun getTaskTitle(taskType: ProfilerTaskType) =
-    when (taskType)  {
-      ProfilerTaskType.SYSTEM_TRACE -> "Capture System Activities"
-      ProfilerTaskType.HEAP_DUMP -> "Analyze Memory Usage"
-      ProfilerTaskType.CALLSTACK_SAMPLE -> "Find CPU Hotspots"
-      ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> "Track Memory Consumption"
-      ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Find CPU Hotspots"
-      ProfilerTaskType.NATIVE_ALLOCATIONS -> "Track Memory Consumption"
-      ProfilerTaskType.LIVE_VIEW -> "View Live Telemetry"
-      ProfilerTaskType.LEAKCANARY -> "Find memory leaks with LeakCanary"
-      ProfilerTaskType.UNSPECIFIED -> ""
+  fun getTaskTitle(taskType: ProfilerTaskType, isTaskTitleV2Enabled: Boolean) =
+    if (isTaskTitleV2Enabled) {
+      when (taskType) {
+        ProfilerTaskType.SYSTEM_TRACE -> "Record App and System Performance Data"
+        ProfilerTaskType.HEAP_DUMP -> "Analyze Memory Usage"
+        ProfilerTaskType.CALLSTACK_SAMPLE -> "Analyze Time Spent per Call Stack"
+        ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> "Record Memory Allocations (Java/Kotlin)"
+        ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Record Method Calls"
+        ProfilerTaskType.NATIVE_ALLOCATIONS -> "Record Memory Allocations (Native)"
+        ProfilerTaskType.LIVE_VIEW -> "View Live Telemetry"
+        ProfilerTaskType.LEAKCANARY -> "Find memory leaks with LeakCanary"
+        ProfilerTaskType.UNSPECIFIED -> ""
+      }
+    }
+    else {
+      when (taskType) {
+        ProfilerTaskType.SYSTEM_TRACE -> "Capture System Activities"
+        ProfilerTaskType.HEAP_DUMP -> "Analyze Memory Usage"
+        ProfilerTaskType.CALLSTACK_SAMPLE -> "Find CPU Hotspots"
+        ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS -> "Track Memory Consumption"
+        ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> "Find CPU Hotspots"
+        ProfilerTaskType.NATIVE_ALLOCATIONS -> "Track Memory Consumption"
+        ProfilerTaskType.LIVE_VIEW -> "View Live Telemetry"
+        ProfilerTaskType.LEAKCANARY -> "Find memory leaks with LeakCanary"
+        ProfilerTaskType.UNSPECIFIED -> ""
+      }
     }
 
-  fun getTaskSubtitle(taskType: ProfilerTaskType) =
-    when (taskType)  {
+  fun getTaskSubtitle(taskType: ProfilerTaskType, isTaskTitleV2Enabled: Boolean) =
+    when (taskType) {
+      ProfilerTaskType.CALLSTACK_SAMPLE -> if (isTaskTitleV2Enabled) "Stack Sampling" else "Callstack Sample"
+
       ProfilerTaskType.SYSTEM_TRACE,
       ProfilerTaskType.HEAP_DUMP,
-      ProfilerTaskType.CALLSTACK_SAMPLE,
       ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
       ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING,
       ProfilerTaskType.NATIVE_ALLOCATIONS -> taskType.description
+
       ProfilerTaskType.LIVE_VIEW, ProfilerTaskType.LEAKCANARY, ProfilerTaskType.UNSPECIFIED -> ""
     }
 
-  fun getStartTaskErrorMessage(taskStartError: StarTaskSelectionErrorCode) =
+  fun getStartTaskErrorMessage(taskStartError: StartTaskSelectionErrorCode) =
     when (taskStartError) {
-      StarTaskSelectionErrorCode.INVALID_DEVICE -> "No valid device is selected"
-      StarTaskSelectionErrorCode.INVALID_PROCESS -> "No valid process is selected"
-      StarTaskSelectionErrorCode.INVALID_TASK -> "No valid task is selected"
-      StarTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK -> "Tasks configured to run at process start require " +
+      StartTaskSelectionErrorCode.INVALID_DEVICE -> "No valid device is selected"
+      StartTaskSelectionErrorCode.INVALID_PROCESS -> "No valid process is selected"
+      StartTaskSelectionErrorCode.INVALID_TASK -> "No valid task is selected"
+      StartTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK -> "Tasks configured to run at process start require " +
                                                                                     "your app's process to be selected"
-      StarTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP -> "The selected task does not support 'Start profiler task from process " +
+
+      StartTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP -> "The selected task does not support 'Start profiler task from process " +
                                                                 "start'"
-      StarTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN -> "The API level is too low to 'Start profiler task from " +
+
+      StartTaskSelectionErrorCode.TASK_FROM_PROCESS_START_USING_API_BELOW_MIN -> "The API level is too low to 'Start profiler task from " +
                                                                                 "process start'"
-      StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN -> "The API level is too low to 'Start profiler task from now'"
-      StarTaskSelectionErrorCode.TASK_FROM_NOW_USING_DEAD_PROCESS -> "'Start profiler task from now' requires a running process"
-      StarTaskSelectionErrorCode.DEVICE_SELECTION_IS_OFFLINE -> "The selected device is offline"
-      StarTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS -> "'Start profiler task from now' requires a running debuggable " +
+
+      StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_API_BELOW_MIN -> "The API level is too low to 'Start profiler task from now'"
+      StartTaskSelectionErrorCode.TASK_FROM_NOW_USING_DEAD_PROCESS -> "'Start profiler task from now' requires a running process"
+      StartTaskSelectionErrorCode.DEVICE_SELECTION_IS_OFFLINE -> "The selected device is offline"
+      StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS -> "'Start profiler task from now' requires a running debuggable " +
                                                                      "process"
-      StarTaskSelectionErrorCode.NO_STARTING_POINT_SELECTED -> "No task starting point selected"
-      StarTaskSelectionErrorCode.GENERAL_ERROR -> "This task cannot be run in this configuration"
+
+      StartTaskSelectionErrorCode.NO_STARTING_POINT_SELECTED -> "No task starting point selected"
+      StartTaskSelectionErrorCode.GENERAL_ERROR -> "This task cannot be run in this configuration"
     }
 
   fun getStartTaskErrorNotificationText(taskStartError: StartTaskSelectionError): String {
-    val errorMessage = getStartTaskErrorMessage(taskStartError.starTaskSelectionErrorCode)
+    val errorMessage = getStartTaskErrorMessage(taskStartError.startTaskSelectionErrorCode)
     if (taskStartError.actionableInfo == null) {
       return errorMessage
     }

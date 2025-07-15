@@ -119,11 +119,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myCustomEventVisualizationEnabled = false;
 
   /**
-   * Whether we support profileable builds.
-   */
-  private boolean myProfileablsBuildsEnabled = true;
-
-  /**
    * Whether the task-based UX should be visible.
    */
   private boolean myTaskBasedUxEnabled = true;
@@ -137,6 +132,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
    * Whether the LeakCanary task should be visible.
    */
   private boolean myLeakCanaryEnabled = false;
+
+  /**
+   * Whether the V2 of Task Title should be used.
+   */
+  private boolean myTaskTitleV2Enabled = false;
 
   /**
    * Whether power and battery data tracks should be visible in system trace and if shown,
@@ -259,11 +259,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isProfileableBuildsEnabled() {
-        return myProfileablsBuildsEnabled;
-      }
-
-      @Override
       public boolean isTestingModeEnabled() {
         return false;
       }
@@ -296,6 +291,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isLeakCanaryEnabled() {
         return myLeakCanaryEnabled;
+      }
+
+      @Override
+      public boolean isTaskTitleV2Enabled() {
+        return myTaskTitleV2Enabled;
       }
     };
   }

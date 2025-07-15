@@ -8,7 +8,7 @@ android {
 }
 
 kotlin {
-  android()
+  androidTarget()
   sourceSets {
     commonMain {
       dependencies {

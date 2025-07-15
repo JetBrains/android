@@ -30,30 +30,18 @@ import java.awt.geom.Arc2D.PIE
 class FormFactorTest {
   @Test
   fun mobileSupportedOnLollipopApi() {
-    assertTrue(MOBILE.isSupported(SystemImageTags.DEFAULT_TAG, LOLLIPOP))
-  }
-
-  @Test
-  fun mobileNotSupportedOnAllowList() {
-    assertFalse(MOBILE.isSupported(SystemImageTags.WEAR_TAG, LOLLIPOP))
-    assertFalse(MOBILE.isSupported(null, LOLLIPOP))
+    assertTrue(MOBILE.isSupported(LOLLIPOP))
   }
 
   @Test
   fun mobileNotSupportedOnWatchApi() {
     // Tests that mobile is on the block-list for the watch API
-    assertFalse(MOBILE.isSupported(SystemImageTags.DEFAULT_TAG, KITKAT_WATCH))
+    assertFalse(MOBILE.isSupported(KITKAT_WATCH))
   }
 
   @Test
   fun automotiveSupportedOnPieApi() {
-    assertTrue(AUTOMOTIVE.isSupported(SystemImageTags.AUTOMOTIVE_TAG, PIE))
-  }
-
-  @Test
-  fun automotiveNotSupportedOnAllowList() {
-    assertFalse(AUTOMOTIVE.isSupported(SystemImageTags.WEAR_TAG, PIE))
-    assertFalse(AUTOMOTIVE.isSupported(null, LOLLIPOP))
+    assertTrue(AUTOMOTIVE.isSupported(PIE))
   }
 
   @Test

@@ -21,25 +21,16 @@ option java_package = "com.google.idea.blaze.qsync.java";
 import "build_artifact.proto";
 
 // The artifacts built for a given target
-message JavaTargetArtifacts {
+message JavaArtifacts {
   string target = 1;
   reserved 2;
   repeated string srcs = 3;  // Workspace relative.
   // Note: The following fields are workspace relative in test data only.
   repeated OutputArtifact jars = 4;
+  repeated OutputArtifact output_jars = 10;
   repeated OutputArtifact ide_aars = 5;
   repeated OutputArtifact gen_srcs = 6;
   repeated string srcjars = 7;          // Workspace relative
   string android_resources_package = 8; // Package that this target places its Android R class in
-  repeated OutputArtifact dep_java_info_files = 9;  // Workspace relative
-}
-
-// The list of all java targets built and their artifacts. Note that because
-// of aliases, many targets can point to the same path on disk.
-// This is the proto written (in text format) to artifact_info.txt by
-// build_dependencies.bzl
-// This proto message is only used to communicate between the aspect and the
-// IDE code. It is never persisted so backwards incompatible changes are ok.
-message JavaArtifacts {
-  repeated JavaTargetArtifacts artifacts = 1;
+  repeated OutputArtifact dep_java_info_files = 9;
 }

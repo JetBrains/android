@@ -32,15 +32,20 @@ class MultiplatformKgpMinVersionValidatorTest {
 
   @Test
   fun testValidKgpVersion() {
-    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("1.9.20")!!))
     assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.0.0")!!))
-    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.0.0-Beta")!!))
-    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.0.0-Beta2")!!))
-    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.0.0-RC")!!))
+    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.1.0")!!))
+    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.1.0-Beta")!!))
+    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.1.0-RC")!!))
+    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.1.10")!!))
+    assertValidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.1.20")!!))
   }
 
   @Test
   fun testInvalidKgpVersion() {
+    assertInvalidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.0.0-Beta")!!))
+    assertInvalidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.0.0-Beta2")!!))
+    assertInvalidVersion(Optional.of(KotlinGradlePluginVersion.parse("2.0.0-RC")!!))
+    assertInvalidVersion(Optional.of(KotlinGradlePluginVersion.parse("1.9.20")!!))
     assertInvalidVersion(Optional.of(KotlinGradlePluginVersion.parse("1.9.10")!!))
     assertInvalidVersion(Optional.of(KotlinGradlePluginVersion.parse("1.9.0")!!))
     assertInvalidVersion(Optional.of(KotlinGradlePluginVersion.parse("1.8.20")!!))
@@ -55,9 +60,6 @@ class MultiplatformKgpMinVersionValidatorTest {
   private fun assertInvalidVersion(version: Optional<KotlinGradlePluginVersion>) {
     val result = moduleValidator.validate(version)
     Assert.assertSame(result.message, Validator.Severity.ERROR, result.severity)
-    Assert.assertEquals(
-      "Kotlin Gradle Plugin version 1.9.20 or later is required",
-      result.message,
-    )
+    Assert.assertEquals("Kotlin Gradle Plugin version 2.0.0 or later is required", result.message)
   }
 }

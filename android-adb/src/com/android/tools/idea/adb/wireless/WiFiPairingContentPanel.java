@@ -25,6 +25,7 @@ import java.awt.Insets;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Form that displays a {@link com.intellij.ui.components.JBTabbedPane} with one
@@ -51,9 +52,13 @@ public class WiFiPairingContentPanel {
     myQrCodePanel.setContent(component);
   }
 
-  public void setPairingCodeComponent(@NotNull JComponent component) {
+  public void setPairingCodeComponent(@NotNull JComponent component, @Nullable TrackingMdnsService mdnsServiceUnderPairing) {
     myPairingCodePanel.setContent(component);
-    myPairingCodePanel.setAsyncProcessText("Available Wi-Fi devices");
+    if (mdnsServiceUnderPairing != null) {
+      myPairingCodePanel.setAsyncProcessText("Waiting for Pairing mode");
+    } else {
+      myPairingCodePanel.setAsyncProcessText("Available Wi-Fi devices");
+    }
   }
 
   private void setupUI() {

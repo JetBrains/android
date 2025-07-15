@@ -24,6 +24,7 @@ import com.google.idea.blaze.base.command.BlazeCommandName;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStats;
 import com.google.idea.blaze.base.logging.utils.querysync.SyncQueryStatsScope;
 import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.base.scope.output.StatusOutput;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.query.QuerySpec;
@@ -50,7 +51,8 @@ public class BazelQueryRunner implements QueryRunner {
       new BoolExperiment("query.sync.run.query.remotely", true);
 
   private static final Logger logger = Logger.getInstance(BazelQueryRunner.class);
-
+  // TODO b/374906681 - The 130000 figure comes from the command runner. Move it to the invoker instead of hardcoding.
+  private static final int MAX_QUERY_EXP_LENGTH = 130000;
   private final Project project;
   private final BuildSystem buildSystem;
 
@@ -63,16 +65,20 @@ public class BazelQueryRunner implements QueryRunner {
   public QuerySummary runQuery(QuerySpec query, BlazeContext context)
       throws IOException, BuildException {
     Stopwatch timer = Stopwatch.createStarted();
-    BuildInvoker invoker;
-    if (PREFER_REMOTE_QUERIES.getValue()) {
-      invoker =
-          buildSystem
-              .getBuildInvoker(project, ImmutableSet.of(BuildInvoker.Capability.RUN_REMOTE_QUERIES)).orElseThrow();
-    } else {
-      invoker = buildSystem.getDefaultInvoker(project);
+    String queryExp = query.getQueryExpression().orElse(null);
+    if (queryExp == null) {
+      context.output(PrintOutput.output("Project is empty, not running a query"));
+      return QuerySummary.EMPTY;
     }
-    Optional<SyncQueryStats.Builder> syncQueryStatsBuilder =
-        SyncQueryStatsScope.fromContext(context);
+    ImmutableSet.Builder<BuildInvoker.Capability> capabilityBuilder = new ImmutableSet.Builder<>();
+    if (PREFER_REMOTE_QUERIES.getValue()) {
+      capabilityBuilder.add(BuildInvoker.Capability.RUN_REMOTE_QUERIES);
+      if (queryExp.length() > MAX_QUERY_EXP_LENGTH) {
+        capabilityBuilder.add(BuildInvoker.Capability.SUPPORT_QUERY_FILE);
+      }
+    }
+    BuildInvoker invoker = buildSystem.getBuildInvoker(project, capabilityBuilder.build()).orElseThrow();
+    Optional<SyncQueryStats.Builder> syncQueryStatsBuilder = SyncQueryStatsScope.fromContext(context);
     syncQueryStatsBuilder.ifPresent(stats -> stats.setBlazeBinaryType(invoker.getType()));
 
     logger.info(
@@ -82,14 +88,7 @@ public class BazelQueryRunner implements QueryRunner {
     BlazeCommand.Builder commandBuilder = BlazeCommand.builder(invoker, BlazeCommandName.QUERY);
     commandBuilder.addBlazeFlags(query.getQueryFlags());
     commandBuilder.addBlazeFlags("--keep_going");
-    String queryExp = query.getQueryExpression().orElse(null);
-    if (queryExp == null) {
-      context.output(PrintOutput.output("Project is empty, not running a query"));
-      return QuerySummary.EMPTY;
-    }
-    // TODO b/374906681 - The 130000 figure comes from the command runner. Move it to the invoker
-    // instead of hardcoding.
-    if (queryExp.length() > 130000) {
+    if (queryExp.length() > MAX_QUERY_EXP_LENGTH) {
       // Query is too long, write it to a file.
       Path tmpFile =
           Files.createTempFile(
@@ -105,6 +104,7 @@ public class BazelQueryRunner implements QueryRunner {
 
     syncQueryStatsBuilder.ifPresent(
         stats -> stats.setQueryFlags(commandBuilder.build().toArgumentList()));
+    context.output(new StatusOutput("Running query..."));
     try (InputStream queryStream = invoker.invokeQuery(commandBuilder, context)) {
       QuerySummary querySummary = readFrom(query.queryStrategy(), queryStream, context);
       int packagesWithErrorsCount = querySummary.getPackagesWithErrorsCount();

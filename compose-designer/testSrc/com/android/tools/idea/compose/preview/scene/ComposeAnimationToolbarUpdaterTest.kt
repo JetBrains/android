@@ -58,6 +58,8 @@ class ComposeAnimationToolbarUpdaterTest {
         showDecoration = false,
         showBackground = false,
         backgroundColor = null,
+        organizationGroup = "organizationGroup",
+        organizationName = "organizationName",
       ),
       null,
       null,

@@ -17,8 +17,6 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.projectsystem.CapabilityStatus
-import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.intellij.openapi.module.Module
 
 /**

@@ -14,5 +14,6 @@
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.gradle" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" />
   </component>
 </module>

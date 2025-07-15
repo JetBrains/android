@@ -33,6 +33,7 @@ class WiFiPairingDialog(
   canBeParent: Boolean,
   ideModalityType: DialogWrapper.IdeModalityType,
   hyperlinkListener: HyperlinkListener,
+  val mdnsServiceUnderPairing: TrackingMdnsService?,
 ) {
   private val dialog: SimpleDialog
   private val pairingPanel: WiFiPairingPanel
@@ -43,18 +44,18 @@ class WiFiPairingDialog(
         project,
         canBeParent,
         ideModalityType,
-        title = "Pair devices over Wi-Fi",
+        title = "Pair ${mdnsServiceUnderPairing?.displayString ?: "devices"} over Wi-Fi",
         isModal = true,
         hasOkButton = false,
         cancelButtonText = "Close",
         centerPanelProvider = { createCenterPanel() },
       )
     dialog = SimpleDialog(options)
-    pairingPanel = WiFiPairingPanel(dialog.disposable, hyperlinkListener)
+    pairingPanel = WiFiPairingPanel(dialog.disposable, hyperlinkListener, mdnsServiceUnderPairing)
     dialog.init()
   }
 
-  var pairingCodePairInvoked: (MdnsService) -> Unit = {}
+  var pairingCodePairInvoked: (PairingMdnsService) -> Unit = {}
 
   var qrCodeScanAgainInvoked: () -> Unit = {}
 
@@ -92,7 +93,7 @@ class WiFiPairingDialog(
     pairingPanel.isLoading = false
   }
 
-  fun showPairingCodeServices(services: List<MdnsService>) {
+  fun showPairingCodeServices(services: List<PairingMdnsService>) {
     pairingPanel.pairingCodePanel.showAvailableServices(services)
   }
 

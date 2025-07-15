@@ -16,7 +16,7 @@
 package com.android.tools.asdriver.tests;
 
 import com.android.testutils.RepoLinker;
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;

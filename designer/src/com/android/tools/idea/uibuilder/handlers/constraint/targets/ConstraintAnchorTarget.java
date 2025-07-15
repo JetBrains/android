@@ -28,8 +28,8 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.CONSTRAIN_TOP_TO_TOP;
 
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -887,7 +887,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
 
   @Override
   public void addHit(@NotNull SceneContext transform,
-                     @NotNull ScenePicker picker,
+                     @NotNull ScenePicker.Writer picker,
                      @JdkConstants.InputEventMask int modifiersEx) {
     if (!myIsEdge || this instanceof GuidelineAnchorTarget) {
       // This anchor is not the edge of root ConstraintLayout. Consider as normal size.

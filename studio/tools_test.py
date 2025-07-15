@@ -192,6 +192,158 @@ class ToolsTest(unittest.TestCase):
     }, indent=2)
     self.assertEqual(expected, read_file(after))
 
+  def test_add_essential_plugins(self):
+    volatile = create_file(
+        "volatile.txt",
+        """BUILD_HOSTNAME hostname.c.googlers.com
+BUILD_TIMESTAMP 1746478494
+BUILD_USERNAME username
+FORMATTED_DATE 2025 May 05 20 54 54 Mon""",
+    )
+
+    build_txt = create_file("build.txt", "AI-251.23774.435.2511.SNAPSHOT")
+
+    before = create_zip(
+        "resources.jar",
+        {"idea/AndroidStudioApplicationInfo.xml": """<!--
+  ~ Copyright 2000-2013 JetBrains s.r.o.
+  -->
+<component xmlns="http://jetbrains.org/intellij/schema/application-info"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://jetbrains.org/intellij/schema/application-info http://jetbrains.org/intellij/schema/ApplicationInfo.xsd">
+  <version major="2025" minor="1" micro="1" patch="9" full="Narwhal | {0}.{1}.{2} Canary 9" suffix="" eap="true"/>
+  <company name="Google" url="http://developer.android.com"/>
+  <build number="AI-251.23774.435.2511.13434847" date="202505011510" apiVersion="251.23774.435"/>
+  <logo url="/artwork/studio_splash.png"/>
+  <icon svg="/artwork/androidstudio.svg" svg-small="/artwork/androidstudio-small.svg" ico="artwork/androidstudio.ico"/>
+  <icon-eap svg="/artwork/preview/androidstudio.svg" svg-small="/artwork/preview/androidstudio-small.svg"/>
+  <names product="Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
+  <essential-plugin>com.intellij.java</essential-plugin>
+</component>"""},
+    )
+
+    after = get_path("res.txt")
+
+    stamper.main([
+        "--entry",
+        "idea/AndroidStudioApplicationInfo.xml",
+        "--version_file",
+        volatile,
+        "--version_full",
+        "Narwhal | {0}.{1}.{2} Canary 9",
+        "--eap",
+        "true",
+        "--version_micro",
+        "1",
+        "--version_patch",
+        "9",
+        "--build_txt",
+        build_txt,
+        "--essential_plugins",
+        "com.google.idea.g3plugins",
+        "--stamp_app_info",
+        "--stamp",
+        before,
+        after,
+    ])
+
+    self.maxDiff = None
+
+    self.assertEqual(
+        {"idea/AndroidStudioApplicationInfo.xml": """<!--
+  ~ Copyright 2000-2013 JetBrains s.r.o.
+  -->
+<component xmlns="http://jetbrains.org/intellij/schema/application-info"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://jetbrains.org/intellij/schema/application-info http://jetbrains.org/intellij/schema/ApplicationInfo.xsd">
+  <version major="2025" minor="1" micro="1" patch="9" full="Narwhal | {0}.{1}.{2} Canary 9" suffix="" eap="true"/>
+  <company name="Google" url="http://developer.android.com"/>
+  <build number="AI-251.23774.435.2511.13434847" date="202505011510" apiVersion="251.23774.435"/>
+  <logo url="/artwork/studio_splash.png"/>
+  <icon svg="/artwork/androidstudio.svg" svg-small="/artwork/androidstudio-small.svg" ico="artwork/androidstudio.ico"/>
+  <icon-eap svg="/artwork/preview/androidstudio.svg" svg-small="/artwork/preview/androidstudio-small.svg"/>
+  <names product="Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
+  <essential-plugin>com.intellij.java</essential-plugin>
+  <essential-plugin>com.google.idea.g3plugins</essential-plugin>
+</component>"""},
+        read_zip(after),
+    )
+
+  def test_add_essential_plugins_to_empty_list(self):
+    volatile = create_file(
+        "volatile.txt",
+        """BUILD_HOSTNAME hostname.c.googlers.com
+BUILD_TIMESTAMP 1746478494
+BUILD_USERNAME username
+FORMATTED_DATE 2025 May 05 20 54 54 Mon""",
+    )
+
+    build_txt = create_file("build.txt", "AI-251.23774.435.2511.SNAPSHOT")
+
+    before = create_zip(
+        "resources.jar",
+        {"idea/AndroidStudioApplicationInfo.xml": """<!--
+  ~ Copyright 2000-2013 JetBrains s.r.o.
+  -->
+<component xmlns="http://jetbrains.org/intellij/schema/application-info"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://jetbrains.org/intellij/schema/application-info http://jetbrains.org/intellij/schema/ApplicationInfo.xsd">
+  <version major="2025" minor="1" micro="1" patch="9" full="Narwhal | {0}.{1}.{2} Canary 9" suffix="" eap="true"/>
+  <company name="Google" url="http://developer.android.com"/>
+  <build number="AI-251.23774.435.2511.13434847" date="202505011510" apiVersion="251.23774.435"/>
+  <logo url="/artwork/studio_splash.png"/>
+  <icon svg="/artwork/androidstudio.svg" svg-small="/artwork/androidstudio-small.svg" ico="artwork/androidstudio.ico"/>
+  <icon-eap svg="/artwork/preview/androidstudio.svg" svg-small="/artwork/preview/androidstudio-small.svg"/>
+  <names product="Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
+</component>"""},
+    )
+
+    after = get_path("res.txt")
+
+    stamper.main([
+        "--entry",
+        "idea/AndroidStudioApplicationInfo.xml",
+        "--version_file",
+        volatile,
+        "--version_full",
+        "Narwhal | {0}.{1}.{2} Canary 9",
+        "--eap",
+        "true",
+        "--version_micro",
+        "1",
+        "--version_patch",
+        "9",
+        "--build_txt",
+        build_txt,
+        "--essential_plugins",
+        "com.google.idea.g3plugins",
+        "--stamp_app_info",
+        "--stamp",
+        before,
+        after,
+    ])
+
+    self.maxDiff = None
+
+    self.assertEqual(
+        {"idea/AndroidStudioApplicationInfo.xml": """<!--
+  ~ Copyright 2000-2013 JetBrains s.r.o.
+  -->
+<component xmlns="http://jetbrains.org/intellij/schema/application-info"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://jetbrains.org/intellij/schema/application-info http://jetbrains.org/intellij/schema/ApplicationInfo.xsd">
+  <version major="2025" minor="1" micro="1" patch="9" full="Narwhal | {0}.{1}.{2} Canary 9" suffix="" eap="true"/>
+  <company name="Google" url="http://developer.android.com"/>
+  <build number="AI-251.23774.435.2511.13434847" date="202505011510" apiVersion="251.23774.435"/>
+  <logo url="/artwork/studio_splash.png"/>
+  <icon svg="/artwork/androidstudio.svg" svg-small="/artwork/androidstudio-small.svg" ico="artwork/androidstudio.ico"/>
+  <icon-eap svg="/artwork/preview/androidstudio.svg" svg-small="/artwork/preview/androidstudio-small.svg"/>
+  <names product="Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
+  <essential-plugin>com.google.idea.g3plugins</essential-plugin>
+</component>"""},
+        read_zip(after),
+    )
+
   def test_replace_build_number(self):
     stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
     before = create_file("like_build.txt", "AI-1234.__BUILD_NUMBER__")
@@ -201,7 +353,7 @@ class ToolsTest(unittest.TestCase):
         "--stamp", before, after,
         "--replace_build_number"
     ])
-    self.assertEqual("AI-1234.3333", read_file(after)) 
+    self.assertEqual("AI-1234.3333", read_file(after))
 
   def test_stamp_app_info(self):
     volatile = create_file("volatile.txt", "BUILD_TIMESTAMP 1597877532")
@@ -214,7 +366,7 @@ class ToolsTest(unittest.TestCase):
     after = get_path("res.zip")
     stamper.main([
         "--entry", "idea/AndroidStudioApplicationInfo.xml",
-        "--version_file", volatile, 
+        "--version_file", volatile,
         "--build_txt", build_txt,
         "--version_micro", "33",
         "--version_patch", "44",

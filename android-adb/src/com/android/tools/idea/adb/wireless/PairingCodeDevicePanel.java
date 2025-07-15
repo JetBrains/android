@@ -29,7 +29,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Locale;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.text.StyleContext;
@@ -41,15 +40,15 @@ import org.jetbrains.annotations.NotNull;
  */
 @UiThread
 public class PairingCodeDevicePanel {
-  @NotNull private final MdnsService myMdnsService;
+  @NotNull private final PairingMdnsService myPairingMdnsService;
   @NotNull private JButton myPairButton;
   @NotNull private JBLabel myDeviceIpLabel;
   @NotNull private JPanel myRootContainer;
   @NotNull private JBLabel myAvailableToPairLabel;
 
-  public PairingCodeDevicePanel(@NotNull MdnsService mdnsService, @NotNull Runnable pairActionRunnable) {
+  public PairingCodeDevicePanel(@NotNull PairingMdnsService pairingMdnsService, @NotNull Runnable pairActionRunnable) {
     setupUI();
-    myMdnsService = mdnsService;
+    myPairingMdnsService = pairingMdnsService;
     myRootContainer.setBorder(JBUI.Borders.empty(5, 10));
     myRootContainer.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
     myPairButton.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
@@ -61,7 +60,7 @@ public class PairingCodeDevicePanel {
         pairActionRunnable.run();
       }
     });
-    myDeviceIpLabel.setText(mdnsService.getDisplayString());
+    myDeviceIpLabel.setText(pairingMdnsService.getDisplayString());
   }
 
   @NotNull
@@ -70,8 +69,8 @@ public class PairingCodeDevicePanel {
   }
 
   @NotNull
-  public MdnsService getMdnsService() {
-    return myMdnsService;
+  public PairingMdnsService getMdnsService() {
+    return myPairingMdnsService;
   }
 
   private void setupUI() {

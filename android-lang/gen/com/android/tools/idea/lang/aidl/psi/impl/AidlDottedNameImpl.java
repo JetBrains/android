@@ -50,14 +50,12 @@ public class AidlDottedNameImpl extends AidlNamedElementImpl implements AidlDott
   }
 
   @Override
-  @NotNull
-  public PsiElement getNameIdentifier() {
+  public @NotNull PsiElement getNameIdentifier() {
     return AidlPsiUtil.getNameIdentifier(this);
   }
 
   @Override
-  @NotNull
-  public String getQualifiedName() {
+  public @NotNull String getQualifiedName() {
     return AidlPsiUtil.getQualifiedName(this);
   }
 

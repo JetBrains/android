@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.assertions
 
+import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause
 import com.android.tools.idea.gradle.project.sync.model.ExpectedGradleRoot
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
@@ -26,6 +27,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.util.GradleBundle
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import java.io.File
 import kotlin.reflect.KClass
 
@@ -36,15 +38,21 @@ class AssertInMemoryConfig(
 
   private val projectFile by lazy { File(syncedProject.basePath.orEmpty()) }
 
-  fun assertGradleJdk(expectedJdkName: String, gradleRootName: String = "") {
+  fun assertGradleJdk(expectedJdkName: String, expectedJdkPath: String? = null, gradleRootName: String = "") {
     val currentGradleRootJdkName = ProjectJdkUtils.getGradleRootJdkNameInMemory(syncedProject, gradleRootName)
     expect.that("$gradleRootName:$currentGradleRootJdkName").isEqualTo("$gradleRootName:$expectedJdkName")
+
+    expectedJdkPath?.let {
+      val linkedProjectPath = File(syncedProject.basePath.orEmpty()).resolve(gradleRootName).absolutePath
+      val resolvedGradleJvmPath = GradleInstallationManager.getInstance().getGradleJvmPath(syncedProject, linkedProjectPath)
+      expect.that(resolvedGradleJvmPath).isEqualTo(it)
+    }
   }
 
   fun assertGradleRoots(expectedGradleRoots: Map<String, ExpectedGradleRoot>) {
     expectedGradleRoots.forEach { (gradleRootName, expectedGradleRoot) ->
       expectedGradleRoot.ideaGradleJdk?.let { expectedJdkName ->
-        assertGradleJdk(expectedJdkName, gradleRootName)
+        assertGradleJdk(expectedJdkName, gradleRootName = gradleRootName)
       }
       expectedGradleRoot.gradleExecutionDaemonJdkPath?.let { expectedJdkPath ->
         assertGradleExecutionDaemon(expectedJdkPath, gradleRootName)
@@ -76,8 +84,9 @@ class AssertInMemoryConfig(
 
   fun assertGradleExecutionDaemon(expectedJdkPath: String, gradleRootName: String = "") {
     val gradleRootFile = projectFile.resolve(gradleRootName)
-    val currentJdkPath = ProjectJdkUtils.getGradleDaemonExecutionJdkPath(syncedProject, gradleRootFile.toString())
-    expect.that("$gradleRootName:$currentJdkPath").isEqualTo("$gradleRootName:$expectedJdkPath")
+    val ideaProject = CapturePlatformModelsProjectResolverExtension.getIdeaProjectModel(gradleRootFile.absolutePath)
+    val jdkPathUsedByDaemonForProject = ideaProject!!.javaLanguageSettings.jdk.javaHome.absolutePath
+    expect.that("$gradleRootName:$jdkPathUsedByDaemonForProject").isEqualTo("$gradleRootName:$expectedJdkPath")
   }
 }
 
@@ -96,7 +105,7 @@ class AssertOnDiskConfig(
   fun assertGradleRoots(expectedGradleRoots: Map<String, ExpectedGradleRoot>) {
     expectedGradleRoots.forEach { (gradleRootName, expectedGradleRoot) ->
       expectedGradleRoot.ideaGradleJdk?.let { expectedJdkName ->
-        assertGradleJdk(expectedJdkName, gradleRootName)
+        assertGradleJdk(expectedJdkName, gradleRootName = gradleRootName)
       }
       expectedGradleRoot.gradleLocalJavaHome?.let { expectedJavaHome ->
         assertGradleLocalJavaHome(expectedJavaHome, gradleRootName)

@@ -68,7 +68,7 @@ class EmulatorConfigurationTest {
   @Test
   fun testTablet() {
     // Prepare.
-    val androidVersion = AndroidVersion(29)
+    val androidVersion = AndroidVersion(29, 0)
     val avdFolder = FakeEmulator.createTabletAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
@@ -95,7 +95,7 @@ class EmulatorConfigurationTest {
   @Test
   fun testAutomotive() {
     // Prepare.
-    val androidVersion = AndroidVersion(32)
+    val androidVersion = AndroidVersion(32, 0)
     val avdFolder = FakeEmulator.createAutomotiveAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
@@ -122,7 +122,7 @@ class EmulatorConfigurationTest {
   @Test
   fun testWatch() {
     // Prepare.
-    val androidVersion = AndroidVersion(30)
+    val androidVersion = AndroidVersion(30, 0)
     val avdFolder = FakeEmulator.createWatchAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
@@ -149,7 +149,7 @@ class EmulatorConfigurationTest {
   @Test
   fun testXr() {
     // Prepare.
-    val androidVersion = AndroidVersion(34)
+    val androidVersion = AndroidVersion(34, 0)
     val avdFolder = FakeEmulator.createXrAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
@@ -158,7 +158,7 @@ class EmulatorConfigurationTest {
     // Assert.
     assertThat(config).isNotNull()
     assertThat(config?.avdFolder).isEqualTo(avdFolder)
-    assertThat(config?.avdName).isEqualTo("XR Device API 34")
+    assertThat(config?.avdName).isEqualTo("XR Headset Device API 34")
     assertThat(config?.deviceType).isEqualTo(DeviceType.XR)
     assertThat(config?.androidVersion).isEqualTo(androidVersion)
     assertThat(config?.displayWidth).isEqualTo(2560)
@@ -186,7 +186,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.avdFolder).isEqualTo(avdFolder)
     assertThat(config?.avdName).isEqualTo("Pixel Fold API 33")
     assertThat(config?.deviceType).isEqualTo(DeviceType.HANDHELD)
-    assertThat(config?.androidVersion).isEqualTo(AndroidVersion(33))
+    assertThat(config?.androidVersion).isEqualTo(AndroidVersion(33, 0))
     assertThat(config?.displayWidth).isEqualTo(2208)
     assertThat(config?.displayHeight).isEqualTo(1840)
     assertThat(config?.density).isEqualTo(420)
@@ -205,7 +205,7 @@ class EmulatorConfigurationTest {
   @Test
   fun testRollable() {
     // Prepare.
-    val androidVersion = AndroidVersion(31)
+    val androidVersion = AndroidVersion(31, 0)
     val avdFolder = FakeEmulator.createRollableAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.
@@ -235,7 +235,7 @@ class EmulatorConfigurationTest {
   @Test
   fun testResizable() {
     // Prepare.
-    val androidVersion = AndroidVersion(32)
+    val androidVersion = AndroidVersion(32, 0)
     val avdFolder = FakeEmulator.createResizableAvd(avdParentFolder, sdkFolder, androidVersion = androidVersion)
 
     // Act.

@@ -273,10 +273,29 @@ class ParametrizedPreviewTest {
     assertThat(
         preview.composePreviewFlowManager.renderedPreviewElementsFlow.value
           .asCollection()
+          .map { it.displaySettings.organizationName!! }
+          .toSet()
+      )
+      .containsExactly(
+        "TestWithProvider (name 0) - Screen sizes",
+        "TestWithProvider (name 0) - Font scales",
+        "TestWithProvider (name 0) - Light/Dark",
+        "TestWithProvider (name 0) - Colorblind filters",
+      )
+      .inOrder()
+
+    assertThat(
+        preview.composePreviewFlowManager.renderedPreviewElementsFlow.value
+          .asCollection()
           .map { it.displaySettings.organizationGroup!! }
           .toSet()
       )
-      .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
+      .containsExactly(
+        "google.simpleapplication.ParametrizedPreviewsKt.TestWithProviderScreen sizes",
+        "google.simpleapplication.ParametrizedPreviewsKt.TestWithProviderFont scales",
+        "google.simpleapplication.ParametrizedPreviewsKt.TestWithProviderLight/Dark",
+        "google.simpleapplication.ParametrizedPreviewsKt.TestWithProviderColorblind filters",
+      )
       .inOrder()
 
     preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus(

@@ -18,6 +18,7 @@ package com.android.tools.idea.editors
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.repository.testframework.FakeRepoManager
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
@@ -51,7 +52,7 @@ import org.mockito.kotlin.whenever
 @RunWith(JUnit4::class)
 class AttachAndroidSdkSourcesNotificationProviderTest {
   // TODO(b/291755082): Update to 34 once 34 sources are published
-  @get:Rule val projectRule = AndroidProjectRule.withSdk(AndroidVersion(33))
+  @get:Rule val projectRule = AndroidProjectRule.withSdk(AndroidVersion(33, 0))
 
   private val mockFileEditor: FileEditor = mock()
   private val mockModelWizardDialog: ModelWizardDialog = mock()
@@ -180,7 +181,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   @Test
   fun createNotificationPanel_virtualFileHasRequiredSourcesKey_downloadLinkHasRequestedSources() {
     val javaFile = projectRule.fixture.createFile("somefile.java", "file contents")
-    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, 30)
+    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, AndroidApiLevel(30))
 
     val panel = requireNotNull(invokeCreateNotificationPanel(javaFile))
     ApplicationManager.getApplication().invokeAndWait { panel.links["Download"]!!.run() }

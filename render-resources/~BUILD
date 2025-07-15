@@ -51,6 +51,7 @@ kotlin_library(
         "//tools/base/zipflinger",
         "@maven//:net.sf.kxml.kxml2",
         "@maven//:org.ow2.asm.asm",
+        "@maven//:org.ow2.asm.asm-util",
     ],
 )
 

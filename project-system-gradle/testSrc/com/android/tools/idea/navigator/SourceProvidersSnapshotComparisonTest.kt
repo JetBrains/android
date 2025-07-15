@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator
 
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor

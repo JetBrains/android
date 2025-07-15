@@ -2,7 +2,8 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.internal.FakeAdbTestRule
-import com.android.test.testutils.TestUtils
+import com.android.testutils.AssumeUtil
+import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -15,6 +16,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.common.ThreadLeakTracker
 import org.junit.After
 import org.junit.Before
@@ -24,13 +26,14 @@ import org.junit.Test
 
 class ApplicationDeployerImplTest {
 
-  @get:Rule
-  val fakeAdb: FakeAdbTestRule = FakeAdbTestRule()
+  private val fakeAdb: FakeAdbTestRule = FakeAdbTestRule()
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
+  private val projectRule = AndroidProjectRule.onDisk()
+
   @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  val rule = RuleChain(projectRule, fakeAdb)
 
   @Before
   fun setUp() {
@@ -46,6 +49,8 @@ class ApplicationDeployerImplTest {
 
   @Test
   fun fillStats() {
+    // b/415866691
+    AssumeUtil.assumeNotWindows()
     fakeAdb.connectAndWaitForDevice()
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 

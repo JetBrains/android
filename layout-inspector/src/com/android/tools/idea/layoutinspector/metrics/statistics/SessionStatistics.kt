@@ -72,8 +72,14 @@ interface SessionStatistics {
   /** A frame was received. */
   fun frameReceived()
 
+  fun foldInfoReceived()
+
   /** A debugger was detected. Indicate if the debugger [isPaused] during attach. */
   fun debuggerInUse(isPaused: Boolean)
+
+  fun setOnDeviceRendering(enabled: Boolean)
+
+  fun isXr(isXr: Boolean)
 
   /** Live mode changed. */
   var currentModeIsLive: Boolean
@@ -119,6 +125,8 @@ class SessionStatisticsImpl(
   private val system = SystemViewToggleStatistics()
   private val goto = GotoDeclarationStatistics()
 
+  private var hasFoldEvent = false
+
   override fun start() {
     attach.start()
     live.start()
@@ -135,6 +143,8 @@ class SessionStatisticsImpl(
     compose.save { data.composeBuilder }
     system.save { data.systemBuilder }
     goto.save { data.gotoDeclarationBuilder }
+
+    data.hasFoldEvent = hasFoldEvent
   }
 
   override fun selectionMadeFromImage(view: ViewNode?) {
@@ -195,8 +205,20 @@ class SessionStatisticsImpl(
     compose.frameReceived()
   }
 
+  override fun foldInfoReceived() {
+    hasFoldEvent = true
+  }
+
   override fun debuggerInUse(isPaused: Boolean) {
     attach.debuggerInUse(isPaused)
+  }
+
+  override fun setOnDeviceRendering(enabled: Boolean) {
+    attach.setOnDeviceRendering(enabled)
+  }
+
+  override fun isXr(isXr: Boolean) {
+    attach.isXr(isXr)
   }
 
   override var currentModeIsLive: Boolean

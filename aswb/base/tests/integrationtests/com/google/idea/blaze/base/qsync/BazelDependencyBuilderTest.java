@@ -25,14 +25,16 @@ import com.google.common.io.ByteSource;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.MockProjectViewManager;
 import com.google.idea.blaze.base.bazel.BazelBuildSystemProvider;
+import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
+import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.scope.BlazeContext;
+import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.common.Label;
-import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.google.idea.blaze.qsync.artifacts.MockArtifactCache;
+import com.google.idea.blaze.qsync.deps.OutputGroup;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
-import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.google.idea.common.experiments.ExperimentService;
 import com.google.idea.common.experiments.MockExperimentService;
 import com.intellij.openapi.application.ApplicationManager;
@@ -58,27 +60,14 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
 
   @Before
   public void before() {
-    // TODO: b/388249589 - reuse com.google.idea.blaze.android.google3.qsync.testrules.QuerySyncEnvironmentRule instead.
-    System.setProperty(
-      "qsync.aspect.build_dependencies.bzl.file",
-      getRunfilesWorkspaceRoot()
-        .toPath()
-        .resolve("tools/adt/idea/aswb/aspect/build_dependencies.bzl")
-        .toString());
-    System.setProperty(
-      "qsync.aspect.build_dependencies_deps.bzl.file",
-      getRunfilesWorkspaceRoot()
-        .toPath()
-        .resolve("tools/adt/idea/aswb/aspect/build_dependencies_deps.bzl")
-        .toString());
-    System.setProperty(
-      "qsync.aspect.build_dependencies_android_deps.bzl.file",
-      getRunfilesWorkspaceRoot()
-        .toPath()
-        .resolve("tools/adt/idea/aswb/aspect/build_dependencies_android_deps.bzl")
-        .toString());
+    experimentService.setExperimentString(
+      BazelDependencyBuilder.aspectLocation,
+      getRunfilesWorkspaceRoot().toPath().resolve("tools/adt/idea/aswb").toString());
     ServiceContainerUtil.registerComponentInstance(ApplicationManager.getApplication(), ExperimentService.class, experimentService,
                                                    getTestRootDisposable());
+    BlazeProjectDataManager mockProjectDataManager =
+      new MockBlazeProjectDataManager(MockBlazeProjectDataBuilder.builder(workspaceRoot).build());
+    registerProjectService(BlazeProjectDataManager.class, mockProjectDataManager);
   }
 
   @Test
@@ -108,8 +97,7 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
         ImmutableList.of("dir1/sub1"),
         ImmutableList.of("always_build_rule1", "always_build_rule2"),
         true,
-        false,
-        true
+        false
       ));
     assertThat(invocationFiles.aspectFileLabel()).isEqualTo(String.format("//.aswb:qs-%s.bzl", dependencyBuilder.getProjectHash()));
     assertThat(
@@ -130,7 +118,6 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
                      ],
                      generate_aidl_classes = True,
                      use_generated_srcjars = False,
-                     experiment_multi_info_file = True,
                    )
                    
                    collect_dependencies = _collect_dependencies(_config)
@@ -159,12 +146,11 @@ public class BazelDependencyBuilderTest extends BlazeIntegrationTestCase {
                                  ImmutableSet.of("always_build_rule1", "always_build_rule2")
       );
 
+    var targets = ImmutableSet.of(Label.of("//target1:target1"), Label.of("//target2:target2"));
     final var generatedTargetPatternName = Label.of(String.format("//.aswb:targets-%s.txt", dependencyBuilder.getProjectHash())).name();
-    final var invocationInfo = dependencyBuilder.getInvocationInfo(
-      BlazeContext.create(),
-      ImmutableSet.of(Label.of("//target1:target1"), Label.of("//target2:target2")),
-      ImmutableSet.of(QuerySyncLanguage.JVM, QuerySyncLanguage.CC)
-    );
+
+    final var invocationInfo =
+      dependencyBuilder.getInvocationInfo(BlazeContext.create(), targets, ImmutableSet.of(OutputGroup.ARTIFACT_INFO_FILE));
     ImmutableMap<Path, ByteSource> invocationFiles =
       invocationInfo.invocationWorkspaceFiles();
     assertThat(

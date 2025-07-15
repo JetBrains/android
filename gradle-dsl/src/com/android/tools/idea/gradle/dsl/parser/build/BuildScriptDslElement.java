@@ -49,7 +49,7 @@ public class BuildScriptDslElement extends GradleDslBlockElement {
   @Override
   @NotNull
   public ImmutableMap<String, PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
-    GradleDslNameConverter.Kind kind
+    @NotNull GradleDslNameConverter.Kind kind
   ) {
     if (kind == DECLARATIVE) {
       return DECLARATIVE_CHILD_PROPERTIES_ELEMENTS_MAP;

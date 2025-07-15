@@ -21,36 +21,38 @@ import com.android.adblib.DeviceSelector
 import com.android.adblib.INFINITE_DURATION
 import com.android.adblib.shellAsText
 import com.android.adblib.tools.screenCapAsBufferedImage
-import com.android.annotations.concurrency.Slow
-import com.android.annotations.concurrency.WorkerThread
+import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.ui.DisplayInfoProvider
 import com.android.tools.idea.ui.util.getPhysicalDisplayIdFromDumpsysOutput
 import com.google.common.base.Throwables.throwIfUnchecked
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 
 private val commandTimeout = INFINITE_DURATION
 
-/**
- * A [ScreenshotProvider] that uses `adb shell screencap`
- */
+/** A [ScreenshotProvider] that uses `adb shell screencap` */
 class ShellCommandScreenshotProvider(
   project: Project,
   private val serialNumber: String,
-  private val screenshotOptions: ScreenshotOptions,
+  private val deviceType: DeviceType,
+  private val deviceName: String,
+  private val displayId: Int,
+  private val displayInfoProvider: DisplayInfoProvider? = null,
 ) : ScreenshotProvider {
 
   private val coroutineScope = createCoroutineScope()
   private val adbLibService = AdbLibService.getInstance(project)
   private val deviceDisplayInfoRegex =
-    Regex("\\s(DisplayDeviceInfo\\W.* state ON,.*)\\s\\S]*?\\s+mCurrentLayerStack=${screenshotOptions.displayId}\\W", RegexOption.MULTILINE)
+      Regex("\\s(DisplayDeviceInfo\\W.* state ON,.*)\\s\\S]*?\\s+mCurrentLayerStack=$displayId\\W", RegexOption.MULTILINE)
 
-  @Slow
-  @Throws(RuntimeException::class, CancellationException::class)
-  override fun captureScreenshot(): ScreenshotImage {
+  /** This simplified constructor is intended exclusively for use in TestRecorderScreenshotTask. */
+  constructor(project: Project, serialNumber: String) : this(project, serialNumber, DeviceType.HANDHELD, "Device", PRIMARY_DISPLAY_ID)
+
+  override suspend fun captureScreenshot(): ScreenshotImage {
     val deviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
 
     val dumpsysJob = coroutineScope.async {
@@ -59,9 +61,9 @@ class ShellCommandScreenshotProvider(
     }
 
     val screenshotJob = coroutineScope.async {
-      val physicalDisplayId = when (screenshotOptions.displayId) {
+      val physicalDisplayId = when (displayId) {
         PRIMARY_DISPLAY_ID -> null
-        else -> getPhysicalDisplayIdFromDumpsysOutput(dumpsysJob.await(), screenshotOptions.displayId)
+        else -> getPhysicalDisplayIdFromDumpsysOutput(dumpsysJob.await(), displayId)
       }
       adbLibService.session.deviceServices.screenCapAsBufferedImage(deviceSelector, physicalDisplayId)
     }
@@ -74,7 +76,10 @@ class ShellCommandScreenshotProvider(
         ProgressManagerAdapter.checkCanceled()
         val image = screenshotJob.await()
         ProgressManagerAdapter.checkCanceled()
-        screenshotOptions.createScreenshotImage(image, displayInfo)
+        val screenshotRotation = displayInfoProvider?.getScreenshotRotation(displayId) ?: 0
+        val rotatedImage = ImageUtils.rotateByQuadrants(image, screenshotRotation)
+        val orientation = displayInfoProvider?.getDisplayOrientation(displayId) ?: 0
+        ScreenshotImage(rotatedImage, orientation, deviceType, deviceName, displayId, displayInfo)
       }
       catch (e: Throwable) {
         throwIfUnchecked(e)

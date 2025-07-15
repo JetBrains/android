@@ -338,7 +338,8 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
   val foundIssues: MutableList<PsGeneralIssue> = mutableListOf()
   val isBlocking = sdkIndex.hasLibraryBlockingIssues(groupId, artifactId, versionString)
   foundIssues.addIfNotNull(generateDeprecatedLibraryIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, sdkIndex))
-  foundIssues.addAll(generatePolicyIssues(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex))
+  val policyIssue = generatePolicyIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex)
+  if (policyIssue != null) foundIssues.add(policyIssue)
   var criticalIssue = generateCriticalIssue(groupId, artifactId, versionString, isBlocking, parentModuleRootDir, libraryPath, updateFixes, sdkIndex)
   if (isBlocking) {
     // Critical issues are added before vulnerability issues if they are blocking
@@ -369,7 +370,7 @@ private fun generateDeprecatedLibraryIssue(
   return createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, listOf(), priority)
 }
 
-private fun generatePolicyIssues(
+private fun generatePolicyIssue(
   groupId: String,
   artifactId: String,
   versionString: String,
@@ -377,15 +378,13 @@ private fun generatePolicyIssues(
   file: File?,
   path: PsPath,
   updateFixes: List<PsQuickFix>,
-  index: GooglePlaySdkIndex): List<PsGeneralIssue> {
+  index: GooglePlaySdkIndex): PsGeneralIssue? {
   if (!index.isLibraryNonCompliant(groupId, artifactId, versionString, file)) {
-    return listOf()
+    return null
   }
   val severity = if (isBlocking) ERROR else WARNING
-  val messages = if (isBlocking) index.generateBlockingPolicyMessages(groupId, artifactId, versionString) else index.generatePolicyMessages(groupId, artifactId, versionString)
-  return messages.map { message->
-    createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, updateFixes)
-  }
+  val message = if (isBlocking) index.generateBlockingPolicyMessage(groupId, artifactId, versionString) else index.generatePolicyMessage(groupId, artifactId, versionString)
+  return createIndexIssue(message, groupId, artifactId, versionString, path, severity, index, updateFixes)
 }
 
 private fun generateCriticalIssue(

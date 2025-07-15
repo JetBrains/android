@@ -19,7 +19,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.metrics.MetricsTrackerRule
@@ -68,7 +68,7 @@ class MigrateToNonTransitiveRClassesProcessorTest {
         .map { it.studioEvent }
     }
 
-  private object MigrateToNonTransitiveRClassesTestProject: LightGradleSyncTestProject {
+  private object MigrateToNonTransitiveRClassesTestProject: LightGradleTestProject {
     override val templateProject: TemplateBasedTestProject = TestProject.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES
     override val modelBuilders: List<ModuleModelBuilder> = listOf(
       JavaModuleModelBuilder.rootModuleBuilder.copy(
@@ -116,7 +116,7 @@ class MigrateToNonTransitiveRClassesProcessorTest {
 
   @get:Rule
   val projectRule =
-    AndroidProjectRule.testProject(MigrateToNonTransitiveRClassesTestProject).named("migrateToNonTransitiveRClasses")
+    AndroidProjectRule.testProjectNoSync(MigrateToNonTransitiveRClassesTestProject).named("migrateToNonTransitiveRClasses")
 
   @Test
   fun testMiddleModule_Java() {

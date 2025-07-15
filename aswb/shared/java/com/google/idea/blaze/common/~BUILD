@@ -1,8 +1,13 @@
+load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
+
 licenses(["notice"])
 
-java_library(
+aswb_library(
     name = "common",
-    srcs = glob(["*.java"]),
+    srcs = glob([
+        "*.java",
+        "*.kt",
+    ]),
     visibility = [
         "//visibility:public",
     ],

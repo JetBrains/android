@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.sdk.sources.SdkSourcePositionFinder
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.WaitForIndexRule
@@ -64,7 +65,7 @@ class SdkSourceRedirectFilterTest {
     val line = "1 Foo 2"
     val delegate = TestFilter("Foo", info)
     val filter = SdkSourceRedirectFilter(project, delegate)
-    filter.apiLevel = 30
+    filter.apiLevel = AndroidApiLevel(30)
 
     val result = filter.applyFilter(line, 100)
 
@@ -77,7 +78,7 @@ class SdkSourceRedirectFilterTest {
     val line = "1 Foo 2"
     val delegate = TestFilter("Foo", null)
     val filter = SdkSourceRedirectFilter(project, delegate)
-    filter.apiLevel = 30
+    filter.apiLevel = AndroidApiLevel(30)
 
     val result = filter.applyFilter(line, 100)
 
@@ -92,14 +93,14 @@ class SdkSourceRedirectFilterTest {
     val line = "1 Foo 2"
     val delegate = TestFilter("Foo", info)
     val filter = SdkSourceRedirectFilter(project, delegate)
-    filter.apiLevel = 30
+    filter.apiLevel = AndroidApiLevel(30)
 
     val result = filter.applyFilter(line, 100)
 
     assertThat(result?.resultItems?.map { it.toInfo(line) })
       .containsExactly(ResultInfo("Foo", "SdkSourceRedirectLinkInfo"))
     val hyperlinkInfo = result?.firstHyperlinkInfo as SdkSourceRedirectLinkInfo
-    assertThat(hyperlinkInfo.apiLevel).isEqualTo(30)
+    assertThat(hyperlinkInfo.apiLevel).isEqualTo(AndroidApiLevel(30))
     assertThat(hyperlinkInfo.files).containsExactly(file)
   }
 
@@ -112,14 +113,14 @@ class SdkSourceRedirectFilterTest {
     val line = "1 Foo 2"
     val delegate = TestFilter("Foo", info)
     val filter = SdkSourceRedirectFilter(project, delegate)
-    filter.apiLevel = 22
+    filter.apiLevel = AndroidApiLevel(22)
 
     val result = filter.applyFilter(line, 100)
 
     assertThat(result?.resultItems?.map { it.toInfo(line) })
       .containsExactly(ResultInfo("Foo", "SdkSourceRedirectLinkInfo"))
     val hyperlinkInfo = result?.firstHyperlinkInfo as SdkSourceRedirectLinkInfo
-    assertThat(hyperlinkInfo.apiLevel).isEqualTo(22)
+    assertThat(hyperlinkInfo.apiLevel).isEqualTo(AndroidApiLevel(22))
     assertThat(hyperlinkInfo.files).containsExactly(file1, file2)
   }
 
@@ -144,7 +145,7 @@ class SdkSourceRedirectFilterTest {
         )
         .apply { setForceUseAllFilters(true) }
     val filter = SdkSourceRedirectFilter(project, delegate)
-    filter.apiLevel = 22
+    filter.apiLevel = AndroidApiLevel(22)
 
     val result = filter.applyFilter(line, 100)
 

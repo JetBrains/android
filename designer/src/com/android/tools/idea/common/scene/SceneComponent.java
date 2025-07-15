@@ -36,6 +36,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,10 +89,15 @@ public class SceneComponent {
   @GuardedBy("myTargets")
   @Nullable private ImmutableList<Target> myCachedTargetList;
 
-  @AndroidDpCoordinate private int myCurrentLeft = 0;
-  @AndroidDpCoordinate private int myCurrentTop = 0;
-  @AndroidDpCoordinate private int myCurrentRight = 0;
-  @AndroidDpCoordinate private int myCurrentBottom = 0;
+  // ReadWriteLock to protect myCurrent* fields
+  private final ReadWriteLock currentBoundsLock = new ReentrantReadWriteLock();
+  private final Lock currentBoundsReadLock = currentBoundsLock.readLock();
+  private final Lock currentBoundsWriteLock = currentBoundsLock.writeLock();
+
+  @GuardedBy("currentBoundsLock") @AndroidDpCoordinate private int myCurrentLeft = 0;
+  @GuardedBy("currentBoundsLock") @AndroidDpCoordinate private int myCurrentTop = 0;
+  @GuardedBy("currentBoundsLock") @AndroidDpCoordinate private int myCurrentRight = 0;
+  @GuardedBy("currentBoundsLock") @AndroidDpCoordinate private int myCurrentBottom = 0;
 
   private boolean myShowBaseline = false;
 
@@ -97,12 +105,22 @@ public class SceneComponent {
 
   @AndroidDpCoordinate
   public int getCenterX() {
-    return myCurrentLeft + (myCurrentRight - myCurrentLeft) / 2;
+    currentBoundsReadLock.lock();
+    try {
+      return myCurrentLeft + (myCurrentRight - myCurrentLeft) / 2;
+    } finally {
+      currentBoundsReadLock.unlock();
+    }
   }
 
   @AndroidDpCoordinate
   public int getCenterY() {
-    return myCurrentTop + (myCurrentBottom - myCurrentTop) / 2;
+    currentBoundsReadLock.lock();
+    try {
+      return myCurrentTop + (myCurrentBottom - myCurrentTop) / 2;
+    } finally {
+      currentBoundsReadLock.unlock();
+    }
   }
 
   @Nullable private CommonDragTarget myDragTarget;
@@ -154,7 +172,7 @@ public class SceneComponent {
      *
      * @param v the value
      */
-    public void setValue(@AndroidDpCoordinate int v) {
+    public synchronized void setValue(@AndroidDpCoordinate int v) {
       value = v;
       target = v;
       startTime = 0;
@@ -167,7 +185,7 @@ public class SceneComponent {
      * @param v    the target value to reach
      * @param time the start time to animate
      */
-    public void setTarget(@AndroidDpCoordinate int v, long time) {
+    public synchronized void setTarget(@AndroidDpCoordinate int v, long time) {
       if (target == v) {
         return;
       }
@@ -180,10 +198,10 @@ public class SceneComponent {
      * returns the target value, if time or progress is zero, returns
      * the start value.
      *
-     * @param time the elapsed time
+     * @param time the absolute time (e.g., System.nanoTime() or SceneContext time)
      * @return the corresponding value
      */
-    public int getValue(long time) {
+    public synchronized int getValue(long time) {
       if (startTime == 0) {
         target = value;
         return value;
@@ -278,9 +296,9 @@ public class SceneComponent {
   }
 
   /**
-   * Returns true if the widget is parent(0,0) - 0x0
+   * Returns true if the widget has zero dimensions and is not currently animating its position.
    *
-   * @return true if no dimension
+   * @return true if no dimension and not animating position
    */
   public boolean hasNoDimension() {
     return myAnimatedDrawWidth.value == 0 && myAnimatedDrawHeight.value == 0
@@ -327,9 +345,9 @@ public class SceneComponent {
   }
 
   /**
-   * Return the X coordinate given an elapsed time. <br/>
+   * Return the X coordinate given an absolute time point.
    * If beyond duration, returns the target value,
-   * if time or progress is zero, returns the start value.
+   * if time is before start time, returns the start value.
    */
   @AndroidDpCoordinate
   public int getDrawX(long time) {
@@ -337,9 +355,9 @@ public class SceneComponent {
   }
 
   /**
-   * Return the Y coordinate given an elapsed time. <br/>
+   * Return the Y coordinate given an absolute time point.
    * If beyond duration, returns the target value,
-   * if time or progress is zero, returns the start value.
+   * if time is before start time, returns the start value.
    */
   @AndroidDpCoordinate
   public int getDrawY(long time) {
@@ -347,9 +365,9 @@ public class SceneComponent {
   }
 
   /**
-   * Return the width given an elapsed time. <br/>
+   * Return the width given an absolute time point.
    * If beyond duration, returns the target value,
-   * if time or progress is zero, returns the start value.
+   * if time is before start time, returns the start value.
    */
   @AndroidDpCoordinate
   public int getDrawWidth(long time) {
@@ -357,9 +375,9 @@ public class SceneComponent {
   }
 
   /**
-   * Return the height given an elapsed time. <br/>
+   * Return the height given an absolute time point.
    * If beyond duration, returns the target value,
-   * if time or progress is zero, returns the start value.
+   * if time is before start time, returns the start value.
    */
   @AndroidDpCoordinate
   public int getDrawHeight(long time) {
@@ -664,30 +682,34 @@ public class SceneComponent {
   //region Layout
   /////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Updates the current bounds based on animation time and lays out targets and children.
+   * Uses ReadWriteLock to ensure atomic update of bounds fields.
+   */
   public boolean layout(@NotNull SceneContext sceneTransform, long time) {
-    boolean needsRebuildDisplayList = false;
-    int left = myAnimatedDrawX.getValue(time);
-    int top = myAnimatedDrawY.getValue(time);
-    int right = left + myAnimatedDrawWidth.getValue(time);
-    int bottom = top + myAnimatedDrawHeight.getValue(time);
+    @AndroidDpCoordinate int calculatedLeft = myAnimatedDrawX.getValue(time);
+    @AndroidDpCoordinate int calculatedTop = myAnimatedDrawY.getValue(time);
+    @AndroidDpCoordinate int calculatedWidth = myAnimatedDrawWidth.getValue(time);
+    @AndroidDpCoordinate int calculatedHeight = myAnimatedDrawHeight.getValue(time);
+    @AndroidDpCoordinate int calculatedRight = calculatedLeft + calculatedWidth;
+    @AndroidDpCoordinate int calculatedBottom = calculatedTop + calculatedHeight;
 
-    needsRebuildDisplayList |= (myCurrentLeft != left);
-    needsRebuildDisplayList |= (myCurrentTop != top);
-    needsRebuildDisplayList |= (myCurrentRight != right);
-    needsRebuildDisplayList |= (myCurrentBottom != bottom);
+    // Update the current bounds fields atomically using the write lock
+    currentBoundsWriteLock.lock();
+    try {
+      myCurrentLeft = calculatedLeft;
+      myCurrentTop = calculatedTop;
+      myCurrentRight = calculatedRight;
+      myCurrentBottom = calculatedBottom;
+    } finally {
+      currentBoundsWriteLock.unlock();
+    }
 
-    myCurrentLeft = left;
-    myCurrentTop = top;
-    myCurrentRight = right;
-    myCurrentBottom = bottom;
-
-    needsRebuildDisplayList |= isAnimating();
+    boolean needsRebuildDisplayList = isAnimating();
 
     ImmutableList<Target> targets = getTargets();
-    int num = targets.size();
-    for (int i = 0; i < num; i++) {
-      Target target = targets.get(i);
-      needsRebuildDisplayList |= target.layout(sceneTransform, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
+    for (Target target : targets) {
+      needsRebuildDisplayList |= target.layout(sceneTransform, calculatedLeft, calculatedTop, calculatedRight, calculatedBottom);
     }
 
     for (SceneComponent child : myChildren) {
@@ -716,13 +738,11 @@ public class SceneComponent {
     return rectangle;
   }
 
-  public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker, @InputEventMask int modifiersEx) {
+  public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePickerImpl picker, @InputEventMask int modifiersEx) {
     myHitProvider.addHit(this, sceneTransform, picker);
 
     ImmutableList<Target> targets = getTargets();
-    int num = targets.size();
-    for (int i = 0; i < num; i++) {
-      Target target = targets.get(i);
+    for (Target target : targets) {
       target.addHit(sceneTransform, picker, modifiersEx);
     }
     for (SceneComponent child : myChildren) {

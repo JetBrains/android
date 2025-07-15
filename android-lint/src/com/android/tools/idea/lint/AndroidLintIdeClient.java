@@ -30,6 +30,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.apk.analyzer.ResourceIdResolver;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintResult;
@@ -45,6 +46,7 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioFrameworkResourceRepositoryManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.PlatformLookup;
 import com.android.tools.lint.client.api.ResourceRepositoryScope;
 import com.android.tools.lint.detector.api.DefaultPosition;
@@ -55,6 +57,7 @@ import com.android.tools.lint.detector.api.Position;
 import com.android.tools.res.FileResourceReader;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.Pair;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -79,6 +82,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import kotlin.jvm.Synchronized;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.StudioAndroidSdkData;
@@ -94,6 +98,7 @@ import org.xmlpull.v1.XmlPullParser;
  */
 public class AndroidLintIdeClient extends LintIdeClient {
   @NotNull protected Project myProject;
+  private PlayPolicyInsightsJarCache myCache;
 
   public AndroidLintIdeClient(@NotNull Project project, @NotNull LintResult lintResult) {
     super(project, lintResult);
@@ -105,6 +110,26 @@ public class AndroidLintIdeClient extends LintIdeClient {
   public byte[] readBytes(@NotNull PathString resourcePath) throws IOException {
     ProgressManager.checkCanceled();
     return FileResourceReader.readBytes(resourcePath, ResourceIdResolver.NO_RESOLUTION);
+  }
+
+  @Override
+  public @NotNull List<@NotNull File> findGlobalRuleJars(@Nullable LintDriver driver, boolean warnDeprecated) {
+    List<File> result = super.findGlobalRuleJars(driver, warnDeprecated);
+    if (StudioFlags.ENABLE_PLAY_POLICY_INSIGHTS.get()) {
+      PlayPolicyInsightsJarCache cache = getPlayPolicyInsightsJarCache();
+      ArrayList<File> jars = Lists.newArrayList(cache.getCustomRuleJars());
+      jars.addAll(result);
+      return jars;
+    }
+    return result;
+  }
+
+  @Synchronized
+  private PlayPolicyInsightsJarCache getPlayPolicyInsightsJarCache() {
+    if (myCache == null) {
+      myCache = new PlayPolicyInsightsJarCache(this);
+    }
+    return myCache;
   }
 
   @Nullable

@@ -52,6 +52,7 @@ import com.google.idea.blaze.base.sync.aspects.BlazeBuildOutputs;
 import com.google.idea.blaze.common.Interners;
 import com.google.idea.blaze.common.PrintOutput;
 import com.google.idea.blaze.common.PrintOutput.OutputType;
+import com.google.idea.blaze.exception.BuildException;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
@@ -182,6 +183,14 @@ public final class BlazeCommandGenericRunConfigurationRunner
         BlazeCommand.Builder blazeCommandBuilder,
         BlazeContext context)
         throws ExecutionException {
+      if (invoker.getCapabilities().contains(BuildInvoker.Capability.RETURN_PROCESS_HANDLER)) {
+        try {
+          return invoker.invokeAsProcessHandler(blazeCommandBuilder, context);
+        }
+        catch (BuildException e) {
+          throw new ExecutionException(e);
+        }
+      }
       ProcessHandler processHandler = getGenericProcessHandler();
       ConsoleView consoleView = getConsoleBuilder().getConsole();
       context.addOutputSink(PrintOutput.class, new WritingOutputSink(consoleView));

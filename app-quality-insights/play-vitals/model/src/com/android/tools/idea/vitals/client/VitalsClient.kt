@@ -228,12 +228,11 @@ class VitalsClient(
     }
     val failure = LoadingState.UnknownFailure("Unable to fetch insight for the selected issue.")
     return runGrpcCatchingWithSupervisorScope(failure) {
-      val insight =
+      LoadingState.Ready(
         aiInsightClient.fetchCrashInsight(
           createGeminiInsightRequest(connection, issueId, variantId, event)
         )
-      cache.putAiInsight(connection, issueId, variantId, insight)
-      LoadingState.Ready(insight)
+      )
     }
   }
 

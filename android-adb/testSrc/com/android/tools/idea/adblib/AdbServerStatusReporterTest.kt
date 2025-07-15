@@ -18,7 +18,9 @@ package com.android.tools.idea.adblib
 
 import com.android.adblib.ServerStatus
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.test.testutils.EnsureAndroidProjectRule
 import com.android.tools.idea.adb.FakeAdbServiceRule
+import com.android.tools.idea.adb.PreInitAndroidDebugBridgeRule
 import com.intellij.testFramework.ProjectRule
 import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.CoroutineScope
@@ -27,15 +29,22 @@ import kotlinx.coroutines.launch
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 class AdbServerStatusReporterTest {
-  @get:Rule val projectRule = ProjectRule()
-  @get:Rule val adbRule = FakeAdbRule()
-  @get:Rule val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
+  private val projectRule = ProjectRule()
+  private val preInitRule = PreInitAndroidDebugBridgeRule()
+  private val adbRule = FakeAdbRule()
+  private val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
+  @get:Rule val ensureAndroidProjectRule = EnsureAndroidProjectRule()
   private lateinit var reporter: AdbServerStatusReporter
 
   private var statusCallbackCalled = false
   private val latch = CountDownLatch(1)
+
+  @get:Rule
+  val ruleChain =
+    RuleChain.outerRule(projectRule).around(preInitRule).around(adbRule).around(adbServiceRule)!!
 
   private fun statusReporterCallback(status: ServerStatus) {
     Assert.assertNotNull("No server-status version", status.version)

@@ -20,21 +20,23 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Arrays.stream;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.android.ide.common.util.PathString;
 import com.android.manifmerger.ManifestSystemProperty;
 import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.projectmodel.ExternalLibraryImpl;
 import com.android.projectmodel.SelectiveResourceFolder;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.CapabilityNotSupported;
-import com.android.tools.idea.projectsystem.CapabilityStatus;
-import com.android.tools.idea.projectsystem.CapabilitySupported;
 import com.android.tools.idea.projectsystem.ClassFileFinder;
 import com.android.tools.idea.projectsystem.DependencyManagementException;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.DependencyType;
 import com.android.tools.idea.projectsystem.ManifestOverrides;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.android.tools.idea.projectsystem.RegisteredDependencyCompatibilityResult;
+import com.android.tools.idea.projectsystem.RegisteredDependencyId;
+import com.android.tools.idea.projectsystem.RegisteredDependencyQueryId;
+import com.android.tools.idea.projectsystem.RegisteringModuleSystem;
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.annotations.VisibleForTesting;
@@ -43,9 +45,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.idea.blaze.android.compose.ComposeStatusProvider;
 import com.google.idea.blaze.android.libraries.UnpackedAars;
 import com.google.idea.blaze.android.npw.project.BlazeAndroidModuleTemplate;
+import com.google.idea.blaze.android.projectsystem.BlazeModuleSystemBase.BlazeRegisteredDependencyId;
+import com.google.idea.blaze.android.projectsystem.BlazeModuleSystemBase.BlazeRegisteredDependencyQueryId;
 import com.google.idea.blaze.android.sync.model.AarLibrary;
 import com.google.idea.blaze.android.sync.model.AndroidResourceModule;
 import com.google.idea.blaze.android.sync.model.AndroidResourceModuleRegistry;
@@ -62,7 +68,7 @@ import com.google.idea.blaze.base.model.BlazeProjectData;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.qsync.QuerySyncProject;
+import com.google.idea.blaze.base.qsync.ReadonlyQuerySyncProject;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
@@ -73,9 +79,7 @@ import com.google.idea.blaze.base.sync.libraries.BlazeLibraryCollector;
 import com.google.idea.blaze.base.sync.workspace.ArtifactLocationDecoder;
 import com.google.idea.blaze.base.targetmaps.ReverseDependencyMap;
 import com.google.idea.blaze.base.targetmaps.TransitiveDependencyMap;
-import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
-import com.google.idea.blaze.qsync.SnapshotHolder;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.blaze.qsync.project.ProjectProto;
 import com.google.idea.common.experiments.BoolExperiment;
@@ -99,13 +103,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
-import kotlin.Triple;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 /** Blaze implementation of {@link AndroidModuleSystem}. */
 @SuppressWarnings("NullableProblems")
-abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
+abstract class BlazeModuleSystemBase implements AndroidModuleSystem, RegisteringModuleSystem<BlazeRegisteredDependencyQueryId,BlazeRegisteredDependencyId>
+{
 
   /**
    * Experiment to toggle returning a simplified view of resource module dependents to work around
@@ -165,8 +169,7 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
     return BlazeAndroidModuleTemplate.getTemplates(module, targetDirectory);
   }
 
-  @Override
-  public void registerDependency(GradleCoordinate coordinate, DependencyType type) {
+  private void doRegisterDependency(DependencyType type) {
     if (type != DependencyType.IMPLEMENTATION) {
       throw new UnsupportedOperationException("Unsupported dependency type in Blaze: " + type);
     }
@@ -214,6 +217,17 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
     }
   }
 
+  @Override
+  public void registerDependency(GradleCoordinate coordinate, DependencyType type) {
+    doRegisterDependency(type);
+  }
+
+  @Override
+  public void registerDependency(BlazeRegisteredDependencyId id, DependencyType type) {
+    // TODO: maybe do something different if this id is an -Unknown- vs -Target-
+    doRegisterDependency(type);
+  }
+
   @Nullable
   @Override
   public GradleCoordinate getRegisteredDependency(GradleCoordinate coordinate) {
@@ -244,13 +258,63 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
   }
 
   @Nullable
-  private Label getResolvedLabel(GradleCoordinate coordinate) {
-    return MavenArtifactLocator.forBuildSystem(Blaze.getBuildSystemName(module.getProject()))
-        .stream()
-        .map(locator -> locator.labelFor(coordinate))
-        .map(l -> Label.of(l.toString()))
+  @Override
+  public BlazeRegisteredDependencyId getRegisteredDependency(BlazeRegisteredDependencyQueryId id) {
+    BlazeProjectData projectData =
+        BlazeProjectDataManager.getInstance(module.getProject()).getBlazeProjectData();
+    if (projectData == null) {
+      return null;
+    }
+
+    TargetKey resourceModuleKey =
+        AndroidResourceModuleRegistry.getInstance(module.getProject()).getTargetKey(module);
+    if (resourceModuleKey == null) {
+      // TODO: decide what constitutes a registered dependency for the .workspace module
+      return null;
+    }
+
+    TargetIdeInfo resourceModuleTarget = projectData.getTargetMap().get(resourceModuleKey);
+    if (resourceModuleTarget == null) {
+      return null;
+    }
+
+    ImmutableSet<TargetKey> firstLevelDeps =
+        resourceModuleTarget.getDependencies().stream()
+            .map(Dependency::getTargetKey)
+            .collect(toImmutableSet());
+
+    return id.keys.stream()
+        .filter(it -> firstLevelDeps.contains(it))
         .findFirst()
+        .map(it -> new BlazeTargetRegisteredDependencyId(it))
         .orElse(null);
+  }
+
+  @Override
+  public BlazeRegisteredDependencyQueryId getRegisteredDependencyQueryId(WellKnownMavenArtifactId id) {
+    return new BlazeRegisteredDependencyQueryId(id, locateArtifactsFor(id).toList());
+  }
+
+  @Override
+  public BlazeRegisteredDependencyId getRegisteredDependencyId(WellKnownMavenArtifactId id) {
+    return locateArtifactsFor(id)
+        .findFirst()
+        .map(it -> (BlazeRegisteredDependencyId) new BlazeTargetRegisteredDependencyId(it))
+        .orElse((BlazeRegisteredDependencyId) new BlazeUnknownRegisteredDependencyId(id));
+  }
+
+  @Override
+  public ListenableFuture<RegisteredDependencyCompatibilityResult<BlazeRegisteredDependencyId>> analyzeDependencyCompatibility(List<? extends BlazeRegisteredDependencyId> dependencies) {
+    List<? extends BlazeRegisteredDependencyId> compatible = dependencies.stream().filter(it -> it instanceof BlazeTargetRegisteredDependencyId).toList();
+    List<? extends BlazeRegisteredDependencyId> missing = dependencies.stream().filter(it -> !(it instanceof BlazeTargetRegisteredDependencyId)).toList();
+    RegisteredDependencyCompatibilityResult<BlazeRegisteredDependencyId> result;
+    if (missing.isEmpty()) {
+      result = new RegisteredDependencyCompatibilityResult<>(compatible, missing, "");
+    }
+    else {
+      result = new RegisteredDependencyCompatibilityResult<>(compatible, missing, "One or more dependencies could not be identified");
+    }
+    return Futures.immediateFuture(result);
   }
 
   @Nullable
@@ -319,6 +383,13 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
         .map(TargetKey::forPlainTarget);
   }
 
+  private Stream<TargetKey> locateArtifactsFor(WellKnownMavenArtifactId id) {
+    return MavenArtifactLocator.forBuildSystem(Blaze.getBuildSystemName(module.getProject()))
+        .stream()
+        .map(locator -> locator.labelFor(id))
+        .filter(Objects::nonNull)
+        .map(TargetKey::forPlainTarget);
+  }
   /**
    * Currently, the ordering of the returned list of modules is meaningless for the Blaze
    * implementation of this API. This may break legacy callers of {@link
@@ -442,9 +513,7 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
     if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
       ProjectProto.Project projectProto =
           QuerySyncManager.getInstance(project)
-              .getLoadedProject()
-              .map(QuerySyncProject::getSnapshotHolder)
-              .flatMap(SnapshotHolder::getCurrent)
+              .getCurrentSnapshot()
               .map(QuerySyncProjectSnapshot::project)
               .orElse(null);
       if (projectProto == null) {
@@ -591,5 +660,32 @@ abstract class BlazeModuleSystemBase implements AndroidModuleSystem {
 
   public static BazelModuleSystem getInstance(Module module) {
     return module.getService(BazelModuleSystem.class);
+  }
+
+  public static class BlazeRegisteredDependencyQueryId implements RegisteredDependencyQueryId {
+    WellKnownMavenArtifactId id;
+    List<TargetKey> keys;
+    BlazeRegisteredDependencyQueryId(WellKnownMavenArtifactId id, List<TargetKey> keys) {
+      super();
+      this.id = id;
+      this.keys = keys;
+    }
+  }
+
+  abstract public static class BlazeRegisteredDependencyId implements RegisteredDependencyId {
+  }
+  public static class BlazeTargetRegisteredDependencyId extends BlazeRegisteredDependencyId {
+    TargetKey key;
+    BlazeTargetRegisteredDependencyId(TargetKey key) {
+      super();
+      this.key = key;
+    }
+  }
+  public static class BlazeUnknownRegisteredDependencyId extends BlazeRegisteredDependencyId {
+    WellKnownMavenArtifactId id;
+    BlazeUnknownRegisteredDependencyId(WellKnownMavenArtifactId id) {
+      super();
+      this.id = id;
+    }
   }
 }

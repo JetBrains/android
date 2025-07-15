@@ -20,6 +20,7 @@ import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.openapi.components.service
 import com.intellij.util.xmlb.XmlSerializerUtil
 import kotlin.reflect.KProperty
 
@@ -51,7 +52,7 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
 
   override fun noStateLoaded() {
     // Migrate previous version of settings.
-    val settingsV1 = ApplicationManager.getApplication().getService(SettingsV1::class.java)
+    val settingsV1 = service<SettingsV1>()
     activateOnConnection = settingsV1.activateOnConnection && settingsV1.deviceMirroringEnabled
     activateOnAppLaunch = settingsV1.activateOnAppLaunch && settingsV1.deviceMirroringEnabled
     activateOnTestLaunch = settingsV1.activateOnTestLaunch && settingsV1.deviceMirroringEnabled
@@ -79,9 +80,7 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
 
   companion object {
     @JvmStatic
-    fun getInstance(): DeviceMirroringSettings {
-      return ApplicationManager.getApplication().getService(DeviceMirroringSettings::class.java)
-    }
+    fun getInstance(): DeviceMirroringSettings = service<DeviceMirroringSettings>()
 
     const val MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT = 5000
   }

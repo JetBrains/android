@@ -21,6 +21,7 @@ import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.psi.TokenType.WHITE_SPACE
 import com.intellij.psi.tree.IElementType
 
+
 object DeclarativeParserUtil: GeneratedParserUtilBase() {
   @JvmStatic
   fun atSameLine(b: PsiBuilder, level: Int, parser: Parser): Boolean {

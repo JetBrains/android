@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><!-- @formatter:off -->
+<journey name="My first Journey">
+    <description>A Journey that tests ...</description>
+    <actions>
+        <action></action>
+    </actions>
+</journey>

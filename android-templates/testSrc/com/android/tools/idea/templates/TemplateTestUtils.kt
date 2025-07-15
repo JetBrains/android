@@ -19,6 +19,7 @@
 package com.android.tools.idea.templates
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.sdklib.AndroidMajorVersion
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
@@ -30,7 +31,6 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
-import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateConstraint
@@ -70,7 +70,7 @@ internal fun getDefaultModuleState(
   template: Template,
   agpVersionSoftwareEnvironment: AgpVersionSoftwareEnvironment,
 ): ModuleTemplateDataBuilder {
-  val versions = agpVersionSoftwareEnvironment.resolve();
+  val versions = agpVersionSoftwareEnvironment.resolve()
   // TODO(qumeric): is always new?
   val projectStateBuilder =
     ProjectTemplateDataBuilder(true).apply {
@@ -104,12 +104,12 @@ internal fun getDefaultModuleState(
       themesData = ThemesData("App")
       apis =
         ApiTemplateData(
-          buildApi = ApiVersion(versions.compileSdk.toInt(), versions.compileSdk),
-          targetApi = ApiVersion(versions.targetSdk.toInt(), versions.targetSdk),
-          minApi = ApiVersion(minSdk, minSdk.toString()),
+          buildApi = AndroidVersion.fromString(versions.compileSdk),
+          targetApi = AndroidMajorVersion(versions.targetSdk.toInt()),
+          minApi = AndroidMajorVersion(minSdk),
           // The highest supported/recommended appCompat version is P(28)
           appCompatVersion =
-            SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(AndroidVersion.VersionCodes.P)
+            SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(AndroidVersion.VersionCodes.P),
         )
     }
 }

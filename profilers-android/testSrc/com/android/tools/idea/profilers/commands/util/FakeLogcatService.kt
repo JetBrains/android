@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 package com.android.tools.idea.profilers.commands.util
+
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.service.LogcatService
+import java.time.Duration
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
-import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 
 internal class FakeLogcatService : LogcatService {
@@ -31,12 +33,12 @@ internal class FakeLogcatService : LogcatService {
 
   suspend fun logMessages(vararg messages: LogcatMessage) {
     channel?.send(messages.asList())
-    ?: throw IllegalStateException("Channel not setup. Did you call readLogcat()?")
+      ?: throw IllegalStateException("Channel not setup. Did you call readLogcat()?")
   }
 
   override suspend fun readLogcat(
     serialNumber: String,
-    sdk: Int,
+    sdk: AndroidApiLevel,
     duration: Duration,
     newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {

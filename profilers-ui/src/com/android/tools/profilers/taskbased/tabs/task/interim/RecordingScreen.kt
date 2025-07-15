@@ -56,7 +56,6 @@ fun RecordingScreen(recordingScreenModel: RecordingScreenModel<*>) {
             key = StudioIconsCompose.Profiler.Toolbar.StopRecording,
             contentDescription = TaskBasedUxStrings.RECORDING_IN_PROGRESS,
             modifier = Modifier.size(20.dp),
-            iconClass = StudioIconsCompose::class.java
           )
         }
         val ongoingTaskName = recordingScreenModel.taskName.lowercase()

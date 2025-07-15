@@ -110,6 +110,7 @@ jvm_library(
     "//android/adt-ui",
     "//android/adt-ui:adt-ui_test_lib",
     "//android/android-common:common",
+    "//android/artwork",
     "//android/render-resources",
     "//android/android:core",
     "//android/designer",
@@ -134,6 +135,7 @@ jvm_library(
     "//platform/util",
     "//android/intellij.android.testutils:testutils_test_lib",
     "//uast/uast-common:uast",
+    "//platform/platform-impl/ui",
     "//android/android:core-tests_test_lib",
     "//plugins/kotlin/idea",
     "//plugins/kotlin/base/plugin",
@@ -146,6 +148,7 @@ jvm_library(
     "//android/designer:designer-tests_test_lib",
     "@lib//:mockito-kotlin",
     "@lib//:asm",
+    "@lib//:kotlinx-coroutines-test",
   ]
 )
 

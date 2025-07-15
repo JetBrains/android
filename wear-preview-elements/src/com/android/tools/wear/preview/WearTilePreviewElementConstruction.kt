@@ -50,7 +50,8 @@ fun <T : Any> previewAnnotationToWearTilePreviewElement(
       showBackground = true,
       // will default to black in the view adapter
       backgroundColor = null,
-      organizationGroup = null
+      organizationGroup = annotatedMethod.qualifiedName,
+      organizationName = methodName
     )
 
   val configuration =

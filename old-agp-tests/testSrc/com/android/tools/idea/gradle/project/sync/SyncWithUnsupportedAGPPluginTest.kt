@@ -15,29 +15,47 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.SdkConstants
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.applicableAgpVersions
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.Parameterized.Parameters
+import org.jetbrains.annotations.Contract
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 /**
  * Integration test for Gradle Sync with old versions of Android plugin.
  */
-@OldAgpTest(agpVersions = ["3.1.4"], gradleVersions = ["5.3.1"])
-class SyncWithUnsupportedAGPPluginTest {
+@OldAgpTest
+@RunWith(Parameterized::class)
+class SyncWithUnsupportedAGPPluginTest(private val environmentDescriptor: AgpVersionSoftwareEnvironmentDescriptor) {
   @get:Rule
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+
+  companion object {
+    @Suppress("unused")
+    @Contract(pure = true)
+    @JvmStatic
+    @Parameterized.Parameters(name="{0}")
+    fun testParameters(): Collection<*> {
+      return applicableAgpVersions().filter { it < AGP_40 }.reversed().map { arrayOf(it) }
+    }
+  }
 
   @Test
   fun testGradleSyncFails() {
     var exceptionText: String? = null
     val preparedProject =
-      projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_31)
+      projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = environmentDescriptor)
     preparedProject.open(
       updateOptions = {
         it.copy(
@@ -48,8 +66,8 @@ class SyncWithUnsupportedAGPPluginTest {
       }
     ) {}
       assertThat(exceptionText).contains(
-        "The project is using an incompatible version (AGP 3.1.4) of the Android " +
-          "Gradle plugin. Minimum supported version is AGP 3.2.0."
+        "The project is using an incompatible version (AGP ${environmentDescriptor.agpVersion}) of the Android " +
+          "Gradle plugin. Minimum supported version is AGP ${SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION}."
       )
     }
   }

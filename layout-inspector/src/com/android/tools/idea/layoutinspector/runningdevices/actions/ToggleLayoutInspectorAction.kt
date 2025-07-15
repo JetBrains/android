@@ -22,7 +22,6 @@ import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.settings.STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
-import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -87,7 +86,6 @@ class ToggleLayoutInspectorAction :
     val displayView = DISPLAY_VIEW_KEY.getData(e.dataContext)
     val apiLevel = runCatching { displayView?.apiLevel }.getOrNull()
     val serialNumber = runCatching { displayView?.deviceSerialNumber }.getOrNull()
-    val isEmulator = displayView is EmulatorView
 
     if (apiLevel == null || serialNumber == null) {
       e.presentation.isEnabled = false

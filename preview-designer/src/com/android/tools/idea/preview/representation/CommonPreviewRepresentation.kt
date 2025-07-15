@@ -73,6 +73,7 @@ import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
+import com.android.tools.idea.preview.pagination.PreviewPaginationManager
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
@@ -97,7 +98,6 @@ import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.application.runReadAction
@@ -260,6 +260,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
             when (it) {
               PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
               PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
+              PreviewPaginationManager.KEY.name -> previewFlowManager.previewFlowPaginator
               PreviewGroupManager.KEY.name,
               PreviewFlowManager.KEY.name -> previewFlowManager
               FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
@@ -333,7 +334,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
 
   @TestOnly
   internal fun hasFlowInitializationFinishedForTest() =
-    previewFlowManager.filteredPreviewElementsFlow.value != FlowableCollection.Uninitialized
+    previewFlowManager.toRenderPreviewElementsFlow.value != FlowableCollection.Uninitialized
 
   private val previewFreshnessTracker =
     CodeOutOfDateTracker.create(buildTargetReference, this) { requestRefresh() }
@@ -360,6 +361,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
             CommonDataKeys.PROJECT,
             PreviewModeManager.KEY,
             PreviewGroupManager.KEY,
+            PreviewPaginationManager.KEY,
             PreviewFlowManager.KEY,
             FastPreviewSurface.KEY,
             PreviewInvalidationManager.KEY,
@@ -371,6 +373,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
               PREVIEW_ELEMENT_INSTANCE.name -> previewElement
               CommonDataKeys.PROJECT.name -> project
               PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
+              PreviewPaginationManager.KEY.name -> previewFlowManager.previewFlowPaginator
               PreviewGroupManager.KEY.name -> previewFlowManager
               PreviewFlowManager.KEY.name -> previewFlowManager
               FastPreviewSurface.KEY.name -> this@CommonPreviewRepresentation
@@ -433,6 +436,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     get() = previewView.component
 
   override val preferredInitialVisibility: PreferredVisibility? = null
+
+  override val caretNavigationHandler =
+    PreviewRepresentation.CaretNavigationHandler.NoopCaretNavigationHandler()
 
   override val mode = previewModeManager.mode
 
@@ -511,13 +517,14 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         psiFile,
         this,
         progressIndicator,
-        { _ -> onAfterRender() },
         previewElementModelAdapter,
         modelUpdater,
         navigationHandler,
         { _, layoutLibSceneManager -> configureLayoutlibSceneManager(layoutLibSceneManager) },
         refreshEventBuilder,
       )
+
+    onAfterRender()
 
     if (showingPreviewElements.size >= filePreviewElements.size) {
       previewFlowManager.updateRenderedPreviews(filePreviewElements)
@@ -556,7 +563,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       try {
         refreshProgressIndicator.text = message("refresh.progress.indicator.finding.previews")
         val filePreviewElements =
-          previewFlowManager.filteredPreviewElementsFlow.value.asCollection().toList()
+          previewFlowManager.toRenderPreviewElementsFlow.value.asCollection().toList()
 
         val needsFullRefresh =
           request.refreshType != CommonPreviewRefreshType.QUALITY && invalidated.getAndSet(false)
@@ -663,7 +670,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     refreshJob.invokeOnCompletion {
       LOG.debug("Completed")
       // Progress indicators must be disposed in the ui thread
-      launch(Dispatchers.EDT) { Disposer.dispose(refreshProgressIndicator) }
+      launch(Dispatchers.Main) { Disposer.dispose(refreshProgressIndicator) }
       previewViewModel.refreshCompleted(it is CancellationException, System.nanoTime() - startTime)
     }
     return refreshJob
@@ -851,7 +858,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         stopInteractivePreview()
       }
       is PreviewMode.Focus -> {
-        withContext(Dispatchers.EDT) { previewView.focusMode = null }
+        withContext(Dispatchers.Main) { previewView.focusMode = null }
       }
       is PreviewMode.AnimationInspection -> {
         stopAnimationInspector()
@@ -873,7 +880,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       is PreviewMode.Focus -> {
         invalidateAndRefresh()
         surface.repaint()
-        withContext(Dispatchers.EDT) { previewView.focusMode = FocusMode(surface) }
+        withContext(Dispatchers.Main) { previewView.focusMode = FocusMode(surface) }
       }
       is PreviewMode.AnimationInspection -> {
         startAnimationInspector(mode.selected)
@@ -887,7 +894,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private suspend fun startAnimationInspector(element: PreviewElement<*>) {
     LOG.debug("Starting animation inspector mode on: $element")
     invalidateAndRefresh()
-    withContext(Dispatchers.EDT) {
+    withContext(Dispatchers.Main) {
       createAnimationInspector(element)?.also {
         Disposer.register(this@CommonPreviewRepresentation, it)
         currentAnimationPreview = it
@@ -904,8 +911,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private suspend fun stopAnimationInspector() {
     LOG.debug("Stopping animation inspector mode")
     currentAnimationPreview?.let {
-      // The animation inspector should be disposed on the Dispatchers.EDT
-      withContext(Dispatchers.EDT) { Disposer.dispose(it) }
+      // The animation inspector should be disposed on the Dispatchers.Main
+      withContext(Dispatchers.Main) { Disposer.dispose(it) }
     }
     currentAnimationPreview = null
     invalidateAndRefresh()
@@ -925,7 +932,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   }
 
   private suspend fun updateLayoutManager(mode: PreviewMode) {
-    withContext(Dispatchers.EDT) {
+    withContext(Dispatchers.Main) {
       surface.layoutManagerSwitcher?.currentLayoutOption?.value = mode.layoutOption
     }
   }
@@ -964,7 +971,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   }
 
   /**
-   * Returns the list of [PreviewFlowManager.filteredPreviewElementsFlow] that has been rendered.
+   * Returns the list of [PreviewFlowManager.toRenderPreviewElementsFlow] that has been rendered.
    * This method is for testing purposes only and should not be used outside of tests.
    */
   @TestOnly

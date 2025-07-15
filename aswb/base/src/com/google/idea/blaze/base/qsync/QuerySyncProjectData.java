@@ -97,16 +97,6 @@ public class QuerySyncProjectData implements BlazeProjectData {
   }
 
   @Override
-  public ImmutableList<Label> targets() {
-    if (blazeProject.isPresent()) {
-      return blazeProject.get().getAllTargets().stream()
-          .map(com.google.idea.blaze.base.model.primitives.Label::create)
-          .collect(ImmutableList.toImmutableList());
-    }
-    return ImmutableList.of();
-  }
-
-  @Override
   public WorkspacePathResolver getWorkspacePathResolver() {
     return workspacePathResolver;
   }

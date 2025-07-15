@@ -20,7 +20,7 @@ import com.intellij.openapi.project.Project
 
 /** Displays a warning popup */
 internal interface DialogFactory {
-  suspend fun showDialog(
+  fun showDialog(
     project: Project,
     title: String,
     message: String,

@@ -46,7 +46,6 @@ public class ProgressiveTaskWithProgressIndicator {
   @Nullable private final Project project;
   private final String title;
   private boolean cancelable = true;
-  private Modality modality = Modality.ALWAYS_BACKGROUND;
   private ListeningExecutorService executor = BlazeExecutor.getInstance().getExecutor();
 
   private ProgressiveTaskWithProgressIndicator(@Nullable Project project, String title) {
@@ -62,12 +61,6 @@ public class ProgressiveTaskWithProgressIndicator {
   @CanIgnoreReturnValue
   public ProgressiveTaskWithProgressIndicator setCancelable(boolean cancelable) {
     this.cancelable = cancelable;
-    return this;
-  }
-
-  @CanIgnoreReturnValue
-  public ProgressiveTaskWithProgressIndicator setModality(Modality modality) {
-    this.modality = modality;
     return this;
   }
 
@@ -107,20 +100,8 @@ public class ProgressiveTaskWithProgressIndicator {
     // The progress indicator must be created on the UI thread.
     final ProgressWindow indicator =
         UIUtil.invokeAndWaitIfNeeded(
-            () -> {
-              if (modality == Modality.MODAL) {
-                ProgressWindow window = new ProgressWindow(cancelable, project);
-                window.setTitle(title);
-                return window;
-              } else {
-                PerformInBackgroundOption backgroundOption =
-                    modality == Modality.BACKGROUNDABLE
-                        ? PerformInBackgroundOption.DEAF
-                        : PerformInBackgroundOption.ALWAYS_BACKGROUND;
-                return new BackgroundableProcessIndicator(
-                    project, title, backgroundOption, "Cancel", "Cancel", cancelable);
-              }
-            });
+            () -> new BackgroundableProcessIndicator(
+              project, title, "Cancel", "Cancel", cancelable));
 
     indicator.setIndeterminate(true);
     indicator.start();

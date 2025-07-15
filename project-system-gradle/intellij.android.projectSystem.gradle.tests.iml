@@ -138,5 +138,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.sync" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.eel" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.eel.provider" scope="TEST" />
   </component>
 </module>

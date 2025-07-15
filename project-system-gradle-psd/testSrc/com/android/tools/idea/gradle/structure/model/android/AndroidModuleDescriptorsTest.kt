@@ -79,6 +79,7 @@ class AndroidModuleDescriptorsTest {
       val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
       val sourceCompatibility = AndroidModuleDescriptors.sourceCompatibility.bind(appModule).getValue()
       val targetCompatibility = AndroidModuleDescriptors.targetCompatibility.bind(appModule).getValue()
+      val kotlinJvmTarget = AndroidModuleDescriptors.kotlinJvmTarget.bind(appModule).getValue()
       val viewBindingEnabled = AndroidModuleDescriptors.viewBindingEnabled.bind(appModule).getValue()
 
       assertThat(buildToolsVersion.resolved.asTestValue(), equalTo(SdkConstants.CURRENT_BUILD_TOOLS_VERSION))
@@ -99,13 +100,17 @@ class AndroidModuleDescriptorsTest {
       assertThat(targetCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_8))
       assertThat(targetCompatibility.parsedValue.asTestValue(), nullValue())
 
+      assertThat(kotlinJvmTarget.resolved.asTestValue(), nullValue())
+      assertThat(kotlinJvmTarget.parsedValue.asTestValue(), nullValue())
+
       assertThat(viewBindingEnabled.resolved.asTestValue(), equalTo(false))
       assertThat(viewBindingEnabled.parsedValue.asTestValue(), nullValue())
     }
   }
 
   private fun doTestSetProperties(resolvedProject: Project) {
-    // Note: this test does not attempt to sync because it won't succeed without installing older SDKs.
+    // Note: this test does not attempt to sync because it won't succeed without installing older SDKs, and because
+    //  we manipulate KotlinOptions without in fact having a Kotlin plugin applied.
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
@@ -115,14 +120,24 @@ class AndroidModuleDescriptorsTest {
     appModule.viewBindingEnabled = true.asParsed()
     appModule.includeDependenciesInfoInApk = false.asParsed()
     appModule.buildToolsVersion = ParsedValue.Set.Parsed(dslText = DslText.Reference("varProGuardFiles[0]"), value = null)
+    appModule.sourceCompatibility = LanguageLevel.JDK_1_8.asParsed()
+    appModule.targetCompatibility = LanguageLevel.JDK_11.asParsed()
+    appModule.kotlinJvmTarget = LanguageLevel.JDK_17.asParsed()
 
     fun verifyValues(appModule: PsAndroidModule) {
       val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
       val viewBindingEnabled = AndroidModuleDescriptors.viewBindingEnabled.bind(appModule).getValue()
       val includeDependenciesInfoInApk = AndroidModuleDescriptors.includeDependenciesInfoInApk.bind(appModule).getValue()
+      val sourceCompatibility = AndroidModuleDescriptors.sourceCompatibility.bind(appModule).getValue()
+      val targetCompatibility = AndroidModuleDescriptors.targetCompatibility.bind(appModule).getValue()
+      val kotlinJvmTarget = AndroidModuleDescriptors.kotlinJvmTarget.bind(appModule).getValue()
+
       assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo("25"))
       assertThat(viewBindingEnabled.parsedValue.asTestValue(), equalTo(true))
       assertThat(includeDependenciesInfoInApk.parsedValue.asTestValue(), equalTo(false))
+      assertThat(sourceCompatibility.parsedValue.asTestValue(), equalTo(LanguageLevel.JDK_1_8))
+      assertThat(targetCompatibility.parsedValue.asTestValue(), equalTo(LanguageLevel.JDK_11))
+      assertThat(kotlinJvmTarget.parsedValue.asTestValue(), equalTo(LanguageLevel.JDK_17))
       assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getValue(OBJECT_TYPE), equalTo<Any>(25))
       assertThat(appModule.parsedModel?.android()?.viewBinding()?.enabled()?.getValue(OBJECT_TYPE), equalTo<Any>(true))
     }

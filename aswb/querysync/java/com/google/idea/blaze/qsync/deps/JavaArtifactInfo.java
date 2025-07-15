@@ -26,7 +26,7 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.qsync.artifacts.ArtifactMetadata;
 import com.google.idea.blaze.qsync.artifacts.BuildArtifact;
 import com.google.idea.blaze.qsync.artifacts.DigestMap;
-import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaTargetArtifacts;
+import com.google.idea.blaze.qsync.java.JavaTargetInfo;
 import java.nio.file.Path;
 
 /** Information about a project dependency that is calculated when the dependency is built. */
@@ -41,6 +41,12 @@ public abstract class JavaArtifactInfo {
    * cache.
    */
   public abstract ImmutableSet<BuildArtifact> jars();
+
+
+  /**
+   * The jar that in target's java_output.
+   */
+  public abstract ImmutableSet<BuildArtifact> outputJars();
 
   /**
    * The aar artifacts relative path (blaze-out/xxx) that can be used to retrieve local copy in the
@@ -72,6 +78,7 @@ public abstract class JavaArtifactInfo {
         .setGenSrcs(BuildArtifact.addMetadata(genSrcs(), metadata))
         .setIdeAars(BuildArtifact.addMetadata(ideAars(), metadata))
         .setJars(BuildArtifact.addMetadata(jars(), metadata))
+        .setOutputJars(BuildArtifact.addMetadata(outputJars(), metadata))
         .build();
   }
 
@@ -79,12 +86,13 @@ public abstract class JavaArtifactInfo {
     return new AutoValue_JavaArtifactInfo.Builder();
   }
 
-  public static JavaArtifactInfo create(JavaTargetArtifacts proto, DigestMap digestMap) {
+  public static JavaArtifactInfo create(JavaTargetInfo.JavaArtifacts proto, DigestMap digestMap) {
     // Note, the proto contains a list of sources, we take the parent as we want directories instead
     Label target = Label.of(proto.getTarget());
     return builder()
         .setLabel(target)
         .setJars(BuildArtifact.fromProtos(proto.getJarsList(), digestMap, target))
+        .setOutputJars(BuildArtifact.fromProtos(proto.getOutputJarsList(), digestMap, target))
         .setIdeAars(BuildArtifact.fromProtos(proto.getIdeAarsList(), digestMap, target))
         .setGenSrcs(BuildArtifact.fromProtos(proto.getGenSrcsList(), digestMap, target))
         .setSources(proto.getSrcsList().stream().map(Interners::pathOf).collect(toImmutableSet()))
@@ -98,6 +106,7 @@ public abstract class JavaArtifactInfo {
     return builder()
         .setLabel(target)
         .setJars(ImmutableList.of())
+        .setOutputJars(ImmutableList.of())
         .setIdeAars(ImmutableList.of())
         .setGenSrcs(ImmutableList.of())
         .setSources(ImmutableSet.of())
@@ -115,6 +124,10 @@ public abstract class JavaArtifactInfo {
     public abstract Builder setJars(ImmutableList<BuildArtifact> value);
 
     public abstract ImmutableSet.Builder<BuildArtifact> jarsBuilder();
+
+    public abstract Builder setOutputJars(ImmutableList<BuildArtifact> value);
+
+    public abstract ImmutableSet.Builder<BuildArtifact> outputJarsBuilder();
 
     public abstract Builder setIdeAars(ImmutableList<BuildArtifact> value);
 

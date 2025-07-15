@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
+import com.android.flags.ifEnabled
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.actions.CommonIssueNotificationAction
 import com.android.tools.idea.preview.actions.ForceCompileAndRefreshActionForNotification
+import com.android.tools.idea.preview.actions.visibleOnlyInDefaultPreview
+import com.android.tools.idea.preview.pagination.actions.PaginationActionGroup
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.AnActionWrapper
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
-import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import java.awt.Insets
@@ -51,30 +49,8 @@ class PreviewIssueNotificationAction(parentDisposable: Disposable) :
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    if (StudioFlags.COMPOSE_VIEW_FILTER.get()) {
-      e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
-    }
   }
 }
-
-private class HideIfFiltersEnabledWrapper(
-  private val delegate: ForceCompileAndRefreshActionForNotification
-) : AnActionWrapper(delegate), RightAlignedToolbarAction, CustomComponentAction {
-
-  override fun createCustomComponent(presentation: Presentation, place: String) =
-    delegate.createCustomComponent(this, presentation, place)
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    if (StudioFlags.COMPOSE_VIEW_FILTER.get()) {
-      val manager = e.getData(COMPOSE_PREVIEW_MANAGER) ?: return
-      e.presentation.isVisible = !manager.isFilterEnabled
-    }
-  }
-}
-
-private fun ForceCompileAndRefreshActionForNotification.hideIfFiltersEnabled() =
-  HideIfFiltersEnabledWrapper(this)
 
 /**
  * [DefaultActionGroup] that shows the notification chip and the
@@ -82,9 +58,11 @@ private fun ForceCompileAndRefreshActionForNotification.hideIfFiltersEnabled() =
  */
 class ComposeNotificationGroup(parentDisposable: Disposable) :
   DefaultActionGroup(
-    listOf(
-      ComposeHideFilterAction(),
+    listOfNotNull(
+      StudioFlags.PREVIEW_PAGINATION.ifEnabled {
+        PaginationActionGroup().visibleOnlyInDefaultPreview()
+      },
       PreviewIssueNotificationAction(parentDisposable),
-      ForceCompileAndRefreshActionForNotification.getInstance().hideIfFiltersEnabled(),
+      ForceCompileAndRefreshActionForNotification.getInstance(),
     )
   )

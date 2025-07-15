@@ -57,7 +57,7 @@ import com.android.io.writeImage
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.repository.targets.SystemImageManager
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
 import com.android.tools.adtui.util.normalizedRotation
 import com.android.tools.idea.io.grpc.ForwardingServerCall.SimpleForwardingServerCall
@@ -1683,7 +1683,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     fun createXrAvd(
         parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), androidVersion: AndroidVersion = AndroidVersion(34, 0)): Path {
       val api = androidVersion.androidApiLevel.majorVersion
-      val avdId = "XR_Device_API_$api"
+      val avdId = "XR_Headset_Device_API_$api"
       val abi = "x86_64"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1706,7 +1706,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.cpu.arch=$abi
           hw.cpu.ncore=4
           hw.dPad=no
-          hw.device.name=xr_device
+          hw.device.name=xr_headset_device
           hw.gps=yes
           hw.gpu.enabled=yes
           hw.gpu.mode=auto

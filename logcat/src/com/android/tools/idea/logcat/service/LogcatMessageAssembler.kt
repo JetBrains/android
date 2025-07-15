@@ -16,7 +16,7 @@
 package com.android.tools.idea.logcat.service
 
 import com.android.processmonitor.monitor.ProcessNameMonitor
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.folding.StackTraceExpander
 import com.android.tools.idea.logcat.message.LogcatHeader
@@ -64,7 +64,7 @@ internal class LogcatMessageAssembler(
   private val lastMessageDelayMs: Long,
   private val cutoffTimeSeconds: Long? = null,
 ) : Disposable {
-  private val coroutineScope = AndroidCoroutineScope(this, coroutineContext)
+  private val coroutineScope = createCoroutineScope(extraContext = coroutineContext)
 
   private val previousState = AtomicPendingMessage()
 

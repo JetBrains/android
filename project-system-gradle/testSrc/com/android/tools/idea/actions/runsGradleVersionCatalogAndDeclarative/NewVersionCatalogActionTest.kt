@@ -35,7 +35,6 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.RecursionManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
@@ -197,8 +196,6 @@ class NewVersionCatalogActionTest {
 
   @Test
   fun testActionIsDisabledForMultipleRoots() {
-    // TODO (b/359232184) Multiple root projects cause CachingPreventedException
-    RecursionManager.disableMissedCacheAssertions(projectRule.testRootDisposable)
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS)
     preparedProject.open { p ->
       val dataContext = createTestDataContext(p, "foo")

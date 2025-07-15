@@ -3,7 +3,6 @@ package com.google.idea.blaze.base.qsync;
 import com.google.idea.blaze.base.bazel.BuildSystem;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
-import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.ProjectDefinition;
@@ -25,9 +24,7 @@ public interface ProjectLoader {
   /**
    * Loads a project definition from the import settings and the .bazelproject file.
    */
-  ProjectToLoadDefinition loadProjectDefinition(BlazeContext context) throws BuildException;
+  ProjectToLoadDefinition loadProjectDefinition(ProjectViewSet projectViewSet);
 
-  @Nullable QuerySyncProject loadProject(BlazeContext context) throws BuildException;
-
-  ModificationTracker getProjectModificationTracker();
+  QuerySyncProject loadProject() throws BuildException;
 }

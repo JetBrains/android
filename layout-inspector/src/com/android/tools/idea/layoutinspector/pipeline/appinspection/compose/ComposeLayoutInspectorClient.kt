@@ -277,6 +277,8 @@ class ComposeLayoutInspectorClient(
           )
         } else {
           val projectSystem = project.getProjectSystem()
+          // We use an extension point to be able to handle different build systems, like Gradle and
+          // Blaze.
           val token = projectSystem.getTokenOrNull(GetComposeLayoutInspectorJarToken.EP_NAME)
 
           val compatibility =
@@ -290,6 +292,8 @@ class ComposeLayoutInspectorClient(
           composeVersion =
             when (token) {
               null ->
+                // The token is null when there is no build system. eg the user imported an APK or
+                // is using a plain intellij project.
                 handleCompatibilityAndComputeVersion(
                   notificationModel,
                   compatibility,
@@ -306,39 +310,26 @@ class ComposeLayoutInspectorClient(
             }
 
           val appInspectorJar =
-            if (
-              composeVersion != null &&
-                Version.parse(composeVersion) == Version.parse("1.8.0-alpha06")
-            ) {
-              Logger.getInstance(ComposeLayoutInspectorClient::class.java)
-                .info("Project is using compose-ui-1.8.0-alpha06. Using bundled compose inspector.")
-              AppInspectorJar(
-                "compose-ui-inspection.jar",
-                developmentDirectory =
-                  StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPOSE_UI_INSPECTION_DEVELOPMENT_FOLDER
-                    .get(),
-                releaseDirectory = "plugins/android/resources/app-inspection/",
-              )
-            } else {
-              when (token) {
-                null ->
-                  getAppInspectorJar(
-                    project,
-                    composeVersion,
-                    notificationModel,
-                    logErrorToMetrics,
-                    isRunningFromSourcesInTests,
-                  )
-                else ->
-                  token.getAppInspectorJar(
-                    projectSystem,
-                    composeVersion,
-                    notificationModel,
-                    logErrorToMetrics,
-                    isRunningFromSourcesInTests,
-                  )
-              } ?: return null
-            }
+            when (token) {
+              null ->
+                // The token is null when there is no build system. eg the user imported an APK or
+                // is using a plain intellij project.
+                getAppInspectorJar(
+                  project,
+                  composeVersion,
+                  notificationModel,
+                  logErrorToMetrics,
+                  isRunningFromSourcesInTests,
+                )
+              else ->
+                token.getAppInspectorJar(
+                  projectSystem,
+                  composeVersion,
+                  notificationModel,
+                  logErrorToMetrics,
+                  isRunningFromSourcesInTests,
+                )
+            } ?: return null
 
           requiredCompatibility =
             token?.getRequiredCompatibility() ?: COMPOSE_INSPECTION_COMPATIBILITY
@@ -696,7 +687,10 @@ private suspend fun AppInspectorMessenger.sendCommand(
   return Response.parseFrom(inputStream)
 }
 
-/** Project System token to find the Compose Layout Inspector Jar file. */
+/**
+ * Project System token to find the Compose Layout Inspector Jar file. Allows us to handle different
+ * build systems, like Gradle and Blaze.
+ */
 interface GetComposeLayoutInspectorJarToken<P : AndroidProjectSystem> : Token {
   companion object {
     val EP_NAME =

@@ -394,12 +394,14 @@ class LintModelFactory : LintModelModuleLoader {
     for (buildTypeContainer in project.multiVariantData?.buildTypes.orEmpty()) {
       if (variant.buildType == buildTypeContainer.buildType.name) {
         debugVariant = buildTypeContainer.buildType.isDebuggable
-        providers.add(
-          getSourceProvider(
-            provider = buildTypeContainer.sourceProvider!!,
-            debugOnly = debugVariant,
+        buildTypeContainer.sourceProvider?.let { sourceProvider ->
+          providers.add(
+            getSourceProvider(
+              provider = sourceProvider,
+              debugOnly = debugVariant,
+            )
           )
-        )
+        }
       }
     }
 
@@ -738,7 +740,7 @@ class LintModelFactory : LintModelModuleLoader {
     override val module: LintModelModule,
     private val project: IdeAndroidProject,
     private val variant: IdeVariant,
-    private val multiVariantData: IdeMultiVariantData,
+    multiVariantData: IdeMultiVariantData,
     override val libraryResolver: LintModelLibraryResolver,
   ) : LintModelVariant {
     private val buildType = getBuildType(multiVariantData, variant)
@@ -891,7 +893,7 @@ class LintModelFactory : LintModelModuleLoader {
     fun getModuleType(type: IdeAndroidProjectType): LintModelModuleType {
       return when (type) {
         IdeAndroidProjectType.PROJECT_TYPE_APP -> LintModelModuleType.APP
-        IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> LintModelModuleType.LIBRARY
+        IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> LintModelModuleType.LIBRARY
         IdeAndroidProjectType.PROJECT_TYPE_FUSED_LIBRARY -> LintModelModuleType.FUSED_LIBRARY
         IdeAndroidProjectType.PROJECT_TYPE_TEST -> LintModelModuleType.TEST
         IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> LintModelModuleType.INSTANT_APP
@@ -899,8 +901,6 @@ class LintModelFactory : LintModelModuleLoader {
         IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> LintModelModuleType.DYNAMIC_FEATURE
         IdeAndroidProjectType.PROJECT_TYPE_ATOM ->
           throw IllegalArgumentException("The value $type is not a valid project type ID")
-        IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM ->
-          throw IllegalArgumentException("$type is not yet supported")
       }
     }
 

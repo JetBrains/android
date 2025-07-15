@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.adblib.MdnsServices
 import com.android.adblib.ServerStatus
 import com.android.annotations.concurrency.AnyThread
 import com.android.ddmlib.IDevice
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Amount of time to wait for device to come online after pairing. This is the default timeout for
@@ -37,6 +39,13 @@ interface AdbServiceWrapper {
   @AnyThread suspend fun executeCommand(args: List<String>, stdin: String = ""): AdbCommandResult
 
   /**
+   * Returns a [Flow] that emits a new [MdnsServices] everytime a mdns service change is detected by
+   * the ADB Host ("host:track-mdns-services" query). The flow is active until an exception is
+   * thrown or cancellation is requested by the flow consumer.
+   */
+  @AnyThread fun trackMdnsServices(): Flow<MdnsServices>
+
+  /**
    * Returns when the device corresponding to [pairingResult] is visible as a `connected` device to
    * the underlying ADB implementation.
    *
@@ -47,6 +56,8 @@ interface AdbServiceWrapper {
 
   /** Retrieve ADB server-status */
   @AnyThread suspend fun getServerStatus(): ServerStatus
+
+  @AnyThread suspend fun getHostFeatures(): List<String>
 }
 
 /** Snapshot of an [IDevice] when the corresponding device was online */

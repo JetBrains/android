@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.assetstudio.wizard;
 
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
+import static com.android.tools.idea.npw.assetstudio.ui.SliderUtils.bindTwoWay;
+import static com.android.tools.idea.npw.assetstudio.ui.SliderUtils.inRange;
 import static com.android.tools.idea.npw.project.AndroidPackageUtils.getModuleTemplates;
 
 import com.android.annotations.concurrency.UiThread;
@@ -48,13 +50,11 @@ import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
-import com.android.tools.idea.observable.expressions.string.FormatExpression;
 import com.android.tools.idea.observable.ui.ColorProperty;
 import com.android.tools.idea.observable.ui.EnabledProperty;
 import com.android.tools.idea.observable.ui.HasFocusProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
-import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -175,6 +175,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
   private JPanel myOpacityPanel;
   private JSlider myOpacitySlider;
+  private JTextField myOpacityValueTextField;
   private JBLabel myOpacityValueLabel;
   private JCheckBox myEnableAutoMirroredCheckBox;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
@@ -203,7 +204,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myWidthHasFocus = new HasFocusProperty(myWidthTextField);
     myHeightHasFocus = new HasFocusProperty(myHeightTextField);
     myColor = new ColorProperty(myColorPanel);
-    myOpacityPercent = new SliderValueProperty(myOpacitySlider);
+    myOpacityPercent = bindTwoWay(myGeneralBindings, myOpacitySlider, myOpacityValueTextField);
     myAutoMirrored = new SelectedProperty(myEnableAutoMirroredCheckBox);
 
     myValidatorPanel = new ValidatorPanel(this, myPanel, /* hideOnSuccess */ false, "Conversion Issues", "Encountered Issues:");
@@ -225,8 +226,6 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       myGeneralBindings.release(myHeight);
       bindWidthAndHeight();
     });
-
-    myGeneralBindings.bind(new TextProperty(myOpacityValueLabel), new FormatExpression("%d %%", myOpacityPercent));
 
     TextProperty widthText = new TextProperty(myWidthTextField);
     TextProperty heightText = new TextProperty(myHeightTextField);
@@ -302,6 +301,9 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       ObservableValue<String> heightForValidation =
         Expression.create(() -> heightEnabled.get() ? heightText.get() : "24", heightText, heightEnabled);
       myValidatorPanel.registerValidator(heightForValidation, new SizeValidator("Height has to be a positive number"));
+      myValidatorPanel.registerValidator(
+        new TextProperty(myOpacityValueTextField), inRange(myOpacitySlider, "Opacity")
+      );
 
       if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {
         myActiveAssetBindings.bind(activeAsset.color(), myColor);
@@ -595,7 +597,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
                                                    GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                    false));
     final JPanel panel2 = new JPanel();
-    panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+    panel2.setLayout(new GridLayoutManager(1, 3, new Insets(0, 0, 0, 0), -1, -1));
     myOpacityPanel.add(panel2, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_VERTICAL,
                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
@@ -610,12 +612,18 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     panel2.add(myOpacitySlider, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL,
                                                     GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
                                                     null, 0, false));
+    myOpacityValueTextField = new JTextField();
+    myOpacityValueTextField.setHorizontalAlignment(4);
+    myOpacityValueTextField.setText("100");
+    panel2.add(myOpacityValueTextField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                                                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
+                                                            new Dimension(30, -1), null, 0, false));
     myOpacityValueLabel = new JBLabel();
     myOpacityValueLabel.setHorizontalAlignment(4);
-    myOpacityValueLabel.setText("100 %");
-    panel2.add(myOpacityValueLabel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+    myOpacityValueLabel.setText("%");
+    panel2.add(myOpacityValueLabel, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                         GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
-                                                        new Dimension(40, -1), null, 0, false));
+                                                        new Dimension(-1, -1), null, 0, false));
     myEnableAutoMirroredCheckBox = new JCheckBox();
     myEnableAutoMirroredCheckBox.setText("Enable auto mirroring for RTL layout");
     myEnableAutoMirroredCheckBox.setToolTipText("Check if your icon should flip in right-to-left layouts.");

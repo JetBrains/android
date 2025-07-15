@@ -107,7 +107,7 @@ public class BlazeCoverageProgramRunner extends DefaultProgramRunner {
                         project,
                         Blaze.getBuildSystemProvider(project)
                             .getBuildSystem()
-                            .getDefaultInvoker(project),
+                            .getBuildInvoker(project),
                         context,
                         buildSystemName,
                         infoFlags));

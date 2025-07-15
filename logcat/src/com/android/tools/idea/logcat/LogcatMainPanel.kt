@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.annotations.concurrency.UiThread
 import com.android.processmonitor.monitor.ProcessNameMonitor
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.LoadLogcatFile
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.PauseLogcat
@@ -103,8 +103,11 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.Companion.USER_REQUEST
 import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
+import com.android.tools.idea.ui.screenrecording.ScreenRecordingParameters
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
-import com.android.tools.idea.ui.screenshot.ScreenshotOptions
+import com.android.tools.idea.ui.screenshot.ScreenshotParameters
+import com.android.tools.idea.util.absoluteInProject
+import com.android.tools.idea.util.relativeToProject
 import com.android.tools.r8.retrace.InvalidMappingFileException
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFormatConfiguration
@@ -160,6 +163,7 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.ZoneId
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
@@ -168,6 +172,7 @@ import javax.swing.GroupLayout
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.io.path.exists
 import kotlin.io.path.pathString
 import kotlin.math.max
 import kotlinx.coroutines.Dispatchers
@@ -206,7 +211,7 @@ class LogcatMainPanelFactory {
      * development.
      */
     class NoopHyperlinkDetector : HyperlinkDetector {
-      override fun detectHyperlinks(startLine: Int, endLine: Int, sdk: Int?) {}
+      override fun detectHyperlinks(startLine: Int, endLine: Int, sdk: AndroidApiLevel?) {}
     }
 
     class GameToolsAndroidProjectDetector : AndroidProjectDetector {
@@ -292,7 +297,8 @@ constructor(
   private val noLogsBanner = WarningNotificationPanel()
   private val document = editor.document
   private val documentAppender = DocumentAppender(project, document, logcatSettings.bufferSize)
-  private val coroutineScope = AndroidCoroutineScope(this)
+  private val coroutineScope = createCoroutineScope()
+  @VisibleForTesting var proguardPath: Path? = null
 
   override var formattingOptions: FormattingOptions = state.getFormattingOptions()
     set(value) {
@@ -554,7 +560,15 @@ constructor(
       }
     }
 
-    state?.file?.let { deviceComboBox.addOrSelectFile(Path.of(it)) }
+    if (state?.file != null) {
+      deviceComboBox.addOrSelectFile(Path.of(state.file))
+    }
+    if (state?.proguardFile != null) {
+      val path = Path.of(state.proguardFile).absoluteInProject(project)
+      if (path.exists()) {
+        setProguardMapping(path)
+      }
+    }
   }
 
   private fun getPopupActionGroup(actions: Array<AnAction>): ActionGroup {
@@ -656,6 +670,7 @@ constructor(
         filter = headerPanel.filter,
         filterMatchCase = headerPanel.filterMatchCase,
         isSoftWrap = isSoftWrapEnabled(),
+        proguardFile = proguardPath?.relativeToProject(project)?.pathString,
       )
     )
   }
@@ -688,7 +703,7 @@ constructor(
       hyperlinkDetector.detectHyperlinks(
         startLine,
         endLine,
-        deviceComboBox.getSelectedDevice()?.sdk,
+        deviceComboBox.getSelectedDevice()?.apiLevel,
       )
       foldingDetector.detectFoldings(startLine, endLine)
 
@@ -731,7 +746,7 @@ constructor(
 
   private fun isLogsMissing(): Boolean {
     return document.immutableCharSequence.isEmpty() &&
-      messageBacklog.get().messages.isNotEmpty() &&
+      messageBacklog.get().isNotEmpty() &&
       !isMissingApplicationIds() &&
       headerPanel.filter.isNotEmpty()
   }
@@ -800,6 +815,7 @@ constructor(
     try {
       messageFormatter.setProguardMap(path)
       reloadMessages()
+      proguardPath = path
     } catch (e: InvalidMappingFileException) {
       DialogBuilder()
         .title(CommonBundle.message("dialog.error.title"))
@@ -902,7 +918,7 @@ constructor(
     coroutineScope.launch { loadLogcatFile(LogcatFileIo().readLogcat(path), loadFilter = false) }
   }
 
-  override fun isLogcatEmpty() = messageBacklog.get().messages.isEmpty()
+  override fun isLogcatEmpty() = messageBacklog.get().isEmpty()
 
   override fun isShowing(): Boolean {
     // Return true in tests, so we can test the LogcatEvent flow
@@ -912,26 +928,18 @@ constructor(
   override fun uiDataSnapshot(sink: DataSink) {
     val device = connectedDevice.get()
     sink[LOGCAT_PRESENTER_ACTION] = this
-    sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] =
+    sink[ScreenshotAction.SCREENSHOT_PARAMETERS_KEY] =
       device?.let {
-        ScreenshotOptions(
-          it.serialNumber,
-          it.model,
-          it.type ?: DeviceType.HANDHELD,
-          PRIMARY_DISPLAY_ID,
-          null,
-        )
+        ScreenshotParameters(it.serialNumber, it.type ?: DeviceType.HANDHELD, it.model)
       }
     sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] =
       device?.let {
-        ScreenRecorderAction.Parameters(
-          it.name,
+        ScreenRecordingParameters(
           it.serialNumber,
+          it.name,
           it.featureLevel,
-          if (it.isEmulator) it.deviceId else null,
-          PRIMARY_DISPLAY_ID,
-          null,
           this,
+          if (it.isEmulator) Paths.get(it.deviceId) else null,
         )
       }
     sink[CONNECTED_DEVICE] = device

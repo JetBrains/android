@@ -29,10 +29,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.TextAccessor
 import javax.swing.JEditorPane
 import org.junit.After
@@ -50,8 +52,8 @@ private val WARNING_DTD_HTML =
       </head>
       <body>
         App-data won't be backed up as allowBackup property is false.<br>Backup 
-        may contain Restore Keys, if present for the app.<br>(<a href="http://bar.com/">Learn 
-        more</a>)
+        may contain Restore Keys, if present for the app.<br>(<a href="learn-more">Learn 
+        more</a>, <a href="enable-backup">Enable in manifest</a>)
       </body>
     </html>
 """
@@ -65,8 +67,8 @@ private val WARNING_CLOUD_HTML =
       </head>
       <body>
         App-data won't be backed up as allowBackup property is false.<br>Restore 
-        Keys backup is not supported via this tool for Cloud.<br>backup type. (<a href="http://bar.com/">Learn 
-        more</a>)
+        Keys backup is not supported via this tool for Cloud.<br>backup type. (<a href="learn-more">Learn 
+        more</a>, <a href="enable-backup">Enable in manifest</a>)
       </body>
     </html>
 """
@@ -78,6 +80,7 @@ private val WARNING_CLOUD_HTML =
 class BackupDialogTest {
   private val projectRule = ProjectRule()
   private val temporaryFolder = TemporaryFolder()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
   val rule =
@@ -86,6 +89,7 @@ class BackupDialogTest {
       WaitForIndexRule(projectRule),
       temporaryFolder,
       HeadlessDialogRule(),
+      disposableRule,
       EdtRule(),
     )
 
@@ -109,6 +113,94 @@ class BackupDialogTest {
       it.clickOk()
       assertThat(it.type).isEqualTo(DEVICE_TO_DEVICE)
       assertThat(it.backupPath).isEqualTo(projectDir.resolve("application.backup"))
+    }
+  }
+
+  @Test
+  fun showDialog_appComboBox_order() {
+    project.replaceService(
+      ProjectAppsProvider::class.java,
+      object : ProjectAppsProvider {
+        override fun getApplicationIds(): Set<String> {
+          return setOf("app2", "app3")
+        }
+      },
+      disposableRule.disposable,
+    )
+
+    createDialog(
+      initialApplication = "app2",
+      debuggableApps = listOf("app4", "app3", "app2", "app1"),
+    ) {
+      val applicationComboBox = it.findComponent<ComboBox<String>>("applicationIdComboBox")
+      assertThat(applicationComboBox.getItemAt(0)).isEqualTo("app1")
+      assertThat(applicationComboBox.getItemAt(1)).isEqualTo("app2")
+      assertThat(applicationComboBox.getItemAt(2)).isEqualTo("app3")
+      assertThat(applicationComboBox.getItemAt(3)).isEqualTo("app4")
+    }
+  }
+
+  @Test
+  fun showDialog_appComboBox_projectApp() {
+    project.replaceService(
+      ProjectAppsProvider::class.java,
+      object : ProjectAppsProvider {
+        override fun getApplicationIds(): Set<String> {
+          return setOf("app2", "app3")
+        }
+      },
+      disposableRule.disposable,
+    )
+
+    createDialog(
+      initialApplication = "app2",
+      debuggableApps = listOf("app4", "app3", "app2", "app1"),
+    ) {
+      val applicationComboBox = it.findComponent<ComboBox<String>>("applicationIdComboBox")
+      assertThat(applicationComboBox.item).isEqualTo("app2")
+    }
+  }
+
+  @Test
+  fun showDialog_appComboBox_debuggableApp() {
+    project.replaceService(
+      ProjectAppsProvider::class.java,
+      object : ProjectAppsProvider {
+        override fun getApplicationIds(): Set<String> {
+          return setOf("app2", "app3")
+        }
+      },
+      disposableRule.disposable,
+    )
+
+    createDialog(
+      initialApplication = "app4",
+      debuggableApps = listOf("app4", "app3", "app2", "app1"),
+    ) {
+      val applicationComboBox = it.findComponent<ComboBox<String>>("applicationIdComboBox")
+      assertThat(applicationComboBox.item).isEqualTo("app4")
+    }
+  }
+
+  @Test
+  fun showDialog_appComboBox_uninstalledProjectApp() {
+    project.replaceService(
+      ProjectAppsProvider::class.java,
+      object : ProjectAppsProvider {
+        override fun getApplicationIds(): Set<String> {
+          return setOf("installed-project-app", "uninstalled-project-app")
+        }
+      },
+      disposableRule.disposable,
+    )
+
+    createDialog(
+      initialApplication = "non-project-app",
+      debuggableApps = listOf("installed-project-app", "non-project-app"),
+    ) {
+      val applicationComboBox = it.findComponent<ComboBox<String>>("applicationIdComboBox")
+      assertThat(applicationComboBox.items())
+        .containsExactly("installed-project-app", "non-project-app")
     }
   }
 
@@ -256,13 +348,17 @@ class BackupDialogTest {
 
   private fun createDialog(
     initialApplication: String = "app",
+    debuggableApps: List<String> = listOf(initialApplication),
     isBackupEnabled: Boolean = true,
     dialogInteractor: (BackupDialog) -> Unit,
   ) {
     createModalDialogAndInteractWithIt(
-      BackupDialog(project, initialApplication, isBackupEnabled)::show
+      BackupDialog(project, initialApplication, debuggableApps.associateWith { isBackupEnabled })::
+        show
     ) {
       dialogInteractor(it as BackupDialog)
     }
   }
 }
+
+private fun <T> ComboBox<T>.items() = (0 until itemCount).map(::getItemAt)

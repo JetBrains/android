@@ -106,15 +106,15 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     AndroidSdkHandler localHandler = myLocalHandlerProperty.get();
     RepoManager sdkManager = localHandler.getRepoManager(new StudioLoggerProgressIndicator(getClass()));
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
-                                 new StudioProgressRunner(true, false, "Finding Available SDK Components", null),
-                                 new StudioDownloader(), StudioSettingsController.getInstance());
+                    new StudioProgressRunner(false, "Finding Available SDK Components", null),
+                    new StudioDownloader(), StudioSettingsController.getInstance());
 
     Collection<RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages().values();
     components.add(AndroidPlatformSdkComponentTreeNode.Companion.createSubtree(remotePackages, myInstallUpdates));
 
     AehdSdkComponentTreeNode.InstallationIntention installationIntention =
       myInstallUpdates ? AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITH_UPDATES
-                       : AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITHOUT_UPDATES;
+                                                    : AehdSdkComponentTreeNode.InstallationIntention.INSTALL_WITHOUT_UPDATES;
     if (reason == FirstRunWizardMode.NEW_INSTALL && AehdSdkComponentTreeNode.InstallerInfo.canRun()) {
       components.add(new AehdSdkComponentTreeNode(installationIntention));
     }

@@ -132,10 +132,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getRegisteringModuleSystem(): RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>? =
     this as? RegisteringModuleSystem<RegisteredDependencyQueryId, RegisteredDependencyId>
 
-  /** Whether this module system supports adding dependencies of the given type via [registerDependency] */
-  fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION) =
-    if (getRegisteringModuleSystem() == null) CapabilityNotSupported() else CapabilitySupported()
-
   /**
    * Register a requested dependency of the given type with the build system.  Note that the requested dependency
    * won't be available (a.k.a. resolved) until the next sync. To ensure the dependency is resolved and available
@@ -471,13 +467,19 @@ interface RegisteredDependencyId
  */
 interface RegisteringModuleSystem<T: RegisteredDependencyQueryId, U: RegisteredDependencyId> {
   /** return an id suitable for querying for a corresponding existing registered dependency. */
-  fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): T?
+  fun getRegisteredDependencyQueryId(id: WellKnownMavenArtifactId): T
   /** return an id suitable for registering the corresponding dependency with the project. */
-  fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): U?
+  fun getRegisteredDependencyId(id: WellKnownMavenArtifactId): U
+  /** return whether this module is known to register a dependency on [id]. */
+  fun hasRegisteredDependency(id: WellKnownMavenArtifactId): Boolean = hasRegisteredDependency(getRegisteredDependencyQueryId(id))
+  /** return whether this module is known to register a dependency on [id]. */
+  fun hasRegisteredDependency(id: T): Boolean = getRegisteredDependency(id) != null
   /** query for the dependency corresponding to [id] in this module; returns null if unregistered. */
-  fun getRegisteredDependency(id: WellKnownMavenArtifactId): U? = getRegisteredDependencyQueryId(id)?.let { getRegisteredDependency(it) }
+  fun getRegisteredDependency(id: WellKnownMavenArtifactId): U? = getRegisteredDependency(getRegisteredDependencyQueryId(id))
   /** query for the dependency corresponding to [id] in this module; returns null if unregistered. */
   fun getRegisteredDependency(id: T): U?
+  /** register the dependency corresponding to [id] as a dependency of type [type] in this module. */
+  fun registerDependency(id: WellKnownMavenArtifactId, type: DependencyType) = registerDependency(getRegisteredDependencyId(id), type)
   /** register the [dependency] as a dependency of type [type] in this module. */
   fun registerDependency(dependency: U, type: DependencyType)
   /**

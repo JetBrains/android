@@ -20,6 +20,7 @@ import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.ShellProtocolType.SHELL
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.testing.DebugLoggerRule
 import com.google.common.truth.Truth.assertThat
@@ -67,7 +68,7 @@ class AdbFileOperationsTest(private val testDevice: TestDevices) {
     testDevice.addCommands(shellCommands)
 
     fakeAdbRule.fakeAdb.connectDevice(
-      deviceId = "test_device_01", manufacturer = "Google", deviceModel = "Pixel 10", release = "8.0", sdk = "31",
+      deviceId = "test_device_01", manufacturer = "Google", deviceModel = "Pixel 10", release = "8.0", sdk = AndroidApiLevel(31),
       hostConnectionType = DeviceState.HostConnectionType.USB)
 
     val device = runBlocking {

@@ -20,7 +20,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
-import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.common.border
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.adtui.workbench.WorkBench
@@ -34,8 +33,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
@@ -63,6 +60,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
@@ -86,10 +84,12 @@ import java.util.concurrent.locks.ReentrantLock
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -178,6 +178,7 @@ class VisualizationForm(
             }
           }
         }
+        .waitForRenderBeforeRestoringZoom(true)
         .setActionManagerProvider { surface: DesignSurface<*> ->
           VisualizationActionManager((surface as NlDesignSurface?)!!) { myCurrentModelsProvider }
         }
@@ -283,7 +284,7 @@ class VisualizationForm(
       myResourceNotifyingFilesLock.unlock()
     }
     for (file in registeredFiles) {
-      scope.launch(workerThread) { unregisterResourceNotification(file) }
+      scope.launch(Dispatchers.Default) { unregisterResourceNotification(file) }
     }
     removeModels(surface.models)
     surface.removeIssueListener(issueListener)
@@ -378,7 +379,7 @@ class VisualizationForm(
         } ?: emptyList()
       if (models.isEmpty()) myWorkBench.showLoading("No Device Found")
       if (models.isEmpty() || isRequestCancelled.get()) {
-        withContext(workerThread) { unregisterResourceNotification(myFile) }
+        withContext(Dispatchers.Default) { unregisterResourceNotification(myFile) }
       } else {
         myWorkBench.showContent()
         interruptRendering()
@@ -391,30 +392,32 @@ class VisualizationForm(
           )
           .await()
       }
-      // Re-layout and set scale before rendering. This may be processed delayed but we have
-      // known the preview number and sizes because the
-      // models are added, so it would layout correctly.
-      withContext(uiThread) {
-        surface.invalidate()
-        val lastScaling = VisualizationToolProjectSettings.getInstance(project).projectState.scale
-        if (!surface.zoomController.setScale(lastScaling)) {
-          // Update scroll area because the scaling doesn't change, which keeps the old scroll
-          // area and may not suitable to new
-          // configuration set.
-          surface.revalidateScrollArea()
-        }
-      }
 
       renderCurrentModels()
+
+      // Re-layout and set scale after rendering.
+      // This may be processed delayed but we have
+      // known the preview number and rendering provides the right sizes
+      // and the models are added, so it would layout correctly.
+      withContext(Dispatchers.EDT) { relayoutAndNotifyZoomToFit() }
 
       ApplicationManager.getApplication().invokeLater {
         surface.unregisterIndicator(myProgressIndicator)
       }
       if (!isRequestCancelled.get() && facet?.isDisposed == false) {
-        withContext(uiThread) { activateEditor(models.isNotEmpty()) }
+        withContext(Dispatchers.EDT) { activateEditor(models.isNotEmpty()) }
       } else {
         removeModels(models)
       }
+    }
+  }
+
+  private fun relayoutAndNotifyZoomToFit() {
+    surface.invalidate()
+    if (surface.zoomController.canZoomToFit()) {
+      // On every mode change we want to set zoom-to-fit, apply zoom-to-fit if it is not set
+      // already.
+      surface.notifyZoomToFit()
     }
   }
 
@@ -457,7 +460,7 @@ class VisualizationForm(
     } else {
       editor = myPendingEditor
       myPendingEditor = null
-      withContext(workerThread) { registerResourceNotification(myFile) }
+      withContext(Dispatchers.Default) { registerResourceNotification(myFile) }
       myWorkBench.setFileEditor(myEditor)
     }
   }
@@ -589,11 +592,11 @@ class VisualizationForm(
   }
 
   private suspend fun onActivate() {
-    withContext(workerThread) {
+    withContext(Dispatchers.Default) {
       registerResourceNotification(myFile)
       isActive = true
     }
-    withContext(uiThread) {
+    withContext(Dispatchers.EDT) {
       if (myContentPanel == null) {
         initializer.initContent(project, this@VisualizationForm) { initModel() }
       } else {
@@ -619,7 +622,7 @@ class VisualizationForm(
     myCancelPendingModelLoad.set(true)
     surface.deactivate()
     isActive = false
-    scope.launch(workerThread) { unregisterResourceNotification(myFile) }
+    scope.launch(Dispatchers.Default) { unregisterResourceNotification(myFile) }
     if (myContentPanel != null) {
       setNoActiveModel()
     }
@@ -638,6 +641,7 @@ class VisualizationForm(
         newConfigurationSet
       myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this)
       surface.layoutManagerSwitcher?.currentLayoutOption?.value = myLayoutOption
+      surface.resetZoomToFitNotifier(false)
       refresh()
     }
   }
@@ -704,16 +708,20 @@ class VisualizationForm(
     fun initContent(project: Project, form: VisualizationForm, onComplete: () -> Unit)
   }
 
+  @TestOnly
+  fun getDesignSurfaceForTestOnly(): NlDesignSurface {
+    return surface
+  }
+
+  @TestOnly
+  fun refreshForTestOnly() {
+    relayoutAndNotifyZoomToFit()
+  }
+
   companion object {
     @VisibleForTesting const val VISUALIZATION_DESIGN_SURFACE_NAME = "Layout Validation"
     private val VISUALIZATION_SUPPORTED_ACTIONS: Set<NlSupportedActions> =
       ImmutableSet.of(NlSupportedActions.TOGGLE_ISSUE_PANEL)
-
-    /** horizontal gap between different previews */
-    @SwingCoordinate private val GRID_HORIZONTAL_SCREEN_DELTA = 100
-
-    /** vertical gap between different previews */
-    @SwingCoordinate private val VERTICAL_SCREEN_DELTA = 48
 
     @JvmField
     val VISUALIZATION_FORM = DataKey.create<VisualizationForm>(VisualizationForm::class.java.name)

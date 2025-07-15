@@ -16,15 +16,11 @@
 package com.android.tools.idea.uibuilder.surface.interaction;
 
 import static com.android.resources.Density.DEFAULT_DENSITY;
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.MAX_MATCH_DISTANCE;
 
-import android.annotation.SuppressLint;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.configurations.ConfigurationSettings;
 import com.android.tools.configurations.Configurations;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.Interaction;
@@ -33,7 +29,6 @@ import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.MouseDraggedEvent;
 import com.android.tools.idea.common.surface.MousePressedEvent;
-import com.android.tools.idea.configurations.AdditionalDeviceService;
 import com.android.tools.idea.uibuilder.analytics.ResizeTracker;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.surface.DeviceSizeList;
@@ -47,19 +42,12 @@ import com.intellij.util.ui.update.Update;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
-import javax.swing.JComponent;
+import java.util.List;
 
 public class CanvasResizeInteraction implements Interaction {
   /**
@@ -73,10 +61,8 @@ public class CanvasResizeInteraction implements Interaction {
   @NotNull private final NlDesignSurface myDesignSurface;
   @NotNull private final ScreenView myScreenView;
   @NotNull private final Configuration myConfiguration;
-  private final List<DeviceLayer> myDeviceLayers = new ArrayList<>();
   private final Device myOriginalDevice;
   private final State myOriginalDeviceState;
-  private final DeviceSizeList myDeviceSizeList = new DeviceSizeList();
   private final MergingUpdateQueue myUpdateQueue;
   private final int myMaxSize;
 
@@ -90,7 +76,7 @@ public class CanvasResizeInteraction implements Interaction {
       }
     }
   };
-  private int myCurrentDpi;
+  private final int myCurrentDpi;
   private int myCurrentX;
   private int myCurrentY;
   @Nullable private DeviceSizeList.DeviceSize myLastSnappedDevice;
@@ -115,32 +101,6 @@ public class CanvasResizeInteraction implements Interaction {
     myOriginalDeviceState = configuration.getDeviceState();
 
     myCurrentDpi = configuration.getDensity().getDpiValue();
-    ConfigurationSettings configSettings = configuration.getSettings();
-
-    List<Device> devicesToShow;
-    if (Device.isWear(myOriginalDevice)) {
-      devicesToShow = configSettings.getDevices().stream().filter(
-        d -> Device.isWear(d) && !Configuration.CUSTOM_DEVICE_ID.equals(d.getId())).collect(Collectors.toList());
-    }
-    else if (Device.isTv(myOriginalDevice)) {
-      // There are only two devices and they have the same dip sizes, so just use one of them
-      devicesToShow = Collections.singletonList(configSettings.getDeviceById("tv_1080p"));
-    }
-    else {
-      // Reference devices as phone, foldable, tablet, desktop
-      devicesToShow = AdditionalDeviceService.getInstance().getWindowSizeDevices();
-    }
-
-    for (Device device : devicesToShow) {
-      assert device != null;
-      Screen screen = device.getDefaultHardware().getScreen();
-      double dpiRatio = 1.0 * myCurrentDpi / screen.getPixelDensity().getDpiValue();
-      int px = (int)(screen.getXDimension() * dpiRatio);
-      int py = (int)(screen.getYDimension() * dpiRatio);
-      myDeviceSizeList.add(device, px, py);
-      myDeviceLayers.add(new DeviceLayer(myDesignSurface, myScreenView, myConfiguration, px, py, device.getDisplayName()));
-    }
-    myDeviceSizeList.sort();
 
     myMaxSize = (int)(1.0 * MAX_ANDROID_SIZE * myCurrentDpi / DEFAULT_DENSITY);
   }
@@ -179,7 +139,8 @@ public class CanvasResizeInteraction implements Interaction {
         }
       }
 
-      snapToDevice(x, y);
+      myCurrentX = x;
+      myCurrentY = y;
 
       Dimension viewSize = myDesignSurface.getViewSize();
       int maxX = Coordinates.getSwingX(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
@@ -198,21 +159,6 @@ public class CanvasResizeInteraction implements Interaction {
     }
   }
 
-  private void snapToDevice(int x, int y) {
-    int androidX = Coordinates.getAndroidX(myScreenView, x);
-    int androidY = Coordinates.getAndroidY(myScreenView, y);
-    int snapThreshold = Coordinates.getAndroidDimension(myScreenView, MAX_MATCH_DISTANCE);
-    myLastSnappedDevice = myDeviceSizeList.snapToDevice(androidX, androidY, snapThreshold);
-    myCurrentDpi = myLastSnappedDevice == null ? myCurrentDpi : myLastSnappedDevice.getDevice().getDefaultHardware().getScreen().getPixelDensity().getDpiValue();
-
-    if (myLastSnappedDevice != null) {
-      myCurrentX = Coordinates.getSwingX(myScreenView, myLastSnappedDevice.getX());
-      myCurrentY = Coordinates.getSwingY(myScreenView, myLastSnappedDevice.getY());
-    } else {
-      myCurrentX = x;
-      myCurrentY = y;
-    }
-  }
 
   @Override
   public void commit(@NotNull InteractionEvent event) {
@@ -261,7 +207,6 @@ public class CanvasResizeInteraction implements Interaction {
   @Override
   public synchronized List<Layer> createOverlays() {
     ImmutableList.Builder<Layer> layers = ImmutableList.builder();
-    layers.addAll(myDeviceLayers);
     layers.add(new ResizeLayer());
     return layers.build();
   }
@@ -284,45 +229,6 @@ public class CanvasResizeInteraction implements Interaction {
         graphics.drawRect(x - 1, y - 1, myCurrentX - x, myCurrentY - y);
         graphics.dispose();
       }
-    }
-  }
-
-  private static class DeviceLayer extends Layer {
-    private final String myName;
-    @NotNull private final ScreenView myScreenView;
-    @NotNull private final Configuration myConfiguration;
-    private final int myNameWidth;
-    private final int myBigDimension;
-    private final int mySmallDimension;
-
-    public DeviceLayer(@NotNull JComponent designSurface, @NotNull ScreenView screenView, @NotNull Configuration configuration,
-                       int pxWidth, int pxHeight, @NotNull String name) {
-      myScreenView = screenView;
-      myConfiguration = configuration;
-      myBigDimension = Math.max(pxWidth, pxHeight);
-      mySmallDimension = Math.min(pxWidth, pxHeight);
-      myName = name;
-      FontMetrics fontMetrics = designSurface.getFontMetrics(designSurface.getFont());
-      myNameWidth = (int)fontMetrics.getStringBounds(myName, null).getWidth();
-    }
-
-    @Override
-    public void paint(@NotNull Graphics2D g2d) {
-      State deviceState = myConfiguration.getDeviceState();
-      assert deviceState != null;
-      boolean isDevicePortrait = deviceState.getOrientation() == ScreenOrientation.PORTRAIT;
-
-      int x = Coordinates.getSwingX(myScreenView, isDevicePortrait ? mySmallDimension : myBigDimension);
-      int y = Coordinates.getSwingY(myScreenView, isDevicePortrait ? myBigDimension : mySmallDimension);
-
-      Graphics2D graphics = (Graphics2D)g2d.create();
-      graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      graphics.setColor(NlConstants.RESIZING_CORNER_COLOR);
-      graphics.drawLine(x, y, x - NlConstants.RESIZING_CORNER_SIZE, y);
-      graphics.drawLine(x, y, x, y - NlConstants.RESIZING_CORNER_SIZE);
-      graphics.setColor(NlConstants.RESIZING_TEXT_COLOR);
-      graphics.drawString(myName, x - myNameWidth - 5, y - 5);
-      graphics.dispose();
     }
   }
 }

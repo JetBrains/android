@@ -30,14 +30,6 @@ public interface BuildResultHelper extends AutoCloseable {
   static final Logger logger = Logger.getInstance(BuildResultHelper.class);
 
   /**
-   * Returns the build flags necessary for the build result helper to work.
-   *
-   * <p>The user must add these flags to their build command.
-   */
-  List<String> getBuildFlags();
-
-
-  /**
    * Gets the BEP stream for the build. May only be called once. May only be called after the build is complete.
    */
   @MustBeClosed

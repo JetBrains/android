@@ -19,22 +19,28 @@ import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.hasKotlinFacet
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.AndroidViewNodes
+import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptNode
 import com.android.tools.idea.navigator.nodes.android.AndroidManifestsGroupNode
 import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode
 import com.android.tools.idea.navigator.nodes.android.AndroidResFolderNode
 import com.android.tools.idea.navigator.nodes.android.AndroidSourceTypeNode
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode
+import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider.ConfigurationFile
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviders
-import com.android.tools.idea.projectsystem.gradle.getAllLinkedModules
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.getAllLinkedModules
 import com.google.common.collect.HashMultimap
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
+import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidSourceType
 import org.jetbrains.android.facet.BUILT_IN_TYPES
@@ -104,7 +110,30 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
     if (sampleDataPsi != null) {
       result.add(PsiDirectoryNode(module.project, sampleDataPsi, settings))
     }
+
+    if (showBuildFilesInModule()) {
+      val psiManager = PsiManager.getInstance(project)
+      getBuildFiles(module).forEach {
+        val psiFile = psiManager.findFile(it.file)
+        if (psiFile != null && (!showInProjectBuildScriptsGroup(psiFile))) {
+          val qualifier = if (it.file.fileType == FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")) {
+            // Do not add "(Proguard Rules for 'module')" hint text when proguard file is shown in module
+            null
+          } else {
+            it.displayName
+          }
+          result.add(AndroidBuildScriptNode(project, psiFile, settings, qualifier, it.groupOrder))
+        }
+      }
+    }
     return result
+  }
+
+  private fun getBuildFiles(module: Module): List<ConfigurationFile> {
+    val allBuildFiles = module.project.getProjectSystem().getBuildConfigurationSourceProvider()?.getBuildConfigurationFiles()  ?: emptyList()
+    return allBuildFiles.filter {
+      ModuleUtilCore.moduleContainsFile(module, it.file, true) || ModuleUtilCore.moduleContainsFile(module, it.file, false)
+    }
   }
 }
 

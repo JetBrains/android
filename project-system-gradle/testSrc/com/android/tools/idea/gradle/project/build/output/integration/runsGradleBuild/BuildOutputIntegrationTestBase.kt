@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.build.output.integration.runsGradl
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.buildAndWait
@@ -29,6 +31,7 @@ import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.MessageEvent
+import com.intellij.build.events.OutputBuildEvent
 import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
@@ -79,6 +82,42 @@ abstract class BuildOutputIntegrationTestBase {
     return buildEvents
   }
 
+  fun PreparedTestProject.openAndBuildWithFailingTasks(
+    tasks: List<String>,
+    withStacktrace: Boolean,
+    verification: PreparedTestProject.Context.(List<BuildEvent>, Map<String, List<String>>) -> Unit
+  ) {
+    open { project ->
+      val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
+      val outputsMap = mutableMapOf<String, MutableList<String>>()
+      val allBuildEventsProcessedLatch = CountDownLatch(1)
+      // Build
+      val result = project.buildAndWait(eventHandler = { event ->
+        if (event is OutputBuildEvent) {
+          outputsMap.getOrPut(event.parentPath()) { ArrayList() }
+            .add(event.message)
+        }
+        if (event !is BuildIssueEvent && event !is MessageEvent && event !is FinishBuildEvent) return@buildAndWait
+        buildEvents.add(event)
+        // Events are generated in a separate thread(s) and if we don't wait for the FinishBuildEvent
+        // some might not reach here by the time we inspect them below resulting in flakiness (like b/318490086).
+        if (event is FinishBuildEventImpl) {
+          allBuildEventsProcessedLatch.countDown()
+        }
+      }) { buildInvoker ->
+        buildInvoker.executeTasks(
+          GradleBuildInvoker.Request.builder(project, projectRoot, tasks)
+            .setCommandLineArguments(if (withStacktrace) listOf("--stacktrace") else emptyList())
+            .build()
+        )
+      }
+      assertThat(result.isBuildSuccessful).isEqualTo(false)
+      allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
+
+      verification(buildEvents, outputsMap)
+    }
+  }
+
   fun List<BuildEvent>.finishEventFailures() = (filterIsInstance<FinishBuildEvent>().single().result as? FailureResult)?.failures
                                                        ?: emptyList()
 
@@ -103,12 +142,14 @@ abstract class BuildOutputIntegrationTestBase {
     return joinToString(separator = "\n") { it.toFullPathWithMessage() }
   }
   fun BuildEvent.toFullPathWithMessage(): String {
-    val parentPath = when (val parentId = parentId) {
-      null, is ExternalSystemTaskId -> "root"
-      else -> "root > ${parentId.toString().substringAfter(" > ")}"
-    }
+    val parentPath = parentPath()
     val kind = if (this is MessageEvent) "$kind:" else ""
     return "$parentPath > $kind'${message}'"
+  }
+
+  fun BuildEvent.parentPath(): String = when (val parentId = parentId) {
+    null, is ExternalSystemTaskId -> "root"
+    else -> "root > ${parentId.toString().substringAfter(" > ")}"
   }
 
   fun List<BuildEvent>.findBuildEvent(eventPath: String): BuildEvent {

@@ -31,13 +31,9 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
   static class State {
 
     /** Default query sync enabled settings, used when we are out of beta. */
-    public UseQuerySyncSection.UseQuerySync enabled = UseQuerySyncSection.UseQuerySync.TRUE;
+    public Boolean enabled = true;
 
     public boolean showDetailedInformationInEditor = true;
-
-    public boolean buildWorkingSet = false;
-
-    public boolean syncOnFileChanges = false;
   }
 
   private QuerySyncSettings.State state = new QuerySyncSettings.State();
@@ -47,11 +43,11 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
   }
 
   public void enableUseQuerySync(boolean enabled) {
-    state.enabled = enabled ? UseQuerySyncSection.UseQuerySync.TRUE : UseQuerySyncSection.UseQuerySync.FALSE;
+    state.enabled = enabled;
   }
 
   public boolean useQuerySync() {
-    return state.enabled != UseQuerySyncSection.UseQuerySync.FALSE;
+    return state.enabled;
   }
 
   public void enableShowDetailedInformationInEditor(boolean showDetailedInformationInEditor) {
@@ -60,24 +56,6 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
 
   public boolean showDetailedInformationInEditor() {
     return state.showDetailedInformationInEditor;
-  }
-
-  public void enableBuildWorkingSet(boolean buildWorkingSet) {
-    state.buildWorkingSet = buildWorkingSet;
-  }
-
-  public boolean buildWorkingSet() {
-    // Force to disable it as it's not a stable feature
-    return false;
-  }
-
-  public void enableSyncOnFileChanges(boolean syncOnFileChanges) {
-    state.syncOnFileChanges = syncOnFileChanges;
-  }
-
-  public boolean syncOnFileChanges() {
-    // Force to disable it as it's not a stable feature
-    return false;
   }
 
   @Override
@@ -112,8 +90,6 @@ public class QuerySyncSettings implements PersistentStateComponent<QuerySyncSett
       builder.put(
           "showDetailedInformationInEditor",
           Boolean.toString(settings.showDetailedInformationInEditor()));
-      builder.put("buildWorkingSet", Boolean.toString(settings.buildWorkingSet()));
-      builder.put("syncOnFileChanges", Boolean.toString(settings.syncOnFileChanges()));
       return builder.buildOrThrow();
     }
   }

@@ -16,8 +16,6 @@
 package com.android.tools.idea.streaming.xr
 
 import com.android.annotations.concurrency.UiThread
-import com.android.emulator.control.XrOptions
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
@@ -41,13 +39,16 @@ import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
 import kotlin.math.PI
 
+/** Distance of translational movement in meters in response to a discrete user action, e.g. pressing Ctrl+Plus. */
+internal const val TRANSLATION_STEP_SIZE: Float = 0.5F
+
 /**
  * Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough.
  * Thread safe.
  */
 internal abstract class AbstractXrInputController : Disposable {
 
-  @Volatile var environment: XrOptions.Environment? = null
+  @Volatile var environment: XrEnvironment? = null
     set(value) {
       requireNotNull(value)
       if (field != value) {
@@ -64,8 +65,7 @@ internal abstract class AbstractXrInputController : Disposable {
       }
     }
 
-  @Volatile var inputMode: XrInputMode =
-      if (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) XrInputMode.HAND else XrInputMode.HARDWARE
+  @Volatile var inputMode: XrInputMode = XrInputMode.INTERACTION
     @UiThread set(value) {
       if (field != value) {
         if (!areNavigationKeysEnabled(value)) {
@@ -100,6 +100,9 @@ internal abstract class AbstractXrInputController : Disposable {
 
   /** Controls passthrough mode on the device. */
   abstract suspend fun setPassthrough(passthroughCoefficient: Float)
+
+  /** Sends a command to move in the virtual space. The distances are in meters. */
+  abstract fun sendTranslation(x: Float, y: Float, z: Float)
 
   /**
    * Notifies the controller that a key was pressed.
@@ -156,7 +159,7 @@ internal abstract class AbstractXrInputController : Disposable {
    */
   @UiThread
   fun mousePressed(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
-    if (!isMouseUsedForNavigation(inputMode)) {
+    if (!isMouseUsedForNavigation()) {
       return false
     }
     if (event.button == BUTTON1) {
@@ -177,7 +180,7 @@ internal abstract class AbstractXrInputController : Disposable {
    */
   @UiThread
   fun mouseReleased(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
-    if (!isMouseUsedForNavigation(inputMode)) {
+    if (!isMouseUsedForNavigation()) {
       return false
     }
     if (event.button == BUTTON1) {
@@ -198,7 +201,7 @@ internal abstract class AbstractXrInputController : Disposable {
    */
   @UiThread
   fun mouseEntered(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
-    if (!isMouseUsedForNavigation(inputMode)) {
+    if (!isMouseUsedForNavigation()) {
       return false
     }
     if (event.modifiersEx and MouseEvent.BUTTON1_DOWN_MASK != 0) {
@@ -245,7 +248,7 @@ internal abstract class AbstractXrInputController : Disposable {
    */
   @UiThread
   fun mouseMoved(event: MouseEvent, deviceDisplaySize: Dimension, scaleFactor: Double): Boolean {
-    if (!isMouseUsedForNavigation(inputMode)) {
+    if (!isMouseUsedForNavigation()) {
       return false
     }
     event.consume()
@@ -277,14 +280,14 @@ internal abstract class AbstractXrInputController : Disposable {
       return 1 shl index
     }
     return when (keyCode) {
-      VK_RIGHT, VK_KP_RIGHT -> 1 shl NavigationKey.ROTATE_RIGHT.ordinal
-      VK_LEFT, VK_KP_LEFT -> 1 shl NavigationKey.ROTATE_LEFT.ordinal
-      VK_UP, VK_KP_UP -> 1 shl NavigationKey.ROTATE_UP.ordinal
-      VK_DOWN, VK_KP_DOWN -> 1 shl NavigationKey.ROTATE_DOWN.ordinal
-      VK_PAGE_UP -> 1 shl NavigationKey.ROTATE_RIGHT_UP.ordinal
-      VK_PAGE_DOWN -> 1 shl NavigationKey.ROTATE_RIGHT_DOWN.ordinal
-      VK_HOME -> 1 shl NavigationKey.ROTATE_LEFT_UP.ordinal
-      VK_END -> 1 shl NavigationKey.ROTATE_LEFT_DOWN.ordinal
+      VK_RIGHT, VK_KP_RIGHT -> NavigationKey.ROTATE_RIGHT.mask
+      VK_LEFT, VK_KP_LEFT -> NavigationKey.ROTATE_LEFT.mask
+      VK_UP, VK_KP_UP -> NavigationKey.ROTATE_UP.mask
+      VK_DOWN, VK_KP_DOWN -> NavigationKey.ROTATE_DOWN.mask
+      VK_PAGE_UP -> NavigationKey.ROTATE_RIGHT_UP.mask
+      VK_PAGE_DOWN -> NavigationKey.ROTATE_RIGHT_DOWN.mask
+      VK_HOME -> NavigationKey.ROTATE_LEFT_UP.mask
+      VK_END -> NavigationKey.ROTATE_LEFT_DOWN.mask
       else -> 0
     }
   }
@@ -295,37 +298,37 @@ internal abstract class AbstractXrInputController : Disposable {
    * opposite directions, e.g. [NavigationKey.ROTATE_RIGHT] and [NavigationKey.ROTATE_LEFT].
    */
   private fun pressedKeysMaskToNavigationMask(pressedKeysMask: Int): Int {
-    var mask = pressedKeysMask and ((1 shl NavigationKey.ROTATE_RIGHT_UP.ordinal) - 1)
-    if (pressedKeysMask and (1 shl NavigationKey.ROTATE_RIGHT_UP.ordinal) != 0) {
-      mask = mask or (1 shl NavigationKey.ROTATE_RIGHT.ordinal) or (1 shl NavigationKey.ROTATE_UP.ordinal)
+    var mask = pressedKeysMask and (NavigationKey.ROTATE_RIGHT_UP.mask - 1)
+    if (pressedKeysMask and NavigationKey.ROTATE_RIGHT_UP.mask != 0) {
+      mask = mask or NavigationKey.ROTATE_RIGHT.mask or NavigationKey.ROTATE_UP.mask
     }
-    if (pressedKeysMask and (1 shl NavigationKey.ROTATE_RIGHT_DOWN.ordinal) != 0) {
-      mask = mask or (1 shl NavigationKey.ROTATE_RIGHT.ordinal) or (1 shl NavigationKey.ROTATE_DOWN.ordinal)
+    if (pressedKeysMask and NavigationKey.ROTATE_RIGHT_DOWN.mask != 0) {
+      mask = mask or NavigationKey.ROTATE_RIGHT.mask or NavigationKey.ROTATE_DOWN.mask
     }
-    if (pressedKeysMask and (1 shl NavigationKey.ROTATE_LEFT_UP.ordinal) != 0) {
-      mask = mask or (1 shl NavigationKey.ROTATE_LEFT.ordinal) or (1 shl NavigationKey.ROTATE_UP.ordinal)
+    if (pressedKeysMask and NavigationKey.ROTATE_LEFT_UP.mask != 0) {
+      mask = mask or NavigationKey.ROTATE_LEFT.mask or NavigationKey.ROTATE_UP.mask
     }
-    if (pressedKeysMask and (1 shl NavigationKey.ROTATE_LEFT_DOWN.ordinal) != 0) {
-      mask = mask or (1 shl NavigationKey.ROTATE_LEFT.ordinal) or (1 shl NavigationKey.ROTATE_DOWN.ordinal)
+    if (pressedKeysMask and NavigationKey.ROTATE_LEFT_DOWN.mask != 0) {
+      mask = mask or NavigationKey.ROTATE_LEFT.mask or NavigationKey.ROTATE_DOWN.mask
     }
     // Cancel out keys acting in opposite directions.
     val opposites = intArrayOf(
-        (1 shl NavigationKey.MOVE_RIGHT.ordinal) or (1 shl NavigationKey.MOVE_LEFT.ordinal),
-        (1 shl NavigationKey.MOVE_UP.ordinal) or (1 shl NavigationKey.MOVE_DOWN.ordinal),
-        (1 shl NavigationKey.MOVE_BACKWARD.ordinal) or (1 shl NavigationKey.MOVE_FORWARD.ordinal),
-        (1 shl NavigationKey.ROTATE_RIGHT.ordinal) or (1 shl NavigationKey.ROTATE_LEFT.ordinal),
-        (1 shl NavigationKey.ROTATE_UP.ordinal) or (1 shl NavigationKey.ROTATE_DOWN.ordinal))
+        NavigationKey.MOVE_RIGHT.mask or NavigationKey.MOVE_LEFT.mask,
+        NavigationKey.MOVE_UP.mask or NavigationKey.MOVE_DOWN.mask,
+        NavigationKey.MOVE_BACKWARD.mask or NavigationKey.MOVE_FORWARD.mask,
+        NavigationKey.ROTATE_RIGHT.mask or NavigationKey.ROTATE_LEFT.mask,
+        NavigationKey.ROTATE_UP.mask or NavigationKey.ROTATE_DOWN.mask)
     for (m in opposites) {
       if ((mask and m) == m) {
         mask = mask and m.inv()
       }
     }
-    return mask
+    return mask and (NavigationKey.TRANSLATION_MASK or NavigationKey.ROTATION_MASK)
   }
 
   protected abstract fun sendVelocityUpdate(newMask: Int, oldMask: Int)
 
-  protected fun isMouseUsedForNavigation(inputMode: XrInputMode): Boolean {
+  fun isMouseUsedForNavigation(): Boolean {
     return when (inputMode) {
       XrInputMode.VIEW_DIRECTION, XrInputMode.LOCATION_IN_SPACE_XY, XrInputMode.LOCATION_IN_SPACE_Z -> true
       else -> false
@@ -348,35 +351,42 @@ internal abstract class AbstractXrInputController : Disposable {
   }
 
   protected enum class NavigationKey {
+    // Translation keys.
     MOVE_FORWARD,      // W
     MOVE_LEFT,         // A
     MOVE_BACKWARD,     // S
     MOVE_RIGHT,        // D
     MOVE_DOWN,         // Q
     MOVE_UP,           // E
+    // Rotation keys.
     ROTATE_RIGHT,      // Right arrow
     ROTATE_LEFT,       // Left arrow
     ROTATE_UP,         // Up arrow
     ROTATE_DOWN,       // Down arrow
+    // Combination rotation keys.
     ROTATE_RIGHT_UP,   // Page Up
     ROTATE_RIGHT_DOWN, // Page Down
     ROTATE_LEFT_UP,    // Home
     ROTATE_LEFT_DOWN;  // End
 
+    val mask: Int = 1 shl ordinal
+    val cumulativeMask: Int
+      get() = mask or (mask - 1)
+
     companion object {
-      const val TRANSLATION_MASK: Int = 0x3F
-      const val ROTATION_MASK: Int = 0x3C0
+      val TRANSLATION_MASK: Int = MOVE_UP.cumulativeMask
+      val ROTATION_MASK: Int = ROTATE_DOWN.cumulativeMask and TRANSLATION_MASK.inv()
     }
   }
 }
 
 internal enum class XrInputMode {
+  /** Mouse and keyboard events are used to interact with running apps. */
+  INTERACTION,
   /** Mouse is used to interact with running apps simulating hand tracking. */
   HAND,
   /** Mouse is used to interact with running apps simulating eye tracking. */
   EYE,
-  /** Mouse and keyboard events are transparently forwarded to the device. */
-  HARDWARE,
   /** Relative mouse coordinates control view direction. */
   VIEW_DIRECTION,
   /** Relative mouse coordinates control location in x-y plane. Mouse wheel controls moving forward and back. */

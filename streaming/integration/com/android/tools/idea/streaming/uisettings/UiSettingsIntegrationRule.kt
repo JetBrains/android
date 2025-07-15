@@ -19,14 +19,14 @@ import com.android.adblib.DeviceSelector
 import com.android.flags.junit.FlagRule
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.Resolution
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.findModelessDialog
-import com.android.tools.asdriver.tests.Adb
+import com.android.tools.testlib.Adb
 import com.android.tools.asdriver.tests.AndroidSystem
-import com.android.tools.asdriver.tests.Emulator
+import com.android.tools.testlib.Emulator
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.StreamingDevicePanel
@@ -78,8 +78,6 @@ internal enum class TestDeviceType {
  */
 internal class UiSettingsIntegrationRule : ExternalResource() {
   private val disposableRule = DisposableRule()
-  private val gestureRule = FlagRule(StudioFlags.EMBEDDED_EMULATOR_GESTURE_NAVIGATION_IN_UI_SETTINGS, true)
-  private val debugLayoutRule = FlagRule(StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS, true)
   private val timeoutRule = FlagRule(StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS, 30_000)
   private val headlessDialogRule = HeadlessDialogRule()
   private val projectRule = AndroidProjectRule.withAndroidModel(
@@ -100,7 +98,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
 
   private lateinit var adb: Adb
   private lateinit var fakeUi: FakeUi
-  private lateinit var toolWindow: StreamingDevicePanel
+  private lateinit var devicePanel: StreamingDevicePanel<*>
   private lateinit var emulator: Emulator
 
   fun onDevice(): UiSettingsIntegrationRule {
@@ -109,7 +107,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   }
 
   override fun apply(base: Statement, description: Description): Statement =
-    apply(base, description, projectRule, disposableRule, gestureRule, debugLayoutRule, timeoutRule, headlessDialogRule)
+    apply(base, description, projectRule, disposableRule, timeoutRule, headlessDialogRule)
 
   private fun apply(base: Statement, description: Description, vararg rules: TestRule): Statement {
     var statement = super.apply(base, description)
@@ -125,13 +123,13 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     emulator = system.runEmulator(Emulator.SystemImage.API_35, listOf("-qt-hide-window"))
     emulator.waitForBoot()
     installTestApplication()
-    toolWindow = createStreamingDevicePanel()
+    devicePanel = createStreamingDevicePanel()
     startRunningDeviceWindowUi()
   }
 
   override fun after() {
-    runInEdtAndWait { toolWindow.destroyContent() }
-    Disposer.dispose(toolWindow)
+    runInEdtAndWait { devicePanel.destroyContent() }
+    Disposer.dispose(devicePanel)
     emulator.close()
     System.clearProperty(AndroidSdkUtils.ADB_PATH_PROPERTY)
     val catalog = RunningEmulatorCatalog.getInstance()
@@ -178,7 +176,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     runInEdtAndWait { fixture.copyDirectoryToProject("res", "res") }
   }
 
-  private fun createStreamingDevicePanel() : StreamingDevicePanel {
+  private fun createStreamingDevicePanel() : StreamingDevicePanel<*> {
     return when (testType) {
       TestDeviceType.EMULATOR -> createEmulatorToolWindowPanel()
       TestDeviceType.DEVICE -> runBlocking { createDeviceToolWindowPanel() }
@@ -218,22 +216,22 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
 
   private fun startRunningDeviceWindowUi() {
     runInEdtAndWait {
-      val scrollPane = JBScrollPane(toolWindow).apply {
+      val scrollPane = JBScrollPane(devicePanel).apply {
         border = null
         isFocusable = true
         size = Dimension(200, 300)
       }
       fakeUi = FakeUi(scrollPane, createFakeWindow = true, parentDisposable = testRootDisposable)
-      toolWindow.createContent(true)
+      devicePanel.createContent(true)
       fakeUi.layoutAndDispatchEvents()
       fakeUi.render()
       if (testType == TestDeviceType.DEVICE) {
-        waitForDeviceInitialization(toolWindow, fakeUi)
+        waitForDeviceInitialization(devicePanel, fakeUi)
       }
     }
   }
 
-  private fun waitForDeviceInitialization(streamingDevicePanel: StreamingDevicePanel, fakeUi: FakeUi) {
+  private fun waitForDeviceInitialization(streamingDevicePanel: StreamingDevicePanel<*>, fakeUi: FakeUi) {
     val panel = streamingDevicePanel as DeviceToolWindowPanel
     val deviceView = panel.primaryDisplayView!!
     waitForCondition(30.seconds) { renderAndGetFrameNumber(fakeUi, deviceView) > 0u }
@@ -260,14 +258,14 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     return findDialog()!!
   }
 
-  private fun findDialog() = findModelessDialog { it is UiSettingsDialog && it.isShowing } as? UiSettingsDialog
+  private fun findDialog() = findModelessDialog<UiSettingsDialog> { it.isShowing }
 
   // Emulate a disconnect of the device
   fun cutConnectionToAgent() {
     if (testType != TestDeviceType.DEVICE) {
       error("Only intended to be used with a device test")
     }
-    val panel = toolWindow as DeviceToolWindowPanel
+    val panel = devicePanel as DeviceToolWindowPanel
     val deviceView = panel.primaryDisplayView!!
     killAdbServer()
     waitForCondition(30.seconds) { !deviceView.isConnected }

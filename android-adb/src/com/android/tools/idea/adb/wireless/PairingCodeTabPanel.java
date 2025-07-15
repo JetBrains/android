@@ -33,6 +33,7 @@ import javax.swing.JPanel;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.text.StyleContext;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Form that wraps a {@link PairingCodeContentPanel} with instructions text at the bottom.
@@ -40,14 +41,17 @@ import org.jetbrains.annotations.NotNull;
  */
 @UiThread
 public class PairingCodeTabPanel {
-  @NotNull private final Consumer<MdnsService> myPairingCodePairInvoked;
+  @NotNull private final Consumer<PairingMdnsService> myPairingCodePairInvoked;
   @NotNull private final PairingCodeContentPanel myContentPanel;
   @NotNull private JBLabel myFirstLineLabel;
   @NotNull private JBLabel mySecondLineLabel;
   @NotNull private JPanel myRootComponent;
   @NotNull private JPanel myContentPanelContainer;
+  @Nullable private final TrackingMdnsService mdnsServiceUnderPairing;
 
-  public PairingCodeTabPanel(@NotNull Consumer<MdnsService> pairingCodePairInvoked) {
+  public PairingCodeTabPanel(@NotNull Consumer<PairingMdnsService> pairingCodePairInvoked,
+                             @Nullable TrackingMdnsService mdnsServiceUnderPairing) {
+    this.mdnsServiceUnderPairing = mdnsServiceUnderPairing;
     setupUI();
     myPairingCodePairInvoked = pairingCodePairInvoked;
     myContentPanelContainer.setBackground(UIColors.PAIRING_CONTENT_BACKGROUND);
@@ -55,13 +59,13 @@ public class PairingCodeTabPanel {
     myFirstLineLabel.setForeground(UIColors.PAIRING_HINT_LABEL);
     mySecondLineLabel.setForeground(UIColors.PAIRING_HINT_LABEL);
 
-    myContentPanel = new PairingCodeContentPanel();
+    myContentPanel = new PairingCodeContentPanel(mdnsServiceUnderPairing);
     myContentPanelContainer.add(myContentPanel.getComponent(), BorderLayout.CENTER);
 
     showAvailableServices(new ArrayList<>());
   }
 
-  public void showAvailableServices(@NotNull List<MdnsService> devices) {
+  public void showAvailableServices(@NotNull List<PairingMdnsService> devices) {
     myContentPanel.showDevices(devices, myPairingCodePairInvoked);
   }
 
@@ -76,7 +80,11 @@ public class PairingCodeTabPanel {
     myFirstLineLabel = new JBLabel();
     Font myFirstLineLabelFont = getFont(null, Font.BOLD, -1, myFirstLineLabel.getFont());
     if (myFirstLineLabelFont != null) myFirstLineLabel.setFont(myFirstLineLabelFont);
-    myFirstLineLabel.setText("Set your Android 11+ device to pairing mode");
+    String deviceName = "Android 11+ device";
+    if (mdnsServiceUnderPairing != null) {
+      deviceName = mdnsServiceUnderPairing.getDisplayString();
+    }
+    myFirstLineLabel.setText(String.format("Set your %s to pairing mode", deviceName));
     myRootComponent.add(myFirstLineLabel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
                                                               GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null,
                                                               null, null, 0, false));

@@ -23,7 +23,7 @@ import static com.intellij.util.PlatformUtils.PLATFORM_PREFIX_KEY;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;

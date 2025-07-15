@@ -17,10 +17,9 @@ package com.android.tools.idea.lint.inspections
 
 import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
-import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.lint.quickFixes.AddWatchFaceFormatVersionPropertyQuickFix
 import com.android.tools.lint.checks.WatchFaceFormatVersionDetector
-import com.android.tools.lint.detector.api.LintFix
+import com.android.tools.lint.detector.api.Incident
 import com.intellij.psi.PsiElement
 
 class AndroidLintWatchFaceFormatMissingVersionInspection :
@@ -28,10 +27,8 @@ class AndroidLintWatchFaceFormatMissingVersionInspection :
     message("android.lint.inspections.watch.face.format.version.missing"),
     WatchFaceFormatVersionDetector.MISSING_VERSION_ISSUE,
   ) {
-  override fun getQuickFixes(
-    startElement: PsiElement,
-    endElement: PsiElement,
-    message: String,
-    fixData: LintFix?,
-  ): Array<LintIdeQuickFix> = arrayOf(AddWatchFaceFormatVersionPropertyQuickFix())
+
+  override fun getQuickFixes(startElement: PsiElement, endElement: PsiElement, incident: Incident) =
+    super.getQuickFixes(startElement, endElement, incident) +
+      AddWatchFaceFormatVersionPropertyQuickFix()
 }

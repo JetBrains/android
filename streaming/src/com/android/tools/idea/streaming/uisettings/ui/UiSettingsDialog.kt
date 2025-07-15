@@ -20,9 +20,11 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.PopupBorder
 import com.intellij.ui.WindowMoveListener
 import com.intellij.ui.WindowRoundedCornersManager
 import com.intellij.util.ui.JBUI
+import org.jetbrains.android.util.runOnDisposalOfAnyOf
 import java.awt.Component
 import java.awt.Container
 import java.awt.KeyboardFocusManager
@@ -37,6 +39,7 @@ import javax.swing.SwingUtilities
 private const val HORIZONTAL_MARGIN = 20
 private const val VERTICAL_MARGIN = 8
 private const val SEPARATOR_MARGIN = 4
+
 /**
  * Displays a dialog with setting shortcuts.
  */
@@ -51,7 +54,7 @@ internal class UiSettingsDialog(
 
   init {
     init()
-    Disposer.register(parentDisposable) {
+    runOnDisposalOfAnyOf(parentDisposable, disposable) {
       close()
     }
   }
@@ -60,7 +63,7 @@ internal class UiSettingsDialog(
     super.init()
     setUndecorated(true)
     rootPane.windowDecorationStyle = JRootPane.NONE
-    rootPane.border = JBUI.Borders.empty()
+    rootPane.border = PopupBorder.Factory.create(true, true)
     header.border = JBUI.Borders.compound(
       JBUI.Borders.customLineBottom(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground()),
       JBUI.Borders.empty(VERTICAL_MARGIN, HORIZONTAL_MARGIN, SEPARATOR_MARGIN, HORIZONTAL_MARGIN)

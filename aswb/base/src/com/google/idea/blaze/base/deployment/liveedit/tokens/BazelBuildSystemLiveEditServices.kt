@@ -19,6 +19,7 @@ import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
 import com.android.tools.idea.run.deployment.liveedit.tokens.BuildSystemLiveEditServices
+import com.android.tools.idea.run.deployment.liveedit.tokens.DesugarConfigs
 import com.google.idea.blaze.android.projectsystem.BazelProjectSystem
 import com.google.idea.blaze.android.projectsystem.BazelToken
 import com.google.idea.blaze.android.run.BazelApplicationProjectContext
@@ -53,6 +54,8 @@ class BazelBuildSystemLiveEditServices :
       override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
         throw UnsupportedOperationException()
       }
+
+      override fun getDesugarConfigs() = DesugarConfigs.NotKnown("Desugar config not supported in ASWB")
     }
   }
 }

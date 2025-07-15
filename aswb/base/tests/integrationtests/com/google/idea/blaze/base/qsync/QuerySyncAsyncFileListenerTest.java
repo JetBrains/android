@@ -17,12 +17,10 @@ package com.google.idea.blaze.base.qsync;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.idea.blaze.base.qsync.QuerySyncAsyncFileListener.SyncRequester;
 import com.google.idea.testing.java.LightJavaCodeInsightFixtureTestCase4Concrete;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -32,19 +30,12 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.nio.file.Path;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
 public class QuerySyncAsyncFileListenerTest extends LightJavaCodeInsightFixtureTestCase4Concrete {
-  @Rule public final MockitoRule mockito = MockitoJUnit.rule();
-
-  @Mock private SyncRequester mockSyncRequester;
 
   // Analogous to a directory included in the projectview file
   private static final Path INCLUDED_DIRECTORY = Path.of("my/project");
@@ -54,142 +45,30 @@ public class QuerySyncAsyncFileListenerTest extends LightJavaCodeInsightFixtureT
   }
 
   @Test
-  public void projectFileAdded_requestsSync() {
-    QuerySyncAsyncFileListener fileListener =
-        new TestListener(getFixture().getProject(), mockSyncRequester)
-            .setProjectInclude(projectRootPath().resolve(INCLUDED_DIRECTORY))
-            .setAutoSync(true);
-    VirtualFileManager.getInstance()
-        .addAsyncFileListener(fileListener, getFixture().getTestRootDisposable());
-    verify(mockSyncRequester, never()).requestSync();
-
+  public void buildFileModified_isReported() throws Exception {
     getFixture()
         .addFileToProject(
-            INCLUDED_DIRECTORY.resolve("java/com/example/Class1.java").toString(),
-            "package com.example;public class Class1{}");
-    ApplicationManager.getApplication()
-        .invokeAndWait(PlatformTestUtil::dispatchAllEventsInIdeEventQueue);
-    verify(mockSyncRequester, atLeastOnce()).requestSync();
-  }
-
-  @Test
-  public void projectFileAdded_autoSyncDisabled_neverRequestsSync() {
-    QuerySyncAsyncFileListener fileListener =
-        new TestListener(getFixture().getProject(), mockSyncRequester)
-            .setProjectInclude(projectRootPath().resolve(INCLUDED_DIRECTORY))
-            .setAutoSync(false);
-    VirtualFileManager.getInstance()
-        .addAsyncFileListener(fileListener, getFixture().getTestRootDisposable());
-
-    getFixture()
-        .addFileToProject(
-            INCLUDED_DIRECTORY.resolve("java/com/example/Class1.java").toString(),
-            "package com.example;public class Class1{}");
-    ApplicationManager.getApplication()
-        .invokeAndWait(PlatformTestUtil::dispatchAllEventsInIdeEventQueue);
-    verify(mockSyncRequester, never()).requestSync();
-  }
-
-  @Test
-  public void nonProjectFileAdded_neverRequestsSync() {
-    QuerySyncAsyncFileListener fileListener =
-        new TestListener(getFixture().getProject(), mockSyncRequester)
-            .setProjectInclude(projectRootPath().resolve(INCLUDED_DIRECTORY))
-            .setAutoSync(true);
-    VirtualFileManager.getInstance()
-        .addAsyncFileListener(fileListener, getFixture().getTestRootDisposable());
-    verify(mockSyncRequester, never()).requestSync();
-
-    getFixture()
-        .addFileToProject(
-            "some/other/path/Class1.java", "package some.other.path;public class Class1{}");
-    ApplicationManager.getApplication()
-        .invokeAndWait(PlatformTestUtil::dispatchAllEventsInIdeEventQueue);
-    verify(mockSyncRequester, never()).requestSync();
-  }
-
-  @Test
-  public void projectFileMoved_requestsSync() throws Exception {
-    getFixture()
-        .addFileToProject(
-            INCLUDED_DIRECTORY.resolve("java/com/example/Class1.java").toString(),
-            "package com.example;public class Class1 {}");
-    getFixture()
-        .getTempDirFixture()
-        .findOrCreateDir(INCLUDED_DIRECTORY.resolve("submodule/java/com/example").toString());
-
-    QuerySyncAsyncFileListener fileListener =
-        new TestListener(getFixture().getProject(), mockSyncRequester)
-            .setProjectInclude(projectRootPath().resolve(INCLUDED_DIRECTORY))
-            .setAutoSync(true);
-    VirtualFileManager.getInstance()
-        .addAsyncFileListener(fileListener, getFixture().getTestRootDisposable());
-    verify(mockSyncRequester, never()).requestSync();
-
-    WriteAction.runAndWait(
-        () ->
-            getFixture()
-                .moveFile(
-                    INCLUDED_DIRECTORY.resolve("java/com/example/Class1.java").toString(),
-                    INCLUDED_DIRECTORY.resolve("submodule/java/com/example").toString()));
-    ApplicationManager.getApplication()
-        .invokeAndWait(PlatformTestUtil::dispatchAllEventsInIdeEventQueue);
-    verify(mockSyncRequester, atLeastOnce()).requestSync();
-  }
-
-  @Test
-  public void projectFileModified_nonBuildFile_doesNotRequestSync() throws Exception {
-    getFixture()
-        .addFileToProject(
-            INCLUDED_DIRECTORY.resolve("java/com/example/Class1.java").toString(),
-            "package com.example;public class Class1 {}");
+            INCLUDED_DIRECTORY.resolve("BUILD").toString(),
+            "#");
 
     TestListener fileListener =
-        new TestListener(getFixture().getProject(), mockSyncRequester)
-            .setProjectInclude(projectRootPath().resolve(INCLUDED_DIRECTORY))
-            .setAutoSync(true);
+        new TestListener(getFixture().getProject())
+            .setProjectInclude(projectRootPath().resolve(INCLUDED_DIRECTORY));
     VirtualFileManager.getInstance()
         .addAsyncFileListener(fileListener, getFixture().getTestRootDisposable());
-    verify(mockSyncRequester, never()).requestSync();
+    assertThat(fileListener.hasModifiedBuildFiles()).isFalse();
 
     VirtualFile vf =
         getFixture()
             .findFileInTempDir(
-                INCLUDED_DIRECTORY.resolve("java/com/example/Class1.java").toString());
+                INCLUDED_DIRECTORY.resolve("BUILD").toString());
     WriteAction.runAndWait(
         () ->
             vf.setBinaryContent(
-                "/**LICENSE-TEXT*/package com.example;public class Class1{}".getBytes(UTF_8)));
+                "load(\"//something.bzl\")".getBytes(UTF_8)));
     ApplicationManager.getApplication()
         .invokeAndWait(PlatformTestUtil::dispatchAllEventsInIdeEventQueue);
 
-    verify(mockSyncRequester, never()).requestSync();
-    assertThat(fileListener.hasModifiedBuildFiles()).isFalse();
-  }
-
-  @Test
-  public void projectFileModified_buildFile_requestsSync() throws Exception {
-    getFixture()
-        .addFileToProject(
-            INCLUDED_DIRECTORY.resolve("BUILD").toString(), "java_library(name=\"java\",srcs=[])");
-
-    TestListener fileListener =
-        new TestListener(getFixture().getProject(), mockSyncRequester)
-            .setProjectInclude(projectRootPath().resolve(INCLUDED_DIRECTORY))
-            .setAutoSync(true);
-    VirtualFileManager.getInstance()
-        .addAsyncFileListener(fileListener, getFixture().getTestRootDisposable());
-    verify(mockSyncRequester, never()).requestSync();
-
-    VirtualFile vf = getFixture().findFileInTempDir(INCLUDED_DIRECTORY.resolve("BUILD").toString());
-    WriteAction.runAndWait(
-        () ->
-            vf.setBinaryContent(
-                "/**LICENSE-TEXT*/java_library(name=\"javalib\",srcs=[])".getBytes(UTF_8)));
-    ApplicationManager.getApplication()
-        .invokeAndWait(PlatformTestUtil::dispatchAllEventsInIdeEventQueue);
-
-    verify(mockSyncRequester, atLeastOnce()).requestSync();
     assertThat(fileListener.hasModifiedBuildFiles()).isTrue();
   }
 
@@ -199,10 +78,9 @@ public class QuerySyncAsyncFileListenerTest extends LightJavaCodeInsightFixtureT
    */
   private static class TestListener extends QuerySyncAsyncFileListener {
     private Path projectInclude = null;
-    private boolean autoSync;
 
-    public TestListener(Project project, SyncRequester syncRequester) {
-      super(project, syncRequester);
+    public TestListener(Project project) {
+      super(project);
     }
 
     @CanIgnoreReturnValue
@@ -211,20 +89,9 @@ public class QuerySyncAsyncFileListenerTest extends LightJavaCodeInsightFixtureT
       return this;
     }
 
-    @CanIgnoreReturnValue
-    public TestListener setAutoSync(boolean value) {
-      this.autoSync = value;
-      return this;
-    }
-
     @Override
     public boolean isPathIncludedInProject(Path absolutePath) {
       return absolutePath.startsWith(projectInclude);
-    }
-
-    @Override
-    public boolean syncOnFileChanges() {
-      return autoSync;
     }
   }
 }

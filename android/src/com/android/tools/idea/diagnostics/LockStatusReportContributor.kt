@@ -27,7 +27,7 @@ class LockStatusReportContributor : DiagnosticReportContributor {
   override fun setup(configuration: DiagnosticReportConfiguration) {}
 
   override fun startCollection(timeElapsedSoFarMs: Long) {
-    val allThreads = threadBean.getThreadInfo(threadBean.allThreadIds, true, true)
+    val allThreads = threadBean.getThreadInfo(threadBean.allThreadIds, true, true).filterNotNull()
     val freezeGraph = FreezeGraph.analyzeThreads(allThreads)
     val sb = StringBuilder()
     try {

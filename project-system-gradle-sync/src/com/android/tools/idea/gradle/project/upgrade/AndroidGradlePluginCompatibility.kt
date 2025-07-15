@@ -67,8 +67,8 @@ enum class AndroidGradlePluginCompatibility {
 fun computeAndroidGradlePluginCompatibility(current: AgpVersion, latestKnown: AgpVersion): AndroidGradlePluginCompatibility =
   run {
     val compatibleOrDeprecated = when {
-      latestKnown < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION) -> COMPATIBLE
-      current < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION) -> DEPRECATED
+      latestKnown < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION).withPreview("alpha01") -> COMPATIBLE
+      current < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION).withPreview("alpha01") -> DEPRECATED
       else -> COMPATIBLE
     }
     when {
@@ -77,7 +77,7 @@ fun computeAndroidGradlePluginCompatibility(current: AgpVersion, latestKnown: Ag
       current == latestKnown -> compatibleOrDeprecated // actually always compatible
       // If the current is lower than our minimum supported version, incompatible.
       // e.g. current = 3.1.0, latestKnown = 7.1.0-alpha09
-      current < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION) -> BEFORE_MINIMUM
+      current < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION).withPreview("alpha01") -> BEFORE_MINIMUM
       // If the current/latestKnown are RC or releases, and of the same major/minor series, compatible. (2)
       // e.g. current = 7.1.0-rc01, latestKnown = 7.1.0
       //      current = 7.1.0, latestKnown = 7.1.0-rc01

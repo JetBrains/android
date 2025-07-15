@@ -39,8 +39,8 @@ class BaselineProfilePrettyPrinterTest {
   fun prettyPrintTruncated() {
     // Regression test for https://issuetracker.google.com/260118216
 
-    val basefile = BinaryLightVirtualFile("app-benchmark.apk", getApkBytes("/app-benchmark.apk"))
-    val prof = getApkBytes("/app-benchmark.apk", ApkArchive.APK_BASELINE_PROFILE_PATH)
+    val basefile = BinaryLightVirtualFile("app-benchmark.apk", ApkTestUtils.getApkBytes("/app-benchmark.apk"))
+    val prof = ApkTestUtils.getApkBytes("/app-benchmark.apk", ApkArchive.APK_BASELINE_PROFILE_PATH)
     // Full text is 779 chars pretty printed. We're passing in a much smaller limit than the normal one
     // to simulate contents too large in the test without having a massive file.
     val text = ApkEditor.getPrettyPrintedBaseline(basefile, prof, Path.of(SdkConstants.FN_BINARY_ART_PROFILE), 600)
@@ -79,51 +79,15 @@ class BaselineProfilePrettyPrinterTest {
     assertEquals(expectedRules, rulesFromApp)
   }
 
+  private fun getExpectedRules() = ApkTestUtils.getResourceText("/expected-rules.txt")
+
   private fun getRulesFromApp(fileName: String, profilePath: String): String {
     val rules = BaselineProfilePrettyPrinter.prettyPrint(
-      getApkBytes(fileName),
+      ApkTestUtils.getApkBytes(fileName),
       File(profilePath).toPath(),
-      getApkBytes(fileName, profilePath)
+      ApkTestUtils.getApkBytes(fileName, profilePath)
     )
 
     return rules.replace("\r\n", "\n").trim()
-  }
-
-  private fun getExpectedRules(): String {
-    val stream = BaselineProfilePrettyPrinterTest::class.java.getResourceAsStream("/expected-rules.txt") ?: error(
-      "Could not find test data")
-    return stream.use { String(it.readBytes()) }
-  }
-
-  private fun getApkInputStream(fileName: String): InputStream {
-    return BaselineProfilePrettyPrinterTest::class.java.getResourceAsStream(fileName) ?: error("Could not find test data")
-  }
-
-  private fun getApkBytes(fileName: String): ByteArray {
-    val bytes: ByteArray = getApkInputStream(fileName).use { file ->
-      file.readBytes()
-    }
-    return bytes
-  }
-
-  private fun getApkBytes(fileName: String, path: String): ByteArray {
-    // this requires relative path
-    val pathRelative = path.removePrefix("/")
-
-    var contents: ByteArray? = null
-    getApkInputStream(fileName).use { file ->
-      ZipInputStream(file).use { zip ->
-        var entry = zip.nextEntry
-        while (entry != null) {
-          if (entry.name == pathRelative) {
-            contents = zip.readBytes()
-            break
-          }
-          zip.closeEntry()
-          entry = zip.nextEntry
-        }
-      }
-    }
-    return contents ?: error("Invalid app bundle file, entry \"$pathRelative\" not found")
   }
 }

@@ -53,6 +53,7 @@
     <orderEntry type="module" module-name="intellij.android.wear-pairing" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.wear-whs" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.device-manager-v2" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.plugin.descriptor" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.lint.common" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid.gradle" scope="RUNTIME" />

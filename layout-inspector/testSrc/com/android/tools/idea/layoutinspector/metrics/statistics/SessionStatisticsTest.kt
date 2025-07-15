@@ -64,6 +64,7 @@ class SessionStatisticsTest {
     assertThat(result.attach.debuggerAttached).isFalse()
     assertThat(result.attach.debuggerPausedDuringAttach).isFalse()
     assertThat(result.attach.attachDurationMs).isEqualTo(0)
+    assertThat(result.hasFoldEvent).isFalse()
   }
 
   @Test
@@ -96,6 +97,8 @@ class SessionStatisticsTest {
     stats.selectionMadeFromComponentTree(compose1)
     stats.debuggerInUse(false)
 
+    stats.foldInfoReceived()
+
     val data = DynamicLayoutInspectorSession.newBuilder()
     stats.save(data)
     val result = data.build()
@@ -120,6 +123,7 @@ class SessionStatisticsTest {
     assertThat(result.attach.isEmbeddedLayoutInspector).isTrue()
     assertThat(result.attach.debuggerAttached).isTrue()
     assertThat(result.attach.debuggerPausedDuringAttach).isFalse()
+    assertThat(result.hasFoldEvent).isTrue()
   }
 
   @Test

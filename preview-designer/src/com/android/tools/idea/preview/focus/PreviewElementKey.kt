@@ -17,7 +17,7 @@ package com.android.tools.idea.preview.focus
 
 import com.android.tools.preview.PreviewElement
 
-/** [TitledKey] for [FocusModeTabs]. */
-data class PreviewElementKey(val element: PreviewElement<*>) : TitledKey {
-  override val title: String = element.displaySettings.name
+/** [FocusKey] for [FocusModeTabs]. */
+data class PreviewElementKey(val element: PreviewElement<*>) : FocusKey {
+  override val settings = element.displaySettings
 }

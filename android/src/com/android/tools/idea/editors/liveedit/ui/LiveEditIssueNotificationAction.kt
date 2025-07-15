@@ -1,0 +1,250 @@
+/*
+ * Copyright (C) 2023 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.editors.liveedit.ui
+
+import com.android.annotations.concurrency.UiThread
+import com.android.ddmlib.IDevice
+import com.android.tools.adtui.status.IdeStatus
+import com.android.tools.adtui.status.InformationPopup
+import com.android.tools.adtui.status.InformationPopupImpl
+import com.android.tools.adtui.status.IssueNotificationAction
+import com.android.tools.adtui.status.POPUP_ACTION
+import com.android.tools.idea.actions.BrowserHelpAction
+import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditService
+import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
+import com.android.tools.idea.editors.sourcecode.isKotlinFileType
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
+import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
+import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.android.tools.idea.util.CommonAndroidUtil
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
+import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.keymap.KeymapManager
+import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.putUserData
+import com.intellij.ui.components.AnActionLink
+import com.intellij.util.ui.JBUI
+import org.jetbrains.android.refactoring.project
+import java.awt.Insets
+import java.util.Collections
+
+internal fun getStatusInfo(project: Project, dataContext: DataContext): LiveEditStatus {
+  val liveEditService = LiveEditService.getInstance(project)
+  val editor: Editor? = dataContext.getData(CommonDataKeys.EDITOR)
+  if (editor != null) {
+    val file = FileDocumentManager.getInstance().getFile(editor.document)
+    if (!project.isInitialized ||
+        file == null ||
+        !file.isKotlinFileType() ||
+        !editor.document.isWritable) {
+      return LiveEditStatus.Disabled
+    }
+
+    val insetDevices = LiveEditDeviceMap.deviceMap[project]?.devices()?.let { HashSet<IDevice>(it) } ?: Collections.emptySet()
+    return liveEditService.devices()
+      .filter { it !in insetDevices }
+      .map { liveEditService.editStatus(it) }
+      .fold(LiveEditStatus.Disabled, LiveEditStatus::merge)
+  }
+  else {
+    val device = LiveEditDeviceMap.deviceMap[project]?.device(dataContext) ?: return LiveEditStatus.Disabled
+    return liveEditService.editStatus(device)
+  }
+}
+
+/**
+ * Creates an [InformationPopup]. The given [dataContext] will be used by the popup to query for
+ * things like the current editor.
+ */
+private fun defaultCreateInformationPopup(
+  project: Project,
+  dataContext: DataContext,
+): InformationPopup? {
+  return getStatusInfo(project, dataContext).let { status ->
+    if (shouldHideImpl(status, dataContext)) {
+      return@let null
+    }
+
+    val link = status.actionId?.let {
+      val id = when (it) {
+        REFRESH_ACTION_ID -> if (LiveEditApplicationConfiguration.getInstance().leTriggerMode == ON_SAVE) LiveEditService.PIGGYBACK_ACTION_ID else MANUAL_LIVE_EDIT_ACTION_ID
+        else -> it
+      }
+      val action = ActionManager.getInstance().getAction(it)
+      val shortcut = KeymapManager.getInstance()?.activeKeymap?.getShortcuts(id)?.toList()?.firstOrNull()
+      AnActionLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}", action)
+    }
+
+    val upgradeAssistant =
+      if (status.title == LiveEditStatus.OutOfDate.title &&
+          status.description.contains(LiveEditUpdateException.Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR.message))
+        AnActionLink("View Upgrade Assistant", object : AnAction() {
+          override fun actionPerformed(e: AnActionEvent) {
+            ActionUtil.invokeAction(
+              ActionManager.getInstance().getAction("AgpUpgrade"),
+              e.dataContext,
+              RUNNING_DEVICES_TOOL_WINDOW_ID,
+              null,
+              null)
+          }
+        })
+      else
+        null
+
+    val configureLiveEditAction = ConfigureLiveEditAction()
+    return@let InformationPopupImpl(
+      null,
+      if (LiveEditService.isLeTriggerManual()) status.descriptionManualMode ?: status.description else status.description,
+      emptyList(),
+      listOfNotNull(
+        link,
+        upgradeAssistant,
+        AnActionLink("View Docs", BrowserHelpAction("Live Edit Docs", "https://developer.android.com/jetpack/compose/tooling/iterative-development#live-edit")),
+        AnActionLink("Configure Live Edit", configureLiveEditAction).apply {
+          setDropDownLinkIcon()
+          configureLiveEditAction.parentComponent = this
+          putUserData(POPUP_ACTION, true)
+        }
+      )
+    ).also { newPopup ->
+      configureLiveEditAction.parentDisposable = newPopup
+    }
+  }
+}
+
+/**
+ * An interface to exposed to external modules to implement in order to receive device serials and IDevices associated with those serials.
+ */
+internal interface DeviceGetter {
+  fun serial(dataContext: DataContext): String?
+  fun device(dataContext: DataContext): IDevice?
+  fun devices(): List<IDevice>
+}
+
+internal object LiveEditDeviceMap {
+  val deviceMap = HashMap<Project, DeviceGetter>()
+
+  fun registerProject(project: Project, deviceGetter: DeviceGetter) {
+    deviceMap[project] = deviceGetter
+  }
+
+  fun unregisterProject(project: Project) {
+    deviceMap.remove(project)
+  }
+}
+
+/**
+ * Action that reports the current state of Live Edit.
+ *
+ * This action reports:
+ * - State of Live Edit or preview out of date if Live Edit is disabled
+ * - Syntax errors
+ */
+class LiveEditIssueNotificationAction : IssueNotificationAction(::getStatusInfo, ::defaultCreateInformationPopup) {
+
+  override fun margins(): Insets {
+    return JBUI.insets(2)
+  }
+
+  @UiThread
+  override fun shouldHide(status: IdeStatus, dataContext: DataContext): Boolean {
+    return shouldHideImpl(status, dataContext)
+  }
+
+  @UiThread
+  override fun shouldSimplify(status: IdeStatus, dataContext: DataContext): Boolean {
+    val toolWindowId = dataContext.getData(PlatformDataKeys.TOOL_WINDOW)
+    return toolWindowId?.id == RUNNING_DEVICES_TOOL_WINDOW_ID && status.shouldSimplify
+  }
+
+  override fun getDisposableParentForPopup(e: AnActionEvent): Disposable? {
+    return e.project?.let { LiveEditService.getInstance(it) }
+  }
+}
+
+@UiThread
+private fun shouldHideImpl(status: IdeStatus, dataContext: DataContext): Boolean {
+  dataContext.project?.let { if (!CommonAndroidUtil.getInstance().isAndroidProject(it)) return true } ?: return true
+  if (status != LiveEditStatus.Disabled) {
+    // Always show when it's an active status, even if error.
+    return false
+  }
+  val toolWindowId = dataContext.getData(PlatformDataKeys.TOOL_WINDOW)
+  if (toolWindowId == null || toolWindowId.id != RUNNING_DEVICES_TOOL_WINDOW_ID) {
+    return true
+  }
+  // Only show for running devices tool window.
+  val project = dataContext.getData(CommonDataKeys.PROJECT) ?: return true
+  val serial = dataContext.getData(SERIAL_NUMBER_KEY) ?: return true
+  val bridge = AdbService.getInstance().getDebugBridge(project).let {
+    if (!it.isDone || it.isCancelled) {
+      null
+    } else {
+      try {
+        it.get()
+      } catch (_: Exception) {
+        null
+      }
+    }
+  }
+  val device = bridge?.devices?.find { it.serialNumber == serial } ?: return true
+  // Hide status when the device doesn't support Live Edit.
+  if (!LiveEditProjectMonitor.supportLiveEdits(device)) {
+    return true
+  }
+  // Hide status when the project isn't Compose.
+  if (!LiveEditService.usesCompose(project)) {
+    return true
+  }
+  // Hide status when Live Edit is already enabled (note: status is Disabled if we get to this part of the code).
+  return LiveEditApplicationConfiguration.getInstance().isLiveEdit
+}
+
+/**
+ * [DefaultActionGroup] that shows the notification chip and the [RedeployAction] button when applicable.
+ */
+class LiveEditNotificationGroup :
+  DefaultActionGroup(
+    "Live Edit Notification Actions",
+    listOf(LiveEditIssueNotificationAction(), RedeployAction(), Separator.getInstance()),
+  ), RightAlignedToolbarAction {
+
+  override fun update(event: AnActionEvent) {
+    val toolWindow = event.getData(PlatformDataKeys.TOOL_WINDOW)
+    event.presentation.isEnabledAndVisible =
+        toolWindow?.id != RUNNING_DEVICES_TOOL_WINDOW_ID || !StudioFlags.LIVE_EDIT_COMPACT_STATUS_BUTTON.get()
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+}

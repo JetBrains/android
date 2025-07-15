@@ -36,7 +36,10 @@ class ResourceIdBinaryParserTest {
                   ResourceClass.Field.IntArray(
                     name = "Styleable1",
                     isStatic = true,
-                    value = listOf(ResourceClass.Field.Int(name = "[0]", isStatic = false, value = 0x7f030001)),
+                    value =
+                      listOf(
+                        ResourceClass.Field.Int(name = "[0]", isStatic = false, value = 0x7f030001)
+                      ),
                   ),
                   ResourceClass.Field.IntArray(
                     name = "Styleable2",
@@ -46,6 +49,11 @@ class ResourceIdBinaryParserTest {
                         ResourceClass.Field.Int(name = "[0]", isStatic = false, value = 0x7f030003),
                         ResourceClass.Field.Int(name = "[1]", isStatic = false, value = 0x7f030004),
                       ),
+                  ),
+                  ResourceClass.Field.IntArray(
+                    name = "Styleable3",
+                    isStatic = true,
+                    value = emptyList(),
                   ),
                 ),
             ),
@@ -74,6 +82,7 @@ class ResourceIdBinaryParserTest {
                   ResourceClass.Field.Int(name = "layout2", isStatic = true, value = 0x7f020002),
                 ),
             ),
+            ResourceClass(name = "xml", declaredFields = emptyList()),
           ),
       )
     print(testResourceClass)

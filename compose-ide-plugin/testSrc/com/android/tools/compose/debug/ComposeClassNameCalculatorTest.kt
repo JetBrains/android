@@ -106,7 +106,7 @@ class ComposeClassNameCalculatorTest {
 
       val (element, className) = classNames.entries.first()
       assertInstanceOf<KtLambdaExpression>(element)
-      Assert.assertEquals("a.ComposableSingletons\$AppKt\$lambda-1$1", className)
+      Assert.assertEquals("a.ComposableSingletons\$AppKt", className)
     }
   }
 
@@ -141,7 +141,7 @@ class ComposeClassNameCalculatorTest {
 
       val (element, className) = classNames.entries.first()
       assertInstanceOf<KtLambdaExpression>(element)
-      Assert.assertEquals("ComposableSingletons\$AppKt\$lambda-1$1", className)
+      Assert.assertEquals("ComposableSingletons\$AppKt", className)
     }
   }
 
@@ -169,8 +169,7 @@ class ComposeClassNameCalculatorTest {
       Assert.assertEquals(
         mapOf(
           file to "AppKt",
-          file.findDescendantOfType<KtLambdaExpression>() to
-            "ComposableSingletons\$AppKt\$lambda-1\$1",
+          file.findDescendantOfType<KtLambdaExpression>() to "ComposableSingletons\$AppKt",
         ),
         allClassNames,
       )

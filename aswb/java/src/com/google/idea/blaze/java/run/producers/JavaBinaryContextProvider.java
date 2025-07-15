@@ -53,6 +53,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.Nullable;
 
 /** Creates run configurations for Java main classes sourced by java_binary targets. */
@@ -114,15 +115,14 @@ public class JavaBinaryContextProvider implements BinaryContextProvider {
   @Nullable
   private static TargetInfo getTargetInfoQuerySync(
       Project project, PsiClass mainClass, File mainClassFile) {
-    QuerySyncProject querySyncProject =
+    final var querySyncProject =
         QuerySyncManager.getInstance(project).getLoadedProject().orElse(null);
     if (querySyncProject == null) {
       return null;
     }
     BuildGraphData buildGraphData =
-        querySyncProject
-            .getSnapshotHolder()
-            .getCurrent()
+      QuerySyncManager.getInstance(project)
+            .getCurrentSnapshot()
             .map(QuerySyncProjectSnapshot::graph)
             .orElse(null);
     if (buildGraphData == null) {
@@ -130,7 +130,7 @@ public class JavaBinaryContextProvider implements BinaryContextProvider {
     }
 
     WorkspacePath path = querySyncProject.getWorkspaceRoot().workspacePathFor(mainClassFile);
-    ImmutableSet<Label> targetOwners = buildGraphData.getSourceFileOwners(Path.of(path.relativePath()));
+    Set<Label> targetOwners = buildGraphData.getSourceFileOwners(Path.of(path.relativePath()));
 
     if (targetOwners == null) {
       return null;

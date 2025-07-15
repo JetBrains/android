@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.compose.preview.util
 
+import com.android.resources.ScreenOrientation
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.compose.isValidPreviewLocation
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlDataProvider
@@ -35,12 +37,12 @@ import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.util.isAndroidModule
 import com.android.tools.idea.util.isCommonWithAndroidModule
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Segment
 import com.intellij.util.concurrency.annotations.RequiresReadLock
+import java.awt.Dimension
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
@@ -114,3 +116,22 @@ private fun KtNamedFunction.isInAndroidOrCommonModule(): Boolean {
 
 private fun KtNamedFunction.isInTestFile() =
   isTestFile(this.project, this.containingFile.virtualFile)
+
+private fun calculateDimensions(x: Int, y: Int, mScreenOrientation: ScreenOrientation?): Dimension {
+  // Determine if the desired orientation needs a swap.
+  val shouldSwapDimensions = (x > y) != (mScreenOrientation == ScreenOrientation.LANDSCAPE)
+
+  return if (shouldSwapDimensions) {
+    Dimension(y, x)
+  } else {
+    Dimension(x, y)
+  }
+}
+
+fun Configuration.deviceSize(): Dimension {
+  val deviceState = deviceState ?: return Dimension(0, 0)
+  val orientation = deviceState.orientation
+  val x = deviceState.hardware.screen.xDimension
+  val y = deviceState.hardware.screen.yDimension
+  return calculateDimensions(x, y, orientation)
+}

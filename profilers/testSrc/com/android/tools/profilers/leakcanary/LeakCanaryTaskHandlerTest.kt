@@ -29,6 +29,7 @@ import com.android.tools.profilers.SessionArtifactUtils
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
 import com.android.tools.profilers.sessions.SessionItem
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError.StartTaskSelectionErrorCode
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.leakcanary.LeakCanaryTaskArgs
@@ -158,10 +159,16 @@ class LeakCanaryTaskHandlerTest: WithFakeTimer {
   }
 
   @Test
-  fun `checkDeviceAndProcess - always returns true`() {
+  fun testCheckSupportForDeviceAndProcess() {
+    // LeakCanary task only checks the process support in call to checkSupportForDeviceAndProcess.
+    val device = TaskHandlerTestUtils.createDevice(AndroidVersion.VersionCodes.JELLY_BEAN)
+    val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
     val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
-    val qDevice = TaskHandlerTestUtils.createDevice(AndroidVersion.VersionCodes.Q)
-    assertNull(leakCanaryTaskHandler.checkSupportForDeviceAndProcess(qDevice, debuggableProcess))
+
+    assertNotNull(leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess))
+    assertEquals(leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, profileableProcess)!!.startTaskSelectionErrorCode,
+                 StartTaskSelectionErrorCode.TASK_REQUIRES_DEBUGGABLE_PROCESS)
+    assertNull(leakCanaryTaskHandler.checkSupportForDeviceAndProcess(device, debuggableProcess))
   }
 
   @Test

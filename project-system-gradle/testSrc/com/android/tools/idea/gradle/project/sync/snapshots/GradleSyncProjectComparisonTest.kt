@@ -99,6 +99,7 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.TEST_ONLY_MODULE),
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_ML_MODELS),
       ProjectStructureSnapshotTestDef(TestProject.MULTI_FLAVOR),
+      ProjectStructureSnapshotTestDef(TestProject.MULTI_FLAVOR_SWITCH_VARIANT),
       ProjectStructureSnapshotTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES),
       ProjectStructureSnapshotTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_GRADLE_DSL),
@@ -106,6 +107,7 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.PSD_SAMPLE_GROOVY),
       ProjectStructureSnapshotTestDef(TestProject.TWO_JARS),
       ProjectStructureSnapshotTestDef(TestProject.COMPOSITE_BUILD),
+      ProjectStructureSnapshotTestDef(TestProject.COMPOSITE_BUILD_WITH_DEPENDENCY_SUBS),
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC),
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM),
@@ -138,7 +140,7 @@ data class ProjectStructureSnapshotTestDef(
   }
 }
 
-private object LightGradleSyncReferenceTestProject: LightGradleSyncTestProject {
+private object LightGradleReferenceTestProject: LightGradleTestProject {
   override val templateProject: TemplateBasedTestProject = TestProject.LIGHT_SYNC_REFERENCE
   override val modelBuilders: List<ModuleModelBuilder> = listOf(
     JavaModuleModelBuilder.rootModuleBuilder.copy(
@@ -193,7 +195,7 @@ class LightSyncReferenceTest : SnapshotComparisonTest {
   var testName = TestName()
 
   @get:Rule
-  val projectRule = AndroidProjectRule.testProject(LightGradleSyncReferenceTestProject).named("reference")
+  val projectRule = AndroidProjectRule.testProjectNoSync(LightGradleReferenceTestProject).named("reference")
 
   override fun getName(): String = testName.methodName
   override val snapshotDirectoryWorkspaceRelativePath: String = PROJECT_STRUCTURE_SNAPSHOT_DIR

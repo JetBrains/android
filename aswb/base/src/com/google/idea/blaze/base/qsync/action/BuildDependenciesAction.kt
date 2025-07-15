@@ -71,11 +71,11 @@ class BuildDependenciesAction : BlazeProjectAction() {
     helper.determineTargetsAndRun(
       workspaceRelativePaths = WorkspaceRoot.virtualFilesToWorkspaceRelativePaths(project, vfs),
       disambiguateTargetPrompt = createDisambiguateTargetPrompt(PopupPositioner.showAtMousePointerOrCentered(e)),
-      targetDisambiguationAnchors = TargetDisambiguationAnchors.WorkingSet(helper),
+      targetDisambiguationAnchors = TargetDisambiguationAnchors.NONE,
       querySyncActionStats = querySyncActionStats,
     ) { labels ->
       QuerySyncManager.getInstance(project)
-        .enableAnalysis(labels + helper.workingSetTargetsIfEnabled, querySyncActionStats, TaskOrigin.USER_ACTION)
+        .enableAnalysis(labels, querySyncActionStats, TaskOrigin.USER_ACTION)
         .asDeferred()
     }
   }

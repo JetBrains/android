@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea;
 
-import com.android.tools.asdriver.tests.Adb;
 import com.android.tools.asdriver.tests.AndroidProject;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidSystem;
-import com.android.tools.asdriver.tests.Emulator;
+import com.android.tools.testlib.Adb;
+import com.android.tools.testlib.Emulator;
 import java.util.concurrent.TimeUnit;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 

@@ -18,7 +18,6 @@ package com.android.tools.idea.apk.viewer.pagealign
 import com.android.ide.common.pagealign.is16kAligned
 import com.android.tools.apk.analyzer.ArchiveEntry
 import com.android.tools.apk.analyzer.ArchiveNode
-import com.android.tools.apk.analyzer.ZipEntryInfo
 import com.android.tools.apk.analyzer.ZipEntryInfo.Alignment
 import com.android.tools.idea.ndk.PageAlignConfig.isPageAlignMessageEnabled
 import com.google.common.annotations.VisibleForTesting
@@ -52,8 +51,9 @@ private fun getHumanReadablePageSize(sizeInBytes: Long): String {
 /**
  * Compute the value of the "Alignment" column.
  */
-fun ArchiveEntry.getAlignmentFinding() = getAlignmentFinding(
+fun ArchiveEntry.getAlignmentFinding(extractNativeLibs: Boolean?) = getAlignmentFinding(
   "$path",
+  extractNativeLibs,
   elfMinimumLoadSectionAlignment,
   selfOrChild16kbIncompatible,
   fileAlignment
@@ -62,6 +62,7 @@ fun ArchiveEntry.getAlignmentFinding() = getAlignmentFinding(
 @VisibleForTesting
 fun getAlignmentFinding(
   path : String,
+  extractNativeLibs : Boolean?,
   elfMinimumLoadSectionAlignment : Long,
   selfOrChildLoadSectionIncompatible : Boolean,
   zipAlignment : Alignment
@@ -75,6 +76,7 @@ fun getAlignmentFinding(
     val isLoadSectionAligned = is16kAligned(elfMinimumLoadSectionAlignment)
     val isZipAligned = zipAlignment != Alignment.ALIGNMENT_4K
     val warning = when {
+        extractNativeLibs == true -> ""
         path == "/" -> "APK does not support 16 KB devices"
         elfMinimumLoadSectionAlignment == -1L -> ""
         !isLoadSectionAligned && !isZipAligned -> "$zipAlignText zip and $pageAlignText LOAD section, but 16 KB is required for both"
@@ -100,10 +102,10 @@ fun getAlignmentFinding(
 /**
  * Find paths with warns so that they can be expanded.
  */
-fun findPageAlignWarningsPaths(root : ArchiveNode): List<TreePath> {
+fun findPageAlignWarningsPaths(root : ArchiveNode, extractNativeLibs : Boolean?): List<TreePath> {
   val expand = mutableListOf<TreePath>()
   fun findPageAlignWarningsPaths(path : TreePath, node : ArchiveNode) {
-    val alignment = node.data.getAlignmentFinding()
+    val alignment = node.data.getAlignmentFinding(extractNativeLibs)
     if (alignment.hasWarning) expand.add(path)
     for(child in node.children) findPageAlignWarningsPaths(path.pathByAddingChild(child), child)
   }

@@ -20,10 +20,10 @@ import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.externalSystem.util.Order
-import com.intellij.openapi.util.registry.Registry
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
+import com.android.tools.idea.gradle.dcl.lang.flags.DeclarativeIdeSupport
 
 @Order(ExternalSystemConstants.UNORDERED)
 class GradleSchemaProjectResolver : AbstractProjectResolverExtension() {
@@ -38,7 +38,7 @@ class GradleSchemaProjectResolver : AbstractProjectResolverExtension() {
   }
 
   override fun populateProjectExtraModels(gradleProject: IdeaProject, ideProject: DataNode<ProjectData>) {
-    if (isDeclarativeIdeSupportEnabled()) {
+    if (DeclarativeIdeSupport.isEnabled()) {
       val declarativeSchemaModel = resolverCtx.getRootModel(DeclarativeSchemaModel::class.java) ?: return
       ideProject.createChild(DECLARATIVE_PROJECT_SCHEMAS, declarativeSchemaModel.convertProject())
       ideProject.createChild(DECLARATIVE_SETTINGS_SCHEMAS, declarativeSchemaModel.convertSettings())
@@ -47,13 +47,10 @@ class GradleSchemaProjectResolver : AbstractProjectResolverExtension() {
   }
 
   override fun getExtraBuildModelClasses(): Set<Class<*>> {
-    if (isDeclarativeIdeSupportEnabled()) {
+    if (DeclarativeIdeSupport.isEnabled()) {
       return setOf(DeclarativeSchemaModel::class.java)
     }
     return emptySet()
   }
-
-  private fun isDeclarativeIdeSupportEnabled(): Boolean =
-    Registry.get("gradle.declarative.ide.support").asBoolean()
 
 }

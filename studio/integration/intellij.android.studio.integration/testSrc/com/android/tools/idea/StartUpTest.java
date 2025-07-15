@@ -19,8 +19,8 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidStudioInstallation;
-import com.android.tools.asdriver.tests.Display;
-import com.android.tools.asdriver.tests.TestFileSystem;
+import com.android.tools.testlib.Display;
+import com.android.tools.testlib.TestFileSystem;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.SystemInfoRt;
 import java.util.ArrayList;
@@ -83,7 +83,6 @@ public class StartUpTest {
         "ClangFormat",
         "Code Coverage for Java",
         "com.intellij.dev",
-        "Platform Stream Debugger",
         "Configuration Script",
         "Copyright",
         "Eclipse Keymap",
@@ -94,9 +93,9 @@ public class StartUpTest {
         "Gemini",
         "Git for App Insights",
         "Git",
+        "Modal Commit Interface",
         "GitHub",
         "GitLab",
-        "Google Cloud Tools For Android Studio",
         "Gradle",
         "Gradle Declarative Support",
         "Gradle-Java",

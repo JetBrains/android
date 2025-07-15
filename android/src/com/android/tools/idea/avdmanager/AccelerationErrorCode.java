@@ -27,6 +27,7 @@ import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.Soluti
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_EMULATOR;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_PLATFORM_TOOLS;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_SYSTEM_IMAGES;
+import static com.android.tools.idea.avdmanager.EmulatorAccelerationCheck.MINIMUM_EMULATOR_VERSION;
 
 import com.android.SdkConstants;
 import com.intellij.openapi.diagnostic.Logger;
@@ -62,14 +63,15 @@ public enum AccelerationErrorCode {
   HYPER_V_ENABLED(15, "Android Emulator is incompatible with Hyper-V.", TURNOFF_HYPER_V, SOLUTION_TURN_OFF_HYPER_V),
   EMULATOR_ERROR(138, "Accelerator Detection Problem.", NONE, "Please file a bug against Android Studio."),
   UNKNOWN_ERROR(-1, "Unknown Error", NONE, "Please file a bug against Android Studio."),
-  NO_EMULATOR_INSTALLED(-2, "No emulator installed", DOWNLOAD_EMULATOR, "Please download the emulator"),
-  TOOLS_UPDATE_REQUIRED(-3, "Emulator is outdated", UPDATE_EMULATOR, "Please download the newest tools"),
+  NO_EMULATOR_INSTALLED(-2, "No emulator installed", DOWNLOAD_EMULATOR, "Please download the emulator."),
+  EMULATOR_UPDATE_REQUIRED(-3, "The currently installed emulator is no longer supported by this version of Android Studio.", UPDATE_EMULATOR, "Please update the emulator to version " + MINIMUM_EMULATOR_VERSION + " or later."),
   NOT_ENOUGH_MEMORY(-4, "Not enough memory to run the AVD", NONE, "Get more available memory for the AVD"),
   HAXM_REQUIRES_WINDOWS(-5, "HAXM is deprecated.", NONE, "Please file a bug against Android Studio."),
   PLATFORM_TOOLS_UPDATE_ADVISED(-6, "Platform tools update is available", UPDATE_PLATFORM_TOOLS, "Please download platform tools"),
   SYSTEM_IMAGE_UPDATE_ADVISED(-7, "System image update is available", UPDATE_SYSTEM_IMAGES, "Please update system images"),
   HAXM_REQUIRES_INTEL_CPU(-8, "HAXM is deprecated and should be uninstalled.", NONE, "Please use the latest emulator and follow https://developer.android.com/studio/run/emulator-acceleration#vm-windows to configure WHPX or AEHD instead"),
-  AEHD_REQUIRES_WINDOWS(-9, "Android Emulator hypervisor driver can only be installed on Windows.", NONE, "Please file a bug against Android Studio.");
+  AEHD_REQUIRES_WINDOWS(-9, "Android Emulator hypervisor driver can only be installed on Windows.", NONE, "Please file a bug against Android Studio."),
+  MACOS_VERSION_TOO_OLD(-10, "The Android Emulator requires macOS 12.7 or newer.", NONE, "Please upgrade to a newer version of macOS.");
 
   private int myErrorCode;
   private String myProblem;
@@ -130,6 +132,11 @@ public enum AccelerationErrorCode {
                       (SystemInfo.isWindows ? DEV_OBSOLETE_WIN :
                        UNKNOWN_ERROR);
       case 15: return HYPER_V_ENABLED;
+      case 134:
+        if (SystemInfo.isMac && !SystemInfo.isOsVersionAtLeast("12.7")) {
+          return MACOS_VERSION_TOO_OLD;
+        }
+        // fallthrough
       default:
         Logger.getInstance(AccelerationErrorCode.class).warn(SdkConstants.FN_EMULATOR_CHECK + " terminated with code " + code);
         return UNKNOWN_ERROR;

@@ -45,14 +45,12 @@ public class AndroidSqlColumnAliasNameImpl extends AbstractAndroidSqlNameElement
   }
 
   @Override
-  @NotNull
-  public String getName() {
+  public @NotNull String getName() {
     return PsiImplUtil.getName(this);
   }
 
   @Override
-  @NotNull
-  public AndroidSqlColumnAliasName setName(@NotNull String newName) {
+  public @NotNull AndroidSqlColumnAliasName setName(@NotNull String newName) {
     return PsiImplUtil.setName(this, newName);
   }
 

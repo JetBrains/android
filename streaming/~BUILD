@@ -58,6 +58,9 @@ iml_module(
         "emulator": {
             "test_filter": "com.android.tools.idea.streaming.emulator",
         },
+        "uisettings": {
+            "test_filter": "com.android.tools.idea.streaming.uisettings",
+        },
         "other": {},
     },
     test_class = "com.android.tools.idea.streaming.StreamingTestSuite",
@@ -104,6 +107,7 @@ iml_module(
         "@intellij//:intellij-sdk",
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "//tools/adt/idea/android-adb:intellij.android.adb.tests",
     ],
     test_friends = ["//tools/adt/idea/streaming:intellij.android.streaming"],
     test_srcs = ["testSrc"],
@@ -253,6 +257,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth",
         "//tools/adt/idea/artwork:intellij.android.artwork",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",
+        "//tools/adt/idea/android-adb:intellij.android.adb.tests",
     ],
     test_friends = ["//tools/adt/idea/streaming:intellij.android.streaming"],
     test_srcs = ["testUtil"],

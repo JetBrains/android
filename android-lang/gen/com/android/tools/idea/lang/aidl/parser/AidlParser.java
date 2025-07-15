@@ -1252,7 +1252,7 @@ public class AidlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // annotation_list VOID_KEYWORD | annotation_list ((primitiveType | class_or_interface_type) (LBRACKET RBRACKET)*)
+  // annotation_list VOID_KEYWORD | annotation_list ((primitiveType | class_or_interface_type) (LBRACKET const_expr? RBRACKET)*)
   public static boolean type_element(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_element")) return false;
     boolean r;
@@ -1274,7 +1274,7 @@ public class AidlParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // annotation_list ((primitiveType | class_or_interface_type) (LBRACKET RBRACKET)*)
+  // annotation_list ((primitiveType | class_or_interface_type) (LBRACKET const_expr? RBRACKET)*)
   private static boolean type_element_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_element_1")) return false;
     boolean r;
@@ -1285,7 +1285,7 @@ public class AidlParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // (primitiveType | class_or_interface_type) (LBRACKET RBRACKET)*
+  // (primitiveType | class_or_interface_type) (LBRACKET const_expr? RBRACKET)*
   private static boolean type_element_1_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_element_1_1")) return false;
     boolean r;
@@ -1305,7 +1305,7 @@ public class AidlParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // (LBRACKET RBRACKET)*
+  // (LBRACKET const_expr? RBRACKET)*
   private static boolean type_element_1_1_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_element_1_1_1")) return false;
     while (true) {
@@ -1316,14 +1316,23 @@ public class AidlParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // LBRACKET RBRACKET
+  // LBRACKET const_expr? RBRACKET
   private static boolean type_element_1_1_1_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_element_1_1_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokens(b, 0, LBRACKET, RBRACKET);
+    r = consumeToken(b, LBRACKET);
+    r = r && type_element_1_1_1_0_1(b, l + 1);
+    r = r && consumeToken(b, RBRACKET);
     exit_section_(b, m, null, r);
     return r;
+  }
+
+  // const_expr?
+  private static boolean type_element_1_1_1_0_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "type_element_1_1_1_0_1")) return false;
+    const_expr(b, l + 1);
+    return true;
   }
 
   /* ********************************************************** */

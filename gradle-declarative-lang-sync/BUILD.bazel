@@ -19,6 +19,7 @@ jvm_library(
     "//plugins/gradle/tooling-extension-api:toolingExtension",
     "//platform/util",
     "//plugins/gradle",
+    "//android/gradle-declarative-lang-flags",
   ],
   runtime_deps = [":gradle-declarative-lang-sync_resources"]
 )

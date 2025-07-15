@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.module
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.sdklib.AndroidMajorVersion
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.npw.SDK_VERSION_FOR_NPW_TESTS
@@ -28,7 +30,6 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.withCompileSdk
 import com.android.tools.idea.wizard.template.ApiTemplateData
-import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
@@ -174,9 +175,9 @@ class GenerateBaselineProfileModuleTest {
     androidApi: Int = StudioFlags.NPW_COMPILE_SDK_VERSION.get(),
   ): Pair<File, File> {
     val name = "baselineprofile"
-    val buildApi = ApiVersion(androidApi, "$androidApi")
-    val targetApi = ApiVersion(androidApi, "$androidApi")
-    val minApi = ApiVersion(34, "34")
+    val buildApi = AndroidVersion(androidApi, 0)
+    val targetApi = AndroidMajorVersion(androidApi)
+    val minApi = AndroidMajorVersion(34)
     val kotlinVersion = "1.9.0"
     val packageName = "com.test.packagename"
     val srcDir = tmpFolderRule.root.resolve("src").also { it.mkdir() }

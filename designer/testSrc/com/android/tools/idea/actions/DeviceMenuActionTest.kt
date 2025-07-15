@@ -20,24 +20,19 @@ import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationModelModule
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.configurations.AdditionalDeviceService
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.StudioConfigurationModelModule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.readAction
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.base.util.module
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -50,21 +45,7 @@ private fun isAvdAction(action: AnAction): Boolean {
 
 class DeviceMenuActionTest {
 
-  @JvmField @Rule val appRule = ApplicationRule()
-
   @JvmField @Rule val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
-
-  @Before
-  fun setUp() {
-    ApplicationManager.getApplication()
-      .registerServiceInstance(
-        AdditionalDeviceService::class.java,
-        AdditionalDeviceService(),
-        projectRule.testRootDisposable,
-      )
-    // Initial the window size devices, which is lazy.
-    AdditionalDeviceService.getInstance()!!.getWindowSizeDevices()
-  }
 
   private fun getReferenceDevicesExpected(): String {
     return """
@@ -168,13 +149,13 @@ class DeviceMenuActionTest {
               Automotive (1024p landscape) (1024 × 768 dp, mdpi)
               ------------------------------------------------------
               XR
-              XR Device (1280 × 1279 dp, xhdpi)
+              XR Headset (1280 × 1279 dp, xhdpi)
               ------------------------------------------------------
               Custom
               ------------------------------------------------------
               Generic Devices
                   Small Phone (360 × 640 dp, xhdpi)
-                  Resizable (Experimental) (411 × 914 dp, 420dpi)
+                  Resizable (411 × 914 dp, 420dpi)
                   Medium Tablet (1280 × 800 dp, xhdpi)
                   Medium Phone (411 × 914 dp, 420dpi)
                   8" Fold-out (838 × 945 dp, 420dpi)

@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea;
 
-import com.android.tools.asdriver.tests.Adb;
 import com.android.tools.asdriver.tests.AndroidProject;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidSystem;
-import com.android.tools.asdriver.tests.Emulator;
 import com.android.tools.asdriver.tests.MavenRepo;
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher;
 import com.android.tools.asdriver.tests.MemoryUsageReportProcessor;
 import com.android.tools.perflogger.Benchmark;
 import com.android.tools.perflogger.Metric;
+import com.android.tools.testlib.Adb;
+import com.android.tools.testlib.Emulator;
 import java.nio.file.Path;
 import java.time.Instant;
 import org.junit.Rule;

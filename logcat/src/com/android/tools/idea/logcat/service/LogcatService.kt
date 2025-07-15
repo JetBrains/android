@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.service
 
 import com.android.adblib.INFINITE_DURATION
+import com.android.sdklib.AndroidApiLevel
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.project.Project
@@ -26,7 +27,7 @@ import java.time.Duration
 interface LogcatService {
   suspend fun readLogcat(
     serialNumber: String,
-    sdk: Int,
+    sdk: AndroidApiLevel,
     duration: Duration = INFINITE_DURATION,
     newMessagesOnly: Boolean = false,
   ): Flow<List<LogcatMessage>>
@@ -36,7 +37,7 @@ interface LogcatService {
     duration: Duration = INFINITE_DURATION,
     newMessagesOnly: Boolean = false,
   ): Flow<List<LogcatMessage>> =
-    readLogcat(device.serialNumber, device.sdk, duration, newMessagesOnly)
+    readLogcat(device.serialNumber, device.apiLevel, duration, newMessagesOnly)
 
   suspend fun clearLogcat(serialNumber: String)
 

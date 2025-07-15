@@ -15,16 +15,26 @@
  */
 package com.android.tools.idea.imports
 
-import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
+import com.android.tools.idea.imports.MavenClassRegistry.LibraryImportData
+import com.android.tools.idea.projectsystem.DependencyType
+import com.android.tools.idea.projectsystem.DependencyType.ANNOTATION_PROCESSOR
+import com.android.tools.idea.projectsystem.DependencyType.DEBUG_IMPLEMENTATION
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.google.gson.stream.JsonReader
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.module.Module
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.name.FqName
+
+private val KOTLIN_ARTIFACT_PLATFORM_SUFFIXES =
+  Regex("-(android|desktop|jvmstubs|linuxx64stubs)$", RegexOption.IGNORE_CASE)
 
 /**
  * Registry contains [lookup] extracted by reading indices from [GMavenIndexRepository].
@@ -32,44 +42,42 @@ import org.jetbrains.kotlin.name.FqName
  * Here, it covers all the latest stable versions of libraries which are explicitly marked as `Yes`
  * to include in go/studio-auto-import-packages.
  */
-class MavenClassRegistry private constructor(val lookup: LookupData) : MavenClassRegistryBase() {
+class MavenClassRegistry private constructor(@VisibleForTesting internal val lookup: LookupData) {
+
   /**
-   * Given an unresolved name, returns the likely collection of
-   * [MavenClassRegistryBase.LibraryImportData] objects for the maven.google.com artifacts
-   * containing a class or function matching the [name] and [receiverType].
-   *
-   * This implementation only returns results of index data from [GMavenIndexRepository].
+   * Given an unresolved name, returns the likely collection of [LibraryImportData] objects for the
+   * maven.google.com artifacts containing a class or function matching the [name] and
+   * [receiverType].
    *
    * @param name simple or fully-qualified name typed by the user. May correspond to a class name
    *   (any files) or a top-level Kotlin function name (Kotlin files only).
    * @param receiverType the fully-qualified name of the receiver type, if any, or `null` for no
    *   receiver.
    */
-  override fun findLibraryData(
+  fun findLibraryData(
     name: String,
     receiverType: String?,
     useAndroidX: Boolean,
     completionFileType: FileType?,
+    module: Module,
   ): Collection<LibraryImportData> =
-    findLibraryDataInternal(name, receiverType, false, useAndroidX, completionFileType)
+    findLibraryDataInternal(name, receiverType, false, useAndroidX, completionFileType, module)
 
   /**
-   * Given an unresolved name, returns the likely collection of
-   * [MavenClassRegistryBase.LibraryImportData] objects for the maven.google.com artifacts
-   * containing a class or function matching the [name].
-   *
-   * This implementation only returns results of index data from [GMavenIndexRepository].
+   * Given an unresolved name, returns the likely collection of [LibraryImportData] objects for the
+   * maven.google.com artifacts containing a class or function matching the [name].
    *
    * @param name simple or fully-qualified name typed by the user. May correspond to a class name
    *   (any files) or a top-level Kotlin function name, including extension functions (Kotlin files
    *   only).
    */
-  override fun findLibraryDataAnyReceiver(
+  fun findLibraryDataAnyReceiver(
     name: String,
     useAndroidX: Boolean,
     completionFileType: FileType?,
+    module: Module,
   ): Collection<LibraryImportData> =
-    findLibraryDataInternal(name, null, true, useAndroidX, completionFileType)
+    findLibraryDataInternal(name, null, true, useAndroidX, completionFileType, module)
 
   private fun findLibraryDataInternal(
     name: String,
@@ -77,6 +85,7 @@ class MavenClassRegistry private constructor(val lookup: LookupData) : MavenClas
     anyReceiver: Boolean,
     useAndroidX: Boolean,
     completionFileType: FileType?,
+    module: Module,
   ): Collection<LibraryImportData> {
     // We only support projects that set android.useAndroidX=true.
     if (!useAndroidX) return emptyList()
@@ -84,31 +93,84 @@ class MavenClassRegistry private constructor(val lookup: LookupData) : MavenClas
     val shortName = name.substringAfterLast('.', missingDelimiterValue = name)
     val packageName = name.substringBeforeLast('.', missingDelimiterValue = "")
 
-    val foundArtifacts = buildList {
-      if (anyReceiver || receiverType == null) lookup.classNameMap[shortName]?.let { addAll(it) }
-      // Only suggest top-level Kotlin functions when completing in a Kotlin file.
-      if (completionFileType == KotlinFileType.INSTANCE) {
-        if (anyReceiver) {
-          lookup.topLevelFunctionsMapAllReceivers[shortName]?.let { addAll(it) }
-        } else {
-          val functionSpecifier = FunctionSpecifier(shortName, receiverType?.let(::FqName))
-          lookup.topLevelFunctionsMap[functionSpecifier]?.let { addAll(it) }
+    val shouldMap =
+      module.project
+        .getProjectSystem()
+        .getTokenOrNull(AndroidMavenImportToken.EP_NAME)
+        ?.shouldMapKmpArtifacts(module) ?: false
+
+    val foundArtifacts =
+      buildList {
+          if (anyReceiver || receiverType == null)
+            lookup.classNameMap[shortName]?.let { addAll(it) }
+          // Only suggest top-level Kotlin functions when completing in a Kotlin file.
+          if (completionFileType == KotlinFileType.INSTANCE) {
+            if (anyReceiver) {
+              lookup.topLevelFunctionsMapAllReceivers[shortName]?.let { addAll(it) }
+            } else {
+              val functionSpecifier = FunctionSpecifier(shortName, receiverType?.let(::FqName))
+              lookup.topLevelFunctionsMap[functionSpecifier]?.let { addAll(it) }
+            }
+          }
         }
-      }
-    }
+        .mapNotNull { data ->
+          if (shouldMap && data.artifact in lookup.kmpArtifactMap) {
+            // If the artifact is in the map, then we either replace it or drop it.
+            val baseArtifact = lookup.kmpArtifactMap[data.artifact]
+            baseArtifact?.let { data.copy(artifact = it) }
+          } else {
+            // For artifacts not in the map, just use the existing data.
+            data
+          }
+        }
+        .distinct()
 
     if (packageName.isEmpty()) return foundArtifacts
 
     return foundArtifacts.filter { it.importedItemPackageName == packageName }
   }
 
-  override fun findKtxLibrary(artifact: String): String? {
+  /**
+   * For the given runtime artifact, if Kotlin is the adopted language, the corresponding ktx
+   * library is provided.
+   */
+  fun findKtxLibrary(artifact: String): String? {
     return lookup.ktxMap[artifact]
   }
 
-  override fun getCoordinates(): Collection<Coordinate> {
+  /** Returns a collection of [Coordinate]. */
+  fun getCoordinates(): Collection<Coordinate> {
     return lookup.coordinateList
   }
+
+  /**
+   * Returns a value indicating whether a given [packageName] is included in any of the libraries
+   * indexed by this registry.
+   */
+  fun isPackageIndexed(packageName: String): Boolean {
+    return packageName in allIndexedPackages
+  }
+
+  private val allIndexedPackages by
+    lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+      (lookup.classNameMap.values + lookup.topLevelFunctionsMap.values)
+        .flatten()
+        .mapNotNull { it.importedItemPackageName.takeIf(String::isNotEmpty) }
+        .toSet()
+    }
+
+  /**
+   * Given a simple class name (eg, not a fully-qualified name), returns a collection of
+   * [LibraryImportData] objects that contains a class with that name.
+   */
+  fun findImportDataByClassName(simpleClassName: String) = lookup.classNameMap[simpleClassName]
+
+  /**
+   * Given a [FunctionSpecifier], returns a collection of [LibraryImportData] objects that contains
+   * a matching top-level function.
+   */
+  fun findImportDataByFunctionSpecifier(functionSpecifier: FunctionSpecifier) =
+    lookup.topLevelFunctionsMap[functionSpecifier]
 
   private enum class IndexKey(val key: String) {
     GROUP_ID("groupId"),
@@ -124,6 +186,29 @@ class MavenClassRegistry private constructor(val lookup: LookupData) : MavenClas
     fun createFrom(getIndexFileStream: () -> InputStream): MavenClassRegistry {
       val lookup = generateLookup(getIndexFileStream())
       return MavenClassRegistry(lookup)
+    }
+
+    /**
+     * For the given artifact, if it also requires extra artifacts for proper functionality, provide
+     * it.
+     *
+     * This is to handle those special cases. For example, for an unresolved symbol "@Preview",
+     * "androidx.compose.ui:ui-tooling-preview" is one of the suggested artifacts to import based on
+     * the extracted contents from the GMaven index file. However, this is not enough
+     * -"androidx.compose.ui:ui-tooling" should be added on instead. So we just provide both in the
+     * end.
+     */
+    fun findExtraArtifacts(artifact: String): Map<String, DependencyType> {
+      return when (artifact) {
+        "androidx.room:room-runtime",
+        "android.arch.persistence.room:runtime" ->
+          mapOf("android.arch.persistence.room:compiler" to ANNOTATION_PROCESSOR)
+        "androidx.remotecallback:remotecallback" ->
+          mapOf("androidx.remotecallback:remotecallback-processor" to ANNOTATION_PROCESSOR)
+        "androidx.compose.ui:ui-tooling-preview" ->
+          mapOf("androidx.compose.ui:ui-tooling" to DEBUG_IMPLEMENTATION)
+        else -> emptyMap()
+      }
     }
 
     private fun generateLookup(data: InputStream): LookupData {
@@ -159,10 +244,12 @@ class MavenClassRegistry private constructor(val lookup: LookupData) : MavenClas
         mutableListOf()
       val ktxMap: MutableMap<String, String> = mutableMapOf()
       val coordinateList: MutableList<Coordinate> = mutableListOf()
+      val allIndexData: MutableList<GMavenArtifactIndex> = mutableListOf()
 
       reader.beginArray()
       while (reader.hasNext()) {
         val indexData = readGMavenIndex(reader)
+        allIndexData.add(indexData)
 
         // Get class names and their associated libraries.
         classNames.addAll(indexData.getClassSimpleNamesWithLibraries())
@@ -181,7 +268,34 @@ class MavenClassRegistry private constructor(val lookup: LookupData) : MavenClas
       val classNameMap = classNames.groupBy({ it.first }, { it.second })
       val topLevelFunctionsMap = topLevelFunctions.groupBy({ it.first }, { it.second })
 
-      return LookupData(classNameMap, topLevelFunctionsMap, ktxMap, coordinateList)
+      val kmpArtifactMap = allIndexData.toKmpArtifactMap()
+      return LookupData(classNameMap, topLevelFunctionsMap, ktxMap, kmpArtifactMap, coordinateList)
+    }
+
+    private fun List<GMavenArtifactIndex>.toKmpArtifactMap(): Map<String, String?> {
+      val artifactToVersionMap = this.associate { "${it.groupId}:${it.artifactId}" to it.version }
+
+      val candidateArtifacts =
+        artifactToVersionMap.keys.filter { KOTLIN_ARTIFACT_PLATFORM_SUFFIXES.containsMatchIn(it) }
+
+      return buildMap {
+        for (candidateArtifact in candidateArtifacts) {
+          val candidateVersion = requireNotNull(artifactToVersionMap[candidateArtifact])
+          val baseArtifact = candidateArtifact.substringBeforeLast('-')
+
+          // Only do a replacement if the base artifact exists in some form.
+          if (baseArtifact in artifactToVersionMap) {
+            if (candidateVersion == artifactToVersionMap[baseArtifact]) {
+              // When the versions match, we want to do a replacement.
+              put(candidateArtifact, baseArtifact)
+            } else {
+              // When the versions don't match, we want to drop the platform-specific
+              // recommendation.
+              put(candidateArtifact, null)
+            }
+          }
+        }
+      }
     }
 
     @Throws(IOException::class)
@@ -289,6 +403,57 @@ class MavenClassRegistry private constructor(val lookup: LookupData) : MavenClas
       return decoratedLibraries
     }
   }
+
+  /**
+   * Library data for importing a specific item (class or function) with its GMaven artifact.
+   *
+   * @property artifact maven coordinate: groupId:artifactId, please note version is not included
+   *   here.
+   * @property importedItemFqName fully-qualified name of the item to import. Can be a class or
+   *   function name.
+   * @property importedItemPackageName package name of the item to import.
+   * @property version the version of the [artifact].
+   */
+  data class LibraryImportData(
+    val artifact: String,
+    val importedItemFqName: String,
+    val importedItemPackageName: String,
+    val version: String? = null,
+  )
+
+  /** Coordinate for Google Maven artifact. */
+  data class Coordinate(val groupId: String, val artifactId: String, val version: String)
+
+  /** Lookup data extracted from an index file. */
+  data class LookupData(
+    /** A map from simple class names to the corresponding [LibraryImportData] objects. */
+    val classNameMap: Map<String, List<LibraryImportData>>,
+    /** A map from function specifiers to the corresponding [LibraryImportData] objects. */
+    val topLevelFunctionsMap: Map<FunctionSpecifier, List<LibraryImportData>>,
+    /** A map from non-KTX libraries to the associated KTX libraries. */
+    val ktxMap: Map<String, String>,
+    /**
+     * A map from platform-specific artifacts to general artifacts, eg
+     * "androidx.compose.ui:ui-android" to "androidx.compose.ui:ui". If the value is null, then the
+     * artifact shouldn't be used for KMP purposes.
+     */
+    val kmpArtifactMap: Map<String, String?>,
+    /** A list of Google Maven [Coordinate]. */
+    val coordinateList: List<Coordinate>,
+  ) {
+    /**
+     * A map from simple names (irrespective of receiver) to corresponding [LibraryImportData]
+     * objects.
+     */
+    val topLevelFunctionsMapAllReceivers: Map<String, List<LibraryImportData>> =
+      topLevelFunctionsMap.entries.groupBy({ it.key.simpleName }, { it.value }).mapValues {
+        it.value.flatten().distinct()
+      }
+
+    companion object {
+      @JvmStatic val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyMap(), emptyList())
+    }
+  }
 }
 
 /** An index of a specific [version] of GMaven Artifact. */
@@ -387,32 +552,6 @@ internal data class KotlinTopLevelFunction(
         receiverFqName = receiverFqName?.let(::FqName),
       )
     }
-  }
-}
-
-/** Lookup data extracted from an index file. */
-data class LookupData(
-  /** A map from simple class names to the corresponding [LibraryImportData] objects. */
-  val classNameMap: Map<String, List<LibraryImportData>>,
-  /** A map from function specifiers to the corresponding [LibraryImportData] objects. */
-  val topLevelFunctionsMap: Map<FunctionSpecifier, List<LibraryImportData>>,
-  /** A map from non-KTX libraries to the associated KTX libraries. */
-  val ktxMap: Map<String, String>,
-
-  /** A list of Google Maven [MavenClassRegistryBase.Coordinate]. */
-  val coordinateList: List<MavenClassRegistryBase.Coordinate>,
-) {
-  /**
-   * A map from simple names (irrespective of receiver) to corresponding [LibraryImportData]
-   * objects.
-   */
-  val topLevelFunctionsMapAllReceivers: Map<String, List<LibraryImportData>> =
-    topLevelFunctionsMap.entries.groupBy({ it.key.simpleName }, { it.value }).mapValues {
-      it.value.flatten().distinct()
-    }
-
-  companion object {
-    @JvmStatic val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyList())
   }
 }
 

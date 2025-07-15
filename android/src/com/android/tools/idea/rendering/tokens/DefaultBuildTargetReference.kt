@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildTargets
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
+import com.android.tools.idea.run.deployment.liveedit.tokens.DesugarConfigs
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -33,6 +34,7 @@ import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.application
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtFile
+import java.nio.file.Path
 
 /**
  * An implementation of [BuildSystemFilePreviewServices] for the [DefaultProjectSystem].
@@ -44,10 +46,6 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
 
   override val buildTargets: BuildTargets = object : BuildTargets {
     override fun from(module: Module, targetFile: VirtualFile): BuildTargetReference {
-      return DefaultBuildTargetReference(module)
-    }
-
-    override fun fromModuleOnly(module: Module): BuildTargetReference {
       return DefaultBuildTargetReference(module)
     }
   }
@@ -89,6 +87,7 @@ class DefaultBuildSystemFilePreviewServices : BuildSystemFilePreviewServices<Def
       ): ClassContent? = null
 
       override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration = CompilerConfiguration.EMPTY
+      override fun getDesugarConfigs() = DesugarConfigs.NotKnown("No Desugar config.")
     }
   }
 

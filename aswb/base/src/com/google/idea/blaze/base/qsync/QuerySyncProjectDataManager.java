@@ -35,7 +35,7 @@ public class QuerySyncProjectDataManager implements BlazeProjectDataManager {
   public QuerySyncProjectData getBlazeProjectData() {
     return QuerySyncManager.getInstance(project)
         .getLoadedProject()
-        .map(QuerySyncProject::getProjectData)
+        .map(ReadonlyQuerySyncProject::getProjectData)
         .orElse(null);
   }
 

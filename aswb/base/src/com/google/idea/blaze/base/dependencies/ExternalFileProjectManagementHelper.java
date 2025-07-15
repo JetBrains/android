@@ -200,12 +200,12 @@ public class ExternalFileProjectManagementHelper
 
   @Nullable
   private EditorNotificationPanel createNotificationPanelForQuerySync(VirtualFile virtualFile) {
-    QuerySyncProject querySyncProject =
+    final var querySyncProject =
         QuerySyncManager.getInstance(project).getLoadedProject().orElse(null);
     if (querySyncProject == null) {
       return null;
     }
-    if (!WorkspaceRoot.fromProject(project).isInWorkspace(virtualFile)) {
+    if (!querySyncProject.getWorkspaceRoot().isInWorkspace(virtualFile)) {
       return null;
     }
 

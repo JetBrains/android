@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.adblib.MdnsServices
 import com.android.annotations.concurrency.AnyThread
 import com.google.common.util.concurrent.ListenableFuture
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.net.InetAddress
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Service to expose and pair wireless devices. All entry points run asynchronously and return
@@ -42,16 +44,29 @@ interface WiFiPairingService {
   fun devices(): ListenableFuture<List<AdbDevice>>
 
   /** Look up the list of mDNS services currently seen by the underlying adb implementation */
-  suspend fun scanMdnsServices(): List<MdnsService>
+  suspend fun scanMdnsServices(): List<PairingMdnsService>
+
+  /**
+   * Returns a [Flow] that emits a new [MdnsServices] everytime a mdns service change is detected by
+   * the ADB Host ("host:track-mdns-services" query). The flow is active until an exception is
+   * thrown or cancellation is requested by the flow consumer.
+   */
+  fun trackMdnsServices(): Flow<MdnsServices>
 
   /** Pair a device through an mDNS service */
-  suspend fun pairMdnsService(mdnsService: MdnsService, password: String): PairingResult
+  suspend fun pairMdnsService(
+    pairingMdnsService: PairingMdnsService,
+    password: String,
+  ): PairingResult
 
   /** Wait for device to be available from the underlying adb implementation */
   suspend fun waitForDevice(pairingResult: PairingResult): AdbOnlineDevice
 
   /** Get version of ADB */
   suspend fun getAdbVersion(): String
+
+  /** Checks if "host:track-mdns-services" is available */
+  suspend fun isTrackMdnsServiceAvailable(): Boolean
 }
 
 /** Result of pairing a device through "adb pair" */
@@ -73,8 +88,8 @@ data class PairingResult(
     }
 }
 
-/** A device/service as exposed by the "adb mdns services" command */
-data class MdnsService(
+/** An adb-tls-pairing._tcp. service as exposed by the "adb mdns services" command */
+data class PairingMdnsService(
   val serviceName: String,
   val serviceType: ServiceType,
   val ipAddress: InetAddress,
@@ -90,6 +105,19 @@ data class MdnsService(
 enum class ServiceType {
   QrCode,
   PairingCode,
+}
+
+/** mdns tracking service result as exposed by "host:track-mdns-services" query */
+data class TrackingMdnsService(
+  val serviceName: String,
+  val ipv4: String,
+  val port: String,
+  val deviceName: String?,
+) {
+  val displayString: String
+    get() {
+      return if (deviceName.isNullOrBlank()) "Device at ${ipv4}:${port}" else deviceName
+    }
 }
 
 /** Abstraction over an bitmap representation of a QrCode */
@@ -115,12 +143,16 @@ data class QrCodeImage(
 enum class MdnsSupportState {
   /** mDNS is supported on the current platform with the current version of ADB */
   Supported,
+
   /** mDNS is not supported on the current platform, even though ADB is of the right version */
   NotSupported,
+
   /** ADB version is outdated, it does not support mDNS */
   AdbVersionTooLow,
+
   /** There was an error invoking ADB, so we don't know if mDNS is supported or not */
   AdbInvocationError,
+
   /**
    * We detected that the Mac environment is broken (either platform-tools is too old or mdns back
    * selection is wrong).

@@ -89,7 +89,7 @@ class PairingCodePairingDialog(project: Project) {
     dialog.show()
   }
 
-  fun setDevice(service: MdnsService) {
+  fun setDevice(service: PairingMdnsService) {
     pairingPanel.setDevice(service)
   }
 

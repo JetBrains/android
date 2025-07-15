@@ -21,6 +21,7 @@ import java.awt.Component
 import java.awt.KeyboardFocusManager
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import javax.swing.KeyStroke
 
 /**
  * A fake keyboard device that can be used for holding down keys in tests.
@@ -78,6 +79,13 @@ class FakeKeyboard {
    */
   fun type(keyCode: Int) {
     performDownKeyEvent(keyCode, KeyEvent.KEY_TYPED)
+  }
+
+  /** Produces a key press sequence for the given keystroke. */
+  fun hit(keyStroke: KeyStroke) {
+    pressForModifiers(keyStroke.modifiers)
+    pressAndRelease(keyStroke.keyCode)
+    releaseForModifiers(keyStroke.modifiers)
   }
 
   private fun performDownKeyEvent(keyCode: Int, event: Int) {

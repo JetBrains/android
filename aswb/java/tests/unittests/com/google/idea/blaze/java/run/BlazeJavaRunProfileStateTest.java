@@ -53,6 +53,7 @@ import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.settings.BlazeUserSettings;
 import com.google.idea.blaze.base.settings.BuildSystemName;
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver;
+import com.google.idea.blaze.exception.ConfigurationException;
 import com.google.idea.blaze.java.JavaBlazeRules;
 import com.google.idea.blaze.java.run.hotswap.HotSwapCommandBuilder;
 import com.google.idea.blaze.java.sync.source.JavaLikeLanguage;
@@ -74,7 +75,7 @@ import org.junit.runners.JUnit4;
 public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
 
   private static final BlazeImportSettings DUMMY_IMPORT_SETTINGS =
-      new BlazeImportSettings("", "", "", "", BuildSystemName.Blaze, ProjectType.ASPECT_SYNC);
+      new BlazeImportSettings("", "", "", "", "", BuildSystemName.Blaze, ProjectType.ASPECT_SYNC);
 
   private BlazeCommandRunConfiguration configuration;
 
@@ -276,15 +277,13 @@ public class BlazeJavaRunProfileStateTest extends BlazeTestCase {
       return ProjectViewSet.builder().build();
     }
 
-    @Nullable
     @Override
     public ProjectViewSet reloadProjectView(BlazeContext context) {
       return ProjectViewSet.builder().build();
     }
 
     @Override
-    public ProjectViewSet reloadProjectView(
-        BlazeContext context, WorkspacePathResolver workspacePathResolver) {
+    public ProjectViewSet doLoadProjectView(BlazeContext context, BlazeImportSettings importSettings) {
       return ProjectViewSet.EMPTY;
     }
   }

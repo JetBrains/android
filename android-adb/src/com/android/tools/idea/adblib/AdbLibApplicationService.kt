@@ -43,8 +43,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.startup.StartupActivity
-import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.Duration
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.runBlocking
 
 /**
  * Application service that provides access to the implementation of [AdbSession] and
@@ -61,65 +63,18 @@ class AdbLibApplicationService : Disposable {
 
   private val adbFileLocationTracker = AdbFileLocationTracker()
 
-  private val adbServerConfiguration =
-    MutableStateFlow(
-      AdbServerConfiguration(
-        adbPath = null,
-        serverPort = null,
-        isUserManaged = false,
-        isUnitTest = false,
-        envVars = emptyMap(),
-      )
-    )
+  private var configuration = Configuration(host, adbFileLocationTracker)
 
-  internal val adbServerController =
-    if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()) {
-      AdbServerController.createServerController(host, adbServerConfiguration)
-    } else {
-      null
-    }
+  val session: AdbSession
+    get() = configuration.session
 
-  /**
-   * The custom [AdbServerChannelProvider] that ensures `adb` is started before opening
-   * [AdbChannel].
-   */
-  internal val channelProvider =
-    adbServerController?.channelProvider
-      ?: AndroidAdbServerChannelProvider(host, adbFileLocationTracker)
+  val adbServerController: AdbServerController?
+    get() = configuration.adbServerController
 
-  /** A [AdbSession] customized to work in the Android plugin. */
-  val session =
-    AdbSession.create(
-        host = host,
-        channelProvider = channelProvider,
-        // Double the preferred timeout for remote devices that need more time to execute commands.
-        // TODO (b/390732614) Set higher timeout only for remote devices.
-        connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong() * 2),
-      )
-      .also { session ->
-        // Note: We need to install a ProcessInventoryServerJdwpPropertiesCollectorFactory instance
-        // on the *application* AdbSession only (i.e. this one), because all JdwpProcess instances
-        // are delegated to this AdbSession.
-        val inventoryServerEnabled = {
-          StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() &&
-            StudioFlags.ADBLIB_USE_PROCESS_INVENTORY_SERVER.get()
-        }
-
-        val inventoryServerConfig = StudioProcessInventoryServerConfiguration()
-        val inventoryServerConnection =
-          ProcessInventoryServerConnection.create(session, inventoryServerConfig)
-        session.installProcessInventoryJdwpProcessPropertiesCollectorFactory(
-          inventoryServerConnection,
-          inventoryServerEnabled,
-        )
-      }
+  val channelProvider: AdbServerChannelProvider
+    get() = configuration.channelProvider
 
   init {
-    if (adbServerController != null) {
-      val androidDebugBridge =
-        AdbLibAndroidDebugBridge(session, adbServerController, adbServerConfiguration)
-      AndroidDebugBridge.preInit(androidDebugBridge)
-    }
 
     // Listen to "project closed" events to unregister projects
     ProjectManager.TOPIC.subscribe(
@@ -137,7 +92,7 @@ class AdbLibApplicationService : Disposable {
   }
 
   override fun dispose() {
-    session.close()
+    configuration.dispose()
     host.close()
   }
 
@@ -147,8 +102,95 @@ class AdbLibApplicationService : Disposable {
    */
   class MyStartupActivity : StartupActivity.DumbAware {
     override fun runActivity(project: Project) {
+      // In tests `com.android.tools.idea.testing.AndroidProjectRule` runs this
+      // activity, and it could be a good place to reset [AdbLibApplicationService]
+      resetForTests()
+
       // Startup activities run quite late when opening a project
       instance.adbFileLocationTracker.registerProject(project)
+    }
+  }
+
+  private class Configuration(
+    host: AndroidAdbSessionHost,
+    adbFileLocationTracker: AdbFileLocationTracker,
+  ) : Disposable {
+    val adbServerConfiguration =
+      MutableStateFlow(
+        AdbServerConfiguration(
+          adbPath = null,
+          serverPort = null,
+          isUserManaged = false,
+          isUnitTest = false,
+          envVars = emptyMap(),
+        )
+      )
+
+    val adbLibMigrationFlagValue = StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()
+
+    val adbServerController =
+      if (adbLibMigrationFlagValue) {
+        AdbServerController.createServerController(host, adbServerConfiguration)
+      } else {
+        null
+      }
+
+    /**
+     * The custom [AdbServerChannelProvider] that ensures `adb` is started before opening
+     * [AdbChannel].
+     */
+    val channelProvider =
+      adbServerController?.channelProvider
+        ?: AndroidAdbServerChannelProvider(host, adbFileLocationTracker)
+
+    /** A [AdbSession] customized to work in the Android plugin. */
+    val session =
+      AdbSession.create(
+          host = host,
+          channelProvider = channelProvider,
+          // Double the preferred timeout for remote devices that need more time to execute
+          // commands.
+          // TODO (b/390732614) Set higher timeout only for remote devices.
+          connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong() * 2),
+        )
+        .also { session ->
+          // Note: We need to install a ProcessInventoryServerJdwpPropertiesCollectorFactory
+          // instance
+          // on the *application* AdbSession only (i.e. this one), because all JdwpProcess instances
+          // are delegated to this AdbSession.
+          val inventoryServerEnabled = {
+            StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() &&
+              StudioFlags.ADBLIB_USE_PROCESS_INVENTORY_SERVER.get()
+          }
+
+          val inventoryServerConfig = StudioProcessInventoryServerConfiguration()
+          val inventoryServerConnection =
+            ProcessInventoryServerConnection.create(session, inventoryServerConfig)
+          session.installProcessInventoryJdwpProcessPropertiesCollectorFactory(
+            inventoryServerConnection,
+            inventoryServerEnabled,
+          )
+        }
+
+    init {
+      if (adbServerController != null) {
+        val androidDebugBridge =
+          AdbLibAndroidDebugBridge(session, adbServerController, adbServerConfiguration)
+        AndroidDebugBridge.preInit(androidDebugBridge)
+      }
+    }
+
+    override fun dispose() {
+      session.close()
+    }
+
+    suspend fun closeAndJoin() {
+      dispose()
+      adbServerController?.let {
+        it.stop()
+        it.close()
+      }
+      session.scope.coroutineContext[Job]?.join()
     }
   }
 
@@ -179,9 +221,36 @@ class AdbLibApplicationService : Disposable {
   }
 
   companion object {
+    @Volatile private var isInstanceCreated = false
+
     @JvmStatic
     val instance: AdbLibApplicationService
-      get() = ApplicationManager.getApplication().getService(AdbLibApplicationService::class.java)
+      get() =
+        ApplicationManager.getApplication().getService(AdbLibApplicationService::class.java).also {
+          isInstanceCreated = true
+        }
+
+    /**
+     * In production the [configuration] is set only once and never reset, but in tests we need a
+     * way to update it since [AdbLibApplicationService] itself is a singleton.
+     */
+    fun resetForTests() {
+      if (
+        isInstanceCreated &&
+          ApplicationManager.getApplication().isUnitTestMode &&
+          instance.configuration.adbLibMigrationFlagValue !=
+            StudioFlags.ADBLIB_MIGRATION_DDMLIB_ADB_DELEGATE.get()
+      ) {
+        // Shutdown and cleanup
+        runBlocking {
+          instance.configuration.closeAndJoin()
+          AndroidDebugBridge.resetForTests()
+        }
+
+        // Create new configuration
+        instance.configuration = Configuration(instance.host, instance.adbFileLocationTracker)
+      }
+    }
 
     /**
      * Returns the [DeviceProvisioner] best matching the [session]. This method is needed because

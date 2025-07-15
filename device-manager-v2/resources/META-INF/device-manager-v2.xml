@@ -29,12 +29,6 @@
 
   </extensions>
 
-  <extensionPoints>
-    <extensionPoint
-        qualifiedName="com.android.tools.idea.devicemanagerv2.deviceManagerOverflowActionContributor"
-        interface="com.android.tools.idea.devicemanagerv2.DeviceManagerOverflowActionContributor" />
-  </extensionPoints>
-
   <actions>
     <group id="Android.DeviceManager.TypeSpecificActions">
       <reference ref="Android.AdbDevicePairing"/>

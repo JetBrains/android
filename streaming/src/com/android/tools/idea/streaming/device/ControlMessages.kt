@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.device.RequestDeviceStateMessage.Companion.PHYSICAL_STATE
+import com.android.tools.idea.streaming.xr.XrEnvironment
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128InputStream.StreamFormatException
 import com.android.utils.Base128OutputStream
@@ -70,6 +71,9 @@ sealed class ControlMessage(val type: Int) {
         XrTranslationMessage.TYPE -> XrTranslationMessage.deserialize(stream)
         XrAngularVelocityMessage.TYPE -> XrAngularVelocityMessage.deserialize(stream)
         XrVelocityMessage.TYPE -> XrVelocityMessage.deserialize(stream)
+        XrRecenterMessage.TYPE -> XrRecenterMessage.deserialize(stream)
+        XrSetPassthroughCoefficientMessage.TYPE -> XrSetPassthroughCoefficientMessage.deserialize(stream)
+        XrSetEnvironmentMessage.TYPE -> XrSetEnvironmentMessage.deserialize(stream)
         DisplayConfigurationRequest.TYPE -> DisplayConfigurationRequest.deserialize(stream)
         ErrorResponse.TYPE -> ErrorResponse.deserialize(stream)
         DisplayConfigurationResponse.TYPE -> DisplayConfigurationResponse.deserialize(stream)
@@ -78,6 +82,8 @@ sealed class ControlMessage(val type: Int) {
         DeviceStateNotification.TYPE -> DeviceStateNotification.deserialize(stream)
         DisplayAddedOrChangedNotification.TYPE -> DisplayAddedOrChangedNotification.deserialize(stream)
         DisplayRemovedNotification.TYPE -> DisplayRemovedNotification.deserialize(stream)
+        XrPassthroughCoefficientChangedNotification.TYPE -> XrPassthroughCoefficientChangedNotification.deserialize(stream)
+        XrEnvironmentChangedNotification.TYPE -> XrEnvironmentChangedNotification.deserialize(stream)
         UiSettingsRequest.TYPE -> UiSettingsRequest.deserialize(stream)
         UiSettingsResponse.TYPE -> UiSettingsResponse.deserialize(stream)
         UiSettingsChangeRequest.TYPE -> UiSettingsChangeRequest.deserialize(stream)
@@ -561,7 +567,63 @@ internal data class XrVelocityMessage(val x: Float, val y: Float, val z: Float) 
   }
 }
 
-/** Requests a display screenshot. */
+/** Resets view on an XR device to its initial state. */
+internal class XrRecenterMessage : ControlMessage(TYPE) {
+
+  override fun toString(): String =
+      "XrRecenterMessage"
+
+  companion object : Deserializer {
+    const val TYPE = 17
+
+    override fun deserialize(stream: Base128InputStream): XrRecenterMessage =
+        XrRecenterMessage()
+  }
+}
+
+/** Sets the passthrough coefficient on an XR device. */
+internal data class XrSetPassthroughCoefficientMessage(val passthroughCoefficient: Float) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeFloat(passthroughCoefficient)
+  }
+
+  override fun toString(): String =
+      "XrSetPassthroughCoefficientMessage(passthroughCoefficient = $passthroughCoefficient)"
+
+  companion object : Deserializer {
+    const val TYPE = 18
+
+    override fun deserialize(stream: Base128InputStream): XrSetPassthroughCoefficientMessage {
+      val passthroughCoefficient = stream.readFloat()
+      return XrSetPassthroughCoefficientMessage(passthroughCoefficient)
+    }
+  }
+}
+
+/** Sets the virtual environment on an XR device. */
+internal data class XrSetEnvironmentMessage(val environment: XrEnvironment) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeEnum(environment)
+  }
+
+  override fun toString(): String =
+      "XrSetEnvironmentMessage(environment = $environment)"
+
+  companion object : Deserializer {
+    const val TYPE = 19
+
+    override fun deserialize(stream: Base128InputStream): XrSetEnvironmentMessage {
+      val environment = stream.readEnum<XrEnvironment>()
+      return XrSetEnvironmentMessage(environment)
+    }
+  }
+}
+
+/** Queries configuration of the device displays. The response message is [DisplayConfigurationResponse]. */
 internal data class DisplayConfigurationRequest private constructor(override val requestId: Int) : CorrelatedMessage(TYPE) {
 
   constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
@@ -571,7 +633,7 @@ internal data class DisplayConfigurationRequest private constructor(override val
   }
 
   companion object : Deserializer {
-    const val TYPE = 17
+    const val TYPE = 20
 
     override fun deserialize(stream: Base128InputStream): DisplayConfigurationRequest {
       val requestId = stream.readInt()
@@ -579,8 +641,6 @@ internal data class DisplayConfigurationRequest private constructor(override val
     }
   }
 }
-
-// Messages received from the device.
 
 /** Error response from the device to a command that is guaranteed to trigger a response. */
 internal data class ErrorResponse(override val requestId: Int, val errorMessage: String) : CorrelatedMessage(TYPE) {
@@ -590,12 +650,11 @@ internal data class ErrorResponse(override val requestId: Int, val errorMessage:
     stream.writeBytes(errorMessage.toByteArray(UTF_8))
   }
 
-  override fun toString(): String {
-    return "ErrorResponse(requestId=$requestId, errorMessage=\"$errorMessage\")"
-  }
+  override fun toString(): String =
+      "ErrorResponse(requestId=$requestId, errorMessage=\"$errorMessage\")"
 
   companion object : Deserializer {
-    const val TYPE = 18
+    const val TYPE = 21
 
     override fun deserialize(stream: Base128InputStream): ErrorResponse {
       val requestId = stream.readInt()
@@ -605,8 +664,11 @@ internal data class ErrorResponse(override val requestId: Int, val errorMessage:
   }
 }
 
-/** Screenshot of a device display. */
-internal data class DisplayConfigurationResponse(override val requestId: Int, val displays: List<DisplayDescriptor>): CorrelatedMessage(TYPE) {
+/** Parameters of all device displays. Sent in response to [DisplayConfigurationRequest]. */
+internal data class DisplayConfigurationResponse(
+  override val requestId: Int,
+  val displays: List<DisplayDescriptor>,
+) : CorrelatedMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -621,11 +683,11 @@ internal data class DisplayConfigurationResponse(override val requestId: Int, va
   }
 
   override fun toString(): String {
-    return "ScreenshotResponse(requestId=$requestId, displays=$displays)"
+    return "DisplayConfigurationResponse(requestId=$requestId, displays=$displays)"
   }
 
   companion object : Deserializer {
-    const val TYPE = 19
+    const val TYPE = 22
 
     override fun deserialize(stream: Base128InputStream): DisplayConfigurationResponse {
       val requestId = stream.readInt()
@@ -661,7 +723,7 @@ internal data class ClipboardChangedNotification(val text: String) : ControlMess
       "ClipboardChangedNotification(text=\"$text\")"
 
   companion object : Deserializer {
-    const val TYPE = 20
+    const val TYPE = 23
 
     override fun deserialize(stream: Base128InputStream): ClipboardChangedNotification {
       val bytes = stream.readBytes()
@@ -697,7 +759,7 @@ internal data class SupportedDeviceStatesNotification(val deviceStates: List<Dev
       "SupportedDeviceStatesNotification(deviceStates=\"$deviceStates\", deviceStateId=$deviceStateId)"
 
   companion object : Deserializer {
-    const val TYPE = 21
+    const val TYPE = 24
 
     override fun deserialize(stream: Base128InputStream): SupportedDeviceStatesNotification {
       val numStates = stream.readInt()
@@ -726,7 +788,7 @@ internal data class DeviceStateNotification(val deviceStateId: Int) : ControlMes
       "DeviceStateNotification(deviceStateId=$deviceStateId)"
 
   companion object : Deserializer {
-    const val TYPE = 22
+    const val TYPE = 25
 
     override fun deserialize(stream: Base128InputStream): DeviceStateNotification {
       val deviceState = stream.readInt() - 1
@@ -735,9 +797,7 @@ internal data class DeviceStateNotification(val deviceStateId: Int) : ControlMes
   }
 }
 
-/**
- * Notification of an added or a changed display.
- */
+/** Notification of an added or a changed display. */
 internal data class DisplayAddedOrChangedNotification(
   val displayId: Int,
   val width: Int,
@@ -759,7 +819,7 @@ internal data class DisplayAddedOrChangedNotification(
       "DisplayAddedOrChangedNotification(displayId=$displayId, width=$width, height=$height, rotation=$rotation, displayType=$displayType)"
 
   companion object : Deserializer {
-    const val TYPE = 23
+    const val TYPE = 26
 
     override fun deserialize(stream: Base128InputStream): DisplayAddedOrChangedNotification {
       val displayId = stream.readInt()
@@ -772,9 +832,7 @@ internal data class DisplayAddedOrChangedNotification(
   }
 }
 
-/**
- * Notification of a removed display.
- */
+/** Notification of a removed display. */
 internal data class DisplayRemovedNotification(val displayId: Int) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
@@ -786,7 +844,7 @@ internal data class DisplayRemovedNotification(val displayId: Int) : ControlMess
       "DisplayRemovedNotification(displayId=$displayId)"
 
   companion object : Deserializer {
-    const val TYPE = 24
+    const val TYPE = 27
 
     override fun deserialize(stream: Base128InputStream): DisplayRemovedNotification {
       val displayId = stream.readInt()
@@ -795,9 +853,52 @@ internal data class DisplayRemovedNotification(val displayId: Int) : ControlMess
   }
 }
 
-/**
- * Queries the current UI settings from a device.
- */
+/** Notification of a passthrough coefficient change on an XR device. */
+internal data class XrPassthroughCoefficientChangedNotification(val passthroughCoefficient: Float) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeFloat(passthroughCoefficient)
+  }
+
+  override fun toString(): String =
+      "XrPassthroughCoefficientChangedNotification(passthroughCoefficient=$passthroughCoefficient)"
+
+  companion object : Deserializer {
+    const val TYPE = 28
+
+    override fun deserialize(stream: Base128InputStream): XrPassthroughCoefficientChangedNotification {
+      val passthroughCoefficient = stream.readFloat()
+      if (passthroughCoefficient < 0 || passthroughCoefficient > 1) {
+        throw StreamFormatException("Invalid passthrough coefficient: $passthroughCoefficient")
+      }
+      return XrPassthroughCoefficientChangedNotification(passthroughCoefficient)
+    }
+  }
+}
+
+/** Notification of a virtual environment change on an XR device. */
+internal data class XrEnvironmentChangedNotification(val environment: XrEnvironment) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeEnum(environment)
+  }
+
+  override fun toString(): String =
+      "XrEnvironmentChangedNotification(environment=$environment)"
+
+  companion object : Deserializer {
+    const val TYPE = 29
+
+    override fun deserialize(stream: Base128InputStream): XrEnvironmentChangedNotification {
+      val environment = stream.readEnum<XrEnvironment>()
+      return XrEnvironmentChangedNotification(environment)
+    }
+  }
+}
+
+/** Queries the current UI settings from a device. */
 internal data class UiSettingsRequest private constructor(override val requestId: Int) : CorrelatedMessage(TYPE) {
 
   constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
@@ -806,7 +907,7 @@ internal data class UiSettingsRequest private constructor(override val requestId
       "UiSettingsRequest(requestId=$requestId)"
 
   companion object : Deserializer {
-    const val TYPE = 25
+    const val TYPE = 30
 
     override fun deserialize(stream: Base128InputStream): UiSettingsRequest {
       val requestId = stream.readInt()
@@ -896,7 +997,7 @@ internal data class UiSettingsResponse(
   }
 
   companion object : Deserializer {
-    const val TYPE = 26
+    const val TYPE = 31
 
     override fun deserialize(stream: Base128InputStream): UiSettingsResponse {
       val requestId = stream.readInt()
@@ -938,13 +1039,11 @@ internal data class UiSettingsResponse(
   }
 }
 
-/**
- * Changes a UI setting on a device.
- */
+/** Changes a UI setting on a device. */
 internal data class UiSettingsChangeRequest<T>(
   override val requestId: Int,
   val command: UiCommand<T>,
-  val value: T
+  val value: T,
 ) : CorrelatedMessage(TYPE) {
   constructor(requestIdGenerator: () -> Int, type: UiCommand<T>, value: T) : this(requestIdGenerator(), type, value)
 
@@ -1024,7 +1123,7 @@ internal data class UiSettingsChangeRequest<T>(
       "UiSettingsChangeRequest(requestId=$requestId, command=${command.toString(value)})"
 
   companion object : Deserializer {
-    const val TYPE = 27
+    const val TYPE = 32
 
     override fun deserialize(stream: Base128InputStream): CorrelatedMessage {
       val requestId = stream.readInt()
@@ -1034,9 +1133,7 @@ internal data class UiSettingsChangeRequest<T>(
   }
 }
 
-/**
- * The response from various UI settings commands.
- */
+/** The response from various UI settings commands. */
 internal data class UiSettingsChangeResponse(
   override val requestId: Int,
   val originalValues: Boolean
@@ -1051,7 +1148,7 @@ internal data class UiSettingsChangeResponse(
       "UiSettingsChangeResponse(requestId=$requestId, originalValues=\"$originalValues\")"
 
   companion object : Deserializer {
-    const val TYPE = 28
+    const val TYPE = 33
 
     override fun deserialize(stream: Base128InputStream): UiSettingsChangeResponse {
       val requestId = stream.readInt()
@@ -1061,9 +1158,7 @@ internal data class UiSettingsChangeResponse(
   }
 }
 
-/**
- * Resets the ui changes made on the device.
- */
+/** Resets the ui changes made on the device. */
 internal data class ResetUiSettingsRequest(override val requestId: Int) : CorrelatedMessage(TYPE) {
 
   constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
@@ -1072,7 +1167,7 @@ internal data class ResetUiSettingsRequest(override val requestId: Int) : Correl
       "ResetUiSettingsRequest(requestId=$requestId)"
 
   companion object : Deserializer {
-    const val TYPE = 29
+    const val TYPE = 34
 
     override fun deserialize(stream: Base128InputStream): ResetUiSettingsRequest {
       val requestId = stream.readInt()

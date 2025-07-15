@@ -23,10 +23,10 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8
 
-const val GRADLE_SNAPSHOT_VERSION = "8.14-20250320055103+0000"
+const val GRADLE_SNAPSHOT_VERSION = "9.0.0-20250605001524+0000"
 const val GRADLE_DECLARATIVE_SNAPSHOT_VERSION = "8.14-milestone-4"
 // For available versions: https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml
-const val KOTLIN_SNAPSHOT_VERSION = "2.2.0-dev-11824"
+const val KOTLIN_SNAPSHOT_VERSION = "2.2.20-dev-4982"
 
 /**
  * An AGP Version definition to be used in AGP integration tests.
@@ -108,9 +108,11 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
     return listOfNotNull(
       (agpVersion ?: "current"),
       gradleVersion?.let { "g=$it" },
+      jdkVersion?.let { "j=$it" },
       kotlinVersion?.let { "k=$it" },
       modelVersion.takeIf { it != ModelVersion.V2 }?.let { "m=$it" },
-    ).joinToString(", ", "Agp(", ")")
+      compileSdk.takeIf { it != "34" }?.let { "c=$it" },
+    ).joinToString(",", "Agp(", ")")
   }
   companion object {
     @JvmField

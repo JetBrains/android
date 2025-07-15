@@ -115,6 +115,7 @@ public class ArtifactTrackerStateDeserializer {
     return JavaArtifactInfo.builder()
         .setLabel(owner)
         .setJars(toArtifactList(proto.getJarsList(), owner))
+        .setOutputJars(toArtifactList(proto.getOutputJarsList(), owner))
         .setIdeAars(toArtifactList(proto.getIdeAarsList(), owner))
         .setGenSrcs(toArtifactList(proto.getGenSrcsList(), owner))
         .setSources(proto.getSourcesList().stream().map(Path::of).collect(toImmutableSet()))

@@ -15,7 +15,7 @@
  */
 package com.android.tools.tests
 
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ContentEntry
@@ -41,7 +41,7 @@ open class AdtTestProjectDescriptor(
   /** The Java language version to configure for the project. */
   val javaLanguageVersion: LanguageLevel = LanguageLevel.HIGHEST,
   /** The path to the JDK to use for the project. Defaults to a mock JDK. */
-  val jdkPath: Path = TestUtils.getEmbeddedJdk17Path(),
+  val jdkPath: Path = TestUtils.getMockJdk(),
 ) : DefaultLightProjectDescriptor() {
 
   private val jdk by lazy { IdeaTestUtil.createMockJdk("java 1.7", jdkPath.toString()) }

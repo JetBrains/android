@@ -23,7 +23,7 @@ open class DefaultHitProvider : HitProvider {
   override fun addHit(
     component: SceneComponent,
     sceneTransform: SceneContext,
-    picker: ScenePicker,
+    picker: ScenePicker.Writer,
   ) {
     component.fillRect(rect)
 

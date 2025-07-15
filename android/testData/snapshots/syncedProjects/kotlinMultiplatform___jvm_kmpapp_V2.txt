@@ -35,8 +35,7 @@ PROJECT                       : kotlinMultiPlatform
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -403,8 +402,7 @@ PROJECT                       : kotlinMultiPlatform
             compilerSourceOutputPath      : file://<PROJECT>/app/build/classes/kotlin/jvm/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.jvmMain.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -461,8 +459,9 @@ PROJECT                       : kotlinMultiPlatform
             compilerTestOutputPath        : file://<PROJECT>/app/build/classes/kotlin/jvm/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/kotlinMultiPlatform.app.jvmTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : kotlinMultiPlatform.app.jvmMain
+        ModuleFile                    :  [-]
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -881,8 +880,7 @@ PROJECT                       : kotlinMultiPlatform
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
@@ -1183,8 +1181,7 @@ PROJECT                       : kotlinMultiPlatform
             compilerSourceOutputPath      : file://<PROJECT>/module2/build/classes/kotlin/jvm/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.jvmMain.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        ModuleFile                    :  [-]
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -1241,8 +1238,9 @@ PROJECT                       : kotlinMultiPlatform
             compilerTestOutputPath        : file://<PROJECT>/module2/build/classes/kotlin/jvm/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.jvmTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : kotlinMultiPlatform.module2.jvmMain
+        ModuleFile                    :  [-]
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE

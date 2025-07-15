@@ -15,7 +15,7 @@
  */
 package com.google.idea.blaze.base.qsync;
 
-import com.google.idea.blaze.qsync.QuerySyncProjectListener;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.extensions.ExtensionPointName;
 
 /** Extension point to provide {@link QuerySyncProjectListener} instances. */
@@ -24,11 +24,11 @@ public interface QuerySyncProjectListenerProvider {
   ExtensionPointName<QuerySyncProjectListenerProvider> EXTENSION_POINT =
       ExtensionPointName.create("com.google.idea.blaze.qsync.QuerySyncListenerProvider");
 
-  static void registerListenersFor(QuerySyncProject querySyncProject) {
-    EXTENSION_POINT.getExtensionList().stream()
-        .map(p -> p.createListener(querySyncProject))
-        .forEach(querySyncProject.getSnapshotHolder()::addListener);
+  static ImmutableList<QuerySyncProjectListener> createListenersFor(QuerySyncManager querySyncManager) {
+    return EXTENSION_POINT.getExtensionList().stream()
+        .map(p -> p.createListener(querySyncManager))
+      .collect(ImmutableList.toImmutableList());
   }
 
-  QuerySyncProjectListener createListener(QuerySyncProject project);
+  QuerySyncProjectListener createListener(QuerySyncManager querySyncManager);
 }

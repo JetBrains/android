@@ -115,6 +115,7 @@ class StartReattachingDebuggerTest {
       AndroidJavaDebugger().createState(),
       EmptyProgressIndicator()
     )
+    Thread.sleep(250); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
 
     assertThat(firstSession.sessionName).isEqualTo("myTestConfiguration")
     assertThat(firstSession.debugProcess.processHandler).isInstanceOf(
@@ -169,6 +170,7 @@ class StartReattachingDebuggerTest {
       AndroidJavaDebugger().createState(),
       destroyRunningProcess = { it.forceStop(APP_ID) }, EmptyProgressIndicator()
     )
+    Thread.sleep(250); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
 
     val tabsOpened = AtomicInteger(0)
     repeat(ADDITIONAL_CLIENTS) {

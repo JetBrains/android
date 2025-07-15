@@ -54,7 +54,7 @@ public class KotlinDslElement extends GradleDslBlockElement {
   @Override
   @NotNull
   public ImmutableMap<String,PropertiesElementDescription<?>> getChildPropertiesElementsDescriptionMap(
-    GradleDslNameConverter.Kind kind
+    @NotNull GradleDslNameConverter.Kind kind
   ) {
     return CHILD_PROPERTIES_ELEMENTS_MAP;
   }

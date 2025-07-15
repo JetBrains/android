@@ -20,4 +20,6 @@ public interface GradlePluginModel {
   Boolean hasSafeArgsJava();
 
   Boolean hasSafeArgsKotlin();
+
+  Boolean hasKotlinMultiPlatform();
 }

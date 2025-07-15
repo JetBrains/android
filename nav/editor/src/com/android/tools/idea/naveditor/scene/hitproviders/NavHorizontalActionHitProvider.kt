@@ -29,7 +29,7 @@ object NavHorizontalActionHitProvider : NavActionHitProviderBase() {
   override fun addShapeHit(
     component: SceneComponent,
     sceneTransform: SceneContext,
-    picker: ScenePicker,
+    picker: ScenePicker.Writer,
   ) {
     component.inlineDrawRect(sceneTransform).let {
       picker.addRect(

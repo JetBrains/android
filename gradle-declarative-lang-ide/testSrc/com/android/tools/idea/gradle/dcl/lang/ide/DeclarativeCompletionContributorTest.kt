@@ -56,12 +56,12 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
   fun testBasicRootCompletion() {
     doTest("and$caret") { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "androidApp", "androidLibrary"
+        "androidApp" to "Block element", "androidLibrary" to "Block element"
       )
     }
     doTest("and$caret { }") { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "androidApp", "androidLibrary"
+        "androidApp" to "Block element", "androidLibrary" to "Block element"
       )
     }
   }
@@ -74,7 +74,8 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildFeatures", "defaultConfig", "getDefaultProguardFile", "namespace", "productFlavors", "testNamespace"
+        "buildFeatures" to "Block element", "defaultConfig" to "Block element", "getDefaultProguardFile" to "Factory",
+        "namespace" to "String", "productFlavors" to "Block element", "testNamespace" to "String"
       )
     }
   }
@@ -99,7 +100,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       pl$caret
       """, "settings.gradle.dcl") { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "pluginManagement", "plugins"
+        "pluginManagement" to "Block element", "plugins" to "Block element"
       )
     }
   }
@@ -112,7 +113,8 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildFeatures", "defaultConfig", "getDefaultProguardFile", "namespace", "productFlavors", "testNamespace"
+        "buildFeatures" to "Block element", "defaultConfig" to "Block element", "getDefaultProguardFile" to "Factory",
+        "namespace" to "String", "productFlavors" to "Block element", "testNamespace" to "String"
       )
     }
   }
@@ -139,7 +141,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         $caret
       }
       """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
+      Truth.assertThat(suggestions.map { it.first }.toList()).containsExactly(
         "buildFeatures", "buildOutputs", "buildTypes", "bundle", "compileOptions",
         "compileSdk", "defaultConfig", "dependenciesDcl", "getDefaultProguardFile", "lint", "namespace",
         "productFlavors", "signingConfigs", "sourceSets", "testBuildType", "testNamespace"
@@ -158,7 +160,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "matchingFallbacks = listOf()", "matchingFallbacks += listOf()"
+        "matchingFallbacks = listOf()" to "Expression", "matchingFallbacks += listOf()" to "Expression"
       )
     }
   }
@@ -174,7 +176,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "matchingFallbacks"
+        "matchingFallbacks" to "Property"
       )
     }
   }
@@ -200,7 +202,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "projectDirectory", "settingsDirectory"
+        "projectDirectory" to "Property", "settingsDirectory" to "Property"
       )
     }
     doTestOnPatchedSchema("""
@@ -209,7 +211,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "dir", "file"
+        "dir" to "Factory", "file" to "Factory"
       )
     }
   }
@@ -270,7 +272,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """, """
       androidApp {
-        fakeFileList = listOf(layout.projectDirectory$caret)
+        fakeFileList = listOf(layout.projectDirectory.$caret)
       }
       """)
   }
@@ -287,7 +289,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "layout", "listOf"
+        "layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory"
       )
     }
   }
@@ -311,6 +313,39 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         }
       }
       """.trimIndent())
+  }
+
+  @Test
+  fun testAssignMapCompletion() {
+    doCompletionTestPatchedSchema("""
+      androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = ma$caret
+        }
+      }
+      """.trimIndent(), """
+      androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = mapOf($caret)
+        }
+      }
+      """.trimIndent())
+  }
+
+  @Test
+  fun testAssignMapSuggestion() {
+    doTestOnPatchedSchema("""
+      androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = $caret
+        }
+      }
+      """.trimIndent())
+    { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsExactly(
+        "layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory"
+      )
+    }
   }
 
   @Test
@@ -340,7 +375,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         $caret
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "androidApp", "androidLibrary", "listOf"
+        "androidApp" to "Block element", "androidLibrary" to "Block element", "listOf" to "Factory", "mapOf" to "Factory"
       )
     }
   }
@@ -354,7 +389,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
     }
       """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly("buildType")
+      Truth.assertThat(suggestions.toList()).containsExactly("buildType" to "Factory block")
     }
   }
 
@@ -387,7 +422,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
     }
       """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
+      Truth.assertThat(suggestions.map { it.first }.toList()).containsExactly(
         "applicationIdSuffix", "buildConfigField", "dependencies", "isMinifyEnabled", "multiDexEnabled", "versionNameSuffix")
     }
   }
@@ -404,7 +439,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
     }
       """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
+      Truth.assertThat(suggestions.map { it.first }.toList()).containsExactly(
         "applicationIdSuffix", "buildConfigField", "dependencies", "isMinifyEnabled",
         "matchingFallbacks += listOf()", "matchingFallbacks = listOf()", "multiDexEnabled",
         "proguardFile", "proguardFiles += listOf()", "proguardFiles = listOf()", "versionNameSuffix")
@@ -423,7 +458,8 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       """) { suggestions ->
       // sourceCompatibility and targetCompatibility are enums
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "encoding", "isCoreLibraryDesugaringEnabled", "sourceCompatibility", "targetCompatibility"
+        "encoding" to "String", "isCoreLibraryDesugaringEnabled" to "Boolean",
+        "sourceCompatibility" to "Enum", "targetCompatibility" to "Enum"
       )
     }
   }
@@ -439,7 +475,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "layout", "listOf"
+        "layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory"
       )
     }
 
@@ -452,7 +488,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "projectDirectory", "settingsDirectory"
+        "projectDirectory" to "Property", "settingsDirectory" to "Property"
       )
     }
     // test last level
@@ -464,7 +500,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "dir", "file"
+        "dir" to "Factory", "file" to "Factory"
       )
     }
   }
@@ -647,7 +683,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
       """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsAllIn(
-        listOf("VERSION_1_1", "VERSION_1_2", "VERSION_26", "VERSION_27", "VERSION_HIGHER")
+        listOf("VERSION_1_1", "VERSION_1_2", "VERSION_26", "VERSION_27", "VERSION_HIGHER").zip((1..5).map { "Enum Constant" })
       )
     }
     doCompletionTest("""
@@ -675,7 +711,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         }
       }
       """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly("true", "false")
+      Truth.assertThat(suggestions.toList()).containsExactly("true" to "Boolean", "false" to "Boolean")
     }
 
     doCompletionTest("""
@@ -704,7 +740,9 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
     }
     """, "settings.gradle.dcl") { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly("layout", "listOf", "rootProject", "uri")
+      Truth.assertThat(suggestions.toList())
+        .containsExactly("layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory",
+                         "rootProject" to "Property", "uri" to "Factory")
     }
   }
 
@@ -719,8 +757,8 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       }
     }
     """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildConfigField", "layout", "listOf", "proguardFile")
+      Truth.assertThat(suggestions.map { it.first }.toList()).containsExactly(
+        "buildConfigField", "layout", "listOf", "mapOf", "proguardFile")
     }
   }
 
@@ -736,7 +774,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     }
     """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildConfigField", "layout", "listOf", "proguardFile")
+        "buildConfigField" to "Factory", "layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory", "proguardFile" to "Factory")
     }
   }
 
@@ -753,7 +791,8 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     }
     """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildConfigField", "layout", "listOf", "proguardFile")
+        "buildConfigField" to "Factory", "layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory", "proguardFile" to "Factory"
+      )
     }
   }
 
@@ -769,7 +808,8 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     }
     """) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
-        "buildConfigField", "layout", "listOf", "proguardFile")
+        "buildConfigField" to "Factory", "layout" to "Property", "listOf" to "Factory", "mapOf" to "Factory", "proguardFile" to "Factory"
+      )
     }
   }
 
@@ -823,7 +863,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       id("some").$caret
     }
     """, "settings.gradle.dcl") { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsAllIn(listOf("version", "apply"))
+      Truth.assertThat(suggestions.toList()).containsAllIn(listOf("version" to "Factory", "apply" to "Factory"))
     }
   }
 
@@ -832,7 +872,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     doTest("""
     rootProject.$caret
     """, "settings.gradle.dcl") { suggestions ->
-      Truth.assertThat(suggestions.toList()).containsExactly("name")
+      Truth.assertThat(suggestions.toList()).containsExactly("name" to "String")
     }
   }
 
@@ -843,28 +883,74 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
       fakeFileList = listOf($caret)
     }
     """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).contains("layout")
+      Truth.assertThat(suggestions.toList()).contains("layout" to "Property")
     }
     doTestOnPatchedSchema("""
     androidApp {
       fakeFileList = listOf(layout.projectDirectory.file("aaa"), $caret)
     }
     """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).contains("layout")
+      Truth.assertThat(suggestions.toList()).contains("layout" to "Property")
     }
     doTestOnPatchedSchema("""
     androidApp {
       fakeFileList = listOf($caret
     }
     """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).contains("layout")
+      Truth.assertThat(suggestions.toList()).contains("layout" to "Property")
     }
     doTestOnPatchedSchema("""
     androidApp {
       fakeFileList = listOf(layout.projectDirectory.file("aaa"), $caret
     }
     """) { suggestions ->
-      Truth.assertThat(suggestions.toList()).contains("layout")
+      Truth.assertThat(suggestions.toList()).contains("layout"  to "Property")
+    }
+  }
+
+  @Test
+  fun testMapOfPair() {
+    doTestOnPatchedSchema("""
+       androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = mapOf("a"$caret)
+        }
+       }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("to" to "Pair Factory")
+    }
+
+    doTestOnPatchedSchema("""
+       androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = mapOf("a" $caret)
+        }
+       }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("to" to "Pair Factory")
+    }
+  }
+
+  @Test
+  fun testMapOfPair2() {
+    doTestOnPatchedSchema("""
+       androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = mapOf("a" t$caret)
+        }
+       }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("to" to "Pair Factory")
+    }
+
+    doTestOnPatchedSchema("""
+       androidApp {
+        defaultConfig {
+          testInstrumentationRunnerArguments = mapOf("a" t$caret, "c" to mapOf())
+        }
+       }
+    """) { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains("to" to "Pair Factory")
     }
   }
 
@@ -920,33 +1006,33 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     schema.getTopLevelEntries("settings.gradle.dcl").forEach { it.iterate(listOf(it.entry.simpleName),listOf(it.entry)) }
   }
 
-  private fun doTest(declarativeFile: String, check: (List<String>) -> Unit) {
+  private fun doTest(declarativeFile: String, check: (List<Pair<String, String>>) -> Unit) {
     doTest(declarativeFile, "build.gradle.dcl", check)
   }
 
-  private fun doTestOnPatchedSchema(declarativeFile: String, check: (List<String>) -> Unit) {
+  private fun doTestOnPatchedSchema(declarativeFile: String, check: (List<Pair<String, String>>) -> Unit) {
     doTestOnPatchedSchema(declarativeFile, "build.gradle.dcl", check)
   }
 
-  private fun doTestOnPatchedSchema(declarativeFile: String, fileName: String, check: (List<String>) -> Unit) {
+  private fun doTestOnPatchedSchema(declarativeFile: String, fileName: String, check: (List<Pair<String, String>>) -> Unit) {
     registerTestDeclarativeServicePatchedSchema(projectRule.project, fixture.testRootDisposable)
     _doTest(declarativeFile, fileName, check)
   }
 
-  private fun doTest(declarativeFile: String, fileName: String, check: (List<String>) -> Unit) {
+  private fun doTest(declarativeFile: String, fileName: String, check: (List<Pair<String, String>>) -> Unit) {
     registerTestDeclarativeService(projectRule.project, fixture.testRootDisposable)
     _doTest(declarativeFile, fileName, check)
   }
 
-  private fun _doTest(declarativeFile: String, fileName: String, check: (List<String>) -> Unit) {
+  private fun _doTest(declarativeFile: String, fileName: String, check: (List<Pair<String, String>>) -> Unit) {
     val buildFile = fixture.addFileToProject(
       fileName, declarativeFile)
     fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
     fixture.completeBasic()
-    val list: List<String> = fixture.lookupElements!!.map {
+    val list: List<Pair<String, String>> = fixture.lookupElements!!.map {
       val presentation = LookupElementPresentation()
       it.renderElement(presentation)
-      it.lookupString
+      it.lookupString to (presentation.typeText ?: "")
     }
     check.invoke(list)
   }

@@ -20,7 +20,7 @@ import com.android.mockito.kotlin.whenever
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus
 import com.android.testutils.ImageDiffUtil
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
@@ -37,10 +37,14 @@ import com.android.tools.idea.avdmanager.EmulatorLogListener
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.tools.idea.streaming.core.AndroidInputEvent
+import com.android.tools.idea.streaming.core.DeviceInputListener
+import com.android.tools.idea.streaming.core.DeviceInputListenerManager
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_SCREENSHOT_CALL_FILTER
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.streaming.executeStreamingAction
+import com.android.tools.idea.streaming.xr.TRANSLATION_STEP_SIZE
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -101,9 +105,11 @@ import java.awt.Point
 import java.awt.PointerInfo
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
+import java.awt.event.InputEvent.ALT_DOWN_MASK
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_BACK_SPACE
@@ -114,6 +120,7 @@ import java.awt.event.KeyEvent.VK_END
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
 import java.awt.event.KeyEvent.VK_HOME
+import java.awt.event.KeyEvent.VK_J
 import java.awt.event.KeyEvent.VK_KP_DOWN
 import java.awt.event.KeyEvent.VK_KP_LEFT
 import java.awt.event.KeyEvent.VK_KP_RIGHT
@@ -123,6 +130,7 @@ import java.awt.event.KeyEvent.VK_M
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
+import java.awt.event.KeyEvent.VK_S
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_TAB
@@ -131,6 +139,7 @@ import java.nio.file.Path
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
 import javax.swing.JScrollPane
+import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -174,6 +183,14 @@ class EmulatorViewTest {
   fun testResizingRotationAndMouseInput() {
     view = emulatorViewRule.newEmulatorView()
     fakeUi = FakeUi(createScrollPane(view), 2.0)
+    val inputEvents: MutableList<AndroidInputEvent> = mutableListOf()
+    val inputListener = object: DeviceInputListener {
+      override fun eventSent(event: AndroidInputEvent) {
+        inputEvents.add(event)
+      }
+    }
+    val inputListenerManager = emulatorViewRule.project.getService(DeviceInputListenerManager::class.java)
+    inputListenerManager.addDeviceInputListener(fakeEmulator.serialNumber, inputListener)
 
     // Check initial appearance.
     fakeUi.root.size = Dimension(200, 300)
@@ -256,12 +273,39 @@ class EmulatorViewTest {
     val inputEventCall = fakeEmulator.getNextGrpcCall(2.seconds)
     assertThat(inputEventCall.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
     assertThat(shortDebugString(inputEventCall.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 35 y: 61 buttons: 1 }")
+    inputEvents.last()
+      .let { it as AndroidInputEvent.TouchEvent }
+      .let {
+        assertThat(it.deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
+        assertThat(it.touches).hasSize(1)
+        assertThat(it.touches[0]).isEqualTo(AndroidInputEvent.TouchEvent.Touch(35, 61, 0))
+      }
 
     fakeUi.mouse.dragTo(215, 48)
     assertThat(shortDebugString(inputEventCall.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1404 y: 2723 buttons: 1 }")
+    inputEvents.last()
+      .let { it as AndroidInputEvent.TouchEvent }
+      .let {
+        assertThat(it.deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
+        assertThat(it.touches).hasSize(1)
+        assertThat(it.touches[0]).isEqualTo(AndroidInputEvent.TouchEvent.Touch(1404, 2723, 0))
+      }
 
     fakeUi.mouse.release()
     assertThat(shortDebugString(inputEventCall.getNextRequest(1.seconds))).isEqualTo("mouse_event { x: 1404 y: 2723 }")
+    inputEvents.last()
+      .let { it as AndroidInputEvent.TouchEvent }
+      .let {
+        assertThat(it.deviceSerialNumber).isEqualTo(fakeEmulator.serialNumber)
+        assertThat(it.touches).isEmpty()
+      }
+
+    // Mouse events outside the display image shouldn't trigger listeners.
+    inputEvents.clear()
+    fakeUi.mouse.press(50, 7)
+    fakeUi.mouse.release()
+    assertThat(inputEvents).isEmpty()
+    inputListenerManager.removeDeviceInputListener(fakeEmulator.serialNumber, inputListener)
 
     // Check clockwise rotation in a zoomed-in state.
     view.zoom(ZoomType.IN)
@@ -293,6 +337,9 @@ class EmulatorViewTest {
     // Mouse events outside the display image should be ignored.
     fakeUi.mouse.press(50, 7)
     fakeUi.mouse.release()
+
+    // Make sure event listeners aren't called after they're unregistered.
+    assertThat(inputEvents).isEmpty()
 
     // Check hiding the device frame.
     view.deviceFrameVisible = false
@@ -409,9 +456,7 @@ class EmulatorViewTest {
                  "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\"")
     )
     for ((hostKeyStroke, keyboardEventMessages) in keyStrokeCases) {
-      fakeUi.keyboard.pressForModifiers(hostKeyStroke.modifiers)
-      fakeUi.keyboard.pressAndRelease(hostKeyStroke.keyCode)
-      fakeUi.keyboard.releaseForModifiers(hostKeyStroke.modifiers)
+      fakeUi.keyboard.hit(hostKeyStroke)
       for (message in keyboardEventMessages) {
         assertThat(shortDebugString(call!!.getNextRequest(1.seconds))).isEqualTo("key_event { $message }")
       }
@@ -429,7 +474,7 @@ class EmulatorViewTest {
     replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
 
     mockFocusManager.processKeyEvent(
-        view, KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
+        view, KeyEvent(view, KEY_PRESSED, System.nanoTime(), SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
 
     verify(mockFocusManager, atLeast(1)).focusNextComponent(eq(view))
   }
@@ -711,13 +756,50 @@ class EmulatorViewTest {
     fakeUi.render()
 
     var call: GrpcCallRecord? = null
-    for (rotation in listOf(1, 1, -1, -1)) {
-      fakeUi.mouse.wheel(100, 100, rotation)
-      if (call == null) {
-        call = fakeEmulator.getNextGrpcCall(2.seconds)
-        assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    for (shift in booleanArrayOf(false, true)) {
+      val axis = if (shift) "x" else "y"
+      if (shift) {
+        fakeUi.keyboard.press(VK_SHIFT)
       }
-      assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("wheel_event { dy: ${-rotation * 25} }")
+      for (rotation in intArrayOf(1, -1)) {
+        fakeUi.mouse.wheel(100, 100, rotation)
+        if (call == null) {
+          call = fakeEmulator.getNextGrpcCall(2.seconds)
+          assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+        }
+        assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("wheel_event { d$axis: ${-rotation * 30} }")
+      }
+      if (shift) {
+        fakeUi.keyboard.release(VK_SHIFT)
+      }
+    }
+  }
+
+  @Test
+  fun testTouchpadScrolling() {
+    view = emulatorViewRule.newEmulatorView()
+    fakeUi = FakeUi(createScrollPane(view))
+
+    fakeUi.root.size = Dimension(200, 300)
+    fakeUi.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame()
+    fakeUi.render()
+
+    var call: GrpcCallRecord? = null
+    var cumulativeRotation = 0.0
+    for (sign in intArrayOf(1, -1)) {
+      for (i in 1..100) {
+        fakeUi.mouse.wheel(100, 100, 0, 0.1 * sign.toDouble())
+        cumulativeRotation += 0.06 * sign
+        if (cumulativeRotation.absoluteValue >= 1) {
+          cumulativeRotation -= sign
+          if (call == null) {
+            call = fakeEmulator.getNextGrpcCall(2.seconds)
+            assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+          }
+          assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("wheel_event { dy: ${-sign} }")
+        }
+      }
     }
   }
 
@@ -725,11 +807,11 @@ class EmulatorViewTest {
   fun testKeysForMnemonicsShouldNotBeConsumed() {
     view = emulatorViewRule.newEmulatorView()
 
-    val altMPressedEvent = KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, VK_M, VK_M.toChar())
+    val altMPressedEvent = KeyEvent(view, KEY_PRESSED, System.nanoTime(), ALT_DOWN_MASK, VK_M, VK_M.toChar())
     KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(view, altMPressedEvent)
     assertThat(altMPressedEvent.isConsumed).isFalse()
 
-    val altMReleasedEvent = KeyEvent(view, KEY_RELEASED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, VK_M, VK_M.toChar())
+    val altMReleasedEvent = KeyEvent(view, KEY_RELEASED, System.nanoTime(), ALT_DOWN_MASK, VK_M, VK_M.toChar())
     KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(view, altMReleasedEvent)
     assertThat(altMReleasedEvent.isConsumed).isFalse()
   }
@@ -749,9 +831,8 @@ class EmulatorViewTest {
     val keymapManager = KeymapManager.getInstance()
     keymapManager.activeKeymap.addShortcut("android.streaming.hardware.input", KeyboardShortcut.fromString("control shift J"))
 
-    assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.nanoTime(),
-                                                    KeyEvent.SHIFT_DOWN_MASK or KeyEvent.CTRL_DOWN_MASK, KeyEvent.VK_J,
-                                                    KeyEvent.CHAR_UNDEFINED))).isFalse()
+    assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.nanoTime(), SHIFT_DOWN_MASK or CTRL_DOWN_MASK, VK_J,
+                                                    CHAR_UNDEFINED))).isFalse()
   }
 
   @Test
@@ -767,10 +848,10 @@ class EmulatorViewTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"Control\" }")
 
-    fakeUi.keyboard.press(KeyEvent.VK_S)
+    fakeUi.keyboard.press(VK_S)
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { key: \"s\" }")
 
-    fakeUi.keyboard.release(KeyEvent.VK_S)
+    fakeUi.keyboard.release(VK_S)
     assertThat(shortDebugString(call.getNextRequest(1.seconds))).isEqualTo("key_event { eventType: keyup key: \"s\" }")
 
     fakeUi.keyboard.release(VK_CONTROL)
@@ -1037,6 +1118,23 @@ class EmulatorViewTest {
       "}\n"
     )
     assertThat(mirroringSessionPattern.matches(mirroringSessions[0].toString())).isTrue()
+  }
+
+  @Test
+  fun testXrZoom() {
+    view = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createXrAvd(path) }
+    fakeUi = FakeUi(createScrollPane(view), 2.0)
+
+    fakeUi.root.size = Dimension(200, 300)
+    fakeUi.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame()
+
+    view.zoom(ZoomType.IN)
+    val call = getNextGrpcCallIgnoringStreamScreenshot()
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
+    assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("xr_head_movement_event { delta_z: -$TRANSLATION_STEP_SIZE }")
+    view.zoom(ZoomType.OUT)
+    assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("xr_head_movement_event { delta_z: $TRANSLATION_STEP_SIZE }")
   }
 
   private fun createScrollPane(view: Component): JScrollPane {

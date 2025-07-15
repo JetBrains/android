@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/backup:intellij.android.backup.api",
         "//tools/adt/idea/android-common:intellij.android.common",
+        "//tools/adt/idea/jps-model:intellij.android.jps.model",
         "//tools/adt/idea/android:intellij.android.core",
         "//tools/adt/idea/execution/common:intellij.android.execution.common",
         "//tools/adt/idea/project-system:intellij.android.projectSystem",

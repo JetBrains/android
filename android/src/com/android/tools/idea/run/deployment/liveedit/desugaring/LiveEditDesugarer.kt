@@ -22,6 +22,8 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiledClass
 import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.desugarFailure
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.buildLibraryDesugarFailure
+import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices
+import com.android.tools.idea.run.deployment.liveedit.tokens.DesugarConfigs
 import com.android.tools.r8.ClassFileResourceProvider
 import com.android.tools.r8.CompilationFailedException
 import com.android.tools.r8.D8
@@ -37,7 +39,7 @@ typealias MinApiLevel = Int
 typealias ClassName = String
 typealias ByteCode = ByteArray
 
-internal class LiveEditDesugar : AutoCloseable{
+internal class LiveEditDesugar(private val applicationLiveEditServices: ApplicationLiveEditServices) : AutoCloseable{
 
   private val logger = LiveEditLogger("LE Desugar")
   private val jarResourceCacheManager = JarResourceCacheManager(logger)
@@ -68,24 +70,24 @@ internal class LiveEditDesugar : AutoCloseable{
   }
 
 
-  private fun getDesugarConfig(module: Module?): String? {
-    if (module == null) {
-      logger.log("Cannot retrieve desugar config (no module)")
-      return null
-    }
+  private fun getDesugarConfig(): String? {
+    val desguarConfigs = applicationLiveEditServices.getDesugarConfigs()
+    if (desguarConfigs is DesugarConfigs.Known) {
+      if (desguarConfigs.configs.isEmpty()) {
+        logger.log("Empty Desguar JSON Config from Build System")
+        return null
+      }
 
-    val jsonConfigs = module.getModuleSystem().desugarLibraryConfigFiles
-    if (jsonConfigs.isEmpty()) {
-      logger.log("Not Library Config from Build System")
-      return null
+      // R8 only requires a single json config file. Gradle returns a list if R8 ever decides to require several.
+      // Since multiple JSON isn't currently supported by sync, it is safe to assume we only have a single item array.
+      val path = desguarConfigs.configs[0]
+      val config = String(Files.readAllBytes(path))
+      logger.log("Library Config = $path")
+      return config
+    } else {
+      logger.log("Desugar Config Not Known")
+      return null;
     }
-
-    // R8 only requires a single json config file. Gradle returns a list if R8 even decides to return several.
-    // We only get the first one.
-    val path = jsonConfigs[0]
-    val config = String(Files.readAllBytes(path))
-    logger.log("Library Config = $path")
-    return config
   }
 
   private fun getAndroidJar(module: Module?) : List<ClassFileResourceProvider> {
@@ -208,15 +210,16 @@ internal class LiveEditDesugar : AutoCloseable{
          then, we do get a json config file that we should forward to our own invocation.
      */
 
+     // TODO: This is duplicated. We don't need to call this twice.
      // Check if the build system support returning the json config library information
-     val moduleSys = module.getModuleSystem()
-     if (!moduleSys.desugarLibraryConfigFilesKnown) {
-       // If AGP does not support config retrieval, we cannot proceed
-       throw buildLibraryDesugarFailure("${moduleSys.desugarLibraryConfigFilesNotKnownUserMessage}")
+     val desugarConfigs = applicationLiveEditServices.getDesugarConfigs()
+     if (desugarConfigs is DesugarConfigs.NotKnown) {
+       // If the application services does not support config retrieval, we cannot proceed
+       throw buildLibraryDesugarFailure("${desugarConfigs.message}")
      }
 
      // Enable desugared library if it was used.
-     val desugarConfig = getDesugarConfig(module)
+     val desugarConfig = getDesugarConfig()
      if (desugarConfig != null) {
        command.addDesugaredLibraryConfiguration(desugarConfig)
      }

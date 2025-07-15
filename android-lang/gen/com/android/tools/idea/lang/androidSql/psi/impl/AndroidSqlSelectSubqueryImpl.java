@@ -64,8 +64,7 @@ public class AndroidSqlSelectSubqueryImpl extends ASTWrapperPsiElement implement
   }
 
   @Override
-  @Nullable
-  public AndroidSqlTable getSqlTable() {
+  public @Nullable AndroidSqlTable getSqlTable() {
     return PsiImplUtil.getSqlTable(this);
   }
 

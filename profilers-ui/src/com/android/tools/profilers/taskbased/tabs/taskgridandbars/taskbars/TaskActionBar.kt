@@ -113,7 +113,7 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
         if (canStartTaskFromProcessStart) null else {
           // Only show start task from process start error message if it's a startup task error.
           getStartTaskError(selectedTaskType, selectedDevice, selectedProcess, TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
-                            profilers).takeIf { STARTUP_TASK_ERRORS.contains(it.starTaskSelectionErrorCode) }
+                            profilers).takeIf { STARTUP_TASK_ERRORS.contains(it.startTaskSelectionErrorCode) }
         }
       TaskStartingPointDropdown(profilingProcessStartingPoint, taskHomeTabModel::setProfilingProcessStartingPoint,
                                 isProfilingProcessFromNowEnabled = true, isProfilingProcessFromProcessStartEnabled = true,

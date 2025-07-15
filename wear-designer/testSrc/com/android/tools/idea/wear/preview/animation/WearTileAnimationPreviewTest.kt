@@ -69,6 +69,8 @@ class WearTileAnimationPreviewTest {
           showDecoration = false,
           showBackground = false,
           backgroundColor = "0xffabcd",
+          organizationGroup = "organization group",
+          organizationName = "organization name",
         ),
       previewElementDefinition = mock<SmartPsiElementPointer<PsiElement>>(),
       previewBody = mock<SmartPsiElementPointer<PsiElement>>(),

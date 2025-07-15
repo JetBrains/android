@@ -94,6 +94,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.paint.LinePainter2D
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.PathUtil
+import com.intellij.util.messages.Topic
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -138,15 +139,19 @@ private const val MAX_FIRST_COMPONENT_PROPORTION: Float = 0.9f
  * @param toolWindowId a tool window ID of which this view is to be displayed in.
  * @param runConfiguration a run configuration of a test. This is used for exporting test results into XML. Null is given
  * when this view displays an imported test result.
+ * @param myClock a clock used for time-related operations, defaults to the system clock.
+ * @param myIsImportedResult indicates if the displayed results are imported from a file (true) or from a live execution (false).
+ * @param canExportTestResults determines if exporting test results is allowed
  */
 class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   parentDisposable: Disposable,
   private val myProject: Project,
   module: Module?,
   private val toolWindowId: String? = null,
-  private val runConfiguration: RunConfiguration? = null,
+  val runConfiguration: RunConfiguration? = null,
   private val myClock: Clock = Clock.systemDefaultZone(),
-  @VisibleForTesting val myIsImportedResult: Boolean = false
+  @VisibleForTesting val myIsImportedResult: Boolean = false,
+  private val canExportTestResults: Boolean = true
 ) : ConsoleView,
     UserDataHolderBase(),
     BuildViewSettingsProvider,
@@ -218,6 +223,10 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   // duration by myClock.
   var testExecutionDurationOverride: Duration? = null
 
+  private var eventPublisher: AndroidTestResultListener? = myProject.messageBus.syncPublisher(
+    ANDROID_TEST_SUITE_TOPIC
+  )
+
   init {
     val androidTestResultsUserPreferencesManager: AndroidTestResultsUserPreferencesManager? = if (runConfiguration is AndroidTestRunConfiguration) {
       val scheduledDeviceIds = HashSet<String>()
@@ -263,11 +272,18 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       Separator.getInstance(),
       myResultsTableView.createNavigateToPreviousFailedTestAction(),
       myResultsTableView.createNavigateToNextFailedTestAction(),
-      Separator.getInstance(),
-      ImportTestGroup(),
-      ImportTestsFromFileAction(),
-      myExportTestResultsAction
     )
+
+    // Importing/exporting of test results is currently only supported for the
+    // AndroidTestRunConfiguration run configuration
+    if (runConfiguration == null || runConfiguration is AndroidTestRunConfiguration) {
+      testFilterActionGroup.addAll(
+        Separator.getInstance(),
+        ImportTestGroup(),
+        ImportTestsFromFileAction(),
+        myExportTestResultsAction
+      )
+    }
 
     val myFocusableActionToolbar: ActionToolbar = object: ActionToolbarImpl(ActionPlaces.ANDROID_TEST_SUITE_TABLE,
                                                                             testFilterActionGroup, true) {
@@ -395,6 +411,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
 
   @AnyThread
   override fun onTestSuiteScheduled(device: AndroidDevice) {
+    eventPublisher?.onTestSuiteScheduled(device)
     AppUIUtil.invokeOnEdt {
       if (myTestStartTimeMillis == 0L) {
         myTestStartTimeMillis = myClock.millis()
@@ -418,6 +435,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
 
   @AnyThread
   override fun onTestSuiteStarted(device: AndroidDevice, testSuite: AndroidTestSuite) {
+    eventPublisher?.onTestSuiteStarted(device, testSuite)
     AppUIUtil.invokeOnEdt {
       scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
       myStartedDevices.add(device)
@@ -429,6 +447,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   override fun onTestCaseStarted(device: AndroidDevice,
                                  testSuite: AndroidTestSuite,
                                  testCase: AndroidTestCase) {
+    eventPublisher?.onTestCaseStarted(device, testSuite, testCase)
     AppUIUtil.invokeOnEdt {
       scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
       myResultsTableView.addTestCase(device, testCase)
@@ -440,6 +459,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   override fun onTestCaseFinished(device: AndroidDevice,
                                   testSuite: AndroidTestSuite,
                                   testCase: AndroidTestCase) {
+    eventPublisher?.onTestCaseFinished(device, testSuite, testCase)
     AppUIUtil.invokeOnEdt {
       scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
       // Include a benchmark output to a raw output console for backward compatibility.
@@ -468,8 +488,10 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
   }
 
+
   @AnyThread
   override fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {
+    eventPublisher?.onTestSuiteFinished(device, testSuite)
     AppUIUtil.invokeOnEdt {
       scheduledTestCasesForTestSuite[device.id to testSuite.id] = testSuite.testCaseCount
       myFinishedDevices.add(device)
@@ -479,7 +501,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
         showNotificationBalloonIfToolWindowIsNotActive()
 
         // Don't allow re-exporting the imported result or exporting a cancelled result.
-        if (!myIsImportedResult && testSuite.result != AndroidTestSuiteResult.CANCELLED) {
+        if (canExportTestResults && !myIsImportedResult && testSuite.result != AndroidTestSuiteResult.CANCELLED) {
           myExportTestResultsAction.apply {
             devices = myScheduledDevices.toList()
             rootResultsNode = myResultsTableView.rootResultsNode
@@ -500,6 +522,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
 
   @AnyThread
   override fun onRerunScheduled(device: AndroidDevice) {
+    eventPublisher?.onRerunScheduled(device)
     AppUIUtil.invokeOnEdt {
       myFinishedDevices.remove(device)
       myStartedDevices.remove(device)
@@ -574,6 +597,10 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
 
   private fun saveHistory() {
+    if (!canExportTestResults) {
+      return
+    }
+
     val runConfiguration = runConfiguration ?: return
     ProgressManager.getInstance().run(
       object : Task.Backgroundable(
@@ -822,4 +849,10 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
   }
 
   override fun isExecutionViewHidden(): Boolean = true
+
+  companion object {
+    @Topic.ProjectLevel
+    val ANDROID_TEST_SUITE_TOPIC: Topic<AndroidTestResultListener> = Topic("Android Test Suite Topic",
+                                                                           AndroidTestResultListener::class.java)
+  }
 }

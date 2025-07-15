@@ -43,7 +43,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     VirtualFile file = myFixture.addFileToProject(
       "AndroidManifest.xml",
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
-      "  <attribute android:tag=\"true\" android:label=\"true\"/>\n" +
+      "  <attribution android:tag=\"true\" android:label=\"true\"/>\n" +
       "</manifest>").getVirtualFile();
 
     myFixture.configureFromExistingVirtualFile(file);
@@ -59,14 +59,14 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
 
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.completeBasic();
-    assertThat(myFixture.getLookupElementStrings()).contains("attribute");
+    assertThat(myFixture.getLookupElementStrings()).contains("attribution");
   }
 
   public void testAttributeAttributesCompletion() {
     VirtualFile file = myFixture.addFileToProject(
       "AndroidManifest.xml",
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
-      "  <attribute <caret>\n" +
+      "  <attribution <caret>\n" +
       "</manifest>").getVirtualFile();
 
     myFixture.configureFromExistingVirtualFile(file);

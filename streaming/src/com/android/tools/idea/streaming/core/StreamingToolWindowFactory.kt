@@ -24,6 +24,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowContentUiType
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowType
+import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 
 /**
@@ -39,7 +40,7 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
   override fun init(toolWindow: ToolWindow) {
     toolWindow.component.putClientProperty(ToolWindowContentUi.ALLOW_DND_FOR_TABS, true)
     toolWindow.component.putClientProperty(ToolWindowContentUi.DONT_HIDE_TOOLBAR_IN_HEADER, true)
-    StreamingToolWindowManager(toolWindow)
+    StreamingToolWindowManager(toolWindow as ToolWindowEx)
   }
 
   private class MoveToWindowAction(private val toolWindow: ToolWindow) : ToolWindowWindowAction() {

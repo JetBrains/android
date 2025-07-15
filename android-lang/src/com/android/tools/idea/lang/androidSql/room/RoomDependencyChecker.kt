@@ -42,11 +42,9 @@ class RoomDependencyChecker(val project: Project) {
   private fun calculateIsRoomPresent(): Boolean {
     LOG.debug("Recalculating project dependency on Room")
 
-    return isRoomPresentInScope(GlobalSearchScope.allScope(project))
+    val scope = GlobalSearchScope.allScope(project)
+    val psiFacade = JavaPsiFacade.getInstance(scope.project!!)
+    return sequenceOf(RoomAnnotations.ENTITY.newName(), RoomAnnotations.ENTITY.oldName()).any { psiFacade.findClass(it, scope) != null }
   }
 }
 
-fun isRoomPresentInScope(scope: GlobalSearchScope): Boolean {
-  val psiFacade = JavaPsiFacade.getInstance(scope.project!!)
-  return sequenceOf(RoomAnnotations.ENTITY.newName(), RoomAnnotations.ENTITY.oldName()).any { psiFacade.findClass(it, scope) != null }
-}

@@ -67,7 +67,7 @@ import org.jetbrains.kotlin.idea.base.util.module
  * [renderedPreviewElementsFlow].
  *
  * When a single non-null preview element is set through [setSingleFilter], that element will be
- * returned by [filteredPreviewElementsFlow], otherwise the [groupFilter] will be used for
+ * returned by [toRenderPreviewElementsFlow], otherwise the [groupFilter] will be used for
  * filtering.
  */
 class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
@@ -105,11 +105,22 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
     }
 
   /**
-   * Flow containing all the [PsiPreviewElementInstance]s available in the current file to be
-   * rendered. These are all the previews in [allPreviewElementsFlow] filtered using [filterFlow].
-   * This flow is only updated when the Preview representation is active.
+   * Flow containing all the [PsiPreviewElementInstance]s available in the current file. These are
+   * all the previews in [allPreviewElementsFlow] filtered using [filterFlow]. This flow is only
+   * updated when the Preview representation is active.
    */
-  override val filteredPreviewElementsFlow =
+  private val toPaginatePreviewElementsFlow =
+    MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
+
+  override val previewFlowPaginator: PreviewFlowPaginator<T> =
+    PreviewFlowPaginator(toPaginatePreviewElementsFlow)
+
+  /**
+   * Flow containing all the [PsiPreviewElementInstance]s present in the selected page defined in
+   * the [previewFlowPaginator]. These are the previews expected to be rendered. This flow is only
+   * updated when the Preview representation is active.
+   */
+  override val toRenderPreviewElementsFlow =
     MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
 
   /**
@@ -227,12 +238,18 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
             availableGroupsFlow.value = uiCheckFilter.filterGroups(allGroups)
             uiCheckFilter.filterPreviewInstances(filteredPreviews)
           }
-          .collectLatest { filteredPreviewElementsFlow.value = it }
+          .collectLatest { toPaginatePreviewElementsFlow.value = it }
+      }
+
+      launch(workerThread) {
+        previewFlowPaginator.currentPageFlow.collectLatest {
+          toRenderPreviewElementsFlow.value = it
+        }
       }
 
       // Trigger refreshes on available previews changes
       launch(workerThread) {
-        filteredPreviewElementsFlow
+        toRenderPreviewElementsFlow
           .filter {
             return@filter when (it) {
               is FlowableCollection.Uninitialized -> false

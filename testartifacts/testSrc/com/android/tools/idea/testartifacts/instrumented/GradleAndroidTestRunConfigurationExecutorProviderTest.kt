@@ -3,7 +3,7 @@ package com.android.tools.idea.testartifacts.instrumented
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
-import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleTestProject
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.run.editor.DeployTarget
@@ -25,7 +25,7 @@ import org.mockito.kotlin.mock
 class GradleAndroidTestRunConfigurationExecutorProviderTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.testProject(object : LightGradleSyncTestProject {
+  val projectRule = AndroidProjectRule.testProject(object : LightGradleTestProject {
     override val templateProject = AndroidCoreTestProject.SIMPLE_APPLICATION
     override val modelBuilders = listOf(
       JavaModuleModelBuilder.rootModuleBuilder,

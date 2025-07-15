@@ -140,9 +140,8 @@ private fun IdeUnresolvedLibraryTable.resolve(
           null,
           unresolved.artifact.path,
           unresolved.artifact,
+          listOf(),
           null,
-          null,
-          null
         )
       )
 

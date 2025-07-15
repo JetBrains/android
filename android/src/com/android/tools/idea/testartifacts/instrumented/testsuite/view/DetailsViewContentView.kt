@@ -19,6 +19,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPla
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.JourneyActionArtifacts
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
@@ -73,6 +74,10 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   val myScreenshotResultView: ScreenshotResultView
   val myScreenshotTab: TabInfo
   @VisibleForTesting var myScreenshotAttributesTab: TabInfo
+  val myJourneysResultsPanel: JourneysResultsPanel
+
+  @VisibleForTesting
+  val myJourneyScreenshotsTab: TabInfo
   @VisibleForTesting val logsTab: TabInfo
   @VisibleForTesting val tabs: JBTabs = createTabs(project, parentDisposable)
   @VisibleForTesting var lastSelectedTab: TabInfo? = null
@@ -84,6 +89,14 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
   private var needsRefreshLogsView: Boolean = true
 
   init {
+    // Journey results tab
+    myJourneysResultsPanel = JourneysResultsPanel(project)
+    myJourneyScreenshotsTab = TabInfo(myJourneysResultsPanel)
+    myJourneyScreenshotsTab.setText("Results")
+    myJourneyScreenshotsTab.setTooltipText("Show the actions taken by Gemini")
+    myJourneyScreenshotsTab.isHidden = true
+    tabs.addTab(myJourneyScreenshotsTab)
+
     // Screenshot tab
     myScreenshotResultView = ScreenshotResultView()
     myScreenshotTab = TabInfo(myScreenshotResultView.getComponent())
@@ -217,6 +230,14 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       this.lastSelectedTab = myScreenshotTab
     } else {
       myScreenshotTab.isHidden = true
+    }
+
+    val journeyActionArtifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
+    myJourneysResultsPanel.updateArtifacts(journeyActionArtifacts)
+    myJourneyScreenshotsTab.isHidden = journeyActionArtifacts.isEmpty()
+
+    if (journeyActionArtifacts.isNotEmpty()) {
+      tabs.select(myJourneyScreenshotsTab, false)
     }
   }
 

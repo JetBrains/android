@@ -16,16 +16,18 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.idea.gradle.project.SyncDueMessageKt.SYNC_DUE_DIALOG_SHOWN;
-import static com.android.tools.idea.gradle.project.SyncDueMessageKt.SYNC_DUE_SNOOZED_SETTING;
+import static com.android.tools.idea.gradle.project.SyncDueMessageKt.SYNC_DUE_SNOOZED_SETTING_AT_DATE;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.ExperimentalConfigurable;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.AutoSyncBehavior;
 import com.android.tools.idea.gradle.project.sync.AutoSyncSettingStore;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AutoSyncSettingChangeEvent;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.ui.EnumComboBoxModel;
@@ -103,10 +105,15 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimizationEnabled();
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = isDeriveRuntimeClasspathsForLibraries();
     mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = isShowAgpVersionChooserInNewProjectWizard();
+    // todo b/422742936 cleanup
     if (AutoSyncSettingStore.INSTANCE.getAutoSyncBehavior() != getAutoSyncBehaviorComboBox()) {
       AutoSyncSettingStore.INSTANCE.setAutoSyncBehavior(getAutoSyncBehaviorComboBox());
       trackAutoSyncSettingChanged();
       clearAutoSyncVariables();
+      if (getAutoSyncBehaviorComboBox() == AutoSyncBehavior.Default) {
+        SyncDueMessage.INSTANCE.getProjectsWhereNotificationShown().forEach(project -> GradleSyncInvoker.getInstance()
+          .requestProjectSync(project, new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST), null));
+      }
     }
   }
 
@@ -185,7 +192,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
    * Clears snooze and first dialog flags that are used by Optional Auto Sync feature.
    */
   private void clearAutoSyncVariables() {
-    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_SNOOZED_SETTING);
+    PropertiesComponent.getInstance().unsetValue(SYNC_DUE_SNOOZED_SETTING_AT_DATE);
     PropertiesComponent.getInstance().unsetValue(SYNC_DUE_DIALOG_SHOWN);
   }
 

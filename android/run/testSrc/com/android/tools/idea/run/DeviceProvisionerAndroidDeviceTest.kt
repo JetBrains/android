@@ -61,6 +61,7 @@ class DeviceProvisionerAndroidDeviceTest {
 
   @After
   fun terminateAdb() {
+    AndroidDebugBridge.disconnectBridge()
     AndroidDebugBridge.terminate()
     AndroidDebugBridge.disableFakeAdbServerMode()
   }

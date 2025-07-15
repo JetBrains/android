@@ -238,7 +238,7 @@ class EntryDetailsView(
     }
     pendingIntentPanel.add(buildKeyValuePair("Request code", "$requestCode"))
 
-    if (hasIntent()) {
+    intentList.forEach { intent ->
       pendingIntentPanel.add(JLabel("Intent:"))
       val intentPanel =
         JPanel(VerticalLayout(JBUI.scale(6))).apply {

@@ -45,7 +45,7 @@ class StreamingBenchmarkAction : AnAction() {
                   ?.getEmulatorToolWindow()
                   ?.contentManager
                   ?.selectedContent
-                  ?.component as? StreamingDevicePanel ?: return null
+                  ?.component as? StreamingDevicePanel<*> ?: return null
     val view = panel.preferredFocusableComponent as? AbstractDisplayView ?: return null
     return StreamingBenchmarkTarget(panel.title, panel.id.serialNumber, view)
   }

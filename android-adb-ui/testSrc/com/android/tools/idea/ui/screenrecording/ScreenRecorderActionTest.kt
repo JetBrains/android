@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
@@ -34,15 +33,8 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-/**
- * Tests for [ScreenRecorderAction]
- *
- * Based on com.android.tools.idea.ddms.actions.ScreenRecorderActionTest.
- * We only include tests that exist in the above file, so we don't lose coverage. Tests of getTemporaryVideoPathForVirtualDevice() are not
- * included because the new impl of this function is simpler and doesn't require these tests.
- *
- * The getEmulatorScreenRecorderOptions() has been moved to EmulatorConsoleRecordingProviderTest
- */
+/** Tests for [ScreenRecorderAction]. */
+// TODO(b/235094713): Add tests for action execution. Only updating is currently tested.
 class ScreenRecorderActionTest {
   private val projectRule = ProjectRule()
 
@@ -66,7 +58,7 @@ class ScreenRecorderActionTest {
   fun setUp() {
     userData[CommonDataKeys.PROJECT.name] = project
     userData[SCREEN_RECORDER_PARAMETERS_KEY.name] =
-        ScreenRecorderAction.Parameters("My device", "device", 30, null, PRIMARY_DISPLAY_ID,  null, testRootDisposable)
+        ScreenRecordingParameters("device", "My device", 30, testRootDisposable, null)
   }
 
   @Test

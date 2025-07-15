@@ -32,7 +32,6 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +69,6 @@ public class ArtifactDirectoryUpdateTest {
     ArtifactDirectoryUpdate update =
         new ArtifactDirectoryUpdate(
           cache,
-          workspaceRoot,
           root,
           ArtifactDirectoryContents.newBuilder()
             .putContents(
@@ -87,32 +85,6 @@ public class ArtifactDirectoryUpdateTest {
   }
 
   @Test
-  public void copy_source_artifact_into_empty_dir() throws IOException {
-    Path workspacePath = workspaceRoot.resolve("workspace/path/to/file.txt");
-    Files.createDirectories(workspacePath.getParent());
-    Files.write(workspacePath, ImmutableList.of("workspace file contents"));
-    ArtifactDirectoryUpdate update =
-        new ArtifactDirectoryUpdate(
-          cache,
-          workspaceRoot,
-          root,
-          ArtifactDirectoryContents.newBuilder()
-            .putContents(
-              "anotherfile.txt",
-              ProjectArtifact.newBuilder()
-                .setTransform(ArtifactTransform.COPY)
-                .setWorkspaceRelativePath("workspace/path/to/file.txt")
-                .build())
-            .build());
-    update.update();
-
-    assertThat(readContents()).containsExactly(Path.of("anotherfile.txt"));
-    assertThat(Files.readAllLines(root.resolve("anotherfile.txt")))
-        .containsExactly("workspace file contents");
-    assertThat(update.getUpdatedPaths()).containsExactly(root.resolve("anotherfile.txt"));
-  }
-
-  @Test
   public void unzip_into_empty_dir() throws IOException {
     writeZipFile(
         cacheDir.resolve("zipdigest"),
@@ -122,7 +94,6 @@ public class ArtifactDirectoryUpdateTest {
     ArtifactDirectoryUpdate update =
         new ArtifactDirectoryUpdate(
           cache,
-          workspaceRoot,
           root,
           ArtifactDirectoryContents.newBuilder()
             .putContents(
@@ -155,7 +126,6 @@ public class ArtifactDirectoryUpdateTest {
     ArtifactDirectoryUpdate update =
         new ArtifactDirectoryUpdate(
           cache,
-          workspaceRoot,
           root,
           ArtifactDirectoryContents.getDefaultInstance());
     update.update();
@@ -170,7 +140,6 @@ public class ArtifactDirectoryUpdateTest {
     ArtifactDirectoryUpdate update =
         new ArtifactDirectoryUpdate(
           cache,
-          workspaceRoot,
           root,
           ArtifactDirectoryContents.newBuilder()
             .putContents(
@@ -189,7 +158,6 @@ public class ArtifactDirectoryUpdateTest {
     update =
         new ArtifactDirectoryUpdate(
           cache,
-          workspaceRoot,
           root,
           ArtifactDirectoryContents.getDefaultInstance());
     update.update();
@@ -209,7 +177,6 @@ public class ArtifactDirectoryUpdateTest {
     ArtifactDirectoryUpdate update =
         new ArtifactDirectoryUpdate(
           cache,
-          workspaceRoot,
           root,
           ArtifactDirectoryContents.newBuilder()
             .putContents(
@@ -234,7 +201,6 @@ public class ArtifactDirectoryUpdateTest {
     ArtifactDirectoryUpdate update =
         new ArtifactDirectoryUpdate(
           cache,
-          workspaceRoot,
           root,
           ArtifactDirectoryContents.newBuilder()
             .putAllContents(
@@ -257,7 +223,6 @@ public class ArtifactDirectoryUpdateTest {
     ArtifactDirectoryUpdate update =
         new ArtifactDirectoryUpdate(
           cache,
-          workspaceRoot,
           root,
           ArtifactDirectoryContents.newBuilder()
             .putAllContents(
@@ -281,7 +246,6 @@ public class ArtifactDirectoryUpdateTest {
     ArtifactDirectoryUpdate update =
         new ArtifactDirectoryUpdate(
           cache,
-          workspaceRoot,
           root,
           ArtifactDirectoryContents.newBuilder()
             .putContents(
@@ -310,7 +274,6 @@ public class ArtifactDirectoryUpdateTest {
     ArtifactDirectoryUpdate populate =
         new ArtifactDirectoryUpdate(
           cache,
-          workspaceRoot,
           root,
           ArtifactDirectoryContents.newBuilder()
             .putContents(
@@ -333,7 +296,6 @@ public class ArtifactDirectoryUpdateTest {
     ArtifactDirectoryUpdate update =
         new ArtifactDirectoryUpdate(
           cache,
-          workspaceRoot,
           root,
           ArtifactDirectoryContents.newBuilder()
             .putContents(
@@ -359,7 +321,6 @@ public class ArtifactDirectoryUpdateTest {
     ArtifactDirectoryUpdate populate =
         new ArtifactDirectoryUpdate(
           cache,
-          workspaceRoot,
           root,
           ArtifactDirectoryContents.newBuilder()
             .putContents(
@@ -382,7 +343,6 @@ public class ArtifactDirectoryUpdateTest {
     ArtifactDirectoryUpdate update =
         new ArtifactDirectoryUpdate(
           cache,
-          workspaceRoot,
           root,
           ArtifactDirectoryContents.newBuilder()
             .putContents(
@@ -402,51 +362,6 @@ public class ArtifactDirectoryUpdateTest {
     assertThat(update.getUpdatedPaths()).containsExactly(root.resolve("file2.txt"));
     assertThat(cache.takeRequestedDigests()).containsExactly("efgh");
     assertThat(Files.readAllLines(root.resolve("file2.txt"))).containsExactly("efgh");
-  }
-
-  @Test
-  public void update_after_workspace_file_change() throws IOException {
-    Files.writeString(
-        workspaceRoot.resolve("workspacefile"),
-        "workspacefile original",
-        StandardOpenOption.CREATE_NEW);
-    ArtifactDirectoryUpdate populate =
-        new ArtifactDirectoryUpdate(
-          cache,
-          workspaceRoot,
-          root,
-          ArtifactDirectoryContents.newBuilder()
-            .putContents(
-              "file1.txt",
-              ProjectArtifact.newBuilder()
-                .setTransform(ArtifactTransform.COPY)
-                .setWorkspaceRelativePath("workspacefile")
-                .build())
-            .build());
-    populate.update();
-
-    Files.writeString(
-        workspaceRoot.resolve("workspacefile"),
-        "workspacefile updated",
-        StandardOpenOption.TRUNCATE_EXISTING);
-    // The same proto spec, but the workspace file contents have changed:
-    ArtifactDirectoryUpdate update =
-        new ArtifactDirectoryUpdate(
-          cache,
-          workspaceRoot,
-          root,
-          ArtifactDirectoryContents.newBuilder()
-            .putContents(
-              "file1.txt",
-              ProjectArtifact.newBuilder()
-                .setTransform(ArtifactTransform.COPY)
-                .setWorkspaceRelativePath("workspacefile")
-                .build())
-            .build());
-    update.update();
-    assertThat(update.getUpdatedPaths()).containsExactly(root.resolve("file1.txt"));
-    assertThat(Files.readAllLines(root.resolve("file1.txt")))
-        .containsExactly("workspacefile updated");
   }
 
   private static ImmutableList<Path> paths(String... paths) {

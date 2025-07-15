@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.tools.idea.gradle.project.sync.model.GradleDaemonToolchain
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
@@ -25,7 +26,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.plugins.gradle.service.execution.GradleDaemonJvmCriteria
 import java.io.File
 import java.nio.file.Files
 
@@ -44,11 +44,16 @@ sealed class JdkTestProject(
 ) : TemplateBasedTestProject {
 
   class SimpleApplicationWithoutIdea(
-    agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
-  ) : JdkTestProject(
+    agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+    gradleDaemonToolchain: GradleDaemonToolchain? = null,
+    ) : JdkTestProject(
     agpVersion = agpVersion,
-    template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION
-  )
+    template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    patch = { projectRoot ->
+      gradleDaemonToolchain?.let {
+        ProjectJdkUtils.setProjectGradleDaemonJvmCriteria(projectRoot, it)
+      }
+    })
 
   class SimpleApplication(
     agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
@@ -56,7 +61,7 @@ sealed class JdkTestProject(
     ideaProjectJdk: String? = null,
     gradleLocalJavaHome: String? = null,
     gradlePropertiesJavaHome: String? = null,
-    gradleDaemonJvmCriteria: GradleDaemonJvmCriteria? = null,
+    gradleDaemonToolchain: GradleDaemonToolchain? = null,
   ) : JdkTestProject(
     agpVersion = agpVersion,
     template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
@@ -77,7 +82,7 @@ sealed class JdkTestProject(
       gradlePropertiesJavaHome?.let {
         ProjectJdkUtils.setProjectGradlePropertiesJavaHome(projectRoot, it)
       }
-      gradleDaemonJvmCriteria?.let {
+      gradleDaemonToolchain?.let {
         ProjectJdkUtils.setProjectGradleDaemonJvmCriteria(projectRoot, it)
       }
     }
@@ -98,6 +103,9 @@ sealed class JdkTestProject(
         configGradleRoot = { gradleRootFile, gradleRoot ->
           gradleRoot.gradleLocalJavaHome?.let {
             ProjectJdkUtils.setProjectGradleLocalJavaHome(gradleRootFile, it)
+          }
+          gradleRoot.gradleDaemonToolchain?.let {
+            ProjectJdkUtils.setProjectGradleDaemonJvmCriteria(gradleRootFile, it)
           }
         },
         configProjectRoot = {

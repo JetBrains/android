@@ -21,5 +21,11 @@
     <externalAnnotator language="XML" implementationClass="com.android.tools.idea.wear.dwf.dom.raw.RawWatchFaceDrawableResourceExternalAnnotator" />
     <psi.referenceContributor language="XML" implementation="com.android.tools.idea.wear.dwf.dom.raw.RawWatchFaceDrawableReferenceContributor" />
     <completion.contributor language="XML" implementationClass="com.android.tools.idea.wear.dwf.dom.raw.RawWatchFaceComplicationDataSourceCompletionContributor" />
+
+    <notificationGroup id="Wear Declarative Watch Faces" displayType="BALLOON"/>
   </extensions>
+  <actions>
+    <action id="ImportWatchFaceStudioFileAction"
+            class="com.android.tools.idea.wear.dwf.importer.wfs.ImportWatchFaceStudioFileAction" text="Import Watch Face Studio File..." />
+  </actions>
 </idea-plugin>

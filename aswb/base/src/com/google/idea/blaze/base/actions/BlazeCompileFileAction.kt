@@ -56,7 +56,7 @@ internal class BlazeCompileFileAction : BlazeProjectAction() {
     if (Blaze.getProjectType(project) == BlazeImportSettings.ProjectType.QUERY_SYNC) {
       val vfs = e.getData(CommonDataKeys.VIRTUAL_FILE_ARRAY)?.takeUnless { it.isEmpty() }?.toList() ?: return false
       val querySyncManager = QuerySyncManager.getInstance(project)
-      return querySyncManager.isProjectLoaded
+      return querySyncManager.getLoadedProject().isPresent
         &&
              // TODO: b/411054914 - Build dependencies actions should not get disabled when not in sync/not in a project target and instead
              // they should automatically trigger sync.

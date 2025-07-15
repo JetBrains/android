@@ -28,16 +28,12 @@ public interface AidlQualifiedName extends AidlNamedElement {
   @NotNull
   List<AidlNameComponent> getNameComponentList();
 
-  @NotNull
-  PsiElement getNameIdentifier();
+  @NotNull PsiElement getNameIdentifier();
 
-  @NotNull
-  String getQualifiedName();
+  @NotNull String getQualifiedName();
 
-  @Nullable
-  PsiElement resolve();
+  @Nullable PsiElement resolve();
 
-  @NotNull
-  PsiReference getReference();
+  @NotNull PsiReference getReference();
 
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model
 
+import com.intellij.execution.configurations.RunConfiguration
 
 /**
  * Encapsulates an Android test suite metadata to be displayed in Android test suite view.
@@ -23,11 +24,15 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.model
  * @param name a display name of this test suite
  * @param testCaseCount a number of test cases in the suite including suppressed test cases
  * @param result a result of the test suite. Null when the test suite execution hasn't finished yet.
+ * @param runConfiguration the run configuration used to trigger the tests
  */
-data class AndroidTestSuite(val id: String,
-                            val name: String,
-                            var testCaseCount: Int,
-                            var result: AndroidTestSuiteResult? = null)
+data class AndroidTestSuite(
+  val id: String,
+  val name: String,
+  var testCaseCount: Int,
+  var result: AndroidTestSuiteResult? = null,
+  val runConfiguration: RunConfiguration? = null,
+)
 
 /**
  * A result of a test suite execution.

@@ -151,6 +151,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
       ),
       IdeModelSnapshotComparisonTestDefinition(TestProject.ANDROID_KOTLIN_MULTIPLATFORM, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.MULTI_FLAVOR),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.MULTI_FLAVOR_SWITCH_VARIANT),
       IdeModelSnapshotComparisonTestDefinition(TestProject.MULTI_FLAVOR_WITH_FILTERING),
       // Skip V1 and V2 comparison for namespace project. The support for namespace in V2 is stricter since ag/16005984.
       // More info b/111168382.

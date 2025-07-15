@@ -193,6 +193,7 @@ jvm_library(
     "//platform/util-rt",
     "//platform/util-rt:util-rt_test_lib",
     "//platform/util:util-ui",
+    "//platform/external-system-api:externalSystem",
     "//plugins/kotlin/base/compiler-configuration",
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/plugin:plugin_test_lib",

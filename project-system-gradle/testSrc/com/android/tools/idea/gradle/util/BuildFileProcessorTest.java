@@ -72,7 +72,7 @@ public class BuildFileProcessorTest extends AndroidGradleTestCase {
    *   function.
    */
   public void testNonExistentModuleDoesNotFailToParse() throws Exception {
-    prepareProjectForImport(SIMPLE_APPLICATION);
+    prepareProjectForImportNoSync(SIMPLE_APPLICATION);
 
     File settingsFile = getSettingsFilePath();
     VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(settingsFile);

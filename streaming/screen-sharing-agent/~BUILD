@@ -1,5 +1,6 @@
+load("@rules_android//rules:rules.bzl", "android_library")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
-load("//tools/base/bazel:android.bzl", "ANDROID_COPTS", "ANDROID_LINKOPTS", "aidl_library", "android_cc_binary", "dex_library")
+load("//tools/base/bazel:android.bzl", "ANDROID_COPTS", "ANDROID_LINKOPTS", "android_cc_binary", "dex_library")
 
 cc_library(
     name = "screen-sharing-agent_lib",
@@ -43,38 +44,21 @@ android_cc_binary(
     visibility = ["//visibility:public"],
 )
 
-aidl_library(
-    name = "aidl_lib",
-    srcs = glob(["app/src/main/aidl/**/*.aidl"]),
-    deps = [
-        ":android_extras_lib",
-        "//prebuilts/studio/sdk:platforms/latest_jar",
-        "//tools/base/annotations",
-    ],
-    target_compatible_with = select({
-        "@platforms//os:windows": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
-)
-
-java_library(
-    name = "android_extras_lib",
-    srcs = glob(["app/src/main/java/android/**/*.java"]),
-    deps = [
-        "//prebuilts/studio/sdk:platforms/latest_jar",
-    ],
-)
-
-java_library(
+android_library(
     name = "apk_lib",
     srcs = glob(
         ["app/src/main/java/**/*.java"],
         exclude = ["app/src/main/java/android/**/*.java"],
     ),
+    idl_import_root = "app/src/main/aidl",
+    idl_srcs = glob(["app/src/main/aidl/**/*.aidl"]),
+    target_compatible_with = select({
+        "@platforms//os:windows": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [
-        ":aidl_lib",
-        ":android_extras_lib",
         "//prebuilts/studio/sdk:platforms/latest_jar",
+        "//tools/base/annotations",
     ],
 )
 

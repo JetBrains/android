@@ -38,9 +38,6 @@ import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
 import com.android.tools.idea.streaming.device.xr.DeviceXrInputController
-import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
-import com.android.tools.idea.ui.screenshot.ScreenshotAction
-import com.android.tools.idea.ui.screenshot.ScreenshotOptions
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -126,6 +123,7 @@ import java.awt.event.MouseWheelEvent
 import java.awt.geom.AffineTransform
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
 import javax.swing.KeyStroke
 import kotlin.math.absoluteValue
 import kotlin.math.min
@@ -165,6 +163,13 @@ internal class DeviceView(
     set(value) {
       if (field != value) {
         field = value
+        xrInputController?.let {
+          when (value) {
+            ConnectionState.CONNECTED -> deviceClient.deviceController?.addXrEnvironmentListener(it)
+            ConnectionState.DISCONNECTED -> deviceClient.deviceController?.removeXrEnvironmentListener(it)
+            else -> {}
+          }
+        }
         ActivityTracker.getInstance().inc() // Trigger toolbar updates.
         UIUtil.invokeLaterIfNeeded {
           if (!disposed) {
@@ -186,15 +191,7 @@ internal class DeviceView(
 
   private var clipboardSynchronizer: DeviceClipboardSynchronizer? = null
   private val connectionStateListeners = mutableListOf<ConnectionStateListener>()
-  private val agentTerminationListener = object : AgentTerminationListener {
-    override fun agentTerminated(exitCode: Int) {
-      disconnected(initialDisplayOrientation, AgentTerminatedException(exitCode))
-    }
-
-    override fun deviceDisconnected() {
-      disconnected(initialDisplayOrientation)
-    }
-  }
+  private var agentTerminationListener = AtomicReference<AgentTerminationListener>()
   private val frameListener = MyFrameListener()
   private val displayTransform = AffineTransform()
   private var disposed = false
@@ -221,10 +218,22 @@ internal class DeviceView(
   private var mouseHovering = false // Last mouse event was move without pressed buttons.
   private val repaintAlarm: Alarm = Alarm(this)
   private var highQualityRenderingRequested = false
-  private val screenshotOrientationProvider: () -> ScreenshotAction.ScreenshotRotation
-    get() = { ScreenshotAction.ScreenshotRotation(displayOrientationQuadrants, displayOrientationCorrectionQuadrants) }
 
-  private var xrInputController: DeviceXrInputController? = null
+  override val hardwareInput = object : HardwareInput() {
+    override fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {
+      if (!isConnected) return
+      val action = when (id) {
+        KEY_PRESSED -> ACTION_DOWN
+        KEY_RELEASED -> ACTION_UP
+        else -> return
+      }
+      val metaState = modifiersToMetaState(modifiersEx)
+      val akeycode = VK_TO_AKEYCODE[keyCode] ?: return
+      deviceController?.sendControlMessage(KeyEventMessage(action, akeycode, metaState))
+    }
+  }
+
+  override var xrInputController: DeviceXrInputController? = null
     get() {
       if (field == null && isConnected && deviceConfig.deviceType == DeviceType.XR) {
         field = DeviceXrInputController.getInstance(project, deviceClient)
@@ -269,16 +278,21 @@ internal class DeviceView(
   /** Starts asynchronous initialization of the Screen Sharing Agent. */
   private fun connectToAgentAsync(initialDisplayOrientation: Int) {
     frameNumber = 0u
+    val disconnectionListener = MyAgentTerminationListener()
+    if (!agentTerminationListener.compareAndSet(null, disconnectionListener)) {
+      throw IllegalStateException("Agent termination listener already set")
+    }
     connectionState = ConnectionState.CONNECTING
     maxVideoSize = physicalSize
+    deviceClient.addAgentTerminationListener(disconnectionListener)
     createCoroutineScope().launch {
-      connectToAgent(maxVideoSize, initialDisplayOrientation)
+      connectToAgent(maxVideoSize, initialDisplayOrientation, disconnectionListener)
     }
   }
 
-  private suspend fun connectToAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
+  private suspend fun connectToAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int,
+                                     disconnectionListener: AgentTerminationListener) {
     try {
-      deviceClient.addAgentTerminationListener(agentTerminationListener)
       if (displayId == PRIMARY_DISPLAY_ID) {
         deviceClient.establishAgentConnection(maxOutputSize, initialDisplayOrientation, startVideoStream = true, project)
       }
@@ -286,7 +300,7 @@ internal class DeviceView(
         deviceClient.waitUntilConnected()
         val videoDecoder = deviceClient.videoDecoder
         if (videoDecoder == null) {
-          disconnected(initialDisplayOrientation, null)
+          disconnected(initialDisplayOrientation, null, disconnectionListener)
           return
         }
         deviceClient.startVideoStream(project, displayId, maxOutputSize)
@@ -307,7 +321,7 @@ internal class DeviceView(
       throw e
     }
     catch (e: Throwable) {
-      disconnected(initialDisplayOrientation, e)
+      disconnected(initialDisplayOrientation, e, disconnectionListener)
     }
   }
 
@@ -332,8 +346,10 @@ internal class DeviceView(
     }
   }
 
-  private fun disconnected(initialDisplayOrientation: Int, exception: Throwable? = null) {
-    deviceClient.removeAgentTerminationListener(agentTerminationListener)
+  private fun disconnected(initialDisplayOrientation: Int, exception: Throwable? = null, disconnectionListener: AgentTerminationListener) {
+    if (!agentTerminationListener.compareAndSet(disconnectionListener, null)) {
+      return
+    }
     if (displayId != PRIMARY_DISPLAY_ID) {
       return
     }
@@ -349,7 +365,7 @@ internal class DeviceView(
       val reconnector: Reconnector
       when (frameNumber) {
         0u -> {
-          thisLogger().warn("Failed to initialize the screen sharing agent", exception)
+          logConnectionError(exception)
           message = getConnectionErrorMessage(exception)
           reconnector = Reconnector("Retry", "Connecting to the device") { connectToAgentAsync(initialDisplayOrientation) }
         }
@@ -365,16 +381,28 @@ internal class DeviceView(
     }
   }
 
+  private fun logConnectionError(exception: Throwable?) {
+    when ((exception as? AgentTerminatedException)?.exitCode) {
+      AGENT_WEAK_VIDEO_ENCODER, AGENT_REPEATED_VIDEO_ENCODER_ERRORS, XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
+          thisLogger().warn("Failed to initialize the screen sharing agent")
+
+      else -> thisLogger().warn("Failed to initialize the screen sharing agent", exception)
+    }
+  }
+
   private fun getConnectionErrorMessage(exception: Throwable?): String {
     return when ((exception as? AgentTerminatedException)?.exitCode) {
       AGENT_WEAK_VIDEO_ENCODER ->
-        "The device may not have sufficient computing power for encoding display contents. See ${getShowLogHyperlink()} for details."
+          "The device may not have sufficient computing power for encoding display contents. See ${getShowLogHyperlink()} for details."
 
       AGENT_REPEATED_VIDEO_ENCODER_ERRORS ->
-        "Repeated video encoder errors during initialization of the device agent. See ${getShowLogHyperlink()} for details."
+          "Repeated video encoder errors during initialization of the device agent. See ${getShowLogHyperlink()} for details."
+
+      XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
+          "The XR device is not configured for mirroring. See ${getShowLogHyperlink()} for details."
 
       else ->
-        (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See ${getShowLogHyperlink()} for details."
+          (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See ${getShowLogHyperlink()} for details."
     }
   }
 
@@ -384,10 +412,14 @@ internal class DeviceView(
     }
     return when ((exception as? AgentTerminatedException)?.exitCode) {
       AGENT_WEAK_VIDEO_ENCODER ->
-        "Repeated video encoder errors. The device may not have sufficient computing power for encoding display contents." +
-        " See ${getShowLogHyperlink()} for details."
+          "Repeated video encoder errors. The device may not have sufficient computing power for encoding display contents." +
+          " See ${getShowLogHyperlink()} for details."
 
       AGENT_REPEATED_VIDEO_ENCODER_ERRORS -> "Repeated video encoder errors. See ${getShowLogHyperlink()} for details."
+
+      XR_DEVICE_IS_NOT_CONFIGURED_FOR_MIRRORING ->
+          "The XR device is not configured for mirroring. See ${getShowLogHyperlink()} for details."
+
       else -> "Lost connection to the device. See ${getShowLogHyperlink()} for details."
     }
   }
@@ -395,12 +427,12 @@ internal class DeviceView(
   override fun dispose() {
     deviceClient.videoDecoder?.removeFrameListener(displayId, frameListener)
     deviceClient.stopVideoStream(project, displayId)
-    deviceClient.removeAgentTerminationListener(agentTerminationListener)
+    agentTerminationListener.get()?.let { deviceClient.removeAgentTerminationListener(it) }
     disposed = true
   }
 
   override fun canZoom(): Boolean =
-    connectionState == ConnectionState.CONNECTED
+      connectionState == ConnectionState.CONNECTED
 
   override fun onScreenScaleChanged() {
     if (isConnected && physicalWidth > 0 && physicalHeight > 0) {
@@ -409,10 +441,10 @@ internal class DeviceView(
   }
 
   override fun computeActualSize(): Dimension =
-    computeActualSize(displayOrientationQuadrants)
+      computeActualSize(displayOrientationQuadrants)
 
   private fun computeActualSize(rotationQuadrants: Int): Dimension =
-    deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
+      deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
 
   override fun paintComponent(graphics: Graphics) {
     super.paintComponent(graphics)
@@ -505,6 +537,13 @@ internal class DeviceView(
     updateMultiTouchMode(event.inputEvent!!)
   }
 
+  override fun uiDataSnapshot(sink: DataSink) {
+    super.uiDataSnapshot(sink)
+    sink[DEVICE_VIEW_KEY] = this
+    sink[DEVICE_CLIENT_KEY] = deviceClient
+    sink[DEVICE_CONTROLLER_KEY] = deviceController
+  }
+
   private fun startClipboardSynchronization() {
     if (clipboardSynchronizer == null) {
       clipboardSynchronizer = DeviceClipboardSynchronizer(this, deviceClient)
@@ -543,17 +582,17 @@ internal class DeviceView(
     if (!isConnected) {
       return
     }
+    val isMouse = deviceConfig.deviceType == DeviceType.XR || isHardwareInputEnabled()
     val buttonState =
-        (if (modifiers and BUTTON1_DOWN_MASK != 0 && isHardwareInputEnabled()) MotionEventMessage.BUTTON_PRIMARY else 0) or
+        (if (modifiers and BUTTON1_DOWN_MASK != 0 && isMouse) MotionEventMessage.BUTTON_PRIMARY else 0) or
         (if (modifiers and BUTTON2_DOWN_MASK != 0) MotionEventMessage.BUTTON_TERTIARY else 0) or
         (if (modifiers and BUTTON3_DOWN_MASK != 0) MotionEventMessage.BUTTON_SECONDARY else 0)
     val androidActionButton = when (button) {
-      MouseEvent.BUTTON1 -> if (isHardwareInputEnabled()) MotionEventMessage.BUTTON_PRIMARY else 0
+      MouseEvent.BUTTON1 -> if (isMouse) MotionEventMessage.BUTTON_PRIMARY else 0
       MouseEvent.BUTTON2 -> MotionEventMessage.BUTTON_TERTIARY
       MouseEvent.BUTTON3 -> MotionEventMessage.BUTTON_SECONDARY
       else -> 0
     }
-    val isMouse = isHardwareInputEnabled()
     val message = when {
       multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(point), action, 0, 0, displayId, isMouse)
       action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
@@ -594,22 +633,17 @@ internal class DeviceView(
     connectionStateListeners.remove(listener)
   }
 
-  override fun uiDataSnapshot(sink: DataSink) {
-    sink[ScreenshotAction.SCREENSHOT_OPTIONS_KEY] = if (isConnected) createScreenshotOptions() else null
-    sink[ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY] = deviceController?.let {
-      ScreenRecorderAction.Parameters(
-        deviceClient.deviceName,
-        deviceSerialNumber,
-        deviceConfig.featureLevel,
-        null,
-        displayId,
-        ::deviceDisplaySize,
-        it)
+  private fun updateMultiTouchMode(event: InputEvent) {
+    val oldMultiTouchMode = multiTouchMode
+    if (event is MouseEvent) {
+      wasInsideDisplay = isInsideDisplay(event)
+    }
+    multiTouchMode = wasInsideDisplay && (event.modifiersEx and CTRL_DOWN_MASK) != 0 &&
+                     !isHardwareInputEnabled() && xrInputController == null
+    if (multiTouchMode && oldMultiTouchMode) {
+      repaint() // If multi-touch mode changed above, the repaint method was already called.
     }
   }
-
-  private fun createScreenshotOptions() =
-      ScreenshotOptions(deviceSerialNumber, deviceConfig.deviceModel, deviceConfig.deviceType, displayId, screenshotOrientationProvider)
 
   enum class ConnectionState { INITIAL, CONNECTING, CONNECTED, DISCONNECTED }
 
@@ -644,22 +678,8 @@ internal class DeviceView(
         deviceClient.startVideoStream(project, displayId, maxVideoSize)
       }
       else {
-        disconnected(initialDisplayOrientation, e)
+        agentTerminationListener.get()?.let { disconnected(initialDisplayOrientation, e, it) }
       }
-    }
-  }
-
-  override val hardwareInput = object : HardwareInput() {
-    override fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {
-      if (!isConnected) return
-      val action = when (id) {
-        KEY_PRESSED -> ACTION_DOWN
-        KEY_RELEASED -> ACTION_UP
-        else -> return
-      }
-      val metaState = modifiersToMetaState(modifiersEx)
-      val akeycode = VK_TO_AKEYCODE[keyCode] ?: return
-      deviceController?.sendControlMessage(KeyEventMessage(action, akeycode, metaState))
     }
   }
 
@@ -934,15 +954,14 @@ internal class DeviceView(
     private fun Boolean.toSign(): Int = if (this) 1 else -1
   }
 
-  private fun updateMultiTouchMode(event: InputEvent) {
-    val oldMultiTouchMode = multiTouchMode
-    if (event is MouseEvent) {
-      wasInsideDisplay = isInsideDisplay(event)
+  private inner class MyAgentTerminationListener : AgentTerminationListener {
+
+    override fun agentTerminated(exitCode: Int) {
+      disconnected(initialDisplayOrientation, AgentTerminatedException(exitCode), this)
     }
-    multiTouchMode = wasInsideDisplay && (event.modifiersEx and CTRL_DOWN_MASK) != 0 &&
-                     !isHardwareInputEnabled() && xrInputController == null
-    if (multiTouchMode && oldMultiTouchMode) {
-      repaint() // If multi-touch mode changed above, the repaint method was already called.
+
+    override fun deviceDisconnected() {
+      disconnected(initialDisplayOrientation, null, this)
     }
   }
 

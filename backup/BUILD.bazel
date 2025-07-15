@@ -24,6 +24,7 @@ jvm_library(
     "//platform/analysis-api:analysis",
     "//platform/util/progress",
     "//android/android-common:common",
+    "//android/jps-model",
     "//android/android:core",
     "//android/execution/common",
     "//android/project-system",
@@ -40,6 +41,9 @@ jvm_library(
     "//platform/progress/shared:ide-progress",
     "//android/streaming",
     "//platform/lang-api:lang",
+    "//platform/lang-core",
+    "//xml/xml-psi-api:psi",
+    "//platform/projectModel-api:projectModel",
   ],
   runtime_deps = [":backup_resources"]
 )

@@ -267,6 +267,8 @@ def _studio_plugin_impl(ctx):
     plugin_files_win = _studio_plugin_os(ctx, WIN, plugin_jars, plugin_dir)
 
     for lib in ctx.attr.libs:
+        if ImlModuleInfo in lib:
+            fail(lib.label.name + " is a module, yet it is listed under libs")
         if PluginInfo in lib:
             fail("Plugin dependencies should be in the deps attribute, not in libs")
 
@@ -664,6 +666,10 @@ def _stamp_platform(ctx, platform, platform_files, added_plugins):
     args.add("--version_micro", micro)
     args.add("--version_patch", patch)
     args.add("--build_txt", stamped_build_txt.path)
+
+    if ctx.attr.essential_plugins:
+        args.add_all("--essential_plugins", ctx.attr.essential_plugins)
+
     args.add("--stamp_app_info")
     _stamp(ctx, args, [ctx.version_file, stamped_build_txt], resources_jar, stamped_resources_jar)
 
@@ -988,6 +994,7 @@ _android_studio = rule(
         "host_platform_name": attr.string(),
         "codesign_entitlements": attr.label(allow_single_file = True),
         "compress": attr.bool(),
+        "essential_plugins": attr.string_list(),
         "experimental_runner": attr.bool(default = False),
         "files_linux": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "files_mac": attr.label_keyed_string_dict(allow_files = True, default = {}),
@@ -1357,7 +1364,8 @@ def intellij_platform_import(name, spec):
 
     dir_archive(
         name = name + "-dist",
-        dir = "../" + name,
+        dir = "",
+        dir_relative_to_repository = True,
         files = native.glob(
             include = ["**"],
             exclude = ["spec.bzl", "BUILD.bazel", "WORKSPACE"],

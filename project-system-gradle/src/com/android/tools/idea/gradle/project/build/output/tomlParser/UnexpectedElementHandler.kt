@@ -33,7 +33,7 @@ import org.toml.lang.psi.TomlTable
 class UnexpectedElementHandler : TomlErrorHandler {
   private val PROBLEM_ALIAS_PATTERN: Regex = "[a-zA-Z.:]+ On ([^ ]+) declaration '([^ ]+)' expected to find any of [a-z', ]+ but found unexpected key '([^ ]+)'.".toRegex()
 
-  override fun tryExtractMessage(reader: ResettableReader): List<BuildIssueEvent> {
+  override fun tryExtractMessage(reader: BuildOutputInstantReader): List<BuildIssueEvent> {
     val problemLine = reader.readLine() ?: return listOf()
     PROBLEM_ALIAS_PATTERN.matchEntire(problemLine)?.let { match ->
       val stopString = problemLine.substringAfter(": ")

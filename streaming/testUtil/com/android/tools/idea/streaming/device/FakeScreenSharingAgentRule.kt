@@ -23,12 +23,14 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.ShellV2Protocol
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.tools.idea.adb.FakeAdbServiceRule
+import com.android.tools.idea.adb.PreInitAndroidDebugBridgeRule
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.util.StudioPathManager
@@ -96,12 +98,14 @@ class FakeScreenSharingAgentRule : TestRule {
 
   override fun apply(base: Statement, description: Description): Statement {
     return projectRule.apply(
+      PreInitAndroidDebugBridgeRule().apply(
         fakeAdbRule.apply(
-            fakeAdbServiceRule.apply(
-                testEnvironment.apply(base, description),
-                description),
+          fakeAdbServiceRule.apply(
+            testEnvironment.apply(base, description),
             description),
-        description)
+          description),
+        description),
+      description)
   }
 
   private fun createFakeAdbRule(): FakeAdbRule {
@@ -161,7 +165,7 @@ class FakeScreenSharingAgentRule : TestRule {
                     hostConnectionType: DeviceState.HostConnectionType = DeviceState.HostConnectionType.USB): FakeDevice {
     val serialNumber = (++deviceCounter).toString()
     val release = "Sweet dessert"
-    val deviceState = fakeAdbRule.attachDevice(serialNumber, manufacturer, model, release, apiLevel.toString(), abi,
+    val deviceState = fakeAdbRule.attachDevice(serialNumber, manufacturer, model, release, AndroidApiLevel(apiLevel), abi,
                                                additionalDeviceProperties, hostConnectionType)
     val device = FakeDevice(serialNumber, displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize,
                             screenDensity = screenDensity)

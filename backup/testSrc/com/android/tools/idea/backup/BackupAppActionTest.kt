@@ -27,6 +27,7 @@ import com.android.tools.idea.backup.testing.waitForBackupInvocations
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.testing.ProjectServiceRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -53,6 +54,7 @@ internal class BackupAppActionTest {
   val rule =
     RuleChain(
       projectRule,
+      WaitForIndexRule(projectRule),
       FlagRule(StudioFlags.BACKUP_ENABLED, true),
       ProjectServiceRule(projectRule, BackupManager::class.java, fakeBackupManager),
     )
@@ -125,21 +127,6 @@ internal class BackupAppActionTest {
     assertThat(fakeBackupManager.showBackupDialogInvocations).isEmpty()
     assertThat(fakeDialogFactory.dialogs)
       .containsExactly(DialogData("Cannot Backup App Data", "Selected device is not running"))
-  }
-
-  @Test
-  fun actionPerformed_deviceNotSupported() {
-    val actionHelper = FakeActionHelper("com.app", 0, "serial")
-    fakeBackupManager.isDeviceSupported = false
-    val action = BackupAppAction(actionHelper, fakeDialogFactory)
-    val event = testEvent(project, "serial")
-
-    action.actionPerformed(event)
-
-    fakeDialogFactory.waitForDialogs(1)
-    assertThat(fakeBackupManager.showBackupDialogInvocations).isEmpty()
-    assertThat(fakeDialogFactory.dialogs)
-      .containsExactly(DialogData("Cannot Backup App Data", "Selected device is not supported"))
   }
 
   @Test

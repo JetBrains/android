@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.SyncNeeded
 import com.android.tools.idea.projectsystem.gradle.RunConfigurationGradleContext
 import com.android.tools.idea.run.AndroidDevice
-import com.android.tools.idea.run.AndroidDeviceSpec
 import com.android.tools.idea.run.profiler.ProfilingMode
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -62,8 +61,10 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
 
   @Mock
   private lateinit var myDevice: AndroidDevice
+
   @Mock
   private lateinit var myLaunchedDevice: IDevice
+
   @Mock
   private lateinit var myRunConfiguration: RunConfigurationGradleContext
 
@@ -112,13 +113,19 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
 
   fun testCommonArguments() {
     setUpTestProject()
-    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec(), ProfilingMode.NOT_SET)
+    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration,
+                                                                 targetDeviceSpec(),
+                                                                 deviceSpecs(),
+                                                                 ProfilingMode.NOT_SET)
     assertTrue(arguments.contains("-Pandroid.injected.enableStableIds=true"))
   }
 
   fun testCommonArguments_nonAndroidRunConfiguration() {
     setUpTestProject()
-    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, null, null, ProfilingMode.NOT_SET)
+    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, null,
+                                                                 targetDeviceSpec(),
+                                                                 deviceSpecs(),
+                                                                 ProfilingMode.NOT_SET)
     assertTrue(arguments.contains("-Pandroid.injected.enableStableIds=true"))
   }
 
@@ -130,7 +137,8 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     whenever(myDevice.appPreferredAbi).thenReturn(null)
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
-                                                                         deviceSpec(myDevice))
+                                                                         targetDeviceSpec(myDevice),
+                                                                         deviceSpecs(myDevice))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=20"))
     assertTrue(arguments.contains("-Pandroid.injected.build.abi=armeabi,x86"))
     for (argument in arguments) {
@@ -146,7 +154,8 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     whenever(myDevice.appPreferredAbi).thenReturn(null)
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
-                                                                         deviceSpec(myDevice))
+                                                                         targetDeviceSpec(myDevice),
+                                                                         deviceSpecs(myDevice))
     assertFalse(arguments.contains("-Pandroid.injected.build.api=20"))
 
     StudioFlags.API_OPTIMIZATION_ENABLE.clearOverride()
@@ -160,7 +169,8 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     whenever(myDevice.appPreferredAbi).thenReturn(null)
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
-                                                                         deviceSpec(myDevice))
+                                                                         targetDeviceSpec(myDevice),
+                                                                         deviceSpecs(myDevice))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=33"))
   }
 
@@ -171,7 +181,9 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     whenever(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
     whenever(myDevice.appPreferredAbi).thenReturn(null)
     val arguments =
-      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration,
+                                                           targetDeviceSpec(myDevice),
+                                                           deviceSpecs(myDevice))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=23"))
     assertTrue(arguments.contains("-Pandroid.injected.build.codename=N"))
   }
@@ -185,7 +197,8 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     myRunConfiguration = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
-                                                                         deviceSpec(myDevice))
+                                                                         targetDeviceSpec(myDevice),
+                                                                         deviceSpecs(myDevice))
     val expectedJson = "{\"sdk_version\":23,\"codename\":\"N\",\"screen_density\":640,\"supported_abis\":[\"armeabi\"],\"supported_locales\":[\"es\",\"fr\"]}"
     assertExpectedJsonFile(arguments, expectedJson)
   }
@@ -205,7 +218,9 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     myRunConfiguration = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
 
     val arguments =
-      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration,
+                                                           targetDeviceSpec(myDevice),
+                                                           deviceSpecs(myDevice))
     assertTrue(arguments.contains("-Pandroid.injected.modules.install.list=feature1,feature2"))
   }
 
@@ -226,7 +241,9 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     // Invoke method and check result matches arguments needed for invoking "select apks from bundle" task
     // (as opposed to the regular "assemble" task
     val arguments =
-      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration,
+                                                           targetDeviceSpec(myDevice),
+                                                           deviceSpecs(myDevice))
     assertExpectedJsonFile(arguments, "{\"sdk_version\":20,\"screen_density\":640,\"supported_abis\":[\"armeabi\"]}")
   }
 
@@ -243,7 +260,9 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     // Invoke method and check result matches arguments needed for invoking "select apks from bundle" task
     // (as opposed to the regular "assemble" task
     val arguments =
-      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(myDevice))
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration,
+                                                           targetDeviceSpec(myDevice),
+                                                           deviceSpecs(myDevice))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=20"))
     assertTrue(arguments.contains("-Pandroid.injected.build.abi=armeabi"))
   }
@@ -259,7 +278,9 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     whenever(device2.density).thenReturn(480)
     whenever(device2.abis).thenReturn(ImmutableList.of(Abi.X86, Abi.X86_64))
     val arguments =
-      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(device1, device2))
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration,
+                                                           targetDeviceSpec(device1, device2),
+                                                           deviceSpecs(device1, device2))
     assertTrue(arguments.contains("-Pandroid.injected.build.api=22"))
     for (argument in arguments) {
       assertFalse("ABIs should not be passed to Gradle when there are multiple devices",
@@ -278,7 +299,9 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     whenever(device2.density).thenReturn(480)
     whenever(device2.abis).thenReturn(ImmutableList.of(Abi.X86, Abi.X86_64))
     val arguments =
-      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(device1, device2))
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration,
+                                                           targetDeviceSpec(device1, device2),
+                                                           deviceSpecs(device1, device2))
     for (argument in arguments) {
       assertFalse("Api levels should not be passed to Gradle when there are multiple devices with different values",
                   argument.startsWith("-Pandroid.injected.build.api"))
@@ -359,13 +382,15 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     val device2 = runningDeviceWithSerial(AndroidVersion(20), "device_2")
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
-                                                                         deviceSpec(device1, device2))
+                                                                         targetDeviceSpec(device1, device2),
+                                                                         deviceSpecs(device1, device2))
     assertThat(arguments).contains("-Pinternal.android.inject.device.serials=device_1,device_2")
     StudioFlags.INJECT_DEVICE_SERIAL_ENABLED.clearOverride()
 
     val argumentsWithDisabledFlag = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                                          myRunConfiguration,
-                                                                                         deviceSpec(device1, device2))
+                                                                                         targetDeviceSpec(device1, device2),
+                                                                                         deviceSpecs(device1, device2))
     assertThat(argumentsWithDisabledFlag).doesNotContain("-Pinternal.android.inject.device.serials=device_1,device_2")
   }
 
@@ -405,23 +430,21 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
   }
 
   fun testProfilingMode() {
-    StudioFlags.PROFILEABLE_BUILDS.override(true)
-    try {
-      setUpTestProject()
-      whenever(myDevice.version).thenReturn(AndroidVersion(23, "N"))
-      whenever(myDevice.appPreferredAbi).thenReturn(null)
+    setUpTestProject()
+    whenever(myDevice.version).thenReturn(AndroidVersion(23, "N"))
+    whenever(myDevice.appPreferredAbi).thenReturn(null)
 
-      val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec(myDevice),
+    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration,
+                                                                   targetDeviceSpec(myDevice),
+                                                                   deviceSpecs(myDevice),
                                                                    ProfilingMode.PROFILEABLE)
-      assertThat(arguments).contains("-Pandroid.profilingMode=profileable")
+    assertThat(arguments).contains("-Pandroid.profilingMode=profileable")
 
-      val argsWithoutProfilingMode = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec(myDevice),
+    val argsWithoutProfilingMode = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration,
+                                                                                  targetDeviceSpec(myDevice),
+                                                                                  deviceSpecs(myDevice),
                                                                                   ProfilingMode.NOT_SET)
-      assertThat(argsWithoutProfilingMode).containsNoneOf("-Pandroid.profilingMode=profileable", "Pandroid.profilingMode=debuggable")
-    }
-    finally {
-      StudioFlags.PROFILEABLE_BUILDS.clearOverride()
-    }
+    assertThat(argsWithoutProfilingMode).containsNoneOf("-Pandroid.profilingMode=profileable", "Pandroid.profilingMode=debuggable")
   }
 
   fun testSdkRuntimeDeviceSpecIncludedInCurrentAgp() {
@@ -431,8 +454,11 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     whenever(myDevice.appPreferredAbi).thenReturn(null)
 
     val bundleRunConfig = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
-    val argsCurrentAgp = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, bundleRunConfig, deviceSpec(myDevice))
-    assertExpectedJsonFile(argsCurrentAgp, "{\"sdk_version\":34,\"codename\":\"14\",\"sdk_runtime\":{\"supported\":true},\"supported_locales\":[\"es\",\"fr\"]}")
+    val argsCurrentAgp = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, bundleRunConfig,
+                                                                              targetDeviceSpec(myDevice),
+                                                                              deviceSpecs(myDevice))
+    assertExpectedJsonFile(argsCurrentAgp,
+                           "{\"sdk_version\":34,\"codename\":\"14\",\"sdk_runtime\":{\"supported\":true},\"supported_locales\":[\"es\",\"fr\"]}")
   }
 
   fun testSdkRuntimeDeviceSpecNotIncludedInAgp7_3() {
@@ -443,21 +469,28 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
     whenever(myDevice.appPreferredAbi).thenReturn(null)
 
     val bundleRunConfig = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
-    val argsAgp7_3 = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, bundleRunConfig, deviceSpec(myDevice))
+    val argsAgp7_3 = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, bundleRunConfig,
+                                                                          targetDeviceSpec(myDevice),
+                                                                          deviceSpecs(myDevice))
     assertExpectedJsonFile(argsAgp7_3, "{\"sdk_version\":34,\"codename\":\"14\",\"supported_locales\":[\"es\",\"fr\"]}")
   }
 
   companion object {
-    private fun assertExpectedJsonFile(arguments: List<String>, expectedJson: String) {
+    private fun assertExpectedJsonFile(arguments: List<String>, vararg expectedJson: String) {
       assertThat(arguments.size).isEqualTo(1)
       val args = arguments[0]
       assertThat(args).startsWith("-Pandroid.inject.apkselect.config=")
       val path = args.substring(args.lastIndexOf('=') + 1)
       assertThat(path).isNotEmpty()
-      val jsonFile = File(path)
-      assertThat(jsonFile.exists()).isTrue()
-      assertThat(FileUtils.readFileToString(jsonFile, Charset.forName("UTF-8"))).isEqualTo(expectedJson)
-      jsonFile.delete()
+      val paths = path.split(',')
+      assertThat(paths).hasSize(expectedJson.size)
+      val actualJsons = paths.map { p ->
+        val jsonFile = File(p)
+        assertThat(jsonFile.exists()).isTrue()
+        FileUtils.readFileToString(jsonFile, Charset.forName("UTF-8"))
+      }
+      assertThat(actualJsons).isEqualTo(expectedJson.toList())
+      paths.forEach { File(it).delete() }
     }
 
     private fun setupDeviceConfig(device: IDevice, @Suppress("SameParameterValue") config: String) {
@@ -478,5 +511,8 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
 
 private const val MAX_TIMEOUT_MILLISECONDS: Long = 50_000
 
-private fun deviceSpec(vararg devices: AndroidDevice): AndroidDeviceSpec? =
-  createSpec(devices.toList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+private fun targetDeviceSpec(vararg devices: AndroidDevice): ProcessedDeviceSpec.SingleDeviceSpec =
+  createTargetDeviceSpec(devices.toList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
+
+private fun deviceSpecs(vararg devices: AndroidDevice): ProcessedDeviceSpec.MultipleDeviceSpec =
+  createDeviceSpecs(devices.toList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)

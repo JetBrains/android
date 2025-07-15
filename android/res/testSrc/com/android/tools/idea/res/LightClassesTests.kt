@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
@@ -446,6 +446,38 @@ abstract class SingleModuleLightClassesTestBase {
     myFixture.completeBasic()
 
     assertThat(myFixture.lookupElementStrings).containsExactly("appString")
+  }
+
+  @Test
+  fun kotlinCompletion_b412606827() {
+    val activity =
+      myFixture.addFileToProject(
+        "/src/p1/p2/sub/test.kt",
+        // language=kotlin
+        """
+      package p1.p2.sub
+
+      import android.app.Activity
+      import android.os.Bundle
+
+      class MainActivity : Activity() {
+        override fun onCreate(savedInstanceState: Bundle?) {
+          super.onCreate(savedInstanceState)
+          R${caret}.string.appString
+        }
+      }
+      """
+          .trimIndent(),
+      )
+
+    myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+    myFixture.doHighlighting()
+
+    val intentions = myFixture.filterAvailableIntentions("Import")
+    assertThat(intentions).hasSize(1)
+    myFixture.launchAction(intentions.single())
+
+    assertThat(activity.text).contains("\nimport p1.p2.R\n")
   }
 
   @Test

@@ -17,6 +17,7 @@ package com.android.tools.idea.device.explorer
 
 import com.android.adblib.serialNumber
 import com.android.fakeadbserver.DeviceState
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -148,7 +149,7 @@ class DeviceExplorerControllerTest {
       manufacturer = "Google",
       deviceModel = "Pixel 10",
       release = "8.0",
-      sdk = "31",
+      sdk = AndroidApiLevel(31),
       hostConnectionType = DeviceState.HostConnectionType.USB
     )
     deviceState.deviceStatus = DeviceState.DeviceStatus.ONLINE

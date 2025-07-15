@@ -151,8 +151,10 @@ public final class TransportFileManager implements TransportFileCopier {
       copyFileToDevice(HostFiles.PERFA);
       copyFileToDevice(HostFiles.JVMTI_AGENT);
       // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
-      // TODO: In case of simpleperf, remember the device doesn't support it, so we don't try to use it to profile the device.
-      copyFileToDevice(HostFiles.SIMPLEPERF);
+      // Simpleperf is only sideloaded for devices with API level < Q. For Q+ the system image of simpleperf is used.
+      if (myDevice.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.Q) {
+        copyFileToDevice(HostFiles.SIMPLEPERF);
+      }
     }
     if (StudioFlags.PROFILER_TRACEBOX.get()) {
       if(isBetweenMAndP(myDevice)) {

@@ -29,6 +29,7 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Insets
 import java.beans.PropertyChangeListener
@@ -36,8 +37,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
+import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
 import javax.swing.border.MatteBorder
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -62,26 +65,41 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
   //   |              |                                |
   //   |    ...       |             ...                | <- Cards and Timeline are scrollable.
   //   |______________|________________________________|
+  //          ↑
+  //    The panel of cards allows horizontal scrolling.
 
   private val splitter =
     OnePixelSplitter(false, .4f, .1f, .9f).apply {
       // Cards
-      firstComponent = JPanel(TabularLayout("*")).apply { this.border = getCardsBorder() }
+      val firstPanel = JPanel(TabularLayout("*")).apply { this.border = getCardsBorder() }
+      // Show a horizontal scrollbar on attributes subpanel if content exceeds width of subpanel
+      firstComponent = createHorizontalScrollPane(firstPanel)
+
       // Timeline
       secondComponent =
         JPanel(BorderLayout()).apply { this.border = MatteBorder(0, 1, 0, 0, JBColor.border()) }
-      this.setBlindZone { Insets(0, 1, 0, 1) }
+
+      setBlindZone { Insets(0, 1, 0, 1) }
     }
 
   private val scope = AndroidCoroutineScope(parentDisposable)
 
   private val userScaleChangeListener = PropertyChangeListener {
-    splitter.firstComponent.border = getCardsBorder()
+    cardsPanel.border = getCardsBorder()
     onUserScaleChange()
   }
 
-  private val cardsLayout
-    get() = splitter.firstComponent.layout as TabularLayout
+  /** First panel on the left side of the splitter containing the list of cards panel */
+  private val cardsPanel
+    get() = (splitter.firstComponent as JBScrollPane).viewport.view as JPanel
+
+  /** Cards panel layout */
+  private val cardsPanelLayout
+    get() = cardsPanel.layout as TabularLayout
+
+  /** Second panel on the right side of the splitter containing the timeline panel */
+  private val timelinePanel
+    get() = splitter.secondComponent as JPanel
 
   private val scrollPane =
     JBScrollPane(VERTICAL_SCROLLBAR_ALWAYS, HORIZONTAL_SCROLLBAR_NEVER).apply {
@@ -89,6 +107,7 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
     }
 
   private val cardsLock = ReentrantReadWriteLock()
+
   @VisibleForTesting @GuardedBy("cardsLock") val cards = mutableListOf<Card>()
 
   private val jobsByCard = mutableMapOf<Card, Job>()
@@ -103,6 +122,25 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
     JBUIScale.addUserScaleChangeListener(userScaleChangeListener)
   }
 
+  /**
+   * Helper function to wrap a component in a horizontal scroll pane. The horizontal scrollbar is
+   * shown when the component is scrollable.
+   *
+   * @param component The component to wrap in the scroll pane.
+   * @param minWidth The minimum width of the scroll pane. Default value [MIN_PANEL_WIDTH_PX].
+   * @param minHeight The minimum height of the scroll pane.
+   */
+  private fun createHorizontalScrollPane(
+    component: Component,
+    minWidth: Int = MIN_PANEL_WIDTH_PX,
+    minHeight: Int = 0,
+  ) =
+    JBScrollPane(component, VERTICAL_SCROLLBAR_NEVER, HORIZONTAL_SCROLLBAR_ALWAYS).apply {
+      // Removes JBScrollPane border to avoid double borders with panel.
+      border = null
+      minimumSize = Dimension(minWidth, minHeight)
+    }
+
   private fun updateDimension() {
     val sumOfCardHeights = cardsLock.read { cards.sumOf { it.getCurrentHeight() } }
     val preferredHeight =
@@ -114,7 +152,7 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
   }
 
   fun addTimeline(timeline: JComponent) {
-    splitter.secondComponent.add(timeline, BorderLayout.CENTER)
+    timelinePanel.add(timeline, BorderLayout.CENTER)
     timeline.revalidate()
     timeline.doLayout()
   }
@@ -129,9 +167,9 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
   fun addCard(card: Card) {
     cardsLock.read {
       if (cards.contains(card)) return
-      splitter.firstComponent.add(card.component, TabularLayout.Constraint(cards.size, 0))
+      cardsPanel.add(card.component, TabularLayout.Constraint(cards.size, 0))
       cardsLock.write { cards.add(card) }
-      cardsLayout.setRowSizing(
+      cardsPanelLayout.setRowSizing(
         cards.indexOf(card),
         TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, card.getCurrentHeight()),
       )
@@ -144,7 +182,7 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
   }
 
   fun updateCardSize(card: Card) {
-    cardsLayout.setRowSizing(
+    cardsPanelLayout.setRowSizing(
       cardsLock.read { cards.indexOf(card) },
       TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, card.getCurrentHeight()),
     )
@@ -154,9 +192,9 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
 
   fun removeCard(card: Card) {
     cardsLock.write { cards.remove(card) }
-    splitter.firstComponent.remove(card.component)
+    cardsPanel.remove(card.component)
     updateDimension()
-    splitter.firstComponent.revalidate()
+    cardsPanel.revalidate()
     jobsByCard[card]?.cancel()
     jobsByCard.remove(card)
   }
@@ -168,6 +206,9 @@ private constructor(parentDisposable: Disposable, private val onUserScaleChange:
   }
 
   companion object {
+    /** Cards panel minimum width to prevent elements becoming invisible without visual cues. */
+    private const val MIN_PANEL_WIDTH_PX = 185
+
     @TestOnly
     fun createAllTabPanelForTest(parentDisposable: Disposable, onUserScaleChange: () -> Unit) =
       AllTabPanel(parentDisposable, onUserScaleChange)

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.preview.animation
 
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -23,13 +22,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.ToolbarLabelAction
-import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JComponent
@@ -37,8 +34,7 @@ import javax.swing.JPanel
 import javax.swing.border.MatteBorder
 
 /** Bottom control panel. */
-class BottomPanel(rootComponent: JComponent, private val tracker: AnimationTracker) :
-  JPanel(BorderLayout()) {
+class BottomPanel(rootComponent: JComponent) : JPanel(BorderLayout()) {
 
   var clockTimeMs: Int = 0
     set(value) {
@@ -49,17 +45,9 @@ class BottomPanel(rootComponent: JComponent, private val tracker: AnimationTrack
   private val westToolbar =
     createToolbarWithNavigation(
       rootComponent,
-      "ResetCoordinationTimeline",
-      listOf(ClockTimeLabel(), Separator()) +
-        if (COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) listOf(ResetTimelineAction())
-        else emptyList(),
+      "ClockTimeToolbar",
+      listOf(ClockTimeLabel(), Separator()),
     )
-
-  private val resetListeners: MutableList<() -> Unit> = mutableListOf()
-
-  fun addResetListener(listener: () -> Unit) {
-    resetListeners.add(listener)
-  }
 
   init {
     add(westToolbar.component, BorderLayout.WEST)
@@ -81,25 +69,6 @@ class BottomPanel(rootComponent: JComponent, private val tracker: AnimationTrack
       super.update(e)
       val presentation = e.presentation
       presentation.text = "$clockTimeMs ${message("animation.inspector.transition.ms")}"
-    }
-  }
-
-  private inner class ResetTimelineAction :
-    DumbAwareAction(
-      message("animation.inspector.action.reset.timeline"),
-      null,
-      StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED,
-    ) {
-    override fun actionPerformed(e: AnActionEvent) {
-      resetListeners.forEach { it() }
-      tracker.resetTimeline()
-    }
-
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = true
-      e.presentation.text = message("animation.inspector.action.reset.single.animation")
     }
   }
 }

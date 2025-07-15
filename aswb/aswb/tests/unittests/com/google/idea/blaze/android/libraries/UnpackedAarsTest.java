@@ -146,6 +146,7 @@ public class UnpackedAarsTest extends BlazeTestCase {
               "",
               projectDataDirectory.getAbsolutePath(),
               "",
+              "",
               BuildSystemName.Bazel,
               ProjectType.ASPECT_SYNC);
       BlazeImportSettingsManager.getInstance(project).setImportSettings(dummyImportSettings);

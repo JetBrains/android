@@ -16,6 +16,7 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.ide.common.gradle.Version;
+import com.android.repository.Revision;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -101,7 +102,12 @@ public class MultiVersionTreeNode extends UpdaterTreeNode {
     String suffix = maxPath.substring(maxPath.lastIndexOf(RepoPackage.PATH_SEPARATOR) + 1);
     maxName = StringUtil.trimEnd(maxName, suffix).trim();
     maxName = StringUtil.trimEnd(maxName, ":");
-    return maxName;
+    Revision revision = Revision.safeParseRevision(suffix);
+    if (!revision.equals(Revision.NOT_SPECIFIED)) {
+      // build-tools packages use the shortened version of the revision in the display name
+      maxName = StringUtil.trimEnd(maxName, revision.toShortString());
+    }
+    return maxName.trim();
   }
 
   @Override

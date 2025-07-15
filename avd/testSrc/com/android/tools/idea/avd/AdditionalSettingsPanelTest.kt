@@ -37,11 +37,13 @@ import androidx.compose.ui.test.performTextReplacement
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
+import com.android.sdklib.devices.VendorDevices
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.android.utils.NullLogger
 import com.google.common.truth.Truth.assertThat
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
@@ -109,7 +111,9 @@ class AdditionalSettingsPanelTest {
   @Test
   fun orientationDropdownOnClick() {
     // Arrange
-    val device = TestDevices.pixel9Pro()
+    val deviceProfiles = VendorDevices(NullLogger()).apply { init { true } }
+    val pixel8 = deviceProfiles.getDevice("pixel_8", "Google")!!
+    val device = VirtualDevice(pixel8).apply { initializeFromProfile() }
     val state = configureDevicePanelState(device)
 
     rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
@@ -120,6 +124,20 @@ class AdditionalSettingsPanelTest {
 
     // Assert
     assertThat(state.device.orientation).isEqualTo(ScreenOrientation.LANDSCAPE)
+  }
+
+  @Test
+  fun orientationNotPresentWithoutMultipleStates() {
+    val devices = VendorDevices(NullLogger()).apply { init { true } }
+    val xrHeadset = devices.getDevice("xr_headset_device", "Google")!!
+    assertThat(xrHeadset.allStates).hasSize(1)
+
+    val device = VirtualDevice(xrHeadset).apply { initializeFromProfile() }
+    val state = configureDevicePanelState(device)
+
+    rule.setContent { provideCompositionLocals { AdditionalSettingsPanel(state) } }
+
+    rule.onNodeWithText("Orientation").assertDoesNotExist()
   }
 
   @Test

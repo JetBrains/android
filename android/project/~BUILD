@@ -4,6 +4,15 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.core.project",
     iml_files = ["intellij.android.core.project.iml"],
+    split_test_targets = {
+        "AndroidRunConfigurationsTest": {
+            "test_filter": "com.android.tools.idea.project.AndroidRunConfigurationsTest",
+            "tags": [
+                "noci:studio-win",  # b/418084011
+            ],
+        },
+        "other": {},
+    },
     test_class = "com.android.tools.idea.IdeaTestSuite",
     # keep sorted
     test_data = [
@@ -32,6 +41,7 @@ iml_module(
         "//tools/adt/idea/jps-model:intellij.android.jps.model",
         "//tools/base/flags:studio.android.sdktools.flags",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer",
+        "//tools/base/testutils:studio.android.sdktools.testutils",
     ],
     test_jvm_flags = [
         "-Djdk.attach.allowAttachSelf=true",

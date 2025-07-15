@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -33,11 +34,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class GradleVersionCatalogsModelImpl implements GradleVersionCatalogsModel {
   private Map<String, GradleVersionCatalogFile> versionCatalogFiles;
+  private BuildModelContext buildModelContext;
 
-  GradleVersionCatalogsModelImpl(@NotNull Collection<GradleVersionCatalogFile> versionCatalogFile) {
+  GradleVersionCatalogsModelImpl(@NotNull Collection<GradleVersionCatalogFile> versionCatalogFile, BuildModelContext buildModelContext) {
     this.versionCatalogFiles = versionCatalogFile.stream().collect(Collectors.toMap(
       GradleVersionCatalogFile::getCatalogName,
       identity()));
+    this.buildModelContext = buildModelContext;
   }
 
   private Map<String, ExtModel> extractByName(String sectionName) {
@@ -85,5 +88,12 @@ public class GradleVersionCatalogsModelImpl implements GradleVersionCatalogsMode
     GradleVersionCatalogFile file = versionCatalogFiles.get(catalogName);
     if(file == null) return null;
     return new GradleVersionCatalogModelImpl(file);
+  }
+
+  @NotNull
+  @Override
+  public GradleVersionCatalogModel getVersionCatalogModel(VirtualFile file, String catalogName) {
+    GradleVersionCatalogFile catalogFile = buildModelContext.getOrCreateVersionCatalogFile(file, catalogName);
+    return new GradleVersionCatalogModelImpl(catalogFile);
   }
 }

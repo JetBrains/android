@@ -49,7 +49,6 @@ public class ProjectArtifactStoreTest {
     projectArtifactStore =
         new ProjectArtifactStore(
             projectPath,
-            workspacePath,
             new MockArtifactCache(cacheDir),
             fileRefresher);
   }

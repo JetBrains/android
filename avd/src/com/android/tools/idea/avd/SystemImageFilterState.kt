@@ -18,6 +18,7 @@ package com.android.tools.idea.avd
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
 
@@ -55,28 +56,27 @@ internal class SystemImageFilterState(
   }
 }
 
+/**
+ * Determine the effective base extension level for each API level, within the set of images
+ * supplied. This is important for verticals like TV or Auto that may not have any images released
+ * at the normal base extension level as defined by [AndroidVersion.ApiBaseExtension]; for these, we
+ * want to consider the minimum level among the released images.
+ */
 internal class BaseExtensionLevels(images: Iterable<ISystemImage>) {
-  private val comparator = Comparator.nullsFirst<Int?>(Comparator.naturalOrder())
-  private val minExtensionLevelMap =
+  private val minExtensionLevelMap: Map<AndroidApiLevel, Int?> =
     images
       .map(ISystemImage::getAndroidVersion)
-      .groupBy(::ApiLevelAndCodename, AndroidVersion::getExtensionLevel)
-      .mapValues { (_, extensionLevels) -> extensionLevels.minWith(comparator) }
+      .filterNot { it.isPreview }
+      .groupBy(AndroidVersion::getAndroidApiLevel, AndroidVersion::getExtensionLevel)
+      .mapValues { (_, extensionLevels) -> extensionLevels.minWith(nullsFirst<Int>()) }
 
   fun isBaseExtension(version: AndroidVersion): Boolean {
-    val minExtensionLevel = minExtensionLevelMap[ApiLevelAndCodename(version)]
+    val minExtensionLevel = minExtensionLevelMap[version.androidApiLevel]
 
-    return if (minExtensionLevel == null) {
-      // This branch protects against multiple base extensions with the same API level but
-      // differing extension levels (null and the expected nonnull value). The null would hide the
-      // nonnull value and the nonnull value would not be reported as a base extension.
+    return if (minExtensionLevel == null || version.extensionLevel == null) {
       version.isBaseExtension
     } else {
       version.extensionLevel == minExtensionLevel
     }
   }
-}
-
-private data class ApiLevelAndCodename(private val apiLevel: Int, private val codename: String?) {
-  constructor(version: AndroidVersion) : this(version.apiLevel, version.codename)
 }

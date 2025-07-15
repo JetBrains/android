@@ -25,10 +25,8 @@ import com.intellij.psi.PsiNamedElement;
 
 public interface AndroidSqlTableDefinitionName extends PsiNamedElement, AndroidSqlNameElement {
 
-  @NotNull
-  String getName();
+  @NotNull String getName();
 
-  @NotNull
-  AndroidSqlTableDefinitionName setName(@NotNull String newName);
+  @NotNull AndroidSqlTableDefinitionName setName(@NotNull String newName);
 
 }

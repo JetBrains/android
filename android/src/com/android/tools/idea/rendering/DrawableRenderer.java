@@ -53,6 +53,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.LightVirtualFile;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -78,18 +79,17 @@ public class DrawableRenderer implements Disposable {
    * @param targetFile a file representing the build configuration of the rendering context. See {@link StudioRenderServiceKt#taskBuilder}
    */
   public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull VirtualFile targetFile) {
-    this(facet, targetFile, ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(targetFile));
+    this(facet, ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(targetFile));
   }
 
   /**
    * Initializes the renderer. Every renderer has to be disposed by calling {@link #dispose()}.
    * Please keep in mind that each renderer instance allocates significant resources inside Layoutlib.
    *
-   * @param facet the Android facet
-   * @param targetFile a file representing the build configuration of the rendering context. See {@link StudioRenderServiceKt#taskBuilder}
+   * @param facet         the Android facet
    * @param configuration the configuration to use for rendering
    */
-  private DrawableRenderer(@NotNull AndroidFacet facet, @NotNull VirtualFile targetFile, @NotNull Configuration configuration) {
+  private DrawableRenderer(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
     Module module = facet.getModule();
     RenderLogger logger = new RenderLogger(module.getProject(), null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE,
                                            () -> HtmlLinkManager.NOOP_LINK_MANAGER);

@@ -19,7 +19,7 @@ import com.android.sdklib.SystemImageTags
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.streaming.actions.AbstractStreamingAction
+import com.android.tools.idea.streaming.actions.StreamingAction
 import com.intellij.ide.actions.ShowLogAction
 import com.intellij.openapi.actionSystem.ActionButtonComponent
 import com.intellij.openapi.actionSystem.AnAction
@@ -109,7 +109,7 @@ private fun Component.isComponentForAction(action: AnAction): Boolean =
     this is AnActionHolder && this.action.isEquivalentTo(action)
 
 private fun AnAction.isEquivalentTo(action: AnAction): Boolean =
-    this === action || (this is AbstractStreamingAction<*, *> && isDelegatingTo(action))
+    this === action || (this is StreamingAction && mayDelegate(action))
 
 internal inline fun <reified T : Component> Component.findContainingComponent(): T? {
   var component = parent

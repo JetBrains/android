@@ -173,7 +173,7 @@ class LeakCanaryLogcatCommandHandler(
 
         logcatService.readLogcat(
           serialNumber = device.serialNumber,
-          sdk = device.version.apiLevel,
+          sdk = device.version.androidApiLevel,
           newMessagesOnly = true
         ).collect { logcatMessages ->
           if (logCollectionJob?.isCancelled == true) return@collect

@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea
 
-import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
-import com.android.tools.asdriver.tests.Emulator
-import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import com.android.tools.testlib.Emulator
 import org.junit.Rule
 import org.junit.Test
 import java.io.IOException
@@ -82,7 +80,7 @@ class LiveEditTest {
 
           // Open the file ahead of time so that Live Edit is ready when we want to make a change
           val path = project.targetProject.resolve("app/src/main/java/com/example/liveedittest/MainActivity.kt")
-          studio.openFile(project.getTargetProject().getFileName().toString(), path.toString())
+          studio.openFile("LiveEditTest", path.toString())
 
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()

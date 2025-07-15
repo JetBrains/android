@@ -64,23 +64,24 @@ internal class DirectionsClassResolveExtensionFile(
     )
 
   override fun StringBuilder.buildClassBody() {
-    appendLine("class ${classId.shortClassName} private constructor() {")
+    appendLine("class ${classId.shortClassName.toEscapedString()} private constructor() {")
     appendLine("  companion object {")
     for (action in actionsWithResolvedArguments) {
       appendLine("    // action ${action.id}")
-      appendLine("    fun ${action.id.toCamelCase()}(")
+      appendLine("    fun ${action.id.toCamelCase().escapeKeywords()}(")
       for (argument in action.arguments) {
+        val defaultValue = argument.defaultValue?.escapeNewlinesForComment()
         appendLine(
           "        " +
-          "// argument ${argument.name}: " +
-          "${argument.type ?: "<undefined type>"} " +
-          "(nullable: ${argument.nullable ?: "<null>"})" +
-          " = ${argument.defaultValue ?: "<no default>"}"
+            "// argument ${argument.name}: " +
+            "${argument.type ?: "<undefined type>"} " +
+            "(nullable: ${argument.nullable ?: "<null>"})" +
+            " = ${defaultValue ?: "<no default>"}"
         )
         val argumentType = argument.resolveKotlinType(navInfo.packageName)
-        append("        ${argument.name.toCamelCase()}: ${argumentType}")
-        if (argument.defaultValue != null) {
-          appendLine(" = TODO(),  // ${argument.defaultValue}")
+        append("        ${argument.name.toCamelCase().escapeKeywords()}: $argumentType")
+        if (defaultValue != null) {
+          appendLine(" = TODO(),  // $defaultValue")
         } else {
           appendLine(",")
         }
@@ -109,7 +110,8 @@ internal class DirectionsClassResolveExtensionFile(
     }
 
   private fun KaSession.getTagForValueParameterSymbol(symbol: KaValueParameterSymbol): XmlTag? {
-    val declaringFunctionSymbol = symbol.containingDeclaration as? KaNamedFunctionSymbol ?: return null
+    val declaringFunctionSymbol =
+      symbol.containingDeclaration as? KaNamedFunctionSymbol ?: return null
     val matchingAction = findMatchingAction(declaringFunctionSymbol) ?: return null
     val actionTag = matchingAction.actionTag
 

@@ -1,14 +1,11 @@
 package com.google.idea.blaze.base.qsync
 
 import com.google.common.collect.ImmutableSet
-import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
-import com.google.idea.blaze.base.projectview.ProjectViewSet
 import com.google.idea.blaze.base.qsync.entity.BazelEntitySource
 import com.google.idea.blaze.base.sync.projectview.LanguageSupport
 import com.google.idea.blaze.base.util.UrlUtil
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
-import com.google.idea.blaze.qsync.QuerySyncProjectListener
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot
 import com.google.idea.blaze.qsync.project.BlazeProjectDataStorage.WORKSPACE_MODULE_NAME
 import com.google.idea.blaze.qsync.project.ProjectPath
@@ -16,6 +13,8 @@ import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.common.experiments.EnumExperiment
 import com.google.idea.common.experiments.IntExperiment
 import com.google.idea.common.util.Transactions
+import com.intellij.java.workspace.entities.JavaSourceRootPropertiesEntity
+import com.intellij.java.workspace.entities.javaSourceRoots
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
@@ -26,6 +25,7 @@ import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.workspace.jps.JpsProjectFileEntitySource
+import com.intellij.platform.workspace.jps.entities.ContentRootEntity
 import com.intellij.platform.workspace.jps.entities.DependencyScope
 import com.intellij.platform.workspace.jps.entities.InheritedSdkDependency
 import com.intellij.platform.workspace.jps.entities.LibraryDependency
@@ -35,22 +35,19 @@ import com.intellij.platform.workspace.jps.entities.LibraryRootTypeId
 import com.intellij.platform.workspace.jps.entities.LibraryTableId
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleSourceDependency
+import com.intellij.platform.workspace.jps.entities.SourceRootEntity
+import com.intellij.platform.workspace.jps.entities.SourceRootTypeId
 import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_SOURCE_ROOT_ENTITY_TYPE_ID
+import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_TEST_ROOT_ENTITY_TYPE_ID
+import java.nio.file.Path
 import java.nio.file.Paths
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.jetbrains.jps.model.java.JavaSourceRootProperties
-import org.jetbrains.jps.model.java.JavaSourceRootType
-import org.jetbrains.jps.model.java.JpsJavaExtensionService
 
 /** An object that monitors the build graph and applies the changes to the project structure by using WorkspaceEntity. */
-class ProjectUpdaterWithWorkspaceEntity(
-  private val project: Project,
-  private val projectViewSet: ProjectViewSet,
-  private val workspaceRoot: WorkspaceRoot,
-  private val projectPathResolver: ProjectPath.Resolver,
-) : QuerySyncProjectListener {
+class ProjectUpdaterWithWorkspaceEntity(private val project: Project) : QuerySyncProjectListener {
 
   enum class ProjectStructure {
     SHARDED_LIBRARY,
@@ -64,8 +61,9 @@ class ProjectUpdaterWithWorkspaceEntity(
 
   private var lastProjectProtoSnapshot: ProjectProto.Project = ProjectProto.Project.getDefaultInstance()
 
-  override fun onNewProjectSnapshot(
+  override fun onNewProjectStructure(
     context: Context<*>,
+    querySyncProject: ReadonlyQuerySyncProject,
     graph: QuerySyncProjectSnapshot,
   ) {
     val newProjectProtoSnapshot = graph.project()
@@ -73,8 +71,8 @@ class ProjectUpdaterWithWorkspaceEntity(
       context.output(PrintOutput.output("IDE project structure up-to-date"))
       return
     }
-    EntityWorker(project, newProjectProtoSnapshot, context).updateProjectModel()
-    updateProjectModel(newProjectProtoSnapshot, context)
+    EntityWorker(project, querySyncProject, newProjectProtoSnapshot, context).updateProjectModel()
+    updateProjectModel(querySyncProject, newProjectProtoSnapshot, context)
     lastProjectProtoSnapshot = newProjectProtoSnapshot
   }
 
@@ -90,17 +88,40 @@ class ProjectUpdaterWithWorkspaceEntity(
     companion object
   }
 
-  data class ProjectData(
-    val modules: Map<String, ModuleData>,
-    val libraries: Map<String, LibraryData>,
+  data class SourceRootData(
+    val url: String,
+    val rootTypeId: SourceRootTypeId,
+    val isGenerated: Boolean,
+    val packagePrefix: String,
   ) {
     companion object
   }
 
-  inner class EntityWorker(val project: Project, val spec: ProjectProto.Project, val context: Context<*>) {
+  data class ContentRootData(
+    val url: String,
+    val sourceRoots: List<SourceRootData>,
+    val excludedPatterns: List<String>,
+  ) {
+    companion object
+  }
+
+  data class ProjectData(
+    val modules: Map<String, ModuleData>,
+    val libraries: Map<String, LibraryData>,
+    val contentRoots: Map<String, ContentRootData>,
+  ) {
+    companion object
+  }
+
+  inner class EntityWorker(
+    val project: Project,
+    val querySyncProject: ReadonlyQuerySyncProject,
+    val spec: ProjectProto.Project,
+    val context: Context<*>,
+  ) {
     private val virtualFileManager = VirtualFileManager.getInstance()
     private val projectBase = Paths.get(project.getBasePath())
-
+    private val projectPathResolver = querySyncProject.projectPathResolver
     fun ProjectProto.JarDirectory.toIdeaUrl(): String {
       return UrlUtil.pathToIdeaUrl(projectBase.resolve(this.path))
         .also { virtualFileManager.findFileByUrl(it) }  // Register roots in a background thread.
@@ -110,6 +131,11 @@ class ProjectUpdaterWithWorkspaceEntity(
       val projectPath = ProjectPath.create(srcjar)
       return UrlUtil.pathToUrl(projectPathResolver.resolve(projectPath).toString(), projectPath.innerJarPath())
         .also { virtualFileManager.findFileByUrl(it) }  // Register roots in a background thread.
+    }
+
+    fun ProjectProto.ProjectPath.toIdeaUrl(): String {
+      val sourceFolderProjectPath = ProjectPath.create(this)
+      return UrlUtil.pathToIdeaUrl(projectPathResolver.resolve(sourceFolderProjectPath))
     }
 
     fun ModuleData.Companion.from(module: ProjectProto.Module): ModuleData {
@@ -134,26 +160,66 @@ class ProjectUpdaterWithWorkspaceEntity(
       )
     }
 
+    fun SourceRootData.Companion.from(
+      projectPath: ProjectProto.ProjectPath,
+      isTest: Boolean,
+      isGenerated: Boolean,
+      packagePrefix: String,
+    ): SourceRootData {
+      return SourceRootData(
+        url = projectPath.toIdeaUrl(),
+        rootTypeId = if (isTest) JAVA_TEST_ROOT_ENTITY_TYPE_ID else JAVA_SOURCE_ROOT_ENTITY_TYPE_ID,
+        isGenerated = isGenerated,
+        packagePrefix = packagePrefix
+      )
+    }
+
+    fun ContentRootData.Companion.from(
+      root: ProjectProto.ProjectPath,
+      sources: List<ProjectProto.SourceFolder>,
+      excludes: List<String>,
+    ): ContentRootData {
+      return ContentRootData(
+        url = root.toIdeaUrl(),
+        sourceRoots = sources.map {
+          SourceRootData.from(
+            it.projectPath,
+            it.isTest,
+            it.isGenerated,
+            it.packagePrefix)
+        },
+        excludedPatterns = excludes,
+      )
+    }
+
     fun ProjectData.Companion.from(project: ProjectProto.Project): ProjectData {
-      return when(projectStructureExperiment.value) {
-        ProjectStructure.LIBRARY_PER_TARGET -> ProjectData(
-          modules = project.modulesList.map { ModuleData.from(it) }.associateBy { it.name },
-          libraries = project.libraryList.map { LibraryData.from(it) }.associateBy { it.name },
-        )
-        ProjectStructure.SHARDED_LIBRARY ->  let {
+      val libraries = when (projectStructureExperiment.value) {
+        ProjectStructure.LIBRARY_PER_TARGET ->
+          project.libraryList.map { LibraryData.from(it) }.associateBy { it.name }
+
+        ProjectStructure.SHARDED_LIBRARY -> let {
           val shards = libraryShardsExperiment.value.toULong()
-          ProjectData(
-            modules = project.modulesList.map { ModuleData.from(it) }.associateBy { it.name },
-            libraries = project
-              .libraryList
-              .groupBy { it.name.hashCode().toULong() % shards }
-              .map {
-                LibraryData.from("Lib ${it.key}", it.value)
-              }
-              .associateBy { it.name },
-          )
+          project.libraryList
+            .groupBy { it.name.hashCode().toULong() % shards }
+            .map {
+              LibraryData.from("Lib ${it.key}", it.value)
+            }
+            .associateBy { it.name }
         }
       }
+      if (project.modulesCount != 1) {
+        context.output(
+          PrintOutput.error("ERROR: Expected exactly one module in project, but found " + project.modulesCount))
+        error("Expected exactly one module in project, but found " + project.modulesCount)
+      }
+      val contentRoots = project.getModules(0).contentEntriesList.map {
+        ContentRootData.from(it.root, sources = it.sourcesList, excludes = it.excludesList)
+      }.associateBy { it.url }
+      return ProjectData(
+        modules = project.modulesList.map { ModuleData.from(it) }.associateBy { it.name },
+        libraries = libraries,
+        contentRoots = contentRoots,
+      )
     }
   }
 
@@ -198,78 +264,56 @@ class ProjectUpdaterWithWorkspaceEntity(
             } + lib.sourceUrls.map {
               LibraryRoot(
                 url = virtualFileUrlManager.getOrCreateFromUrl(it), type = LibraryRootTypeId.SOURCES)
-            } ,
+            },
             entitySource = BazelEntitySource
           ))
         }
-        addEntity(ModuleEntity(
-          name = WORKSPACE_MODULE_NAME,
-          dependencies =
-            listOf(ModuleSourceDependency, InheritedSdkDependency) +
-            libraries.map {
-              LibraryDependency(library = it.symbolicId, exported = false, scope = DependencyScope.COMPILE)
-            },
-          entitySource = BazelEntitySource
-        ))
+        val dependencies =
+          listOf(ModuleSourceDependency, InheritedSdkDependency) +
+          libraries.map {
+            LibraryDependency(library = it.symbolicId, exported = false, scope = DependencyScope.COMPILE)
+          }
+        addEntity(
+          ModuleEntity(name = WORKSPACE_MODULE_NAME, dependencies = dependencies, entitySource = BazelEntitySource) {
+            this.contentRoots = projectData.contentRoots.map {
+              val entry = it.value
+              ContentRootEntity(
+                url = virtualFileUrlManager.getOrCreateFromUrl(entry.url),
+                excludedPatterns = entry.excludedPatterns,
+                entitySource = BazelEntitySource
+              ) {
+                this.sourceRoots = entry.sourceRoots.map {
+                  SourceRootEntity(
+                    url = virtualFileUrlManager.getOrCreateFromUrl(it.url),
+                    rootTypeId = it.rootTypeId,
+                    entitySource = BazelEntitySource
+                  ) {
+                    this.javaSourceRoots += JavaSourceRootPropertiesEntity(
+                      generated = it.isGenerated,
+                      packagePrefix = it.packagePrefix,
+                      entitySource = BazelEntitySource
+                    )
+                  }
+                }
+              }
+            }
+          })
       }
     )
   }
 
-  private fun updateProjectModel(spec: ProjectProto.Project, context: Context<*>) {
+  private fun updateProjectModel(querySyncProject: ReadonlyQuerySyncProject, spec: ProjectProto.Project, context: Context<*>) {
     Transactions.submitWriteActionTransactionAndWait {
       val models =
         ProjectDataManager.getInstance().createModifiableModelsProvider(project)
       for (syncPlugin in BlazeQuerySyncPlugin.EP_NAME.extensions) {
-        syncPlugin.updateProjectSettingsForQuerySync(project, context, projectViewSet)
+        syncPlugin.updateProjectSettingsForQuerySync(project, context, querySyncProject.projectViewSet)
       }
       for (moduleSpec in spec.getModulesList()) {
         val module =
           models.findIdeModule(moduleSpec.getName())!!
-
-        val roots = models.getModifiableRootModel(module)
-        // TODO: should this be encapsulated in ProjectProto.Module?
-        roots.inheritSdk()
-
-        // TODO instead of removing all content entries and re-adding, we should calculate the
-        //  diff.
-        for (entry in roots.getContentEntries()) {
-          roots.removeContentEntry(entry)
-        }
-        for (ceSpec in moduleSpec.getContentEntriesList()) {
-          val projectPath = ProjectPath.create(ceSpec.getRoot())
-
-          val contentEntry =
-            roots.addContentEntry(
-              UrlUtil.pathToUrl(projectPathResolver.resolve(projectPath).toString())
-            )
-          for (sfSpec in ceSpec.getSourcesList()) {
-            val sourceFolderProjectPath = ProjectPath.create(sfSpec.getProjectPath())
-
-            val properties =
-              JpsJavaExtensionService.getInstance()
-                .createSourceRootProperties(
-                  sfSpec.getPackagePrefix(), sfSpec.getIsGenerated()
-                )
-            val rootType =
-              if (sfSpec.getIsTest()) JavaSourceRootType.TEST_SOURCE else JavaSourceRootType.SOURCE
-            val url =
-              UrlUtil.pathToUrl(
-                projectPathResolver.resolve(sourceFolderProjectPath).toString(),
-                sourceFolderProjectPath.innerJarPath()
-              )
-            val unused =
-              contentEntry.addSourceFolder<JavaSourceRootProperties?>(url, rootType, properties)
-          }
-          for (exclude in ceSpec.getExcludesList()) {
-            contentEntry.addExcludeFolder(
-              UrlUtil.pathToIdeaDirectoryUrl(workspaceRoot.absolutePathFor(exclude))
-            )
-          }
-        }
-
         val workspaceLanguageSettings =
-          LanguageSupport.createWorkspaceLanguageSettings(projectViewSet)
-
+          LanguageSupport.createWorkspaceLanguageSettings(querySyncProject.projectViewSet)
         for (syncPlugin in BlazeQuerySyncPlugin.EP_NAME.extensions) {
           // TODO update ProjectProto.Module and updateProjectStructure() to allow a more
           // suitable
@@ -279,12 +323,12 @@ class ProjectUpdaterWithWorkspaceEntity(
             project,
             context,
             models,
-            workspaceRoot,
+            querySyncProject.workspaceRoot,
             module,
-            ImmutableSet.copyOf<String?>(moduleSpec.getAndroidResourceDirectoriesList()),
+            ImmutableSet.copyOf<String?>(moduleSpec.androidResourceDirectoriesList),
             ImmutableSet.builder<String?>()
-              .addAll(moduleSpec.getAndroidSourcePackagesList())
-              .addAll(moduleSpec.getAndroidCustomPackagesList())
+              .addAll(moduleSpec.androidSourcePackagesList)
+              .addAll(moduleSpec.androidCustomPackagesList)
               .build(),
             workspaceLanguageSettings
           )

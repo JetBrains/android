@@ -16,7 +16,7 @@
 package com.android.tools.idea
 
 import com.android.tools.asdriver.tests.AndroidSystem
-import com.android.tools.asdriver.tests.Display
+import com.android.tools.testlib.Display
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.SystemInfo
 import org.junit.Rule

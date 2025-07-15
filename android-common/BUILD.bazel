@@ -46,6 +46,7 @@ jvm_library(
     "//platform/lang-core",
     "//platform/lang-impl",
     "//platform/projectModel-api:projectModel",
+    "//platform/util/progress",
     "//xml/dom-openapi:dom",
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/base/code-insight",
@@ -105,6 +106,7 @@ jvm_library(
     "//plugins/kotlin/gradle/gradle-tooling/impl:impl_test_lib",
     "//plugins/kotlin/base/plugin",
     "//plugins/kotlin/base/plugin:plugin_test_lib",
+    "//platform/editor-ui-api:editor-ui",
     "@lib//:mockito-kotlin",
     "@lib//:protobuf",
   ]

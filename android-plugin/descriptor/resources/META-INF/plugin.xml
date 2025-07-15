@@ -10,10 +10,10 @@
   <vendor>JetBrains, Google</vendor>
 
   <change-notes><![CDATA[
-    This release contains updates from Android Studio Narwhal Canary 3.
+    This release contains updates from Android Studio Narwhal Feature Drop Canary 5.
 
     For detailed information, please refer to the release notes available at:
-    <a href="https://androidstudio.googleblog.com/2025/04/android-studio-narwhal-202511-canary-4.html">Android Studio Narwhal Canary 3</a>.]]>
+    <a href="https://androidstudio.googleblog.com/2025/06/android-studio-narwhal-feature-drop_13.html">Android Studio Narwhal Feature Drop Canary 5</a>.]]>
   </change-notes>
 
   <dependencies>
@@ -64,7 +64,8 @@
   <xi:include href="/META-INF/backup.xml"/>
   <xi:include href="/META-INF/safeargs.xml"/>
   <xi:include href="/META-INF/pipeline.xml"/>
-  <!-- <xi:include href="/META-INF/play-vitals.xml"/> -->
+<!--  <xi:include href="/META-INF/play-policy.xml"/>-->
+<!--  <xi:include href="/META-INF/play-vitals.xml"/>-->
   <xi:include href="/META-INF/profilers.xml"/>
   <xi:include href="/META-INF/profilers-gradle.xml"/>
   <xi:include href="/META-INF/project-system-plugin.xml"/>

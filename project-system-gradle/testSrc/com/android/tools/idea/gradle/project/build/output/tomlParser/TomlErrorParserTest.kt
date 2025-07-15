@@ -19,25 +19,26 @@ import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.dsl.model.EP_NAME
 import com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModel
 import com.android.tools.idea.gradle.project.build.events.GradleErrorQuickFixProvider
-import com.android.tools.idea.gradle.project.build.output.BuildOutputParserWrapper
-import com.android.tools.idea.gradle.project.build.output.TestBuildOutputInstantReader
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.project.hyperlink.SyncMessageHyperlink
 import com.android.tools.idea.project.messages.SyncMessage
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.base.Charsets
-import com.google.common.base.Splitter
 import com.google.common.truth.Truth
+import com.intellij.build.BuildProgressListener
 import com.intellij.build.events.BuildEvent
+import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
+import com.intellij.build.output.BuildOutputInstantReaderImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemOutputParserProvider
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -49,11 +50,11 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerExtension
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.kotlin.whenever
+import kotlin.sequences.forEach
 
 class TomlErrorParserTest {
   private val projectRule = AndroidProjectRule.onDisk()
@@ -84,16 +85,12 @@ class TomlErrorParserTest {
   fun testTomlErrorParsed() {
     val buildOutput = getVersionCatalogLibsBuildOutput()
 
-    val parser = TomlErrorParser()
-    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
-    val consumer = TestMessageEventConsumer()
+    val taskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, projectRule.project)
+    val parentEventId = "Test Id"
+    val consumer = consumeOutput(buildOutput, taskId, parentEventId)
 
-    val line = reader.readLine()!!
-    val parsed = parser.parse(line, reader, consumer)
-
-    Truth.assertThat(parsed).isTrue()
     consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
-      Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
+      Truth.assertThat(it.parentId).isEqualTo(parentEventId)
       Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
       Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
       Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription())
@@ -105,16 +102,12 @@ class TomlErrorParserTest {
   fun testTomlErrorWithFileParsed() {
     val buildOutput = getVersionCatalogLibsBuildOutput("/arbitrary/path/to/file.versions.toml")
 
-    val parser = TomlErrorParser()
-    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
-    val consumer = TestMessageEventConsumer()
+    val taskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, projectRule.project)
+    val parentEventId = "Test Id"
+    val consumer = consumeOutput(buildOutput, taskId, parentEventId)
 
-    val line = reader.readLine()!!
-    val parsed = parser.parse(line, reader, consumer)
-
-    Truth.assertThat(parsed).isTrue()
     consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
-      Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
+      Truth.assertThat(it.parentId).isEqualTo(parentEventId)
       Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
       Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
       Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml"))
@@ -125,22 +118,18 @@ class TomlErrorParserTest {
   @Test
   fun testTomlErrorWithFileParsedByWrapperWithAdditionalQickfix() {
     registerAdditionalQuickFixProvider()
-    whenever(ID.type).thenReturn(ExternalSystemTaskType.REFRESH_TASKS_LIST)
     val buildOutput = getVersionCatalogLibsBuildOutput("/arbitrary/path/to/file.versions.toml")
 
-    val wrappedParser = BuildOutputParserWrapper(TomlErrorParser(), ID)
-    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
-    val consumer = TestMessageEventConsumer()
+    val taskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, projectRule.project)
+    val parentEventId = "Test Id"
+    val consumer = consumeOutput(buildOutput, taskId, parentEventId)
 
-    val line = reader.readLine()!!
-    val parsed = wrappedParser.parse(line, reader, consumer)
-
-    Truth.assertThat(parsed).isTrue()
     consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
-      Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
+      Truth.assertThat(it.parentId).isEqualTo(parentEventId)
       Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
       Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-      Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription("/arbitrary/path/to/file.versions.toml") + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
+      Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildIssueDescription(
+        "/arbitrary/path/to/file.versions.toml") + "\n<a href=\"com.plugin.gradle.quickfix\">Additional quickfix link</a>")
       Truth.assertThat(it.getNavigatable(project)).isNull()
     }
   }
@@ -280,13 +269,9 @@ class TomlErrorParserTest {
     try {
       val buildOutput = getVersionCatalogDuplicationAliasBuildOutput(project.basePath!!)
 
-      val parser = TomlErrorParser()
-      val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
-      val consumer = TestMessageEventConsumer()
-
-      val line = reader.readLine()!!
-      val parsed = parser.parse(line, reader, consumer)
-      Truth.assertThat(parsed).isTrue()
+      val taskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, projectRule.project)
+      val parentEventId = "Test Id"
+      val consumer = consumeOutput(buildOutput, taskId, parentEventId)
 
       class BuildIssueTest(val logicalLine: Int, val logicalColumn: Int) : BuildIssue {
         override val description: String = getVersionCatalogDuplicateAliasDescription(project.basePath!!)
@@ -298,8 +283,8 @@ class TomlErrorParserTest {
       }
 
       val expected = arrayOf(
-        BuildIssueEventImpl(reader.parentEventId, BuildIssueTest(13, 0), MessageEvent.Kind.ERROR),
-        BuildIssueEventImpl(reader.parentEventId, BuildIssueTest(14, 0), MessageEvent.Kind.ERROR)
+        BuildIssueEventImpl(parentEventId, BuildIssueTest(13, 0), MessageEvent.Kind.ERROR),
+        BuildIssueEventImpl(parentEventId, BuildIssueTest(14, 0), MessageEvent.Kind.ERROR)
       )
       val output = consumer.messageEvents.filterIsInstance<MessageEvent>()
       Truth.assertThat(output).hasSize(2)
@@ -329,15 +314,17 @@ class TomlErrorParserTest {
   fun testTomlUnparsable() {
     val buildOutput = getVersionCatalogTableMisspelOutput2()
 
-    val parser = TomlErrorParser()
-    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
-    val consumer = TestMessageEventConsumer()
+    val taskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, projectRule.project)
+    val parentEventId = "Test Id"
+    val consumer = consumeOutput(buildOutput, taskId, parentEventId)
 
-    val line = reader.readLine()!!
-    val parsed = parser.parse(line, reader, consumer)
-
-    Truth.assertThat(parsed).isFalse()
-    Truth.assertThat(consumer.messageEvents.filterIsInstance<MessageEvent>()).isEmpty()
+    //Not parsable by Toml parser so general message should be issued
+    consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
+      Truth.assertThat(it.parentId).isEqualTo(parentEventId)
+      Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition:")
+      Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
+      Truth.assertThat(it).isNotInstanceOf(BuildIssueEvent::class.java)
+    }
   }
 
   @Test
@@ -359,6 +346,29 @@ class TomlErrorParserTest {
     )
   }
 
+  private fun consumeOutput(
+    buildOutput: String,
+    taskId: ExternalSystemTaskId,
+    parentEventId: String
+  ): TestMessageEventConsumer {
+    val consumer = TestMessageEventConsumer()
+
+    val progressListener = object : BuildProgressListener {
+      override fun onEvent(buildId: Any, event: BuildEvent) {
+        if (event is MessageEvent) {
+          consumer.accept(event)
+        }
+      }
+    }
+
+    val parsers = ExternalSystemOutputParserProvider.EP_NAME.extensions.flatMap { it.getBuildOutputParsers(taskId) }
+    val parser = BuildOutputInstantReaderImpl(taskId, parentEventId, progressListener, parsers)
+    parser.disableActiveReading()
+    buildOutput.lineSequence().forEach { parser.appendLine(it) }
+    parser.closeAndGetFuture().join()
+    return consumer
+  }
+
   private fun doTest(tomlPrefix: String,
                      lineOutput: Int,
                      columnOutput: Int,
@@ -368,17 +378,13 @@ class TomlErrorParserTest {
     val (gradleDir, file) = createCatalog(tomlPrefix, tomlContent)
     try {
       val absolutePath = file!!.toNioPath().toAbsolutePath().toString()
+      val taskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, projectRule.project)
+      val parentEventId = "Test Id"
+      val output = buildOutput(absolutePath)
+      val consumer = consumeOutput(output, taskId, parentEventId)
 
-      val parser = TomlErrorParser()
-      val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput(absolutePath)).toList())
-      val consumer = TestMessageEventConsumer()
-
-      val line = reader.readLine()!!
-      val parsed = parser.parse(line, reader, consumer)
-
-      Truth.assertThat(parsed).isTrue()
       consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
-        Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
+        Truth.assertThat(it.parentId).isEqualTo(parentEventId)
         Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
         Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
         Truth.assertThat(it.description).isEqualTo(description(absolutePath))
@@ -396,42 +402,6 @@ class TomlErrorParserTest {
         gradleDir?.delete(this)
       }
     }
-  }
-
-  @Test
-  fun testOtherErrorNotParsed() {
-    val path = "${project.basePath}/styles.xml"
-    val buildOutput = """
-      FAILURE: Build failed with an exception.
-
-      * What went wrong:
-      Execution failed for task ':app:processDebugResources'.
-      > A failure occurred while executing com.android.build.gradle.internal.tasks.Workers.ActionFacade
-         > Android resource linking failed
-           $path:4:5-15:13: AAPT: error: style attribute 'attr/colorPrfimary (aka com.example.myapplication:attr/colorPrfimary)' not found.
-
-           $path:4:5-15:13: AAPT: error: style attribute 'attr/colorPgfrimaryDark (aka com.example.myapplication:attr/colorPgfrimaryDark)' not found.
-
-           $path:4:5-15:13: AAPT: error: style attribute 'attr/dfg (aka com.example.myapplication:attr/dfg)' not found.
-
-           $path:4:5-15:13: AAPT: error: style attribute 'attr/colorEdfdrror (aka com.example.myapplication:attr/colorEdfdrror)' not found.
-
-
-      * Try:
-      Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
-
-      * Get more help at https://help.gradle.org
-    """.trimIndent()
-
-    val parser = TomlErrorParser()
-    val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
-    val consumer = TestMessageEventConsumer()
-
-    val line = reader.readLine()!!
-    val parsed = parser.parse(line, reader, consumer)
-
-    Truth.assertThat(parsed).isFalse()
-    Truth.assertThat(consumer.messageEvents).isEmpty()
   }
 
   private fun createCatalog(tomlPrefix: String, content: String): Pair<VirtualFile?, VirtualFile?> {
@@ -469,7 +439,6 @@ class TomlErrorParserTest {
   private fun getRootFolder() = VfsUtil.findFile(Projects.getBaseDirPath(project).toPath(), true)
 
   companion object {
-    val ID = mock<ExternalSystemTaskId>()
     fun getVersionCatalogLibsBuildOutput(absolutePath: String? = null): String = """
 FAILURE: Build failed with an exception.
 

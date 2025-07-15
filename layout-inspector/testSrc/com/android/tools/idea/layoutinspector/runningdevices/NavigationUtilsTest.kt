@@ -17,14 +17,12 @@ package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.FakeSessionStats
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
-import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
-import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
@@ -37,8 +35,6 @@ import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
@@ -158,49 +154,4 @@ private class FakeInspectorClient : InspectorClient {
 
   override val provider: PropertiesProvider
     get() = throw NotImplementedError()
-}
-
-private class FakeSessionStats : SessionStatistics {
-  var goToSourcesFromRendererInvocations = 0
-
-  override fun start() {}
-
-  override fun save(data: DynamicLayoutInspectorSession.Builder) {}
-
-  override fun selectionMadeFromImage(view: ViewNode?) {}
-
-  override fun selectionMadeFromComponentTree(view: ViewNode?) {}
-
-  override fun refreshButtonClicked() {}
-
-  override fun gotoSourceFromPropertyValue(view: ViewNode?) {}
-
-  override fun gotoSourceFromTreeActionMenu(event: AnActionEvent) {}
-
-  override fun gotoSourceFromTreeDoubleClick() {}
-
-  override fun gotoSourceFromRenderDoubleClick() {
-    goToSourcesFromRendererInvocations += 1
-  }
-
-  override fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {}
-
-  override fun resetRecompositionCountsClick() {}
-
-  override fun attachSuccess() {}
-
-  override fun attachError(errorCode: DynamicLayoutInspectorErrorInfo.AttachErrorCode) {}
-
-  override fun composeAttachError(errorCode: DynamicLayoutInspectorErrorInfo.AttachErrorCode) {}
-
-  override fun frameReceived() {}
-
-  override fun debuggerInUse(isPaused: Boolean) {}
-
-  override var currentModeIsLive = true
-  override var currentMode3D = true
-  override var hideSystemNodes = true
-  override var showRecompositions = true
-  override var recompositionHighlightColor = 1
-  override var currentProgress = DynamicLayoutInspectorErrorInfo.AttachErrorState.MODEL_UPDATED
 }

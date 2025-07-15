@@ -31,9 +31,10 @@ import com.intellij.openapi.roots.ui.configuration.SdkComboBox
 import com.intellij.openapi.roots.ui.configuration.SdkComboBoxModel
 import com.intellij.openapi.roots.ui.configuration.SdkListItem
 import com.intellij.openapi.roots.ui.configuration.SdkLookupProvider
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME
 import org.jetbrains.plugins.gradle.util.getSelectedGradleJvmReference
-import org.jetbrains.plugins.gradle.util.nonblockingResolveGradleJvmInfo
+import org.jetbrains.plugins.gradle.util.resolveGradleJvmInfo
 import org.jetbrains.plugins.gradle.util.setSelectedGradleJvmReference
 import java.awt.Component
 import java.io.File
@@ -107,12 +108,14 @@ class GradleJdkComboBox(
       name = GRADLE_LOCAL_JAVA_HOME,
       homePath = gradleLocalJavaHome
     )
-    else -> sdkLookupProvider.nonblockingResolveGradleJvmInfo(
-      project = model.project,
-      projectSdk = getProjectSdk(),
-      externalProjectPath = externalProjectFile.absolutePath,
-      gradleJvm = selectedGradleJvmReference
-    ).takeUnless { it == SdkLookupProvider.SdkInfo.Unresolved || it == SdkLookupProvider.SdkInfo.Undefined }
+    else -> runBlocking {
+      sdkLookupProvider.resolveGradleJvmInfo(
+        project = model.project,
+        projectSdk = getProjectSdk(),
+        externalProjectPath = externalProjectFile.absolutePath,
+        gradleJvm = selectedGradleJvmReference
+      )
+    }.takeUnless { it == SdkLookupProvider.SdkInfo.Unresolved || it == SdkLookupProvider.SdkInfo.Undefined }
             ?: sdkLookupProvider.nonblockingResolveSdkBySdkName(selectedGradleJvmReference)
   }
 

@@ -1,6 +1,6 @@
 import com.android.tools.asdriver.tests.AndroidStudioInstallation
-import com.android.tools.asdriver.tests.Display
-import com.android.tools.asdriver.tests.TestFileSystem
+import com.android.tools.testlib.Display
+import com.android.tools.testlib.TestFileSystem
 import com.google.common.truth.Truth.assertThat
 import org.apache.commons.lang3.SystemUtils
 import org.junit.Rule
@@ -63,7 +63,6 @@ class StartUpSafeModeTest {
       "ClangFormat",
       "Code Coverage for Java",
       "com.intellij.dev",
-      "Platform Stream Debugger",
       "Configuration Script",
       "Copyright",
       "Eclipse Keymap",
@@ -74,9 +73,9 @@ class StartUpSafeModeTest {
       "Gemini",
       "Git for App Insights",
       "Git",
+      "Modal Commit Interface",
       "GitHub",
       "GitLab",
-      "Google Cloud Tools For Android Studio",
       "Gradle",
       "Gradle Declarative Support",
       "Gradle-Java",

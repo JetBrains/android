@@ -1,4 +1,3 @@
-load("@exec_properties//:constants.bzl", "RBE_CPU_8")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE", "KOTLIN_ARTIFACTS_FOR_TESTS")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
@@ -38,7 +37,6 @@ iml_test(
     name = "OpenProjectTest",
     timeout = "long",
     data = open_project_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -52,7 +50,6 @@ iml_test(
     name = "OpenProjectWithThreadingAgentDisabledTest",
     timeout = "long",
     data = open_project_data,
-    exec_properties = RBE_CPU_8,
     jvm_flags = ["-Dthreading_agent.disabled=true"],
     module = ":intellij.android.core.integration",
     tags = [
@@ -72,7 +69,6 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -161,7 +157,6 @@ iml_test(
     name = "EditorPerformanceTest",
     timeout = "long",
     data = editor_performance_test_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "ci:perfgate-linux",
@@ -195,7 +190,6 @@ iml_test(
     name = "StartupPerformanceTest",
     timeout = "long",
     data = editor_performance_test_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "ci:perfgate-linux",
@@ -213,7 +207,6 @@ iml_test(
     name = "EditorPerformanceWithK2Test",
     timeout = "long",
     data = editor_performance_test_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "ci:perfgate-linux",
@@ -236,7 +229,6 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -253,7 +245,6 @@ iml_test(
         "//prebuilts/studio/sdk:platform-tools",
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -278,7 +269,6 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -301,7 +291,6 @@ iml_test(
         "//prebuilts/studio/sdk:platform-tools",
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "manual",  # b/243923041
@@ -321,7 +310,6 @@ iml_test(
         "//prebuilts/studio/sdk:platform-tools",
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -344,7 +332,6 @@ iml_test(
         "//tools/base/build-system:gradle-distrib-7.2",
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -368,7 +355,6 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -397,7 +383,6 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -427,7 +412,6 @@ iml_test(
     name = "ApplyChangesTest",
     timeout = "long",
     data = apply_changes_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -445,7 +429,6 @@ iml_test(
     name = "ApplyCodeChangesTest",
     timeout = "long",
     data = apply_changes_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -473,7 +456,6 @@ iml_test(
     name = "BuildAndRunTest",
     timeout = "long",
     data = build_and_run_test_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -499,7 +481,6 @@ iml_test(
     name = "CreateProjectTest",
     timeout = "long",
     data = create_project_test_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -598,7 +579,6 @@ iml_test(
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         INTEGRATION_TEST_GRADLE_VERSION,
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -618,7 +598,6 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         "//tools/adt/idea/bleak/native:jnibleakhelper",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "block-network",
@@ -641,7 +620,6 @@ iml_test(
         "//prebuilts/studio/sdk:platforms/android-31",
         "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "noci:studio-win",  # RBE environment doesn't allow emulation (requires nested virtualization).
@@ -668,7 +646,6 @@ iml_test(
         "//prebuilts/studio/sdk:platforms/android-31",
         "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -697,7 +674,6 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         "@system_image_android-33_aosp_atd_x86_64//:x86_64-android-33AospAtd-images",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -725,7 +701,6 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         "@system_image_android-33_aosp_atd_x86_64//:x86_64-android-33AospAtd-images",
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -748,7 +723,6 @@ iml_test(
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         INTEGRATION_TEST_GRADLE_VERSION,
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -774,7 +748,6 @@ iml_test(
         INTEGRATION_TEST_GRADLE_VERSION,
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -791,7 +764,6 @@ iml_test(
 iml_test(
     name = "SamplesImportTest",
     data = open_project_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -812,7 +784,6 @@ iml_test(
     name = "MultiProjectTest",
     timeout = "long",
     data = multi_project_test_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -830,7 +801,6 @@ iml_test(
     name = "MultiProjectSameWindowTest",
     timeout = "long",
     data = multi_project_test_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -866,7 +836,6 @@ iml_test(
     name = "FirstLaunchTest",
     timeout = "moderate",
     data = first_launch_test_data,
-    exec_properties = RBE_CPU_8,
     module = ":intellij.android.core.integration",
     tags = [
         "studio-e2e-test",
@@ -1146,36 +1115,4 @@ filegroup(
 filegroup(
     name = "architectureSamplesScenarioScripts",
     srcs = glob(["testData/architecture-samples-scenarios/**"]),
-)
-
-# Backup and Restore Test ===========================================================
-iml_test(
-    name = "BackupRestoreTest",
-    timeout = "long",
-    data = [
-        ":backuprestore",
-        ":buildproject_deps",
-        "//prebuilts/studio/sdk:build-tools/33.0.1",
-        "//prebuilts/studio/sdk:emulator",
-        "//prebuilts/studio/sdk:platform-tools",
-        INTEGRATION_TEST_GRADLE_VERSION,
-        INTEGRATION_TEST_SYSTEM_IMAGE,
-    ],
-    exec_properties = RBE_CPU_8,
-    module = ":intellij.android.core.integration",
-    tags = [
-        "studio-e2e-test",
-    ],
-    tags_linux = ["block-network"],
-    tags_mac = [],
-    tags_windows = [
-        "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
-    ],
-    test_class = "com.android.tools.idea.BackupRestoreTest",
-)
-
-filegroup(
-    name = "backuprestore",
-    srcs = glob(["testData/backuprestore/**"]),
 )

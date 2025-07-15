@@ -15,15 +15,24 @@
  */
 package com.android.tools.idea.mlkit;
 
+import static com.android.ide.common.repository.WellKnownMavenArtifactId.TFLITE_GPU;
+import static com.android.ide.common.repository.WellKnownMavenArtifactId.TFLITE_METADATA;
+import static com.android.ide.common.repository.WellKnownMavenArtifactId.TFLITE_SUPPORT;
 import static com.google.common.collect.Streams.stream;
 
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.gradle.Version;
+import com.android.ide.common.repository.WellKnownMavenArtifactId;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileType;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.RegisteredDependencyId;
+import com.android.tools.idea.projectsystem.RegisteringModuleSystem;
 import com.android.tools.idea.projectsystem.SourceProviders;
+import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem;
+import com.android.tools.idea.projectsystem.gradle.GradleRegisteredDependencyId;
 import com.android.tools.mlkit.MlNames;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
@@ -31,7 +40,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -42,10 +51,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MlUtils {
 
-  private static final ImmutableList<String> REQUIRED_DEPENDENCY_LIST = ImmutableList.of(
-    "org.tensorflow:tensorflow-lite-support:0.1.0",
-    "org.tensorflow:tensorflow-lite-metadata:0.1.0"
-  );
+  private static final ImmutableMap<WellKnownMavenArtifactId,Version> REQUIRED_DEPENDENCY_LIST =
+    ImmutableMap.<WellKnownMavenArtifactId,Version>builder()
+      .put(TFLITE_SUPPORT, Version.parse("0.1.0"))
+      .put(TFLITE_METADATA, Version.parse("0.1.0"))
+      .build();
 
   private MlUtils() {
   }
@@ -92,46 +102,45 @@ public class MlUtils {
    * Returns the set of missing dependencies required to enable GPU option in the auto-generated model classes.
    */
   @NotNull
-  public static List<GradleCoordinate> getMissingTfliteGpuDependencies(@NotNull Module module) {
-    return getMissingDependencies(module, ImmutableList.of("org.tensorflow:tensorflow-lite-gpu:2.3.0"));
+  public static List<WellKnownMavenArtifactId> getMissingTfliteGpuDependencies(@NotNull Module module) {
+    return getMissingDependencies(module, ImmutableSet.of(TFLITE_GPU));
   }
 
   /**
    * Returns the set of missing dependencies that are required by the auto-generated model classes.
    */
   @NotNull
-  public static List<GradleCoordinate> getMissingRequiredDependencies(@NotNull Module module) {
-    return getMissingDependencies(module, REQUIRED_DEPENDENCY_LIST);
+  public static List<WellKnownMavenArtifactId> getMissingRequiredDependencies(@NotNull Module module) {
+    return getMissingDependencies(module, REQUIRED_DEPENDENCY_LIST.keySet());
   }
 
   @NotNull
-  private static List<GradleCoordinate> getMissingDependencies(@NotNull Module module, ImmutableList<String> dependencies) {
-    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
-    List<GradleCoordinate> pendingDeps = new ArrayList<>();
-    for (String requiredDepString : dependencies) {
-      GradleCoordinate requiredDep = Objects.requireNonNull(GradleCoordinate.parseCoordinateString(requiredDepString));
-      GradleCoordinate requiredDepInAnyVersion = new GradleCoordinate(requiredDep.getGroupId(), requiredDep.getArtifactId(), "+");
-      if (moduleSystem.getRegisteredDependency(requiredDepInAnyVersion) == null) {
-        pendingDeps.add(requiredDep);
+  private static List<WellKnownMavenArtifactId> getMissingDependencies(@NotNull Module module, ImmutableSet<WellKnownMavenArtifactId> dependencies) {
+    RegisteringModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module).getRegisteringModuleSystem();
+    if (moduleSystem == null) return List.of();
+    List<WellKnownMavenArtifactId> pendingDeps = new ArrayList<>();
+    for (WellKnownMavenArtifactId id : dependencies) {
+      if (!moduleSystem.hasRegisteredDependency(id)) {
+        pendingDeps.add(id);
       }
     }
     return pendingDeps;
   }
 
   /**
-   * Returns the list of {@link GradleCoordinate} pair which consists of current registered dependency and the required dependency having
-   * higher version.
+   * Returns information about current registered dependencies and required higher version.
    */
   @NotNull
-  public static List<Pair<GradleCoordinate, GradleCoordinate>> getDependenciesLowerThanRequiredVersion(@NotNull Module module) {
-    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
-    List<Pair<GradleCoordinate, GradleCoordinate>> resultDepPairList = new ArrayList<>();
-    for (String requiredDepString : REQUIRED_DEPENDENCY_LIST) {
-      GradleCoordinate requiredDep = Objects.requireNonNull(GradleCoordinate.parseCoordinateString(requiredDepString));
-      GradleCoordinate requiredDepInAnyVersion = new GradleCoordinate(requiredDep.getGroupId(), requiredDep.getArtifactId(), "+");
-      GradleCoordinate registeredDep = moduleSystem.getRegisteredDependency(requiredDepInAnyVersion);
-      if (registeredDep != null && GradleCoordinate.COMPARE_PLUS_LOWER.compare(registeredDep, requiredDep) < 0) {
-        resultDepPairList.add(Pair.create(registeredDep, requiredDep));
+  public static List<Pair<RegisteredDependencyId,Map.Entry<WellKnownMavenArtifactId,Version>>> getDependenciesLowerThanRequiredVersion(@NotNull Module module) {
+    AndroidModuleSystem androidModuleSystem = ProjectSystemUtil.getModuleSystem(module);
+    List<Pair<RegisteredDependencyId,Map.Entry<WellKnownMavenArtifactId,Version>>> resultDepPairList = new ArrayList<>();
+    if (androidModuleSystem instanceof GradleModuleSystem moduleSystem) {
+      for (Map.Entry<WellKnownMavenArtifactId,Version> depInfo : REQUIRED_DEPENDENCY_LIST.entrySet()) {
+        GradleRegisteredDependencyId id = moduleSystem.getRegisteredDependency(depInfo.getKey());
+        // TODO: null safety everywhere
+        if (id != null && id.getDependency().getVersion().getLowerBound().compareTo(depInfo.getValue()) < 0) {
+          resultDepPairList.add(Pair.create(id, depInfo));
+        }
       }
     }
     return resultDepPairList;

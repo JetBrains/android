@@ -206,6 +206,7 @@
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adb.tests" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.streaming" />
 </module>

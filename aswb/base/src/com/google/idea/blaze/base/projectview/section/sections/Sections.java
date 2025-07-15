@@ -18,35 +18,37 @@ package com.google.idea.blaze.base.projectview.section.sections;
 import com.google.common.collect.Lists;
 import com.google.idea.blaze.base.projectview.section.SectionParser;
 import com.google.idea.blaze.base.sync.BlazeSyncPlugin;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
 /** List of available sections. */
 public class Sections {
-  // list ordering is used when constructing default template (ProjectViewDefaultValueProvider)
-  private static final List<SectionParser> PARSERS =
-      Lists.newArrayList(
-        TextBlockSection.PARSER,
-        ImportSection.PARSER,
-        DirectorySection.PARSER,
-        AutomaticallyDeriveTargetsSection.PARSER,
-        TargetSection.PARSER,
-        WorkspaceTypeSection.PARSER,
-        AdditionalLanguagesSection.PARSER,
-        TestSourceSection.PARSER,
-        BuildFlagsSection.PARSER,
-        SyncFlagsSection.PARSER,
-        TestFlagsSection.PARSER,
-        ImportTargetOutputSection.PARSER,
-        ExcludeTargetSection.PARSER,
-        ExcludedSourceSection.PARSER,
-        RunConfigurationsSection.PARSER,
-        ShardBlazeBuildsSection.PARSER,
-        TargetShardSizeSection.PARSER,
-        BazelBinarySection.PARSER,
-        BuildConfigSection.PARSER,
-        UseQuerySyncSection.PARSER,
-        WorkspaceLocationSection.PARSER);
+    // list ordering is used when constructing default template (ProjectViewDefaultValueProvider)
+    private static final List<SectionParser> PARSERS =
+            Lists.newArrayList(
+                    TextBlockSection.PARSER,
+                    ImportSection.PARSER,
+                    DirectorySection.PARSER,
+                    AutomaticallyDeriveTargetsSection.PARSER,
+                    TargetSection.PARSER,
+                    WorkspaceTypeSection.PARSER,
+                    AdditionalLanguagesSection.PARSER,
+                    TestSourceSection.PARSER,
+                    BuildFlagsSection.PARSER,
+                    SyncFlagsSection.PARSER,
+                    TestFlagsSection.PARSER,
+                    ImportTargetOutputSection.PARSER,
+                    ExcludeTargetSection.PARSER,
+                    ExcludedSourceSection.PARSER,
+                    RunConfigurationsSection.PARSER,
+                    ShardBlazeBuildsSection.PARSER,
+                    TargetShardSizeSection.PARSER,
+                    BazelBinarySection.PARSER,
+                    BuildConfigSection.PARSER,
+                    UseQuerySyncSection.PARSER,
+                    WorkspaceLocationSection.PARSER,
+                    EnableCodeAnalysisOnSyncSection.PARSER);
 
   public static List<SectionParser> getParsers() {
     List<SectionParser> parsers = Lists.newArrayList(PARSERS);

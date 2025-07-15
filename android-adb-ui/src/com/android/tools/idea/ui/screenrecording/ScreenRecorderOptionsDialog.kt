@@ -18,11 +18,11 @@ package com.android.tools.idea.ui.screenrecording
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.help.AndroidWebHelpProvider.Companion.HELP_PREFIX
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
-import com.android.tools.idea.ui.save.SaveConfigurationDialog
 import com.android.tools.idea.ui.save.SaveConfigurationResolver
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.MAX_RECORDING_DURATION_MINUTES
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.Companion.MAX_RECORDING_DURATION_MINUTES_LEGACY
 import com.intellij.openapi.components.service
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.dsl.builder.AlignX
@@ -32,24 +32,26 @@ import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
-import java.time.Instant
 import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JEditorPane
+import kotlin.math.roundToInt
 
 /** A dialog for setting the options for a screen recording. */
 internal class ScreenRecorderOptionsDialog(
-  private val options: ScreenRecorderPersistentOptions,
   private val project: Project,
-  private val canUseEmulatorRecording: Boolean,
+  private val emulatorRecordingAvailable: Boolean,
   private val apiLevel: Int,
-) : DialogWrapper(project, true) {
+) : DialogWrapper(project) {
 
+  private val settings = DeviceScreenRecordingSettings.getInstance()
+  private val saveConfig = settings.saveConfig
   private lateinit var recordingLengthField: JEditorPane
   private val saveConfigResolver = project.service<SaveConfigurationResolver>()
   private val saveLocation: String
-    get() = saveConfigResolver.expandSaveLocation (options.saveLocation)
+    get() = saveConfigResolver.expandSaveLocation (saveConfig.saveLocation)
   private lateinit var saveLocationText: JEditorPane
+  private var fileExtension: String = "mp4"
 
   init {
     title = message("screenrecord.options.title")
@@ -59,31 +61,34 @@ internal class ScreenRecorderOptionsDialog(
   override fun createCenterPanel(): JComponent {
     return panel {
       row {
-        text(getMaxRecordingLengthText(canUseEmulatorRecording && options.useEmulatorRecording))
+        text(getMaxRecordingLengthText(emulatorRecordingAvailable && settings.useEmulatorRecordingWhenAvailable))
           .applyToComponent { recordingLengthField = this }
       }
       row(message("screenrecord.options.bit.rate")) {
         intTextField(1..32)
           .widthGroup("text_boxes")
           .align(AlignX.LEFT)
-          .bindIntText(options::bitRateMbps)
+          .bindIntText(settings::bitRateMbps)
       }
       row(message("screenrecord.options.resolution")) {
         comboBox(listOf(100, 75, 50, 37, 25))
           .widthGroup("text_boxes")
           .align(AlignX.LEFT)
-          .bindItem(options::resolutionPercent) { options.resolutionPercent = it ?: 100 }
+          .bindItem({ (settings.scale * 100).roundToInt() }, { settings.scale = (it ?: 100) / 100.0 })
       }
       row {
         checkBox(message("screenrecord.options.show.taps"))
-          .bindSelected(options::showTaps)
+          .bindSelected(settings::showTaps)
       }.contextHelp(message("screenrecord.options.show.taps.tooltip"))
 
-      if (canUseEmulatorRecording) {
+      if (emulatorRecordingAvailable) {
         row {
           checkBox(message("screenrecord.options.use.emulator.recording"))
-            .bindSelected(options::useEmulatorRecording)
-            .onChanged { recordingLengthField.text = getMaxRecordingLengthText(it.isSelected) }
+            .bindSelected(settings::useEmulatorRecordingWhenAvailable)
+            .onChanged {
+              fileExtension = if (it.isSelected) "webm" else "mp4"
+              recordingLengthField.text = getMaxRecordingLengthText(it.isSelected)
+            }
         }.contextHelp(message("screenrecord.options.use.emulator.recording.tooltip"))
       }
 
@@ -92,20 +97,18 @@ internal class ScreenRecorderOptionsDialog(
           text(message("screenrecord.options.save.directory"))
           text(saveLocation)
             .applyToComponent { saveLocationText = this }
-          button(message("configure.save.button.text")) { configureSave() }
+          link(message("configure.save.link.text")) { configureSave() }
             .align(AlignX.RIGHT)
         }
       }
     }
   }
 
-  override fun getDimensionServiceKey(): String {
-    return SCREEN_RECORDER_DIMENSIONS_KEY
-  }
+  override fun getDimensionServiceKey(): String =
+      SCREEN_RECORDER_DIMENSIONS_KEY
 
-  override fun getHelpId(): String {
-    return "${HELP_PREFIX}r/studio-ui/am-video.html"
-  }
+  override fun getHelpId(): String =
+      "${HELP_PREFIX}r/studio-ui/am-video.html"
 
   override fun createDefaultActions() {
     super.createDefaultActions()
@@ -113,22 +116,11 @@ internal class ScreenRecorderOptionsDialog(
   }
 
   private fun configureSave() {
-    val dialog = SaveConfigurationDialog(
-        project,
-        options.saveLocation,
-        options.filenameTemplate,
-        options.postSaveAction,
-        if (canUseEmulatorRecording && options.useEmulatorRecording) "webm" else "mp4",
-        Instant.now(),
-        options.recordingCount + 1)
-    if (dialog.createWrapper(null, rootPane).showAndGet()) {
-      options.filenameTemplate = dialog.filenameTemplate
-      options.saveLocation = dialog.saveLocation
-      options.postSaveAction = dialog.postSaveAction
-
-      saveLocationText.text = saveLocation
-      pack()
+    ShowSettingsUtil.getInstance().showSettingsDialog(project, DeviceScreenRecordingSettingsPage::class.java) {
+      it.fileExtension = fileExtension
     }
+    saveLocationText.text = saveLocation
+    pack()
   }
 
   private fun getMaxRecordingLengthText(forEmulator: Boolean): @Nls String {
@@ -137,6 +129,6 @@ internal class ScreenRecorderOptionsDialog(
   }
 
   companion object {
-    private const val SCREEN_RECORDER_DIMENSIONS_KEY: @NonNls String = "ScreenshotRecorder.Options.Dimensions"
+    private const val SCREEN_RECORDER_DIMENSIONS_KEY: @NonNls String = "ScreenRecorderOptionsDialog"
   }
 }

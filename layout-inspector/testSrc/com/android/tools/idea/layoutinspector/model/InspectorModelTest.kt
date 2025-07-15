@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.io.readImage
 import com.android.resources.ResourceType
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
@@ -39,6 +39,8 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import java.util.Collections
+import java.util.IdentityHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
@@ -846,6 +848,76 @@ class InspectorModelTest {
     model.addAttachStageListener { observedStates.add(it) }
     assertThat(observedStates)
       .containsExactly(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+  }
+
+  @Test
+  fun testUpdateWithNewIds() {
+    val virtualTimeScheduler = VirtualTimeScheduler()
+    val scheduler = MoreExecutors.listeningDecorator(virtualTimeScheduler)
+    val model =
+      model(disposable, scheduler = scheduler) {
+        view(ROOT, 2, 4, 6, 8, qualifiedName = "rootType") {
+          view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
+            compose(COMPOSE1, "Column", "App.kt", 123) {
+              compose(COMPOSE2, "Button", "App.kt", 123) {
+                compose(COMPOSE3, "Text", "Button.kt", 234)
+              }
+            }
+          }
+        }
+      }
+
+    // Update the recomposition counts:
+    val windowWithRecompositionCounts =
+      window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
+        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
+          compose(COMPOSE1, "Column", "App.kt", 123, composeCount = 1, composeSkips = 20) {
+            compose(COMPOSE2, "Button", "App.kt", 123, composeCount = 15, composeSkips = 12) {
+              compose(COMPOSE3, "Text", "Button.kt", 234, composeCount = 5, composeSkips = 22)
+            }
+          }
+        }
+      }
+    model.update(windowWithRecompositionCounts, listOf(ROOT), 0)
+
+    // Decrease the recomposition counts once:
+    virtualTimeScheduler.advanceBy(DECREASE_DELAY, DECREASE_TIMEUNIT)
+
+    // When Live Edit is used on one of the top nodes in compose, the compose runtime will generate
+    // anchors for each composable, which in turn will create new draw ids for those composables
+    // and their children. This test should verify that if the tree is identical in names we get
+    // the same ViewNode instances after such an update such that the component tree has a change
+    // to keep the same nodes open.
+    val newWindow =
+      window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
+        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
+          compose(COMPOSE4, "Column", "App.kt", 123, composeCount = 3, composeSkips = 21) {
+            compose(COMPOSE5, "Button", "App.kt", 123, composeCount = 16, composeSkips = 52) {
+              compose(COMPOSE6, "Text", "Button.kt", 234, composeCount = 35, composeSkips = 33)
+            }
+          }
+        }
+      }
+
+    val originalNodes = Collections.newSetFromMap<ViewNode>(IdentityHashMap())
+    originalNodes.addAll(model.root.flattenedList())
+    var hadStructuralChange = false
+    model.addModificationListener { _, _, structuralChange ->
+      hadStructuralChange = structuralChange
+    }
+    model.update(newWindow, listOf(ROOT), 1)
+
+    // Check that all the node instances were maintained:
+    assertThat(model.root.flattenedList().all { originalNodes.contains(it) })
+    assertThat(hadStructuralChange).isFalse()
+
+    // Check that we continue decreasing the recomposition counts:
+    assertThat(model[COMPOSE4]!!.recompositions.count).isEqualTo(3)
+    assertThat(model[COMPOSE4]!!.recompositions.highlightCount).isWithin(0.01f).of(2.84f)
+    assertThat(model[COMPOSE5]!!.recompositions.count).isEqualTo(16)
+    assertThat(model[COMPOSE5]!!.recompositions.highlightCount).isWithin(0.01f).of(13.61f)
+    assertThat(model[COMPOSE6]!!.recompositions.count).isEqualTo(35)
+    assertThat(model[COMPOSE6]!!.recompositions.highlightCount).isWithin(0.01f).of(34.20f)
   }
 
   private fun children(view: ViewNode): List<ViewNode> = ViewNode.readAccess { view.children }

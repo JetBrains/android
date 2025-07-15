@@ -288,7 +288,7 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
 
   @Override
   public void addHit(@NotNull SceneContext transform,
-                     @NotNull ScenePicker picker,
+                     @NotNull ScenePicker.Writer picker,
                      @JdkConstants.InputEventMask int modifiersEx) {
     if (!isEnabled()) {
       return;

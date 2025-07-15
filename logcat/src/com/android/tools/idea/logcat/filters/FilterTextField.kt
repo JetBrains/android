@@ -17,8 +17,7 @@ package com.android.tools.idea.logcat.filters
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.ColoredIconGenerator
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
@@ -46,6 +45,7 @@ import com.intellij.openapi.actionSystem.ex.ActionButtonLook
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.ex.EditorEx
@@ -112,6 +112,7 @@ import javax.swing.SwingConstants.VERTICAL
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.min
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow.DROP_LATEST
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
@@ -197,7 +198,7 @@ internal class FilterTextField(
     filterUpdateChannel
       .consumeAsFlow()
       .distinctUntilChanged()
-      .stateIn(AndroidCoroutineScope((logcatPresenter)), Eagerly, null)
+      .stateIn(logcatPresenter.createCoroutineScope(), Eagerly, null)
 
   init {
     text = initialText
@@ -241,6 +242,7 @@ internal class FilterTextField(
         object : FocusAdapter() {
           override fun focusGained(e: FocusEvent?) {
             val hintText = getFilterHintText()
+            @Suppress("UnstableApiUsage")
             GotItTooltip(GOT_IT_ID, hintText, logcatPresenter)
               .withBrowserLink(
                 LogcatBundle.message("logcat.filter.got.it.link.text"),
@@ -345,7 +347,7 @@ internal class FilterTextField(
     private val logcatPresenter: LogcatPresenter,
     private val androidProjectDetector: AndroidProjectDetector,
   ) : EditorTextField(project, LogcatFilterFileType) {
-    public override fun createEditor(): EditorEx {
+    override fun createEditor(): EditorEx {
       return super.createEditor().apply {
         putUserData(TAGS_PROVIDER_KEY, logcatPresenter)
         putUserData(PACKAGE_NAMES_PROVIDER_KEY, logcatPresenter)
@@ -470,7 +472,7 @@ internal class FilterTextField(
       cellRenderer = HistoryListCellRenderer()
 
       // In a background thread, calculate the count of all the items and update the model.
-      AndroidCoroutineScope(parentDisposable, parentContext).launch {
+      parentDisposable.createCoroutineScope(extraContext = parentContext).launch {
         val application = ApplicationManager.getApplication()
         listModel.items.forEachIndexed { index, item ->
           if (item is Item) {
@@ -481,7 +483,7 @@ internal class FilterTextField(
                 }
               // Replacing an item in the model will remove the selection. Save the selected index,
               // so we can restore it after.
-              withContext(uiThread + parentContext) {
+              withContext(Dispatchers.EDT + parentContext) {
                 val selected = selectedIndex
                 listModel.setElementAt(
                   Item(item.filter, item.isFavorite, count, filterParser),

@@ -34,7 +34,9 @@ interface AndroidTestResultListener {
    * @param device a device which a test suite to be executed on
    */
   @AnyThread
-  fun onTestSuiteScheduled(device: AndroidDevice)
+  fun onTestSuiteScheduled(device: AndroidDevice) {
+    // no-op
+  }
 
   /**
    * Called when a test suite execution is started.
@@ -43,7 +45,9 @@ interface AndroidTestResultListener {
    * @param testSuite a test suite metadata
    */
   @AnyThread
-  fun onTestSuiteStarted(device: AndroidDevice, testSuite: AndroidTestSuite)
+  fun onTestSuiteStarted(device: AndroidDevice, testSuite: AndroidTestSuite) {
+    // no-op
+  }
 
   /**
    * Called when a test case execution is started.
@@ -53,7 +57,9 @@ interface AndroidTestResultListener {
    * @param testCase a test case metadata
    */
   @AnyThread
-  fun onTestCaseStarted(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase)
+  fun onTestCaseStarted(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {
+    // no-op
+  }
 
   /**
    * Called when a test case execution is finished.
@@ -63,7 +69,9 @@ interface AndroidTestResultListener {
    * @param testCase a test case metadata
    */
   @AnyThread
-  fun onTestCaseFinished(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase)
+  fun onTestCaseFinished(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {
+    // no-op
+  }
 
   /**
    * Called when a test suite execution is finished. This method is also called when the execution is cancelled by a user or aborted by
@@ -73,7 +81,9 @@ interface AndroidTestResultListener {
    * @param testSuite a test suite metadata
    */
   @AnyThread
-  fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite)
+  fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {
+    // no-op
+  }
 
   /**
    * Called when a re-run test execution is scheduled on a given device.
@@ -81,5 +91,7 @@ interface AndroidTestResultListener {
    * @param device a device which a test suite to be executed on
    */
   @AnyThread
-  fun onRerunScheduled(device: AndroidDevice)
+  fun onRerunScheduled(device: AndroidDevice) {
+    // no-op
+  }
 }

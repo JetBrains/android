@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.test.testutils.TestUtils
-import com.android.test.testutils.TestUtils.getSdk
+import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.getSdk
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.dumpProject
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
@@ -38,6 +38,7 @@ typealias ProjectDumpAction = (project: Project, projectDumper: ProjectDumper) -
  */
 fun Project.saveAndDump(
   additionalRoots: Map<String, File> = emptyMap(),
+  ignoreModuleFileAndType : Boolean = false,
   dumpToAction: ProjectDumpAction = { project, projectDumper -> projectDumper.dumpProject(project) }
 ): String {
   ApplicationManager.getApplication().saveAll()
@@ -48,6 +49,7 @@ fun Project.saveAndDump(
     devBuildHome = TestUtils.resolveWorkspacePath("tools/adt/idea").toFile(),
     // This does not work in IDEA: devBuildHome = TestUtils.getWorkspaceRoot().toFile(),
     projectJdk = ProjectRootManager.getInstance(this).projectSdk,
+    ignoreModuleFileAndType = ignoreModuleFileAndType
   )
 
   dumpToAction(this, dumper)

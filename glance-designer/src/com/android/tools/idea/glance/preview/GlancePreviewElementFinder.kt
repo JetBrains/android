@@ -90,7 +90,8 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(
       showDecoration = false,
       showBackground = false,
       backgroundColor = null,
-      organizationGroup = null,
+      organizationGroup = methodFqn,
+      organizationName = uMethod.name,
     )
   val defaultValues = readAction { annotation.findPreviewDefaultValues() }
   val widthDp =

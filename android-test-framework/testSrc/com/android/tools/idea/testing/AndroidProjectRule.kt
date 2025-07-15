@@ -17,11 +17,12 @@ package com.android.tools.idea.testing
 
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoThreadLocalsCleaner
-import com.android.test.testutils.TestUtils
+import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.startup.GradleSpecificInitializer
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.tests.AdtTestProjectDescriptor
 import com.android.tools.tests.AdtTestProjectDescriptors
@@ -44,10 +45,14 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.platform.diagnostic.telemetry.TelemetryManager
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.UsefulTestCase
+import com.intellij.testFramework.common.cleanApplicationState
+import com.intellij.testFramework.common.initTestApplication
+import com.intellij.testFramework.common.initializeTestEnvironment
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -58,9 +63,7 @@ import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import java.io.File
-import java.time.Clock
-import java.util.concurrent.TimeoutException
+import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl
 import org.jetbrains.android.AndroidTempDirTestFixture
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
@@ -71,6 +74,9 @@ import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.mockito.Mockito
+import java.io.File
+import java.time.Clock
+import java.util.concurrent.TimeoutException
 
 /**
  * Rule that provides access to a [Project] containing one module configured with the Android facet.
@@ -300,9 +306,21 @@ interface AndroidProjectRule : TestRule {
     @JvmStatic
     fun testProject(
       testProjectDefinition: TestProjectDefinition
+    ): Typed<JavaCodeInsightTestFixture, TestProjectTestHelpers> =
+      internalTestProject(testProjectDefinition, true)
+
+    @JvmStatic
+    fun testProjectNoSync(
+      testProjectDefinition: TestProjectDefinition
+    ): Typed<JavaCodeInsightTestFixture, TestProjectTestHelpers> =
+      internalTestProject(testProjectDefinition, false)
+
+    private fun internalTestProject(
+      testProjectDefinition: TestProjectDefinition,
+      syncReady: Boolean
     ): Typed<JavaCodeInsightTestFixture, TestProjectTestHelpers> {
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = true)
-      val fixtureRule = TestProjectFixtureRuleImpl(testProjectDefinition)
+      val fixtureRule = TestProjectFixtureRuleImpl(testProjectDefinition, syncReady)
       val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.fixture.project }
       return chain(
         testEnvironmentRule,
@@ -310,17 +328,17 @@ interface AndroidProjectRule : TestRule {
         projectEnvironmentRule,
         edtRule = EdtRule(),
         tools =
-          object : TestProjectTestHelpers {
-            override val projectRoot: File
-              get() = fixtureRule.projectRoot
+        object : TestProjectTestHelpers {
+          override val projectRoot: File
+            get() = fixtureRule.projectRoot
 
-            override fun selectModule(module: Module) {
-              fixtureRule.selectModule(module)
-            }
-          },
+          override fun selectModule(module: Module) {
+            fixtureRule.selectModule(module)
+          }
+        },
       )
     }
-  }
+}
 
   fun <T : Any> replaceProjectService(serviceType: Class<T>, newServiceInstance: T) {
     project.replaceService(serviceType, newServiceInstance, testRootDisposable)
@@ -443,7 +461,7 @@ private fun <T : CodeInsightTestFixture, H> chain(
 
 class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
   NamedExternalResource(), TestEnvironmentRule {
-  private val flagsDisposable: Disposable = Disposer.newDisposable()
+  private val testEnvironmentDisposable: Disposable = Disposer.newDisposable()
   val mockitoCleaner = MockitoThreadLocalsCleaner()
   private var userHome: String? = null
 
@@ -458,6 +476,8 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
   }
 
   private fun doBeforeActions(description: Description) {
+    // This needs to be called statically once, but it's fine to do it here as it's idempotent
+    initializeTestEnvironment()
     mockitoCleaner.setup()
 
     userHome = System.getProperty("user.home")
@@ -472,8 +492,8 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
     //)
 
     // Disable antivirus checks on Windows.
-    StudioFlags.ANTIVIRUS_METRICS_ENABLED.overrideForTest(false, flagsDisposable)
-    StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.overrideForTest(false, flagsDisposable)
+    StudioFlags.ANTIVIRUS_METRICS_ENABLED.overrideForTest(false, testEnvironmentDisposable)
+    StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.overrideForTest(false, testEnvironmentDisposable)
 
     try {
       ProjectDataService.EP_NAME.point.extensionList.firstOrNull {
@@ -483,9 +503,15 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
       }
     } catch (_: Throwable) {
     }
+    initTestApplication()
+    // TODO(b/418973297): Consolidate all init logic in the different test frameworks
+    // Enable workspace model cache and phased sync
+    WorkspaceModelCacheImpl.forceEnableCaching(testEnvironmentDisposable)
+    GradleSpecificInitializer.initializePhasedSync()
   }
 
   override fun after(description: Description) {
+    TelemetryManager.getInstance().forceFlushMetricsBlocking()
     runInEdtAndWait {
       if (withAndroidSdk) {
         removeAllAndroidSdks()
@@ -493,8 +519,9 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) :
     }
     userHome?.let { System.setProperty("user.home", it) } ?: System.clearProperty("user.home")
     mockitoCleaner.cleanupAndTearDown()
-    runInEdtAndWait { Disposer.dispose(flagsDisposable) }
+    runInEdtAndWait { Disposer.dispose(testEnvironmentDisposable) }
     checkUndisposedAndroidRelatedObjects()
+    ApplicationManager.getApplication().cleanApplicationState()
   }
 }
 

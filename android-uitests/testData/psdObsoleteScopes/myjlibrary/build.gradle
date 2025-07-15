@@ -1,6 +1,0 @@
-apply plugin: 'java-library'
-
-dependencies {
-  runtime fileTree(dir: 'libs', include: ['*.jar'])
-  testRuntime 'junit:junit:4.11'
-}

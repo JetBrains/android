@@ -17,17 +17,22 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
-import com.android.tools.idea.insights.ui.ServiceDeprecatedPanel
+import com.android.tools.idea.insights.ui.ServiceDeprecatedBanner
+import com.android.tools.idea.insights.ui.ServiceUnsupportedPanel
+import com.android.tools.idea.insights.ui.logDeprecatedEvent
 import com.android.tools.idea.vitals.VitalsInsightsProvider
 import com.android.tools.idea.vitals.VitalsLoginFeature
 import com.google.gct.login2.GoogleLoginService
 import com.google.gct.login2.LoginFeature
+import com.google.gct.login2.createHelpTooltip
+import com.google.gct.login2.toText
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
@@ -35,10 +40,19 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.updateSettings.impl.UpdateChecker
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.components.ActionLink
+import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.panels.HorizontalLayout
+import com.intellij.util.ui.JBFont
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.StatusText
 import icons.StudioIllustrations
 import java.awt.Graphics
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 import java.time.Clock
+import javax.swing.JButton
 import javax.swing.JPanel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -58,13 +72,20 @@ class VitalsTabProvider : AppInsightsTabProvider {
     val scope = AndroidCoroutineScope(tabPanel)
     val deprecationData = getConfigurationManager(project).deprecationData
     val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
-    if (deprecationData.isDeprecated()) {
+    if (deprecationData.isUnsupported()) {
       tabPanel.setComponent(
-        ServiceDeprecatedPanel(scope, activeTabFlow, tracker, deprecationData) {
+        ServiceUnsupportedPanel(scope, activeTabFlow, tracker, deprecationData) {
           UpdateChecker.updateAndShowResult(project)
         }
       )
       return
+    }
+    if (deprecationData.isDeprecated()) {
+      val banner =
+        ServiceDeprecatedBanner.create(tracker, deprecationData) {
+          UpdateChecker.updateAndShowResult(project)
+        }
+      tabPanel.addDeprecatedBanner(banner) { tracker.logDeprecatedEvent(userClickedDismiss = true) }
     }
     tabPanel.setComponent(placeholderContent())
     scope.launch(AndroidDispatchers.diskIoThread) {
@@ -88,7 +109,13 @@ class VitalsTabProvider : AppInsightsTabProvider {
                   }
                   .build()
               )
-              tabPanel.setComponent(loggedOutErrorStateComponent())
+              tabPanel.setComponent(
+                if (StudioFlags.USE_1P_LOGIN_UI.get()) {
+                  loggedOut1pPanel()
+                } else {
+                  loggedOutErrorStateComponent()
+                }
+              )
               shouldRefresh = true
             }
             is AppInsightsModel.Authenticated -> {
@@ -193,6 +220,85 @@ class VitalsTabProvider : AppInsightsTabProvider {
       }
     }
   }
+
+  private fun loggedOut1pPanel() =
+    object : JPanel(GridBagLayout()) {
+      init {
+        val feature = LoginFeature.feature<VitalsLoginFeature>()
+        val gbc =
+          GridBagConstraints().apply {
+            gridx = 0
+            gridy = 0
+          }
+        add(JBLabel(StudioIllustrations.Common.PLAY_CONSOLE), gbc)
+
+        gbc.apply { gridy += 1 }
+        add(
+          JBLabel("See insights from Play Console with Android Vitals").apply {
+            font = JBFont.label().asBold()
+          },
+          gbc,
+        )
+
+        val moreInfoPanel =
+          JPanel(HorizontalLayout(4)).apply {
+            border = JBUI.Borders.empty(8, 0)
+            val labelText =
+              if (GoogleLoginService.instance.isLoggedIn()) {
+                "Authorize Android Studio to connect your Play Console account."
+              } else {
+                "Sign in to connect your Play Console account."
+              }
+            add(JBLabel(labelText).apply { foreground = NamedColorUtil.getInactiveTextColor() })
+            add(
+              ActionLink("More info") {
+                  BrowserUtil.browse("https://d.android.com/r/studio-ui/debug/aqi-android-vitals")
+                }
+                .apply {
+                  setExternalLinkIcon()
+                  isFocusable = false
+                  border = JBUI.Borders.empty()
+                }
+            )
+          }
+        gbc.apply { gridy += 1 }
+        add(moreInfoPanel, gbc)
+
+        gbc.apply { gridy += 1 }
+        val buttonText =
+          if (GoogleLoginService.instance.isLoggedIn()) {
+            "Authorize Android Vitals"
+          } else {
+            "Sign in to Google"
+          }
+        add(
+          JButton(buttonText).apply {
+            addActionListener { feature.logInBlocking() }
+            isFocusable = false
+          },
+          gbc,
+        )
+
+        val scopePanel =
+          JPanel(HorizontalLayout(4)).apply {
+            border = JBUI.Borders.empty(8, 0)
+
+            add(
+              JBLabel("${feature.oAuthScopes.toText()} will be requested.").apply {
+                foreground = NamedColorUtil.getInactiveTextColor()
+                isFocusable = false
+              }
+            )
+            add(
+              JBLabel(AllIcons.General.ContextHelp).apply {
+                feature.createHelpTooltip().installOn(this)
+              }
+            )
+          }
+        gbc.apply { gridy += 1 }
+        add(scopePanel, gbc)
+      }
+    }
 
   private fun initializationFailedComponent(
     configurationManager: AppInsightsConfigurationManager

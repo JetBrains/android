@@ -27,6 +27,7 @@ import com.android.tools.idea.insights.ai.codecontext.CodeContext
 import com.android.tools.idea.insights.ai.codecontext.CodeContextData
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
+import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.delay
@@ -64,6 +65,35 @@ private val GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT =
   """
     .trimIndent()
 
+private val GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_MULTI_FILES_PROMPT =
+  """
+    Explain this exception from my app running on %s with Android version %s.
+    Please reference the provided source code if they are helpful.
+    If you think you can guess which files the fix for this crash should be performed in,
+    please include at the end of the response the extract phrase \"$FILE_PHRASE\${'$'}files,
+    where files is a comma separated list of the fully qualified path of the source files
+    in which you think the fix should likely be performed.
+    Exception:
+    ```
+    %s
+    ```
+  """
+    .trimIndent()
+
+private val GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_PROMPT =
+  """
+    Explain this exception from my app running on %s with Android version %s.
+    Please reference the provided source code if they are helpful.
+    If you think you can guess which single file the fix for this crash should be performed in,
+    please include at the end of the response the extract phrase \"$FILE_PHRASE\${'$'}file,
+    where file is the fully qualified path of the source file in which you think the fix should likely be performed.
+    Exception:
+    ```
+    %s
+    ```
+  """
+    .trimIndent()
+
 private val CONTEXT_PREAMBLE =
   """
     Respond with a comma separated list of the paths of the files, in descending order of relevance.
@@ -80,6 +110,8 @@ private val CONTEXT_PROMPT =
   """
     .trimIndent()
 
+const val FILE_PHRASE = "The fix should likely be in "
+
 // Extra space reserved for system preamble
 private const val CONTEXT_WINDOW_PADDING = 150
 
@@ -93,20 +125,18 @@ class GeminiAiInsightClient(
 
   override suspend fun fetchCrashInsight(request: GeminiCrashInsightRequest): AiInsight =
     if (StudioFlags.GEMINI_FETCH_REAL_INSIGHT.get()) {
+      getCachedInsight(request)?.let {
+        return it
+      }
       val contextData =
         if (!request.connection.isMatchingProject()) {
-          CodeContextData.DISABLED
+          CodeContextData.empty(project)
         } else if (StudioFlags.GEMINI_ASSISTED_CONTEXT_FETCH.get()) {
           queryForRelevantContext(request)
         } else {
           codeContextResolver.getSource(request.connection, request.event.stacktraceGroup)
         }
 
-      cache
-        .getAiInsight(request.connection, request.issueId, request.variantId, contextData)
-        ?.let { insight ->
-          return insight
-        }
       val userPrompt = createPrompt(request, contextData.codeContext)
       val finalPrompt =
         buildLlmPrompt(project) {
@@ -125,6 +155,25 @@ class GeminiAiInsightClient(
       delay(2000)
       AiInsight(createPrompt(request, emptyList()), insightSource = InsightSource.STUDIO_BOT)
     }
+
+  // Always prefer the insight generated with context regardless of current context sharing setting.
+  private fun getCachedInsight(request: GeminiCrashInsightRequest): AiInsight? =
+    cache.getAiInsight(
+      request.connection,
+      request.issueId,
+      request.variantId,
+      ContextSharingState.ALLOWED,
+    )
+      ?: if (ContextSharingState.getContextSharingState(project) == ContextSharingState.DISABLED) {
+        cache.getAiInsight(
+          request.connection,
+          request.issueId,
+          request.variantId,
+          ContextSharingState.DISABLED,
+        )
+      } else {
+        null
+      }
 
   private suspend fun queryForRelevantContext(request: GeminiCrashInsightRequest): CodeContextData {
     if (
@@ -154,11 +203,22 @@ class GeminiAiInsightClient(
     return contextData
   }
 
+  private fun getPromptWithContext() =
+    if (StudioFlags.SUGGEST_A_FIX.get()) {
+      if (StudioFlags.STUDIOBOT_TRANSFORM_SESSION_DIFF_EDITOR_VIEWER_ENABLED.get()) {
+        GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_MULTI_FILES_PROMPT
+      } else {
+        GEMINI_INSIGHT_CODE_CONTEXT_WITH_FIX_PROMPT
+      }
+    } else {
+      GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT
+    }
+
   private fun createPrompt(request: GeminiCrashInsightRequest, context: List<CodeContext>): String {
+    val promptWithContext = getPromptWithContext()
     val initialPrompt =
       String.format(
-          if (context.isEmpty()) GEMINI_INSIGHT_PROMPT_FORMAT
-          else GEMINI_INSIGHT_WITH_CODE_CONTEXT_PROMPT_FORMAT,
+          if (context.isEmpty()) GEMINI_INSIGHT_PROMPT_FORMAT else promptWithContext,
           request.deviceName,
           request.apiLevel,
           request.event.prettyStackTrace(),

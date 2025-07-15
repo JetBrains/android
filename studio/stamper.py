@@ -80,6 +80,16 @@ def _stamp_product_info(info_file, build_txt, added_plugins, content):
 
   return json.dumps(json_data, indent=2)
 
+def _add_essential_plugins(content, essential_plugins):
+  if not essential_plugins:
+    return content
+
+  xml = ""
+
+  for plugin in essential_plugins:
+    xml += "  <essential-plugin>" + plugin + "</essential-plugin>\n"
+
+  return re.sub("\n</component>", "\n" + xml + "</component>", content)
 
 def _overwrite_plugin_version(build_txt, content):
   """Stamps a plugin.xml with the build ids."""
@@ -181,6 +191,13 @@ def main(argv):
       default=[],
       help="Plugin ID + plugin files, to be listed in product-info.json")
   parser.add_argument(
+      "--essential_plugins",
+      action="extend",
+      nargs="+",
+      default=[],
+      help="plugins that should not be disabled by users",
+      metavar="ESSENTIAL_PLUGIN")
+  parser.add_argument(
       "--overwrite_plugin_version",
       action="store_true",
       help="Whether to set the <version> and <idea-version> tags for this plugin.")
@@ -236,12 +253,15 @@ def main(argv):
   if content:
     if args.replace_build_number:
       content = _replace_build_number(content, args.info_file)
-    
+
     if args.replace_selector:
       content= _replace_selector(content, args.replace_selector)
 
     if args.stamp_app_info:
       content = _stamp_app_info(args.version_file, args.build_txt, args.version_micro, args.version_patch, args.version_full, args.eap, content)
+
+    if args.essential_plugins:
+      content = _add_essential_plugins(content, args.essential_plugins)
 
     if args.overwrite_plugin_version:
       content = _overwrite_plugin_version(args.build_txt, content)

@@ -7,13 +7,14 @@ import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class InsightsDiffVirtualFileTest {
   @get:Rule val projectRule = ProjectRule()
 
   @Test
   fun `check equal`() {
-    val filePath: FilePath = mock()
+    val filePath = mock<FilePath>().apply { whenever(this.name).thenReturn("filename") }
 
     val context1 =
       ContextDataForDiff(

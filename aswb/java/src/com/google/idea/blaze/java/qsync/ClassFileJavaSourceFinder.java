@@ -22,10 +22,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.QuerySyncManager;
-import com.google.idea.blaze.base.qsync.QuerySyncProject;
+import com.google.idea.blaze.base.qsync.ReadonlyQuerySyncProject;
 import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
-import com.google.idea.blaze.qsync.SnapshotHolder;
-import com.google.idea.blaze.qsync.deps.JavaArtifactInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.JarFileSystem;
@@ -80,9 +78,6 @@ public class ClassFileJavaSourceFinder {
 
   @Nullable
   public PsiFile findSourceFile() {
-    if (!querySyncManager.isProjectLoaded()) {
-      return null;
-    }
     ImmutableSet<Path> jarSrcsPaths = getWorkspaceSources();
     if (jarSrcsPaths.isEmpty()) {
       return null;
@@ -152,9 +147,7 @@ public class ClassFileJavaSourceFinder {
 
     QuerySyncProjectSnapshot snapshot =
         querySyncManager
-            .getLoadedProject()
-            .map(QuerySyncProject::getSnapshotHolder)
-            .flatMap(SnapshotHolder::getCurrent)
+            .getCurrentSnapshot()
             .orElse(null);
     if (snapshot == null) {
       return ImmutableSet.of();

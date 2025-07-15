@@ -31,7 +31,6 @@ public interface AndroidSqlSingleTableStatementTable extends AndroidSqlTableElem
   @NotNull
   AndroidSqlDefinedTableName getDefinedTableName();
 
-  @Nullable
-  AndroidSqlTable getSqlTable();
+  @Nullable AndroidSqlTable getSqlTable();
 
 }

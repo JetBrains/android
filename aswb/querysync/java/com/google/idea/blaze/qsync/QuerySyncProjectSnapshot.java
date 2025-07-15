@@ -33,7 +33,6 @@ import com.google.idea.blaze.qsync.project.BuildGraphData;
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.project.ProjectProto;
-import com.google.idea.blaze.qsync.project.ProjectTarget;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
@@ -87,7 +86,7 @@ public abstract class QuerySyncProjectSnapshot {
    *
    * @param path a workspace relative path.
    */
-  public ImmutableSet<Label> getTargetOwners(Path path) {
+  public Set<Label> getTargetOwners(Path path) {
     return graph().getSourceFileOwners(path);
   }
 
@@ -107,9 +106,8 @@ public abstract class QuerySyncProjectSnapshot {
   }
 
   /** Returns mapping of targets to {@link BuildTarget} */
-  @Nullable
-  public Collection<Label> getAllTargets() {
-    return graph().allTargets();
+  public Collection<Label> getAllLoadedTargets() {
+    return graph().allLoadedTargets();
   }
 
   @Memoized

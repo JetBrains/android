@@ -41,6 +41,7 @@ import com.intellij.openapi.ui.DialogWrapperPeerFactory
 import com.intellij.openapi.ui.popup.StackingPopupDispatcher
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.ComponentUtil
@@ -102,7 +103,8 @@ fun enableHeadlessDialogs(disposable: Disposable) {
 /**
  * Looks for a currently shown modeless dialog.
  */
-fun findModelessDialog(predicate: Predicate<DialogWrapper>): DialogWrapper? = modelessDialogs.find { predicate.test(it) }
+inline fun <reified T: DialogWrapper> findModelessDialog(predicate: Predicate<T> = Predicate { true }): T? =
+    modelessDialogs.find { it is T && predicate.test(it) } as T?
 
 /**
  * Calls the [dialogTrigger] function that shows a modal dialog and then the [dialogInteractor]
@@ -202,7 +204,7 @@ private val modalityChangeCondition = modalityChangeLock.newCondition()
 @GuardedBy("modalityChangeLock")
 private val modalDialogStack = mutableListOf<DialogWrapper>()
 
-private val modelessDialogs = ContainerUtil.createConcurrentList<DialogWrapper>()
+val modelessDialogs = ContainerUtil.createConcurrentList<DialogWrapper>()
 
 private val dispatchEventMethod = ReflectionUtil.getDeclaredMethod(EventQueue::class.java, "dispatchEvent", AWTEvent::class.java)!!
 
@@ -319,7 +321,7 @@ private class HeadlessDialogWrapperPeer(
     return null
   }
 
-  override fun getWindow(): Window? {
+  override fun getWindow(): Window {
     return dialogWindow
   }
 
@@ -382,7 +384,7 @@ private class HeadlessDialogWrapperPeer(
   }
 
   override fun setLocation(x: Int, y: Int) {
-    setLocation(Point(x, y))
+    location = Point(x, y)
   }
 
   override fun show(): CompletableFuture<*> {
@@ -566,6 +568,7 @@ private class HeadlessDialogWrapperPeer(
     }
 
     init {
+      setGlassPane(IdeGlassPaneImpl(this))
       putClientProperty("DIALOG_ROOT_PANE", true)
       border = UIManager.getBorder("Window.border")
     }

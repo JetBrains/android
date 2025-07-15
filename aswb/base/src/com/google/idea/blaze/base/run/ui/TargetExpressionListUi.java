@@ -19,7 +19,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.ImmutableList;
-import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.ideinfo.TargetIdeInfo;
 import com.google.idea.blaze.base.ideinfo.TargetKey;
 import com.google.idea.blaze.base.model.BlazeProjectData;
@@ -27,12 +26,15 @@ import com.google.idea.blaze.base.model.primitives.TargetExpression;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.projectview.ProjectViewManager;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
+import com.google.idea.blaze.base.qsync.QuerySyncManager;
 import com.google.idea.blaze.base.settings.Blaze;
 import com.google.idea.blaze.base.settings.BlazeImportSettings;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
 import com.google.idea.blaze.base.settings.BlazeImportSettingsManager;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.blaze.base.sync.projectview.ImportRoots;
+import com.google.idea.blaze.common.Label;
+import com.google.idea.blaze.qsync.QuerySyncProjectSnapshot;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.TableUtil;
@@ -232,10 +234,14 @@ public class TargetExpressionListUi extends JPanel {
               .build();
 
       if (Blaze.getProjectType(project) == ProjectType.QUERY_SYNC) {
-        return projectData.targets().stream()
-            .filter(importRoots::importAsSource)
-            .map(TargetExpression::toString)
-            .collect(toImmutableList());
+        return QuerySyncManager.getInstance(project).getCurrentSnapshot()
+          .map(querySyncProjectSnapshot ->
+                 querySyncProjectSnapshot.getAllLoadedTargets()
+                   .stream()
+                   .map(Label::toString)
+                   .collect(toImmutableList())
+          )
+          .orElse(ImmutableList.of());
       }
 
       return projectData.getTargetMap().targets().stream()

@@ -210,8 +210,10 @@ java_library(
     neverlink = 1,
     visibility = G3PLUGINS_VISIBILITY,
     deps = [
+        ":base",
         ":proto_wrapper",
         "//tools/adt/idea/aswb/proto:proto_deps",
+        "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/exception",
         "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
     ],
@@ -586,6 +588,7 @@ jvm_import(
 intellij_integration_test_suite(
     name = "integration_tests",
     srcs = glob(["tests/integrationtests/**/*.java"]),
+    data = ["//tools/adt/idea/aswb/aspect:aspect_files"],
     plugins = [":com.google.idea.blaze.base"],
     required_plugins = "com.google.idea.blaze.base",
     tags = ["noci:studio-win"],

@@ -21,6 +21,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
@@ -48,10 +49,13 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.Transparency
+import java.awt.event.HierarchyEvent
+import java.awt.event.HierarchyListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.geom.Path2D
 import java.awt.geom.RoundRectangle2D
+import java.beans.PropertyChangeListener
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.SwingConstants.HORIZONTAL
@@ -122,6 +126,12 @@ internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiv
     require(inactiveAlpha in 0.0..1.0)
     isOpaque = false
     layout = Layout()
+
+    addHierarchyListener { event ->
+      if (event.changeFlags.toInt() and (HierarchyEvent.SHOWING_CHANGED or HierarchyEvent.DISPLAYABILITY_CHANGED) != 0) {
+        onVisibilityChanged()
+      }
+    }
   }
 
   /**
@@ -203,24 +213,6 @@ internal class FloatingToolbarContainer(horizontal: Boolean, private val inactiv
     }
     else {
       pendingDeactivation = true
-    }
-  }
-
-  override fun addNotify() {
-    super.addNotify()
-    onVisibilityChanged()
-  }
-
-  override fun removeNotify() {
-    super.removeNotify()
-    onVisibilityChanged()
-  }
-
-  override fun setVisible(visible: Boolean) {
-    val wasVisible = isVisible
-    super.setVisible(visible)
-    if (visible != wasVisible) {
-      onVisibilityChanged()
     }
   }
 
@@ -364,11 +356,30 @@ private class ToolbarPanel(private val toolbar: ActionToolbar, val collapsible: 
   private val cornerRadius
     get() = crossDimension / 2
   var alpha: Float by bufferingPainter::alpha
+  private val actionButtons = mutableListOf<ActionButton>()
+  private val hierarchyListener = HierarchyListener { event ->
+    for (button in actionButtons) {
+      button.presentation.removePropertyChangeListener(buttonSelectionListener)
+    }
+    actionButtons.clear()
+    for (child in toolbar.component.components) {
+      if (child is ActionButton) {
+        actionButtons.add(child)
+        child.presentation.addPropertyChangeListener(buttonSelectionListener)
+      }
+    }
+  }
+  private val buttonSelectionListener = PropertyChangeListener  { event ->
+    if (event.propertyName == SELECTED_PROPERTY_NAME) {
+      revalidate()
+    }
+  }
 
   init {
     isOpaque = false
     background = JBUI.CurrentTheme.Popup.toolbarPanelColor()
     layout = Layout()
+    toolbar.component.addHierarchyListener(hierarchyListener)
     add(toolbar.component)
   }
 
@@ -562,3 +573,7 @@ private const val ACTIVE_ALPHA = 1.0
 private val ZERO_DIMENSION = Dimension()
 
 private val SPACER_SIZE = ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.width / 3
+
+@Suppress("UnstableApiUsage")
+private val SELECTED_PROPERTY_NAME = Toggleable.SELECTED_KEY.toString()
+

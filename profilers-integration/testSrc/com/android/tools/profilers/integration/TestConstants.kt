@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.integration
 
-import com.android.tools.asdriver.tests.Emulator
+import com.android.tools.testlib.Emulator
 
 object TestConstants {
   val SYSTEM_IMAGE = Emulator.SystemImage.API_33

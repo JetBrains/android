@@ -8,11 +8,12 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 
 import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
-import com.android.test.testutils.TestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.startup.GradleSpecificInitializer;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
@@ -64,6 +65,7 @@ import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -145,12 +147,12 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
       descriptor = AdtTestProjectDescriptors.defaultDescriptor()
         .withJavaVersion(languageLevel)
-        .withJdkPath(TestUtils.getEmbeddedJdk17Path());
+        .withJdkPath(TestUtils.getJava17Jdk());
     } else {
       descriptor = myProjectDescriptor;
     }
 
-    Path jdkPath = TestUtils.getEmbeddedJdk17Path();
+    Path jdkPath = TestUtils.getJava17Jdk();
     WriteAction.runAndWait(() -> {
       cleanJdkTable();
       setupJdk(jdkPath);
@@ -163,6 +165,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myFixture.setUp();
     myFixture.setTestDataPath(getTestDataPath());
     myModule = moduleFixtureBuilder.getFixture().getModule();
+
+    // TODO(b/418973297): Consolidate all init logic in the different test frameworks
+    WorkspaceModelCacheImpl.forceEnableCaching(getTestRootDisposable());
+    GradleSpecificInitializer.initializePhasedSync();
 
     // Must be done before addAndroidFacet, and must always be done, even if a test provides
     // its own custom manifest file. However, in that case, we will delete it shortly below.

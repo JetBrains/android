@@ -94,8 +94,7 @@ internal class DeployToDeviceAction :
 
         if (androidHolderModule != null) {
           setModule(androidHolderModule)
-        }
-        else {
+        } else {
           thisLogger().warn("Unable to find holder module for $module")
         }
       }

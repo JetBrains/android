@@ -1,0 +1,3 @@
+#ifndef SIMPLE_SIMPLE_H_
+#define SIMPLE_SIMPLE_H_
+#endif  // SIMPLE_SIMPLE_H_

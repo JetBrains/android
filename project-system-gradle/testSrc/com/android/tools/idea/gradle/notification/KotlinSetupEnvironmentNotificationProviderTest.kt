@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.notification
 
-import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
+import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleTestProjects
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -33,7 +33,7 @@ import org.junit.Test
 class KotlinSetupEnvironmentNotificationProviderTest {
 
   @get:Rule
-  val androidProjectRule = AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION).onEdt()
+  val androidProjectRule = AndroidProjectRule.testProjectNoSync(LightGradleTestProjects.SIMPLE_APPLICATION).onEdt()
 
   private val project: Project
     get() = androidProjectRule.project

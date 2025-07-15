@@ -25,8 +25,8 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
+import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
@@ -37,7 +37,10 @@ import org.junit.runners.model.Statement
  * This rule also enables running tests in the EDT. Apply the [RunsInEdt] annotation either on the
  * test class or individual test method to enable it.
  */
-class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResource() {
+class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : TestRule {
+  /** Overrides the Android app package name for a given test. */
+  annotation class PackageName(val packageName: String)
+
   private val projectRule =
     AndroidProjectRule.onDisk().apply {
       if (mode == SafeArgsMode.KOTLIN) {
@@ -61,13 +64,13 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
     waitForPendingUpdates(projectRule.module)
   }
 
-  override fun before() {
+  private fun setUp(packageName: String) {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     fixture.addFileToProject(
       "AndroidManifest.xml",
       """
       <?xml version="1.0" encoding="utf-8"?>
-      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.safeargs">
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="$packageName">
         <application />
       </manifest>
     """
@@ -111,11 +114,21 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
   }
 
   override fun apply(base: Statement, description: Description): Statement {
+    // Allow using the @SafeArgsRule.PackageName annotation on a test method to change the package
+    // name of the generated Android package.
+    val annotation = description.getAnnotation(PackageName::class.java)
+    val packageName = annotation?.packageName ?: "test.safeargs"
+    val statement =
+      object : Statement() {
+        override fun evaluate() {
+          setUp(packageName)
+          base.evaluate()
+        }
+      }
+
     // We want to run tests on the EDT thread, but we also need to make sure the project rule is not
     // initialized on the EDT.
-    return RuleChain.outerRule(projectRule)
-      .around(EdtRule())
-      .apply(super.apply(base, description), description)
+    return RuleChain.outerRule(projectRule).around(EdtRule()).apply(statement, description)
   }
 
   /**
