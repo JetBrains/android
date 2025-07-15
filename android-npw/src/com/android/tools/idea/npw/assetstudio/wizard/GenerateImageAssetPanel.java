@@ -24,6 +24,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.common.WrappedFlowLayout;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
 import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
@@ -237,7 +238,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     for (AndroidIconType iconType : supportedTypes) {
       ConfigureIconView view = switch (iconType) {
         case LAUNCHER -> new ConfigureAdaptiveIconPanel(this, facet, iconType, myShowGridProperty, myShowSafeZoneProperty,
-                                                        myPreviewDensityProperty, myValidatorPanel, renderer, true);
+                                                        myPreviewDensityProperty, myValidatorPanel, renderer, StudioFlags.ENABLE_MONOCHROME_ICON_EDITOR_TAB.get());
         // Tv channel icons don't support monochrome.
         case TV_CHANNEL -> new ConfigureAdaptiveIconPanel(this, facet, iconType, myShowGridProperty, myShowSafeZoneProperty,
                                                           myPreviewDensityProperty, myValidatorPanel, renderer, false);

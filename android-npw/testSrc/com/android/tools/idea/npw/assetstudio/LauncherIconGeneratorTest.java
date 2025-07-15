@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.rendering.DrawableRenderer;
@@ -45,6 +46,12 @@ public class LauncherIconGeneratorTest extends AdaptiveIconGeneratorTest {
     myIconGenerator.generateWebpIcons().set(false);
   }
 
+  @Override
+  public void tearDown() throws Exception{
+    StudioFlags.ENABLE_MONOCHROME_ICON_EDITOR_TAB.clearOverride();
+    super.tearDown();
+  }
+
   public void testDrawableBackgroundAndForeground() throws Exception {
     String[] expectedFilenames = {
         "resources/mipmap-anydpi-v26/ic_launcher.xml",
@@ -66,7 +73,10 @@ public class LauncherIconGeneratorTest extends AdaptiveIconGeneratorTest {
     myIconGenerator.backgroundImageAsset().setValue(createImageAsset("background.xml"));
     checkGeneratedIcons(expectedFilenames);
   }
+
   public void testDrawableBackgroundForegroundAndMonochrome() throws Exception {
+    StudioFlags.ENABLE_MONOCHROME_ICON_EDITOR_TAB.override(true);
+
     myIconGenerator.monochromeLayerName().set("ic_launcher_monochrome");
 
     String[] expectedFilenames = {

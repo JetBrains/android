@@ -21,6 +21,7 @@ import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
@@ -754,7 +755,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
 
   @Override
   protected boolean isMonochromeSupported() {
-    return true;
+    return StudioFlags.ENABLE_MONOCHROME_ICON_EDITOR_TAB.get();
   }
 
   @Override

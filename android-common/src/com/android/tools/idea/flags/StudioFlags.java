@@ -364,6 +364,11 @@ public final class StudioFlags {
     "When enabled, the adaptive icon preview will automatically create a monochrome version if none is provided.",
     true);
 
+  public static final Flag<Boolean> ENABLE_MONOCHROME_ICON_EDITOR_TAB = new BooleanFlag(
+    NELE, "enable.monochrome.icon.editor.tab", "Show monochrome editor tab in Image Asset Editor",
+    "When enabled, shows a tab in Image Asset Editor where to add monochrome layer for launcher icons",
+    enabledUpTo(CANARY));
+
   public static final Flag<Boolean> USE_BYTECODE_R_CLASS_PARSING = new BooleanFlag(
     NELE, "use.bytecode.r.class.loading", "Uses bytecode R class parsing instead of reflection",
     "When enabled, the parsing of R classes will use bytecode parsing instead of reflection.",
