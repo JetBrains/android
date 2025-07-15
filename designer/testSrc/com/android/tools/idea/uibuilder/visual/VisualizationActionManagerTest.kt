@@ -20,10 +20,12 @@ import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.psi.PsiFile
+import java.awt.event.MouseEvent
 import org.jetbrains.android.AndroidTestCase
 
 internal object EmptyModelsProvider : VisualizationModelsProvider {
@@ -36,12 +38,21 @@ internal object EmptyModelsProvider : VisualizationModelsProvider {
 
 class VisualizationActionManagerTest : AndroidTestCase() {
 
+  private lateinit var actionManager: VisualizationActionManager
+  private lateinit var surface: NlDesignSurface
+
+  override fun setUp() {
+    super.setUp()
+    surface = NlSurfaceBuilder.build(project, testRootDisposable)
+    actionManager = VisualizationActionManager(surface) { EmptyModelsProvider }
+  }
+
   fun testPopupMenuActions() {
-    val actionManager =
-      VisualizationActionManager(NlSurfaceBuilder.build(project, testRootDisposable)) {
-        EmptyModelsProvider
-      }
-    val popupMenuGroup = actionManager.getPopupMenuActions(null)
+    val popupMenuGroup =
+      actionManager.getPopupMenuActions(
+        null,
+        MouseEvent(surface, MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true),
+      )
     val actions = popupMenuGroup.getChildren(ActionManager.getInstance())
     assertTrue(actions[0] is ZoomInAction)
     assertTrue(actions[1] is ZoomOutAction)
@@ -49,10 +60,6 @@ class VisualizationActionManagerTest : AndroidTestCase() {
   }
 
   fun testToolbarActions() {
-    val actionManager =
-      VisualizationActionManager(NlSurfaceBuilder.build(project, testRootDisposable)) {
-        EmptyModelsProvider
-      }
     assertEquals(0, actionManager.getToolbarActions(emptyList()).childrenCount)
   }
 }

@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManagerUtilsKt;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
+import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -104,9 +105,10 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
    * Creates the actions for the pop-up menu (a.k.a. context menu) for the given {@link NlComponent}.
    *
    * @param leafComponent The target component for the pop-up menu (e.g. The right-clicked component)
+   * @param mouseEvent The mouse event that triggered the pop-up menu.
    */
   @NotNull
-  public abstract DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent);
+  public abstract DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent, @NotNull MouseEvent mouseEvent);
 
   /**
    * Creates the actions for the given {@link NlComponent}s.

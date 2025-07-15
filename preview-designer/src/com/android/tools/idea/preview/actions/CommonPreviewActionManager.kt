@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Separator
+import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
@@ -55,8 +56,10 @@ open class CommonPreviewActionManager(
     registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
   }
 
-  override fun getPopupMenuActions(leafComponent: NlComponent?) =
-    DefaultActionGroup().apply { add(copyResultImageAction) }
+  override fun getPopupMenuActions(
+    leafComponent: NlComponent?,
+    mouseEvent: MouseEvent,
+  ): DefaultActionGroup = DefaultActionGroup().apply { add(copyResultImageAction) }
 
   override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
 

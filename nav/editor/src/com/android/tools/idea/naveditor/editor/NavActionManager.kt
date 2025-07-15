@@ -55,6 +55,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.client.ClientSystemInfo
 import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.KeyStroke
 
@@ -104,7 +105,10 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     )
   }
 
-  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
+  override fun getPopupMenuActions(
+    leafComponent: NlComponent?,
+    mouseEvent: MouseEvent,
+  ): DefaultActionGroup {
     val group = DefaultActionGroup()
 
     if (leafComponent == null) {
@@ -137,7 +141,9 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
 
   private fun addSurfaceGroup(group: DefaultActionGroup) {
     // Need to select the current orientation before showing the popup:
-    orientationAction.updateActionsImmediately(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, mySurface))
+    orientationAction.updateActionsImmediately(
+      DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, mySurface)
+    )
 
     group.add(selectAllAction)
 

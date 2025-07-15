@@ -47,6 +47,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
@@ -265,7 +266,7 @@ public class ModelBuilder {
     public void registerActionsShortcuts(@NotNull JComponent component) {}
 
     @Override
-    public DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent) {
+    public @NotNull DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent, @NotNull MouseEvent mouseEvent) {
       return new DefaultActionGroup();
     }
 

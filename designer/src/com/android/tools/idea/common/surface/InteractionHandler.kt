@@ -267,7 +267,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     val sceneView = surface.getSceneViewAtOrPrimary(x, y)
     if (sceneView != null) {
       val component = sceneView.selectComponentAt(x, y, modifiersEx, false, true)
-      val actions = surface.actionManager.getPopupMenuActions(component)
+      val actions = surface.actionManager.getPopupMenuActions(component, mouseEvent)
       // TODO (b/151315668): extract the hardcoded value "LayoutEditor". Be aware this value is used
       // by [SetZoomAction#update].
       surface.showPopup(mouseEvent, actions, "LayoutEditor")

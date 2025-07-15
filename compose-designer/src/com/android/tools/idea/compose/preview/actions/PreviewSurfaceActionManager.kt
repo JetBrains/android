@@ -37,7 +37,7 @@ import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
-import java.awt.MouseInfo
+import java.awt.event.MouseEvent
 import javax.swing.SwingUtilities
 
 /** [ActionManager] to be used by the Compose Preview. */
@@ -46,11 +46,15 @@ internal class PreviewSurfaceActionManager(
   private val navigationHandler: NavigationHandler,
 ) : CommonPreviewActionManager(surface, navigationHandler) {
 
-  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
+  override fun getPopupMenuActions(
+    leafComponent: NlComponent?,
+    mouseEvent: MouseEvent,
+  ): DefaultActionGroup {
     // Copy Image
     val actionGroup = DefaultActionGroup().apply { add(copyResultImageAction) }
 
-    val mousePosition = MouseInfo.getPointerInfo().location
+    val mousePosition = mouseEvent.point
+
     SwingUtilities.convertPointFromScreen(mousePosition, surface.interactionPane)
     // Zoom to Selection
     actionGroup.add(ZoomToSelectionAction(mousePosition.x, mousePosition.y, ::zoomTargetProvider))

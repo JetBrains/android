@@ -46,7 +46,7 @@ class NavActionsToolbarTest : NavTestCase() {
     val issueModel = mock<IssueModel>()
     whenever(surface.issueModel).thenReturn(issueModel)
     whenever(surface.actionManager).thenReturn(actionManager)
-    whenever(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
+    whenever(actionManager.getPopupMenuActions(any(), any())).thenReturn(DefaultActionGroup())
     // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
     // complain during the null checking
     whenever(actionManager.getToolbarActions(Mockito.any() ?: Collections.emptyList()))

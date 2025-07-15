@@ -47,7 +47,7 @@ class EmptyDesignerTargetTest : NavTestCase() {
     doReturn(menu).whenever(actionManager).addDestinationMenu
     whenever(menu.actionUpdateThread).thenCallRealMethod()
     whenever(menu.templatePresentation).thenReturn(Presentation())
-    whenever(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
+    whenever(actionManager.getPopupMenuActions(any(), any())).thenReturn(DefaultActionGroup())
     // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
     // complain during the null checking
     whenever(actionManager.getToolbarActions(any() ?: Collections.emptyList()))

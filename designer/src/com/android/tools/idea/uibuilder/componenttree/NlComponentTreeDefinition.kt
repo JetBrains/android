@@ -79,6 +79,7 @@ import java.awt.BorderLayout
 import java.awt.Image
 import java.awt.Rectangle
 import java.awt.datatransfer.Transferable
+import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.Icon
@@ -242,9 +243,16 @@ private class ComponentTreePanel(
     }
 
   private fun showContextMenuForComponent(component: NlComponent, x: Int, y: Int) {
-    surface?.actionManager?.getPopupMenuActions(component)?.let {
-      showPopup(surface, componentTree.focusComponent, x, y, it, ActionPlaces.EDITOR_POPUP)
-    }
+    surface
+      ?.actionManager
+      ?.getPopupMenuActions(
+        component,
+        // TODO(b/432214528): Pass the real mouse event here
+        MouseEvent(componentTree.focusComponent, MouseEvent.MOUSE_CLICKED, 0, 0, x, y, 1, true),
+      )
+      ?.let {
+        showPopup(surface, componentTree.focusComponent, x, y, it, ActionPlaces.EDITOR_POPUP)
+      }
   }
 
   private fun showContextMenuForReference(x: Int, y: Int) {

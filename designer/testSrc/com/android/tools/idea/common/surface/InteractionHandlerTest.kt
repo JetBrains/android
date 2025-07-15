@@ -73,8 +73,10 @@ class InteractionHandlerTest {
         object : ActionManager<DesignSurface<SceneManager>>(it) {
           override fun registerActionsShortcuts(component: JComponent) = Unit
 
-          override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup =
-            DefaultActionGroup()
+          override fun getPopupMenuActions(
+            leafComponent: NlComponent?,
+            mouseEvent: MouseEvent,
+          ): DefaultActionGroup = DefaultActionGroup()
 
           override fun getToolbarActions(selection: MutableList<NlComponent>): DefaultActionGroup =
             DefaultActionGroup()
