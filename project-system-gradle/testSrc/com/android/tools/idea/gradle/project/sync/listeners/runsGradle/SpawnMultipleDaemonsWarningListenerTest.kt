@@ -20,106 +20,136 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JdkConstants
-import com.android.tools.idea.testing.TestProjectPaths
-import com.google.common.truth.Truth
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
+import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.testFramework.replaceService
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
 
-class SpawnMultipleDaemonsWarningListenerTest : AndroidGradleTestCase() {
+class SpawnMultipleDaemonsWarningListenerTest {
+  @get:Rule
+  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private val notifications = mutableListOf<Notification>()
 
-  override fun setUp() {
-    super.setUp()
-    project.messageBus.connect(testRootDisposable).subscribe(Notifications.TOPIC, object : Notifications {
-      override fun notify(notification: Notification) {
-        notifications.add(notification)
-      }
-    })
+  private val listener = object : Notifications {
+    override fun notify(notification: Notification) {
+      notifications.add(notification)
+    }
   }
 
+  private fun PreparedTestProject.openWithListener(
+    updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it },
+    body: PreparedTestProject.Context.(Project) -> Unit
+  ) = open(updateOptions = { updateOptions(it.copy(subscribe = { bus -> bus.subscribe(Notifications.TOPIC, listener)}))}, body)
+
+  private fun assertSyncFailed(project: Project) {
+    assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult().isSuccessful).isFalse()
+  }
+
+  @Test
   fun `test Given undefined jdkFromJavaHomePath When sync finished Then MultipleGradleDaemons warning is displayed`() {
     val jdkFromJavaHomePath: String? = null
     val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
     whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
-    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, testRootDisposable)
-    loadSimpleApplication()
-
-    notifications
-      .filter { GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId == it.groupId }
-      .run {
-        Truth.assertThat(this).hasSize(1)
-        assertEquals(createWarningMessageMultipleGradleDaemons(jdkFromJavaHomePath), first().content)
-      }
+    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, projectRule.testRootDisposable)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.openWithListener { project ->
+      notifications
+        .filter { GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId == it.groupId }
+        .run {
+          assertThat(this).hasSize(1)
+          assertThat(first().content).isEqualTo(createWarningMessageMultipleGradleDaemons(project, jdkFromJavaHomePath))
+        }
+    }
   }
 
+  @Test
   fun `test Given project using Daemon Jvm Criteria When sync finished Then MultipleGradleDaemons warning isn't displayed`() {
     val jdkFromJavaHomePath = "/test/jdk/path"
     val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
     whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
-    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, testRootDisposable)
+    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, projectRule.testRootDisposable)
 
-    project.createDaemonJvmPropertiesFile(JdkConstants.JDK_EMBEDDED_VERSION)
-    loadSimpleApplication()
-
-    notifications
-      .filter { GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId == it.groupId }
-      .run { assertTrue(isEmpty()) }
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.root.createDaemonJvmPropertiesFile(JdkConstants.JDK_EMBEDDED_VERSION)
+    preparedProject.openWithListener {
+      notifications
+        .filter { GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId == it.groupId }
+        .run { assertThat(this).isEmpty() }
+    }
   }
 
+  @Test
   fun `test Given project using invalid Daemon Jvm Criteria When gradle sync fails Then MultipleGradleDaemons warning isn't displayed`() {
     val jdkFromJavaHomePath = "/test/jdk/path"
     val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
     whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
-    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, testRootDisposable)
+    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, projectRule.testRootDisposable)
 
-    project.createDaemonJvmPropertiesFile("invalid")
-    loadProjectAndExpectSyncError(TestProjectPaths.SIMPLE_APPLICATION)
-
-    notifications
-      .filter { GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId == it.groupId }
-      .run { assertTrue(isEmpty()) }
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.root.createDaemonJvmPropertiesFile("invalid")
+    preparedProject.openWithListener(updateOptions = { it -> it.copy(verifyOpened = ::assertSyncFailed) }) { project ->
+      notifications
+        .filter { GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId == it.groupId }
+        .run { assertThat(this).isEmpty() }
+    }
   }
 
+  @Test
   fun `test Given different jdkFromJavaHomePath and jdkPath When sync finished Then MultipleGradleDaemons warning is displayed`() {
     val jdkFromJavaHomePath = "/test/jdk/path"
     val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
     whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
-    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, testRootDisposable)
+    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, projectRule.testRootDisposable)
 
-    loadSimpleApplication()
-
-    notifications
-      .filter { GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId == it.groupId }
-      .run {
-        Truth.assertThat(this).hasSize(1)
-        assertEquals(createWarningMessageMultipleGradleDaemons(jdkFromJavaHomePath), first().content)
+    projectRule
+      .prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+      .openWithListener { project ->
+        notifications
+          .filter { GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId == it.groupId }
+          .run {
+            assertThat(this).hasSize(1)
+            assertThat(first().content).isEqualTo(createWarningMessageMultipleGradleDaemons(project, jdkFromJavaHomePath))
+          }
       }
   }
 
+  @Test
   fun `test Given same jdkFromJavaHomePath and jdkPath When sync finished Then MultipleGradleDaemons warning isn't displayed`() {
-    val jdkFromJavaHomePath = GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty())
+    val defaultProject = ProjectManager.getInstance().defaultProject
+    val jdkFromJavaHomePath = GradleInstallationManager.getInstance().getGradleJvmPath(defaultProject, defaultProject.basePath.orEmpty())
     val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
     whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(jdkFromJavaHomePath)
-    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, testRootDisposable)
+    ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, projectRule.testRootDisposable)
 
-    loadSimpleApplication()
-
-    notifications
-      .filter { GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId == it.groupId }
-      .run { assertTrue(isEmpty()) }
+    projectRule
+      .prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+      .openWithListener { project ->
+        notifications
+          .filter { GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId == it.groupId }
+          .run { assertThat(this).isEmpty() }
+    }
   }
 
   private fun createWarningMessageMultipleGradleDaemons(
+    project: Project,
     jdkFromJavaHomePath: String? = null
   ) = StringBuilder().apply {
     append(
