@@ -453,6 +453,8 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     if (!content.supportsFiltering()) {
       return null;
     }
+
+    if (actionToolbar.getActions().isEmpty()) return null;
     return ActionToolbarUtil.findActionButton(actionToolbar, actionToolbar.getActions().get(0));
   }
 
