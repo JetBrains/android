@@ -29,12 +29,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
 import com.google.common.io.MoreFiles;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.devtools.build.lib.view.proto.Deps;
 import com.google.idea.blaze.base.bazel.BazelExitCodeException;
 import com.google.idea.blaze.base.bazel.BazelExitCodeException.ThrowOption;
 import com.google.idea.blaze.base.bazel.BuildSystem;
@@ -106,7 +106,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.VisibleForTesting;
-import com.google.devtools.build.lib.view.proto.Deps;
 
 /** An object that knows how to build dependencies for given targets */
 public class BazelDependencyBuilder implements DependencyBuilder, BazelDependencyBuilderPublicForTests {
@@ -293,7 +292,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     querySyncFlags.add("--keep_going");
     querySyncFlags.addAll(
       outputGroups.stream()
-            .map(g -> "--output_groups=" + g.outputGroupName())
+            .map(g -> "--output_groups=" + g.getOutputGroupName())
             .collect(toImmutableList()));
 
     return new BuildDependenciesBazelInvocationInfo(querySyncFlags.build(), ImmutableSet.copyOf(outputGroups), invocationFiles.files());
@@ -544,9 +543,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
                             totalFilesToFetch, StringUtilRt.formatFileSize(totalBytesToFetch))));
     }
 
-    ImmutableSet.Builder<JavaArtifacts> artifactInfoFilesBuilder = ImmutableSet.builder();
-    ImmutableSet.Builder<Deps.Dependencies> jdepsBuilder = ImmutableSet.builder();
-    ImmutableSet.Builder<CcCompilationInfo> ccInfoBuilder = ImmutableSet.builder();
+    ImmutableList.Builder<CcCompilationInfo> ccInfoBuilder = ImmutableList.builder();
 
     Map<Path, JavaArtifacts> artifactInfos =
         readAndTransformInfoFiles(context, artifactInfoFiles, this::readArtifactInfoFile);
@@ -555,8 +552,6 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     Map<Path, Deps.Dependencies> jdeps =
       readAndTransformInfoFiles(context, compileJdepsFiles, this::readJdepsFile);
 
-    artifactInfoFilesBuilder.addAll(artifactInfos.values());
-    jdepsBuilder.addAll(jdeps.values());
     ccInfoBuilder.addAll(ccInfos.values());
 
     long elapsed = System.currentTimeMillis() - startTime;
@@ -571,18 +566,16 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
             blazeBuildOutputs.buildId(), buildTime);
 
     return OutputInfo.create(
-        Multimaps.filterKeys(
-            allArtifacts,
-            it -> it != OutputGroup.ARTIFACT_INFO_FILE && it != OutputGroup.JDEPS && it != OutputGroup.CC_INFO_FILE),
-        artifactInfoFilesBuilder.build(),
-        jdepsBuilder.build(),
-        ccInfoBuilder.build(),
-        blazeBuildOutputs.targetsWithErrors().stream()
-            .map(Object::toString)
-            .map(Label::of)
-            .collect(toImmutableSet()),
-        blazeBuildOutputs.buildResult().exitCode,
-        buildContext);
+      allArtifacts,
+      artifactInfos,
+      jdeps,
+      ccInfoBuilder.build(),
+      blazeBuildOutputs.targetsWithErrors().stream()
+        .map(Object::toString)
+        .map(Label::of)
+        .collect(toImmutableSet()),
+      blazeBuildOutputs.buildResult().exitCode,
+      buildContext);
   }
 
   @FunctionalInterface

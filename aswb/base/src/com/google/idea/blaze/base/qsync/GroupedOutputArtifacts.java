@@ -41,7 +41,7 @@ public class GroupedOutputArtifacts {
     ImmutableListMultimap.Builder<OutputGroup, OutputArtifact> builder = builder();
     for (OutputGroup group : outputGroups) {
       ImmutableList<OutputArtifact> artifacts =
-        buildOutputs.getOutputGroupArtifacts(group.outputGroupName());
+        buildOutputs.getOutputGroupArtifacts(group.getOutputGroupName());
       builder.putAll(group, artifacts);
     }
     return builder.build();

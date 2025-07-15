@@ -3,7 +3,10 @@ load("//tools/base/bazel:proto.bzl", "java_proto_library")
 
 aswb_library(
     name = "deps",
-    srcs = glob(["*.java"]),
+    srcs = glob([
+        "*.java",
+        "*.kt",
+    ]),
     visibility = [
         "//tools/adt/idea/aswb:__subpackages__",
         "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:__subpackages__",

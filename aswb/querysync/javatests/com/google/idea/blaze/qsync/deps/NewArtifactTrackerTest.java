@@ -46,6 +46,7 @@ import com.google.idea.blaze.qsync.java.ArtifactTrackerProto.Metadata;
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
 import com.google.idea.blaze.qsync.java.JavaTargetInfo.JavaArtifacts;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.After;
@@ -70,7 +71,7 @@ public class NewArtifactTrackerTest {
   @Rule public TemporaryFolder cacheDir = new TemporaryFolder();
 
   @Mock(strictness = Strictness.STRICT_STUBS) BuildArtifactCache cache;
-  @Captor ArgumentCaptor<ImmutableCollection<OutputArtifact>> cachedArtifactsCaptor;
+  @Captor ArgumentCaptor<Collection<OutputArtifact>> cachedArtifactsCaptor;
 
   private Map<Label, ImmutableSetMultimap<BuildArtifact, ArtifactMetadata.Extractor<?>>>
     artifactMetadataMap = Maps.newHashMap();

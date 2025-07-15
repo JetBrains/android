@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.idea.blaze.qsync.deps;
+package com.google.idea.blaze.qsync.deps
 
-/** Represents an output group produced by the {@code build_dependencies.bzl} aspect. */
-public enum OutputGroup {
-  JARS("qs_jars"),
+/** Represents an output group produced by the `build_dependencies.bzl` aspect.  */
+enum class OutputGroup(
+  val outputGroupName: String,
+
+  /**
+   * Indicates whether artifacts need to be added to the artifact tracker.
+   */
+  val usedBySymbolResolution: Boolean = false
+) {
+  JARS("qs_jars", usedBySymbolResolution = true),
   TRANSITIVE_RUNTIME_JARS("qs_transitive_runtime_jars"),
-  AARS("qs_aars"),
-  GENSRCS("qs_gensrcs"),
+  AARS("qs_aars", usedBySymbolResolution = true),
+  GENSRCS("qs_gensrcs", usedBySymbolResolution = true),
   ARTIFACT_INFO_FILE("qs_info"),
   JDEPS("qs_jdeps"),
-  CC_HEADERS("qs_cc_headers"),
+  CC_HEADERS("qs_cc_headers", usedBySymbolResolution = true),
   CC_INFO_FILE("qs_cc_info");
-
-  private final String name;
-
-  OutputGroup(String name) {
-    this.name = name;
-  }
-
-  public String outputGroupName() {
-    return name;
-  }
 }

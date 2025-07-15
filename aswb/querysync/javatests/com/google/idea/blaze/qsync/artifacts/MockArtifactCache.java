@@ -17,6 +17,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +40,7 @@ public class MockArtifactCache implements BuildArtifactCache {
 
   @Override
   public ListenableFuture<ImmutableMap<String, Path>> addAll(
-      ImmutableCollection<OutputArtifact> artifacts, Context<?> context) {
+    Collection<? extends OutputArtifact> artifacts, Context<?> context) {
     throw new UnsupportedOperationException();
   }
 

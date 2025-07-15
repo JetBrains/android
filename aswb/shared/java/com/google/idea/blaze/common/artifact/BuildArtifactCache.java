@@ -24,6 +24,7 @@ import com.google.idea.blaze.common.Context;
 import com.google.idea.blaze.exception.BuildException;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -81,7 +82,7 @@ public interface BuildArtifactCache {
    * @return A future that will complete once all artifacts have been added to the cache. The future
    *     will fail if we fail to add any artifact to the cache.
    */
-  ListenableFuture<?> addAll(ImmutableCollection<OutputArtifact> artifacts, Context<?> context);
+  ListenableFuture<?> addAll(Collection<? extends OutputArtifact> artifacts, Context<?> context);
 
   /**
    * Returns a bytesource of an artifact that was previously added to the cache.

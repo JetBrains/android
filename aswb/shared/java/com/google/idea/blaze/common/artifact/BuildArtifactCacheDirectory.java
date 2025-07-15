@@ -53,6 +53,7 @@ import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
@@ -271,7 +272,7 @@ public class BuildArtifactCacheDirectory implements BuildArtifactCache {
    */
   @Override
   public ListenableFuture<?> addAll(
-      ImmutableCollection<OutputArtifact> artifacts, Context<?> context) {
+    Collection<? extends OutputArtifact> artifacts, Context<?> context) {
     // acquire the read lock to ensure that no clean is ongoing:
     long stamp = lock.readLock();
     try {

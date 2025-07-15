@@ -149,11 +149,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
       OutputInfo outputInfo, DigestMap digestMap) {
 
     ImmutableSet.Builder<TargetBuildInfo> targetBuildInfoSet = ImmutableSet.builder();
-    for (JavaArtifacts javaTarget : outputInfo.getArtifactInfo()) {
-      String target  = javaTarget.getTarget();
-      if (target.startsWith("@@")) {
-        target = target.substring(2);
-      }
+    for (JavaArtifacts javaTarget : outputInfo.getJavaArtifactInfo().values()) {
       JavaArtifactInfo artifactInfo = JavaArtifactInfo.create(javaTarget, digestMap);
       TargetBuildInfo targetInfo =
           TargetBuildInfo.forJavaTarget(artifactInfo, outputInfo.getBuildContext());
@@ -347,7 +343,7 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
   @Override
   public void update(Set<Label> targets, OutputInfo outputInfo, C context) throws BuildException {
     ListenableFuture<?> artifactsCached =
-        artifactCache.addAll(outputInfo.getOutputGroups().values(), context);
+        artifactCache.addAll(outputInfo.getAllJavaArtifacts(), context);
     try {
       Object unused = Uninterruptibles.getUninterruptibly(Futures.allAsList(artifactsCached));
     } catch (ExecutionException e) {
@@ -356,11 +352,11 @@ public class NewArtifactTracker<C extends Context<C>> implements ArtifactTracker
 
     DigestMap digestMap =
         new DigestMapImpl(
-            outputInfo.getOutputGroups().values().stream()
+            outputInfo.getAllJavaArtifacts().stream()
                 .map(a -> new SimpleEntry<>(a.getArtifactPath(), a.getDigest()))
                 .distinct()
                 .collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)),
-            outputInfo.getTargetsWithErrors());
+            ImmutableSet.copyOf(outputInfo.getTargetsWithErrors()));
 
     final var sw = Stopwatch.createStarted();
     Map<Label, TargetBuildInfo> newTargetInfo =
