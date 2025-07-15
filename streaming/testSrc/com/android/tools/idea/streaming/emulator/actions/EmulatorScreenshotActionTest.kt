@@ -37,12 +37,13 @@ import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
+import com.android.tools.idea.ui.screenshot.DeviceScreenshotSettings
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.components.service
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
@@ -51,12 +52,6 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.EDT
-import kotlinx.coroutines.runBlocking
-import org.intellij.images.editor.ImageFileEditor
-import org.junit.After
-import org.junit.Assume.assumeFalse
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.IOException
@@ -65,6 +60,12 @@ import javax.imageio.ImageIO
 import javax.swing.JComboBox
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.runBlocking
+import org.intellij.images.editor.ImageFileEditor
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /** Tests for [EmulatorScreenshotAction]. */
 @Suppress("OPT_IN_USAGE")
@@ -86,6 +87,11 @@ class EmulatorScreenshotActionTest {
   private val project get() = projectRule.project
   private val testRootDisposable get() = projectRule.disposable
 
+  @Before
+  fun setUp() {
+    service<DeviceScreenshotSettings>().loadState(DeviceScreenshotSettings())
+  }
+
   @After
   fun tearDown() {
     do {
@@ -94,11 +100,11 @@ class EmulatorScreenshotActionTest {
     } while (dialog != null)
 
     waitUntilIndexesAreReady(project) // Closing a screenshot viewer triggers deletion of the backing file and indexing.
+    service<DeviceScreenshotSettings>().loadState(DeviceScreenshotSettings())
   }
 
   @Test
   fun testAction() {
-    assumeFalse(SystemInfo.isWindows) // b/430543555
     avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot)
     waitForDisplayViews(1)
 
@@ -109,7 +115,7 @@ class EmulatorScreenshotActionTest {
     val clipComboBox = ui.getComponent<JComboBox<*>>()
 
     screenshotViewer.waitForUpdateAndGetImage()
-    clipComboBox.selectFirstMatch("Display Shape")
+    assertThat(clipComboBox.selectedItem?.toString()).isEqualTo("Display Shape")
     assertAppearance(screenshotViewer.waitForUpdateAndGetImage(), "WithoutFrame")
 
     clipComboBox.selectFirstMatch("Show Device Frame")

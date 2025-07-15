@@ -29,12 +29,12 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 /** Settings for screenshots of Android devices. */
 @Service
 @State(name = "DeviceScreenshotSettings", storages = [Storage(NON_ROAMABLE_FILE)])
-internal class DeviceScreenshotSettings : PersistentStateComponent<DeviceScreenshotSettings> {
+class DeviceScreenshotSettings : PersistentStateComponent<DeviceScreenshotSettings> {
 
-  var saveConfig: SaveConfiguration = SaveConfiguration().apply { filenameTemplate = "Screenshot_<yyyy><MM><dd>_<HH><mm><ss>" }
-  var scale: Double = 1.0
-  var frameScreenshot: Boolean = false
-  var screenshotCount: Int = 0
+  internal var saveConfig: SaveConfiguration = SaveConfiguration().apply { filenameTemplate = "Screenshot_<yyyy><MM><dd>_<HH><mm><ss>" }
+  internal var scale: Double = 1.0
+  internal var frameScreenshot: Boolean = false
+  internal var screenshotCount: Int = 0
 
   override fun getState(): DeviceScreenshotSettings = this
 
