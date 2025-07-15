@@ -161,7 +161,7 @@ class InsightToolbarPanelTest {
     val toolbar =
       fakeUi.findComponent<ActionToolbarImpl> { it.place == INSIGHT_TOOLBAR }
         ?: fail("Toolbar not found")
-    assertThat(toolbar.actions.size).isEqualTo(4)
+    assertThat(toolbar.actions.size).isEqualTo(3)
     val copyAction = toolbar.actions[0]
 
     CopyPasteManager.copyTextToClipboard("default text")

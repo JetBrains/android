@@ -239,7 +239,6 @@ class LogcatMainPanelTest {
         "-",
         "Take Screenshot",
         "Record Screen",
-        "-", // ActionManager.createActionToolbar() seems to add a separator at the end
       )
       .inOrder()
     toolbar.actions.forEach { assertThat(it).isInstanceOf(DumbAware::class.java) }
