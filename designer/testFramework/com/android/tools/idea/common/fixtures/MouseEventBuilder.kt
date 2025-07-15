@@ -35,9 +35,15 @@ open class MouseEventBuilder(
   private var myMask = 0
   private var myClickCount = 1
   private var myId = 0
+  private var myIsPopupTrigger = false
 
   private var screenLocationX: Int = myX
   private var screenLocationY: Int = myY
+
+  open fun withPopupTrigger(): MouseEventBuilder {
+    myIsPopupTrigger = true
+    return this
+  }
 
   open fun withSource(source: Any): MouseEventBuilder {
     mySource = source
@@ -104,6 +110,7 @@ open class MouseEventBuilder(
     whenever(event.clickCount).thenReturn(myClickCount)
     whenever(event.getWhen()).thenReturn(System.currentTimeMillis())
     whenever(event.id).thenReturn(myId)
+    whenever(event.isPopupTrigger).thenReturn(myIsPopupTrigger)
     return event
   }
 }
