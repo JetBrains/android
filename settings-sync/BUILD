@@ -7,6 +7,7 @@ iml_module(
     iml_files = ["intellij.android.settings-sync.iml"],
     kotlin_use_compose = True,
     resources = ["resources"],
+    test_class = "com.android.tools.idea.settingssync.SettingsSyncTestSuite",
     # do not sort: must match IML order
     test_deps = [
         "@intellij//:test-framework",
@@ -19,6 +20,7 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing",
         "//tools/adt/idea/.idea/libraries:mockito",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose.tests",
+        "//tools/adt/idea/android:intellij.android.core.tests",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

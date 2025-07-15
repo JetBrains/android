@@ -49,6 +49,7 @@ import com.google.wireless.android.sdk.stats.GoogleLoginPluginEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.SettingsCategory
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.settingsSync.core.ServerState
 import com.intellij.settingsSync.core.SettingsSyncLocalSettings
@@ -431,9 +432,12 @@ class WizardFlowTest {
       this[1].assertIsDisplayed()
     }
 
-    // explicit remote copy date check
-    composeTestRule.onNodeWithText("Last updated: 5/8/24", substring = true).assertIsDisplayed()
-
+    // explicit remote copy date check which behaves differently based on OS in DateFormatUtil
+    if (SystemInfo.isWindows) {
+      composeTestRule.onNodeWithText("Last updated: 5/8/2024", substring = true).assertIsDisplayed()
+    } else {
+      composeTestRule.onNodeWithText("Last updated: 5/8/24", substring = true).assertIsDisplayed()
+    }
     // remote/local build info
     with(
       composeTestRule.onAllNodesWithText(
