@@ -138,7 +138,7 @@ class StudioRendererPanelTest {
   }
 
   @Test
-  fun testScreenWithLeftBorder() {
+  fun testBoundsOverflowRight() {
     val inspectorModelWithLeftBorder =
       model(disposable) {
         view(ROOT, 10, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
@@ -149,7 +149,9 @@ class StudioRendererPanelTest {
 
     val renderModel =
       RenderModel(inspectorModelWithLeftBorder, mock(), treeSettings) { DisconnectedClient }
-    val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
+    val renderLogic = RenderLogic(renderModel, renderSettings)
+    val layoutInspectorRenderer =
+      createRenderer(renderModel = renderModel, renderLogic = renderLogic)
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -157,10 +159,10 @@ class StudioRendererPanelTest {
   }
 
   @Test
-  fun testScreenWithRightBorder() {
+  fun testBoundsOverflowLeft() {
     val inspectorModelWithRightBorder =
       model(disposable) {
-        view(ROOT, 0, 0, deviceScreenDimension.width - 10, deviceScreenDimension.height) {
+        view(ROOT, -10, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
           view(VIEW1, 10, 15, 25, 25) { image() }
         }
       }
@@ -168,7 +170,8 @@ class StudioRendererPanelTest {
 
     val renderModel =
       RenderModel(inspectorModelWithRightBorder, mock(), treeSettings) { DisconnectedClient }
-    val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
+    val renderLogic = RenderLogic(renderModel, renderSettings)
+    val layoutInspectorRenderer = createRenderer(renderModel = renderModel, renderLogic)
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -176,7 +179,7 @@ class StudioRendererPanelTest {
   }
 
   @Test
-  fun testScreenWithTopBorder() {
+  fun testBoundsOverflowBottom() {
     val inspectorModelWithTopBorder =
       model(disposable) {
         view(ROOT, 0, 10, deviceScreenDimension.width, deviceScreenDimension.height) {
@@ -187,7 +190,9 @@ class StudioRendererPanelTest {
 
     val renderModel =
       RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
-    val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
+    val renderLogic = RenderLogic(renderModel, renderSettings)
+    val layoutInspectorRenderer =
+      createRenderer(renderModel = renderModel, renderLogic = renderLogic)
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -195,10 +200,10 @@ class StudioRendererPanelTest {
   }
 
   @Test
-  fun testScreenWithBottomBorder() {
+  fun testBoundsOverflowTop() {
     val inspectorModelWithTopBorder =
       model(disposable) {
-        view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height - 10) {
+        view(ROOT, 0, -10, deviceScreenDimension.width, deviceScreenDimension.height) {
           view(VIEW1, 10, 15, 25, 25) { image() }
         }
       }
@@ -206,7 +211,9 @@ class StudioRendererPanelTest {
 
     val renderModel =
       RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
-    val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
+    val renderLogic = RenderLogic(renderModel, renderSettings)
+    val layoutInspectorRenderer =
+      createRenderer(renderModel = renderModel, renderLogic = renderLogic)
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -236,13 +243,6 @@ class StudioRendererPanelTest {
     // test all possible combinations of rotations
     val combinations = allPossibleCombinations(listOf(0, 1, 2, 3), listOf(0, 90, 180, 270))
     combinations.forEach {
-      val inspectorModelWithTopBorder =
-        model(disposable) {
-          view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height - 10) {
-            view(VIEW1, 10, 15, 25, 25) { image() }
-          }
-        }
-      inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
       verticalInspectorModel.resourceLookup.displayOrientation = it.deviceRotation
       val inspectorModel =
         when (it.deviceRotation) {
@@ -260,12 +260,9 @@ class StudioRendererPanelTest {
           else -> throw IllegalArgumentException()
         }
 
-      val renderModel =
-        RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
       val quadrant = calculateRotationCorrection(inspectorModel, { it.displayQuadrant }, { 0 })
 
-      val layoutInspectorRenderer =
-        createRenderer(renderModel = renderModel, displayOrientation = quadrant)
+      val layoutInspectorRenderer = createRenderer(displayOrientation = quadrant)
 
       val renderImage = createRenderImage()
       paint(renderImage, layoutInspectorRenderer, displayQuadrant = it.displayQuadrant)
@@ -515,13 +512,19 @@ class StudioRendererPanelTest {
 
     val renderModel =
       RenderModel(inspectorModelWithLeftBorder, mock(), treeSettings) { DisconnectedClient }
+    val renderLogic = RenderLogic(renderModel, renderSettings)
+
     val notificationModel = NotificationModel(projectRule.project)
     var seenNotificationIds = listOf<String>()
     notificationModel.notificationListeners.add {
       seenNotificationIds = notificationModel.notifications.map { it.id }
     }
     val layoutInspectorRenderer =
-      createRenderer(renderModel = renderModel, notificationModel = notificationModel)
+      createRenderer(
+        renderModel = renderModel,
+        renderLogic = renderLogic,
+        notificationModel = notificationModel,
+      )
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -617,6 +620,7 @@ class StudioRendererPanelTest {
 
   private fun createRenderer(
     renderModel: RenderModel = this.renderModel,
+    renderLogic: RenderLogic = this.renderLogic,
     deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle,
     displayOrientation: Int = 0,
     notificationModel: NotificationModel = NotificationModel(projectRule.project),
