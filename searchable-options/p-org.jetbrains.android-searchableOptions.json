@@ -20,5 +20,6 @@
 {"id":"device.screenrecording","name":"Screen Recordings","entries":[{"hit":"After Saving:"},{"hit":"Do nothing"},{"hit":"Filename:"},{"hit":"Open"},{"hit":"Preview:"},{"hit":"Save Location:"},{"hit":"Screen Recordings"}]}
 {"id":"gradle.compiler","name":"Gradle-Android Compiler","entries":[{"hit":"\nNote: These settings are used for compiling Gradle-based Android projects."},{"hit":"Command-line Options:"},{"hit":"Compile independent modules in parallel (may require larger heap size)"},{"hit":"Continue the build after failures"},{"hit":"Gradle-Android Compiler"}]}
 {"id":"layout.inspector","name":"Layout Inspector","entries":[{"hit":"Enable auto connect (requires a restart of Android Studio)"},{"hit":"Enable embedded Layout Inspector"},{"hit":"Layout Inspector"},{"hit":"Learn More"}]}
+{"id":"studioLabs","name":"Studio Labs","entries":[{"hit":"Studio Labs"}]}
 {"id":"DeclarativeFocus","name":"Gradle Declarative Focus"}
 {"id":"build.tools","name":"Build Tools","entries":[{"hit":"Always Sync projects automatically (default)"},{"hit":"Build Tools"},{"hit":"Manual Sync with reminders"},{"hit":"Project Sync mode"}]}
