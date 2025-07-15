@@ -2644,7 +2644,7 @@ public final class StudioFlags {
       "gradle.files.in.module",
       "Show UI for having build files per module",
       "When enabled, the settings menu will show a checkbox to change the behavior of the Android view to display gradle files under each module",
-      true);
+      enabledUpTo(CANARY));
   // endregion PROJECT_TOOL_WINDOW
 
   // region Wifi 2.0
