@@ -28,6 +28,7 @@ import com.android.backup.BackupService
 import com.android.backup.BackupType
 import com.android.backup.ErrorCode.APP_NOT_DEBUGGABLE
 import com.android.backup.ErrorCode.APP_NOT_INSTALLED
+import com.android.backup.ErrorCode.BACKUP_MANAGER_IS_NOT_RUNNING
 import com.android.backup.ErrorCode.BACKUP_NOT_ACTIVATED
 import com.android.backup.ErrorCode.BACKUP_NOT_ENABLED
 import com.android.backup.ErrorCode.BACKUP_NOT_SUPPORTED
@@ -393,6 +394,7 @@ internal constructor(
       BACKUP_NOT_ENABLED -> false
       BMGR_ERROR_BACKUP -> false
       BMGR_ERROR_RESTORE -> false
+      BACKUP_MANAGER_IS_NOT_RUNNING -> false
       else -> true
     }
   }
