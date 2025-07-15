@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.util.concurrent.Futures.immediateFuture;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static com.intellij.openapi.util.text.StringUtil.sanitizeJavaIdentifier;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -91,6 +92,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -546,16 +548,16 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     ImmutableSet.Builder<Deps.Dependencies> jdepsBuilder = ImmutableSet.builder();
     ImmutableSet.Builder<CcCompilationInfo> ccInfoBuilder = ImmutableSet.builder();
 
-    List<JavaArtifacts> artifactInfos =
+    Map<Path, JavaArtifacts> artifactInfos =
         readAndTransformInfoFiles(context, artifactInfoFiles, this::readArtifactInfoFile);
-    List<CcCompilationInfo> ccInfos =
+    Map<Path, CcCompilationInfo> ccInfos =
         readAndTransformInfoFiles(context, ccArtifactInfoFiles, this::readCcInfoFile);
-    List<Deps.Dependencies> jdeps =
+    Map<Path, Deps.Dependencies> jdeps =
       readAndTransformInfoFiles(context, compileJdepsFiles, this::readJdepsFile);
 
-    artifactInfoFilesBuilder.addAll(artifactInfos);
-    jdepsBuilder.addAll(jdeps);
-    ccInfoBuilder.addAll(ccInfos);
+    artifactInfoFilesBuilder.addAll(artifactInfos.values());
+    jdepsBuilder.addAll(jdeps.values());
+    ccInfoBuilder.addAll(ccInfos.values());
 
     long elapsed = System.currentTimeMillis() - startTime;
     if (shouldLog) {
@@ -588,7 +590,7 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     R apply(T t) throws BuildException;
   }
 
-  private <T> ImmutableList<T> readAndTransformInfoFiles(
+  private <T> ImmutableMap<Path, T> readAndTransformInfoFiles(
       Context<?> context,
       ImmutableList<OutputArtifact> artifactInfoFiles,
       CheckedTransform<ByteSource, T> transform)
@@ -611,34 +613,34 @@ public class BazelDependencyBuilder implements DependencyBuilder, BazelDependenc
     context.output(
         PrintOutput.output(
             "Fetched %d info files in %sms", artifactInfoFiles.size(), sw.elapsed().toMillis()));
-    ImmutableList<ListenableFuture<CachedArtifact>> artifactFutures =
+    ImmutableList<ListenableFuture<AbstractMap.SimpleEntry<Path, CachedArtifact>>> artifactFutures =
         artifactInfoFiles.stream()
-            .map(OutputArtifact::getDigest)
             .map(
-                digest -> {
-                  final var result = buildArtifactCache.get(digest);
+                it -> {
+                  final var result = buildArtifactCache.get(it.getDigest());
                   if (result.isEmpty()) {
                     context.output(
-                        PrintOutput.error("Failed to get artifact future for: " + digest));
+                        PrintOutput.error("Failed to get artifact future for: " + it.getDigest()));
                     context.setHasError();
                   }
-                  return result;
+                  return result.map(
+                    future -> Futures.transform(future, a -> new AbstractMap.SimpleEntry<>(it.getArtifactPath(), a), directExecutor()));
                 })
             .filter(Optional::isPresent)
             .map(Optional::get)
             .collect(toImmutableList());
 
-    ImmutableList<ListenableFuture<T>> futures =
+    ImmutableList<ListenableFuture<AbstractMap.SimpleEntry<Path, T>>> futures =
         artifactFutures.stream()
             .map(
                 it ->
                     Futures.transformAsync(
                         it,
-                        a -> immediateFuture(transform.apply(a.byteSource())),
+                        a -> immediateFuture(new AbstractMap.SimpleEntry<>(a.getKey(), transform.apply(a.getValue().byteSource()))),
                         FetchExecutor.EXECUTOR))
             .collect(toImmutableList());
     try {
-      return ImmutableList.copyOf(Futures.allAsList(futures).get());
+      return ImmutableMap.copyOf(Futures.allAsList(futures).get());
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new BuildException(e);
