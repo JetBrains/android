@@ -43,12 +43,15 @@ interface OutputInfo {
 
   val buildContext: DependencyBuildContext
 
+  fun getDependencies(target: Label): List<Label>
+
   @VisibleForTesting
   data class Data(
     override val javaArtifactInfo: Map<Label, JavaArtifacts>,
     override val compileJdeps: Map<Label, Deps.Dependencies>,
     override val ccCompilationInfo: List<CcCompilationInfo>,
     private val artifacts: Map<OutputGroup, List<OutputArtifact>>,
+    private val infoFileToLabel: Map<Path, Label>,
     override val exitCode: Int,
     override val buildContext: DependencyBuildContext,
     override val targetsWithErrors: Set<Label>,
@@ -63,6 +66,13 @@ interface OutputInfo {
       get() = artifacts[OutputGroup.GENSRCS].orEmpty()
     override val isEmpty: Boolean
       get() = artifacts.isEmpty() && ccCompilationInfo.isEmpty()
+
+    override fun getDependencies(target: Label): List<Label> {
+      return javaArtifactInfo[target]
+        ?.depJavaInfoFilesList
+        ?.map { infoFileToLabel[Path.of(it.getFile())] ?: error("Unknown info artifact: $it") }
+        .orEmpty()
+    }
   }
 
   companion object {
@@ -73,6 +83,7 @@ interface OutputInfo {
         compileJdeps = emptyMap(),
         ccCompilationInfo = emptyList(),
         artifacts = emptyMap(),
+        infoFileToLabel = emptyMap(),
         exitCode = 0,
         buildContext = DependencyBuildContext.NONE,
         targetsWithErrors = emptySet(),
@@ -101,6 +112,7 @@ interface OutputInfo {
           .associate { (jdepsArtifactPathToTarget[it.key] ?: error("Unknown compileJdeps artifact path: ${it.key}")) to it.value },
         ccCompilationInfo = ccInfo,
         artifacts = allArtifacts.asMap().mapValues { it.value.toList() },
+        infoFileToLabel = javaArtifacts.mapValues { Label.of(it.value.target) },
         exitCode = exitCode,
         buildContext = buildContext,
         targetsWithErrors = targetWithErrors
