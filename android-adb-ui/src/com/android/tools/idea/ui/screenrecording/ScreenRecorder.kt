@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.android.tools.idea.ui.save.PostSaveAction
 import com.android.tools.idea.ui.save.SaveConfigurationResolver
-import com.intellij.CommonBundle
-import com.intellij.ide.actions.RevealFileAction
+import com.intellij.ide.actions.RevealFileAction.openFile
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.service
@@ -39,7 +37,6 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -120,18 +117,12 @@ internal class ScreenRecorder(
       return
     }
 
-    val recordingFile = if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
-      delay(200) // Wait for the video file to be finalized.
-      val saveConfigResolver = project.service<SaveConfigurationResolver>()
-      val saveConfig = settings.saveConfig
-      val expandedFilename =
-          saveConfigResolver.expandFilenamePattern(saveConfig.saveLocation, saveConfig.filenameTemplate, recordingProvider.fileExtension,
-                                                   recordingTimestamp, settings.recordingCount + 1)
-      Paths.get(expandedFilename)
-    }
-    else {
-      getTargetFile(recordingProvider.fileExtension) ?: return
-    }
+    val saveConfigResolver = project.service<SaveConfigurationResolver>()
+    val saveConfig = settings.saveConfig
+    val expandedFilename =
+      saveConfigResolver.expandFilenamePattern(saveConfig.saveLocation, saveConfig.filenameTemplate, recordingProvider.fileExtension,
+                                               recordingTimestamp, settings.recordingCount + 1)
+    val recordingFile = Paths.get(expandedFilename)
 
     try {
       recordingProvider.pullRecording(recordingFile)
@@ -147,7 +138,11 @@ internal class ScreenRecorder(
       return
     }
 
-    handleSavedRecording(recordingFile)
+    when (settings.saveConfig.postSaveAction) {
+      PostSaveAction.NONE -> {}
+      PostSaveAction.SHOW_IN_FOLDER -> openFile(recordingFile)
+      PostSaveAction.OPEN -> openSavedFile(recordingFile)
+    }
   }
 
   private fun closeDialog(dialog: DialogWrapper) {
@@ -183,52 +178,6 @@ internal class ScreenRecorder(
     val filename = "Screen_recording_$timestampSuffix"
     // Add extension to filename on Mac only see: b/38447816.
     return if (SystemInfo.isMac) "$filename.$extension" else filename
-  }
-
-  private suspend fun handleSavedRecording(file: Path) {
-    if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
-      when (settings.saveConfig.postSaveAction) {
-        PostSaveAction.NONE -> {}
-        PostSaveAction.SHOW_IN_FOLDER -> RevealFileAction.openFile(file)
-        PostSaveAction.OPEN -> openSavedFile(file)
-      }
-    }
-    else {
-      val message = message("screenrecord.action.view.recording", file)
-      val cancel = CommonBundle.getOkButtonText()
-      val icon = Messages.getInformationIcon()
-      if (RevealFileAction.isSupported()) {
-        val no = message("post.save.action.show.in", RevealFileAction.getFileManagerName())
-        val result = withContext(Dispatchers.EDT) {
-          Messages.showYesNoCancelDialog(
-            project,
-            message,
-            dialogTitle,
-            message("screenrecord.action.open"),
-            no,
-            cancel,
-            icon)
-        }
-        when (result) {
-          Messages.YES -> openSavedFile(file)
-          Messages.NO -> RevealFileAction.openFile(file)
-        }
-      }
-      else {
-        val result = withContext(Dispatchers.EDT) {
-          Messages.showOkCancelDialog(
-            project,
-            message,
-            dialogTitle,
-            message("screenrecord.action.open.file"),
-            cancel,
-            icon)
-        }
-        if (result == Messages.OK) {
-          openSavedFile(file)
-        }
-      }
-    }
   }
 
   /** Tries to open the given file in the associated application. */

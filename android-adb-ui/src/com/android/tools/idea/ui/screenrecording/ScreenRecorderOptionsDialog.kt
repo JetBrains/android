@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.help.AndroidWebHelpProvider.Companion.HELP_PREFIX
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.android.tools.idea.ui.save.SaveConfigurationResolver
@@ -91,15 +90,12 @@ internal class ScreenRecorderOptionsDialog(
             }
         }.contextHelp(message("screenrecord.options.use.emulator.recording.tooltip"))
       }
-
-      if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
-        row {
-          text(message("screenrecord.options.save.directory"))
-          text(saveLocation)
-            .applyToComponent { saveLocationText = this }
-          link(message("configure.save.link.text")) { configureSave() }
-            .align(AlignX.RIGHT)
-        }
+      row {
+        text(message("screenrecord.options.save.directory"))
+        text(saveLocation)
+          .applyToComponent { saveLocationText = this }
+        link(message("configure.save.link.text")) { configureSave() }
+          .align(AlignX.RIGHT)
       }
     }
   }

@@ -30,42 +30,26 @@ import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.adtui.swing.optionsAsString
 import com.android.tools.adtui.swing.selectFirstMatch
 import com.android.tools.analytics.UsageTrackerRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.disposable
-import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.ui.save.PostSaveAction
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
-import com.intellij.mock.Mock
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
-import com.intellij.openapi.fileChooser.FileChooserFactory
-import com.intellij.openapi.fileChooser.FileSaverDescriptor
-import com.intellij.openapi.fileChooser.FileSaverDialog
-import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl
-import com.intellij.openapi.fileEditor.FileEditorComposite
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.impl.EditorWindow
-import com.intellij.openapi.fileEditor.impl.FileEditorOpenOptions
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.IndexingTestUtil.Companion.waitUntilIndexesAreReady
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.EDT
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
@@ -77,8 +61,6 @@ import org.junit.Test
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.image.BufferedImage
-import java.io.File
-import java.nio.file.Path
 import javax.swing.JButton
 import javax.swing.JComboBox
 import javax.swing.UIManager
@@ -96,8 +78,6 @@ class ScreenshotViewerTest {
 
   private val testFrame = DeviceFramingOption("Test Frame", SKIN_FOLDER.resolve("pixel_4_xl"))
 
-  private val fileNamePrompts = mutableListOf<String>()
-  private val openedFiles = mutableListOf<String>()
   private val testRootDisposable
     get() = projectRule.disposable
   private val settings by lazy { DeviceScreenshotSettings.getInstance() }
@@ -136,7 +116,6 @@ class ScreenshotViewerTest {
 
   @Test
   fun testResolutionChange() {
-    StudioFlags.SCREENSHOT_RESIZING.overrideForTest(true, testRootDisposable)
     val settings = DeviceScreenshotSettings.getInstance()
     assertThat(settings.scale == 1.0)
     settings.scale = 0.5
@@ -349,31 +328,6 @@ class ScreenshotViewerTest {
 
   @Test
   fun testSave_Phone() {
-    StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(false, testRootDisposable)
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2400), 420)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
-    val tempFile = FileUtil.createTempFile("saved_screenshot", DOT_PNG)
-    overrideSaveFileDialog(tempFile)
-
-    viewer.clickDefaultButton()
-
-    EDT.dispatchAllInvocationEvents()
-    dispatchAllEventsInIdeEventQueue()
-    assertThat(fileNamePrompts).hasSize(1)
-    val parentPrefix = tempFile.parent.toString().replace(File.separatorChar, '/')
-    assertThat(fileNamePrompts[0]).matches("file://$parentPrefix/Screenshot_\\d\\d\\d\\d\\d\\d\\d\\d_\\d\\d\\d\\d\\d\\d")
-    assertThat(openedFiles).containsExactly("file://${tempFile.toString().replace(File.separatorChar, '/')}")
-    assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
-      DeviceScreenshotEvent.newBuilder()
-        .setDeviceType(DeviceScreenshotEvent.DeviceType.PHONE)
-        .setDecorationOption(DeviceScreenshotEvent.DecorationOption.RECTANGULAR)
-        .build()
-    )
-  }
-
-  @Test
-  fun testStreamlinedSave_Phone() {
-    StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(true, testRootDisposable)
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.HANDHELD, "Phone", PRIMARY_DISPLAY_ID, Dimension(1080, 2400), 420)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     service<DeviceScreenshotSettings>().saveConfig.postSaveAction = PostSaveAction.NONE
@@ -382,7 +336,6 @@ class ScreenshotViewerTest {
 
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
-    assertThat(fileNamePrompts).isEmpty()
     assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
       DeviceScreenshotEvent.newBuilder()
         .setDeviceType(DeviceScreenshotEvent.DeviceType.PHONE)
@@ -393,24 +346,17 @@ class ScreenshotViewerTest {
 
   @Test
   fun testSave_Wear() {
-    StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(false, testRootDisposable)
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, "Watch", PRIMARY_DISPLAY_ID, Dimension(454, 454), 320,
                                           isRoundDisplay = true)
     val viewer = createScreenshotViewer(screenshotImage, DeviceScreenshotDecorator())
     val ui = FakeUi(viewer.rootPane)
     val clipComboBox = ui.getComponent<JComboBox<*>>()
-    val tempFile = FileUtil.createTempFile("saved_screenshot", DOT_PNG)
-    overrideSaveFileDialog(tempFile)
 
     clipComboBox.selectFirstMatch("Play Store Compatible")
     viewer.clickDefaultButton()
 
     EDT.dispatchAllInvocationEvents()
     dispatchAllEventsInIdeEventQueue()
-    assertThat(fileNamePrompts).hasSize(1)
-    val parentPrefix = tempFile.parent.toString().replace(File.separatorChar, '/')
-    assertThat(fileNamePrompts[0]).matches("file://$parentPrefix/Screenshot_\\d\\d\\d\\d\\d\\d\\d\\d_\\d\\d\\d\\d\\d\\d")
-    assertThat(openedFiles).containsExactly("file://${tempFile.toString().replace(File.separatorChar, '/')}")
     assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
       DeviceScreenshotEvent.newBuilder()
         .setDeviceType(DeviceScreenshotEvent.DeviceType.WEAR)
@@ -495,35 +441,6 @@ class ScreenshotViewerTest {
                                   screenshotDecorator, framingOptions, 0, allowImageRotation = true)
     viewer.show()
     return viewer
-  }
-
-  @Suppress("UnstableApiUsage")
-  private fun overrideSaveFileDialog(file: File) {
-    val virtualFileWrapper = VirtualFileWrapper(file)
-    val factory = object : FileChooserFactoryImpl() {
-      override fun createSaveFileDialog(descriptor: FileSaverDescriptor, project: Project?): FileSaverDialog {
-        return object : FileSaverDialog {
-          override fun save(baseDir: VirtualFile?, filename: String?): VirtualFileWrapper {
-            fileNamePrompts.add("$baseDir/$filename")
-            return virtualFileWrapper
-          }
-          override fun save(baseDir: Path?, filename: String?) = virtualFileWrapper
-        }
-      }
-    }
-    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, testRootDisposable)
-
-    overrideFileEditorManager()
-  }
-
-  private fun overrideFileEditorManager() {
-    val fileEditorManager = object : Mock.MyFileEditorManager() {
-      override fun openFile(file: VirtualFile, window: EditorWindow?, options: FileEditorOpenOptions): FileEditorComposite {
-        openedFiles.add(file.toString())
-        return super.openFile(file, window, options)
-      }
-    }
-    projectRule.project.replaceService(FileEditorManager::class.java, fileEditorManager, testRootDisposable)
   }
 
   private fun UsageTrackerRule.screenshotEvents(): List<DeviceScreenshotEvent> =

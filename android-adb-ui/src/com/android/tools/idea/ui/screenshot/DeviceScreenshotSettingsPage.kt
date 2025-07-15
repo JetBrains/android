@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.screenshot
 
 import com.android.SdkConstants.EXT_PNG
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.AndroidAdbUiBundle.message
 import com.android.tools.idea.ui.save.SaveConfigurationPanel
 import com.intellij.openapi.options.BoundConfigurable
@@ -41,7 +40,5 @@ internal class DeviceScreenshotSettingsPage(private val project: Project) :
   class Provider(private val project: Project) : ConfigurableProvider() {
 
     override fun createConfigurable(): Configurable = DeviceScreenshotSettingsPage(project)
-
-    override fun canCreateConfigurable(): Boolean = StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()
   }
 }

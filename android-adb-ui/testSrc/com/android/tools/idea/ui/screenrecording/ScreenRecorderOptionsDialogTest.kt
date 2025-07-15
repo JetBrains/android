@@ -19,9 +19,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.disposable
-import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.ui.extractTextFromHtml
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -125,7 +123,6 @@ class ScreenRecorderOptionsDialogTest {
 
   @Test
   fun testPhysicalDeviceWithStreamlinedSave() {
-    StudioFlags.SCREENSHOT_STREAMLINED_SAVING.overrideForTest(true, testRootDisposable)
     assertThat(settings.bitRateMbps).isEqualTo(4)
     assertThat(settings.scale).isEqualTo(1.0)
     assertThat(settings.showTaps).isEqualTo(false)

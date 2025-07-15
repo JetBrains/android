@@ -38,9 +38,6 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.fileChooser.FileChooserFactory
-import com.intellij.openapi.fileChooser.FileSaverDescriptor
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
 import com.intellij.openapi.fileTypes.NativeFileType.openAssociatedApplication
@@ -248,21 +245,17 @@ class ScreenshotViewer(
       row {
         cell(imageFileEditor.component).align(Align.FILL)
       }.resizableRow()
-      if (StudioFlags.SCREENSHOT_RESIZING.get()) {
-        row(message("screenshot.options.resolution")) {
-          comboBox(listOf(100, 50, 25))
-            .onChanged { updateScale(it.item / 100.0) }
-            .applyToComponent { item = (scale * 100).roundToInt() }
-        }
+      row(message("screenshot.options.resolution")) {
+        comboBox(listOf(100, 50, 25))
+          .onChanged { updateScale(it.item / 100.0) }
+          .applyToComponent { item = (scale * 100).roundToInt() }
       }
-      if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
-        row {
-          text(message("screenrecord.options.save.directory"))
-          text(saveLocation)
-            .applyToComponent { saveLocationText = this }
-          link(message("configure.save.link.text")) { configureSave() }
-            .align(AlignX.RIGHT)
-        }
+      row {
+        text(message("screenrecord.options.save.directory"))
+        text(saveLocation)
+          .applyToComponent { saveLocationText = this }
+        link(message("configure.save.link.text")) { configureSave() }
+          .align(AlignX.RIGHT)
       }
     }
 
@@ -301,24 +294,9 @@ class ScreenshotViewer(
   }
 
   override fun doOKAction() {
-    if (StudioFlags.SCREENSHOT_STREAMLINED_SAVING.get()) {
-      if (!saveScreenshotWithoutAsking()) {
-        return
-      }
-    }
-    else {
-      if (!saveScreenshotAfterAsking()) {
-        return
-      }
-    }
-
-    super.doOKAction()
-  }
-
-  private fun saveScreenshotWithoutAsking(): Boolean {
-    val image = displayedImageRef.get() ?: return false
+    val image = displayedImageRef.get() ?: return
     val expandedFilename = saveConfigResolver.expandFilenamePattern(
-        saveConfig.saveLocation, saveConfig.filenameTemplate, EXT_PNG, image.timestamp, settings.screenshotCount + 1)
+      saveConfig.saveLocation, saveConfig.filenameTemplate, EXT_PNG, image.timestamp, settings.screenshotCount + 1)
     val file = adjustToAvoidExistingFiles(Paths.get(expandedFilename))
     try {
       Files.createDirectories(file.parent)
@@ -330,7 +308,7 @@ class ScreenshotViewer(
     catch (e: IOException) {
       val error = e.message ?: e.javaClass.name
       showErrorDialog(project, message("screenshot.dialog.error", error), message("screenshot.action.title"))
-      return false
+      return
     }
 
     when (saveConfig.postSaveAction) {
@@ -339,7 +317,7 @@ class ScreenshotViewer(
       PostSaveAction.OPEN -> LocalFileSystem.getInstance().refreshAndFindFileByNioFile(file)?.let { openAssociatedApplication(it) }
     }
 
-    return true
+    super.doOKAction()
   }
 
   private fun adjustToAvoidExistingFiles(file: Path): Path {
@@ -357,35 +335,6 @@ class ScreenshotViewer(
         return adjusted
       }
     }
-  }
-
-  private fun saveScreenshotAfterAsking(): Boolean {
-    val descriptor = FileSaverDescriptor(message("screenshot.dialog.file.save.title"), "", EXT_PNG)
-    val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
-    val baseDir = loadScreenshotPath()
-    val fileWrapper = saveFileDialog.save(baseDir, adjustedFileName(defaultFileName)) ?: return false
-
-    val file = fileWrapper.file.toPath()
-    try {
-      val image = displayedImageRef.get().image
-      writePng(image, file)
-      screenshotFile = file
-      logScreenshotUsage()
-    }
-    catch (e: IOException) {
-      val error = e.message ?: e.javaClass.name
-      showErrorDialog(project, message("screenshot.dialog.error", error), message("screenshot.action.title"))
-      return false
-    }
-
-    val virtualFile = fileWrapper.virtualFile
-    if (virtualFile != null) {
-      val properties = PropertiesComponent.getInstance(project)
-      properties.setValue(SCREENSHOT_SAVE_PATH_KEY, virtualFile.parent.path)
-
-      FileEditorManager.getInstance(project).openFile(virtualFile, true)
-    }
-    return true
   }
 
   /**
