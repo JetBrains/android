@@ -21,10 +21,13 @@ import com.google.idea.blaze.android.projectsystem.BazelProjectSystem;
 import com.google.idea.blaze.android.projectsystem.BazelToken;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
 final class BazelBuildSystemFilePreviewServices
   implements BuildSystemFilePreviewServices<BazelProjectSystem, BazelBuildTargetReference>, BazelToken {
+
+  private final BazelBuildServices buildServices = new BazelBuildServices();
 
   @Override
   public boolean isApplicable(@NotNull BuildTargetReference buildTargetReference) {
@@ -33,7 +36,7 @@ final class BazelBuildSystemFilePreviewServices
 
   @Override
   public @NotNull BuildServices<@NotNull BazelBuildTargetReference> getBuildServices() {
-    return new BazelBuildServices();
+    return buildServices;
   }
 
   @Override
@@ -49,7 +52,9 @@ final class BazelBuildSystemFilePreviewServices
   }
 
   @Override
-  public void subscribeBuildListener(@NotNull Project project, @NotNull Disposable parentDisposable, @NotNull BuildListener listener) {
+  public void subscribeBuildListener(@NotNull Project project, @NotNull Disposable parent, @NotNull BuildListener listener) {
+    buildServices.add(listener);
+    Disposer.register(parent, () -> buildServices.remove(listener));
   }
 
   @Override

@@ -33,6 +33,7 @@ intellij_integration_test_suite(
         "//tools/adt/idea/aswb/aswb/src/com/android/tools/idea/rendering/tokens",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",
         "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem",
         "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:query_sync_integration_test_rules",
         "//tools/vendor/google3/aswb/javatests/com/google/devtools/intellij/blaze/plugin/aswb:query_sync_test_projects",
         "@intellij//:intellij-sdk",

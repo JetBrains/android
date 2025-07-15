@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.rendering.tokens;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus;
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener;
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildMode;
+import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildListener.BuildResult;
 import com.android.tools.idea.rendering.tokens.BuildSystemFilePreviewServices.BuildServices;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
 import com.google.idea.blaze.base.qsync.DependencyTracker.DependencyBuildRequest;
@@ -34,16 +40,35 @@ import com.google.idea.blaze.common.Label;
 import com.google.idea.blaze.exception.BuildException;
 import com.google.idea.blaze.qsync.project.QuerySyncLanguage;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.search.GlobalSearchScope;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import kotlinx.coroutines.Deferred;
 import kotlinx.coroutines.guava.ListenableFutureKt;
 import org.jetbrains.annotations.NotNull;
 
 // TODO: b/418844903 - Update the artifact manager
 final class BazelBuildServices implements BuildServices<BazelBuildTargetReference> {
+  private final Collection<BuildListener> listeners = new CopyOnWriteArrayList<>();
+
+  /**
+   * Executed by an application pool thread and the EDT
+   */
+  void add(BuildListener listener) {
+    listeners.add(listener);
+  }
+
+  /**
+   * Executed by the EDT
+   */
+  @UiThread
+  void remove(BuildListener listener) {
+    listeners.remove(listener);
+  }
+
   @Override
   public @NotNull BuildStatus getLastCompileStatus(@NotNull BazelBuildTargetReference target) {
     // TODO: b/409383880 - Implement this
@@ -62,7 +87,7 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
    * Executed by an application pool thread
    */
   @VisibleForTesting
-  static Deferred<Boolean> buildArtifactsAsync(BazelBuildTargetReference target) {
+  Deferred<Boolean> buildArtifactsAsync(BazelBuildTargetReference target) {
     var project = target.getProject();
     var file = target.getFile();
     var scope = QuerySyncActionStatsScope.createForFile(BazelBuildServices.class, null, file);
@@ -72,23 +97,30 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
       BuildDependenciesHelperSelectTargetPopup.createDisambiguateTargetPrompt(popup -> popup.showCenteredInCurrentWindow(project)),
       TargetDisambiguationAnchors.NONE,
       scope,
-      labels -> buildAndRefresh(project, scope, labels));
+      labels -> buildAndRefresh(project, labels, scope));
   }
 
   /**
    * Executed by the EDT
    */
-  private static @NotNull Deferred<@NotNull Boolean> buildAndRefresh(@NotNull Project project,
-                                                                     @NotNull QuerySyncActionStatsScope scope,
-                                                                     @NotNull Set<@NotNull Label> labels) {
+  @UiThread
+  private Deferred<Boolean> buildAndRefresh(Project project, Set<Label> labels, QuerySyncActionStatsScope scope) {
     var manager = QuerySyncManager.getInstance(project);
 
-    return ListenableFutureKt.asDeferred(
-      manager.runOperation(
-        scope,
-        TaskOrigin.USER_ACTION,
-        QuerySyncManager.createOperation(
-          "Build & Refresh", "Building and refreshing", OperationType.BUILD_DEPS, context -> buildAndRefresh(manager, context, labels))));
+    var buildAndRefresh = QuerySyncManager.createOperation("Build & Refresh",
+                                                           "Building and refreshing",
+                                                           OperationType.BUILD_DEPS,
+                                                           context -> buildAndRefresh(manager, context, labels));
+
+    var buildAndRefreshFuture = manager.runOperation(scope, TaskOrigin.USER_ACTION, buildAndRefresh);
+
+    var newBuildResultFuture = Futures.transform(buildAndRefreshFuture,
+                                                 succeeded -> newBuildResult(succeeded, project),
+                                                 MoreExecutors.directExecutor());
+
+    listeners.forEach(listener -> listener.buildStarted(BuildMode.COMPILE, newBuildResultFuture));
+
+    return ListenableFutureKt.asDeferred(buildAndRefreshFuture);
   }
 
   /**
@@ -109,5 +141,12 @@ final class BazelBuildServices implements BuildServices<BazelBuildTargetReferenc
     catch (IOException exception) {
       throw new BuildException(exception);
     }
+  }
+
+  /**
+   * Executed by the Blaze executor
+   */
+  private BuildResult newBuildResult(boolean succeeded, Project project) {
+    return new BuildResult(succeeded ? BuildStatus.SUCCESS : BuildStatus.FAILED, GlobalSearchScope.projectScope(project));
   }
 }
