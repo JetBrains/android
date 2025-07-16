@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.project
 
 import com.android.tools.adtui.ASGallery
-import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
@@ -40,7 +39,6 @@ import com.google.common.base.Suppliers
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.progress.util.BackgroundTaskUtil
-import com.intellij.openapi.progress.util.ProgressWindow
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
@@ -49,7 +47,6 @@ import com.intellij.util.ModalityUiUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
-import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
 import java.awt.event.ActionEvent
 import java.util.function.Supplier
@@ -59,6 +56,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionListener
+import org.jetbrains.android.util.AndroidBundle.message
 
 const val TABLE_CELL_WIDTH = 260
 const val TABLE_CELL_HEIGHT = 32
@@ -66,17 +64,17 @@ const val TABLE_CELL_LEFT_PADDING = 20
 const val TABLE_TITLE_PADDING = 20
 
 /**
- * First page in the New Project wizard that allows user to select the [FormFactor] (Mobile, Wear, TV, etc.) and its
- * template ("Empty Activity", "Basic", "Navigation Drawer", etc.)
+ * First page in the New Project wizard that allows user to select the [FormFactor] (Mobile, Wear,
+ * TV, etc.) and its template ("Empty Activity", "Basic", "Navigation Drawer", etc.)
  */
-class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProjectModel>(
-  model, message("android.wizard.project.new.choose")
-) {
+class ChooseAndroidProjectStep(model: NewProjectModel) :
+  ModelWizardStep<NewProjectModel>(model, message("android.wizard.project.new.choose")) {
   private var loadingPanel = JBLoadingPanel(BorderLayout(), this)
   private val leftList = JBList<FormFactorInfo>()
   private val rightPanel = JPanel(BorderLayout())
   private val listEntriesListeners = ListenerManager()
-  private val formFactors: Supplier<List<FormFactorInfo>> = Suppliers.memoize { createFormFactors(title) }
+  private val formFactors: Supplier<List<FormFactorInfo>> =
+    Suppliers.memoize { createFormFactors(title) }
   private val canGoForward = BoolValueProperty()
   private var newProjectModuleModel: NewProjectModuleModel? = null
 
@@ -85,19 +83,27 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     val renderModel = newProjectModuleModel!!.extraRenderTemplateModel
     return listOf(
       ConfigureAndroidProjectStep(newProjectModuleModel!!, model),
-      ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), listOf())
+      ConfigureTemplateParametersStep(
+        renderModel,
+        message("android.wizard.config.activity.title"),
+        listOf(),
+      ),
     )
   }
 
   override fun onWizardStarting(wizard: Facade) {
     loadingPanel.startLoading()
-    // Constructing FormFactors performs disk access and XML parsing, so let's do it in background thread.
-    BackgroundTaskUtil.executeOnPooledThread(this, {
-      val formFactors = formFactors.get()
+    // Constructing FormFactors performs disk access and XML parsing, so let's do it in background
+    // thread.
+    BackgroundTaskUtil.executeOnPooledThread(
+      this,
+      {
+        val formFactors = formFactors.get()
 
-      // Update UI with the loaded formFactors. Switch back to UI thread.
-      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any()) { updateUi(wizard, formFactors) }
-    })
+        // Update UI with the loaded formFactors. Switch back to UI thread.
+        ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any()) { updateUi(wizard, formFactors) }
+      },
+    )
   }
 
   /**
@@ -108,15 +114,18 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
     formFactors.forEach {
       with(it.tabPanel) {
-        myGallery.setDefaultAction(object : AbstractAction() {
-          override fun actionPerformed(actionEvent: ActionEvent?) {
-            wizard.goForward()
+        myGallery.setDefaultAction(
+          object : AbstractAction() {
+            override fun actionPerformed(actionEvent: ActionEvent?) {
+              wizard.goForward()
+            }
           }
-        })
+        )
         val activitySelectedListener = ListSelectionListener {
           myGallery.selectedElement?.let { renderer ->
             myTemplateName.isVisible = false
-            myTemplateDesc.parent.isVisible = false // Hides both myTemplateDesc/myDocumentationLink and removes panel padding
+            myTemplateDesc.parent.isVisible =
+              false // Hides both myTemplateDesc/myDocumentationLink and removes panel padding
 
             canGoForward.set(true)
           } ?: canGoForward.set(false)
@@ -148,15 +157,17 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       rightPanel.repaint()
     }
 
-    val leftPanel = JPanel(BorderLayout()).apply {
-      add(createTitle(), BorderLayout.NORTH)
-      add(leftList, BorderLayout.CENTER)
-    }
+    val leftPanel =
+      JPanel(BorderLayout()).apply {
+        add(createTitle(), BorderLayout.NORTH)
+        add(leftList, BorderLayout.CENTER)
+      }
 
-    val mainPanel = JPanel(BorderLayout()).apply {
-      add(leftPanel, BorderLayout.WEST)
-      add(rightPanel, BorderLayout.CENTER)
-    }
+    val mainPanel =
+      JPanel(BorderLayout()).apply {
+        add(leftPanel, BorderLayout.WEST)
+        add(rightPanel, BorderLayout.CENTER)
+      }
 
     loadingPanel.add(mainPanel)
 
@@ -170,13 +181,14 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   override fun onProceeding() {
     val selectedIndex = leftList.selectedIndex
     val selectedFormFactorInfo = formFactors.get()[selectedIndex]
-    val selectedTemplate =  selectedFormFactorInfo.tabPanel.myGallery.selectedElement!!
+    val selectedTemplate = selectedFormFactorInfo.tabPanel.myGallery.selectedElement!!
     with(newProjectModuleModel!!) {
       formFactor.set(selectedFormFactorInfo.formFactor)
       when (selectedTemplate) {
         is NewTemplateRendererWithDescription -> {
           newRenderTemplate.setNullableValue(selectedTemplate.template)
-          val hasExtraDetailStep = selectedTemplate.template.uiContexts.contains(WizardUiContext.NewProjectExtraDetail)
+          val hasExtraDetailStep =
+            selectedTemplate.template.uiContexts.contains(WizardUiContext.NewProjectExtraDetail)
           newProjectModuleModel!!.extraRenderTemplateModel.newTemplate =
             if (hasExtraDetailStep) selectedTemplate.template else Template.NoActivity
         }
@@ -202,20 +214,25 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
   private class NewFormFactorInfo(
     override val formFactor: FormFactor,
-    override val tabPanel: ChooseAndroidProjectPanel<TemplateRendererWithDescription>
-  ): FormFactorInfo
+    override val tabPanel: ChooseAndroidProjectPanel<TemplateRendererWithDescription>,
+  ) : FormFactorInfo
 
   interface TemplateRendererWithDescription : ChooseGalleryItemStep.TemplateRenderer {
     val description: String
     val documentationUrl: String?
   }
 
-  private class NewTemplateRendererWithDescription(
-    template: Template
-  ) : TemplateRendererWithDescription, ChooseGalleryItemStep.NewTemplateRenderer(template) {
-    override val label: String get() = getTemplateTitle(template)
-    override val icon: Icon? get() = getTemplateIcon(template)
-    override val description: String get() = template.description
+  private class NewTemplateRendererWithDescription(template: Template) :
+    TemplateRendererWithDescription, ChooseGalleryItemStep.NewTemplateRenderer(template) {
+    override val label: String
+      get() = getTemplateTitle(template)
+
+    override val icon: Icon?
+      get() = getTemplateIcon(template)
+
+    override val description: String
+      get() = template.description
+
     override val documentationUrl: String? = template.documentationUrl
   }
 
@@ -225,29 +242,46 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
         isOpaque = true
         background = UIUtil.getListBackground()
         foreground = JBColor(0x999999, 0x787878)
-        border = JBUI.Borders.empty(TABLE_TITLE_PADDING, TABLE_CELL_LEFT_PADDING, TABLE_TITLE_PADDING, TABLE_TITLE_PADDING)
+        border =
+          JBUI.Borders.empty(
+            TABLE_TITLE_PADDING,
+            TABLE_CELL_LEFT_PADDING,
+            TABLE_TITLE_PADDING,
+            TABLE_TITLE_PADDING,
+          )
       }
     }
 
-    private fun FormFactor.getProjectTemplates() = TemplateResolver.getAllTemplates()
-        .filter { WizardUiContext.NewProject in it.uiContexts && it.formFactor == this }
+    private fun FormFactor.getProjectTemplates() =
+      TemplateResolver.getAllTemplates().filter {
+        WizardUiContext.NewProject in it.uiContexts && it.formFactor == this
+      }
 
-    private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> = FormFactor.values()
+    private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> =
+      FormFactor.values()
         .filterNot { it.getProjectTemplates().isEmpty() }
         .map { NewFormFactorInfo(it, ChooseAndroidProjectPanel(createGallery(wizardTitle, it))) }
 
-    private fun createGallery(title: String, formFactor: FormFactor): ASGallery<TemplateRendererWithDescription> {
-      val listItems = sequence {
-        if (formFactor.includeNoActivity) {
-          yield(NewTemplateRendererWithDescription(Template.NoActivity))
-        }
-        formFactor.getProjectTemplates().forEach { yield(NewTemplateRendererWithDescription(it)) }
-      }.toList()
+    private fun createGallery(
+      title: String,
+      formFactor: FormFactor,
+    ): ASGallery<TemplateRendererWithDescription> {
+      val listItems =
+        sequence {
+            if (formFactor.includeNoActivity) {
+              yield(NewTemplateRendererWithDescription(Template.NoActivity))
+            }
+            formFactor.getProjectTemplates().forEach {
+              yield(NewTemplateRendererWithDescription(it))
+            }
+          }
+          .toList()
 
-      return WizardGallery<TemplateRendererWithDescription>(title, { it!!.icon }, { it!!.label }).apply {
-        model = JBList.createDefaultListModel(listItems)
-        selectedIndex = getDefaultSelectedTemplateIndex(listItems)
-      }
+      return WizardGallery<TemplateRendererWithDescription>(title, { it!!.icon }, { it!!.label })
+        .apply {
+          model = JBList.createDefaultListModel(listItems)
+          selectedIndex = getDefaultSelectedTemplateIndex(listItems)
+        }
     }
   }
 }
