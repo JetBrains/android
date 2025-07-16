@@ -46,7 +46,6 @@ class AnimationInspectorAction(
       isEnabled = !isEssentialsModeEnabled
       // Only display the animation inspector icon if there are animations to be inspected.
       isVisible = e.dataContext.getData(PREVIEW_ELEMENT_INSTANCE)?.hasAnimations == true
-      text = if (isEssentialsModeEnabled) null else message("action.animation.inspector.title")
       description =
         if (isEssentialsModeEnabled)
           message("action.animation.inspector.essentials.mode.description")

@@ -44,8 +44,6 @@ class EnableUiCheckAction :
         !StudioFlags.COMPOSE_UI_CHECK_FOR_WEAR.get()
     e.presentation.isVisible = true
     e.presentation.isEnabled = !isEssentialsModeEnabled && !disableForWear
-    e.presentation.text =
-      if (isEssentialsModeEnabled || disableForWear) null else message("action.uicheck.title")
     e.presentation.description =
       if (isEssentialsModeEnabled) message("action.uicheck.essentials.mode.description")
       else if (disableForWear) message("action.uicheck.wear.description")

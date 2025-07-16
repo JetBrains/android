@@ -63,7 +63,6 @@ internal class DeployToDeviceAction :
       val isEssentialsModeEnabled = PreviewEssentialsModeManager.isEssentialsModeEnabled
       isEnabled = !isTestFile && !isEssentialsModeEnabled
       isVisible = true
-      text = if (isEssentialsModeEnabled) null else message("action.run.title")
       description =
         if (isTestFile) message("action.run.description.test.files")
         else {

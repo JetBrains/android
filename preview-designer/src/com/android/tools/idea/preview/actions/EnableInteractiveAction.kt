@@ -38,7 +38,6 @@ class EnableInteractiveAction :
     val isEssentialsModeEnabled = PreviewEssentialsModeManager.isEssentialsModeEnabled
     e.presentation.isVisible = true
     e.presentation.isEnabled = !isEssentialsModeEnabled
-    e.presentation.text = if (isEssentialsModeEnabled) null else message("action.interactive.title")
     e.presentation.description =
       if (isEssentialsModeEnabled) message("action.interactive.essentials.mode.description")
       else message("action.interactive.description")
