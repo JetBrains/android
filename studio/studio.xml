@@ -1,6 +1,7 @@
 <configuration name="Android Studio" type="BlazeCommandRunConfigurationType" factoryName="Blaze Command">
   <blaze-settings handler-id="BlazeJavaRunConfigurationHandlerProvider" blaze-command="run" kind="_android_studio">
     <blaze-target>//tools/adt/idea/studio:android-studio</blaze-target>
+    <blaze-user-exe-flag>--properties=idea.is.internal=true</blaze-user-exe-flag>
   </blaze-settings>
   <method v="2">
     <option name="Blaze.BeforeRunTask" enabled="true" />
