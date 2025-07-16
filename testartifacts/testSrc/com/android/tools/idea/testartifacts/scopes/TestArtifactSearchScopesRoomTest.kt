@@ -15,34 +15,38 @@
  */
 package com.android.tools.idea.testartifacts.scopes
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
+import com.android.tools.idea.testing.onEdt
 import com.google.common.io.Files
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.writeChild
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import java.io.File
 
-class TestArtifactSearchScopesRoomTest : AndroidGradleTestCase() {
-  override fun setUp() {
-    super.setUp()
-    loadSimpleApplication()
+class TestArtifactSearchScopesRoomTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
 
-    val appBuildDotGradle = project.baseDir.findFileByRelativePath("app/build.gradle")!!
-    WriteCommandAction.runWriteCommandAction(project) {
-      VfsUtil.saveText(
-          appBuildDotGradle,
-          VfsUtil.loadText(appBuildDotGradle) +"\ndependencies { implementation \"android.arch.persistence.room:runtime:1.0.0\" }")
-
-      createEntity(className = "User", path = "app/src/main/java/com/example/User.java")
-      createEntity(className = "TestUser", path = "app/src/test/java/com/example/TestUser.java")
-      createEntity(className = "AndroidTestUser", path = "app/src/androidTest/java/com/example/AndroidTestUser.java")
+  @Before
+  fun setup() {
+    projectRule.loadProject(SIMPLE_APPLICATION) { root ->
+      root.resolve("app/build.gradle").let {
+        WriteCommandAction.runWriteCommandAction(projectRule.project) {
+          it.appendText("\ndependencies { implementation \"android.arch.persistence.room:runtime:1.0.0\" }")
+          root.createEntity(className = "User", path = "app/src/main/java/com/example/User.java")
+          root.createEntity(className = "TestUser", path = "app/src/test/java/com/example/TestUser.java")
+          root.createEntity(className = "AndroidTestUser", path = "app/src/androidTest/java/com/example/AndroidTestUser.java")
+        }
+      }
     }
-
-    requestSyncAndWait()
   }
 
-  private fun createEntity(className: String, path: String) {
-    project.baseDir.writeChild(path, """
+  private fun File.createEntity(className: String, path: String) {
+    this.resolve(path).apply { parentFile.mkdirs() }.writeText("""
       package com.example;
 
       import android.arch.persistence.room.Entity;
@@ -54,7 +58,7 @@ class TestArtifactSearchScopesRoomTest : AndroidGradleTestCase() {
 
   private fun doTest(path: String, vararg expected: String) {
     val daoName = Files.getNameWithoutExtension(path)
-    val dao = project.baseDir.writeChild(
+    val dao = projectRule.project.baseDir.writeChild(
         path,
         """
           package com.example;
@@ -69,11 +73,14 @@ class TestArtifactSearchScopesRoomTest : AndroidGradleTestCase() {
             List<User> getAll();
           }
           """.trimIndent())
-    myFixture.configureFromExistingVirtualFile(dao)
-    assertThat(myFixture.completeBasic().map { it.lookupString }).containsExactly(*expected)
+    projectRule.fixture.configureFromExistingVirtualFile(dao)
+    assertThat(projectRule.fixture.completeBasic().map { it.lookupString }).containsExactly(*expected)
   }
 
+  @Test
   fun testMainScope() = doTest("app/src/main/java/com/example/UserDao.java", "User")
+  @Test
   fun testTestScope() = doTest("app/src/test/java/com/example/TestUserDao.java", "User", "TestUser")
+  @Test
   fun testAndroidTestScope() = doTest("app/src/androidTest/java/com/example/AndroidTestUserDao.java", "User", "AndroidTestUser")
 }

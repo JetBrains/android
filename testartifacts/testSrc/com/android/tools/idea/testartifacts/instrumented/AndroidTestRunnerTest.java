@@ -17,7 +17,9 @@ package com.android.tools.idea.testartifacts.instrumented;
 
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
+import static com.android.tools.idea.testing.AndroidGradleProjectRuleKt.onEdt;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,91 +31,118 @@ import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.DefaultStudioProgramRunner;
 import com.android.tools.idea.run.FakeAndroidDevice;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleProjectRule;
+import com.android.tools.idea.testing.EdtAndroidGradleProjectRule;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.testFramework.RunsInEdt;
 import java.util.Arrays;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * Tests for the Android Test Runner related things.
  * <p>
  * TODO: Delete this file and merge it into AndroidTestRunConfigurationTest.
  */
-public class AndroidTestRunnerTest extends AndroidGradleTestCase {
-  @Override
-  protected boolean shouldRunTest() {
-    // Do not run tests on Windows (see http://b.android.com/222904)
-    return !SystemInfo.isWindows && super.shouldRunTest();
+@RunsInEdt
+public class AndroidTestRunnerTest {
+  public AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+  @Rule
+  public EdtAndroidGradleProjectRule rule = onEdt(projectRule);
+
+  @Before
+  public void assumeNotWindows() {
+    Assume.assumeFalse(SystemInfo.isWindows);
   }
 
+  @Test
   public void testTestOptionsSetByGradle() throws Exception {
-    loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS);
-
-    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("com.android.runnerarguments.ExampleInstrumentationTest");
+    projectRule.loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS);
+    AndroidFacet facet = projectRule.androidTestAndroidFacet(":app");
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("com.android.runnerarguments.ExampleInstrumentationTest", facet);
     assertThat(runner.getAmInstrumentCommand()).contains("--no-window-animation");
   }
 
+  @Test
   public void testRunnerIsObtainedFromGradleProjects() throws Exception {
-    loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
-
-    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("google.testapplication.ApplicationTest");
+    projectRule.loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
+    AndroidFacet facet = projectRule.androidTestAndroidFacet(":app");
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("google.testapplication.ApplicationTest", facet);
     assertThat(runner.getRunnerName()).isEqualTo("android.support.test.runner.AndroidJUnitRunner");
   }
 
+  @Test
   public void testRunnerObtainedFromGradleCanBeOverridden() throws Exception {
-    loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
+    projectRule.loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
     AndroidTestRunConfiguration config = createConfigFromClass("google.testapplication.ApplicationTest");
     config.INSTRUMENTATION_RUNNER_CLASS = "my.awesome.CustomTestRunner";
-
-    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner(config);
+    AndroidFacet facet = projectRule.androidTestAndroidFacet(":app");
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner(config, facet);
     assertThat(runner.getRunnerName()).isEqualTo("my.awesome.CustomTestRunner");
   }
 
+  @Test
   public void testRunnerAtoNotUsed() throws Exception {
-    loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
-    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("google.testapplication.ApplicationTest");
+    projectRule.loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
+    AndroidFacet facet = projectRule.androidTestAndroidFacet(":app");
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("google.testapplication.ApplicationTest", facet);
     assertThat(runner).isInstanceOf(RemoteAndroidTestRunner.class);
   }
 
+  @Test
   public void testRunnerAtoUsed() throws Exception {
-    loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR);
-    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("google.testapplication.ApplicationTest");
+    projectRule.loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR);
+    AndroidFacet facet = projectRule.androidTestAndroidFacet(":app");
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("google.testapplication.ApplicationTest", facet);
     assertThat(runner).isInstanceOf(AndroidTestOrchestratorRemoteAndroidTestRunner.class);
   }
 
+  @Test
   public void testRunnerCorrectForTestOnlyModule() throws Exception {
-    loadProject(TestProjectPaths.TEST_ONLY_MODULE);
-    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("com.example.android.app.ExampleTest");
+    projectRule.loadProject(TestProjectPaths.TEST_ONLY_MODULE);
+    AndroidFacet facet = projectRule.mainAndroidFacet(":test");
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("com.example.android.app.ExampleTest", facet);
     assertThat(runner).isInstanceOf(RemoteAndroidTestRunner.class);
   }
 
-  private RemoteAndroidTestRunner createRemoteAndroidTestRunner(@NotNull String className) throws ApkProvisionException {
-    return createRemoteAndroidTestRunner(createConfigFromClass(className));
+  private RemoteAndroidTestRunner createRemoteAndroidTestRunner(
+    @NotNull String className,
+    @NotNull AndroidFacet facet
+  ) throws ApkProvisionException {
+    return createRemoteAndroidTestRunner(createConfigFromClass(className), facet);
   }
 
-  private RemoteAndroidTestRunner createRemoteAndroidTestRunner(AndroidTestRunConfiguration config) throws ApkProvisionException {
+  private RemoteAndroidTestRunner createRemoteAndroidTestRunner(
+    AndroidTestRunConfiguration config,
+    @NotNull AndroidFacet facet
+  ) throws ApkProvisionException {
     IDevice mockDevice = mock(IDevice.class);
     when(mockDevice.getVersion()).thenReturn(new AndroidVersion(26));
 
+    Project project = projectRule.getProject();
     ApplicationIdProvider applicationIdProvider =
-      getProjectSystem(myAndroidFacet.getModule().getProject()).getApplicationIdProvider(config);
+      getProjectSystem(project).getApplicationIdProvider(config);
 
     final RunnerAndConfigurationSettings configuration =
-      RunManager.getInstance(getProject()).createConfiguration(config, AndroidTestRunConfigurationType.getInstance().getFactory());
+      RunManager.getInstance(project).createConfiguration(config, AndroidTestRunConfigurationType.getInstance().getFactory());
     ExecutionEnvironment env =
-      new ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), new DefaultStudioProgramRunner(), configuration, getProject());
+      new ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), new DefaultStudioProgramRunner(), configuration, project);
     AndroidTestApplicationLaunchTask androidTestTask = null;
     try {
-      androidTestTask = ((AndroidTestRunConfigurationExecutor)config.getExecutor(env, myAndroidFacet,
-                                                                                 FakeAndroidDevice.forDevices(
-                                                                                   Arrays.asList(mockDevice)))).getApplicationLaunchTask(
-        applicationIdProvider.getTestPackageName());
+      androidTestTask =
+        ((AndroidTestRunConfigurationExecutor) config.getExecutor(env, facet, FakeAndroidDevice.forDevices(Arrays.asList(mockDevice))))
+        .getApplicationLaunchTask(applicationIdProvider.getTestPackageName());
     }
     catch (ExecutionException e) {
       fail(e.getMessage());
@@ -123,8 +152,9 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
   }
 
   private AndroidTestRunConfiguration createConfigFromClass(String className) {
-    AndroidTestRunConfiguration androidTestRunConfiguration = createAndroidTestConfigurationFromClass(getProject(), className);
-    assertNotNull(androidTestRunConfiguration);
+    AndroidTestRunConfiguration androidTestRunConfiguration =
+      createAndroidTestConfigurationFromClass(projectRule.getProject(), className);
+    assertThat(androidTestRunConfiguration).isNotNull();
     return androidTestRunConfiguration;
   }
 }

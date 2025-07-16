@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.projectsystem.gradle.getAndroidTestModule
 import com.android.tools.idea.projectsystem.gradle.getMainModule
 import com.android.tools.idea.testing.JdkUtils.overrideProjectGradleJdkPathWithVersion
 import com.android.tools.idea.util.androidFacet
@@ -87,6 +88,9 @@ class AndroidGradleProjectRule(
 
   fun mainAndroidFacet(gradlePath: String): AndroidFacet =
     findGradleModule(gradlePath)?.getMainModule()?.androidFacet ?: gradleModuleNotFound(gradlePath)
+
+  fun androidTestAndroidFacet(gradlePath: String): AndroidFacet =
+    findGradleModule(gradlePath)?.getAndroidTestModule()?.androidFacet ?: gradleModuleNotFound(gradlePath)
 
   fun gradleModule(gradlePath: String): Module =
     findGradleModule(gradlePath) ?: gradleModuleNotFound(gradlePath)
