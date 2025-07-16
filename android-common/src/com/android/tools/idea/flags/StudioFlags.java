@@ -2370,7 +2370,7 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "suggestion.smart.grouping.enabled",
                     "Enable smart grouping of suggestions that are accepted or rejected together",
                     "When enabled, individual chunks of suggestions may be grouped together using heuristic logic into semantic chunks that can be accepted or rejected together.",
-                    false);
+                    enabledUpTo(DEV));
 
   public static final Flag<Boolean> STUDIOBOT_DEPLOY_TOOLS_BY_DEFAULT =
     new BooleanFlag(STUDIOBOT, "include.deploy.tools.by.default",
