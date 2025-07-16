@@ -30,7 +30,6 @@ import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent.DecorationOption
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.RevealFileAction
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.DataProvider
@@ -44,12 +43,10 @@ import com.intellij.openapi.fileTypes.NativeFileType.openAssociatedApplication
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages.showErrorDialog
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtilRt.getExtension
 import com.intellij.openapi.util.io.FileUtilRt.getNameWithoutExtension
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -80,10 +77,7 @@ import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.text.SimpleDateFormat
 import java.time.Instant
-import java.util.Date
-import java.util.Locale.ROOT
 import java.util.concurrent.atomic.AtomicReference
 import java.util.zip.Deflater
 import javax.imageio.IIOImage
@@ -166,12 +160,6 @@ class ScreenshotViewer(
    * The user specified destination where the screenshot was saved, or null of the screenshot was not saved.
    */
   private var screenshotFile: Path? = null
-
-  private val defaultFileName: String
-    get() {
-      val timestampSuffix = SimpleDateFormat("yyyyMMdd_HHmmss", ROOT).format(Date())
-      return "Screenshot_$timestampSuffix"
-    }
 
   init {
     require(framingOptions.isEmpty() || 0 <= defaultFramingOption && defaultFramingOption < framingOptions.size)
@@ -482,17 +470,6 @@ class ScreenshotViewer(
     IdeFocusManager.getInstance(project).requestFocusInProject(preferredFocusedComponent, project)
   }
 
-  private fun adjustedFileName(fileName: String): String {
-    // Add extension to filename on Mac only see: b/38447816.
-    return if (SystemInfo.isMac) "$fileName.png" else fileName
-  }
-
-  private fun loadScreenshotPath(): VirtualFile? {
-    val properties = PropertiesComponent.getInstance(project)
-    val lastPath = properties.getValue(SCREENSHOT_SAVE_PATH_KEY) ?: return project.guessProjectDir()
-    return LocalFileSystem.getInstance().findFileByPath(lastPath)
-  }
-
   private fun logScreenshotUsage() {
     val usageDeviceType = when (sourceImageRef.get()?.deviceType) {
       DeviceType.WEAR -> DeviceScreenshotEvent.DeviceType.WEAR
@@ -536,7 +513,6 @@ class ScreenshotViewer(
 
   companion object {
     private const val SCREENSHOT_VIEWER_DIMENSIONS_KEY: @NonNls String = "ScreenshotViewer"
-    private const val SCREENSHOT_SAVE_PATH_KEY: @NonNls String = "ScreenshotViewer.SavePath"
 
     fun getDefaultDecoration(screenshotImage: ScreenshotImage, screenshotDecorator: ScreenshotDecorator,
                              defaultFramingOption: FramingOption?): ScreenshotDecorationOption {
