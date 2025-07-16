@@ -206,6 +206,10 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
     doTest(true, true)
   }
 
+  fun testTrailingCommaInArguments() {
+    doTest(true, true)
+  }
+
   // make sure we pa
   fun testFunctionsWithComments() {
     doTest(true, true)

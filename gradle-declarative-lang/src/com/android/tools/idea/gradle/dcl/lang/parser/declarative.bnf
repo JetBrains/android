@@ -197,7 +197,7 @@ simple_factory ::= private_factory {
   extends=factory_receiver methods=[getReceiver]
 }
 
-argumentsList ::= (argumentContainer (OP_COMMA argumentContainer)*)? {
+argumentsList ::= (argumentContainer (OP_COMMA argumentContainer)* OP_COMMA?)? {
   methods=[getArguments]
 }
 private argumentContainer ::= argument { // this helps keep error tokens in list but outside of arguments
