@@ -20,6 +20,7 @@ import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.getMetadata
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
 import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.project.guessModuleDir
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.IconUtil
@@ -162,11 +163,13 @@ class SummaryScreenViewModel(private val designAssetImporter: DesignAssetImporte
    * within the module otherwise returns the absolutePath
    **/
   fun getUserFormattedPath(absolutePath: File): String {
-    val moduleDirPath = ModuleUtil.getModuleDirPath(facet.module)
-    if(FileUtil.isAncestor(moduleDirPath, absolutePath.path, false)) {
-      return absolutePath.relativeTo(File(moduleDirPath)).path
-    } else {
-      return absolutePath.path
+    val moduleDir = facet.module.guessModuleDir()
+    if (moduleDir != null) {
+      val moduleDirPath = moduleDir.path
+      if (FileUtil.isAncestor(moduleDirPath, absolutePath.path, false)) {
+        return absolutePath.relativeTo(File(moduleDirPath)).path
+      }
     }
+    return absolutePath.path
   }
 }

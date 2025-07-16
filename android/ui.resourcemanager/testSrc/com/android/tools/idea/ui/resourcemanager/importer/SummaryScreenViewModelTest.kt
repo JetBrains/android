@@ -32,6 +32,7 @@ import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManag
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.project.guessModuleDir
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -155,6 +156,19 @@ class SummaryScreenViewModelTest {
 
     viewModel2.doImport()
     assertThat(File(facet.module.project.basePath, "src/full/res1/drawable/testResource.png").exists()).isTrue()
+  }
+
+  @Test
+  fun getUserFormattedPath() {
+    val moduleDir = facet.module.guessModuleDir()
+    if(moduleDir != null) {
+      val moduleDirPath = moduleDir.path
+      val pathInside = File(moduleDirPath, "some_dir/file.png")
+      assertThat(File(viewModel.getUserFormattedPath(pathInside))).isEqualTo(File("some_dir/file.png"))
+    }
+
+    val pathOutside = File("/another_root/file.png")
+    assertThat(File(viewModel.getUserFormattedPath(pathOutside))).isEqualTo(pathOutside)
   }
 
   private fun getTestFiles(vararg path: String): List<VirtualFile> {
