@@ -168,6 +168,10 @@ void JObject::SetIntField(JNIEnv* jni_env, jfieldID field, int32_t value) const 
   jni_env->SetIntField(ref_, field, value);
 }
 
+bool JObject::GetBooleanField(JNIEnv* jni_env, jfieldID field) const {
+  return jni_env->GetBooleanField(ref_, field);
+}
+
 float JObject::GetFloatField(JNIEnv* jni_env, jfieldID field) const {
   return jni_env->GetFloatField(ref_, field);
 }

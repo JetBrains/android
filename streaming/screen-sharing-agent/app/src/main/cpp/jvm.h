@@ -122,6 +122,10 @@ public:
     SetIntField(GetJni(), field, value);
   }
   void SetIntField(JNIEnv* jni_env, jfieldID field, int32_t value) const;
+  [[nodiscard]] bool GetBooleanField(jfieldID field) const {
+    return GetBooleanField(GetJni(), field);
+  }
+  [[nodiscard]] bool GetBooleanField(JNIEnv* jni_env, jfieldID field) const;
   [[nodiscard]] float GetFloatField(jfieldID field) const {
     return GetFloatField(GetJni(), field);
   }

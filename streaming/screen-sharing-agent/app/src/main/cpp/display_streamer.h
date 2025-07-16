@@ -39,13 +39,16 @@ struct CodecInfo {
   Size max_resolution;
   Size size_alignment;
   int32_t max_frame_rate;
+  bool hardware_accelerated;
 
-  CodecInfo(std::string mime_type, std::string name, Size max_resolution, Size size_alignment, int32_t max_frame_rate)
+  CodecInfo(std::string mime_type, std::string name, Size max_resolution, Size size_alignment, int32_t max_frame_rate,
+            bool hardware_accelerated)
       : mime_type(std::move(mime_type)),
         name(std::move(name)),
         max_resolution(max_resolution),
         size_alignment(size_alignment),
-        max_frame_rate(max_frame_rate) {
+        max_frame_rate(max_frame_rate),
+        hardware_accelerated(hardware_accelerated) {
   }
 };
 

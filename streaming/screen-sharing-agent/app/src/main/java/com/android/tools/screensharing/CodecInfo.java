@@ -23,6 +23,7 @@ import android.media.MediaCodecInfo;
 import android.media.MediaCodecInfo.VideoCapabilities;
 import android.media.MediaCodecInfo.VideoCapabilities.PerformancePoint;
 import android.media.MediaCodecList;
+import android.os.Build;
 import android.os.Build.VERSION;
 import android.util.Range;
 import java.util.List;
@@ -40,14 +41,16 @@ public class CodecInfo {
   public final int widthAlignment;
   public final int heightAlignment;
   public final int maxFrameRate;
+  public final boolean hardwareAccelerated;
 
-  private CodecInfo(String name, int maxWidth, int maxHeight, int widthAlignment, int heightAlignment, int maxFrameRate) {
+  private CodecInfo(String name, int maxWidth, int maxHeight, int widthAlignment, int heightAlignment, int maxFrameRate, boolean hardwareAccelerated) {
     this.name = name;
     this.maxWidth = maxWidth;
     this.maxHeight = maxHeight;
     this.widthAlignment = widthAlignment;
     this.heightAlignment = heightAlignment;
     this.maxFrameRate = maxFrameRate;
+    this.hardwareAccelerated = hardwareAccelerated;
   }
 
   /**
@@ -70,9 +73,10 @@ public class CodecInfo {
             // The first codec in MediaCodecList for a given mime type is always the most capable one.
             Range<Integer> heights = videoCapabilities.getSupportedHeights();
             Range<Integer> widths = videoCapabilities.getSupportedWidths();
+            boolean hardwareAccelerated = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && codecInfo.isHardwareAccelerated();
             return new CodecInfo(codecInfo.getName(), widths.getUpper(), heights.getUpper(),
                                  videoCapabilities.getWidthAlignment(), videoCapabilities.getHeightAlignment(),
-                                 videoCapabilities.getSupportedFrameRates().getUpper());
+                                 videoCapabilities.getSupportedFrameRates().getUpper(), hardwareAccelerated);
           }
         }
       }

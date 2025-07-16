@@ -91,8 +91,11 @@ CodecInfo* SelectVideoEncoder(const string& mime_type) {
   int width_alignment = codec_info.GetIntField(clazz.GetFieldId("widthAlignment", "I"));
   int height_alignment = codec_info.GetIntField(clazz.GetFieldId("heightAlignment", "I"));
   int max_frame_rate = codec_info.GetIntField(clazz.GetFieldId("maxFrameRate", "I"));
-  Log::I("Selected %s video encoder with %dx%d max resolution", codec_name.c_str(), max_width, max_height);
-  return new CodecInfo(mime_type, codec_name, Size(max_width, max_height), Size(width_alignment, height_alignment), max_frame_rate);
+  bool hardware_accelerated = codec_info.GetBooleanField(clazz.GetFieldId("hardwareAccelerated", "Z"));
+  Log::I("Using %s video encoder with %dx%d max resolution%s", codec_name.c_str(), max_width, max_height,
+         hardware_accelerated ? " and hardware acceleration" : "");
+  return new CodecInfo(mime_type, codec_name, Size(max_width, max_height), Size(width_alignment, height_alignment), max_frame_rate,
+                       hardware_accelerated);
 }
 
 void WriteVideoChannelHeader(const string& codec_name, SocketWriter* writer) {
@@ -244,8 +247,6 @@ void Agent::Run(const vector<string>& args) {
   codec_info_ = SelectVideoEncoder(mime_type);
   WriteVideoChannelHeader(codec_name_, video_socket_writer_);
 
-  Log::D("Using %s video encoder with %dx%d max resolution",
-         codec_info_->name.c_str(), codec_info_->max_resolution.width, codec_info_->max_resolution.height);
   auto ret = display_streamers_.try_emplace(
       PRIMARY_DISPLAY_ID,
       PRIMARY_DISPLAY_ID, codec_info_, max_video_resolution_, initial_video_orientation_, max_bit_rate_, video_socket_writer_);
