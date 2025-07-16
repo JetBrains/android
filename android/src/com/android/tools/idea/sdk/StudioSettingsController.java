@@ -72,10 +72,10 @@ public class StudioSettingsController implements PersistentStateComponent<Studio
         res = Channel.create(1);
         break;
       case MILESTONE:
-        res = Channel.create(2);
+        res = Channel.create(1); // do not use dev/canary Android Update channels in IJ: those are supposed to be dedicated to AS Previews
         break;
       case EAP:
-        res = Channel.create(3);
+        res = Channel.create(1); // do not use dev/canary Android Update channels in IJ: those are supposed to be dedicated to AS Previews
         break;
       default:
         // should never happen
