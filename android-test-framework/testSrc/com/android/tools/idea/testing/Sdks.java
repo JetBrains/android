@@ -30,6 +30,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -158,8 +159,8 @@ public final class Sdks {
     return target;
   }
 
-  public static void allowAccessToSdk(Disposable disposable) {
-    String[] paths = JavaSdk.getInstance().suggestHomePaths().toArray(ArrayUtil.EMPTY_STRING_ARRAY);
+  public static void allowAccessToSdk(@NotNull Disposable disposable, @NotNull Project project) {
+    String[] paths = JavaSdk.getInstance().suggestHomePaths(project).toArray(ArrayUtil.EMPTY_STRING_ARRAY);
     VfsRootAccess.allowRootAccess(disposable, paths);
   }
 }

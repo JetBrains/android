@@ -69,7 +69,7 @@ public class AndroidSdksTest extends HeavyPlatformTestCase {
 
     mySdkPath = getSdk().toFile();
 
-    Sdks.allowAccessToSdk(getTestRootDisposable());
+    Sdks.allowAccessToSdk(getTestRootDisposable(), getProject());
 
     myAndroidSdks = new AndroidSdksImpl(myIdeInfo);
     IdeSdks.removeJdksOn(getTestRootDisposable());

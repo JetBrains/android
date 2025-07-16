@@ -676,7 +676,7 @@ public class AndroidGradleTests {
         LOG.info("Set JDK to " + ideSdks.getJdkPath());
       }
 
-      Sdks.allowAccessToSdk(projectDisposable);
+      Sdks.allowAccessToSdk(projectDisposable, project);
       final var oldAndroidSdkPath = ideSdks.getAndroidSdkPath();
       ideSdks.setAndroidSdkPath(androidSdkPath);
       Disposer.register(projectDisposable, () -> {
