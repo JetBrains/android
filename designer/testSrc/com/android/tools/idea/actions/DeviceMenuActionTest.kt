@@ -33,7 +33,7 @@ import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.collect.ImmutableList
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Toggleable
@@ -45,7 +45,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.base.util.module
-import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -95,7 +94,7 @@ class DeviceMenuActionTest {
         prettyPrintActions(menuAction, { action: AnAction -> !isAvdAction(action) }, dataContext)
       }
 
-    Truth.assertThat(actual.trimEnd())
+    assertThat(actual.trimEnd())
       .isEqualTo(
         getReferenceDevicesExpected() +
           """
@@ -225,14 +224,14 @@ class DeviceMenuActionTest {
     val menuAction = DeviceMenuAction()
     menuAction.updateActions(dataContext)
 
-    assertEquals("Pixel", configuration.device?.displayName)
+    assertThat(configuration.device?.displayName).isEqualTo("Pixel")
 
     val pixelFoldAction = menuAction.findActionByText("Pixel Fold (841 × 701 dp, 420dpi)")!!
     withContext(Dispatchers.EDT) {
       pixelFoldAction.actionPerformed(TestActionEvent.createTestEvent(dataContext))
     }
 
-    assertEquals("Pixel Fold", configuration.device?.displayName)
+    assertThat(configuration.device?.displayName).isEqualTo("Pixel Fold")
   }
 
   @Test
@@ -241,7 +240,7 @@ class DeviceMenuActionTest {
     val configurationManager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
     val groupedDevices = groupDevices(configurationManager.devices)
     val nexusXlDevices = groupedDevices[DeviceGroup.NEXUS_XL]
-    Truth.assertThat(nexusXlDevices).isNotEmpty()
+    assertThat(nexusXlDevices).isNotEmpty()
     val device = nexusXlDevices!!.first()
     val testDevices = listOf(device, device)
     val configurationSettings = TestConfigurationSettings(testDevices)
@@ -254,9 +253,9 @@ class DeviceMenuActionTest {
 
     val allDeviceActions = menuAction.flattenActions().filterIsInstance<SetDeviceAction>()
 
-    assertEquals(2, allDeviceActions.size) // 2 device + Custom
-    assertEquals(device, allDeviceActions[0].device)
-    assertEquals(device, allDeviceActions[1].device)
+    assertThat(allDeviceActions.size).isEqualTo(2) // 2 devices + Custom
+    assertThat(allDeviceActions[0].device).isEqualTo(device)
+    assertThat(allDeviceActions[1].device).isEqualTo(device)
 
     // Check that only one device is selected
     val selectedActions =
@@ -265,7 +264,7 @@ class DeviceMenuActionTest {
         it.update(event)
         Toggleable.isSelected(event.presentation)
       }
-    assertEquals(1, selectedActions.size)
+    assertThat(selectedActions.size).isEqualTo(1)
   }
 
   @Test
@@ -309,10 +308,10 @@ class DeviceMenuActionTest {
     val event = TestActionEvent.createTestEvent()
     withContext(Dispatchers.EDT) {
       foldableAction.update(event)
-      Truth.assertThat(Toggleable.isSelected(event.presentation)).isTrue()
+      assertThat(Toggleable.isSelected(event.presentation)).isTrue()
 
       customAction.update(event)
-      Truth.assertThat(Toggleable.isSelected(event.presentation)).isFalse()
+      assertThat(Toggleable.isSelected(event.presentation)).isFalse()
     }
     return@runBlocking
   }
