@@ -748,6 +748,7 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/android/journeys/gradle:aiplugin.android.journeys.gradle",
             "//tools/vendor/google/ml/aiplugin/android-plugin:aiplugin.android-plugin",
             "//tools/vendor/google/ml/aiplugin/android-plugin/descriptor:aiplugin.android-plugin.descriptor",
+            "//tools/vendor/google/ml/aiplugin/backends/local:aiplugin.backends.local",
             "//tools/vendor/google/ml/aiplugin/lang/kotlin:aiplugin.lang.kotlin",
             "//tools/vendor/google/ml/aiplugin/mcp/client:aiplugin.mcp.client",
             "//tools/vendor/google/ml/aiplugin/rag/indexer:aiplugin.rag.indexer",
