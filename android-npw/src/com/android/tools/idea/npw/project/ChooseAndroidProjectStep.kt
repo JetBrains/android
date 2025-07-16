@@ -113,26 +113,26 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
     ApplicationManager.getApplication().assertIsDispatchThread()
 
     formFactors.forEach {
-      with(it.tabPanel) {
-        myGallery.setDefaultAction(
-          object : AbstractAction() {
-            override fun actionPerformed(actionEvent: ActionEvent?) {
-              wizard.goForward()
-            }
+      val tabPanel = it.tabPanel
+      val gallery = tabPanel.myGallery
+      gallery.setDefaultAction(
+        object : AbstractAction() {
+          override fun actionPerformed(actionEvent: ActionEvent?) {
+            wizard.goForward()
           }
-        )
-        val activitySelectedListener = ListSelectionListener {
-          myGallery.selectedElement?.let { renderer ->
-            myTemplateName.isVisible = false
-            myTemplateDesc.parent.isVisible =
-              false // Hides both myTemplateDesc/myDocumentationLink and removes panel padding
-
-            canGoForward.set(true)
-          } ?: canGoForward.set(false)
         }
-        myGallery.addListSelectionListener(activitySelectedListener)
-        activitySelectedListener.valueChanged(null)
+      )
+      val activitySelectedListener = ListSelectionListener {
+        gallery.selectedElement?.let { renderer ->
+          tabPanel.myTemplateName.isVisible = false
+          tabPanel.myTemplateDesc.parent.isVisible =
+            false // Hides both myTemplateDesc/myDocumentationLink and removes panel padding
+
+          canGoForward.set(true)
+        } ?: canGoForward.set(false)
       }
+      gallery.addListSelectionListener(activitySelectedListener)
+      activitySelectedListener.valueChanged(null)
     }
 
     leftList.setCellRenderer { _, value, _, isSelected, cellHasFocus ->
@@ -182,18 +182,17 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
     val selectedIndex = leftList.selectedIndex
     val selectedFormFactorInfo = formFactors.get()[selectedIndex]
     val selectedTemplate = selectedFormFactorInfo.tabPanel.myGallery.selectedElement!!
-    with(newProjectModuleModel!!) {
-      formFactor.set(selectedFormFactorInfo.formFactor)
-      when (selectedTemplate) {
-        is NewTemplateRendererWithDescription -> {
-          newRenderTemplate.setNullableValue(selectedTemplate.template)
-          val hasExtraDetailStep =
-            selectedTemplate.template.uiContexts.contains(WizardUiContext.NewProjectExtraDetail)
-          newProjectModuleModel!!.extraRenderTemplateModel.newTemplate =
-            if (hasExtraDetailStep) selectedTemplate.template else Template.NoActivity
-        }
-        else -> throw IllegalArgumentException("Add support for additional template renderer")
+    val newProjectModuleModel = newProjectModuleModel!!
+    newProjectModuleModel.formFactor.set(selectedFormFactorInfo.formFactor)
+    when (selectedTemplate) {
+      is NewTemplateRendererWithDescription -> {
+        newProjectModuleModel.newRenderTemplate.setNullableValue(selectedTemplate.template)
+        val hasExtraDetailStep =
+          selectedTemplate.template.uiContexts.contains(WizardUiContext.NewProjectExtraDetail)
+        newProjectModuleModel.extraRenderTemplateModel.newTemplate =
+          if (hasExtraDetailStep) selectedTemplate.template else Template.NoActivity
       }
+      else -> throw IllegalArgumentException("Add support for additional template renderer")
     }
   }
 

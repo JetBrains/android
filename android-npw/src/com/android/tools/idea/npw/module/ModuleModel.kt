@@ -67,9 +67,8 @@ abstract class ModuleModel(
   override val isLibrary: Boolean,
   val projectModelData: ProjectModelData,
   _template: NamedModuleTemplate =
-    with(projectModelData) {
-      if (isNewProject) createSampleTemplate() else createDefaultModuleTemplate(project, name)
-    },
+    if (projectModelData.isNewProject) createSampleTemplate()
+    else createDefaultModuleTemplate(projectModelData.project, name),
   val moduleParent: String,
   override val wizardContext: WizardUiContext,
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
