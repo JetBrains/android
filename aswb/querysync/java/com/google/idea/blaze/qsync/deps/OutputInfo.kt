@@ -43,6 +43,9 @@ interface OutputInfo {
 
   val buildContext: DependencyBuildContext
 
+  /**
+   * Get the dependencies of the given target as seen by the aspect.
+   */
   fun getDependencies(target: Label): List<Label>
 
   @VisibleForTesting
@@ -161,5 +164,25 @@ class TestOutputInfoBuilder() {
       exitCode = 0,
       buildContext = DependencyBuildContext.NONE,
     )
+  }
+}
+
+/**
+ * Get all transitive dependencies of the given target as seen by the aspect.
+ */
+fun OutputInfo.getTransitiveDependencies(target: Label): List<Label> {
+  val queue = ArrayDeque<Label>()
+  queue.add(target)
+  val visited = hashSetOf(target)
+  return buildList {
+    while (queue.isNotEmpty()) {
+      val current = queue.removeFirst()
+      for (dep in getDependencies(current)) {
+        if (visited.add(dep)) {
+          queue.add(dep)
+          add(dep)
+        }
+      }
+    }
   }
 }
