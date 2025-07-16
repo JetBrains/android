@@ -13,13 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.top_level_lib_1;
+package com.example.transitive_dep_lib2;
 
-import com.example.transitive_dep_lib1.DepLib1;
-
-/** Lib1 test class. */
-public record Lib1(String data, DepLib1 dep) {
-  public static Lib1 createTest() {
-    return new Lib1("test", new DepLib1("test"));
-  }
-}
+/** DepLib2 test class. */
+public record DepLib2(String data) {}

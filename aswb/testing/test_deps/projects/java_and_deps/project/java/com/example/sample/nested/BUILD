@@ -15,6 +15,6 @@ java_library(
     srcs = glob(["**/NestedClass2.java"]),
     visibility = ["//visibility:public"],
     deps = [
-        "//java_and_deps/deps/transitive_dep_lib",
+        "//java_and_deps/deps/transitive_dep_lib2",
     ],
 )

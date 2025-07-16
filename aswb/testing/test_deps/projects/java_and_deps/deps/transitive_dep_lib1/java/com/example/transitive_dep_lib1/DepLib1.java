@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.transitive_dep_lib;
+package com.example.transitive_dep_lib1;
 
-/** DepLib test class. */
-public record DepLib(String data) {}
+/** DepLib1 test class. */
+public record DepLib1(String data) {}

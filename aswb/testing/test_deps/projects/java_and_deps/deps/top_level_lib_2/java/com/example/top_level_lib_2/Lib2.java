@@ -15,11 +15,13 @@
  */
 package com.example.top_level_lib_2;
 
-import com.example.transitive_dep_lib.DepLib;
+import com.example.transitive_dep_lib1.DepLib1;
+import com.example.transitive_dep_lib2.DepLib2;
 
 /** Lib2 test class. */
-public record Lib2(String data, DepLib depLib) {
+public record Lib2(String data, DepLib2 depLib1) {
   public static Lib2 createTest() {
-    return new Lib2("test", new DepLib("test"));
-  }
+    System.out.println(new DepLib1("test"));
+    return new Lib2("test", new DepLib2("test"));
+ }
 }

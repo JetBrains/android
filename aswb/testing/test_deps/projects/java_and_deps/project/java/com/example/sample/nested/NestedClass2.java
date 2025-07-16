@@ -15,11 +15,11 @@
  */
 package com.example.sample.nested;
 
-import com.example.transitive_dep_lib.DepLib;
+import com.example.transitive_dep_lib2.DepLib2;
 
 /** NestedClass2 test class. */
 public final class NestedClass2 {
   {
-    System.out.println(DepLib.class);
+    System.out.println(DepLib2.class);
   }
 }
