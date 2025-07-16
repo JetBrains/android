@@ -103,27 +103,27 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
   }
 
   fun testOnlyComments() {
-    doTest(true,true)
+    doTest(true, true)
   }
 
   fun testCommentsAfterEntity() {
-    doTest(true,true)
+    doTest(true, true)
   }
 
   fun testCommentInsideBlock() {
-    doTest(true,true)
+    doTest(true, true)
   }
 
   fun testCommentInsideBlock2() {
-    doTest(true,true)
+    doTest(true, true)
   }
 
   fun testNumbers() {
-    doTest(true,true)
+    doTest(true, true)
   }
 
   fun testMultiArgumentFactory() {
-    doTest(true,true)
+    doTest(true, true)
   }
 
   fun testNewLinePropertyAndProperty() {
@@ -131,50 +131,50 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
   }
 
   fun testNewLinePropertyAndBlock() {
-    doTest(true,false)
+    doTest(true, false)
   }
 
   fun testNewLineComplexTest() {
-    doTest(true,true)
+    doTest(true, true)
   }
 
   fun testNewLineBlockAndBlock() {
-    doTest(true,false)
+    doTest(true, false)
   }
 
   fun testNewLineFunctionAndProperty() {
-    doTest(true,false)
+    doTest(true, false)
   }
 
   fun testNewLineFunctionAndFunction() {
-    doTest(true,false)
+    doTest(true, false)
   }
 
   fun testSemiEmbedded() {
-    doTest(true,true)
-  }
-
-  fun testNewLineFunctionAndBlock(){
-    doTest(true,false)
-  }
-
-  fun testOneLineBlock(){
-    doTest(true,true)
-  }
-
-  fun testAssignWithEnum(){
     doTest(true, true)
   }
 
-  fun testNulls(){
+  fun testNewLineFunctionAndBlock() {
+    doTest(true, false)
+  }
+
+  fun testOneLineBlock() {
     doTest(true, true)
   }
 
-  fun testMultifunctionExpression(){
+  fun testAssignWithEnum() {
     doTest(true, true)
   }
 
-  fun testPropertyReceiverFactory(){
+  fun testNulls() {
+    doTest(true, true)
+  }
+
+  fun testMultifunctionExpression() {
+    doTest(true, true)
+  }
+
+  fun testPropertyReceiverFactory() {
     doTest(true, true)
   }
 
@@ -182,32 +182,32 @@ class DeclarativeParserTest : ParsingTestCase("dcl/parser", "dcl", DeclarativePa
     doTest(true, true)
   }
 
-  fun testFactoryWithPropertyArguments(){
+  fun testFactoryWithPropertyArguments() {
     doTest(true, true)
   }
 
-  fun testArgumentErrorRecovery(){
+  fun testArgumentErrorRecovery() {
     doTest(true, false)
   }
 
-  fun testEndFileArgumentErrorRecovery(){
+  fun testEndFileArgumentErrorRecovery() {
     doTest(true, false)
   }
 
-  fun testFirstArgumentErrorRecovery(){
+  fun testFirstArgumentErrorRecovery() {
     doTest(true, false)
   }
 
-  fun testArgumentErrorRecoveryNoClosingParenthesis(){
+  fun testArgumentErrorRecoveryNoClosingParenthesis() {
     doTest(true, false)
   }
 
-  fun testFactoryWithCommentsInArguments(){
-    doTest(true, false)
+  fun testFactoryWithCommentsInArguments() {
+    doTest(true, true)
   }
 
   // make sure we pa
-  fun testFunctionsWithComments(){
+  fun testFunctionsWithComments() {
     doTest(true, true)
   }
 
