@@ -220,7 +220,13 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toPreviewElement(
   val attributesProvider = UastAnnotationAttributesProvider(annotation, defaultValues)
   val previewElementDefinitionPsi = readAction { rootAnnotation.toSmartPsiPointer() }
   val annotatedMethod =
-    UastAnnotatedMethod(composableMethod, setOf(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN, MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN))
+    UastAnnotatedMethod(
+      composableMethod,
+      setOf(
+        COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN,
+        MULTIPLATFORM_PREVIEW_PARAMETER_ANNOTATION_FQN,
+      ),
+    )
   val nameHelper =
     AnnotationPreviewNameHelper.create(this, annotatedMethod.name) {
       readAction { isPreviewAnnotation() }
@@ -311,6 +317,6 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.toMultiPreviewNode(
 private suspend fun Collection<UAnnotation>.nonPreviewNodes(
   multiPreviewNodesByFqn: MutableMap<String, MultiPreviewNode>
 ) =
-  filter { it.isPreviewAnnotation() == false }
+  filter { !it.isPreviewAnnotation() }
     .mapNotNull { readAction { it.qualifiedName } }
     .map { multiPreviewNodesByFqn[it]?.nodeInfo }
