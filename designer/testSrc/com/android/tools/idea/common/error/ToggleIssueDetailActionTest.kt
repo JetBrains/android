@@ -73,9 +73,11 @@ class ToggleIssueDetailActionTest {
     }
 
     sharedPanel.sidePanelVisible = true
-    TestActionEvent.createTestEvent(CustomizedDataContext.withSnapshot(dataContext) { sink ->
-      sink[PlatformDataKeys.SELECTED_ITEM] = TestNode()
-    })
+    TestActionEvent.createTestEvent(
+        CustomizedDataContext.withSnapshot(dataContext) { sink ->
+          sink[PlatformDataKeys.SELECTED_ITEM] = TestNode()
+        }
+      )
       .let { event ->
         action.update(event)
         assertEquals("Show Issue Detail", event.presentation.text)
@@ -83,9 +85,11 @@ class ToggleIssueDetailActionTest {
         assertFalse(event.presentation.isEnabled)
       }
 
-    TestActionEvent.createTestEvent(CustomizedDataContext.withSnapshot(dataContext) { sink ->
-      sink[PlatformDataKeys.SELECTED_ITEM] = TestIssueNode(TestIssue())
-    })
+    TestActionEvent.createTestEvent(
+        CustomizedDataContext.withSnapshot(dataContext) { sink ->
+          sink[PlatformDataKeys.SELECTED_ITEM] = TestIssueNode(TestIssue())
+        }
+      )
       .let { event ->
         action.update(event)
         assertEquals("Show Issue Detail", event.presentation.text)
@@ -100,10 +104,13 @@ class ToggleIssueDetailActionTest {
     val dataContext = runInEdtAndGet {
       DataManager.getInstance().getDataContext(toolWindow.contentManager.selectedContent?.component)
     }
-    val event = TestActionEvent.createTestEvent(CustomizedDataContext.withSnapshot(dataContext) { sink ->
-      // Ensure that an element is "selected" to enable the action
-      sink[PlatformDataKeys.SELECTED_ITEM] = TestIssueNode(TestIssue())
-    })
+    val event =
+      TestActionEvent.createTestEvent(
+        CustomizedDataContext.withSnapshot(dataContext) { sink ->
+          // Ensure that an element is "selected" to enable the action
+          sink[PlatformDataKeys.SELECTED_ITEM] = TestIssueNode(TestIssue())
+        }
+      )
     val sharedPanel = IssuePanelService.getDesignerCommonIssuePanel(rule.project)!!
     sharedPanel.sidePanelVisible = false
     assertFalse(action.isSelected(event))

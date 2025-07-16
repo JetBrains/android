@@ -50,7 +50,7 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
   TrafficLightRenderer(file.project, editor) {
   private val severities = SeverityRegistrar.getSeverityRegistrar(project).allSeverities
   override val errorCounts = IntArray(severities.size)
-  
+
   init {
     val messageBusConnection = project.messageBus.connect(this)
     messageBusConnection.subscribe(
@@ -74,7 +74,6 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
       }
     }
   }
-
 
   override fun getStatus(): AnalyzerStatus {
     val status = super.getStatus()

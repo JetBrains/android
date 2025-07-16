@@ -71,10 +71,12 @@ internal class CustomViewPreviewView(
 
   /** [WorkBench] used to contain all the preview elements. */
   internal val workbench: WorkBench<DesignSurface<*>> =
-    object : WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable), UiDataProvider {
-      override fun uiDataSnapshot(sink: DataSink) {
-        sink[DESIGN_SURFACE] = surface
+    object :
+        WorkBench<DesignSurface<*>>(project, "Main Preview", null, parentDisposable),
+        UiDataProvider {
+        override fun uiDataSnapshot(sink: DataSink) {
+          sink[DESIGN_SURFACE] = surface
+        }
       }
-    }
       .apply { init(editorPanel, surface, listOf(), false) }
 }

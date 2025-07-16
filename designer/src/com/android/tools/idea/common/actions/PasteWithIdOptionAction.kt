@@ -56,9 +56,10 @@ abstract class PasteWithIdOptionAction(private val withNewIds: Boolean) : AnActi
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    val dataContext = CustomizedDataContext.withSnapshot(event.dataContext) { sink ->
-      sink[PASTE_WITH_NEW_IDS_KEY] = withNewIds
-    }
+    val dataContext =
+      CustomizedDataContext.withSnapshot(event.dataContext) { sink ->
+        sink[PASTE_WITH_NEW_IDS_KEY] = withNewIds
+      }
     pasteAction?.actionPerformed(event.withDataContext(dataContext))
   }
 }
