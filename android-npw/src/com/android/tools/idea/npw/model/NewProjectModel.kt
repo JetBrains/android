@@ -17,10 +17,8 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.ide.common.repository.AgpVersion
 import com.android.io.CancellableFileIo
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleNewProjectConfiguration
@@ -87,58 +85,6 @@ import org.jetbrains.android.util.AndroidUtils
 
 private val logger: Logger
   get() = logger<NewProjectModel>()
-
-/**
- * Picks the version of AGP to use for new projects and modules.
- *
- * For existing projects, FixedVersion is used, but for new projects, the version might be resolved
- * during template render, see [newProjectAgpVersionSelector]
- */
-sealed class AgpVersionSelector {
-
-  /** Resolve the version, calling the [publishedAgpVersions] supplier only if needed */
-  abstract fun resolveVersion(publishedAgpVersions: () -> Set<AgpVersion>): AgpVersion
-
-  /**
-   * Returns true if the selector will select an AGP version of at least the version passed
-   * irrespective of the published AGP versions.
-   *
-   * The only time [willSelectAtLeast]`(version)` will not be equivalent to
-   * [resolveVersion]`(AgpVersions::getAvailableVersions)` is when differentiating between minor
-   * versions is important and [newProjectAgpVersionSelector] returns a [MaximumPatchVersion]
-   * selector. See AgoVersionSelectorTest for examples.
-   */
-  abstract fun willSelectAtLeast(version: AgpVersion): Boolean
-
-  data class FixedVersion(private val version: AgpVersion) : AgpVersionSelector() {
-    override fun resolveVersion(publishedAgpVersions: () -> Set<AgpVersion>): AgpVersion = version
-
-    override fun willSelectAtLeast(minimum: AgpVersion): Boolean = this.version >= minimum
-  }
-
-  @VisibleForTesting
-  data class MaximumPatchVersion(private val version: AgpVersion) : AgpVersionSelector() {
-    override fun resolveVersion(publishedAgpVersions: () -> Set<AgpVersion>): AgpVersion {
-      if (version.isPreview) return version
-      return (publishedAgpVersions
-        .invoke()
-        .filter { it.major == version.major && it.minor == version.minor }
-        .maxOrNull()
-        ?.takeIf { it >= version }) ?: version
-    }
-
-    override fun willSelectAtLeast(minimum: AgpVersion): Boolean = this.version >= minimum
-  }
-}
-
-/** Create a AgpVersionSelector for new project use */
-fun newProjectAgpVersionSelector(): AgpVersionSelector {
-  return if (StudioFlags.NPW_PICK_LATEST_PATCH_AGP.get()) {
-    AgpVersionSelector.MaximumPatchVersion(AgpVersions.newProject)
-  } else {
-    AgpVersionSelector.FixedVersion(AgpVersions.newProject)
-  }
-}
 
 interface ProjectModelData {
   val projectSyncInvoker: ProjectSyncInvoker
