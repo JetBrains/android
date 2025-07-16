@@ -55,11 +55,11 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val TOOLBAR_ACTIONS_ID = "Android.Designer.IssuePanel.ToolbarActions"
 
@@ -246,9 +246,7 @@ class DesignerCommonIssuePanel(
     val node = getSelectedNode() ?: return
     sink[PlatformDataKeys.SELECTED_ITEM] = node
     sink[PlatformDataKeys.VIRTUAL_FILE] = node.getVirtualFile()
-    sink.lazy(CommonDataKeys.NAVIGATABLE) {
-      node.getNavigatable()
-    }
+    sink.lazy(CommonDataKeys.NAVIGATABLE) { node.getNavigatable() }
   }
 
   fun setSelectedNode(visitor: TreeVisitor) {
