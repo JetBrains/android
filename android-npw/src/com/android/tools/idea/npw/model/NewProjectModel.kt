@@ -75,8 +75,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.pom.java.LanguageLevel
-import org.jetbrains.android.util.AndroidBundle.message
-import org.jetbrains.android.util.AndroidUtils
 import java.io.File
 import java.io.IOException
 import java.net.URL
@@ -84,6 +82,8 @@ import java.nio.file.Paths
 import java.util.Locale
 import java.util.Optional
 import java.util.regex.Pattern
+import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.android.util.AndroidUtils
 
 private val logger: Logger
   get() = logger<NewProjectModel>()
@@ -174,9 +174,11 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val agpVersionSelector =
     ObjectValueProperty<AgpVersionSelector>(newProjectAgpVersionSelector())
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
-  override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
+  override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
+
+  private fun runRenderer(renderer: (Project) -> Unit) {
     object :
-      Task.Backgroundable(
+        Task.Backgroundable(
           null,
           message("android.compile.messages.generating.r.java.content.name"),
           false,
@@ -212,6 +214,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       }
       .queue()
   }
+
   override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(true)
 
   init {
@@ -220,16 +223,16 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     language.set(calculateInitialLanguage(properties))
   }
 
-  private fun saveWizardState() =
-    with(properties) {
-      setValue(PROPERTIES_NPW_LANGUAGE_KEY, language.value.toString())
-      setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true)
+  private fun saveWizardState() {
+    val properties = properties
+    properties.setValue(PROPERTIES_NPW_LANGUAGE_KEY, language.value.toString())
+    properties.setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true)
 
-      val androidPackage = packageName.get().substringBeforeLast('.')
-      if (AndroidUtils.isValidAndroidPackageName(androidPackage)) {
-        setValue(PROPERTIES_ANDROID_PACKAGE_KEY, androidPackage)
-      }
+    val androidPackage = packageName.get().substringBeforeLast('.')
+    if (AndroidUtils.isValidAndroidPackageName(androidPackage)) {
+      properties.setValue(PROPERTIES_ANDROID_PACKAGE_KEY, androidPackage)
     }
+  }
 
   override fun handleFinished() {
     val projectLocation = projectLocation.get().trimEnd(File.separatorChar)
@@ -288,15 +291,18 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         this@NewProjectModel.agpVersionSelector
           .get()
           .resolveVersion(AgpVersions::getAvailableVersions)
-      projectTemplateData = projectTemplateDataBuilder.apply {
-        topOut = File(project.basePath ?: "")
-        androidXSupport = true
+      projectTemplateData =
+        projectTemplateDataBuilder
+          .apply {
+            topOut = File(project.basePath ?: "")
+            androidXSupport = true
 
-        setProjectDefaults(project)
-        language = this@NewProjectModel.language.value
-        agpVersion = resolvedAgpVersion
-        additionalMavenRepos = this@NewProjectModel.additionalMavenRepos.get()
-      }.build()
+            setProjectDefaults(project)
+            language = this@NewProjectModel.language.value
+            agpVersion = resolvedAgpVersion
+            additionalMavenRepos = this@NewProjectModel.additionalMavenRepos.get()
+          }
+          .build()
     }
 
     @WorkerThread
@@ -311,9 +317,10 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
     @WorkerThread
     override fun onSourcesCreated() {
-      GradleProjectImporter.configureNewProject(project, GradleNewProjectConfiguration(
-        useDefaultDaemonJvmCriteria = true
-      ))
+      GradleProjectImporter.configureNewProject(
+        project,
+        GradleNewProjectConfiguration(useDefaultDaemonJvmCriteria = true),
+      )
     }
 
     @WorkerThread
@@ -359,7 +366,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       val rootLocation = File(projectLocation.get())
       val wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation)
       try {
-        GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(projectTemplateData.gradleVersion)
+        GradleWrapper.get(wrapperPropertiesFilePath, project)
+          .updateDistributionUrl(projectTemplateData.gradleVersion)
       } catch (e: IOException) {
         // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails
         // and the error message has a "quick fix".

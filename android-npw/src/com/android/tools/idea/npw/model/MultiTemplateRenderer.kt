@@ -25,16 +25,20 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
 
-typealias ProjectRenderRunner = (renderRunnable: (project: Project) -> Unit) -> Unit
+fun interface ProjectRenderRunner {
+  /**
+   * Sets up the environment for template rendering, and runs the given block to render the
+   * template. This is responsible for creating the Project if necessary, switching to the correct
+   * thread, and performing any necessary post-render tasks (e.g. Gradle Sync). This may spawn a
+   * task asynchronously to complete the rendering.
+   */
+  fun runRenderer(renderer: (project: Project) -> Unit)
+}
 
 /**
  * Sometimes there are several separate classes which want to render templates, in some order, but
  * the whole process should be aborted if any of them fail a validation pass. This class acts as a
  * central way to coordinate such render request.
- *
- * @param renderRunner a lambda which takes a single template renderer as an argument and:
- * 1. Calls it with the right environment (e.g. in the proper thread).
- * 2. Runs optional post-render tasks (e.g. Gradle Sync).
  */
 class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
   interface TemplateRendererListener {
@@ -116,7 +120,7 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
     if (requestCount != 0 || templateRenderers.isEmpty()) {
       return
     }
-    renderRunner { project ->
+    renderRunner.runRenderer { project ->
       log.info("Generating sources.")
       ApplicationManager.getApplication().assertIsNonDispatchThread()
       multiRenderingStarted(project)
@@ -124,19 +128,18 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
       // Some models need to access other models data, during doDryRun/render phase. By calling
       // init() in all of them first, we make sure they are properly initialized when
       // doDryRun/render is called below.
-      with(templateRenderers) {
-        forEach(TemplateRenderer::init)
-        if (all(TemplateRenderer::doDryRun)) {
-          // Run all rendering inside a write lock, so multiple modified files (e.g. manifest) don't
-          // get re-indexed
-          TransactionGuard.getInstance().submitTransactionAndWait {
-            forEach { templateRenderer ->
-              templateRenderer.logUsage()
-              templateRenderer.render()
-            }
+      templateRenderers.forEach(TemplateRenderer::init)
+      if (templateRenderers.all(TemplateRenderer::doDryRun)) {
+        // Run all rendering inside a write lock, so multiple modified files (e.g. manifest) don't
+        // get re-indexed
+        TransactionGuard.getInstance().submitTransactionAndWait {
+          for (templateRenderer in templateRenderers) {
+            templateRenderer.logUsage()
+            templateRenderer.render()
           }
         }
       }
+
       log.info("Generate sources completed.")
       templateRenderers.forEach { it.onSourcesCreated() }
 

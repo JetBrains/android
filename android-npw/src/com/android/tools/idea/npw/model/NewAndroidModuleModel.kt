@@ -89,7 +89,9 @@ class ExistingProjectModelData(
       )
     )
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
-  override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer { renderer ->
+  override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
+
+  private fun runRenderer(renderer: (Project) -> Unit) {
     object :
         Task.Modal(
           project,
@@ -103,6 +105,7 @@ class ExistingProjectModelData(
       .queue()
     projectSyncInvoker.syncProject(project)
   }
+
   override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(false)
 
   init {
@@ -260,12 +263,11 @@ class NewAndroidModuleModel(
     return BytecodeLevel.default
   }
 
-  private fun saveWizardState() =
-    with(properties) {
-      if (isLibrary) {
-        setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
-      }
+  private fun saveWizardState() {
+    if (isLibrary) {
+      properties.setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
     }
+  }
 
   companion object {
     fun fromExistingProject(
