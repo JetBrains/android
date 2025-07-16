@@ -545,7 +545,7 @@ android-studio/license/ffmpeg-SOURCE_CODE.TXT
 android-studio/license/freemarker-NOTICE
 android-studio/license/gson-2.3-NOTICE
 android-studio/license/hdrhistogram_license.txt
-android-studio/license/icudt75l.dat.txt
+android-studio/license/icudt76l.dat.txt
 android-studio/license/instantapps-api-NOTICE
 android-studio/license/javacpp-NOTICE
 android-studio/license/javahelp_license.txt
@@ -2989,7 +2989,7 @@ android-studio/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-te
 android-studio/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-tk.hyb
 android-studio/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-uk.hyb
 android-studio/plugins/design-tools/resources/layoutlib/data/hyphen-data/hyph-und-ethi.hyb
-android-studio/plugins/design-tools/resources/layoutlib/data/icu/icudt75l.dat
+android-studio/plugins/design-tools/resources/layoutlib/data/icu/icudt76l.dat
 android-studio/plugins/design-tools/resources/layoutlib/data/keyboards/Generic.kcm
 android-studio/plugins/design-tools/resources/layoutlib/data/layoutlib-extensions.jar
 android-studio/plugins/design-tools/resources/layoutlib/data/linux/lib64/layoutlib_jni.so
