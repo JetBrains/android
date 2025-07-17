@@ -195,6 +195,7 @@ class OnDeviceRenderingClientTest {
         color = 1,
         label = DrawInstruction.Label(text = "label", size = 1f),
         strokeThickness = 1f,
+        outlineColor = null,
       )
     onDeviceRenderingClient.drawSelectedNode(drawInstructions)
 
@@ -222,6 +223,7 @@ class OnDeviceRenderingClientTest {
         color = 1,
         label = null,
         strokeThickness = 1f,
+        outlineColor = null,
       )
     onDeviceRenderingClient.drawHoveredNode(drawInstructions)
 
@@ -248,6 +250,7 @@ class OnDeviceRenderingClientTest {
         color = 1,
         label = null,
         strokeThickness = 1f,
+        outlineColor = null,
       )
     onDeviceRenderingClient.drawVisibleNodes(listOf(drawInstructions))
 
@@ -274,6 +277,7 @@ class OnDeviceRenderingClientTest {
         color = 1,
         label = null,
         strokeThickness = 1f,
+        outlineColor = null,
       )
     onDeviceRenderingClient.drawRecomposingNodes(listOf(drawInstructions))
 

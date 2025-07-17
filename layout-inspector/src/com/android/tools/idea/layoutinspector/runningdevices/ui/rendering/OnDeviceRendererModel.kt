@@ -46,6 +46,7 @@ const val AGENT_PACKAGE = "com.android.tools.agent.appinspection"
  * @param color The color used to render these [bounds].
  * @param label Optional label to be rendered with the [bounds].
  * @param strokeThickness Screen density independent thickness to render the [bounds].
+ * @param outlineColor The color of the optional outline to draw outside the border.
  */
 data class DrawInstruction(
   val rootViewId: Long,
@@ -53,6 +54,7 @@ data class DrawInstruction(
   val color: Int,
   val label: Label?,
   val strokeThickness: Float,
+  val outlineColor: Int?,
 ) {
   /**
    * The label of the bounds.
@@ -240,6 +242,7 @@ class OnDeviceRendererModel(
         color = renderSettings.selectionColor,
         label = label,
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = renderSettings.outlineColor,
       )
   }
 
@@ -248,6 +251,7 @@ class OnDeviceRendererModel(
       node?.toDrawInstruction(
         color = renderSettings.hoverColor,
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = renderSettings.outlineColor,
       )
   }
 
@@ -259,6 +263,7 @@ class OnDeviceRendererModel(
           it.toDrawInstruction(
             color = renderSettings.baseColor,
             strokeThickness = NORMAL_BORDER_THICKNESS,
+            outlineColor = null,
           )
         }
     } else {
@@ -270,7 +275,11 @@ class OnDeviceRendererModel(
     _recomposingNodes.value =
       nodes.mapNotNull {
         val color = renderSettings.recompositionColor.applyRecompositionAlpha(it, inspectorModel)
-        it.toDrawInstruction(color = color, strokeThickness = RECOMPOSITION_BORDER_THICKNESS)
+        it.toDrawInstruction(
+          color = color,
+          strokeThickness = RECOMPOSITION_BORDER_THICKNESS,
+          outlineColor = null,
+        )
       }
   }
 
@@ -279,6 +288,7 @@ class OnDeviceRendererModel(
     color: Int,
     strokeThickness: Float,
     label: String? = null,
+    outlineColor: Int?,
   ): DrawInstruction? {
     val rootView = inspectorModel.rootFor(this) ?: return null
     return DrawInstruction(
@@ -287,6 +297,7 @@ class OnDeviceRendererModel(
       color = color,
       strokeThickness = strokeThickness,
       label = label?.let { DrawInstruction.Label(text = label, size = LABEL_FONT_SIZE) },
+      outlineColor = outlineColor,
     )
   }
 }

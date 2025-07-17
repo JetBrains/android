@@ -43,6 +43,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAn
 import com.android.tools.idea.layoutinspector.ui.BASE_COLOR_ARGB
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.ui.HOVER_COLOR_ARGB
+import com.android.tools.idea.layoutinspector.ui.OUTLINE_COLOR_ARGB
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.android.tools.idea.layoutinspector.ui.SELECTION_COLOR_ARGB
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RECOMPOSITION_COLOR_RED_ARGB
@@ -123,6 +124,7 @@ class OnDeviceRendererModelTest {
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Text", size = LABEL_FONT_SIZE),
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = OUTLINE_COLOR_ARGB,
       )
     val instructions1 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions)
@@ -146,6 +148,7 @@ class OnDeviceRendererModelTest {
         color = HOVER_COLOR_ARGB,
         label = null,
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = OUTLINE_COLOR_ARGB,
       )
     val instructions1 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions)
@@ -179,6 +182,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
@@ -186,6 +190,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
@@ -193,6 +198,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
       )
 
@@ -211,6 +217,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         )
       )
     val instructions2 = onDeviceRendererModel.visibleNodes.first()
@@ -243,6 +250,7 @@ class OnDeviceRendererModelTest {
           color = RECOMPOSITION_COLOR_RED_ARGB.setColorAlpha(160),
           label = null,
           strokeThickness = RECOMPOSITION_BORDER_THICKNESS,
+          outlineColor = null,
         )
       )
     val instructions2 = onDeviceRendererModel.recomposingNodes.first()
@@ -281,6 +289,7 @@ class OnDeviceRendererModelTest {
             color = BASE_COLOR_ARGB,
             label = null,
             strokeThickness = NORMAL_BORDER_THICKNESS,
+            outlineColor = null,
           )
         )
       )
@@ -298,6 +307,7 @@ class OnDeviceRendererModelTest {
           color = SELECTION_COLOR_ARGB,
           label = DrawInstruction.Label(text = "View", size = LABEL_FONT_SIZE),
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+          outlineColor = OUTLINE_COLOR_ARGB,
         )
       )
     val instructions3 = onDeviceRendererModel.hoveredNode.first()
@@ -309,6 +319,7 @@ class OnDeviceRendererModelTest {
           color = HOVER_COLOR_ARGB,
           label = null,
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+          outlineColor = OUTLINE_COLOR_ARGB,
         )
       )
 
@@ -327,6 +338,7 @@ class OnDeviceRendererModelTest {
             color = BASE_COLOR_ARGB,
             label = null,
             strokeThickness = NORMAL_BORDER_THICKNESS,
+            outlineColor = null,
           )
         )
       )
@@ -340,6 +352,7 @@ class OnDeviceRendererModelTest {
           color = SELECTION_COLOR_ARGB,
           label = DrawInstruction.Label("View", LABEL_FONT_SIZE),
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+          outlineColor = OUTLINE_COLOR_ARGB,
         )
       )
     val instructions6 = onDeviceRendererModel.hoveredNode.first()
@@ -351,6 +364,7 @@ class OnDeviceRendererModelTest {
           color = HOVER_COLOR_ARGB,
           label = null,
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+          outlineColor = OUTLINE_COLOR_ARGB,
         )
       )
   }
@@ -416,6 +430,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
@@ -423,6 +438,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
@@ -430,6 +446,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
       )
 
@@ -447,6 +464,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
@@ -454,6 +472,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
       )
 
@@ -473,6 +492,7 @@ class OnDeviceRendererModelTest {
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Text", size = LABEL_FONT_SIZE),
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = OUTLINE_COLOR_ARGB,
       )
     val instructions1 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions1)
@@ -496,6 +516,7 @@ class OnDeviceRendererModelTest {
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "View", size = LABEL_FONT_SIZE),
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = OUTLINE_COLOR_ARGB,
       )
     val instructions2 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions2).isEqualTo(expectedInstructions2)
@@ -513,6 +534,7 @@ class OnDeviceRendererModelTest {
         color = HOVER_COLOR_ARGB,
         label = null,
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = OUTLINE_COLOR_ARGB,
       )
     val instructions1 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions1)
@@ -536,6 +558,7 @@ class OnDeviceRendererModelTest {
         color = HOVER_COLOR_ARGB,
         label = null,
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = OUTLINE_COLOR_ARGB,
       )
     val instructions2 = onDeviceRendererModel.hoveredNode.first()
     assertThat(instructions2).isEqualTo(expectedInstructions2)
@@ -564,6 +587,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
@@ -571,6 +595,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
@@ -578,6 +603,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
       )
     val instructions1 = onDeviceRendererModel.visibleNodes.first()
@@ -595,6 +621,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         )
       )
     val instructions2 = onDeviceRendererModel.visibleNodes.first()
@@ -626,6 +653,7 @@ class OnDeviceRendererModelTest {
           color = SELECTION_COLOR_ARGB,
           label = DrawInstruction.Label(text = "View", size = LABEL_FONT_SIZE),
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+          outlineColor = OUTLINE_COLOR_ARGB,
         )
       )
 
@@ -640,6 +668,7 @@ class OnDeviceRendererModelTest {
           color = SELECTION_COLOR_ARGB,
           label = DrawInstruction.Label(text = "View", size = LABEL_FONT_SIZE),
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+          outlineColor = OUTLINE_COLOR_ARGB,
         )
       )
   }
@@ -669,6 +698,7 @@ class OnDeviceRendererModelTest {
           color = HOVER_COLOR_ARGB,
           label = null,
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+          outlineColor = OUTLINE_COLOR_ARGB,
         )
       )
 
@@ -683,6 +713,7 @@ class OnDeviceRendererModelTest {
           color = HOVER_COLOR_ARGB,
           label = null,
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+          outlineColor = OUTLINE_COLOR_ARGB,
         )
       )
   }
@@ -701,6 +732,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
@@ -708,6 +740,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
         DrawInstruction(
           rootViewId = ROOT,
@@ -715,6 +748,7 @@ class OnDeviceRendererModelTest {
           color = BASE_COLOR_ARGB,
           label = null,
           strokeThickness = NORMAL_BORDER_THICKNESS,
+          outlineColor = null,
         ),
       )
 
@@ -730,6 +764,7 @@ class OnDeviceRendererModelTest {
           color = HOVER_COLOR_ARGB,
           label = null,
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+          outlineColor = OUTLINE_COLOR_ARGB,
         )
       )
 
@@ -748,6 +783,7 @@ class OnDeviceRendererModelTest {
           color = HOVER_COLOR_ARGB,
           label = null,
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+          outlineColor = OUTLINE_COLOR_ARGB,
         )
       )
 
@@ -761,6 +797,7 @@ class OnDeviceRendererModelTest {
           color = SELECTION_COLOR_ARGB,
           label = DrawInstruction.Label(text = "View", size = LABEL_FONT_SIZE),
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+          outlineColor = OUTLINE_COLOR_ARGB,
         )
       )
 
@@ -779,6 +816,7 @@ class OnDeviceRendererModelTest {
           color = HOVER_COLOR_ARGB,
           label = null,
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+          outlineColor = OUTLINE_COLOR_ARGB,
         )
       )
 
@@ -802,6 +840,7 @@ class OnDeviceRendererModelTest {
           color = HOVER_COLOR_ARGB,
           label = null,
           strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+          outlineColor = OUTLINE_COLOR_ARGB,
         )
       )
 
@@ -824,6 +863,7 @@ class OnDeviceRendererModelTest {
         color = SELECTION_COLOR_ARGB,
         label = null,
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = OUTLINE_COLOR_ARGB,
       )
     val instructions1 = onDeviceRendererModel.selectedNode.first()
     assertThat(instructions1).isEqualTo(expectedInstructions)
@@ -841,6 +881,7 @@ class OnDeviceRendererModelTest {
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Text", size = LABEL_FONT_SIZE),
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = OUTLINE_COLOR_ARGB,
       )
     val expectedInstructionsForLayout1 =
       DrawInstruction(
@@ -849,6 +890,7 @@ class OnDeviceRendererModelTest {
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Layout", size = LABEL_FONT_SIZE),
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = OUTLINE_COLOR_ARGB,
       )
     val expectedInstructionsForText2 =
       DrawInstruction(
@@ -857,6 +899,7 @@ class OnDeviceRendererModelTest {
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Text", size = LABEL_FONT_SIZE),
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = OUTLINE_COLOR_ARGB,
       )
     val expectedInstructionsForLayout2 =
       DrawInstruction(
@@ -865,6 +908,7 @@ class OnDeviceRendererModelTest {
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Layout", size = LABEL_FONT_SIZE),
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = OUTLINE_COLOR_ARGB,
       )
     val expectedInstructionsForColumn =
       DrawInstruction(
@@ -873,6 +917,7 @@ class OnDeviceRendererModelTest {
         color = SELECTION_COLOR_ARGB,
         label = DrawInstruction.Label(text = "Box", size = LABEL_FONT_SIZE),
         strokeThickness = EMPHASIZED_BORDER_THICKNESS,
+        outlineColor = OUTLINE_COLOR_ARGB,
       )
 
     onDeviceRendererModel.selectNode(10.0, 40.0, ROOT)
