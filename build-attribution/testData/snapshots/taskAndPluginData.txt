@@ -27,6 +27,11 @@ Task                          : :app:compileDebugJavaWithJavac
     PrimaryTaskCategory           : JAVA
     SecondaryTaskCategories       : COMPILATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:compileDebugNavigationResources
+    TaskType                      : com.android.build.gradle.tasks.CompileNavigationXmlTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
+    SecondaryTaskCategories       : COMPILATION
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:compressDebugAssets
     TaskType                      : com.android.build.gradle.internal.tasks.CompressAssetsTask
     PrimaryTaskCategory           : APK_PACKAGING
@@ -139,6 +144,10 @@ Task                          : :app:processDebugManifest
 Task                          : :app:processDebugManifestForPackage
     TaskType                      : com.android.build.gradle.tasks.ProcessPackagedManifestTask
     PrimaryTaskCategory           : MANIFEST
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:processDebugNavigationResources
+    TaskType                      : com.android.build.gradle.internal.tasks.ProcessNavigationXmlTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:processDebugResources
     TaskType                      : com.android.build.gradle.internal.res.LinkApplicationAndroidResourcesTask
@@ -322,6 +331,10 @@ Task                          : :lib:processDebugJavaRes
 Task                          : :lib:processDebugManifest
     TaskType                      : com.android.build.gradle.tasks.ProcessMultiApkApplicationManifest
     PrimaryTaskCategory           : MANIFEST
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:processDebugNavigationResources
+    TaskType                      : com.android.build.gradle.internal.tasks.ProcessNavigationXmlTask
+    PrimaryTaskCategory           : ANDROID_RESOURCES
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:syncDebugLibJars
     TaskType                      : com.android.build.gradle.internal.tasks.LibraryAarJarsTask
