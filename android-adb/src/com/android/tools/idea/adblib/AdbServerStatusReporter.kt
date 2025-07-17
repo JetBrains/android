@@ -23,8 +23,10 @@ import com.android.tools.idea.adb.AdbOptionsService
 import com.android.tools.idea.isAndroidEnvironment
 import com.google.wireless.android.sdk.stats.AdbServerStatus
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 /** Retrieve status of ADB Server and upload stats */
@@ -37,8 +39,14 @@ class AdbServerStatusReporter(val statusReporter: (ServerStatus) -> Unit) : Proj
     }
     val session = AdbLibService.getInstance(project).session
     session.scope.launch {
-      val serverStatus = retrieveServerStatus(session)
-      statusReporter(serverStatus)
+      runCatching {
+        val serverStatus = retrieveServerStatus(session)
+        statusReporter(serverStatus)
+      }.onFailure { e ->
+        if (e !is CancellationException) {
+          thisLogger().warn("Cannot report `AdbServerStatus` due to a problem with adb server", e)
+        }
+      }
     }
   }
 
