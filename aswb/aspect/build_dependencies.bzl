@@ -696,6 +696,8 @@ def _collect_own_and_dependency_cc_info(target, rule):
             gen_headers = gen_headers.to_list(),
             toolchain_id = cc_toolchain_info.id if cc_toolchain_info else None,
         )
+    if not compilation_info and not cc_toolchain_info:
+        return None
     return struct(
         compilation_info = compilation_info,
         gen_headers = gen_headers,
@@ -715,9 +717,7 @@ def _collect_dependencies_core_impl(
         ctx,
         params,
     )
-    cc_dep_info = None
-    if CcInfo in target:
-        cc_dep_info = _collect_cc_dependencies_core_impl(target, ctx)
+    cc_dep_info = _collect_cc_dependencies_core_impl(target, ctx)
     cc_toolchain_dep_info = _collect_cc_toolchain_info(target, ctx)
     return merge_dependencies_info(target, ctx, java_dep_info, cc_dep_info, cc_toolchain_dep_info)
 
@@ -764,6 +764,8 @@ def _collect_java_dependencies_core_impl(
 
 def _collect_cc_dependencies_core_impl(target, ctx):
     cc_info = _collect_own_and_dependency_cc_info(target, ctx.rule)
+    if not cc_info:
+        return None
     cc_info_files = []
     cc_info_files = [_write_cc_target_info(target.label, cc_info.compilation_info, ctx)] + ([cc_info.cc_toolchain_info.file] if cc_info.cc_toolchain_info else [])
 
