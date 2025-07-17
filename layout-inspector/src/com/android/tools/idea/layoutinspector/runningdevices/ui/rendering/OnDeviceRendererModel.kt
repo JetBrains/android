@@ -70,15 +70,9 @@ data class DrawInstruction(
  * [InspectorModel], which contains state about the inspector in general, like shared state between
  * bounds rendering and component tree (like selected and hovered nodes), client etc.
  *
- * This is a new render model, currently used only for on-device rendering. This render model is
- * agnostic to on-device rendering and is designed to be used by any [LayoutInspectorRenderer] in
- * embedded Layout Inspector. Once standalone Layout Inspector and 3D view are removed, this should
- * take over as the only render model.
- *
- * Embedded Layout Inspector could already use this render model for all its renderers, but since
- * standalone Layout Inspector is still around, it's best if both standalone and embedded share the
- * same render model, to make it easier to find bugs which would otherwise be visible only when
- * using one of the two.
+ * This is a new render model, currently used only embedded Layout Inspector rendering. This render
+ * model is designed to be used by any [LayoutInspectorRenderer]. Once standalone Layout Inspector
+ * and 3D view are removed, this should take over as the only render model.
  */
 class OnDeviceRendererModel(
   parentDisposable: Disposable,
