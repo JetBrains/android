@@ -494,11 +494,11 @@ public final class MemoryClassSetView extends AspectObserver {
 
   private ColoredTreeCellRenderer makeNameColumnRenderer() {
     return new ValueColumnRenderer() {
-      private boolean myIsLeaked = false;
+      private boolean myIsWarning = false;
 
       @Override
       protected void paintComponent(Graphics g) {
-        if (myIsLeaked) {
+        if (myIsWarning) {
           int width = getWidth();
           int height = getHeight();
           Icon i = mySelected && isFocused() && !NewUI.isEnabled()
@@ -522,14 +522,46 @@ public final class MemoryClassSetView extends AspectObserver {
                                         int row,
                                         boolean hasFocus) {
         super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
-        if (value instanceof MemoryObjectTreeNode &&
-            ((MemoryObjectTreeNode)value).getAdapter() instanceof InstanceObject) {
-          CaptureObjectInstanceFilter leakFilter = myCaptureObject.getActivityFragmentLeakFilter();
-          myIsLeaked = leakFilter != null &&
-                       leakFilter.getInstanceTest().invoke((InstanceObject)((MemoryObjectTreeNode)value).getAdapter());
-          String msg = "To investigate leak, select instance and see \"References\"";
-          setToolTipText(myIsLeaked ? msg : null);
+        if (value instanceof MemoryObjectTreeNode<?> node && node.getAdapter() instanceof InstanceObject instance) {
+          boolean isLeaked = isInstanceLeaked(instance);
+          boolean isDuplicateBitmap = isInstanceDuplicateBitmap(instance);
+
+          myIsWarning = isLeaked || isDuplicateBitmap;
+
+          String tooltipMessage = getProblemTooltipMessage(isLeaked, isDuplicateBitmap);
+          setToolTipText(tooltipMessage);
         }
+      }
+
+      /**
+       * Checks if the given instance object is considered a leak.
+       */
+      private boolean isInstanceLeaked(@NotNull InstanceObject instance) {
+        CaptureObjectInstanceFilter leakFilter = myCaptureObject != null ? myCaptureObject.getActivityFragmentLeakFilter() : null;
+        return leakFilter != null && leakFilter.getInstanceTest().invoke(instance);
+      }
+
+      /**
+       * Checks if the given instance object is considered a duplicate bitmap.
+       */
+      private boolean isInstanceDuplicateBitmap(@NotNull InstanceObject instance) {
+        CaptureObjectInstanceFilter duplicateBitmapFilter = myCaptureObject != null ? myCaptureObject.getBitmapDuplicationFilter() : null;
+        return duplicateBitmapFilter != null && duplicateBitmapFilter.getInstanceTest().invoke(instance);
+      }
+
+      /**
+       * Returns the appropriate tooltip message based on the problem states,
+       * prioritizing duplicate bitmap message over leak message.
+       */
+      @Nullable
+      private String getProblemTooltipMessage(boolean isLeaked, boolean isDuplicateBitmap) {
+        if (isDuplicateBitmap) {
+          return "To investigate duplicate bitmap, select instance and see \"References\"";
+        }
+        else if (isLeaked) {
+          return "To investigate leak, select instance and see \"References\"";
+        }
+        return null;
       }
     };
   }

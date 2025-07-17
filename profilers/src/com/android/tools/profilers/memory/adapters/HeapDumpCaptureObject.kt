@@ -39,8 +39,10 @@ import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttri
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.SHALLOW_SIZE
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute
 import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet
+import com.android.tools.profilers.memory.BitmapDuplicationAnalyzer
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter
+import com.android.tools.profilers.memory.adapters.instancefilters.BitmapDuplicationInstanceFilter
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
 import com.android.tools.profilers.memory.adapters.instancefilters.ProjectClassesInstanceFilter
 import com.android.tools.proguard.ProguardMap
@@ -65,6 +67,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
                                  private val featureTracker: FeatureTracker,
                                  private val ideProfilerServices: IdeProfilerServices) : CaptureObject {
   private val _heapSets: MutableMap<Int, HeapSet> = HashMap()
+
   // A load factor of 0.5 is used for performance reasons due to the interaction of two hash tables. See b/372321482 for details.
   private val instanceIndex = Long2ObjectOpenHashMap<InstanceObject>(16, Hash.FAST_LOAD_FACTOR)
 
@@ -79,8 +82,10 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   var hasNativeAllocations = false
     private set
   private val activityFragmentLeakFilter = ActivityFragmentLeakInstanceFilter(classDb)
-  private val supportedInstanceFilters: Set<CaptureObjectInstanceFilter> = setOf(activityFragmentLeakFilter,
-                                                                                 ProjectClassesInstanceFilter(ideProfilerServices))
+  private val bitmapDuplicationAnalyzer = BitmapDuplicationAnalyzer()
+  private lateinit var bitmapDuplicationFilter: BitmapDuplicationInstanceFilter
+  private lateinit var supportedInstanceFilters: Set<CaptureObjectInstanceFilter> // To be initialized after bitmap filter
+
   private val currentInstanceFilters = mutableSetOf<CaptureObjectInstanceFilter>()
   private val executorService = MoreExecutors.listeningDecorator(
     Executors.newSingleThreadExecutor(ThreadFactoryBuilder().setNameFormat("memory-heapdump-instancefilters").build())
@@ -100,6 +105,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   override fun getHeapSet(heapId: Int) = _heapSets.getOrDefault(heapId, null)
   override fun getInstances(): Stream<InstanceObject> =
     if (hasLoaded) heapSets.find { it is AllHeapSet }!!.instancesStream else Stream.empty()
+
   override fun getStartTimeNs() = heapDumpInfo.startTime
   override fun getEndTimeNs() = heapDumpInfo.endTime
   override fun getClassDatabase() = classDb
@@ -142,15 +148,20 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     heapSetMappings.forEach { (heap, heapSet) ->
       heap.classes.forEach { addInstanceToRightHeap(heapSet, it.id, createClassObjectInstance(javaLangClassObject, it)) }
       heap.forEachInstance { instance ->
-          assert(ClassDb.JAVA_LANG_CLASS != instance.classObj!!.className)
-          val classEntry = instance.classObj!!.makeEntry()
-          addInstanceToRightHeap(heapSet, instance.id, HeapDumpInstanceObject(this@HeapDumpCaptureObject, instance, classEntry, null))
-          true
+        assert(ClassDb.JAVA_LANG_CLASS != instance.classObj!!.className)
+        val classEntry = instance.classObj!!.makeEntry()
+        addInstanceToRightHeap(heapSet, instance.id, HeapDumpInstanceObject(this@HeapDumpCaptureObject, instance, classEntry, null))
+        true
       }
       if ("default" != heap.name || snapshot.heaps.size == 1 || heap.instancesCount > 0) {
         _heapSets.put(heap.id, heapSet)
       }
     }
+    // Run analysis after all instances are loaded into instanceIndex
+    bitmapDuplicationAnalyzer.analyze(allInstances)
+    bitmapDuplicationFilter = BitmapDuplicationInstanceFilter(bitmapDuplicationAnalyzer.getDuplicateInstances())
+    // Initialize supportedInstanceFilters now that bitmapDuplicationFilter is ready
+    supportedInstanceFilters = setOf(activityFragmentLeakFilter, ProjectClassesInstanceFilter(ideProfilerServices), bitmapDuplicationFilter)
   }
 
   private fun addInstance(heapSet: HeapSet, id: Long, instObj: InstanceObject) {
@@ -171,9 +182,10 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
 
   override fun getInstanceAttributes() =
     if (hasNativeAllocations) listOf(
-        InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.NATIVE_SIZE, InstanceAttribute.SHALLOW_SIZE,
-        InstanceAttribute.RETAINED_SIZE)
+      InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.NATIVE_SIZE, InstanceAttribute.SHALLOW_SIZE,
+      InstanceAttribute.RETAINED_SIZE)
     else listOf(InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.SHALLOW_SIZE, InstanceAttribute.RETAINED_SIZE)
+
   open fun findInstanceObject(instance: Instance) = if (hasLoaded) instanceIndex.get(instance.id) else null
 
   fun createClassObjectInstance(javaLangClass: InstanceObject?, classObj: ClassObj): InstanceObject {
@@ -184,6 +196,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   }
 
   override fun getActivityFragmentLeakFilter() = activityFragmentLeakFilter
+  override fun getBitmapDuplicationFilter() = bitmapDuplicationFilter
   override fun getSupportedInstanceFilters() = supportedInstanceFilters
   override fun getSelectedInstanceFilters() = currentInstanceFilters
 
@@ -224,7 +237,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   private fun refreshInstances(instances: Set<InstanceObject>, executor: Executor): Void? {
     executor.execute {
       _heapSets.values.forEach { it.clearClassifierSets() }
-      when (val h = _heapSets.values.find {it is AllHeapSet}) {
+      when (val h = _heapSets.values.find { it is AllHeapSet }) {
         null -> instances.forEach { _heapSets[it.heapId]!!.addDeltaInstanceObject(it) }
         else -> instances.forEach { h.addDeltaInstanceObject(it) }
       }

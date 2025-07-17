@@ -67,10 +67,13 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -666,8 +669,8 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
     // When `targetSet` is empty, if `rootNode` isn't empty, many of its leaves (if any) trivially count as smallest super-set nodes.
     // Because the result isn't interesting, we arbitrarily return `rootNode` itself for this special case to save some work.
     return targetSet.isEmpty() ? rootNode
-         : rootNode.getAdapter().isSupersetOf(target) ? findSmallestSuperSetNode(rootNode, target)
-         : null;
+                               : rootNode.getAdapter().isSupersetOf(target) ? findSmallestSuperSetNode(rootNode, target)
+                                                                            : null;
   }
 
   @NotNull
@@ -754,15 +757,30 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
   @VisibleForTesting
   ColoredTreeCellRenderer getNameColumnRenderer() {
     return new ColoredTreeCellRenderer() {
-      private long myLeakCount = 0;
+      // A helper class to define a "problem" to check for.
+      private static class ProblemDescriptor {
+        final CaptureObjectInstanceFilter filter;
+        final String singularName;
+        final String pluralName;
+
+        ProblemDescriptor(CaptureObjectInstanceFilter filter, String singularName, String pluralName) {
+          this.filter = filter;
+          this.singularName = singularName;
+          this.pluralName = pluralName;
+        }
+      }
+
+      // Use a LinkedHashMap to store counts for different problems, preserving insertion order.
+      private final Map<ProblemDescriptor, Long> myProblemCounts = new LinkedHashMap<>();
+      private long myTotalProblemCount = 0;
 
       @Override
       protected void paintComponent(Graphics g) {
-        if (myLeakCount > 0) {
+        if (myTotalProblemCount > 0) {
           int width = getWidth();
           int height = getHeight();
 
-          String text = String.valueOf(myLeakCount);
+          String text = String.valueOf(myTotalProblemCount);
           ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
           int textWidth = g.getFontMetrics().stringWidth(text);
 
@@ -815,7 +833,9 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         }
         else if (node.getAdapter() instanceof PackageSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIconColorized(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : IconManager.getInstance().getPlatformIcon(PlatformIcons.Package));
+          setIconColorized(set.hasStackInfo()
+                           ? StudioIcons.Profiler.Overlays.PACKAGE_STACK
+                           : IconManager.getInstance().getPlatformIcon(PlatformIcons.Package));
           String name = set.getName();
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
@@ -841,7 +861,9 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         }
         else if (node.getAdapter() instanceof HeapSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIconColorized(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : IconManager.getInstance().getPlatformIcon(PlatformIcons.Package));
+          setIconColorized(set.hasStackInfo()
+                           ? StudioIcons.Profiler.Overlays.PACKAGE_STACK
+                           : IconManager.getInstance().getPlatformIcon(PlatformIcons.Package));
           String name = set.getName() + " heap";
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
@@ -858,16 +880,62 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
 
-        if (node.getAdapter() instanceof ClassifierSet) {
-          CaptureObjectInstanceFilter leakFilter = myCaptureObject != null ? myCaptureObject.getActivityFragmentLeakFilter() : null;
-          myLeakCount = leakFilter != null ?
-                        ((ClassifierSet)node.getAdapter()).getInstanceFilterMatchCount(leakFilter) :
-                        0;
-          setToolTipText(myLeakCount > 1 ? "There are " + myLeakCount + " leaks" :
-                         myLeakCount > 0 ? "There is 1 leak" :
-                         null);
+        if (node.getAdapter() instanceof ClassifierSet classifierSet && myCaptureObject != null) {
+          myProblemCounts.clear();
+          // Build a list of problems to check for
+          List<ProblemDescriptor> problemsToCheck = new ArrayList<>();
+          CaptureObjectInstanceFilter leakFilter = myCaptureObject.getActivityFragmentLeakFilter();
+          if (leakFilter != null) {
+            problemsToCheck.add(new ProblemDescriptor(leakFilter, "leak", "leaks"));
+          }
+
+          CaptureObjectInstanceFilter bitmapFilter = myCaptureObject.getBitmapDuplicationFilter();
+          if (bitmapFilter != null) {
+            problemsToCheck.add(new ProblemDescriptor(bitmapFilter, "duplicate bitmap", "duplicate bitmaps"));
+          }
+
+          // Check for each problem and update counts
+          for (ProblemDescriptor problem : problemsToCheck) {
+            long count = classifierSet.getInstanceFilterMatchCount(problem.filter);
+            if (count > 0) {
+              myProblemCounts.put(problem, count);
+            }
+          }
+
+          myTotalProblemCount = myProblemCounts.values().stream().mapToLong(Long::longValue).sum();
+          setToolTipText(generateProblemTooltip());
         }
         setTextAlign(SwingConstants.LEFT);
+      }
+
+      private String generateProblemTooltip() {
+        if (myProblemCounts.isEmpty()) {
+          return null;
+        }
+
+        List<String> problemDescriptions = myProblemCounts.entrySet().stream()
+          .map(entry -> {
+            long count = entry.getValue();
+            ProblemDescriptor problem = entry.getKey();
+            String name = (count == 1) ? problem.singularName : problem.pluralName;
+            return String.format(Locale.US, "%,d %s", count, name);
+          })
+          .collect(Collectors.toList());
+
+        String summary;
+        int size = problemDescriptions.size();
+        if (size == 1) {
+          summary = problemDescriptions.get(0);
+        }
+        else if (size == 2) {
+          summary = problemDescriptions.get(0) + " and " + problemDescriptions.get(1);
+        }
+        else {
+          String lastProblem = "and " + problemDescriptions.get(size - 1);
+          summary = String.join(", ", problemDescriptions.subList(0, size - 1)) + ", " + lastProblem;
+        }
+
+        return (myTotalProblemCount > 1 ? "There are " : "There is ") + summary;
       }
     };
   }

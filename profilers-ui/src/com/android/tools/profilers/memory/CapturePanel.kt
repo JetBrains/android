@@ -53,7 +53,7 @@ class CapturePanel(profilersView: StudioProfilersView,
                    selectionRange: Range,
                    ideComponents: IdeProfilerComponents,
                    timeline: StreamingTimeline,
-                   isFullScreenHeapDumpUi: Boolean): AspectObserver() {
+                   isFullScreenHeapDumpUi: Boolean) : AspectObserver() {
   val heapView = MemoryHeapView(selection)
   val captureView = MemoryCaptureView(selection, ideComponents) // TODO: remove after full migration. Only needed for legacy tests
   val classGrouping = MemoryClassGrouping(selection)
@@ -195,8 +195,10 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
   private fun buildSummaryPanel() = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
     fun mkLabel(desc: String, action: Runnable? = null) =
       StatLabel(0L, desc, numFont = ProfilerFonts.H2_FONT, descFont = AdtUiUtils.DEFAULT_FONT.biggerOn(1f), action = action)
+
     val totalClassLabel = mkLabel("Classes")
     val totalLeakLabel = mkLabel("Leaks", action = Runnable(::showLeaks))
+    val totalBitmapDuplicatesLabel = mkLabel("Duplicates", action = Runnable(::showBitmapDuplicates))
     val totalCountLabel = mkLabel("Count")
     val totalNativeSizeLabel = mkLabel("Native Size")
     val totalShallowSizeLabel = mkLabel("Shallow Size")
@@ -232,6 +234,15 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
               icon = if (leakCount > 0) StudioIcons.Common.WARNING else null
             }
           }
+          when (val filter = capture.bitmapDuplicationFilter) {
+            null -> totalBitmapDuplicatesLabel.isVisible = false
+            else -> totalBitmapDuplicatesLabel.apply {
+              val duplicateCount = heap.getInstanceFilterMatchCount(filter).toLong()
+              isVisible = true
+              numValue = duplicateCount
+              icon = if (duplicateCount > 0) StudioIcons.Common.WARNING else null
+            }
+          }
         }
       }
     }
@@ -242,6 +253,7 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
 
     add(totalClassLabel)
     add(totalLeakLabel)
+    add(totalBitmapDuplicatesLabel)
     add(FlatSeparator(6, 36))
     add(totalCountLabel)
     add(totalNativeSizeLabel)
@@ -252,6 +264,12 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
 
   private fun showLeaks() {
     selection.selectedCapture?.activityFragmentLeakFilter?.let {
+      instanceFilterMenu.component.selectedItem = it
+    }
+  }
+
+  private fun showBitmapDuplicates() {
+    (selection.selectedCapture as? HeapDumpCaptureObject)?.getBitmapDuplicationFilter()?.let {
       instanceFilterMenu.component.selectedItem = it
     }
   }

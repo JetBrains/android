@@ -28,6 +28,7 @@ import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
+import com.android.tools.profilers.memory.adapters.instancefilters.BitmapDuplicationInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
@@ -205,6 +206,15 @@ public interface CaptureObject extends MemoryObject {
    */
   @Nullable
   default ActivityFragmentLeakInstanceFilter getActivityFragmentLeakFilter() {
+    return null;
+  }
+
+  /**
+   * @return the filter of duplicated bitmaps if that is supported, or null otherwise
+   * An implementation of this method should only return a filter in `getSupportedInstanceFilters`
+   */
+  @Nullable
+  default BitmapDuplicationInstanceFilter getBitmapDuplicationFilter() {
     return null;
   }
 
