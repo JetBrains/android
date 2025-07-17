@@ -766,7 +766,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
                         _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
                         _internal-unified-test-platform-android-driver-instrumentation        : <empty>
                         _internal-unified-test-platform-android-test-plugin         : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
@@ -1299,7 +1298,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
                         _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
                         _internal-unified-test-platform-android-driver-instrumentation        : <empty>
                         _internal-unified-test-platform-android-test-plugin         : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
@@ -1555,7 +1553,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     - taskArtifacts               : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
                     configurationArtifacts
                         _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
                         _internal-unified-test-platform-android-driver-instrumentation        : <empty>
                         _internal-unified-test-platform-android-test-plugin         : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
@@ -2262,7 +2259,6 @@ MODULE                        : NonStandardSourceSetDependencies
                             targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             configurationArtifacts
                                 _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                                _internal-unified-test-platform-android-device-provider-gradle        : <empty>
                                 _internal-unified-test-platform-android-driver-instrumentation        : <empty>
                                 _internal-unified-test-platform-android-test-plugin         : <empty>
                                 _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
@@ -2405,7 +2401,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     - taskArtifacts               : <ROOT>/lib/build/libs/manual-test-fixtures.jar [-]
                     configurationArtifacts
                         _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
                         _internal-unified-test-platform-android-driver-instrumentation        : <empty>
                         _internal-unified-test-platform-android-test-plugin         : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>

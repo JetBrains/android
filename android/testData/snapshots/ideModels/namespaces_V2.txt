@@ -62,7 +62,6 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
                         _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
                         _internal-unified-test-platform-android-driver-instrumentation        : <empty>
                         _internal-unified-test-platform-android-test-plugin         : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
@@ -199,7 +198,6 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
                         _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
                         _internal-unified-test-platform-android-driver-instrumentation        : <empty>
                         _internal-unified-test-platform-android-test-plugin         : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
@@ -332,7 +330,6 @@ MODULE                        : project
                     targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     configurationArtifacts
                         _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
                         _internal-unified-test-platform-android-driver-instrumentation        : <empty>
                         _internal-unified-test-platform-android-test-plugin         : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>

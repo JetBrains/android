@@ -625,7 +625,6 @@ MODULE                        : kotlinMultiPlatform
                     - taskArtifacts               : <ROOT>/app/build/libs/app-jvm.jar [-]
                     configurationArtifacts
                         _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
                         _internal-unified-test-platform-android-driver-instrumentation        : <empty>
                         _internal-unified-test-platform-android-test-plugin         : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
@@ -1019,7 +1018,6 @@ MODULE                        : kotlinMultiPlatform
                     - taskArtifacts               : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                     configurationArtifacts
                         _internal-unified-test-platform-android-device-provider-ddmlib        : <empty>
-                        _internal-unified-test-platform-android-device-provider-gradle        : <empty>
                         _internal-unified-test-platform-android-driver-instrumentation        : <empty>
                         _internal-unified-test-platform-android-test-plugin         : <empty>
                         _internal-unified-test-platform-android-test-plugin-host-additional-test-output : <empty>
