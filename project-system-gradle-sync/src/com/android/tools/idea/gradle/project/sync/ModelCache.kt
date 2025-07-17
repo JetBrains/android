@@ -26,6 +26,7 @@ import com.android.builder.model.Variant
 import com.android.builder.model.v2.ide.BasicVariant
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.BasicAndroidProject
+import com.android.builder.model.v2.models.BasicTestSuite
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
@@ -92,7 +93,8 @@ interface ModelCache {
       androidProject: IdeAndroidProjectImpl,
       basicVariant: BasicVariant,
       variant: com.android.builder.model.v2.ide.Variant,
-      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
+      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
+      testSuites: Collection<BasicTestSuite>
     ): ModelResult<IdeVariantCoreImpl>
 
     /**

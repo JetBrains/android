@@ -145,6 +145,7 @@ val GradleAndroidModelData.hostTestSourceProviders: Map<TestComponentType.HostTe
           this[CommonTestType.SCREENSHOT_TEST] = screenshotTestSources
         }
       }.toImmutableMap()
+
 val GradleAndroidModelData.deviceTestSourceProviders: Map<TestComponentType.DeviceTest, List<IdeSourceProvider>>
   get() = mapOf(CommonTestType.ANDROID_TEST to collectAndroidTestSourceProviders(selectedVariantCore))
 val GradleAndroidModelData.testFixturesSourceProviders: List<IdeSourceProvider>

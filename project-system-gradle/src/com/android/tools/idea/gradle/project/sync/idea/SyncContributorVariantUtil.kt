@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.project.sync.Modules
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.convertArtifactName
 import com.android.tools.idea.gradle.project.sync.getDefaultVariant
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.isAaptGeneratedSourcesFolder
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.isDataBindingGeneratedBaseClassesFolder
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.isSafeArgGeneratedSourcesFolder

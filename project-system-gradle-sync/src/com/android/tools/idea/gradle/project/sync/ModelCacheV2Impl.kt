@@ -40,7 +40,9 @@ import com.android.builder.model.v2.ide.ProjectInfo
 import com.android.builder.model.v2.ide.ProjectType
 import com.android.builder.model.v2.ide.SourceProvider
 import com.android.builder.model.v2.ide.SourceSetContainer
+import com.android.builder.model.v2.ide.SyncIssue
 import com.android.builder.model.v2.ide.TestInfo
+import com.android.builder.model.v2.ide.TestSuiteArtifact
 import com.android.builder.model.v2.ide.TestedTargetVariant
 import com.android.builder.model.v2.ide.UnresolvedDependency
 import com.android.builder.model.v2.ide.Variant
@@ -49,6 +51,9 @@ import com.android.builder.model.v2.ide.ViewBindingOptions
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
+import com.android.builder.model.v2.models.BasicTestSuite
+import com.android.builder.model.v2.models.SourceType
+import com.android.builder.model.v2.models.TestSuiteSource
 import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
@@ -63,6 +68,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toPrintableName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeBytecodeTransformation
+import com.android.tools.idea.gradle.model.IdeCustomSourceDirectory
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_DEFAULT_ENABLED
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_ERROR
@@ -75,6 +81,7 @@ import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.TEST_FIXTURES
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
+import com.android.tools.idea.gradle.model.IdeTestSuiteSource
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
@@ -93,6 +100,7 @@ import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreRef
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
+import com.android.tools.idea.gradle.model.impl.IdeJUnitEngineInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
@@ -108,6 +116,10 @@ import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteSourceImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteTargetImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteVariantTargetImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnknownLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependencyImpl
@@ -173,6 +185,37 @@ internal fun modelCacheV2Impl(
         mutableListOf()
     )
   }
+
+  fun sourceProviderFrom(name: String, providers: Collection<File>): IdeSourceProviderImpl {
+    fun File.makeRelativeAndDeduplicate(): String = relativeToOrSelf(providers.first()).path.deduplicate()
+    return IdeSourceProviderImpl(
+      name = name.deduplicate(),
+      // so far, we only support a single source in test APK, but this will need to be revisited.
+      folder = providers.first(),
+      manifestFile = null,
+      javaDirectories = providers.map { it.makeRelativeAndDeduplicate() },
+      kotlinDirectories = providers.map { it.makeRelativeAndDeduplicate() },
+      resourcesDirectories = emptyList<String>(),
+      aidlDirectories = emptyList<String>(),
+      renderscriptDirectories = emptyList<String>(),
+      resDirectories = emptyList<String>(),
+      assetsDirectories = emptyList<String>(),
+      jniLibsDirectories = emptyList<String>(),
+      shadersDirectories = emptyList<String>(),
+      mlModelsDirectories = emptyList<String>(),
+      customSourceDirectories = emptyList<IdeCustomSourceDirectory>(),
+      baselineProfileDirectories = emptyList<String>()
+    )
+  }
+
+  fun sourceProviderFrom(source: TestSuiteSource): IdeSourceProviderImpl {
+    return if (source.folders?.isNotEmpty() ?: false) {
+      sourceProviderFrom(source.name, source.folders!!)
+    } else {
+      sourceProviderFrom(source.sourceProvider!!)
+    }
+  }
+
 
   fun classFieldFrom(classField: ClassField): IdeClassFieldImpl {
     return IdeClassFieldImpl(
@@ -944,12 +987,55 @@ internal fun modelCacheV2Impl(
     }
   }
 
+  fun testSuiteSourceTypeFrom(
+    sourceType: SourceType
+  ): IdeTestSuiteSource.SourceType {
+    return when(sourceType) {
+      SourceType.ASSETS -> IdeTestSuiteSource.SourceType.ASSETS
+      SourceType.HOST_JAR -> IdeTestSuiteSource.SourceType.HOST_JAR
+      SourceType.TEST_APK -> IdeTestSuiteSource.SourceType.TEST_APK
+    }
+  }
+
+  fun testSuiteSourceFrom(source: TestSuiteSource) = IdeTestSuiteSourceImpl(
+    source.name,
+    testSuiteSourceTypeFrom(source.type),
+    sourceProviderFrom(source),
+  )
+
+  fun testSuiteArtifactsFrom(
+    variant: Variant,
+    testSuites: Collection<BasicTestSuite>
+  ): Collection<IdeTestSuiteVariantTargetImpl> {
+    return if (modelVersions[ModelFeature.HAS_TEST_SUITES]) {
+      val suitesForThisVariant = testSuites.map { testSuite ->
+        testSuite.targetsByVariant
+          .filter { variantTarget -> variantTarget.targetedVariant == variant.name }
+          .map { target ->
+            IdeTestSuiteVariantTargetImpl(
+              suiteName = testSuite.name,
+              targetedVariantName = target.targetedVariant,
+              targets = target.targets.map { target ->
+                IdeTestSuiteTargetImpl(
+                  target.name,
+                  target.testTaskName,
+                  target.targetedDevices
+                )
+              }
+            )
+          }
+      }
+      suitesForThisVariant.flatten()
+    }
+    else emptyList()
+  }
+
   fun deviceTestArtifactsFrom(
     variant:Variant,
     basicVariant: BasicVariant,
     variantName: String,
     fallbackDesugaredMethodsFiles: List<File>,
-    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
+    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
   ): List<IdeAndroidArtifactCoreImpl> {
     return if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
       variant.deviceTestArtifacts.map { (k, v) ->
@@ -971,7 +1057,8 @@ internal fun modelCacheV2Impl(
     multiVariantData: IdeMultiVariantDataImpl,
     basicVariant: BasicVariant,
     variant: Variant,
-    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
+    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
+    testSuites: Collection<BasicTestSuite>,
   ): IdeVariantCoreImpl {
     // To get merged flavors for V2, we merge flavors from default config and all the flavors.
     val mergedFlavor = mergeProductFlavorsFrom(
@@ -1011,6 +1098,7 @@ internal fun modelCacheV2Impl(
         fallbackDesugaredMethodsFiles,
         legacyAndroidGradlePluginProperties
       ),
+      testSuiteArtifacts = testSuiteArtifactsFrom(variant, testSuites),
       testFixturesArtifact = variant.testFixturesArtifact?.let { it: AndroidArtifact ->
         androidArtifactFrom(
           IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, variantName, legacyAndroidGradlePluginProperties,
@@ -1129,7 +1217,7 @@ internal fun modelCacheV2Impl(
             mainArtifact = mainArtifact.postProcess(),
             deviceTestArtifacts = deviceTestArtifacts.map { it!!.postProcess() },
             hostTestArtifacts = hostTestArtifacts.map { it!!.postProcess() },
-            testFixturesArtifact = testFixturesArtifact?.postProcess()
+            testFixturesArtifact = testFixturesArtifact?.postProcess(),
           )
         }
       )
@@ -1336,8 +1424,24 @@ internal fun modelCacheV2Impl(
       productFlavors = productFlavorCopy,
     )
 
+    val testSuites = if (modelVersions[ModelFeature.HAS_TEST_SUITES]) {
+      basicProject.testSuites.map { basicTestSuite ->
+        val testSuite = project.testSuites.first { it.name == basicTestSuite.name }
+        IdeTestSuiteImpl(
+          name = basicTestSuite.name,
+          sources = basicTestSuite.sources.map(::testSuiteSourceFrom),
+          junitEngineInfo = IdeJUnitEngineInfoImpl(testSuite.junitEngineInfo.includedEngines),
+          targetedVariants = basicTestSuite.targetsByVariant.map { it.targetedVariant }
+        )
+      }
+    } else emptyList()
+
+    val basicTestSuites = if (modelVersions[ModelFeature.HAS_TEST_SUITES]) {
+      basicProject.testSuites
+    } else emptyList()
+
     val coreVariantsCopy = project.variants.zip(basicProject.variants).map { (variantModel, basicVariant) ->
-      variantCoreFrom(projectTypeCopy, multiVariantData, basicVariant, variantModel, legacyAndroidGradlePluginProperties)
+      variantCoreFrom(projectTypeCopy, multiVariantData, basicVariant, variantModel, legacyAndroidGradlePluginProperties, basicTestSuites)
     }
     val flavorDimensionCopy: Collection<String> = androidDsl.flavorDimensions.deduplicateStrings()
     val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(basicProject.bootClasspath.map { it.absolutePath })
@@ -1356,6 +1460,7 @@ internal fun modelCacheV2Impl(
     val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl = androidGradlePluginProjectFlagsFrom(project.flags, gradlePropertiesModel, legacyAndroidGradlePluginProperties)
     val desugarLibConfig = project.takeIf { modelVersions[ModelFeature.HAS_DESUGAR_LIB_CONFIG] }?.desugarLibConfig.orEmpty()
     val lintJar = project.takeIf { modelVersions[ModelFeature.HAS_LINT_JAR_IN_ANDROID_PROJECT] }?.lintJar?.deduplicateFile()
+
 
     return ModelResult.create {
       if (syncTestMode == SyncTestMode.TEST_EXCEPTION_HANDLING) error("**internal error for tests**")
@@ -1395,7 +1500,8 @@ internal fun modelCacheV2Impl(
         isKaptEnabled = false,
         desugarLibraryConfigFiles = desugarLibConfig,
         defaultVariantName = defaultVariantName,
-        lintJar = lintJar
+        lintJar = lintJar,
+        testSuites = testSuites
       )
     }
   }
@@ -1406,11 +1512,14 @@ internal fun modelCacheV2Impl(
       androidProject: IdeAndroidProjectImpl,
       basicVariant: BasicVariant,
       variant: Variant,
-      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
+      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
+      testSuites: Collection<BasicTestSuite>
     ): ModelResult<IdeVariantCoreImpl> = ModelResult.create {
+
       // Currently, all plugins going through the model cache v2 building will be of multi-variant type
       variantCoreFrom(androidProject.projectType, androidProject.multiVariantData!!, basicVariant, variant,
-                      legacyAndroidGradlePluginProperties)
+                      legacyAndroidGradlePluginProperties,
+                      testSuites)
     }
 
     override fun variantFrom(
@@ -1488,7 +1597,7 @@ private inline fun <K, V, W, R> zip(
   return original1.map { mapper(it, original2Keyed[key1(it)]) }
 }
 
-internal fun Collection<com.android.builder.model.v2.ide.SyncIssue>.toV2SyncIssueData(): List<IdeSyncIssue> {
+internal fun Collection<SyncIssue>.toV2SyncIssueData(): List<IdeSyncIssue> {
   return map { syncIssue ->
     IdeSyncIssueImpl(
       message = syncIssue.message,

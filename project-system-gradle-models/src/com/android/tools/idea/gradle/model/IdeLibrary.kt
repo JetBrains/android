@@ -153,7 +153,7 @@ interface IdeModuleSourceSet {
 /**
  * An Android or Java well-known source set in an IDE module group.
  *
- * Android source sets names are pre-defined and cannot be changed in Gradle configuration by users. In Java and KMP worlds source set
+ * Android source sets names are pre-defined and cannot be changed in Gradle configuration by users. In Java, Test Suites and KMP worlds source set
  * naming is more flexible. Note tha in case of source set name collision the original intent is assumed.
  */
 enum class IdeModuleWellKnownSourceSet(

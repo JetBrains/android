@@ -112,6 +112,7 @@ import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
@@ -990,6 +991,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       mainArtifact = mainArtifact.model,
       hostTestArtifacts = listOfNotNull(unitTestArtifact?.model),
       deviceTestArtifacts = listOfNotNull(androidTestArtifact?.model),
+      testSuiteArtifacts = emptyList(),
       testFixturesArtifact = null,
       buildType = variant.buildType,
       productFlavors = ImmutableList.copyOf(variant.productFlavors),
@@ -1400,6 +1402,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         desugarLibraryConfigFiles = listOf(),
         defaultVariantName = null,
         lintJar = null,
+        testSuites = emptyList(),
       )
     }
   }

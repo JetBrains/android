@@ -151,7 +151,10 @@ sealed class AndroidProjectResult {
               androidProject = ideAndroidProject,
               basicVariant = basicVariantMap[it.name] ?: error("BasicVariant not found. Name: ${it.name}"),
               variant = it,
-              legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties
+              legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
+              testSuites = if (modelVersions[ModelFeature.HAS_TEST_SUITES])
+                basicAndroidProject.testSuites
+              else emptyList()
             )
           }
         }

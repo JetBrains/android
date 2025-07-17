@@ -213,6 +213,7 @@ sealed class VariantDependenciesCompat(
   val mainArtifact: ArtifactDependenciesCompat,
   val deviceTestArtifacts: Map<IdeArtifactName, ArtifactDependenciesCompat>,
   val hostTestArtifacts: Map<IdeArtifactName, ArtifactDependenciesCompat>,
+  val testSuiteArtifacts: Map<String, List<ArtifactDependenciesCompat>>,
   val testFixturesArtifact: ArtifactDependenciesCompat?,
   val libraries: Map<String, Library>,
 ) {
@@ -232,6 +233,7 @@ sealed class VariantDependenciesCompat(
     } else {
       emptyMap()
     },
+    emptyMap(),
     variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.FlatList(it) },
     variantDependencies.libraries
   )
@@ -257,6 +259,12 @@ sealed class VariantDependenciesCompat(
         mapOf( IdeArtifactName.UNIT_TEST to ArtifactDependenciesCompat.AdjacencyList(it))
       }?: emptyMap()
     },
+    if (modelVersions[ModelFeature.HAS_TEST_SUITES]) {
+      variantDependencies.testSuiteArtifacts.mapValues { it.value.sourcesDependencies.map { sourceDependency ->
+          ArtifactDependenciesCompat.AdjacencyList(sourceDependency.artifactDependencies)
+        }
+      }
+    } else emptyMap(),
     variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.AdjacencyList(it) },
     variantDependencies.libraries
   )
@@ -281,6 +289,12 @@ sealed class VariantDependenciesCompat(
         mapOf( IdeArtifactName.UNIT_TEST to ArtifactDependenciesCompat.GraphItemList(it))
       }?: emptyMap()
     },
+    if (modelVersions[ModelFeature.HAS_TEST_SUITES])
+        variantDependencies.testSuiteArtifacts.mapValues {
+        it.value.sourcesDependencies.map {
+          ArtifactDependenciesCompat.GraphItemList(it.artifactDependencies)
+        }
+       } else emptyMap(),
     variantDependencies.testFixturesArtifact?.let { ArtifactDependenciesCompat.GraphItemList(it) },
     variantDependencies.libraries,
   )

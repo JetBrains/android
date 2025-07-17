@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
+import com.android.tools.idea.gradle.model.IdeTestSuiteVariantTarget
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import java.io.File
@@ -36,6 +37,7 @@ data class IdeVariantCoreImpl(
   override val name: String,
   override val displayName: String,
   override val mainArtifact: IdeAndroidArtifactCoreImpl,
+  override val testSuiteArtifacts: Collection<IdeTestSuiteVariantTargetImpl>,
   override val hostTestArtifacts: List<IdeJavaArtifactCoreImpl>,
   override val deviceTestArtifacts: List<IdeAndroidArtifactCoreImpl>,
   override val testFixturesArtifact: IdeAndroidArtifactCoreImpl?,
@@ -73,4 +75,5 @@ data class IdeVariantImpl(
   override val deviceTestArtifacts: List<IdeAndroidArtifact> = core.deviceTestArtifacts.map { IdeAndroidArtifactImpl(it, resolver) }
   override val testFixturesArtifact: IdeAndroidArtifact? = core.testFixturesArtifact?.let { IdeAndroidArtifactImpl(it, resolver) }
   override val hostTestArtifacts: List<IdeJavaArtifact> = core.hostTestArtifacts.map { IdeJavaArtifactImpl(it, resolver) }
+  override val testSuiteArtifacts: Collection<IdeTestSuiteVariantTarget> = core.testSuiteArtifacts
 }

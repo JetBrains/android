@@ -70,6 +70,9 @@ import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteTargetImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestSuiteVariantTargetImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
@@ -403,6 +406,7 @@ interface AndroidProjectStubBuilder {
   fun mainArtifact(variant: String): IdeAndroidArtifactCoreImpl
   fun deviceTestArtifacts(variant: String, applicationId: String?): List<IdeAndroidArtifactCoreImpl>
   fun hostTestArtifacts(variant: String): List<IdeJavaArtifactCoreImpl>
+  fun testSuiteArtifacts(variant: String): List<IdeTestSuiteVariantTargetImpl>
   fun testFixturesArtifact(variant: String): IdeAndroidArtifactCoreImpl?
   val androidProject: IdeAndroidProjectImpl
   val variants: List<IdeVariantCoreImpl>
@@ -469,6 +473,8 @@ data class AndroidProjectBuilder(
     { variant, applicationId -> listOf(buildAndroidTestArtifactStub(variant, applicationId)) },
   val hostTestArtifactsStub: AndroidProjectStubBuilder.(variant: String) -> List<IdeJavaArtifactCoreImpl> =
     { variant -> listOf(buildUnitTestArtifactStub(variant)) },
+  val testSuiteArtifactsStub: AndroidProjectStubBuilder.(variant: String) -> List<IdeTestSuiteVariantTargetImpl> =
+    { variant -> listOf(buildTestSuiteArtifactStub(variant)) },
   val testFixturesArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactCoreImpl? =
     { variant -> null },
   val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
@@ -639,6 +645,8 @@ data class AndroidProjectBuilder(
           variant, applicationId)
 
         override fun hostTestArtifacts(variant: String): List<IdeJavaArtifactCoreImpl> = hostTestArtifactsStub(variant)
+        override fun testSuiteArtifacts(variant: String): List<IdeTestSuiteVariantTargetImpl> = testSuiteArtifactsStub(variant)
+
         override fun testFixturesArtifact(variant: String): IdeAndroidArtifactCoreImpl? = testFixturesArtifactStub(variant)
         override val variants: List<IdeVariantCoreImpl> = variants()
         override val androidProject: IdeAndroidProjectImpl = androidProject()
@@ -1042,6 +1050,38 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
   )
 }
 
+fun AndroidProjectStubBuilder.buildTestSuiteArtifactStub(
+  variant: String,
+  dependencies: IdeDependenciesCoreImpl = buildDependenciesStub(
+    dependencies = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
+                   listOf(
+                     IdeDependencyCoreImpl(
+                       IdePreResolvedModuleLibraryImpl(
+                         buildId = buildId,
+                         projectPath = gradleProjectPath,
+                         variant = variant,
+                         lintJar = null,
+                         sourceSet = IdeModuleWellKnownSourceSet.MAIN
+                       ).let {internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) {it} },
+                       dependencies = listOf()
+                     )
+                   )
+  ),
+  mockablePlatformJar: File? = null
+): IdeTestSuiteVariantTargetImpl {
+  return IdeTestSuiteVariantTargetImpl(
+      suiteName = "first",
+      targetedVariantName = variant,
+      targets = listOf(
+        IdeTestSuiteTargetImpl(
+          "t1",
+          "testFirstT1${variant}",
+          targetedDevices = listOf("pixel 9")
+        )
+      )
+  )
+}
+
 fun AndroidProjectStubBuilder.buildScreenshotTestArtifactStub(
   variant: String,
   dependencies: IdeDependenciesCoreImpl = buildDependenciesStub(
@@ -1180,6 +1220,7 @@ fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantCoreImpl> {
           variant,
           variant,
           mainArtifact,
+          testSuiteArtifacts = testSuiteArtifacts(variant),
           hostTestArtifacts(variant),
           deviceTestArtifacts(variant, applicationId = testApplicationId),
           testFixturesArtifact(variant),
@@ -1298,7 +1339,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     isKaptEnabled = false,
     desugarLibraryConfigFiles = listOf(),
     defaultVariantName = defaultVariantName,
-    lintJar = null
+    lintJar = null,
+    testSuites = emptyList()
   )
 }
 

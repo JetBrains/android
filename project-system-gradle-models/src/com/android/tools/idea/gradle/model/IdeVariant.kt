@@ -56,6 +56,7 @@ interface IdeVariantCore : IdeVariantHeader {
   val deviceTestArtifacts: List<IdeAndroidArtifactCore>
   val testFixturesArtifact: IdeAndroidArtifactCore?
   val hostTestArtifacts: List<IdeJavaArtifactCore>
+  val testSuiteArtifacts: Collection<IdeTestSuiteVariantTarget>
 
   val minSdkVersion: IdeApiVersion
 
@@ -139,6 +140,7 @@ data object ThrowingIdeVariantCore : IdeVariantCore, Serializable {
   override val deviceTestArtifacts get() = unexpected()
   override val testFixturesArtifact get() = unexpected()
   override val hostTestArtifacts get() = unexpected()
+  override val testSuiteArtifacts: List<IdeTestSuiteVariantTarget> get() = unexpected()
   override val minSdkVersion get() = unexpected()
   override val targetSdkVersion get() = unexpected()
   override val maxSdkVersion get() = unexpected()

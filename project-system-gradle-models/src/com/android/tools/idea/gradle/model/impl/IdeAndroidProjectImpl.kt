@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeTestSuite
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import java.io.File
 import java.io.Serializable
@@ -53,5 +54,6 @@ data class IdeAndroidProjectImpl(
   override val isKaptEnabled: Boolean,
   override val desugarLibraryConfigFiles: List<File>,
   override val defaultVariantName: String?,
-  override val lintJar: File?
+  override val lintJar: File?,
+  override val testSuites: List<IdeTestSuiteImpl>
 ) : IdeAndroidProject, Serializable

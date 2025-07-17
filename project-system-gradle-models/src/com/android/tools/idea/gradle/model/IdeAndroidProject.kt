@@ -180,6 +180,11 @@ interface IdeAndroidProject : Serializable {
 
   /** Lint jar published from the project, if any. */
   val lintJar: File?
+
+  /**
+   * Returns the list of all the test suites defined for this project.
+   */
+  val testSuites: List<IdeTestSuite>
 }
 
 val IdeAndroidProject.filteredVariantNames: Collection<String> get() = basicVariants.mapNotNull { if (it.hideInStudio) null else it.name }
