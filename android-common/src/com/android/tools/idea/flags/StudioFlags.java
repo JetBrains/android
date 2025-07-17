@@ -1831,13 +1831,14 @@ public final class StudioFlags {
       "Enable Play Policy Insights",
       enabledUpTo(CANARY));
 
-  public static final Flag<Boolean> PLAY_POLICY_INSIGHTS_AUTO_UPDATE =
-    new BooleanFlag(
+  // Flag only for unplanned compatibility issues between Android Studio and lint libraries.
+  public static final Flag<String> PLAY_POLICY_INSIGHTS_TARGET_LIBRARY_VERSION =
+    new StringFlag(
       PLAY_POLICY_INSIGHTS,
-      "play.policy.insights.auto.update",
-      "Play Policy Insights Auto Update",
-      "Update Play Policy lint rule library to the latest",
-      enabledUpTo(CANARY));
+      "play.policy.insights.target.library.version",
+      "Play Policy Insights target library version",
+      "Force a specific version of the Play Policy Insights.",
+      "");
   // endregion Play Policy Insights
 
   // region Firebase Test Lab

@@ -20,21 +20,26 @@ import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GoogleMavenRepository.Companion.MAVEN_GOOGLE_CACHE_DIR_KEY
 import com.android.repository.api.Checksum
 import com.android.repository.api.ConsoleProgressIndicator
+import com.android.repository.api.Downloader
 import com.android.repository.api.ProgressIndicatorAdapter
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.lint.detector.api.Severity
 import com.android.tools.lint.detector.api.readUrlData
 import com.android.utils.FileUtils
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.hash.Hashing
 import com.google.common.io.Files
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.text.nullize
 import java.io.File
 import java.io.IOException
 import java.lang.System.currentTimeMillis
@@ -53,16 +58,26 @@ private const val BUNDLED_JAR_PATH = "insights-lint-0.1.2.jar"
 private const val MIN_UPDATE_BACKOFF_MINUTES = 10L
 private const val CACHE_EXPIRY_DAYS = 7L
 
+private const val DEPRECATION_SERVICE_NAME = "aqi/policy"
+private const val DEPRECATION_USER_FRIENDLY_SERVICE_NAME = "Play Policy Insights"
+
 /** Load and cache the custom lint rule jars for play policy insights. */
-class PlayPolicyInsightsJarCache(private val client: AndroidLintIdeClient) {
+class PlayPolicyInsightsJarCache(
+  private val client: AndroidLintIdeClient,
+  private val cachedDir: Path?,
+  private val downloader: Downloader,
+) {
+  constructor(client: AndroidLintIdeClient) : this(client, getCacheDir(), StudioDownloader())
+
   private val scope = client.myProject.coroutineScope.createChildScope(isSupervisor = true)
-  private val cachedDir = getCacheDir()
   @kotlin.concurrent.Volatile private var cachedFile: File? = null
 
   private val bundledJar: File? = getBundledJar()
   private var googleMavenRepository: GoogleMavenRepository? = null
-  private val isUpdating = MutableStateFlow(false)
+  @VisibleForTesting val isUpdating = MutableStateFlow(false)
   @kotlin.concurrent.Volatile private var nextUpdatingTimeMs = 0L
+  private val targetLibraryVersion =
+    StudioFlags.PLAY_POLICY_INSIGHTS_TARGET_LIBRARY_VERSION.get().trim()
 
   private fun getGoogleMavenRepository(): GoogleMavenRepository {
     return googleMavenRepository
@@ -107,23 +122,38 @@ class PlayPolicyInsightsJarCache(private val client: AndroidLintIdeClient) {
   }
 
   private fun getGMavenRuleJar(): File? {
-    if (!StudioFlags.PLAY_POLICY_INSIGHTS_AUTO_UPDATE.get()) return null
+    // No more updates are needed if we already have the target version of library.
+    if (targetLibraryVersion.isNotEmpty() && cachedFile != null) {
+      return cachedFile
+    }
+
     // Check if the jar from gMaven is cached.
     try {
       if (cachedFile == null) {
         val dir = cachedDir ?: return null
-        dir
-          .toFile()
-          .listFiles()
-          ?.filter { it.name.startsWith(ARTIFACT_ID) && it.name.endsWith(".jar") }
-          ?.sortedBy { file -> file.name }
-          ?.maxByOrNull { file -> file.lastModified() }
-          ?.let { jarFile ->
-            // Verify existing jar file with its sha256 checksum.
-            if (sha256Verified(jarFile.sha256(), jarFile.sha256FileText())) {
-              cachedFileVerified(jarFile)
-            }
+        // Find the jar file with target version if exists.
+        var jarFile =
+          targetLibraryVersion
+            .nullize()
+            ?.let { version -> "$ARTIFACT_ID-$version.jar" }
+            ?.let { jarName -> dir.resolve(jarName).toFile() }
+            ?.takeIf { file -> file.exists() }
+        // Find the latest library in the directory.
+        if (jarFile == null) {
+          jarFile =
+            dir
+              .toFile()
+              .listFiles()
+              ?.filter { it.name.startsWith(ARTIFACT_ID) && it.name.endsWith(".jar") }
+              ?.sortedBy { file -> file.name }
+              ?.maxByOrNull { file -> file.lastModified() }
+        }
+        if (jarFile != null) {
+          // Verify existing jar file with its sha256 checksum.
+          if (sha256Verified(jarFile.sha256(), jarFile.sha256FileText())) {
+            cachedFileVerified(jarFile)
           }
+        }
       }
     } catch (e: Exception) {
       client.log(
@@ -139,6 +169,18 @@ class PlayPolicyInsightsJarCache(private val client: AndroidLintIdeClient) {
 
   /** Starts a new job to update the cached file. */
   private fun updateCachedJar() {
+    // Check service deprecation status if target version is not specified.
+    if (
+      targetLibraryVersion.isEmpty() &&
+        service<DevServicesDeprecationDataProvider>()
+          .getCurrentDeprecationData(
+            DEPRECATION_SERVICE_NAME,
+            DEPRECATION_USER_FRIENDLY_SERVICE_NAME,
+          )
+          .isUnsupported()
+    )
+      return
+
     val dir = cachedDir ?: return
 
     val actionTimeMs = currentTimeMillis()
@@ -156,7 +198,10 @@ class PlayPolicyInsightsJarCache(private val client: AndroidLintIdeClient) {
           try {
             // Update the library from gMaven.
             val repository = getGoogleMavenRepository()
-            val version = repository.getVersions(GROUP_ID, ARTIFACT_ID).maxOrNull() ?: return@launch
+            val version =
+              targetLibraryVersion.takeIf { it.isNotEmpty() }
+                ?: repository.getVersions(GROUP_ID, ARTIFACT_ID).maxOrNull()
+                ?: return@launch
             val jarName = "${ARTIFACT_ID}-${version}.jar"
             val urlResolver: (String) -> URL = { fileName ->
               URL(
@@ -173,25 +218,23 @@ class PlayPolicyInsightsJarCache(private val client: AndroidLintIdeClient) {
 
             if (!verified()) {
               val shaFile = jarFile.sha256File()
-              StudioDownloader()
-                .downloadFullyWithCaching(
-                  urlResolver(shaFile.name),
-                  shaFile.toPath(),
-                  null,
-                  object : ProgressIndicatorAdapter() {},
-                )
+              downloader.downloadFullyWithCaching(
+                urlResolver(shaFile.name),
+                shaFile.toPath(),
+                null,
+                object : ProgressIndicatorAdapter() {},
+              )
               sha256FileText = jarFile.sha256FileText()
             }
 
             // Download the jar.
             if (!verified()) {
-              StudioDownloader()
-                .downloadFullyWithCaching(
-                  urlResolver(jarName),
-                  jarPath,
-                  Checksum.create(sha256FileText, "sha-256"),
-                  ConsoleProgressIndicator(),
-                )
+              downloader.downloadFullyWithCaching(
+                urlResolver(jarName),
+                jarPath,
+                Checksum.create(sha256FileText, "sha-256"),
+                ConsoleProgressIndicator(),
+              )
               sha256 = jarFile.sha256()
             }
 
