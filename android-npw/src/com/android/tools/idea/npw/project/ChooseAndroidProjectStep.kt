@@ -16,7 +16,13 @@
 package com.android.tools.idea.npw.project
 
 import com.android.tools.adtui.ASGallery
+import com.android.tools.adtui.compose.StudioComposePanel
+import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.adtui.util.FormScalingUtil
+import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
 import com.android.tools.idea.npw.template.ChooseGalleryItemStep
@@ -47,15 +53,25 @@ import com.intellij.util.ModalityUiUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
+import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.event.ActionEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.util.function.Supplier
 import javax.swing.AbstractAction
+import javax.swing.BoxLayout
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.JSeparator
 import javax.swing.ListSelectionModel
+import javax.swing.SwingConstants
 import javax.swing.event.ListSelectionListener
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import org.jetbrains.android.util.AndroidBundle.message
 
 const val TABLE_CELL_WIDTH = 260
@@ -72,11 +88,15 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
   private var loadingPanel = JBLoadingPanel(BorderLayout(), this)
   private val leftList = JBList<FormFactorInfo>()
   private val rightPanel = JPanel(BorderLayout())
+  // Gemini label should be integrated with templates
+  private val geminiLabel = JBLabel()
   private val listEntriesListeners = ListenerManager()
   private val formFactors: Supplier<List<FormFactorInfo>> =
     Suppliers.memoize { createFormFactors(title) }
   private val canGoForward = BoolValueProperty()
   private var newProjectModuleModel: NewProjectModuleModel? = null
+  private val geminiTextState = MutableStateFlow("")
+  private val coroutineScope = this.createCoroutineScope(Dispatchers.Main)
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
     newProjectModuleModel = NewProjectModuleModel(model)
@@ -104,6 +124,18 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
         ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any()) { updateUi(wizard, formFactors) }
       },
     )
+
+    if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get()) {
+      coroutineScope.launch {
+        geminiTextState.collect {
+          canGoForward.set(
+            GeminiPluginApi.getInstance().isAvailable() &&
+              it.isNotEmpty() &&
+              leftList.selectedIndex == -1
+          )
+        }
+      }
+    }
   }
 
   /**
@@ -150,17 +182,66 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
     leftList.selectionMode = ListSelectionModel.SINGLE_SELECTION
     leftList.setListData(formFactors.toTypedArray())
     leftList.selectedIndex = 0
+    leftList.alignmentX = Component.LEFT_ALIGNMENT
     listEntriesListeners.listenAndFire(SelectedListValueProperty(leftList)) { formFactorInfo ->
+      if (formFactorInfo.isEmpty) return@listenAndFire
+
       rightPanel.removeAll()
       rightPanel.add(formFactorInfo.get().tabPanel.myRootPanel, BorderLayout.CENTER)
       rightPanel.revalidate()
       rightPanel.repaint()
+      canGoForward.set(formFactorInfo.get().tabPanel.myGallery.selectedElement != null)
+
+      if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get()) {
+        geminiLabel.apply {
+          background = UIUtil.getListBackground(false, false)
+          foreground = UIUtil.getListForeground(false, false)
+        }
+      }
     }
 
     val leftPanel =
       JPanel(BorderLayout()).apply {
+        val optionList = JPanel()
+        optionList.layout = BoxLayout(optionList, BoxLayout.Y_AXIS)
+        optionList.apply {
+          add(leftList)
+
+          if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get()) {
+            leftList.registerActionKey({ selectNextRow() }, KeyStrokes.DOWN, "selectNextRow")
+            leftList.registerActionKey({ selectPreviousRow() }, KeyStrokes.UP, "selectPreviousRow")
+
+            add(
+              JSeparator(SwingConstants.HORIZONTAL).apply {
+                alignmentX = Component.LEFT_ALIGNMENT
+                maximumSize = JBUI.size(TABLE_CELL_WIDTH, JBUI.scale(3))
+              }
+            )
+            add(
+              geminiLabel.apply {
+                icon = StudioIcons.StudioBot.LOGO
+                text = "Create with Gemini..."
+                isOpaque = true
+                alignmentX = Component.LEFT_ALIGNMENT
+                background = UIUtil.getListBackground(false, false)
+                foreground = UIUtil.getListForeground(false, false)
+                border = JBUI.Borders.emptyLeft(TABLE_CELL_LEFT_PADDING)
+                minimumSize = JBUI.size(TABLE_CELL_WIDTH, TABLE_CELL_HEIGHT)
+                maximumSize = JBUI.size(TABLE_CELL_WIDTH, TABLE_CELL_HEIGHT)
+                addMouseListener(
+                  object : MouseAdapter() {
+                    override fun mouseClicked(e: MouseEvent?) {
+                      geminiLabelClicked()
+                    }
+                  }
+                )
+              }
+            )
+          }
+        }
+
         add(createTitle(), BorderLayout.NORTH)
-        add(leftList, BorderLayout.CENTER)
+        add(optionList, BorderLayout.CENTER)
       }
 
     val mainPanel =
@@ -180,20 +261,64 @@ class ChooseAndroidProjectStep(model: NewProjectModel) :
 
   override fun onProceeding() {
     val selectedIndex = leftList.selectedIndex
-    val selectedFormFactorInfo = formFactors.get()[selectedIndex]
-    val selectedTemplate = selectedFormFactorInfo.tabPanel.myGallery.selectedElement!!
-    val newProjectModuleModel = newProjectModuleModel!!
-    newProjectModuleModel.formFactor.set(selectedFormFactorInfo.formFactor)
-    when (selectedTemplate) {
-      is NewTemplateRendererWithDescription -> {
-        newProjectModuleModel.newRenderTemplate.setNullableValue(selectedTemplate.template)
-        val hasExtraDetailStep =
-          selectedTemplate.template.uiContexts.contains(WizardUiContext.NewProjectExtraDetail)
-        newProjectModuleModel.extraRenderTemplateModel.newTemplate =
-          if (hasExtraDetailStep) selectedTemplate.template else Template.NoActivity
+    if (selectedIndex == -1) {
+      val newProjectModuleModel = newProjectModuleModel!!
+      val templateToUse =
+        FormFactor.Mobile.getProjectTemplates().firstOrNull { it.name == "Empty Activity" }
+      newProjectModuleModel.newRenderTemplate.setNullableValue(templateToUse ?: Template.NoActivity)
+      model.prompt.set(geminiTextState.value)
+    } else {
+      val selectedFormFactorInfo = formFactors.get()[selectedIndex]
+      val selectedTemplate = selectedFormFactorInfo.tabPanel.myGallery.selectedElement!!
+      val newProjectModuleModel = newProjectModuleModel!!
+      newProjectModuleModel.formFactor.set(selectedFormFactorInfo.formFactor)
+      when (selectedTemplate) {
+        is NewTemplateRendererWithDescription -> {
+          newProjectModuleModel.newRenderTemplate.setNullableValue(selectedTemplate.template)
+          val hasExtraDetailStep =
+            selectedTemplate.template.uiContexts.contains(WizardUiContext.NewProjectExtraDetail)
+          newProjectModuleModel.extraRenderTemplateModel.newTemplate =
+            if (hasExtraDetailStep) selectedTemplate.template else Template.NoActivity
+        }
+        else -> throw IllegalArgumentException("Add support for additional template renderer")
       }
-      else -> throw IllegalArgumentException("Add support for additional template renderer")
     }
+  }
+
+  private fun selectNextRow() {
+    if (leftList.selectedIndex == leftList.itemsCount - 1) {
+      geminiLabelClicked()
+    } else if (leftList.selectedIndex < leftList.itemsCount - 1) {
+      leftList.selectedIndex += 1
+    }
+  }
+
+  private fun selectPreviousRow() {
+    if (leftList.selectedIndex == 0) {
+      geminiLabelClicked()
+    } else if (leftList.selectedIndex > 0) {
+      leftList.selectedIndex -= 1
+    } else {
+      leftList.selectedIndex = leftList.itemsCount - 1
+    }
+  }
+
+  private fun geminiLabelClicked() {
+    val geminiPlugin = GeminiPluginApi.getInstance()
+
+    geminiLabel.background = UIUtil.getListBackground(true, true)
+    geminiLabel.foreground = UIUtil.getListForeground(true, true)
+    leftList.clearSelection()
+
+    rightPanel.removeAll()
+    rightPanel.add(
+      StudioComposePanel { GeminiRightPanel(geminiTextState, geminiPlugin.isAvailable(), true) }
+    )
+    rightPanel.revalidate()
+    rightPanel.repaint()
+    canGoForward.set(
+      GeminiPluginApi.getInstance().isAvailable() && geminiTextState.value.isNotEmpty()
+    )
   }
 
   override fun canGoForward(): ObservableBool = canGoForward

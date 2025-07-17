@@ -125,8 +125,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     ObjectValueProperty<AgpVersionSelector>(newProjectAgpVersionSelector())
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
-  // TODO(b/431005261): Fill this in only if the Gemini new project is used
-  override val prompt = StringValueProperty("Implement a tic-tac-toe app")
+  override val prompt = StringValueProperty("")
 
   private fun runRenderer(renderer: (Project) -> Unit) {
     object :
