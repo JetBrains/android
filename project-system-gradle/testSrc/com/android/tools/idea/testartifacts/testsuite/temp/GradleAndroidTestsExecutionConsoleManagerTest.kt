@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.testsuite.temp
 
 import com.android.tools.idea.testartifacts.TestConfigurationTesting
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -105,7 +106,7 @@ class GradleAndroidTestsExecutionConsoleManagerTest {
   }
 
   private fun createRunnerAndConfigurationSettingsFromPsiElement(project: Project, psiElement: PsiElement) : RunnerAndConfigurationSettings {
-    val context = TestConfigurationTesting.createContext(project, psiElement)
+    val context = TestConfigurationTestingUtil.createContext(project, psiElement)
     val settings = requireNotNull(context.configuration)
 
     val runManager = RunManager.getInstance(project)

@@ -16,7 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.tools.idea.projectsystem.gradle.getMainModule
-import com.android.tools.idea.testartifacts.TestConfigurationTesting.createContext
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.externalSystem.action.task.RunExternalSystemTaskAction
@@ -57,7 +57,7 @@ class AndroidTestConfigurationSelectorTest : AndroidGradleTestCase() {
     `when`(mockProjectSystemId.readableName).thenReturn("test project name")
     val androidTestClassName = "google.simpleapplication.ApplicationTest"
     val element: PsiElement = JavaPsiFacade.getInstance(project).findClass(androidTestClassName, GlobalSearchScope.projectScope(project))!!
-    val context = createContext(project, element)
+    val context = TestConfigurationTestingUtil.createContext(project, element)
     val mockActionEvent = mock(AnActionEvent::class.java)
     `when`(mockActionEvent.dataContext).thenReturn(context.dataContext)
     `when`(mockActionEvent.place).thenReturn(context.place)

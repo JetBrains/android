@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.scopes
 
 import com.android.tools.idea.testartifacts.TestConfigurationTesting
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil
 import com.android.tools.idea.testartifacts.createAndroidGradleConfigurationFromDirectory
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -48,8 +49,8 @@ class AndroidTestAndGradleConfigurationConflictsTest : AndroidGradleTestCase() {
   }
 
   private fun findExistingAndroidTestConfigurationFromDirectory(project: Project, directory: String): RunConfiguration? {
-    val element = TestConfigurationTesting.getPsiElement(project, directory, true)
-    val context = TestConfigurationTesting.createContext(project, element)
+    val element = TestConfigurationTestingUtil.getPsiElement(project, directory, true)
+    val context = TestConfigurationTestingUtil.createContext(project, element)
     // Search for any existing run configuration that was created from this context.
     val existing = context.findExisting() ?: return null
     return existing.configuration

@@ -17,8 +17,7 @@ package com.android.tools.idea.testartifacts.screenshot
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.testartifacts.TestConfigurationTesting
-import com.android.tools.idea.testartifacts.getPsiElement
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil
 import com.android.tools.idea.testartifacts.testsuite.GradleRunConfigurationExtension.BooleanOptions.SHOW_TEST_RESULT_IN_ANDROID_TEST_SUITE_VIEW
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -222,8 +221,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   @Test
   fun testConfigurationFromPackage() {
     val project = projectRule.project
-    val psiFile = getPsiElement(project, "app/src/screenshotTest/java/com/example", true)
-    val context = TestConfigurationTesting.createContext(project, psiFile)
+    val psiFile = TestConfigurationTestingUtil.getPsiElement(project, "app/src/screenshotTest/java/com/example", true)
+    val context = TestConfigurationTestingUtil.createContext(project, psiFile)
     val contextConfiguration = context.configurationsFromContext?.firstOrNull()  as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
     requireNotNull(runConfiguration)
@@ -239,8 +238,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   @Test
   fun testConfigurationFromSubPackage() {
     val project = projectRule.project
-    val psiFile = getPsiElement(project, "app/src/screenshotTest/java/com/example/package", true)
-    val context = TestConfigurationTesting.createContext(project, psiFile)
+    val psiFile = TestConfigurationTestingUtil.getPsiElement(project, "app/src/screenshotTest/java/com/example/package", true)
+    val context = TestConfigurationTestingUtil.createContext(project, psiFile)
     val contextConfiguration = context.configurationsFromContext?.firstOrNull()  as ConfigurationFromContextImpl?
     val runConfiguration = contextConfiguration!!.configuration as GradleRunConfiguration
     requireNotNull(runConfiguration)
@@ -257,8 +256,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   fun testConfigurationFromAppDirectory() {
     val project = projectRule.project
     // test app directory
-    val psiFile = getPsiElement(project, "app", true)
-    val context = TestConfigurationTesting.createContext(project, psiFile)
+    val psiFile = TestConfigurationTestingUtil.getPsiElement(project, "app", true)
+    val context = TestConfigurationTestingUtil.createContext(project, psiFile)
     val contextConfiguration = context.configurationsFromContext?.firstOrNull{
       it.configuration.name.contains("Screenshot")
     }  as ConfigurationFromContextImpl?
@@ -274,8 +273,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   @Test
   fun testConfigurationFromSrcDirectory() {
     val project = projectRule.project
-    val psiFile = getPsiElement(project, "app/src", true)
-    val context = TestConfigurationTesting.createContext(project, psiFile)
+    val psiFile = TestConfigurationTestingUtil.getPsiElement(project, "app/src", true)
+    val context = TestConfigurationTestingUtil.createContext(project, psiFile)
     val contextConfiguration = context.configurationsFromContext?.firstOrNull{
       it.configuration.name.contains("Screenshot")
     }  as ConfigurationFromContextImpl?
@@ -291,15 +290,16 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
     // This should not cause NPE.
     assertThat(contextConfiguration.configurationProducer.isConfigurationFromContext(
       runConfiguration,
-      TestConfigurationTesting.createContext(project, getPsiElement(project, "nonAndroidModule", true))))
+      TestConfigurationTestingUtil.createContext(project, TestConfigurationTestingUtil.getPsiElement(project, "nonAndroidModule", true))
+    ))
       .isFalse()
   }
 
   @Test
   fun testConfigurationFromSSTSourceSetDirectory() {
     val project = projectRule.project
-    val psiFile = getPsiElement(project, "app/src/screenshotTest/java", true)
-    val context = TestConfigurationTesting.createContext(project, psiFile)
+    val psiFile = TestConfigurationTestingUtil.getPsiElement(project, "app/src/screenshotTest/java", true)
+    val context = TestConfigurationTestingUtil.createContext(project, psiFile)
     val contextConfiguration = context.configurationsFromContext?.firstOrNull{
       it.configuration.name.contains("Screenshot")
     }  as ConfigurationFromContextImpl?
@@ -315,8 +315,8 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   @Test
   fun testConfigurationFromOtherSourceSetDirectory() {
     val project = projectRule.project
-    val psiFile = getPsiElement(project, "app/src/main/java", true)
-    val context = TestConfigurationTesting.createContext(project, psiFile)
+    val psiFile = TestConfigurationTestingUtil.getPsiElement(project, "app/src/main/java", true)
+    val context = TestConfigurationTestingUtil.createContext(project, psiFile)
     val contextConfiguration = context.configurationsFromContext?.firstOrNull{
       it.configuration.name.contains("Screenshot")
     }  as ConfigurationFromContextImpl?
@@ -326,14 +326,14 @@ class ScreenshotTestGradleRunConfigurationProducersTest {
   @Test
   fun runConfigProducerShouldNotCrashForNonAndroidModule() {
     val project = projectRule.project
-    val psiFile = getPsiElement(project, "nonAndroidModule", true)
+    val psiFile = TestConfigurationTestingUtil.getPsiElement(project, "nonAndroidModule", true)
 
     // This should not cause NPE.
-    TestConfigurationTesting.createContext(project, psiFile).configuration
+    TestConfigurationTestingUtil.createContext(project, psiFile).configuration
   }
 
   private fun createGradleConfigurationFromPsiElement(project: Project, psiElement: PsiElement) : GradleRunConfiguration? {
-    val context = TestConfigurationTesting.createContext(project, psiElement)
+    val context = TestConfigurationTestingUtil.createContext(project, psiElement)
     val settings = context.configuration ?: return null
     // Save run configuration in the project.
     val runManager = RunManager.getInstance(project)

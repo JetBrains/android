@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.tools.idea.testartifacts.TestConfigurationTesting
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil.Companion.createConfigurations
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM
 import com.google.common.truth.Truth.assertThat
@@ -38,8 +39,8 @@ class KotlinMultiplatformAndroidTestConfigurationProducerTest: AndroidGradleTest
   fun testCanCreateMultipleTestConfigurationFromCommonTestDirectory() {
     loadProject(ANDROID_KOTLIN_MULTIPLATFORM)
     // make sure that we do both set up Android Run configs and unit test Run config.
-    val element = TestConfigurationTesting.getPsiElement(project, "kmpFirstLib/src/commonTest/kotlin", true)
-    val runConfigs = TestConfigurationTesting.createConfigurationsFromPsiElement(project, element)
+    val element = TestConfigurationTestingUtil.getPsiElement(project, "kmpFirstLib/src/commonTest/kotlin", true)
+    val runConfigs = element.createConfigurations()
 
     assertNotNull(runConfigs)
     assertTrue(runConfigs!!.isNotEmpty())
@@ -68,7 +69,7 @@ class KotlinMultiplatformAndroidTestConfigurationProducerTest: AndroidGradleTest
     loadProject(ANDROID_KOTLIN_MULTIPLATFORM)
     // make sure that we do both set up Android Run configs and unit test Run config.
     val element = JavaPsiFacade.getInstance(project).findClass("com.example.kmpfirstlib.KmpCommonFirstLibClassTest", GlobalSearchScope.projectScope(project))
-    val runConfigs = element?.let { TestConfigurationTesting.createConfigurationsFromPsiElement(project, it) }
+    val runConfigs = element?.createConfigurations()
 
     assertNotNull(runConfigs)
     assertTrue(runConfigs!!.isNotEmpty())
@@ -97,7 +98,7 @@ class KotlinMultiplatformAndroidTestConfigurationProducerTest: AndroidGradleTest
     val methods = myFixture.findClass("com.example.kmpfirstlib.KmpCommonFirstLibClassTest")
       .findMethodsByName("testThatPasses", false)
     assertThat(methods).hasLength(1)
-    val runConfigs = TestConfigurationTesting.createConfigurationsFromPsiElement(project, methods[0])
+    val runConfigs = methods[0].createConfigurations()
 
     assertNotNull(runConfigs)
     assertTrue(runConfigs!!.isNotEmpty())
@@ -122,8 +123,8 @@ class KotlinMultiplatformAndroidTestConfigurationProducerTest: AndroidGradleTest
   @Throws(Exception::class)
   fun testCreateMultiplatformCommonAllInPackageTest() {
     loadProject(ANDROID_KOTLIN_MULTIPLATFORM)
-    val element = TestConfigurationTesting.getPsiElement(project, "kmpFirstLib/src/commonTest/kotlin/com/example/kmpfirstlib", true)
-    val runConfigs = TestConfigurationTesting.createConfigurationsFromPsiElement(project, element)
+    val element = TestConfigurationTestingUtil.getPsiElement(project, "kmpFirstLib/src/commonTest/kotlin/com/example/kmpfirstlib", true)
+    val runConfigs = element.createConfigurations()
 
     assertNotNull(runConfigs)
     assertTrue(runConfigs!!.isNotEmpty())

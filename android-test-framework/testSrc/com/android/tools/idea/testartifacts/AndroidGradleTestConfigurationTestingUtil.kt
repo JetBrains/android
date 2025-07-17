@@ -15,54 +15,22 @@
  */
 package com.android.tools.idea.testartifacts
 
-import com.intellij.execution.RunManager
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil.Class
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil.Companion.createGradleRunConfiguration
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil.Companion.getPsiElement
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil.Directory
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil.File
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiManager
-import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
-import org.junit.Assert
-
 
 fun createAndroidGradleTestConfigurationFromClass(project: Project, qualifiedName: String) : GradleRunConfiguration? {
-  val element = JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project))
-  Assert.assertNotNull(element)
-  return createGradleConfigurationFromPsiElement(project, element!!)
+  return project.getPsiElement(Class(qualifiedName)).createGradleRunConfiguration()
 }
 
 fun createAndroidGradleConfigurationFromDirectory(project: Project, directory: String) : GradleRunConfiguration? {
-  val element = getPsiElement(project, directory, true)
-  return createGradleConfigurationFromPsiElement(project, element)
+  return project.getPsiElement(Directory(directory)).createGradleRunConfiguration()
 }
 
 fun createAndroidGradleConfigurationFromFile(project: Project, file: String) : GradleRunConfiguration? {
-  val element = getPsiElement(project, file, false)
-  return createGradleConfigurationFromPsiElement(project, element)
-}
-
-fun createGradleConfigurationFromPsiElement(project: Project, psiElement: PsiElement) : GradleRunConfiguration? {
-  val context = TestConfigurationTesting.createContext(project, psiElement)
-  val settings = context.configuration ?: return null
-  // Save run configuration in the project.
-  val runManager = RunManager.getInstance(project)
-  runManager.addConfiguration(settings)
-
-  val configuration = settings.configuration
-  if (configuration !is GradleRunConfiguration) return null
-  val tasksToRun = configuration.settings.taskNames
-  // Having no tasks to run means that there shouldn't be a configuration created. This will be handled by Intellij in
-  // https://youtrack.jetbrains.com/issue/IDEA-277826.
-  if (tasksToRun.isEmpty()) return null
-  return configuration
-}
-
-fun getPsiElement(project: Project, file: String, isDirectory: Boolean): PsiElement {
-  val virtualFile = VfsUtilCore.findRelativeFile(file, project.baseDir)
-  Assert.assertNotNull(virtualFile)
-  val element: PsiElement? = if (isDirectory) PsiManager.getInstance(project).findDirectory(virtualFile!!)
-  else PsiManager.getInstance(project).findFile(virtualFile!!)
-  Assert.assertNotNull(element)
-  return element!!
+  return project.getPsiElement(File(file)).createGradleRunConfiguration()
 }

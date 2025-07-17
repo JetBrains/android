@@ -17,11 +17,11 @@ package com.android.tools.idea.testartifacts.gradle
 
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.testartifacts.TestConfigurationTesting
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil.Companion.createGradleRunConfiguration
 import com.android.tools.idea.testartifacts.createAndroidGradleConfigurationFromDirectory
 import com.android.tools.idea.testartifacts.createAndroidGradleConfigurationFromFile
 import com.android.tools.idea.testartifacts.createAndroidGradleTestConfigurationFromClass
-import com.android.tools.idea.testartifacts.createGradleConfigurationFromPsiElement
-import com.android.tools.idea.testartifacts.getPsiElement
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM
@@ -192,7 +192,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     val methodPsiElement = JavaPsiFacade.getInstance(project)
       .findClass("google.simpleapplication.UnitTest", GlobalSearchScope.projectScope(project))!!
       .children.filterIsInstance<PsiMethodImpl>().first()
-    val  methodConfiguration = createGradleConfigurationFromPsiElement(project, methodPsiElement)
+    val methodConfiguration = methodPsiElement.createGradleRunConfiguration()
     assertThat(methodConfiguration).isNotNull()
     val methodConfigTask = ExternalSystemExecuteTaskTask(project, methodConfiguration!!.settings, null, methodConfiguration)
     assertThat(ExternalSystemUtil.getConsoleManagerFor(methodConfigTask)).isInstanceOf(GradleTestsExecutionConsoleManager::class.java)
@@ -204,8 +204,8 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     assertThat(ExternalSystemUtil.getConsoleManagerFor(classConfigTask)).isInstanceOf(GradleTestsExecutionConsoleManager::class.java)
 
     // Verify We can render package Run configurations using GradleTestsExecutionConsoleManager.
-    val packagePsiElement = getPsiElement(project, "app/src/test/java/google/simpleapplication", true)
-    val packageConfiguration = createGradleConfigurationFromPsiElement(project, packagePsiElement)
+    val packagePsiElement = TestConfigurationTestingUtil.getPsiElement(project, "app/src/test/java/google/simpleapplication", true)
+    val packageConfiguration = packagePsiElement.createGradleRunConfiguration()
     assertThat(packageConfiguration).isNotNull()
     val packageConfigTask = ExternalSystemExecuteTaskTask(project, packageConfiguration!!.settings, null, packageConfiguration)
     assertThat(ExternalSystemUtil.getConsoleManagerFor(packageConfigTask)).isInstanceOf(GradleTestsExecutionConsoleManager::class.java)
@@ -238,7 +238,8 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     AndroidGradleTaskManager().executeTasks(projectPath, id, settings, ExternalSystemTaskNotificationListener.NULL_OBJECT)
 
     // Check that the JavaCoverageEngine won't require project rebuild.
-    val filePsiElement = getPsiElement(project, "app/src/main/java/google/simpleapplication/MyActivity.java", false)
+    val filePsiElement = TestConfigurationTestingUtil.getPsiElement(project, "app/src/main/java/google/simpleapplication/MyActivity.java",
+                                                                    false)
     val module = ModuleUtilCore.findModuleForPsiElement(filePsiElement)
     assertThat(module).isNotNull()
 
@@ -281,7 +282,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     loadProject(ANDROID_KOTLIN_MULTIPLATFORM)
     val psiMethod = myFixture.findClass("com.example.kmpfirstlib.KmpAndroidFirstLibClassTest")
       .findMethodsByName("testThatPasses", false).first()
-    val configuration = createGradleConfigurationFromPsiElement(project, psiMethod)
+    val configuration = psiMethod.createGradleRunConfiguration()
     assertThat(configuration).isNotNull()
     assertThat(configuration!!.settings.taskNames).containsExactly(
       ":kmpFirstLib:cleanTestAndroidUnitTest",
@@ -317,7 +318,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
   }
 
   private fun createConfigurationFromContext(psiFile: PsiElement): ConfigurationFromContextImpl? {
-    val context = TestConfigurationTesting.createContext(project, psiFile)
+    val context = TestConfigurationTestingUtil.createContext(project, psiFile)
     return context.configurationsFromContext?.firstOrNull() as ConfigurationFromContextImpl?
   }
 
@@ -355,12 +356,14 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
   private fun verifyCannotCreateMethodGradleRunConfigurationFromAndroidTestMethodScope() {
     val psiMethod = myFixture.findClass("google.simpleapplication.ApplicationTest")
       .findMethodsByName("exampleTest", false).first()
-    val configuration = createGradleConfigurationFromPsiElement(project, psiMethod)
+    val configuration = psiMethod.createGradleRunConfiguration()
     assertThat(configuration).isNull()
   }
 
   private fun verifyCanCreateKotlinClassGradleConfigurationFromAndroidUnitTest() {
-    val psiFile = getPsiElement(project, "module2/src/androidUnitTest/kotlin/com/example/library/TestUnitTest.kt", false) as PsiFile
+    val psiFile = TestConfigurationTestingUtil.getPsiElement(project,
+                                                             "module2/src/androidUnitTest/kotlin/com/example/library/TestUnitTest.kt",
+                                                             false) as PsiFile
     // Create a runConfiguration context based on the testClass.
     val configurationFromContext = createConfigurationFromContext(psiFile)
     // Make sure that the configuration is created by the testClass gradle provider.
@@ -375,7 +378,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
   }
 
   private fun verifyCanCreateKotlinDirectoryGradleConfigurationFromAndroidUnitTest() {
-    val psiFile = getPsiElement(project, "module2/src/androidUnitTest/kotlin/com/example/library", true)
+    val psiFile = TestConfigurationTestingUtil.getPsiElement(project, "module2/src/androidUnitTest/kotlin/com/example/library", true)
     // Create a runConfiguration context based on the testClass.
     val configurationFromContext = createConfigurationFromContext(psiFile)
     // Make sure that the configuration is created by the AllInPackage gradle provider.
@@ -398,41 +401,41 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
   }
 
   private fun verifyCanCreateGradleConfigurationFromSameNameTestClass() {
-    var psiElement = getPsiElement(project, "app/src/test/java/google/simpleapplication/UnitTest.java", false)
-    val appGradleTestClassConfiguration = createGradleConfigurationFromPsiElement(project, psiElement)
+    var psiElement = TestConfigurationTestingUtil.getPsiElement(project, "app/src/test/java/google/simpleapplication/UnitTest.java", false)
+    val appGradleTestClassConfiguration = psiElement.createGradleRunConfiguration()
     assertThat(appGradleTestClassConfiguration).isNotNull()
 
-    psiElement = getPsiElement(project, "libs/src/test/java/google/simpleapplication/UnitTest.java", false)
+    psiElement = TestConfigurationTestingUtil.getPsiElement(project, "libs/src/test/java/google/simpleapplication/UnitTest.java", false)
     var libGradleTestClassConfiguration = findExistingGradleTestConfigurationFromPsiElement(project, psiElement)
     // Verify that Gradle doesn't consider the run configuration in libs module equal to the run configuration in app module.
     // The run configuration is null in this case because we can successfully detect in the tasks name that the modules are different
     // between the two contexts.
     assertThat(libGradleTestClassConfiguration).isNull()
 
-    libGradleTestClassConfiguration = createGradleConfigurationFromPsiElement(project, psiElement)
+    libGradleTestClassConfiguration = psiElement.createGradleRunConfiguration()
     assertThat(libGradleTestClassConfiguration).isNotNull()
     assertThat(libGradleTestClassConfiguration).isNotSameAs(appGradleTestClassConfiguration)
   }
 
   private fun verifyCanCreateGradleConfigurationFromSameNameTestDirectory() {
-    val appModulePsiElement = getPsiElement(project, "app/src/test/java/google/simpleapplication", true)
-    val appGradleTestPackageConfiguration = createGradleConfigurationFromPsiElement(project, appModulePsiElement)
+    val appModulePsiElement = TestConfigurationTestingUtil.getPsiElement(project, "app/src/test/java/google/simpleapplication", true)
+    val appGradleTestPackageConfiguration = appModulePsiElement.createGradleRunConfiguration()
     assertThat(appGradleTestPackageConfiguration).isNotNull()
 
-    val libModulePsiLocation = getPsiElement(project, "libs/src/test/java/google/simpleapplication", true)
+    val libModulePsiLocation = TestConfigurationTestingUtil.getPsiElement(project, "libs/src/test/java/google/simpleapplication", true)
     val libExistingTestPackageConfiguration = findExistingGradleTestConfigurationFromPsiElement(project, libModulePsiLocation)
     // Verify that Gradle doesn't consider the run configuration in libs module equal to the run configuration in app module.
     // The run configuration is null in this case because we can successfully detect in the tasks name that the modules are different
     // between the two contexts.
     assertThat(libExistingTestPackageConfiguration).isNull()
 
-    val libGradleTestPackageConfiguration = createGradleConfigurationFromPsiElement(project, libModulePsiLocation)
+    val libGradleTestPackageConfiguration = libModulePsiLocation.createGradleRunConfiguration()
     assertThat(libGradleTestPackageConfiguration).isNotNull()
     assertThat(libGradleTestPackageConfiguration).isNotSameAs(appGradleTestPackageConfiguration)
   }
 
   private fun findExistingGradleTestConfigurationFromPsiElement(project: Project, psiElement: PsiElement): GradleRunConfiguration? {
-    val context = TestConfigurationTesting.createContext(project, psiElement)
+    val context = TestConfigurationTestingUtil.createContext(project, psiElement)
     // Search for any existing run configuration that was created from this context.
     val existing = context.findExisting() ?: return null
     return existing.configuration  as? GradleRunConfiguration

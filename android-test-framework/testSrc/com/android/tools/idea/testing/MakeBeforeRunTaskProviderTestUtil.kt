@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.testartifacts.TestConfigurationTesting
+import com.android.tools.idea.testartifacts.TestConfigurationTestingUtil
 import com.google.common.truth.Truth
 import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.ExecutionTargetManager
@@ -135,7 +136,7 @@ private fun createRunConfigurationFromPsiElement(
   project: Project,
   psiElement: PsiElement
 ): RunConfiguration {
-  val context = TestConfigurationTesting.createContext(project, psiElement)
+  val context = TestConfigurationTestingUtil.createContext(project, psiElement)
   val settings = context.configuration ?: return error("Failed to get/create run configuration settings")
   // Save the run configuration in the project.
   val runManager = RunManager.getInstance(project)
