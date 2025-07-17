@@ -19,6 +19,8 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.io.CancellableFileIo
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleNewProjectConfiguration
@@ -101,6 +103,7 @@ interface ProjectModelData {
   val additionalMavenRepos: ObjectValueProperty<List<URL>>
   val multiTemplateRenderer: MultiTemplateRenderer
   val projectTemplateDataBuilder: ProjectTemplateDataBuilder
+  val prompt: StringProperty
 }
 
 class NewProjectModel : WizardModel(), ProjectModelData {
@@ -121,6 +124,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     ObjectValueProperty<AgpVersionSelector>(newProjectAgpVersionSelector())
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
+  // TODO(b/431005261): Fill this in only if the Gemini new project is used
+  override val prompt = StringValueProperty("Implement a tic-tac-toe app")
 
   private fun runRenderer(renderer: (Project) -> Unit) {
     object :
@@ -147,6 +152,12 @@ class NewProjectModel : WizardModel(), ProjectModelData {
             .setProjectInitializer {
               logger.info("Rendering a new project.")
               NonProjectFileWritingAccessProvider.disableChecksDuring { renderer(newProject) }
+
+              if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && !prompt.isEmpty.get()) {
+                ApplicationManager.getApplication().invokeLater {
+                  GeminiPluginApi.getInstance().launchNewProjectAgent(newProject, prompt.get())
+                }
+              }
             }
 
           val openProjectTask = OpenProjectTask {

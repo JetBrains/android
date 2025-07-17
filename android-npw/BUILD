@@ -42,6 +42,7 @@ iml_module(
         "//tools/adt/idea/analytics",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api",
     ],
 )
 

@@ -90,6 +90,7 @@ class ExistingProjectModelData(
     )
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
+  override val prompt = StringValueProperty()
 
   private fun runRenderer(renderer: (Project) -> Unit) {
     object :

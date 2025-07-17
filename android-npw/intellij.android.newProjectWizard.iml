@@ -38,5 +38,6 @@
     <orderEntry type="module" module-name="analytics" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" />
   </component>
 </module>

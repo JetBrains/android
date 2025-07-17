@@ -87,6 +87,12 @@ interface GeminiPluginApi {
   /** [generate] returns the (text only) LLM's response to the given [prompt]. */
   fun generate(project: Project, prompt: LlmPrompt): Flow<String> = emptyFlow()
 
+  /**
+   * Launches the New Project agent with the given prompt in the given project, which should already
+   * contain at least a skeleton.
+   */
+  fun launchNewProjectAgent(project: Project, prompt: String) {}
+
   companion object {
     val EP_NAME =
       ExtensionPointName.create<GeminiPluginApi>("com.android.tools.idea.gemini.geminiPluginApi")
