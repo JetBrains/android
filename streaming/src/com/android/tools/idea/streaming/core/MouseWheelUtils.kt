@@ -43,6 +43,6 @@ private val MouseWheelEvent.adjustedWheelRotation: Double
 
 /** This is how much we want to adjust the mouse scroll for Android. This number was chosen empirically. */
 @VisibleForTesting
-internal const val ANDROID_SCROLL_ADJUSTMENT_FACTOR = 0.25f
+internal const val ANDROID_SCROLL_ADJUSTMENT_FACTOR = 1 / 3.0
 private const val TOUCH_SCREEN_ADJUSTMENT_FACTOR = 0.02
 private const val PRECISE_WHEEL_ROTATION_WEIGHT = 0.02

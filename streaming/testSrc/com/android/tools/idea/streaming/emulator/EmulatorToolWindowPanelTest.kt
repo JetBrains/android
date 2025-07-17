@@ -638,9 +638,9 @@ class EmulatorToolWindowPanelTest {
 
     // Moving forward and backward by rotating the mouse wheel.
     fakeUi.mouse.wheel(10, 100, 1)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_z: 0.0625 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_z: 0.083333336 }")
     fakeUi.mouse.wheel(10, 100, -3)
-    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_z: -0.1875 }")
+    assertThat(shortDebugString(streamInputCall.getNextRequest(1.seconds))).isEqualTo("xr_head_movement_event { delta_z: -0.25 }")
 
     // Moving forward by dragging the mouse.
     xrInputController.inputMode = XrInputMode.LOCATION_IN_SPACE_Z

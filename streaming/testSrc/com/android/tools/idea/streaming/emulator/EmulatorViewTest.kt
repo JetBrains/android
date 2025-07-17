@@ -749,7 +749,7 @@ class EmulatorViewTest {
           call = fakeEmulator.getNextGrpcCall(2.seconds)
           assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamInputEvent")
         }
-        assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("wheel_event { d$axis: ${-rotation * 30} }")
+        assertThat(shortDebugString(call.getNextRequest(2.seconds))).isEqualTo("wheel_event { d$axis: ${-rotation * 40} }")
       }
       if (shift) {
         fakeUi.keyboard.release(VK_SHIFT)
@@ -771,7 +771,7 @@ class EmulatorViewTest {
     for (sign in intArrayOf(1, -1)) {
       for (i in 1..100) {
         fakeUi.mouse.wheel(100, 100, 0, 0.1 * sign.toDouble())
-        cumulativeRotation += 0.06 * sign
+        cumulativeRotation += 0.08 * sign
         if (cumulativeRotation.absoluteValue >= 1) {
           cumulativeRotation -= sign
           if (call == null) {

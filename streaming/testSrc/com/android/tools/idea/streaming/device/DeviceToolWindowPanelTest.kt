@@ -488,9 +488,9 @@ class DeviceToolWindowPanelTest {
 
     // Moving forward and backward by rotating the mouse wheel.
     fakeUi.mouse.wheel(10, 100, 1)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = 0.0625)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = 0.083333336)")
     fakeUi.mouse.wheel(10, 100, -3)
-    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = -0.1875)")
+    assertThat(getNextControlMessageAndWaitForFrame().toString()).isEqualTo("XrTranslationMessage(x = 0.0, y = 0.0, z = -0.25)")
 
     expandFloatingToolbar()
     fakeUi.mouseClickOn(fakeUi.getComponent<ActionButton> { it.action.templateText == "Move Forward/Backward" })

@@ -262,7 +262,7 @@ internal class DeviceViewTest {
 
       fakeUi.mouse.wheel(60, 55, -1)  // Vertical scrolling is backward on Android
       val verticalAxisValues = Int2FloatOpenHashMap(1).apply {
-        put(MotionEventMessage.AXIS_VSCROLL, ANDROID_SCROLL_ADJUSTMENT_FACTOR)
+        put(MotionEventMessage.AXIS_VSCROLL, ANDROID_SCROLL_ADJUSTMENT_FACTOR.toFloat())
       }
       val verticalScrollPointer = expectedCoordinates[i * 2 + 1].copy(axisValues = verticalAxisValues)
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
@@ -273,7 +273,7 @@ internal class DeviceViewTest {
       fakeUi.mouse.wheel(60, 55, 1)
       fakeUi.keyboard.release(VK_SHIFT)
       val horizontalAxisValues = Int2FloatOpenHashMap(1).apply {
-        put(MotionEventMessage.AXIS_HSCROLL, ANDROID_SCROLL_ADJUSTMENT_FACTOR)
+        put(MotionEventMessage.AXIS_HSCROLL, ANDROID_SCROLL_ADJUSTMENT_FACTOR.toFloat())
       }
       val horizontalScrollPointer = expectedCoordinates[i * 2 + 1].copy(axisValues = horizontalAxisValues)
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
