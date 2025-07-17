@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.model;
 
+import static com.android.manifmerger.ManifestMerger2.Invoker.Feature.USES_SDK_IN_MANIFEST_LENIENT_HANDLING;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.annotations.concurrency.Immutable;
@@ -335,7 +336,12 @@ final class MergedManifestInfo {
       facet.getConfiguration().isAppOrFeature() ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
 
     ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);
-    manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.SKIP_BLAME, ManifestMerger2.Invoker.Feature.SKIP_XML_STRING, ManifestMerger2.Invoker.Feature.KEEP_GOING_AFTER_ERRORS);
+    manifestMergerInvoker.withFeatures(
+      ManifestMerger2.Invoker.Feature.SKIP_BLAME,
+      ManifestMerger2.Invoker.Feature.SKIP_XML_STRING,
+      ManifestMerger2.Invoker.Feature.KEEP_GOING_AFTER_ERRORS,
+      ManifestMerger2.Invoker.Feature.USES_SDK_IN_MANIFEST_LENIENT_HANDLING
+    );
     manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[0]));
     manifestMergerInvoker.addNavigationFiles(VfsUtilCore.virtualToIoFiles(navigationFiles));
     manifestMergerInvoker.withProcessCancellationChecker(ProgressManager::checkCanceled);
