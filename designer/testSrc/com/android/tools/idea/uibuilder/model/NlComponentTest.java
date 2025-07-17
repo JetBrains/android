@@ -44,6 +44,7 @@ import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.rendering.parsers.TagSnapshot;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -551,46 +552,6 @@ public final class NlComponentTest extends LayoutTestCase {
     NlWriteCommandActionUtil.run(relativeLayout, "addTextView", () -> {
       assertNotNull(NlComponentHelperKt.createChild(relativeLayout, "TextView", null, InsertType.CREATE));
     });
-    UIUtil.dispatchAllInvocationEvents();
-  }
-
-  public void testCreateChildValidTagReadThread() {
-    // Create component with valid vfs.
-    String relativeLayoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
-                                "\n" +
-                                "    <RelativeLayout />\n" +
-                                "</layout>\n";
-    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", relativeLayoutText);
-    XmlTag rootTag = xmlFile.getRootTag().getSubTags()[0];
-    NlComponent relativeLayout = createComponent(rootTag);
-
-    var errors = executeCapturingLoggedErrors(
-      () -> ApplicationManager.getApplication().runReadAction(() -> {
-        NlComponentHelperKt.createChild(relativeLayout, "TextView", null, InsertType.CREATE);
-      })
-    );
-    assertThat(errors).isNotEmpty();
-
-    UIUtil.dispatchAllInvocationEvents();
-  }
-
-  public void testCreateChildInvalidAccess() {
-    String editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                      "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                      "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
-                      "\n" +
-                      "    <RelativeLayout />\n" +
-                      "</layout>\n";
-    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
-    XmlTag rootTag = xmlFile.getRootTag().getSubTags()[0];
-    NlComponent relativeLayout = createComponent(rootTag);
-
-    var errors = executeCapturingLoggedErrors(() -> NlComponentHelperKt.createChild(relativeLayout, "", null, InsertType.CREATE));
-    assertThat(errors).hasSize(1);
-    assertThat(errors.get(0)).startsWith("Unable to create child");
-
     UIUtil.dispatchAllInvocationEvents();
   }
 

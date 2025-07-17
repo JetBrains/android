@@ -633,6 +633,13 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, UiDat
       DnDTransferComponent dndComponent = new DnDTransferComponent(item.getTagName(), item.getXml(), 0, 0);
       DnDTransferItem dndItem = new DnDTransferItem(dndComponent);
       InsertType insertType = treeWriter.determineInsertType(DragType.COPY, dndItem, checkOnly /* preview */, true /* generateIds */);
+      if (checkOnly && insertType == InsertType.CREATE_PREVIEW) {
+        // In the case of AddToDesignAction, we do not need the full preview, just the wrapper tag
+        // to see if the element can be added. We use the CHECK_PREVIEW mode in this case since
+        // this avoids any write actions. We do not want write actions here because when this is
+        // called from update, it is called in the context of a read action.
+        insertType = InsertType.CHECK_PREVIEW;
+      }
 
       List<NlComponent> toAdd = treeWriter.createComponents(dndItem, insertType);
 

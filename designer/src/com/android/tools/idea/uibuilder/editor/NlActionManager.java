@@ -64,6 +64,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.panels.VerticalLayout;
@@ -494,8 +495,9 @@ public class NlActionManager extends ActionManager<DesignSurface<LayoutlibSceneM
           return;
       }
       if (myAction.affectsUndo()) {
-        NlWriteCommandActionUtil.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () ->
-          myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers()));
+        CommandProcessor.getInstance().executeCommand(mySurface.getProject(),
+                                                      () -> myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren,
+                                                                             e.getModifiers()), e.getPresentation().getText(), null);
       }
       else {
         // Catch missing write lock and diagnose as missing affectsRedo

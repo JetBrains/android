@@ -36,6 +36,13 @@ public enum InsertType {
   CREATE_PREVIEW,
 
   /**
+   * User by the {@code com.android.tools.idea.uibuilder.palette.PalettePanel.AddToDesignAction} to check if the action should be enabled. This action
+   * should not write any PSI elements and should do the minimum required work to create the
+   * component as in {@link #CREATE_PREVIEW}.
+   */
+  CHECK_PREVIEW,
+
+  /**
    * The component is being inserted here because it was moved from somewhere else within the same
    * {@link com.android.tools.idea.common.model.NlModel}. For example, drag-and-drop a component from palette/component tree, or
    * drag-and-drop within the same preview.

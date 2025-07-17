@@ -56,7 +56,8 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHand
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.application.WriteAction
+import com.intellij.psi.xml.XmlTag
 import icons.StudioIcons
 import java.util.function.Consumer
 import javax.swing.Icon
@@ -439,7 +440,6 @@ fun NlComponent.createChild(
  * @param enforceNamespacesDeep If you pass some xml tags to {@code bodyText} parameter, this flag
  *   sets namespace prefixes for them.
  * @param namespace Namespaces of the tag name.
- * @param surface The surface showing the component
  * @param before The sibling to insert immediately before, or null to append
  * @param insertType The type of insertion
  */
@@ -451,18 +451,11 @@ fun NlComponent.createChild(
   before: NlComponent? = null,
   insertType: InsertType = InsertType.CREATE,
 ): NlComponent? {
-  if (!ApplicationManager.getApplication().isWriteAccessAllowed) {
-    Logger.getInstance(NlWriteCommandActionUtil::class.java)
-      .error(
-        Throwable(
-          "Unable to create child NlComponent ${tagName}. The createChild method must be called within a write action."
-        )
-      )
-    return null
-  }
-
   val tag = backend.tag ?: return null
-  val childTag = tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep)
+  val childTag =
+    WriteAction.compute<XmlTag, Throwable> {
+      tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep)
+    }
   return model.treeWriter.createComponent(childTag, this, before, insertType)
 }
 
@@ -597,24 +590,43 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
     receiver.getLayoutHandler {}?.onChildInserted(receiver, component, insertType)
   }
 
-  override fun postCreate(insertType: InsertType): Boolean {
-    val realTag = component.tagDeprecated
-    if (component.parent != null) {
+  /** Adds layout attributes to the given tag. */
+  private fun addLayoutAttributes(parent: NlComponent?, realTag: XmlTag) {
+    if (parent != null) {
       // Required attribute for all views; drop handlers can adjust as necessary
       if (realTag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI) == null) {
-        realTag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT)
+        WriteAction.run<Throwable> {
+          realTag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT)
+        }
       }
       if (realTag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI) == null) {
-        realTag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT)
+        WriteAction.run<Throwable> {
+          realTag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT)
+        }
       }
     } else {
       // No namespace yet: use the default prefix instead
       if (realTag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH) == null) {
-        realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+        WriteAction.run<Throwable> {
+          realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+        }
       }
       if (realTag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT) == null) {
-        realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+        WriteAction.run<Throwable> {
+          realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+        }
       }
+    }
+  }
+
+  override fun postCreate(insertType: InsertType): Boolean {
+    val realTag = component.tagDeprecated
+    // Add the layout attributes if missing and needed. This will trigger a write action so only
+    // do it if necessary. If we are in CHECK_PREVIEW mode, we don't need them either.
+    if (
+      NlComponentHelper.needsLayoutAttributes(component) && insertType != InsertType.CHECK_PREVIEW
+    ) {
+      addLayoutAttributes(component.parent, realTag)
     }
 
     // Notify view handlers
@@ -629,9 +641,10 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
               .addDependencies((listOf(component)), component.model.facet, true)
       }
       if (!ok) {
-        component.parent?.removeChild(component)
-        realTag.delete()
-        return false
+        WriteAction.run<Throwable> {
+          component.parent?.removeChild(component)
+          realTag.delete()
+        }
       }
     }
     component.parent?.let { it.getViewGroupHandler {}?.onChildInserted(it, component, insertType) }
@@ -671,6 +684,14 @@ object NlComponentHelper {
       .addAll(PreferenceUtils.VALUES)
       .build()
 
+  private val TAGS_THAT_DONT_NEED_LAYOUT_ATTRIBUTES: Collection<String> =
+    ImmutableSet.Builder<String>()
+      .add(TAG_ITEM)
+      .add(VIEW_INCLUDE)
+      .add(VIEW_MERGE)
+      .addAll(PreferenceUtils.VALUES)
+      .build()
+
   /**
    * Maps a custom view class to the corresponding layout tag; e.g. `android.widget.LinearLayout`
    * maps to just `LinearLayout`, but `android.support.v4.widget.DrawerLayout` maps to
@@ -704,4 +725,7 @@ object NlComponentHelper {
   fun hasNlComponentInfo(component: NlComponent): Boolean {
     return component.mixin is NlComponentMixin
   }
+
+  fun needsLayoutAttributes(component: NlComponent): Boolean =
+    !TAGS_THAT_DONT_NEED_LAYOUT_ATTRIBUTES.contains(component.tagName)
 }
