@@ -22,6 +22,7 @@ import com.intellij.platform.eel.path.EelPath
 //import com.intellij.platform.eel.provider.EelNioBridgeService
 import com.intellij.platform.eel.provider.LocalPosixEelApi
 import com.intellij.platform.eel.EelExecPosixApi
+import com.intellij.platform.eel.EelMachine
 import com.intellij.platform.eel.EelOsFamily
 import com.intellij.platform.eel.EelPosixProcess
 import com.intellij.platform.eel.ExecuteProcessException
@@ -69,12 +70,13 @@ class StubLocalPosixEelApi(private val envVariables: Map<String, String>) : EelE
 
 class StubEelDescriptor(private val eelApi: LocalPosixEelApi) : EelDescriptor {
   override val operatingSystem = EelPath.OS.UNIX
-  override val userReadableDescription: @NonNls String
-    get() = ""
-  override val osFamily: EelOsFamily
-    get() = EelOsFamily.Posix
 
-  override suspend fun toEelApi(): EelApi = eelApi
+  override val machine: EelMachine = object : EelMachine {
+    override val name: @NonNls String
+      get() = ""
+    override val osFamily: EelOsFamily
+      get() = EelOsFamily.Posix
 
-  override suspend fun upgrade() = eelApi
+    override suspend fun toEelApi(): EelApi = eelApi
+  }
 }
