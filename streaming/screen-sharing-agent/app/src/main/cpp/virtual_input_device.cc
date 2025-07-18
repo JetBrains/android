@@ -32,6 +32,7 @@
 #include "string_printf.h"
 
 #define LOG_IOCTL_CALLS true
+#define HOVERING_ENABLED true
 
 namespace screensharing {
 
@@ -625,6 +626,7 @@ bool VirtualTablet::WriteTouchEvent(int32_t pointer_id, int32_t tool_type, int32
 
 bool VirtualTablet::WriteMotionEvent(int32_t pointer_id, int32_t tool_type, int32_t action, int32_t location_x, int32_t location_y,
                                      nanoseconds event_time) {
+#if(HOVERING_ENABLED)
   auto action_iterator = TOUCH_ACTION_MAPPING.find(action);
   if (action_iterator == TOUCH_ACTION_MAPPING.end()) {
     Log::E("%s: Unsupported action: %d.", phys_.c_str(), action);
@@ -656,10 +658,12 @@ bool VirtualTablet::WriteMotionEvent(int32_t pointer_id, int32_t tool_type, int3
     Log::E("%s: Failed to write SYN_REPORT for motion event.", phys_.c_str());
     return false;
   }
+#endif  // HOVERING_ENABLED
   return true;
 }
 
 bool VirtualTablet::StartHovering(nanoseconds event_time) {
+#if (HOVERING_ENABLED)
   Log::D("%s: StartHovering: is_hovering_=%s", phys_.c_str(), is_hovering_ ? "true" : "false");
   if (!is_hovering_) {
     if (!WriteButtonTouchEvent(false, event_time)) {
@@ -669,10 +673,12 @@ bool VirtualTablet::StartHovering(nanoseconds event_time) {
     is_hovering_ = true;
     Log::D("%s: StartHovering: hovering started", phys_.c_str());
   }
+#endif  // HOVERING_ENABLED
   return true;
 }
 
 bool VirtualTablet::StopHovering(nanoseconds event_time) {
+#if (HOVERING_ENABLED)
   Log::D("%s: StopHovering: is_hovering_=%s", phys_.c_str(), is_hovering_ ? "true" : "false");
   if (is_hovering_) {
     if (!WriteTouchEndEvent(0, event_time)) {
@@ -682,6 +688,7 @@ bool VirtualTablet::StopHovering(nanoseconds event_time) {
     is_hovering_ = false;
     Log::D("%s: StopHovering: hovering stopped", phys_.c_str());
   }
+#endif  // HOVERING_ENABLED
   return true;
 }
 
