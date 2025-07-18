@@ -362,10 +362,9 @@ class DeviceClient(
   private suspend fun pushAgent(deviceSelector: DeviceSelector, adbSession: AdbSession, project: Project) {
     streamingSessionTracker.agentPushStarted()
 
-    val soFile: Path
-    val jarFile: Path
-    if (StudioPathManager.isRunningFromSources()) {
-      // Development environment.
+    var soFile: Path? = null
+    var jarFile: Path? = null
+    if (ApplicationManager.getApplication().isInternal) {
       val projectDir = project.guessProjectDir()?.toNioPath()
       if (projectDir != null && projectDir.endsWith(SCREEN_SHARING_AGENT_SOURCE_PATH)) {
         // Development environment for the screen sharing agent.
@@ -377,19 +376,21 @@ class DeviceClient(
         val apkName = if (buildVariant == "debug") "app-debug.apk" else "app-release-unsigned.apk"
         jarFile = projectDir.resolve("app/build/outputs/apk/$buildVariant/$apkName")
       }
-      else {
-        // Development environment for Studio.
+    }
+    if (soFile == null || jarFile == null) {
+      if (StudioPathManager.isRunningFromSources()) {
+        // Studio running from IntelliJ.
         // Use the agent built by running "bazel build //tools/adt/idea/streaming/screen-sharing-agent:bundle"
         val binDir = Paths.get(StudioPathManager.getBinariesRoot())
         soFile = binDir.resolve("$SCREEN_SHARING_AGENT_SOURCE_PATH/native/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
         jarFile = binDir.resolve("$SCREEN_SHARING_AGENT_SOURCE_PATH/$SCREEN_SHARING_AGENT_JAR_NAME")
       }
-    }
-    else {
-      // Installed Studio.
-      val agentDir = PluginPathManager.getPluginHome("android/resources/screen-sharing-agent").toPath()
-      soFile = agentDir.resolve("$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
-      jarFile = agentDir.resolve(SCREEN_SHARING_AGENT_JAR_NAME)
+      else {
+        // Installed Studio.
+        val agentDir = PluginPathManager.getPluginHome("android/resources/screen-sharing-agent").toPath()
+        soFile = agentDir.resolve("$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
+        jarFile = agentDir.resolve(SCREEN_SHARING_AGENT_JAR_NAME)
+      }
     }
 
     coroutineScope {
