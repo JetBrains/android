@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -33,7 +34,8 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 /**
- * Integration test for Gradle Sync with old versions of Android plugin.
+ * Integration test for Gradle Sync with old versions of Android plugin where we expect a
+ * Controlled Failure.
  */
 @OldAgpTest
 @RunWith(Parameterized::class)
@@ -47,7 +49,11 @@ class SyncWithUnsupportedAGPPluginTest(private val environmentDescriptor: AgpVer
     @JvmStatic
     @Parameterized.Parameters(name="{0}")
     fun testParameters(): Collection<*> {
-      return applicableAgpVersions().filter { it < AGP_40 }.reversed().map { arrayOf(it) }
+      fun AgpVersionSoftwareEnvironmentDescriptor.isBelowMinimumForcedUpgradeVersion() = when (val v = this.agpVersion) {
+        null -> false
+        else -> AgpVersion.parse(v) < AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_FORCED_UPGRADE_VERSION)
+      }
+      return applicableAgpVersions().filter { it.isBelowMinimumForcedUpgradeVersion() }.reversed().map { arrayOf(it) }
     }
   }
 

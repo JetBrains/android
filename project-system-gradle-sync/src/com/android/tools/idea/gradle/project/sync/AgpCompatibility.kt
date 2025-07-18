@@ -18,6 +18,12 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DEPRECATED
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.OBSOLETE
 import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginCompatibility
 
 internal val MINIMUM_SUPPORTED_AGP_VERSION = AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
@@ -41,11 +47,11 @@ internal fun checkAgpVersionCompatibility(minimumModelConsumer: ModelConsumerVer
   return when (computeAndroidGradlePluginCompatibility(agpVersion, latestKnown)) {
     // We want to report to the user that they are using an AGP version that is below the minimum supported version for Android Studio,
     // and this is regardless of whether we want to trigger the upgrade assistant or not. Sync should always fail here.
-    AndroidGradlePluginCompatibility.BEFORE_MINIMUM -> throw AgpVersionTooOld(agpVersion)
-    AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW ->
+    BEFORE_MINIMUM -> throw AgpVersionTooOld(agpVersion)
+    DIFFERENT_PREVIEW ->
       if (!flags.studioFlagDisableForcedUpgrades) throw AgpVersionIncompatible(agpVersion, latestKnown) else Unit
-    AndroidGradlePluginCompatibility.AFTER_MAXIMUM ->
+    AFTER_MAXIMUM ->
       if (!flags.studioFlagDisableForcedUpgrades) throw AgpVersionTooNew(agpVersion, latestKnown) else Unit
-    AndroidGradlePluginCompatibility.COMPATIBLE, AndroidGradlePluginCompatibility.DEPRECATED -> Unit
+    COMPATIBLE, DEPRECATED, OBSOLETE -> Unit
   }
 }

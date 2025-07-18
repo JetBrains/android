@@ -31,6 +31,12 @@ import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DEPRECATED
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.OBSOLETE
 import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginCompatibility
 import com.android.tools.idea.observable.ListenerManager
 import com.intellij.build.BuildContentManager
@@ -440,7 +446,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
       }
       selectedStep == null && uiState.showTree -> {
         when (model.current?.let { computeAndroidGradlePluginCompatibility(it, model.latestKnownVersion) }) {
-          AndroidGradlePluginCompatibility.DEPRECATED -> {
+          DEPRECATED -> {
             val sb = StringBuilder()
             sb.append("<div><b>Update from deprecated Android Gradle Plugin version</b></div>")
             sb.append("<p>This project currently uses Android Gradle Plugin version ${model.current}, which<br/>" +
@@ -454,7 +460,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
             detailsPanel.add(label)
             detailsPanel.addReleaseNotesInfo(model)
           }
-          AndroidGradlePluginCompatibility.COMPATIBLE -> {
+          COMPATIBLE -> {
             if (model.current == model.recommended) {
               // not AllDone: there must be optional steps left (current must be non-null here)
               val sb = StringBuilder()
@@ -476,7 +482,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
             }
           }
           // Other (non-compatible) cases not handled by AGP Upgrade Assistant Tool Window
-          AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW, AndroidGradlePluginCompatibility.BEFORE_MINIMUM, AndroidGradlePluginCompatibility.AFTER_MAXIMUM -> Unit
+          DIFFERENT_PREVIEW, BEFORE_MINIMUM, AFTER_MAXIMUM, OBSOLETE -> Unit
           null -> Unit
         }
       }

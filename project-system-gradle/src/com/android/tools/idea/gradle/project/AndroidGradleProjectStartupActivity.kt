@@ -489,7 +489,7 @@ private fun <T> getModelFromDataNode(moduleDataNode: DataNode<*>, dataKey: Key<T
 
 private fun additionalProjectSetup(project: Project) {
   AndroidPluginInfo.findFromModel(project)?.let { info ->
-    project.getService(AssistantInvoker::class.java).maybeRecommendPluginUpgrade(project, info)
+    project.getService(AssistantInvoker::class.java).maybeForceOrRecommendPluginUpgrade(project, info)
   }
   ProjectStructure.getInstance(project).analyzeProjectStructure()
   GradleVersionCatalogDetector.getInstance(project).maybeSuggestToml(project)

@@ -70,13 +70,18 @@ class AssistantInvokerImpl : AssistantInvoker {
     return runProcessor
   }
 
-  override fun maybeRecommendPluginUpgrade(project: Project, info: AndroidPluginInfo) {
+  override fun maybeForceOrRecommendPluginUpgrade(project: Project, info: AndroidPluginInfo) {
     info.pluginVersion?.let { currentAgpVersion ->
       val latestKnown = AgpVersions.latestKnown
       executeOnPooledThread {
         val published = IdeGoogleMavenRepository.getAgpVersions()
-        val recommendation = shouldRecommendPluginUpgrade(project, currentAgpVersion, latestKnown, published)
-        if (recommendation.upgrade) recommendPluginUpgrade(project, currentAgpVersion, recommendation.strongly)
+        if (shouldForcePluginUpgrade(project, currentAgpVersion, latestKnown, published)) {
+          performForcedPluginUpgrade(project, currentAgpVersion)
+        }
+        else {
+          val recommendation = shouldRecommendPluginUpgrade(project, currentAgpVersion, latestKnown, published)
+          if (recommendation.upgrade) recommendPluginUpgrade(project, currentAgpVersion, recommendation.strongly)
+        }
       }
     }
   }

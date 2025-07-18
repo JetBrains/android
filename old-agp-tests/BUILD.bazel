@@ -5,7 +5,10 @@ jvm_library(
   name = "old-agp-tests",
   visibility = ["//visibility:public"],
   srcs = glob([], allow_empty = True),
-  runtime_deps = ["@lib//:kotlin-stdlib"]
+  runtime_deps = [
+    "@lib//:kotlin-stdlib",
+    "//platform/refactoring",
+  ]
 )
 
 jvm_library(
@@ -41,6 +44,7 @@ jvm_library(
     "//platform/execution-impl",
     "//platform/lang-core",
     "//platform/projectModel-api:projectModel",
+    "//platform/refactoring",
     "//xml/xml-psi-api:psi",
     "//plugins/kotlin/idea",
     "//android/android-test-framework:testFramework_test_lib",
@@ -54,7 +58,9 @@ jvm_library(
     "//platform/execution",
     "//android/render-resources",
     "//android/rendering",
+    "//android/project-system-gradle-upgrade:projectSystem-gradle-upgrade",
     "//platform/analysis-api:analysis",
+    "@lib//:mockito-kotlin",
   ],
   runtime_deps = [":old-agp-tests"]
 )
