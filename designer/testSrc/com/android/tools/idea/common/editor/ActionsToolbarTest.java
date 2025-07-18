@@ -104,9 +104,7 @@ public class ActionsToolbarTest extends LayoutTestCase {
   // Lookup some private fields via reflections.
   // The aim is to test that the action to presentation cache doesn't grow indefinitely.
   private static Map<?,?> getPresentationCache(@NotNull ActionToolbarImpl actionToolbar) throws Exception {
-    Field factoryField = ActionToolbarImpl.class.getDeclaredField("myPresentationFactory");
-    factoryField.setAccessible(true);
-    PresentationFactory factory = (PresentationFactory)factoryField.get(actionToolbar);
+    PresentationFactory factory = actionToolbar.getPresentationFactory();
     Field cacheField = PresentationFactory.class.getDeclaredField("myPresentations");
     cacheField.setAccessible(true);
     return (Map<?,?>)cacheField.get(factory);
