@@ -15,87 +15,67 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model
 
-import java.util.regex.Pattern
+import com.android.tools.journeys.proto.ArtifactType
+import com.android.tools.journeys.proto.Interaction
+import com.android.tools.journeys.proto.Step
+import com.android.tools.journeys.proto.Turn
+import java.util.Base64
 
 data class JourneyActionArtifacts(
   val description: String?,
   val reasoning: String?,
   val screenshotImage: String?,
+  val interactions: List<String> = emptyList(),
 ) {
   companion object {
     /**
-     * Extracts journey-related artifacts from a map of additional test artifacts.
+     * Extracts Journey-related artifacts from a map of additional test artifacts.
      *
-     * The expected key format for journey artifacts is:
-     * `"Journeys.ActionPerformed.action{index}.{artifactType}"` or
-     * `Journeys.PromptComplete.prompt{index}.{artifactType}"`, where:
-     * - `index` is a positive integer representing the prompt/action's index (e.g., "1", "2").
-     * - `artifactType` is one of the following:
-     *     - `"screenshotPath"`: The path to a screenshot image.
-     *     - `"description"`: A description of the user action.
-     *     - `"modelReasoning"`: The model's reasoning for the action.
-     *
-     * Artifacts are grouped by their `index` and ordered by ascending index, with the
-     * `ActionPerformed` artifacts placed ordered before the `PromptComplete` artifacts.
+     * This function looks for a key named "Journeys.Step" in the provided map. The value associated
+     * with this key is expected to be a Base64 encoded string of a `Step` proto. This `Step` proto
+     * contains a list of `Turn` objects, each representing an action within a test journey.
+     * `JourneyActionArtifacts` objects are then created from the `Turn` objects within the `Step`
+     * proto.
      *
      * @param additionalTestArtifacts A map of key-value pairs representing additional test
      *   artifacts.
      * @return A list of [JourneyActionArtifacts] parsed from the input map, or an empty list if no
-     *   valid journey artifacts are found. The returned list is sorted by ascending action index.
+     *   valid journey artifacts are found.
+     *   The returned list is ordered by the sequence of turns in the `Step` proto.
      */
     fun parseFromAdditionalTestArtifacts(
       additionalTestArtifacts: Map<String, String>
     ): List<JourneyActionArtifacts> {
-      val journeyArtifacts = additionalTestArtifacts.filter { it.key.startsWith("Journeys.") }
-
-      // Helper function to parse artifacts for a specific journey type (ActionPerformed or
-      // PromptComplete)
-      fun extractGroupedArtifacts(
-        sourceArtifacts: Map<String, String>,
-        pattern: Pattern,
-      ): List<JourneyActionArtifacts> {
-        val groupedData = mutableMapOf<String, MutableMap<String, String>>()
-
-        for ((key, value) in sourceArtifacts) {
-          val matcher = pattern.matcher(key)
-          if (matcher.find()) {
-            val index = matcher.group(1)
-            val artifactType = matcher.group(2)
-            groupedData.computeIfAbsent(index) { mutableMapOf() }[artifactType] = value
-          }
-        }
-
-        return groupedData.entries
-          .sortedBy { it.key.toIntOrNull() ?: Int.MAX_VALUE }
-          .mapNotNull { (_, dataMap) ->
-            val description = dataMap["description"]
-            val reasoning = dataMap["modelReasoning"]
-            val screenshotImage = dataMap["screenshotPath"]
-
-            // Create an artifact if at least one piece of information is present
-            if (description != null || reasoning != null || screenshotImage != null) {
-              JourneyActionArtifacts(
-                description = description,
-                reasoning = reasoning,
-                screenshotImage = screenshotImage,
-              )
-            } else {
-              null
-            }
-          }
+      val encodedJourneyStepResult = additionalTestArtifacts["Journeys.Step"] ?: return emptyList()
+      val journeyStepResult = decodeStepResult(encodedJourneyStepResult)
+      return journeyStepResult.turnsList.map {
+        JourneyActionArtifacts(
+          it.description?.nullIfEmpty(),
+          it.reasoning?.nullIfEmpty(),
+          getScreenshot(it),
+          it.interactionsList.map { interaction -> formatInteraction(interaction) }
+        )
       }
+    }
 
-      val actionPerformedArtifacts =
-        extractGroupedArtifacts(
-          journeyArtifacts,
-          Pattern.compile("""^Journeys\.ActionPerformed\.action(\d+)\.(\w+)$"""),
-        )
-      val promptCompleteArtifacts =
-        extractGroupedArtifacts(
-          journeyArtifacts,
-          Pattern.compile("""^Journeys\.PromptComplete\.prompt(\d+)\.(\w+)$"""),
-        )
-      return actionPerformedArtifacts + promptCompleteArtifacts
+    private fun decodeStepResult(base64String: String): Step {
+      val decodedBytes = Base64.getDecoder().decode(base64String)
+      return Step.parseFrom(decodedBytes)
+    }
+
+    private fun getScreenshot(turn: Turn): String? {
+      return turn.artifactsBeforeList.find { it.type == ArtifactType.SCREENSHOT }?.uri
+    }
+
+    /**
+     * Formats an [Interaction] proto into a human-readable string.
+     *
+     * The format is "command (status)". For example: "Click (SUCCEEDED)".
+     */
+    private fun formatInteraction(interaction: Interaction): String {
+      return "${interaction.command} (${interaction.result.status.name})"
     }
   }
 }
+
+private fun String.nullIfEmpty(): String? = ifEmpty { null }
