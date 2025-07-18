@@ -105,6 +105,7 @@ import org.jetbrains.android.util.AndroidBundle
 import java.awt.event.ActionEvent
 import java.io.File
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import javax.swing.AbstractAction
 import javax.swing.Action
@@ -664,6 +665,7 @@ class AgpUpgradeRefactoringProcessor(
     // being done; on the other hand it is cancellable, shows numeric progress and takes around 30 seconds for a project with 1k modules.
     //
     // Moving to an asynchronous process would involve modifying callers to do the subsequent work after parsing in callbacks.
+    val future = CompletableFuture<Unit>()
 
     DumbService.getInstance(project).runWhenSmart {
       // we must be in smart mode before starting the modal progress display, otherwise attempts to use indexes in
@@ -685,7 +687,9 @@ class AgpUpgradeRefactoringProcessor(
           componentRefactoringProcessors.forEach { it.initializeComponentCaches() }
         },
         commandName, true, project)
+      future.complete(Unit)
     }
+    future.join()
   }
 }
 
