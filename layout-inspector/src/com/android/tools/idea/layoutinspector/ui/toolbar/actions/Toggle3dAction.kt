@@ -95,7 +95,7 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
       if (model.isRotated) StudioIcons.LayoutInspector.Toolbar.RESET_VIEW
       else StudioIcons.LayoutInspector.Toolbar.MODE_3D
     if (
-      model.overlay == null &&
+      model.overlayImage == null &&
         client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true &&
         (client.inLiveMode || inspectorModel?.pictureType == AndroidWindow.ImageType.SKP)
     ) {
@@ -117,7 +117,7 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
       @Suppress("DialogTitleCapitalization")
       event.presentation.text =
         when {
-          model.overlay != null -> "Rotation not available when overlay is active"
+          model.overlayImage != null -> "Rotation not available when overlay is active"
           isLowerThenApi29 -> "Rotation not available for devices below API 29"
           else -> "Error while rendering device image, rotation not available"
         }

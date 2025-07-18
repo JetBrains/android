@@ -71,7 +71,7 @@ class AlphaSliderAction(private val renderModelProvider: () -> RenderModel) :
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    val hasOverlay = (renderModelProvider().overlay != null)
+    val hasOverlay = (renderModelProvider().overlayImage != null)
     e.presentation.isVisible = hasOverlay
   }
 }

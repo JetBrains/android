@@ -26,7 +26,6 @@ import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSli
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RefreshAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RenderSettingsAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleOverlayAction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -55,21 +54,26 @@ const val EMBEDDED_LAYOUT_INSPECTOR_TOOLBAR = "EmbeddedLayoutInspector.Toolbar"
  * Creates the toolbar used by Embedded Layout Inspector. This toolbar is the same as the one used
  * by the Standalone Layout Inspector, but the toolbar also contains a label with the name of the
  * tool.
+ *
+ * @param firstGroupExtraActions Actions to be added to before the first separator.
+ * @param lastGroupExtraActions Actions to be added as a new group at the end.
  */
 fun createEmbeddedLayoutInspectorToolbar(
   parentDisposable: Disposable,
   targetComponent: JComponent,
   layoutInspector: LayoutInspector,
   selectProcessAction: AnAction?,
-  extraActions: List<AnAction> = emptyList(),
+  firstGroupExtraActions: List<AnAction> = emptyList(),
+  lastGroupExtraActions: List<AnAction> = emptyList(),
 ): JPanel {
   val actionToolbar =
     createStandaloneLayoutInspectorToolbar(
-      parentDisposable,
-      targetComponent,
-      layoutInspector,
-      selectProcessAction,
-      extraActions,
+      parentDisposable = parentDisposable,
+      targetComponent = targetComponent,
+      layoutInspector = layoutInspector,
+      selectProcessAction = selectProcessAction,
+      firstGroupExtraActions = firstGroupExtraActions,
+      lastGroupExtraActions = lastGroupExtraActions,
     )
   actionToolbar.layoutStrategy = ToolbarLayoutStrategy.AUTOLAYOUT_STRATEGY
   actionToolbar.setReservePlaceAutoPopupIcon(false)
@@ -97,15 +101,27 @@ fun createEmbeddedLayoutInspectorToolbar(
   return boxLayoutPanel
 }
 
-/** * Creates the toolbar used by Stadalone Layout Inspector. */
+/**
+ * Creates the toolbar used by Standalone Layout Inspector.
+ *
+ * @param firstGroupExtraActions Actions to be added to before the first separator.
+ * @param lastGroupExtraActions Actions to be added as a new group at the end.
+ */
 fun createStandaloneLayoutInspectorToolbar(
   parentDisposable: Disposable,
   targetComponent: JComponent,
   layoutInspector: LayoutInspector,
   selectProcessAction: AnAction?,
-  extraActions: List<AnAction> = emptyList(),
+  firstGroupExtraActions: List<AnAction> = emptyList(),
+  lastGroupExtraActions: List<AnAction> = emptyList(),
 ): ActionToolbar {
-  val actionGroup = LayoutInspectorActionGroup(layoutInspector, selectProcessAction, extraActions)
+  val actionGroup =
+    LayoutInspectorActionGroup(
+      layoutInspector,
+      selectProcessAction,
+      firstGroupExtraActions,
+      lastGroupExtraActions,
+    )
   val actionToolbar =
     ActionManager.getInstance()
       .createActionToolbar(LAYOUT_INSPECTOR_MAIN_TOOLBAR, actionGroup, true)
@@ -129,11 +145,17 @@ fun createStandaloneLayoutInspectorToolbar(
   return actionToolbar
 }
 
-/** Action Group containing all the actions used in Layout Inspector's main toolbar. */
+/**
+ * Action Group containing all the actions used in Layout Inspector's main toolbar.
+ *
+ * @param firstGroupExtraActions Actions to be added to before the first separator.
+ * @param lastGroupExtraActions Actions to be added as a new group at the end.
+ */
 private class LayoutInspectorActionGroup(
   layoutInspector: LayoutInspector,
   selectProcessAction: AnAction?,
-  extraActions: List<AnAction>,
+  firstGroupExtraActions: List<AnAction>,
+  lastGroupExtraActions: List<AnAction>,
 ) : DefaultActionGroup() {
   init {
     if (selectProcessAction != null) {
@@ -146,7 +168,7 @@ private class LayoutInspectorActionGroup(
         renderSettingsProvider = { layoutInspector.renderLogic.renderSettings },
       )
     )
-    add(ToggleOverlayAction { layoutInspector.renderModel })
+    firstGroupExtraActions.forEach { add(it) }
     if (!layoutInspector.isSnapshot) {
       add(SnapshotAction)
     }
@@ -161,6 +183,6 @@ private class LayoutInspectorActionGroup(
     }
     add(Separator.getInstance())
     add(LayerSpacingSliderAction { layoutInspector.renderModel })
-    extraActions.forEach { add(it) }
+    lastGroupExtraActions.forEach { add(it) }
   }
 }

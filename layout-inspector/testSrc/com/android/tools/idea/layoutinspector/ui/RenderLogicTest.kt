@@ -27,6 +27,7 @@ import com.android.resources.ResourceType
 import com.android.resources.ScreenRound
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
+import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
@@ -540,8 +541,9 @@ class RenderLogicTest {
   fun testPaintOverlay() {
     val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
       createPaintBordersConfig()
-    renderModel.overlay =
-      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
+    val file = resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+    renderModel.overlayBytes = imageBytes
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
   }
@@ -550,8 +552,9 @@ class RenderLogicTest {
   fun testPaintOverlayAlpha20() {
     val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
       createPaintBordersConfig()
-    renderModel.overlay =
-      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
+    val file = resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+    renderModel.overlayBytes = imageBytes
     renderModel.overlayAlpha = 0.2f
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)
@@ -561,8 +564,9 @@ class RenderLogicTest {
   fun testPaintOverlayAlpha90() {
     val (_, _, renderModel, renderLogic, renderImage, renderDimension, centerTransform) =
       createPaintBordersConfig()
-    renderModel.overlay =
-      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
+    val file = resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+    renderModel.overlayBytes = imageBytes
     renderModel.overlayAlpha = 0.9f
     paint(renderImage, centerTransform, renderLogic, renderDimension)
     assertSimilar(renderImage, testName.methodName)

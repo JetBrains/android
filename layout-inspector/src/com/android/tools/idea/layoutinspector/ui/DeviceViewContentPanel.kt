@@ -244,7 +244,7 @@ class DeviceViewContentPanel(
         override fun mouseDragged(e: MouseEvent) {
           if (e.isConsumed) return
           if (
-            renderModel.overlay != null ||
+            renderModel.overlayImage != null ||
               currentClient()?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) !=
                 true
           ) {

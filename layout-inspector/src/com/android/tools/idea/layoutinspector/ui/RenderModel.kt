@@ -30,6 +30,8 @@ import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
 import java.awt.geom.Area
+import java.io.ByteArrayInputStream
+import javax.imageio.ImageIO
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan
@@ -91,14 +93,24 @@ class RenderModel(
 
   val modificationListeners = mutableListOf<() -> Unit>()
 
-  var overlay: Image? = null
+  /** [ByteArray] representation of the [overlayImage]. */
+  var overlayBytes: ByteArray? = null
     set(value) {
       if (value != null) {
+        val image = ImageIO.read(ByteArrayInputStream(value))
+        overlayImage = image
         resetRotation()
+      } else {
+        overlayImage = null
       }
+
       field = value
       modificationListeners.forEach { it() }
     }
+
+  /** Overlay image, controlled by [overlayBytes]. */
+  var overlayImage: Image? = null
+    private set
 
   var overlayAlpha: Float = INITIAL_ALPHA_PERCENT / 100f
     set(value) {
@@ -117,7 +129,7 @@ class RenderModel(
   init {
     model.addModificationListener { _, new, _ ->
       if (new == null) {
-        overlay = null
+        overlayImage = null
       }
       if (!currentClientProvider().capabilities.contains(InspectorClient.Capability.SUPPORTS_SKP)) {
         resetRotation()

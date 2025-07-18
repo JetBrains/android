@@ -55,7 +55,6 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.nio.file.Path
-import javax.imageio.ImageIO
 import kotlin.io.path.pathString
 import org.junit.Before
 import org.junit.Rule
@@ -274,8 +273,9 @@ class StudioRendererPanelTest {
   fun testOverlayIsRendered() {
     val layoutInspectorRenderer = createRenderer()
 
-    renderModel.overlay =
-      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
+    val file = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+    renderModel.overlayBytes = imageBytes
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -301,8 +301,9 @@ class StudioRendererPanelTest {
     // mouse hover should be disabled when we are not in deep inspect mode.
     assertThat(renderModel.model.hoveredNode).isNull()
 
-    renderModel.overlay =
-      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
+    val file = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+    renderModel.overlayBytes = imageBytes
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -328,8 +329,9 @@ class StudioRendererPanelTest {
 
     assertThat(renderModel.model.hoveredNode).isEqualTo(renderModel.model[VIEW1])
 
-    renderModel.overlay =
-      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
+    val file = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+    renderModel.overlayBytes = imageBytes
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -359,8 +361,9 @@ class StudioRendererPanelTest {
 
     assertThat(renderModel.model.selection).isEqualTo(renderModel.model[VIEW1])
 
-    renderModel.overlay =
-      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
+    val file = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+    renderModel.overlayBytes = imageBytes
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)

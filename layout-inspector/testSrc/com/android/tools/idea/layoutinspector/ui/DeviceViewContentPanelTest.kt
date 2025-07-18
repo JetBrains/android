@@ -561,8 +561,9 @@ class DeviceViewContentPanelTest {
 
     panel.setSize(1000, 1500)
 
-    panel.renderModel.overlay =
-      ImageIO.read(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
+    val file = resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+    panel.renderModel.overlayBytes = imageBytes
 
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(

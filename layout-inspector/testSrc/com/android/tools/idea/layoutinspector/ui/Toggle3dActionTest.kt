@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.sdklib.AndroidApiLevel
 import com.android.testutils.MockitoCleanerRule
+import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -47,6 +48,7 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import icons.StudioIcons
+import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.ClassRule
@@ -54,6 +56,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+
+private val TEST_DATA_PATH = Path.of("tools", "adt", "idea", "layout-inspector", "testData")
 
 class Toggle3dActionTest {
 
@@ -161,7 +165,11 @@ class Toggle3dActionTest {
   fun testOverlay() {
     val toggle3dAction = Toggle3dAction { renderModel }
     val fakeEvent = createFakeEvent(toggle3dAction)
-    renderModel.overlay = mock()
+
+    val file = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile()
+    val imageBytes = file.readBytes()
+    renderModel.overlayBytes = imageBytes
+
     toggle3dAction.update(fakeEvent)
     assertThat(fakeEvent.presentation.isEnabled).isFalse()
     assertThat(fakeEvent.presentation.text)

@@ -40,6 +40,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.Layout
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleOverlayAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.createEmbeddedLayoutInspectorToolbar
 import com.android.tools.idea.streaming.core.DeviceId
 import com.google.common.annotations.VisibleForTesting
@@ -237,25 +238,34 @@ data class SelectedTabState(
         deviceId.serialNumber,
       )
     return createEmbeddedLayoutInspectorToolbar(
-      parentDisposable,
-      targetComponent,
-      layoutInspector,
-      processPicker,
-      listOf(
-        toggleDeepInspectAction,
-        GearAction(
-          HorizontalSplitAction(::uiConfig, ::updateUi),
-          SwapHorizontalSplitAction(::uiConfig, ::updateUi),
-          VerticalSplitAction(::uiConfig, ::updateUi),
-          SwapVerticalSplitAction(::uiConfig, ::updateUi),
-          LeftVerticalSplitAction(::uiConfig, ::updateUi),
-          SwapLeftVerticalSplitAction(::uiConfig, ::updateUi),
-          RightVerticalSplitAction(::uiConfig, ::updateUi),
-          SwapRightVerticalSplitAction(::uiConfig, ::updateUi),
-          Separator.create(),
-          DimensionUnitAction,
+      parentDisposable = parentDisposable,
+      targetComponent = targetComponent,
+      layoutInspector = layoutInspector,
+      selectProcessAction = processPicker,
+      firstGroupExtraActions =
+        listOf(
+          ToggleOverlayAction(
+            inspectorModel = layoutInspector.inspectorModel,
+            getImage = { layoutInspector.renderModel.overlayBytes },
+            setImage = { layoutInspector.renderModel.overlayBytes = it },
+          )
         ),
-      ),
+      lastGroupExtraActions =
+        listOf(
+          toggleDeepInspectAction,
+          GearAction(
+            HorizontalSplitAction(::uiConfig, ::updateUi),
+            SwapHorizontalSplitAction(::uiConfig, ::updateUi),
+            VerticalSplitAction(::uiConfig, ::updateUi),
+            SwapVerticalSplitAction(::uiConfig, ::updateUi),
+            LeftVerticalSplitAction(::uiConfig, ::updateUi),
+            SwapLeftVerticalSplitAction(::uiConfig, ::updateUi),
+            RightVerticalSplitAction(::uiConfig, ::updateUi),
+            SwapRightVerticalSplitAction(::uiConfig, ::updateUi),
+            Separator.create(),
+            DimensionUnitAction,
+          ),
+        ),
     )
   }
 
