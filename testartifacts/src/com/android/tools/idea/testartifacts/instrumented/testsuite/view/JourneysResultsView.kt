@@ -116,6 +116,13 @@ fun JourneysResultsView(
             title = "Reasoning",
             text = artifact.reasoning ?: "None",
           )
+          if (artifact.interactions.isNotEmpty()) {
+            ArtifactText(
+              modifier = Modifier,
+              title = "Commands",
+              text = artifact.interactions.joinToString(",")
+            )
+          }
         }
         VerticalScrollbar(
           modifier = Modifier.fillMaxHeight().align(Alignment.TopEnd),

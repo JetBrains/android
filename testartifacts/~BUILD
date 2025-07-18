@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
@@ -29,6 +30,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/adt/idea/artwork-compose:intellij.android.artwork-compose",
+        "//tools/adt/idea/testartifacts:libjourneys-java-proto",
     ],
 )
 
@@ -92,6 +94,7 @@ iml_module(
         "//tools/adt/idea/testartifacts:intellij.android.testartifacts",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose.tests",
+        "//tools/adt/idea/testartifacts:libjourneys-java-proto",
     ],
     test_jvm_flags = [
         "-Djdk.attach.allowAttachSelf=true",
@@ -142,4 +145,14 @@ maven_repository(
         "@maven//:org.mockito.mockito-core_5.12.0",
     ],
     visibility = ["//tools/adt/idea/testartifacts:__subpackages__"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "libjourneys-java-proto",
+    jars = ["//tools/base/journeys/journeys-protos:libjourneys-java-proto.jar"],
+    visibility = [
+        "//tools/adt/idea/android:__subpackages__",
+        "//tools/adt/idea/studio:__subpackages__",
+    ],
 )

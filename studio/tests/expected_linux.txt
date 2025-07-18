@@ -2331,6 +2331,7 @@ android-studio/plugins/android/lib/libandroid-core-proto.jar
 android-studio/plugins/android/lib/libcommon_proto.jar
 android-studio/plugins/android/lib/libjava_sites.jar
 android-studio/plugins/android/lib/libjava_version.jar
+android-studio/plugins/android/lib/libjourneys-java-proto.jar
 android-studio/plugins/android/lib/liblint-checks-proto.lib.jar
 android-studio/plugins/android/lib/libplay_vitals_java_proto.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
@@ -3078,6 +3079,7 @@ android-studio/plugins/gemini/lib/jackson-datatype-jsr310-2.18.2.jar
 android-studio/plugins/gemini/lib/libagent_log_proto.jar
 android-studio/plugins/gemini/lib/libfeedback_java_proto.jar
 android-studio/plugins/gemini/lib/libgoogle_auth_intellij_lib.jar
+android-studio/plugins/gemini/lib/libjourneys-java-proto.jar
 android-studio/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 android-studio/plugins/gemini/lib/libv1internal_java_rest.jar
 android-studio/plugins/gemini/lib/lucene-queryparser-9.12.0.jar
