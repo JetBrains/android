@@ -156,7 +156,7 @@ int OpenUInput(DeviceType device_type, const char* phys, int32_t screen_width, i
       ioctl(fd, UI_SET_KEYBIT, BTN_TOUCH);
       ioctl(fd, UI_SET_KEYBIT, BTN_TOOL_PEN);
       DefineAbsDimensions(fd);
-      ioctl(fd, UI_SET_PROPBIT, INPUT_PROP_POINTER);
+      ioctl(fd, UI_SET_PROPBIT, INPUT_PROP_DIRECT);
       break;
 
     case DeviceType::TOUCHSCREEN:
